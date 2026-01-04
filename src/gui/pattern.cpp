@@ -40,11 +40,11 @@ struct DelayedLabel {
     label(l) {}
 };
 
-inline float randRange(float min, float max) {
+static inline float randRange(float min, float max) {
   return min+((float)rand()/(float)RAND_MAX)*(max-min);
 }
 
-void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+static void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
       ((FurnaceGUI*)cmd->UserCallbackData)->pushPartBlend();
@@ -52,7 +52,7 @@ void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
-void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+static void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
       ((FurnaceGUI*)cmd->UserCallbackData)->popPartBlend();

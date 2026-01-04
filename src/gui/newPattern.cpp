@@ -42,9 +42,37 @@
 // this is ImGui's TABLE_BORDER_SIZE.
 #define PAT_BORDER_SIZE 1.0f
 
-ImVec2 FurnaceGUI::mapSelPoint(const SelectionPoint& s, float lineHeight) {
-  return ImVec2(0,0);
+struct DelayedLabel {
+  float posCenter, posY;
+  ImVec2 textSize;
+  const char* label;
+  DelayedLabel(float pc, float py, ImVec2 ts, const char* l):
+    posCenter(pc),
+    posY(py),
+    textSize(ts),
+    label(l) {}
+};
+
+static inline float randRange(float min, float max) {
+  return min+((float)rand()/(float)RAND_MAX)*(max-min);
 }
+
+static void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+  if (cmd!=NULL) {
+    if (cmd->UserCallbackData!=NULL) {
+      ((FurnaceGUI*)cmd->UserCallbackData)->pushPartBlend();
+    }
+  }
+}
+
+static void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+  if (cmd!=NULL) {
+    if (cmd->UserCallbackData!=NULL) {
+      ((FurnaceGUI*)cmd->UserCallbackData)->popPartBlend();
+    }
+  }
+}
+
 
 void FurnaceGUI::drawPatternNew() {
   if (nextWindow==GUI_WINDOW_PATTERN) {
@@ -113,7 +141,7 @@ void FurnaceGUI::drawPatternNew() {
     nextAddScrollX=0.0f;
   }
 
-  if (ImGui::Begin("PatternNew",&patternOpen,globalWinFlags|ImGuiWindowFlags_HorizontalScrollbar|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|((settings.cursorFollowsWheel && !selecting)?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|ImGuiWindowFlags_HorizontalScrollbar|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|((settings.cursorFollowsWheel && !selecting)?ImGuiWindowFlags_NoScrollWithMouse:0),_("Pattern"))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -500,6 +528,7 @@ void FurnaceGUI::drawPatternNew() {
                 (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
               ));
               dl->AddRectFilledMultiColor(rectHeader.Min,rectHeader.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
+              // TODO: this is actually broken. fix!
               dl->AddLine(ImVec2(rectHeader.Min.x,rectHeader.Max.y),ImVec2(rectHeader.Max.x,rectHeader.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -1029,8 +1058,8 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
-      dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
+      //String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
+      //dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
 
       // row highlights
       {
@@ -1306,7 +1335,7 @@ void FurnaceGUI::drawPatternNew() {
       if (pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0) {
         if (ImGui::IsWindowHovered()) {
           if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
-            dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
+            //dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
               startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
             }
@@ -1357,6 +1386,278 @@ void FurnaceGUI::drawPatternNew() {
       );
     }
     dl->PopClipRect();
+
+    // TODO: demandScrollX
+
+    // TODO: particles
+    if (fancyPattern) { // visualizer
+      e->getCommandStream(cmdStream);
+      ImVec2 off=ImVec2(0.0f,0.0f);
+
+      ImVec2 winMin=ImGui::GetWindowPos();
+      ImVec2 winMax=ImVec2(
+        winMin.x+ImGui::GetWindowSize().x,
+        winMin.y+ImGui::GetWindowSize().y
+      );
+      
+      // commands
+      for (DivCommand& i: cmdStream) {
+        if (i.cmd==DIV_CMD_PITCH) continue;
+        if (i.cmd==DIV_CMD_NOTE_PORTA) continue;
+        //if (i.cmd==DIV_CMD_NOTE_ON) continue;
+        if (i.cmd==DIV_CMD_PRE_PORTA) continue;
+        if (i.cmd==DIV_CMD_PRE_NOTE) continue;
+        if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
+        if (i.cmd==DIV_CMD_GET_VOLUME) continue;
+        if (i.cmd==DIV_CMD_HINT_VOLUME ||
+            i.cmd==DIV_CMD_HINT_PORTA ||
+            i.cmd==DIV_CMD_HINT_LEGATO ||
+            i.cmd==DIV_CMD_HINT_VOL_SLIDE ||
+            i.cmd==DIV_CMD_HINT_VOL_SLIDE_TARGET ||
+            i.cmd==DIV_CMD_HINT_ARPEGGIO ||
+            i.cmd==DIV_CMD_HINT_PITCH ||
+            i.cmd==DIV_CMD_HINT_VIBRATO ||
+            i.cmd==DIV_CMD_HINT_VIBRATO_RANGE ||
+            i.cmd==DIV_CMD_HINT_VIBRATO_SHAPE) continue;
+
+        float width=patChanX[i.chan+1]-patChanX[i.chan];
+        float speedX=0.0f;
+        float speedY=-18.0f;
+        float grav=0.6f;
+        float frict=1.0f;
+        float life=255.0f;
+        float lifeSpeed=8.0f;
+        float spread=5.0f;
+        int num=3;
+        const char* partIcon=ICON_FA_MICROCHIP;
+        ImU32* color=noteGrad;
+
+        switch (i.cmd) {
+          case DIV_CMD_NOTE_ON: {
+            float strength=CLAMP(i.value,0,119);
+            partIcon=ICON_FA_ASTERISK;
+            life=80.0f+((i.value==DIV_NOTE_NULL)?0.0f:(strength*0.3f));
+            lifeSpeed=3.0f;
+            num=6+(strength/16);
+            break;
+          }
+          case DIV_CMD_LEGATO:
+            partIcon=ICON_FA_COG;
+            color=insGrad;
+            life=64.0f;
+            lifeSpeed=2.0f;
+            break;
+          case DIV_CMD_NOTE_OFF:
+          case DIV_CMD_NOTE_OFF_ENV:
+          case DIV_CMD_ENV_RELEASE:
+            partIcon=ICON_FA_ASTERISK;
+            speedX=0.0f;
+            speedY=0.0f;
+            grav=0.0f;
+            life=24.0f;
+            lifeSpeed=4.0f;
+            break;
+          case DIV_CMD_VOLUME: {
+            float scaledVol=(float)i.value/(float)e->getMaxVolumeChan(i.chan);
+            if (scaledVol>1.0f) scaledVol=1.0f;
+            speedY=-18.0f-(10.0f*scaledVol);
+            life=128+scaledVol*127;
+            partIcon=ICON_FA_VOLUME_UP;
+            num=12.0f*pow(scaledVol,2.0);
+            color=volGrad;
+            break;
+          }
+          case DIV_CMD_INSTRUMENT: {
+            if (lastIns[i.chan]==i.value) {
+              num=0;
+              break;
+            }
+            lastIns[i.chan]=i.value;
+            speedX=0.0f;
+            speedY=0.0f;
+            grav=0.0f;
+            frict=0.98;
+            spread=30.0f;
+            life=128.0f;
+            lifeSpeed=6.0f;
+            color=insGrad;
+            num=7+pow(i.value,0.6);
+            break;
+          }
+          case DIV_CMD_PANNING: {
+            float ratio=(float)(128-e->convertPanSplitToLinearLR(i.value,i.value2,256))/128.0f;
+            logV("ratio %f",ratio);
+            speedX=-22.0f*sin(ratio*M_PI*0.5);
+            speedY=-22.0f*cos(ratio*M_PI*0.5);
+            spread=5.0f+fabs(sin(ratio*M_PI*0.5))*7.0f;
+            grav=0.0f;
+            frict=0.96f;
+            if (i.value==i.value2) {
+              partIcon=ICON_FA_ARROWS_H;
+            } else if (ratio>0) {
+              partIcon=ICON_FA_ARROW_LEFT;
+            } else {
+              partIcon=ICON_FA_ARROW_RIGHT;
+            }
+            num=9;
+            color=panGrad;
+            break;
+          }
+          case DIV_CMD_SAMPLE_FREQ:
+            speedX=0.0f;
+            speedY=0.0f;
+            grav=0.0f;
+            frict=0.98;
+            spread=19.0f;
+            life=128.0f;
+            lifeSpeed=3.0f;
+            color=sysCmd2Grad;
+            num=10+pow(i.value,0.6);
+            break;
+          default:
+            //printf("unhandled %d\n",i.cmd);
+            color=sysCmd1Grad;
+            break;
+        }
+
+        if (!e->curSubSong->chanShow[i.chan]) continue;
+
+        for (int j=0; j<num; j++) {
+          ImVec2 partPos=ImVec2(
+            off.x+patChanX[i.chan]+fmod(rand(),width),
+            off.y+(playheadY)+randRange(0,PAT_FONT_SIZE)
+          );
+
+          if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
+
+          particles.push_back(Particle(
+            color,
+            partIcon,
+            partPos.x,
+            partPos.y,
+            (speedX+randRange(-spread,spread))*0.5*dpiScale,
+            (speedY+randRange(-spread,spread))*0.5*dpiScale,
+            grav,
+            frict,
+            life-randRange(0,8),
+            lifeSpeed
+          ));
+        }
+      }
+
+      float frameTime=ImGui::GetIO().DeltaTime*60.0f;
+
+      // note slides and vibrato
+      ImVec2 arrowPoints[7];
+      if (e->isPlaying()) for (int i=0; i<chans; i++) {
+        if (!e->curSubSong->chanShow[i]) continue;
+        DivChannelState* ch=e->getChanState(i);
+        if (ch->portaSpeed>0) {
+          ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+          col.w*=0.2;
+          float width=patChanX[i+1]-patChanX[i];
+
+          ImVec2 partPos=ImVec2(
+            off.x+patChanX[i]+fmod(rand(),width),
+            off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight()))
+          );
+
+          if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            particles.push_back(Particle(
+              pitchGrad,
+              (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
+              partPos.x,
+              partPos.y,
+              0.0f,
+              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
+              0.0f,
+              1.0f,
+              255.0f,
+              15.0f
+            ));
+          }
+
+          if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
+            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
+            if (ch->portaNote<=ch->note) {
+              arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
+              arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));
+              arrowPoints[2]=ImLerp(tMin,tMax,ImVec2(0.9,1.0-0.8));
+              arrowPoints[3]=ImLerp(tMin,tMax,ImVec2(0.8,1.0-1.0));
+              arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.37));
+              arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0-1.0));
+              arrowPoints[6]=arrowPoints[0];
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+            } else {
+              arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,0.8));
+              arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,0.0));
+              arrowPoints[2]=ImLerp(tMin,tMax,ImVec2(0.9,0.8));
+              arrowPoints[3]=ImLerp(tMin,tMax,ImVec2(0.8,1.0));
+              arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,0.37));
+              arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0));
+              arrowPoints[6]=arrowPoints[0];
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+            }
+          }
+          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale*frameTime;
+          if (width>0) {
+            if (patChanSlideY[i]<0) {
+              patChanSlideY[i]=-fmod(-patChanSlideY[i],width*0.7);
+            } else {
+              patChanSlideY[i]=fmod(patChanSlideY[i],width*0.7);
+            }
+          }
+        }
+        if (ch->vibratoDepth>0) {
+          ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+          col.w*=0.2;
+          float width=patChanX[i+1]-patChanX[i];
+
+          ImVec2 partPos=ImVec2(
+            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,PAT_FONT_SIZE)
+          );
+
+          if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            particles.push_back(Particle(
+              pitchGrad,
+              ICON_FA_GLASS,
+              partPos.x,
+              partPos.y,
+              randRange(-4.0f,4.0f),
+              2.0f*(3.0f+(rand()%5)+ch->vibratoRate),
+              0.4f,
+              1.0f,
+              128.0f,
+              4.0f
+            ));
+          }
+        }
+      }
+
+      // particle simulation
+      ImDrawList* fdl=ImGui::GetForegroundDrawList();
+      if (!particles.empty()) WAKE_UP;
+      fdl->AddCallback(_pushPartBlend,this);
+      for (size_t i=0; i<particles.size(); i++) {
+        Particle& part=particles[i];
+        if (part.update(frameTime)) {
+          if (part.life>255) part.life=255;
+          fdl->AddText(
+            iconFont,
+            ICON_FONT_SIZE,
+            ImVec2(part.pos.x-ICON_FONT_SIZE*0.5,part.pos.y-ICON_FONT_SIZE*0.5),
+            part.colors[(int)part.life],
+            part.type
+          );
+        } else {
+          particles.erase(particles.begin()+i);
+          i--;
+        }
+      }
+      fdl->AddCallback(_popPartBlend,this);
+    }
 
     ImGui::PopFont();
   }
