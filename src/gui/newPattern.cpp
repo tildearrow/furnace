@@ -1071,6 +1071,12 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
+      bool hovered=(
+        pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0 &&
+        ImGui::IsWindowHovered() &&
+        ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())
+      );
+
       String debugText=fmt::sprintf(
         "NPR DEBUG (xC:xF, o/y)\n"
         "pointer: %d:%d, %d/%d\n"
@@ -1191,28 +1197,34 @@ void FurnaceGUI::drawPatternNew() {
 
       // cursor background
       if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
-        int ord=firstOrd;
-        int row=firstRow;
-        pos=top;
-        SETUP_ORDER_ALPHA;
-        for (int j=0; j<totalRows; j++) {
-          if (cursor.order==ord && cursor.y==row) {
-            dl->AddRectFilled(
+        if (e->curSubSong->chanShow[cursor.xCoarse]) {
+          int ord=firstOrd;
+          int row=firstRow;
+          pos=top;
+          SETUP_ORDER_ALPHA;
+          for (int j=0; j<totalRows; j++) {
+            if (cursor.order==ord && cursor.y==row) {
+              dl->AddRectFilled(
               ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)],pos.y),
               ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,1+cursor.xFine)],pos.y+lineHeight),
-              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
-            );
-            break;
-          }
+                (hovered && pointer.xCoarse==cursor.xCoarse && pointer.xFine==cursor.xFine && pointer.y==cursor.y && pointer.order==cursor.order)?
+                  ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]):
+                  ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
+              );
+              break;
+            }
 
-          if (++row>=e->curSubSong->patLen) {
-            row=0;
-            ord++;
-            SETUP_ORDER_ALPHA;
+            if (++row>=e->curSubSong->patLen) {
+              row=0;
+              ord++;
+              SETUP_ORDER_ALPHA;
+            }
+            pos.y+=lineHeight;
           }
-          pos.y+=lineHeight;
         }
       }
+
+      // hover background
 
       // channels and borders
       bool isFirstChan=true;
@@ -1370,22 +1382,18 @@ void FurnaceGUI::drawPatternNew() {
       ImGui::GetStyle().Alpha=origAlpha;
 
       // test for selection
-      if (pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0) {
-        if (ImGui::IsWindowHovered()) {
-          if (ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())) {
-            //dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-              startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
-            }
+      if (hovered) {
+        //dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+          startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
+        }
 
-            updateSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
+        updateSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
 
-            if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && CHECK_LONG_HOLD) {
-              ImGui::InhibitInertialScroll();
-              NOTIFY_LONG_HOLD;
-              mobilePatSel=true;
-            }
-          }
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && CHECK_LONG_HOLD) {
+          ImGui::InhibitInertialScroll();
+          NOTIFY_LONG_HOLD;
+          mobilePatSel=true;
         }
       }
     }
