@@ -1058,8 +1058,18 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      //String debugText=fmt::sprintf("CURSOR: %d:%d, %d/%d",pointer.xCoarse,pointer.xFine,pointer.order,pointer.y);
-      //dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
+      String debugText=fmt::sprintf(
+        "NPR DEBUG (xC:xF, o/y)\n"
+        "pointer: %d:%d, %d/%d\n"
+        "cursor: %d:%d, %d/%d\n"
+        "selStart: %d:%d, %d/%d\n"
+        "selEnd: %d:%d, %d/%d\n",
+        pointer.xCoarse,pointer.xFine,pointer.order,pointer.y,
+        cursor.xCoarse,cursor.xFine,cursor.order,cursor.y,
+        selStart.xCoarse,selStart.xFine,selStart.order,selStart.y,
+        selEnd.xCoarse,selEnd.xFine,selEnd.order,selEnd.y
+      );
+      dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
 
       // row highlights
       {
@@ -1122,7 +1132,8 @@ void FurnaceGUI::drawPatternNew() {
         for (int j=0; j<totalRows; j++) {
           // stage 1: find selection start
           if (curSelFindStage==0) {
-            if (sel1.order==ord && sel1.y==row) {
+            // we use a greater-or-equal comparison in case the start is behind and we got to highlight already
+            if (ord>sel1.order || (ord==sel1.order && row>=sel1.y)) {
               selRect.Min.y=pos.y;
               curSelFindStage=1;
             }
@@ -1132,6 +1143,14 @@ void FurnaceGUI::drawPatternNew() {
             if (sel2.order==ord && sel2.y==row) {
               selRect.Max.y=pos.y+lineHeight;
               curSelFindStage=2;
+            }
+            // if this is the last row, check whether the end is ahead of our current view
+            if (j==totalRows-1) {
+              if (sel2.order>ord || (sel2.order==ord && sel2.y>row)) {
+                // pretend we found it
+                selRect.Max.y=pos.y+lineHeight;
+                curSelFindStage=2;
+              }
             }
           }
           // stage 3: draw selection rectangle

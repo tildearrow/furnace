@@ -9438,5 +9438,6 @@ FurnaceGUI::FurnaceGUI():
   strncpy(emptyLabel2,"..",32);
 
   // new pattern renderer "field" trial.
-  newPatternRenderer=(rand()&1);
+  //newPatternRenderer=(rand()&1);
+  newPatternRenderer=true;
 }
