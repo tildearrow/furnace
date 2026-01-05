@@ -202,6 +202,19 @@ void FurnaceGUI::drawPatternNew() {
     }
     patFineOffsets[DIV_PAT_FX(DIV_MAX_EFFECTS)]=cellSizeAccum;
 
+    // helper function for fine offset
+    auto calcMaxFine=[this](int ch, int f) -> int {
+      int maxFine=DIV_PAT_FX(e->curSubSong->pat[ch].effectCols);
+      if (!e->curSubSong->chanShow[ch]) return 0;
+      if (maxFine>31) maxFine=31;
+      if (e->curSubSong->chanCollapse[ch]>=1) maxFine=3;
+      if (e->curSubSong->chanCollapse[ch]>=2) maxFine=2;
+      if (e->curSubSong->chanCollapse[ch]>=3) maxFine=1;
+
+      return CLAMP(f,0,maxFine);
+    };
+
+    // starting positions
     ImVec2 top=ImGui::GetCursorScreenPos();
     ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
     ImVec2 topHeaders=top+ImVec2(0,ImGui::GetScrollY());
@@ -1155,8 +1168,9 @@ void FurnaceGUI::drawPatternNew() {
           }
           // stage 3: draw selection rectangle
           if (curSelFindStage==2) {
-            selRect.Min.x=top.x+patChanX[sel1.xCoarse]+patFineOffsets[sel1.xFine&31];
-            selRect.Max.x=top.x+patChanX[sel2.xCoarse]+patFineOffsets[(1+sel2.xFine)&31];
+            // now we need to find horizontal positions
+            selRect.Min.x=top.x+patChanX[sel1.xCoarse]+patFineOffsets[calcMaxFine(sel1.xCoarse,sel1.xFine)];
+            selRect.Max.x=top.x+patChanX[sel2.xCoarse]+patFineOffsets[calcMaxFine(sel2.xCoarse,1+sel2.xFine)];
             dl->AddRectFilled(
               selRect.Min,
               selRect.Max,
@@ -1184,8 +1198,8 @@ void FurnaceGUI::drawPatternNew() {
         for (int j=0; j<totalRows; j++) {
           if (cursor.order==ord && cursor.y==row) {
             dl->AddRectFilled(
-              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[cursor.xFine&31],pos.y),
-              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[(1+cursor.xFine)&31],pos.y+lineHeight),
+              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)],pos.y),
+              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,1+cursor.xFine)],pos.y+lineHeight),
               ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
             );
             break;
