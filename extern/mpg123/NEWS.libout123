@@ -1,0 +1,22 @@
+Changes in libout123 libtool interface versions. Next to the version
+the mpg123 release where its changes first appeared to the public
+is given.
+
+5.0.5
+	- Added out123_distversion() and out123_libversion().
+
+4.0.4 (mpg123 1.27)
+	- added enum-less variants out123_param2() and out123_getparam2(), replacing
+	  the enum variants unless MPG123_ENUM_API is defined
+	- added out123_devices()
+	- added out123_stringlists_free()
+	- module API version 3 with enumeration and void deinit()
+
+3.0.3 (mpg123 1.26)
+	- added out123_free()
+
+2.0.2 (mpg123 1.24)
+	- added OUT123_BINDIR
+
+1.0.1 (mpg123 1.23)
+	- initial version

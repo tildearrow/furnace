@@ -41,7 +41,7 @@ else
       echo "[1;32mOK[m"
     else
       echo "[1;31mFAIL FAIL FAIL[m"
-      ffmpeg -loglevel quiet -i "test/delta/$testDir/$i" -lavfi showspectrumpic "test/delta/$testDir/$i.png"
+      ffmpeg -loglevel quiet -i "test/delta/$testDir/$i" -lavfi showspectrumpic -y "test/delta/$testDir/$i.png"
     fi
   done
 fi

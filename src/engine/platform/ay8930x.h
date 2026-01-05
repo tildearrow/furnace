@@ -120,8 +120,6 @@ class DivPlatformAY8930X: public DivDispatch {
     unsigned char ayNoiseAnd, ayNoiseOr;
     bool bank;
 
-    unsigned char sampleBank;
-
     int delay;
     int lastOut[2];
 

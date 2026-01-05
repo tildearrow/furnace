@@ -75,7 +75,6 @@ void DivEngine::loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& 
         {
             DivSample* s = new DivSample;
 
-            s->rate = P_SAMPLE_RATE;
             s->centerRate = P_SAMPLE_RATE;
             s->depth = DIV_SAMPLE_DEPTH_VOX;
 

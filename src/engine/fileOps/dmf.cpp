@@ -172,56 +172,56 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     // compatibility flags
     if (!getConfInt("noDMFCompat",0)) {
-      ds.limitSlides=true;
-      ds.linearPitch=1;
-      ds.loopModality=0;
-      ds.properNoiseLayout=false;
-      ds.waveDutyIsVol=false;
+      ds.compatFlags.limitSlides=true;
+      ds.compatFlags.linearPitch=1;
+      ds.compatFlags.loopModality=0;
+      ds.compatFlags.properNoiseLayout=false;
+      ds.compatFlags.waveDutyIsVol=false;
       // TODO: WHAT?! geodude.dmf fails when this is true
       // but isn't that how Defle behaves???
-      ds.resetMacroOnPorta=false;
-      ds.legacyVolumeSlides=true;
-      ds.compatibleArpeggio=true;
-      ds.noteOffResetsSlides=true;
-      ds.targetResetsSlides=true;
-      ds.arpNonPorta=false;
-      ds.algMacroBehavior=false;
-      ds.brokenShortcutSlides=false;
-      ds.ignoreDuplicateSlides=true;
-      ds.brokenDACMode=true;
-      ds.oneTickCut=false;
-      ds.newInsTriggersInPorta=true;
-      ds.arp0Reset=true;
-      ds.brokenSpeedSel=true;
-      ds.noSlidesOnFirstTick=false;
-      ds.rowResetsArpPos=false;
-      ds.ignoreJumpAtEnd=true;
-      ds.buggyPortaAfterSlide=true;
-      ds.gbInsAffectsEnvelope=true;
-      ds.ignoreDACModeOutsideIntendedChannel=false;
-      ds.e1e2AlsoTakePriority=true;
-      ds.fbPortaPause=true;
-      ds.snDutyReset=true;
-      ds.oldOctaveBoundary=false;
-      ds.noOPN2Vol=true;
-      ds.newVolumeScaling=false;
-      ds.volMacroLinger=false;
-      ds.brokenOutVol=true;
-      ds.brokenOutVol2=true;
-      ds.e1e2StopOnSameNote=true;
-      ds.brokenPortaArp=false;
-      ds.snNoLowPeriods=true;
-      ds.disableSampleMacro=true;
-      ds.preNoteNoEffect=true;
-      ds.oldDPCM=true;
-      ds.delayBehavior=0;
-      ds.jumpTreatment=2;
-      ds.oldAlwaysSetVolume=true;
+      ds.compatFlags.resetMacroOnPorta=false;
+      ds.compatFlags.legacyVolumeSlides=true;
+      ds.compatFlags.compatibleArpeggio=true;
+      ds.compatFlags.noteOffResetsSlides=true;
+      ds.compatFlags.targetResetsSlides=true;
+      ds.compatFlags.arpNonPorta=false;
+      ds.compatFlags.algMacroBehavior=false;
+      ds.compatFlags.brokenShortcutSlides=false;
+      ds.compatFlags.ignoreDuplicateSlides=true;
+      ds.compatFlags.brokenDACMode=true;
+      ds.compatFlags.oneTickCut=false;
+      ds.compatFlags.newInsTriggersInPorta=true;
+      ds.compatFlags.arp0Reset=true;
+      ds.compatFlags.brokenSpeedSel=true;
+      ds.compatFlags.noSlidesOnFirstTick=false;
+      ds.compatFlags.rowResetsArpPos=false;
+      ds.compatFlags.ignoreJumpAtEnd=true;
+      ds.compatFlags.buggyPortaAfterSlide=true;
+      ds.compatFlags.gbInsAffectsEnvelope=true;
+      ds.compatFlags.ignoreDACModeOutsideIntendedChannel=false;
+      ds.compatFlags.e1e2AlsoTakePriority=true;
+      ds.compatFlags.fbPortaPause=true;
+      ds.compatFlags.snDutyReset=true;
+      ds.compatFlags.oldOctaveBoundary=false;
+      ds.compatFlags.noOPN2Vol=true;
+      ds.compatFlags.newVolumeScaling=false;
+      ds.compatFlags.volMacroLinger=false;
+      ds.compatFlags.brokenOutVol=true;
+      ds.compatFlags.brokenOutVol2=true;
+      ds.compatFlags.e1e2StopOnSameNote=true;
+      ds.compatFlags.brokenPortaArp=false;
+      ds.compatFlags.snNoLowPeriods=true;
+      ds.compatFlags.disableSampleMacro=true;
+      ds.compatFlags.preNoteNoEffect=true;
+      ds.compatFlags.oldDPCM=true;
+      ds.compatFlags.delayBehavior=0;
+      ds.compatFlags.jumpTreatment=2;
+      ds.compatFlags.oldAlwaysSetVolume=true;
 
       // 1.1 compat flags
       if (ds.version>24) {
-        ds.waveDutyIsVol=true;
-        ds.legacyVolumeSlides=false;
+        ds.compatFlags.waveDutyIsVol=true;
+        ds.compatFlags.legacyVolumeSlides=false;
       }
 
       // Neo Geo detune is caused by Defle running Neo Geo at the wrong clock.
@@ -256,11 +256,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
     bool customTempo=false;
 
-    ds.subsong[0]->timeBase=reader.readC();
+    unsigned char oldTimeBase=reader.readC();
     ds.subsong[0]->speeds.len=2;
-    ds.subsong[0]->speeds.val[0]=reader.readC();
+    ds.subsong[0]->speeds.val[0]=(unsigned char)reader.readC();
     if (ds.version>0x07) {
-      ds.subsong[0]->speeds.val[1]=reader.readC();
+      ds.subsong[0]->speeds.val[1]=(unsigned char)reader.readC();
       bool pal=reader.readC();
       ds.subsong[0]->hz=pal?60:50;
       customTempo=reader.readC();
@@ -317,7 +317,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     if (ds.system[0]==DIV_SYSTEM_YMU759) {
-      switch (ds.subsong[0]->timeBase) {
+      switch (oldTimeBase) {
         case 0:
           ds.subsong[0]->hz=248;
           break;
@@ -340,8 +340,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ds.subsong[0]->hz=248;
           break;
       }
-      ds.subsong[0]->timeBase=0;
       addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
+    } else {
+      ds.subsong[0]->speeds.val[0]*=(oldTimeBase+1);
+      ds.subsong[0]->speeds.val[1]*=(oldTimeBase+1);
     }
 
     logV("%x",reader.tell());
@@ -395,7 +397,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.system[0]==DIV_SYSTEM_C64_8580 || ds.system[0]==DIV_SYSTEM_C64_6581) {
         ins->type=DIV_INS_C64;
       }
-      if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
+      if (ds.system[0]==DIV_SYSTEM_YM2610_CRAP || ds.system[0]==DIV_SYSTEM_YM2610_CRAP_EXT
        || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
        || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
         if (!mode) {
@@ -627,7 +629,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
 
           // piece of crap offset by 1
-          if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT) {
+          if (ds.system[0]==DIV_SYSTEM_YM2610_CRAP || ds.system[0]==DIV_SYSTEM_YM2610_CRAP_EXT) {
             ins->std.waveMacro.val[j]++;
           }
         }
@@ -934,10 +936,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->name="";
       }
       logD("%d name %s (%d)",i,sample->name.c_str(),length);
-      sample->rate=22050;
+      sample->centerRate=22050;
       if (ds.version>=0x0b) {
-        sample->rate=fileToDivRate(reader.readC());
-        sample->centerRate=sample->rate;
+        sample->centerRate=fileToDivRate(reader.readC());
         pitch=reader.readC();
         vol=reader.readC();
 
@@ -947,8 +948,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
       }
       if (ds.version<=0x08) {
-        sample->rate=ymuSampleRate*400;
+        sample->centerRate=ymuSampleRate*400;
       }
+      sample->legacyRate=sample->centerRate;
       if (ds.version>0x15) {
         sample->depth=(DivSampleDepth)reader.readC();
         if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
@@ -1167,15 +1169,32 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("brokenPitch",true);
     }
 
+    ds.initDefaultSystemChans();
+
+    // flatten 5-channel SegaPCM and Neo Geo CD
+    for (int i=0; i<ds.systemLen; i++) {
+      if (ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+        ds.system[i]=DIV_SYSTEM_SEGAPCM;
+      } else if (ds.system[i]==DIV_SYSTEM_YM2610_CRAP) {
+        ds.system[i]=DIV_SYSTEM_YM2610_FULL;
+      } else if (ds.system[i]==DIV_SYSTEM_YM2610_CRAP_EXT) {
+        ds.system[i]=DIV_SYSTEM_YM2610_FULL_EXT;
+      }
+    }
+
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+
+    ds.recalcChans();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
-    recalcChans();
+    // always convert to normal sample mode (I have no idea how will I do export)
+    convertLegacySampleMode();
     saveLock.unlock();
     BUSY_END;
     if (active) {
@@ -1203,6 +1222,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="invalid version to save in! this is a bug!";
     return NULL;
   }
+  int actualChans=song.chans;
   // check whether system is compound
   bool isFlat=false;
   if (song.systemLen==2) {
@@ -1212,8 +1232,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
       isFlat=true;
     }
-    if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+    if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM) {
       isFlat=true;
+      addWarning("only first 5 channels of SegaPCM.");
+      actualChans=13;
     }
     if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
       isFlat=true;
@@ -1228,6 +1250,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       isFlat=true;
       addWarning("your song will sound different. I am not going to bother adding further compatibility.");
     }
+  }
+  if (song.system[0]==DIV_SYSTEM_YM2610_FULL || song.system[0]==DIV_SYSTEM_YM2610_FULL_EXT) {
+    addWarning("ADPCM-B not supported.");
+    actualChans--;
   }
   // fail if more than one system
   if (!isFlat && song.systemLen!=1) {
@@ -1287,7 +1313,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     lastError="maximum number of wavetables in .dmf is 64";
     return NULL;
   }
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<actualChans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       if (curOrders->ord[i][j]>0x7f) {
         logE("order %d, %d is out of range (0-127)!",i,j);
@@ -1314,7 +1340,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_GENESIS_EXT));
     sys=DIV_SYSTEM_GENESIS_EXT;
-  } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+  } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_ARCADE));
     sys=DIV_SYSTEM_ARCADE;
   } else if (song.system[0]==DIV_SYSTEM_SMS && song.system[1]==DIV_SYSTEM_OPLL) {
@@ -1329,6 +1355,12 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   } else if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_SCC) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_MSX2));
     sys=DIV_SYSTEM_MSX2;
+  } else if (song.system[0]==DIV_SYSTEM_YM2610_FULL) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_YM2610_CRAP));
+    sys=DIV_SYSTEM_YM2610_CRAP;
+  } else if (song.system[0]==DIV_SYSTEM_YM2610_FULL_EXT) {
+    w->writeC(systemToFileDMF(DIV_SYSTEM_YM2610_CRAP_EXT));
+    sys=DIV_SYSTEM_YM2610_CRAP_EXT;
   } else {
     w->writeC(systemToFileDMF(song.system[0]));
     sys=song.system[0];
@@ -1342,7 +1374,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
   int intHz=curSubSong->hz;
   
-  w->writeC(curSubSong->timeBase);
+  w->writeC(0);
   w->writeC(curSubSong->speeds.val[0]);
   w->writeC((curSubSong->speeds.len>=2)?curSubSong->speeds.val[1]:curSubSong->speeds.val[0]);
   w->writeC((intHz<=53)?0:1);
@@ -1354,7 +1386,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeI(curSubSong->patLen);
   w->writeC(curSubSong->ordersLen);
 
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<actualChans; i++) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       w->writeC(curOrders->ord[i][j]);
       if (version>=25) {
@@ -1423,8 +1455,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         case DIV_SYSTEM_PCE:
           i->type=DIV_INS_PCE;
           break;
-        case DIV_SYSTEM_YM2610:
-        case DIV_SYSTEM_YM2610_EXT:
+        case DIV_SYSTEM_YM2610_FULL:
+        case DIV_SYSTEM_YM2610_FULL_EXT:
           i->type=DIV_INS_AY;
           break;
         default:
@@ -1576,7 +1608,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       w->writeC(realWaveMacroLen);
       for (int j=0; j<realWaveMacroLen; j++) {
         // piece of crap offset by 1
-        if (song.system[0]==DIV_SYSTEM_YM2610 || song.system[0]==DIV_SYSTEM_YM2610_EXT) {
+        if (song.system[0]==DIV_SYSTEM_YM2610_FULL || song.system[0]==DIV_SYSTEM_YM2610_FULL_EXT) {
           w->writeI(i->std.waveMacro.val[j]-1);
         } else {
           w->writeI(i->std.waveMacro.val[j]);
@@ -1640,12 +1672,144 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
   bool relWarning=false;
 
-  for (int i=0; i<getChannelCount(sys); i++) {
+  for (int i=0; i<actualChans; i++) {
     short note, octave;
     w->writeC(curPat[i].effectCols);
 
+    bool convertSampleUsage=false;
+    bool alwaysConvert=false;
+
+    switch (sys) {
+      case DIV_SYSTEM_GENESIS:
+        if (i==5) convertSampleUsage=true;
+        break;
+      case DIV_SYSTEM_GENESIS_EXT:
+        if (i==8) convertSampleUsage=true;
+        break;
+      case DIV_SYSTEM_PCE:
+        convertSampleUsage=true;
+        break;
+      case DIV_SYSTEM_NES:
+        if (i==4) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      case DIV_SYSTEM_ARCADE:
+        if (i>=8) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2610_CRAP:
+        if (i>=7) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      case DIV_SYSTEM_YM2610_CRAP_EXT:
+        if (i>=10) {
+          convertSampleUsage=true;
+          alwaysConvert=true;
+        }
+        break;
+      default:
+        break;
+    }
+
     for (int j=0; j<curSubSong->ordersLen; j++) {
-      DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
+      // we make a copy in order to convert Furnace sample mode to Defle one
+      DivPattern* origPat=curPat[i].getPattern(curOrders->ord[i][j],false);
+      DivPattern* pat=new DivPattern;
+      origPat->copyOn(pat);
+
+      if (convertSampleUsage) {
+        int convIns=-1;
+        bool isConverting=false;
+        for (int k=0; k<curSubSong->patLen; k++) {
+          int insert17xx=-1;
+          int insertEBxx=-1;
+
+          if (pat->newData[k][DIV_PAT_INS]!=-1) {
+            if (pat->newData[k][DIV_PAT_INS]>=0 && pat->newData[k][DIV_PAT_INS]<song.insLen) {
+              convIns=pat->newData[k][DIV_PAT_INS];
+            } else {
+              convIns=-1;
+            }
+
+            bool willBeConverting=false;
+            if (convIns>=0 && convIns<song.insLen) {
+              DivInstrument* convInsInst=song.ins[convIns];
+              if (convInsInst->type==DIV_INS_AMIGA ||
+                  convInsInst->type==DIV_INS_ADPCMA ||
+                  convInsInst->type==DIV_INS_SEGAPCM ||
+                  (convInsInst->type==DIV_INS_PCE && convInsInst->amiga.useSample)) {
+                willBeConverting=true;
+              }
+            }
+
+            if (isConverting!=willBeConverting) {
+              if (!alwaysConvert) {
+                if (willBeConverting) {
+                  insert17xx=1;
+                } else {
+                  insert17xx=0;
+                }
+              }
+              isConverting=willBeConverting;
+            }
+
+            if (isConverting || alwaysConvert) {
+              pat->newData[k][DIV_PAT_INS]=-1;
+            }
+          }
+
+          if (pat->newData[k][DIV_PAT_NOTE]!=-1 && pat->newData[k][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[k][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[k][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
+            if (isConverting || alwaysConvert) {
+              if (convIns>=0 && convIns<song.insLen) {
+                DivInstrument* convInsInst=song.ins[convIns];
+                if (convInsInst->amiga.useNoteMap) {
+                  int mapTarget=pat->newData[k][DIV_PAT_NOTE]-60;
+                  if (mapTarget<0) mapTarget=0;
+                  if (mapTarget>119) mapTarget=119;
+                  insertEBxx=convInsInst->amiga.noteMap[mapTarget].map/12;
+                  pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.noteMap[mapTarget].map%12);
+                } else {
+                  insertEBxx=convInsInst->amiga.initSample/12;
+                  pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.initSample%12);
+                }
+              }
+            }
+          }
+
+          if (insert17xx!=-1) {
+            int freeSlot=0;
+            logV("insert 17xx at %d:[%d]:%d (%d)",i,j,k,insert17xx);
+            for (int l=0; l<curPat[i].effectCols; l++) {
+              if (pat->newData[k][DIV_PAT_FX(l)]==-1) {
+                freeSlot=l;
+                break;
+              }
+            }
+
+            pat->newData[k][DIV_PAT_FX(freeSlot)]=0x17;
+            pat->newData[k][DIV_PAT_FXVAL(freeSlot)]=insert17xx;
+          }
+          if (insertEBxx!=-1) {
+            int freeSlot=1;
+            for (int l=0; l<curPat[i].effectCols; l++) {
+              if (pat->newData[k][DIV_PAT_FX(l)]==-1) {
+                freeSlot=l;
+                break;
+              }
+            }
+
+            pat->newData[k][DIV_PAT_FX(freeSlot)]=0xeb;
+            pat->newData[k][DIV_PAT_FXVAL(freeSlot)]=insertEBxx;
+          }
+        }
+      }
+
       for (int k=0; k<curSubSong->patLen; k++) {
         if (pat->newData[k][DIV_PAT_NOTE]==DIV_NOTE_REL || pat->newData[k][DIV_PAT_NOTE]==DIV_MACRO_REL) {
           w->writeS(100);
@@ -1669,6 +1833,8 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 #endif
         w->writeS(pat->newData[k][DIV_PAT_INS]); // instrument
       }
+
+      delete pat;
     }
   }
 
@@ -1680,7 +1846,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   for (DivSample* i: song.sample) {
     w->writeI(i->samples);
     w->writeString(i->name,true);
-    w->writeC(divToFileRate(i->rate));
+    w->writeC(divToFileRate(i->centerRate));
     w->writeC(5);
     w->writeC(50);
     // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples

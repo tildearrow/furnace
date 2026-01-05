@@ -1,6 +1,6 @@
 // dear imgui: Renderer for WebGPU
-// This needs to be used along with a Platform Binding (e.g. GLFW)
-// (Please note that WebGPU is currently experimental, will not run on non-beta browsers, and may break.)
+// This needs to be used along with a Platform Binding (e.g. GLFW, SDL2, SDL3)
+// (Please note that WebGPU is a recent API, may not be supported by all browser, and its ecosystem is generally a mess)
 
 // Implemented features:
 //  [X] Renderer: User texture binding. Use 'WGPUTextureView' as ImTextureID. Read the FAQ about ImTextureID/ImTextureRef!
@@ -9,6 +9,8 @@
 //  [X] Renderer: Texture updates support for dynamic font system (ImGuiBackendFlags_RendererHasTextures).
 // Missing features or Issues:
 //  [ ] Renderer: Multi-viewport support (multiple windows), useful for desktop.
+
+// Read imgui_impl_wgpu.h about how to use the IMGUI_IMPL_WEBGPU_BACKEND_WGPU or IMGUI_IMPL_WEBGPU_BACKEND_DAWN flags.
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
 // Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
@@ -20,6 +22,8 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2025-10-16: Update to compile with Dawn and Emscripten's 4.0.10+ '--use-port=emdawnwebgpu' ports. (#8381, #8898)
+//  2025-09-18: Call platform_io.ClearRendererHandlers() on shutdown.
 //  2025-06-12: Added support for ImGuiBackendFlags_RendererHasTextures, for dynamic font atlas. (#8465)
 //  2025-02-26: Recreate image bind groups during render. (#8426, #8046, #7765, #8027) + Update for latest webgpu-native changes.
 //  2024-10-14: Update Dawn support for change of string usages. (#8082, #8083)
@@ -47,22 +51,21 @@
 
 #include "imgui.h"
 
-// When targeting native platforms (i.e. NOT emscripten), one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN
-// or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be provided. See imgui_impl_wgpu.h for more details.
-#ifndef __EMSCRIPTEN__
-    #if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) == defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-    #error exactly one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be defined!
-    #endif
-#else
-    #if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-    #error neither IMGUI_IMPL_WEBGPU_BACKEND_DAWN nor IMGUI_IMPL_WEBGPU_BACKEND_WGPU may be defined if targeting emscripten!
-    #endif
-#endif
-
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_wgpu.h"
 #include <limits.h>
-#include <webgpu/webgpu.h>
+#include <stdio.h>
+
+// One of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be provided. See imgui_impl_wgpu.h for more details.
+#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) == defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#error Exactly one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be defined!
+#endif
+
+// This condition is true when it's built with EMSCRIPTEN using -sUSE_WEBGPU=1 flag  (deprecated from 4.0.10)
+// This condition is false for all other 3 cases: WGPU-Native, DAWN-Native or DAWN-EMSCRIPTEN (using --use-port=emdawnwebgpu flag)
+#if defined(__EMSCRIPTEN__) && defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#define IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN
+#endif
 
 #ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
 // Dawn renamed WGPUProgrammableStageDescriptor to WGPUComputeState (see: https://github.com/webgpu-native/webgpu-headers/pull/413)
@@ -260,7 +263,7 @@ static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModule(const c
 {
     ImGui_ImplWGPU_Data* bd = ImGui_ImplWGPU_GetBackendData();
 
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
     WGPUShaderSourceWGSL wgsl_desc = {};
     wgsl_desc.chain.sType = WGPUSType_ShaderSourceWGSL;
     wgsl_desc.code = { wgsl_source, WGPU_STRLEN };
@@ -271,12 +274,12 @@ static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModule(const c
 #endif
 
     WGPUShaderModuleDescriptor desc = {};
-    desc.nextInChain = reinterpret_cast<WGPUChainedStruct*>(&wgsl_desc);
+    desc.nextInChain = (WGPUChainedStruct*)&wgsl_desc;
 
     WGPUProgrammableStageDescriptor stage_desc = {};
     stage_desc.module = wgpuDeviceCreateShaderModule(bd->wgpuDevice, &desc);
 
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
     stage_desc.entryPoint = { "main", WGPU_STRLEN };
 #else
     stage_desc.entryPoint = "main";
@@ -399,9 +402,10 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
         WGPUBufferDescriptor vb_desc =
         {
             nullptr,
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
+            { "Dear ImGui Vertex buffer", WGPU_STRLEN, },
+#else
             "Dear ImGui Vertex buffer",
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-            WGPU_STRLEN,
 #endif
             WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             MEMALIGN(fr->VertexBufferSize * sizeof(ImDrawVert), 4),
@@ -426,9 +430,10 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
         WGPUBufferDescriptor ib_desc =
         {
             nullptr,
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
+            { "Dear ImGui Index buffer", WGPU_STRLEN, },
+#else
             "Dear ImGui Index buffer",
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-            WGPU_STRLEN,
 #endif
             WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index,
             MEMALIGN(fr->IndexBufferSize * sizeof(ImDrawIdx), 4),
@@ -534,19 +539,18 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
 
 static void ImGui_ImplWGPU_DestroyTexture(ImTextureData* tex)
 {
-    ImGui_ImplWGPU_Texture* backend_tex = (ImGui_ImplWGPU_Texture*)tex->BackendUserData;
-    if (backend_tex == nullptr)
-        return;
+    if (ImGui_ImplWGPU_Texture* backend_tex = (ImGui_ImplWGPU_Texture*)tex->BackendUserData)
+    {
+        IM_ASSERT(backend_tex->TextureView == (WGPUTextureView)(intptr_t)tex->TexID);
+        wgpuTextureViewRelease(backend_tex->TextureView);
+        wgpuTextureRelease(backend_tex->Texture);
+        IM_DELETE(backend_tex);
 
-    IM_ASSERT(backend_tex->TextureView == (WGPUTextureView)(intptr_t)tex->TexID);
-    wgpuTextureViewRelease(backend_tex->TextureView);
-    wgpuTextureRelease(backend_tex->Texture);
-    IM_DELETE(backend_tex);
-
-    // Clear identifiers and mark as destroyed (in order to allow e.g. calling InvalidateDeviceObjects while running)
-    tex->SetTexID(ImTextureID_Invalid);
+        // Clear identifiers and mark as destroyed (in order to allow e.g. calling InvalidateDeviceObjects while running)
+        tex->SetTexID(ImTextureID_Invalid);
+        tex->BackendUserData = nullptr;
+    }
     tex->SetStatus(ImTextureStatus_Destroyed);
-    tex->BackendUserData = nullptr;
 }
 
 void ImGui_ImplWGPU_UpdateTexture(ImTextureData* tex)
@@ -562,7 +566,7 @@ void ImGui_ImplWGPU_UpdateTexture(ImTextureData* tex)
 
         // Create texture
         WGPUTextureDescriptor tex_desc = {};
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         tex_desc.label = { "Dear ImGui Texture", WGPU_STRLEN };
 #else
         tex_desc.label = "Dear ImGui Texture";
@@ -607,7 +611,7 @@ void ImGui_ImplWGPU_UpdateTexture(ImTextureData* tex)
 
         // Update full texture or selected blocks. We only ever write to textures regions which have never been used before!
         // This backend choose to use tex->UpdateRect but you can use tex->Updates[] to upload individual regions.
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         WGPUTexelCopyTextureInfo dst_view = {};
 #else
         WGPUImageCopyTexture dst_view = {};
@@ -616,7 +620,7 @@ void ImGui_ImplWGPU_UpdateTexture(ImTextureData* tex)
         dst_view.mipLevel = 0;
         dst_view.origin = { (uint32_t)upload_x, (uint32_t)upload_y, 0 };
         dst_view.aspect = WGPUTextureAspect_All;
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         WGPUTexelCopyBufferLayout layout = {};
 #else
         WGPUTextureDataLayout layout = {};
@@ -638,9 +642,10 @@ static void ImGui_ImplWGPU_CreateUniformBuffer()
     WGPUBufferDescriptor ub_desc =
     {
         nullptr,
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
+        { "Dear ImGui Uniform buffer", WGPU_STRLEN, },
+#else
         "Dear ImGui Uniform buffer",
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-        WGPU_STRLEN,
 #endif
         WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform,
         MEMALIGN(sizeof(Uniforms), 16),
@@ -753,7 +758,7 @@ bool ImGui_ImplWGPU_CreateDeviceObjects()
     // Create depth-stencil State
     WGPUDepthStencilState depth_stencil_state = {};
     depth_stencil_state.format = bd->depthStencilFormat;
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
     depth_stencil_state.depthWriteEnabled = WGPUOptionalBool_False;
 #else
     depth_stencil_state.depthWriteEnabled = false;
@@ -835,14 +840,18 @@ bool ImGui_ImplWGPU_Init(ImGui_ImplWGPU_InitInfo* init_info)
     // Setup backend capabilities flags
     ImGui_ImplWGPU_Data* bd = IM_NEW(ImGui_ImplWGPU_Data)();
     io.BackendRendererUserData = (void*)bd;
+#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
 #if defined(__EMSCRIPTEN__)
-    io.BackendRendererName = "imgui_impl_webgpu_emscripten";
-#elif defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
-    io.BackendRendererName = "imgui_impl_webgpu_dawn";
-#elif defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-    io.BackendRendererName = "imgui_impl_webgpu_wgpu";
+    io.BackendRendererName = "imgui_impl_wgpu (Dawn, Emscripten)"; // compiled & linked using EMSCRIPTEN with "--use-port=emdawnwebgpu" flag
 #else
-    io.BackendRendererName = "imgui_impl_webgpu";
+    io.BackendRendererName = "imgui_impl_wgpu (Dawn, Native)";
+#endif
+#elif defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
+#if defined(__EMSCRIPTEN__)
+    io.BackendRendererName = "imgui_impl_wgpu (WGPU, Emscripten)"; // linked using EMSCRIPTEN with "-sUSE_WEBGPU=1" flag, deprecated from EMSCRIPTEN 4.0.10
+#else
+    io.BackendRendererName = "imgui_impl_wgpu (WGPU, Native)";
+#endif
 #endif
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;   // We can honor ImGuiPlatformIO::Textures[] requests during render.
@@ -882,6 +891,7 @@ void ImGui_ImplWGPU_Shutdown()
     ImGui_ImplWGPU_Data* bd = ImGui_ImplWGPU_GetBackendData();
     IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
     ImGuiIO& io = ImGui::GetIO();
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
 
     ImGui_ImplWGPU_InvalidateDeviceObjects();
     delete[] bd->pFrameResources;
@@ -894,6 +904,7 @@ void ImGui_ImplWGPU_Shutdown()
     io.BackendRendererName = nullptr;
     io.BackendRendererUserData = nullptr;
     io.BackendFlags &= ~(ImGuiBackendFlags_RendererHasVtxOffset | ImGuiBackendFlags_RendererHasTextures);
+    platform_io.ClearRendererHandlers();
     IM_DELETE(bd);
 }
 
@@ -904,6 +915,173 @@ void ImGui_ImplWGPU_NewFrame()
         if (!ImGui_ImplWGPU_CreateDeviceObjects())
             IM_ASSERT(0 && "ImGui_ImplWGPU_CreateDeviceObjects() failed!");
 }
+
+//-------------------------------------------------------------------------
+// Internal Helpers
+// Those are currently used by our example applications.
+//-------------------------------------------------------------------------
+
+bool ImGui_ImplWGPU_IsSurfaceStatusError(WGPUSurfaceGetCurrentTextureStatus status)
+{
+#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
+    return (status == WGPUSurfaceGetCurrentTextureStatus_Error);
+#else
+    return (status == WGPUSurfaceGetCurrentTextureStatus_OutOfMemory || status == WGPUSurfaceGetCurrentTextureStatus_DeviceLost);
+#endif
+}
+
+bool ImGui_ImplWGPU_IsSurfaceStatusSubOptimal(WGPUSurfaceGetCurrentTextureStatus status)
+{
+#if defined(__EMSCRIPTEN__) && !defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
+    return (status == WGPUSurfaceGetCurrentTextureStatus_Timeout || status == WGPUSurfaceGetCurrentTextureStatus_Outdated || status == WGPUSurfaceGetCurrentTextureStatus_Lost);
+#else
+    return (status == WGPUSurfaceGetCurrentTextureStatus_Timeout || status == WGPUSurfaceGetCurrentTextureStatus_Outdated || status == WGPUSurfaceGetCurrentTextureStatus_Lost || status == WGPUSurfaceGetCurrentTextureStatus_SuccessSuboptimal);
+#endif
+}
+
+// Helpers to obtain a string
+#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
+const char* ImGui_ImplWGPU_GetErrorTypeName(WGPUErrorType type)
+{
+    switch (type)
+    {
+    case WGPUErrorType_Validation: return "Validation";
+    case WGPUErrorType_OutOfMemory: return "OutOfMemory";
+    case WGPUErrorType_Unknown: return "Unknown";
+    case WGPUErrorType_Internal: return "Internal";
+    default: return "Unknown";
+    }
+}
+const char* ImGui_ImplWGPU_GetDeviceLostReasonName(WGPUDeviceLostReason type)
+{
+    switch (type)
+    {
+    case WGPUDeviceLostReason_Unknown: return "Unknown";
+    case WGPUDeviceLostReason_Destroyed: return "Destroyed";
+    case WGPUDeviceLostReason_CallbackCancelled: return "CallbackCancelled";
+    case WGPUDeviceLostReason_FailedCreation: return "FailedCreation";
+    default: return "Unknown";
+    }
+}
+#elif !defined(__EMSCRIPTEN__)
+const char* ImGui_ImplWGPU_GetLogLevelName(WGPULogLevel level)
+{
+    switch (level)
+    {
+    case WGPULogLevel_Error: return "Error"; 
+    case WGPULogLevel_Warn: return "Warn";
+    case WGPULogLevel_Info: return "Info";
+    case WGPULogLevel_Debug: return "Debug";
+    case WGPULogLevel_Trace: return "Trace";
+    default: return "Unknown";
+    }
+}
+#endif
+
+const char* ImGui_ImplWGPU_GetBackendTypeName(WGPUBackendType type)
+{
+    switch (type)
+    {
+    case WGPUBackendType_WebGPU: return "WebGPU";
+    case WGPUBackendType_D3D11: return "D3D11";
+    case WGPUBackendType_D3D12: return "D3D12";
+    case WGPUBackendType_Metal: return "Metal";
+    case WGPUBackendType_Vulkan: return "Vulkan";
+    case WGPUBackendType_OpenGL: return "OpenGL";
+    case WGPUBackendType_OpenGLES: return "OpenGLES";
+    default: return "Unknown";
+    }
+}
+
+const char* ImGui_ImplWGPU_GetAdapterTypeName(WGPUAdapterType type)
+{
+    switch (type)
+    {
+    case WGPUAdapterType_DiscreteGPU: return "DiscreteGPU";
+    case WGPUAdapterType_IntegratedGPU: return "IntegratedGPU";
+    case WGPUAdapterType_CPU: return "CPU";
+    default: return "Unknown";
+    }
+}
+
+void ImGui_ImplWGPU_DebugPrintAdapterInfo(const WGPUAdapter& adapter)
+{
+    WGPUAdapterInfo info = {};
+    wgpuAdapterGetInfo(adapter, &info);
+    printf("description: \"%.*s\"\n", (int)info.description.length, info.description.data);
+    printf("vendor: \"%.*s\", vendorID: %x\n", (int)info.vendor.length, info.vendor.data, info.vendorID);
+    printf("architecture: \"%.*s\"\n", (int) info.architecture.length, info.architecture.data);
+    printf("device: \"%.*s\", deviceID: %x\n", (int)info.device.length, info.device.data, info.deviceID);
+    printf("backendType: \"%s\"\n", ImGui_ImplWGPU_GetBackendTypeName(info.backendType));
+    printf("adapterType: \"%s\"\n", ImGui_ImplWGPU_GetAdapterTypeName(info.adapterType));
+    wgpuAdapterInfoFreeMembers(info);
+}
+
+#ifndef __EMSCRIPTEN__
+
+#if defined(__APPLE__)
+// MacOS specific: is necessary to compile with "-x objective-c++" flags
+// (e.g. using cmake: set_source_files_properties(${IMGUI_DIR}/backends/imgui_impl_wgpu.cpp PROPERTIES COMPILE_FLAGS "-x objective-c++") )
+#include <Cocoa/Cocoa.h>
+#include <QuartzCore/CAMetalLayer.h>
+#endif
+
+WGPUSurface ImGui_ImplWGPU_CreateWGPUSurfaceHelper(ImGui_ImplWGPU_CreateSurfaceInfo* info)
+{
+    WGPUSurfaceDescriptor surface_descriptor = {};
+    WGPUSurface surface = {};
+#if defined(__APPLE__)
+    if (strcmp(info->System, "cocoa") == 0)
+    {
+        IM_ASSERT(info->RawWindow != nullptr);
+        NSWindow* ns_window = (NSWindow*)info->RawWindow;
+        id metal_layer = [CAMetalLayer layer];
+        [ns_window.contentView setWantsLayer : YES] ;
+        [ns_window.contentView setLayer : metal_layer] ;
+        WGPUSurfaceSourceMetalLayer surface_src_metal = {};
+        surface_src_metal.chain.sType = WGPUSType_SurfaceSourceMetalLayer;
+        surface_src_metal.layer = metal_layer;
+        surface_descriptor.nextInChain = &surface_src_metal.chain;
+        surface = wgpuInstanceCreateSurface(info->Instance, &surface_descriptor);
+    }
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+    if (strcmp(info->System, "wayland") == 0)
+    {
+        IM_ASSERT(info->RawDisplay != nullptr && info->RawSurface != nullptr);
+        WGPUSurfaceSourceWaylandSurface surface_src_wayland = {};
+        surface_src_wayland.chain.sType = WGPUSType_SurfaceSourceWaylandSurface;
+        surface_src_wayland.display = info->RawDisplay;
+        surface_src_wayland.surface = info->RawSurface;
+        surface_descriptor.nextInChain = &surface_src_wayland.chain;
+        surface = wgpuInstanceCreateSurface(info->Instance, &surface_descriptor);
+    }
+    else if (strcmp(info->System, "x11") == 0)
+    {
+        IM_ASSERT(info->RawDisplay != nullptr && info->RawWindow != nullptr);
+        WGPUSurfaceSourceXlibWindow surface_src_xlib = {};
+        surface_src_xlib.chain.sType = WGPUSType_SurfaceSourceXlibWindow;
+        surface_src_xlib.display = info->RawDisplay;
+        surface_src_xlib.window = (uint64_t)info->RawWindow;
+        surface_descriptor.nextInChain = &surface_src_xlib.chain;
+        surface = wgpuInstanceCreateSurface(info->Instance, &surface_descriptor);
+    }
+#elif defined(_WIN32)
+    if (strcmp(info->System, "win32") == 0)
+    {
+        IM_ASSERT(info->RawWindow != nullptr && info->RawInstance != nullptr);
+        WGPUSurfaceSourceWindowsHWND surface_src_hwnd = {};
+        surface_src_hwnd.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
+        surface_src_hwnd.hinstance = info->RawInstance;
+        surface_src_hwnd.hwnd = info->RawWindow;
+        surface_descriptor.nextInChain = &surface_src_hwnd.chain;
+        surface = wgpuInstanceCreateSurface(info->Instance, &surface_descriptor);
+    }
+#else
+#error "Unsupported WebGPU native platform!"
+#endif
+    return surface;
+}
+#endif // #ifndef __EMSCRIPTEN__
 
 //-----------------------------------------------------------------------------
 

@@ -38,13 +38,11 @@ class DivYM2610XInterface: public DivOPNInterface {
   public:
     unsigned char* adpcmAMem;
     unsigned char* adpcmBMem;
-    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
     DivYM2610XInterface():
       adpcmAMem(NULL),
-      adpcmBMem(NULL),
-      sampleBank(0) {}
+      adpcmBMem(NULL) {}
 };
 
 class DivPlatformYM2610XBase: public DivPlatformOPN {
@@ -76,8 +74,6 @@ class DivPlatformYM2610XBase: public DivPlatformOPN {
 
     unsigned int* sampleOffA;
     unsigned int* sampleOffB;
-
-    unsigned char sampleBank;
 
     unsigned int ssgBank, adpcmABank, adpcmBBank;
   
@@ -318,7 +314,6 @@ class DivPlatformYM2610XBase: public DivPlatformOPN {
       adpcmBMemLen=0;
       iface.adpcmAMem=adpcmAMem;
       iface.adpcmBMem=adpcmBMem;
-      iface.sampleBank=0;
       fm=new ymfm::ym2610x(iface);
       fm->set_fidelity(ymfm::OPNX_FIDELITY_MED);
       setFlags(flags);

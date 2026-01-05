@@ -21,10 +21,11 @@
 #include "guiConst.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
-#include <SDL_timer.h>
+#include <inttypes.h>
 #include <fmt/printf.h>
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 PendingDrawOsc _debugDo;
 static float oscDebugData[2048];
@@ -117,11 +118,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::Columns(e->getTotalChannelCount());
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         void* ch=e->getDispatchChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->dispatchOfChan[i],e->dispatchChanOfChan[i]);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
         if (ch==NULL) {
           ImGui::Text("NULL");
+        } else if (e->song.dispatchChanOfChan[i]<0) {
+          ImGui::Text("---");
         } else {
-          putDispatchChan(ch,e->dispatchChanOfChan[i],e->sysOfChan[i]);
+          putDispatchChan(ch,e->song.dispatchChanOfChan[i],e->song.sysOfChan[i]);
         }
         ImGui::NextColumn();
       }
@@ -199,6 +202,41 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("patScroll: %f",patScroll);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Song Timestamps")) {
+      if (ImGui::Button("Recalculate")) {
+        e->calcSongTimestamps();
+      }
+
+      DivSongTimestamps& ts=e->curSubSong->ts;
+
+      String timeFormatted=ts.totalTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      ImGui::Text("song duration: %s (%" PRIu64 " ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
+      if (ts.isLoopDefined) {
+        ImGui::Text("loop region is defined");
+      } else {
+        ImGui::Text("no loop region");
+      }
+      if (ts.isLoopable) {
+        ImGui::Text("song can loop");
+      } else {
+        ImGui::Text("song will stop");
+      }
+
+      ImGui::Text("loop region: %d:%d - %d:%d",ts.loopStart.order,ts.loopStart.row,ts.loopEnd.order,ts.loopEnd.row);
+      timeFormatted=ts.loopStartTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      ImGui::Text("loop start time: %s",timeFormatted.c_str());
+
+      if (ImGui::TreeNode("Maximum rows")) {
+        for (int i=0; i<e->curSubSong->ordersLen; i++) {
+          ImGui::Text("- Order %d: %d",i,ts.maxRow[i]);
+        }
+        ImGui::TreePop();
+      }
+
+      ImGui::Checkbox("Enable row timestamps (in pattern view)",&debugRowTimestamps);
+      
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);
@@ -207,7 +245,6 @@ void FurnaceGUI::drawDebug() {
           continue;
         }
         if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,sample->name).c_str())) {
-          ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);
@@ -332,6 +369,25 @@ void FurnaceGUI::drawDebug() {
         ImGui::Text("- %d: %.1f, %.1f (%.2f)",i.id,i.x,i.y,i.x);
       }
       ImGui::Unindent();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("TimeMicros Test")) {
+      static TimeMicros testTS;
+      static String testTSIn;
+      String testTSFormatted=testTS.toString();
+      ImGui::Text("Current Value: %s",testTSFormatted.c_str());
+
+      if (ImGui::InputText("fromString",&testTSIn)) {
+        try {
+          testTS=TimeMicros::fromString(testTSIn);
+        } catch (std::invalid_argument& e) {
+          ImGui::Text("COULD NOT! (%s)",e.what());
+        }
+      }
+
+      ImGui::InputInt("seconds",&testTS.seconds);
+      ImGui::InputInt("micros",&testTS.micros);
+
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("New File Picker Test")) {
@@ -484,6 +540,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::Text("Input Scale: %f",ImGui::GetIO().InputScale);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Audio Debug")) {
@@ -794,7 +851,7 @@ void FurnaceGUI::drawDebug() {
       auto DrawSpot=[&](const CursorJumpPoint& spot) {
         ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
       };
-      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Border)) {
+      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Borders)) {
         if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
           for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
             ImGui::TableNextRow();

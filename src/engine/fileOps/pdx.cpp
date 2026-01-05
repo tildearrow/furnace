@@ -69,7 +69,6 @@ void DivEngine::loadPDX(SafeReader& reader, std::vector<DivSample*>& ret, String
         {
             DivSample* s = new DivSample;
 
-            s->rate = PDX_SAMPLE_RATE;
             s->centerRate = PDX_SAMPLE_RATE;
             s->depth = DIV_SAMPLE_DEPTH_VOX;
             s->init(headers[i].sample_length * 2);

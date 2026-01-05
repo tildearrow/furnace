@@ -36,6 +36,9 @@
 #ifdef HAVE_PA
 #include "../audio/pa.h"
 #endif
+#ifdef HAVE_ASIO
+#include "../audio/asio.h"
+#endif
 #include "../audio/pipe.h"
 #include <math.h>
 #include <float.h>
@@ -49,13 +52,13 @@ void process(void* u, float** in, float** out, int inChans, int outChans, unsign
 const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNull) {
   switch (effect) {
     case 0x00:
-      return _("00xy: Arpeggio");
+      return _("00xy: Arpeggio (x: semitones; y: semitones)");
     case 0x01:
-      return _("01xx: Pitch slide up");
+      return _("01xx: Pitch slide up (xx: speed)");
     case 0x02:
-      return _("02xx: Pitch slide down");
+      return _("02xx: Pitch slide down (xx: speed)");
     case 0x03:
-      return _("03xx: Portamento");
+      return _("03xx: Portamento (xx: speed)");
     case 0x04:
       return _("04xy: Vibrato (x: speed; y: depth)");
     case 0x05:
@@ -127,8 +130,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("E9xy: Quick legato down (x: time; y: semitones)");
     case 0xea:
       return _("EAxx: Legato");
-    case 0xeb:
-      return _("EBxx: Set LEGACY sample mode bank");
     case 0xec:
       return _("ECxx: Note cut");
     case 0xed:
@@ -167,7 +168,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return _("FFxx: Stop song");
     default:
       if ((effect&0xf0)==0x90) {
-        if (song.oldSampleOffset) {
+        if (song.compatFlags.oldSampleOffset) {
           return _("9xxx: Set sample offset*256");
         }
         switch (effect) {
@@ -178,19 +179,23 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
           case 0x92:
             return _("92xx: Set sample offset (third byte, ×65536)");
         }
-      } else if (chan>=0 && chan<chans) {
-        DivSysDef* sysDef=sysDefs[sysOfChan[chan]];
-        auto iter=sysDef->effectHandlers.find(effect);
-        if (iter!=sysDef->effectHandlers.end()) {
-          return iter->second.description;
-        }
-        iter=sysDef->postEffectHandlers.find(effect);
-        if (iter!=sysDef->postEffectHandlers.end()) {
-          return iter->second.description;
-        }
-        iter=sysDef->preEffectHandlers.find(effect);
-        if (iter!=sysDef->preEffectHandlers.end()) {
-          return iter->second.description;
+      } else if (chan>=0 && chan<song.chans) {
+        DivSysDef* sysDef=sysDefs[song.sysOfChan[chan]];
+        if (sysDef==NULL) {
+          return notNull?_("Invalid effect"):NULL;
+        } else {
+          auto iter=sysDef->effectHandlers.find(effect);
+          if (iter!=sysDef->effectHandlers.end()) {
+            return iter->second.description;
+          }
+          iter=sysDef->postEffectHandlers.find(effect);
+          if (iter!=sysDef->postEffectHandlers.end()) {
+            return iter->second.description;
+          }
+          iter=sysDef->preEffectHandlers.find(effect);
+          if (iter!=sysDef->preEffectHandlers.end()) {
+            return iter->second.description;
+          }
         }
       }
       break;
@@ -198,15 +203,9 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
   return notNull?_("Invalid effect"):NULL;
 }
 
-void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
+void DivEngine::calcSongTimestamps() {
   if (curSubSong!=NULL) {
-    curSubSong->walk(loopOrder,loopRow,loopEnd,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
-  }
-}
-
-void DivEngine::findSongLength(int loopOrder, int loopRow, double fadeoutLen, int& rowsForFadeout, bool& hasFFxx, std::vector<int>& orders, int& length) {
-  if (curSubSong!=NULL) {
-    curSubSong->findLength(loopOrder,loopRow,fadeoutLen,rowsForFadeout,hasFFxx,orders,song.grooves,length,chans,song.jumpTreatment,song.ignoreJumpAtEnd);
+    curSubSong->calcTimestamps(song.chans,song.grooves,song.compatFlags.jumpTreatment,song.compatFlags.ignoreJumpAtEnd,song.compatFlags.brokenSpeedSel,song.compatFlags.delayBehavior);
   }
 }
 
@@ -265,6 +264,19 @@ double DivEngine::benchmarkSeek() {
 
   printf("[RESULT] min %fs max %fs average %fs\n",tMin,tMax,tAvg);
   return tAvg;
+}
+
+double DivEngine::benchmarkWalk() {
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+
+  // benchmark
+  calcSongTimestamps();
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+
+  double t=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+  printf("[RESULT] %fs\n",t);
+  return t;
 }
 
 void DivEngine::notifyInsChange(int ins) {
@@ -504,9 +516,11 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
     if (song.system[index]==DIV_SYSTEM_NULL) {
       break;
     }
-    chanCount+=getChannelCount(song.system[index]);
-    if (chanCount>=DIV_MAX_CHANS) {
+    song.systemChans[index]=c.getInt(fmt::sprintf("chans%d",index),getChannelCount(song.system[index]));
+    chanCount+=song.systemChans[index];
+    if (chanCount>DIV_MAX_CHANS) {
       song.system[index]=DIV_SYSTEM_NULL;
+      song.systemChans[index]=1;
       break;
     }
     song.systemVol[index]=c.getFloat(fmt::sprintf("vol%d",index),1.0f);
@@ -530,7 +544,7 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
   curChanMask=c.getIntList("chanMask",{});
-  for (unsigned char i:curChanMask) {
+  for (unsigned char i: curChanMask) {
     int j=i-1;
     if (j<0) j=0;
     if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
@@ -556,13 +570,15 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   } else {
     song.systemName=sysName;
   }
-  recalcChans();
+  song.initDefaultSystemChans();
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
   renderSamples();
   reset();
+  calcSongTimestamps();
   BUSY_END;
 }
 
@@ -593,13 +609,15 @@ void DivEngine::createNewFromDefaults() {
     song.systemName=sysName;
   }
 
-  recalcChans();
+  song.initDefaultSystemChans();
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
   renderSamples();
   reset();
+  calcSongTimestamps();
   BUSY_END;
 }
 
@@ -632,6 +650,7 @@ void DivEngine::copyChannel(int src, int dest) {
   curSubSong->chanShow[dest]=curSubSong->chanShow[src];
   curSubSong->chanShowChanOsc[dest]=curSubSong->chanShowChanOsc[src];
   curSubSong->chanCollapse[dest]=curSubSong->chanCollapse[src];
+  curSubSong->chanColor[dest]=curSubSong->chanColor[src];
 }
 
 void DivEngine::swapChannels(int src, int dest) {
@@ -660,17 +679,21 @@ void DivEngine::swapChannels(int src, int dest) {
   bool prevChanShow=curSubSong->chanShow[src];
   bool prevChanShowChanOsc=curSubSong->chanShowChanOsc[src];
   unsigned char prevChanCollapse=curSubSong->chanCollapse[src];
+  unsigned int prevChanColor=curSubSong->chanColor[src];
 
   curSubSong->chanName[src]=curSubSong->chanName[dest];
   curSubSong->chanShortName[src]=curSubSong->chanShortName[dest];
   curSubSong->chanShow[src]=curSubSong->chanShow[dest];
   curSubSong->chanShowChanOsc[src]=curSubSong->chanShowChanOsc[dest];
   curSubSong->chanCollapse[src]=curSubSong->chanCollapse[dest];
+  curSubSong->chanColor[src]=curSubSong->chanColor[dest];
+
   curSubSong->chanName[dest]=prevChanName;
   curSubSong->chanShortName[dest]=prevChanShortName;
   curSubSong->chanShow[dest]=prevChanShow;
   curSubSong->chanShowChanOsc[dest]=prevChanShowChanOsc;
   curSubSong->chanCollapse[dest]=prevChanCollapse;
+  curSubSong->chanColor[dest]=prevChanColor;
 }
 
 void DivEngine::stompChannel(int ch) {
@@ -685,6 +708,7 @@ void DivEngine::stompChannel(int ch) {
   curSubSong->chanShow[ch]=true;
   curSubSong->chanShowChanOsc[ch]=true;
   curSubSong->chanCollapse[ch]=false;
+  curSubSong->chanColor[ch]=0;
 }
 
 void DivEngine::changeSong(size_t songIndex) {
@@ -699,87 +723,9 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
-void DivEngine::moveAsset(std::vector<DivAssetDir>& dir, int before, int after) {
-  if (before<0 || after<0) return;
-  for (DivAssetDir& i: dir) {
-    for (size_t j=0; j<i.entries.size(); j++) {
-      // erase matching entry
-      if (i.entries[j]==before) {
-        i.entries[j]=after;
-      } else if (i.entries[j]==after) {
-        i.entries[j]=before;
-      }
-    }
-  }
-}
-
-void DivEngine::removeAsset(std::vector<DivAssetDir>& dir, int entry) {
-  if (entry<0) return;
-  for (DivAssetDir& i: dir) {
-    for (size_t j=0; j<i.entries.size(); j++) {
-      // erase matching entry
-      if (i.entries[j]==entry) {
-        i.entries.erase(i.entries.begin()+j);
-        j--;
-      } else if (i.entries[j]>entry) {
-        i.entries[j]--;
-      }
-    }
-  }
-}
-
-void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
-  bool* inAssetDir=new bool[entries];
-  memset(inAssetDir,0,entries*sizeof(bool));
-
-  for (DivAssetDir& i: dir) {
-    for (size_t j=0; j<i.entries.size(); j++) {
-      // erase invalid entry
-      if (i.entries[j]<0 || i.entries[j]>=(int)entries) {
-        i.entries.erase(i.entries.begin()+j);
-        j--;
-        continue;
-      }
-
-      // erase duplicate entry
-      if (inAssetDir[i.entries[j]]) {
-        i.entries.erase(i.entries.begin()+j);
-        j--;
-        continue;
-      }
-      
-      // mark entry as present
-      inAssetDir[i.entries[j]]=true;
-    }
-  }
-
-  // get unsorted directory
-  DivAssetDir* unsortedDir=NULL;
-  for (DivAssetDir& i: dir) {
-    if (i.name.empty()) {
-      unsortedDir=&i;
-      break;
-    }
-  }
-
-  // add missing items to unsorted directory
-  for (size_t i=0; i<entries; i++) {
-    if (!inAssetDir[i]) {
-      // create unsorted directory if it doesn't exist
-      if (unsortedDir==NULL) {
-        dir.push_back(DivAssetDir(""));
-        unsortedDir=&(*dir.rbegin());
-      }
-      unsortedDir->entries.push_back(i);
-    }
-  }
-
-  delete[] inAssetDir;
-}
-
 void DivEngine::copyChannelP(int src, int dest) {
-  if (src<0 || src>=chans) return;
-  if (dest<0 || dest>=chans) return;
+  if (src<0 || src>=song.chans) return;
+  if (dest<0 || dest>=song.chans) return;
   BUSY_BEGIN;
   saveLock.lock();
   copyChannel(src,dest);
@@ -788,8 +734,8 @@ void DivEngine::copyChannelP(int src, int dest) {
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
-  if (src<0 || src>=chans) return;
-  if (dest<0 || dest>=chans) return;
+  if (src<0 || src>=song.chans) return;
+  if (dest<0 || dest>=song.chans) return;
   BUSY_BEGIN;
   saveLock.lock();
   swapChannels(src,dest);
@@ -836,7 +782,7 @@ int DivEngine::duplicateSubSong(int index) {
   theCopy->notes=theOrig->notes;
   theCopy->hilightA=theOrig->hilightA;
   theCopy->hilightB=theOrig->hilightB;
-  theCopy->timeBase=theOrig->timeBase;
+  theCopy->effectDivider=theOrig->effectDivider;
   theCopy->arpLen=theOrig->arpLen;
   theCopy->speeds=theOrig->speeds;
   theCopy->virtualTempoN=theOrig->virtualTempoN;
@@ -849,6 +795,8 @@ int DivEngine::duplicateSubSong(int index) {
   memcpy(theCopy->chanShow,theOrig->chanShow,DIV_MAX_CHANS*sizeof(bool));
   memcpy(theCopy->chanShowChanOsc,theOrig->chanShowChanOsc,DIV_MAX_CHANS*sizeof(bool));
   memcpy(theCopy->chanCollapse,theOrig->chanCollapse,DIV_MAX_CHANS);
+
+  memcpy(theCopy->chanColor,theOrig->chanColor,DIV_MAX_CHANS*sizeof(unsigned int));
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     theCopy->chanName[i]=theOrig->chanName[i];
@@ -942,7 +890,7 @@ void DivEngine::delUnusedIns() {
   memset(isUsed,0,256*sizeof(bool));
 
   // scan
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     for (size_t j=0; j<song.subsong.size(); j++) {
       for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
@@ -1056,50 +1004,103 @@ void DivEngine::delUnusedSamples() {
   BUSY_END;
 }
 
+bool DivEngine::sysChanCountChange(int firstChan, int before, int after) {
+  if (song.chans-before+after>DIV_MAX_CHANS) {
+    return false;
+  }
+
+  int chanMovement=after-before;
+  int lastChan=firstChan+before;
+  if (chanMovement!=0) {
+    if (chanMovement>0) {
+      // add channels
+      for (int i=song.chans+chanMovement-1; i>=lastChan+chanMovement; i--) {
+        swapChannels(i,i-chanMovement);
+      }
+      for (int i=lastChan; i<lastChan+chanMovement; i++) {
+        stompChannel(i);
+      }
+    } else {
+      // remove channels
+      for (int i=lastChan+chanMovement; i<lastChan; i++) {
+        stompChannel(i);
+      }
+      for (int i=lastChan+chanMovement; i<song.chans+chanMovement; i++) {
+        swapChannels(i,i-chanMovement);
+      }
+    }
+  }
+  return true;
+}
+
 bool DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   if (index<0 || index>=song.systemLen) {
     lastError=_("invalid index");
     return false;
   }
-  if (chans-getChannelCount(song.system[index])+getChannelCount(which)>DIV_MAX_CHANS) {
+  unsigned short newChanCount=getChannelCount(which);
+  if (song.chans-song.systemChans[index]+newChanCount>DIV_MAX_CHANS) {
     lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
 
-  int chanCount=chans;
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
 
   if (!preserveOrder) {
     int firstChan=0;
-    int chanMovement=getChannelCount(which)-getChannelCount(song.system[index]);
-    while (dispatchOfChan[firstChan]!=index) firstChan++;
-    int lastChan=firstChan+getChannelCount(song.system[index]);
-    if (chanMovement!=0) {
-      if (chanMovement>0) {
-        // add channels
-        for (int i=chanCount+chanMovement-1; i>=lastChan+chanMovement; i--) {
-          swapChannels(i,i-chanMovement);
-        }
-        for (int i=lastChan; i<lastChan+chanMovement; i++) {
-          stompChannel(i);
-        }
-      } else {
-        // remove channels
-        for (int i=lastChan+chanMovement; i<lastChan; i++) {
-          stompChannel(i);
-        }
-        for (int i=lastChan+chanMovement; i<chanCount+chanMovement; i++) {
-          swapChannels(i,i-chanMovement);
-        }
-      }
+    while (song.dispatchOfChan[firstChan]!=index) firstChan++;
+    if (!sysChanCountChange(firstChan,song.systemChans[index],newChanCount)) {
+      logE("it should not be failing here!");
+      abort();
     }
   }
 
   song.system[index]=which;
+  song.systemChans[index]=newChanCount;
   song.systemFlags[index].clear();
-  recalcChans();
+  song.recalcChans();
+  saveLock.unlock();
+  BUSY_END;
+  initDispatch();
+  BUSY_BEGIN;
+  renderSamples();
+  reset();
+  BUSY_END;
+
+  return true;
+}
+
+bool DivEngine::setSystemChans(int index, int ch, bool preserveOrder) {
+  if (index<0 || index>=song.systemLen) {
+    lastError=_("invalid index");
+    return false;
+  }
+  if (ch<1) {
+    lastError=_("channel count should be at least 1");
+    return false;
+  }
+  if (song.chans-song.systemChans[index]+ch>DIV_MAX_CHANS) {
+    lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
+    return false;
+  }
+
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (!preserveOrder) {
+    int firstChan=0;
+    while (song.dispatchOfChan[firstChan]!=index) firstChan++;
+    if (!sysChanCountChange(firstChan,song.systemChans[index],ch)) {
+      logE("it should not be failing here!");
+      abort();
+    }
+  }
+
+  song.systemChans[index]=ch;
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
@@ -1116,7 +1117,7 @@ bool DivEngine::addSystem(DivSystem which) {
     lastError=fmt::sprintf(_("max number of systems is %d"),DIV_MAX_CHIPS);
     return false;
   }
-  if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
+  if (song.chans+getChannelCount(which)>DIV_MAX_CHANS) {
     lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
@@ -1124,11 +1125,12 @@ bool DivEngine::addSystem(DivSystem which) {
   BUSY_BEGIN;
   saveLock.lock();
   song.system[song.systemLen]=which;
+  song.systemChans[song.systemLen]=getChannelCount(which);
   song.systemVol[song.systemLen]=1.0;
   song.systemPan[song.systemLen]=0;
   song.systemPanFR[song.systemLen]=0;
   song.systemFlags[song.systemLen++].clear();
-  recalcChans();
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
@@ -1170,7 +1172,7 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
     lastError=fmt::sprintf(_("max number of systems is %d"),DIV_MAX_CHIPS);
     return false;
   }
-  if (chans+getChannelCount(song.system[index])>DIV_MAX_CHANS) {
+  if (song.chans+song.systemChans[index]>DIV_MAX_CHANS) {
     lastError=fmt::sprintf(_("max number of total channels is %d"),DIV_MAX_CHANS);
     return false;
   }
@@ -1178,11 +1180,12 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
   BUSY_BEGIN;
   saveLock.lock();
   song.system[song.systemLen]=song.system[index];
+  song.systemChans[song.systemLen]=song.systemChans[index];
   song.systemVol[song.systemLen]=song.systemVol[index];
   song.systemPan[song.systemLen]=song.systemPan[index];
   song.systemPanFR[song.systemLen]=song.systemPanFR[index];
   song.systemFlags[song.systemLen++]=song.systemFlags[index];
-  recalcChans();
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
@@ -1214,19 +1217,20 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
     int srcChan=0;
     int destChan=0;
     for (int i=0; i<index; i++) {
-      srcChan+=getChannelCount(song.system[i]);
+      srcChan+=song.systemChans[i];
     }
     for (int i=0; i<song.systemLen-1; i++) {
-      destChan+=getChannelCount(song.system[i]);
+      destChan+=song.systemChans[i];
     }
     for (DivSubSong* i: song.subsong) {
-      for (int j=0; j<getChannelCount(song.system[index]); j++) {
+      for (int j=0; j<song.systemChans[index]; j++) {
         i->pat[destChan+j].effectCols=i->pat[srcChan+j].effectCols;
         i->chanShow[destChan+j]=i->chanShow[srcChan+j];
         i->chanShowChanOsc[destChan+j]=i->chanShowChanOsc[srcChan+j];
         i->chanCollapse[destChan+j]=i->chanCollapse[srcChan+j];
         i->chanName[destChan+j]=i->chanName[srcChan+j];
         i->chanShortName[destChan+j]=i->chanShortName[srcChan+j];
+        i->chanColor[destChan+j]=i->chanColor[srcChan+j];
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (i->pat[srcChan+j].data[k]!=NULL) {
             i->pat[srcChan+j].data[k]->copyOn(i->pat[destChan+j].getPattern(k,true));
@@ -1253,7 +1257,7 @@ bool DivEngine::duplicateSystem(int index, bool pat, bool end) {
       swapSystemUnsafe(i,i-1,false);
     }
 
-    recalcChans();
+    song.recalcChans();
     saveLock.unlock();
     BUSY_END;
     initDispatch();
@@ -1275,19 +1279,19 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
     lastError=_("invalid index");
     return false;
   }
-  int chanCount=chans;
+  int chanCount=song.chans;
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
 
   if (!preserveOrder) {
     int firstChan=0;
-    while (dispatchOfChan[firstChan]!=index) firstChan++;
-    for (int i=0; i<getChannelCount(song.system[index]); i++) {
+    while (song.dispatchOfChan[firstChan]!=index) firstChan++;
+    for (int i=0; i<song.systemChans[index]; i++) {
       stompChannel(i+firstChan);
     }
-    for (int i=firstChan+getChannelCount(song.system[index]); i<chanCount; i++) {
-      swapChannels(i,i-getChannelCount(song.system[index]));
+    for (int i=firstChan+song.systemChans[index]; i<chanCount; i++) {
+      swapChannels(i,i-song.systemChans[index]);
     }
   }
 
@@ -1303,12 +1307,13 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   song.systemLen--;
   for (int i=index; i<song.systemLen; i++) {
     song.system[i]=song.system[i+1];
+    song.systemChans[i]=song.systemChans[i+1];
     song.systemVol[i]=song.systemVol[i+1];
     song.systemPan[i]=song.systemPan[i+1];
     song.systemPanFR[i]=song.systemPanFR[i+1];
     song.systemFlags[i]=song.systemFlags[i+1];
   }
-  recalcChans();
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
@@ -1330,7 +1335,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
     int tchans=0;
 
     for (int i=0; i<song.systemLen; i++) {
-      tchans+=getChannelCount(song.system[i]);
+      tchans+=song.systemChans[i];
     }
 
     memset(unswappedChannels,0,DIV_MAX_CHANS);
@@ -1345,7 +1350,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
     if (song.systemLen>0) swapList.reserve(song.systemLen);
     for (int i=0; i<song.systemLen; i++) {
       chanList.clear();
-      const int channelCount=getChannelCount(song.system[i]);
+      const int channelCount=song.systemChans[i];
       if (channelCount>0) chanList.reserve(channelCount);
       for (int j=0; j<channelCount; j++) {
         chanList.push_back(index);
@@ -1378,6 +1383,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
       bool prevChanShow[DIV_MAX_CHANS];
       bool prevChanShowChanOsc[DIV_MAX_CHANS];
       unsigned char prevChanCollapse[DIV_MAX_CHANS];
+      unsigned int prevChanColor[DIV_MAX_CHANS];
 
       for (int j=0; j<tchans; j++) {
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
@@ -1390,6 +1396,7 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
         prevChanShow[j]=song.subsong[i]->chanShow[j];
         prevChanShowChanOsc[j]=song.subsong[i]->chanShowChanOsc[j];
         prevChanCollapse[j]=song.subsong[i]->chanCollapse[j];
+        prevChanColor[j]=song.subsong[i]->chanColor[j];
       }
 
       for (int j=0; j<tchans; j++) {
@@ -1404,17 +1411,22 @@ void DivEngine::swapSystemUnsafe(int src, int dest, bool preserveOrder) {
         song.subsong[i]->chanShow[j]=prevChanShow[swappedChannels[j]];
         song.subsong[i]->chanShowChanOsc[j]=prevChanShowChanOsc[swappedChannels[j]];
         song.subsong[i]->chanCollapse[j]=prevChanCollapse[swappedChannels[j]];
+        song.subsong[i]->chanColor[j]=prevChanColor[swappedChannels[j]];
       }
     }
   }
 
   DivSystem srcSystem=song.system[src];
+  unsigned short srcSystemChans=song.systemChans[src];
   float srcVol=song.systemVol[src];
   float srcPan=song.systemPan[src];
   float srcPanFR=song.systemPanFR[src];
 
   song.system[src]=song.system[dest];
   song.system[dest]=srcSystem;
+
+  song.systemChans[src]=song.systemChans[dest];
+  song.systemChans[dest]=srcSystemChans;
 
   song.systemVol[src]=song.systemVol[dest];
   song.systemVol[dest]=srcVol;
@@ -1460,7 +1472,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
   swapSystemUnsafe(src,dest,preserveOrder);
 
-  recalcChans();
+  song.recalcChans();
   saveLock.unlock();
   BUSY_END;
   initDispatch();
@@ -1513,8 +1525,7 @@ String DivEngine::getPlaybackDebugInfo() {
     "midiTimeDrift: %f\n"
     "changeOrd: %d\n"
     "changePos: %d\n"
-    "totalSeconds: %d\n"
-    "totalTicks: %d\n"
+    "totalTime: %s\n"
     "totalTicksR: %d\n"
     "curMidiClock: %d\n"
     "curMidiTime: %d\n"
@@ -1526,7 +1537,7 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
-    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
+    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalTime.toString(),
     totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,
     (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
@@ -1584,28 +1595,32 @@ void DivEngine::setLoops(int loops) {
 }
 
 DivChannelState* DivEngine::getChanState(int ch) {
-  if (ch<0 || ch>=chans) return NULL;
+  if (ch<0 || ch>=song.chans) return NULL;
   return &chan[ch];
 }
 
 unsigned short DivEngine::getChanPan(int ch) {
-  if (ch<0 || ch>=chans) return 0;
-  return disCont[dispatchOfChan[ch]].dispatch->getPan(dispatchChanOfChan[ch]);
+  if (ch<0 || ch>=song.chans) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
+  return disCont[song.dispatchOfChan[ch]].dispatch->getPan(song.dispatchChanOfChan[ch]);
 }
 
 void* DivEngine::getDispatchChanState(int ch) {
-  if (ch<0 || ch>=chans) return NULL;
-  return disCont[dispatchOfChan[ch]].dispatch->getChanState(dispatchChanOfChan[ch]);
+  if (ch<0 || ch>=song.chans) return NULL;
+  if (song.dispatchChanOfChan[ch]<0) return NULL;
+  return disCont[song.dispatchOfChan[ch]].dispatch->getChanState(song.dispatchChanOfChan[ch]);
 }
 
 void DivEngine::getChanPaired(int ch, std::vector<DivChannelPair>& ret) {
-  if (ch<0 || ch>=chans) return;
-  disCont[dispatchOfChan[ch]].dispatch->getPaired(dispatchChanOfChan[ch],ret);
+  if (ch<0 || ch>=song.chans) return;
+  if (song.dispatchChanOfChan[ch]<0) return;
+  disCont[song.dispatchOfChan[ch]].dispatch->getPaired(song.dispatchChanOfChan[ch],ret);
 }
 
 DivChannelModeHints DivEngine::getChanModeHints(int ch) {
-  if (ch<0 || ch>=chans) return DivChannelModeHints();
-  return disCont[dispatchOfChan[ch]].dispatch->getModeHints(dispatchChanOfChan[ch]);
+  if (ch<0 || ch>=song.chans) return DivChannelModeHints();
+  if (song.dispatchChanOfChan[ch]<0) return DivChannelModeHints();
+  return disCont[song.dispatchOfChan[ch]].dispatch->getModeHints(song.dispatchChanOfChan[ch]);
 }
 
 unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
@@ -1617,18 +1632,21 @@ unsigned char* DivEngine::getRegisterPool(int sys, int& size, int& depth) {
 }
 
 DivMacroInt* DivEngine::getMacroInt(int chan) {
-  if (chan<0 || chan>=chans) return NULL;
-  return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
+  if (chan<0 || chan>=song.chans) return NULL;
+  if (song.dispatchChanOfChan[chan]<0) return NULL;
+  return disCont[song.dispatchOfChan[chan]].dispatch->getChanMacroInt(song.dispatchChanOfChan[chan]);
 }
 
 DivSamplePos DivEngine::getSamplePos(int chan) {
-  if (chan<0 || chan>=chans) return DivSamplePos();
-  return disCont[dispatchOfChan[chan]].dispatch->getSamplePos(dispatchChanOfChan[chan]);
+  if (chan<0 || chan>=song.chans) return DivSamplePos();
+  if (song.dispatchChanOfChan[chan]<0) return DivSamplePos();
+  return disCont[song.dispatchOfChan[chan]].dispatch->getSamplePos(song.dispatchChanOfChan[chan]);
 }
 
 DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
-  if (chan<0 || chan>=chans) return NULL;
-  return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
+  if (chan<0 || chan>=song.chans) return NULL;
+  if (song.dispatchChanOfChan[chan]<0) return NULL;
+  return disCont[song.dispatchOfChan[chan]].dispatch->getOscBuffer(song.dispatchChanOfChan[chan]);
 }
 
 void DivEngine::enableCommandStream(bool enable) {
@@ -1644,6 +1662,37 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
   }
   cmdStream.clear();
   BUSY_END;
+}
+
+DivFilePlayer* DivEngine::getFilePlayer() {
+  if (curFilePlayer==NULL) {
+    BUSY_BEGIN_SOFT;
+    curFilePlayer=new DivFilePlayer;
+    curFilePlayer->setOutputRate(got.rate);
+    BUSY_END;
+  }
+  return curFilePlayer;
+}
+
+bool DivEngine::getFilePlayerSync() {
+  return filePlayerSync;
+}
+
+void DivEngine::setFilePlayerSync(bool doSync) {
+  filePlayerSync=doSync;
+}
+
+TimeMicros DivEngine::getFilePlayerCue() {
+  return filePlayerCue;
+}
+
+void DivEngine::setFilePlayerCue(TimeMicros cue) {
+  filePlayerCue=cue;
+}
+
+void DivEngine::syncFilePlayer() {
+  if (curFilePlayer==NULL) return;
+  curFilePlayer->setPosSeconds(totalTime+filePlayerCue);
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
@@ -1676,10 +1725,10 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   midiTimeDrift=0;
   if (!preserveDrift) {
     ticks=1;
+    subticks=0;
     tempoAccum=0;
-    totalTicks=0;
-    totalTicksOff=0;
-    totalSeconds=0;
+    totalTime=TimeMicros(0,0);
+    totalTimeDrift=0;
     totalTicksR=0;
     curMidiClock=0;
     curMidiTime=0;
@@ -1733,7 +1782,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   if (goal>0 || goalRow>0) {
     for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->forceIns();
   }
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chan[i].cut=-1;
     chan[i].cutType=0;
   }
@@ -1769,6 +1818,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   cmdStream.clear();
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
   logV("playSub() took %dµs",std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count());
+  logV("and landed us at %s (%d ticks, %d:%d.%d)",totalTime.toString(),totalTicksR,curOrder,curRow,ticks);
 }
 
 /*
@@ -1780,7 +1830,7 @@ int DivEngine::calcBaseFreq(double clock, double divider, int note, bool period)
 }*/
 
 double DivEngine::calcBaseFreq(double clock, double divider, int note, bool period) {
-  if (song.linearPitch) { // linear
+  if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
   double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
@@ -1830,7 +1880,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   return bf|((block)<<(bits));
 
 int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock) {
-  if (song.linearPitch) { // linear
+  if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
   int bf=calcBaseFreq(clock,divider,note,false);
@@ -1843,10 +1893,10 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
 
 int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits, int fixedBlock) {
   // linear pitch
-  if (song.linearPitch) {
+  if (song.compatFlags.linearPitch) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
-    if (!song.oldArpStrategy) {
+    if (!song.compatFlags.oldArpStrategy) {
       if (arpFixed) {
         nbase=(arp<<7)+pitch+pitch2;
       } else {
@@ -1996,6 +2046,12 @@ bool DivEngine::play() {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   bool didItPlay=playing;
+  if (didItPlay) {
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
+  }
   BUSY_END;
   return didItPlay;
 }
@@ -2012,15 +2068,28 @@ bool DivEngine::playToRow(int row) {
     keyHit[i]=false;
   }
   bool didItPlay=playing;
+  if (didItPlay) {
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
+  }
   BUSY_END;
   return didItPlay;
 }
 
 void DivEngine::stepOne(int row) {
+  if (curFilePlayer && filePlayerSync) {
+    curFilePlayer->stop();
+  }
+
   if (!isPlaying()) {
     BUSY_BEGIN_SOFT;
     freelance=false;
     playSub(false,row);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+    }
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       keyHit[i]=false;
     }
@@ -2060,16 +2129,21 @@ void DivEngine::stop() {
   }
   if (output) if (output->midiOut!=NULL) {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_STOP,0,0));
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       if (chan[i].curMidiNote>=0) {
         output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
       }
     }
   }
 
+  if (curFilePlayer && filePlayerSync) {
+    curFilePlayer->stop();
+  }
+
   // reset all chan oscs
-  for (int i=0; i<chans; i++) {
-    DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
+  for (int i=0; i<song.chans; i++) {
+    if (song.dispatchChanOfChan[i]<0) continue;
+    DivDispatchOscBuffer* buf=disCont[song.dispatchOfChan[i]].dispatch->getOscBuffer(song.dispatchChanOfChan[i]);
     if (buf!=NULL) {
       buf->reset();
     }
@@ -2106,50 +2180,10 @@ const char** DivEngine::getRegisterSheet(int sys) {
   return disCont[sys].dispatch->getRegisterSheet();
 }
 
-void DivEngine::recalcChans() {
-  bool isInsTypePossible[DIV_INS_MAX];
-  chans=0;
-  int chanIndex=0;
-  memset(isInsTypePossible,0,DIV_INS_MAX*sizeof(bool));
-  for (int i=0; i<song.systemLen; i++) {
-    int chanCount=getChannelCount(song.system[i]);
-    int firstChan=chans;
-    chans+=chanCount;
-    for (int j=0; j<chanCount; j++) {
-      sysOfChan[chanIndex]=song.system[i];
-      dispatchOfChan[chanIndex]=i;
-      dispatchChanOfChan[chanIndex]=j;
-      dispatchFirstChan[chanIndex]=firstChan;
-      chanIndex++;
-
-      if (sysDefs[song.system[i]]!=NULL) {
-        if (sysDefs[song.system[i]]->chanInsType[j][0]!=DIV_INS_NULL) {
-          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][0]]=true;
-        }
-
-        if (sysDefs[song.system[i]]->chanInsType[j][1]!=DIV_INS_NULL) {
-          isInsTypePossible[sysDefs[song.system[i]]->chanInsType[j][1]]=true;
-        }
-      }
-    }
-  }
-
-  possibleInsTypes.clear();
-  for (int i=0; i<DIV_INS_MAX; i++) {
-    if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
-  }
-
-  checkAssetDir(song.insDir,song.ins.size());
-  checkAssetDir(song.waveDir,song.wave.size());
-  checkAssetDir(song.sampleDir,song.sample.size());
-
-  hasLoadedSomething=true;
-}
-
 void DivEngine::reset() {
   if (output) if (output->midiOut!=NULL) {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_STOP,0,0));
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       if (chan[i].curMidiNote>=0) {
         output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
       }
@@ -2157,9 +2191,11 @@ void DivEngine::reset() {
   }
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     chan[i]=DivChannelState();
-    if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;
+    if (i<song.chans && song.dispatchChanOfChan[i]>=0) {
+      chan[i].volMax=(disCont[song.dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,song.dispatchChanOfChan[i]))<<8)|0xff;
+    }
     chan[i].volume=chan[i].volMax;
-    if (!song.linearPitch) chan[i].vibratoFine=4;
+    if (!song.compatFlags.linearPitch) chan[i].vibratoFine=4;
   }
   extValue=0;
   extValuePresent=0;
@@ -2226,12 +2262,10 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return 1278409/(1280000/rate);
     case DIV_SYSTEM_PCE:
       return 1789773/(1789773/rate);
-    case DIV_SYSTEM_SEGAPCM: case DIV_SYSTEM_SEGAPCM_COMPAT:
+    case DIV_SYSTEM_SEGAPCM:
       return (31250*MIN(255,(rate*255/31250)))/255;
     case DIV_SYSTEM_QSOUND:
       return (24038*MIN(65535,(rate*4096/24038)))/4096;
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610_CSM:
@@ -2427,7 +2461,7 @@ double DivEngine::getSamplePreviewRate() {
 }
 
 double DivEngine::getCenterRate() {
-  return song.oldCenterRate?8363.0:8372.0;
+  return song.compatFlags.oldCenterRate?8363.0:8372.0;
 }
 
 String DivEngine::getConfigPath() {
@@ -2440,16 +2474,18 @@ int DivEngine::getMaxVolumeChan(int ch) {
 
 int DivEngine::mapVelocity(int ch, float vel) {
   if (ch<0) return 0;
-  if (ch>=chans) return 0;
-  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
-  return disCont[dispatchOfChan[ch]].dispatch->mapVelocity(dispatchChanOfChan[ch],vel);
+  if (ch>=song.chans) return 0;
+  if (disCont[song.dispatchOfChan[ch]].dispatch==NULL) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
+  return disCont[song.dispatchOfChan[ch]].dispatch->mapVelocity(song.dispatchChanOfChan[ch],vel);
 }
 
 float DivEngine::getGain(int ch, int vol) {
   if (ch<0) return 0;
-  if (ch>=chans) return 0;
-  if (disCont[dispatchOfChan[ch]].dispatch==NULL) return 0;
-  return disCont[dispatchOfChan[ch]].dispatch->getGain(dispatchChanOfChan[ch],vol);
+  if (ch>=song.chans) return 0;
+  if (disCont[song.dispatchOfChan[ch]].dispatch==NULL) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
+  return disCont[song.dispatchOfChan[ch]].dispatch->getGain(song.dispatchChanOfChan[ch],vol);
 }
 
 unsigned char DivEngine::getOrder() {
@@ -2515,12 +2551,8 @@ void DivEngine::virtualTempoChanged() {
   BUSY_END;
 }
 
-int DivEngine::getTotalSeconds() {
-  return totalSeconds;
-}
-
-int DivEngine::getTotalTicks() {
-  return totalTicks;
+TimeMicros DivEngine::getCurTime() {
+  return totalTime;
 }
 
 bool DivEngine::getRepeatPattern() {
@@ -2563,7 +2595,7 @@ void DivEngine::toggleMute(int chan) {
 
 void DivEngine::toggleSolo(int chan) {
   bool solo=false;
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     if (i==chan) {
       solo=true;
       continue;
@@ -2576,17 +2608,17 @@ void DivEngine::toggleSolo(int chan) {
   }
   BUSY_BEGIN;
   if (!solo) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       isMuted[i]=(i!=chan);
-      if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-        disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
+      if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
+        disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],isMuted[i]);
       }
     }
   } else {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       isMuted[i]=false;
-      if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-        disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
+      if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
+        disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],isMuted[i]);
       }
     }
   }
@@ -2596,18 +2628,18 @@ void DivEngine::toggleSolo(int chan) {
 void DivEngine::muteChannel(int chan, bool mute) {
   BUSY_BEGIN;
   isMuted[chan]=mute;
-  if (disCont[dispatchOfChan[chan]].dispatch!=NULL) {
-    disCont[dispatchOfChan[chan]].dispatch->muteChannel(dispatchChanOfChan[chan],isMuted[chan]);
+  if (disCont[song.dispatchOfChan[chan]].dispatch!=NULL && song.dispatchChanOfChan[chan]>=0) {
+    disCont[song.dispatchOfChan[chan]].dispatch->muteChannel(song.dispatchChanOfChan[chan],isMuted[chan]);
   }
   BUSY_END;
 }
 
 void DivEngine::unmuteAll() {
   BUSY_BEGIN;
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     isMuted[i]=false;
-    if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-      disCont[dispatchOfChan[i]].dispatch->muteChannel(dispatchChanOfChan[i],isMuted[i]);
+    if (disCont[song.dispatchOfChan[i]].dispatch!=NULL && song.dispatchChanOfChan[i]>=0) {
+      disCont[song.dispatchOfChan[i]].dispatch->muteChannel(song.dispatchChanOfChan[i],isMuted[i]);
     }
   }
   BUSY_END;
@@ -2678,8 +2710,8 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
   DivInstrumentType prefType;
-  if (refChan>chans) {
-    refChan=chans-1;
+  if (refChan>song.chans) {
+    refChan=song.chans-1;
   }
   if (refChan<0) {
     prefType=fallbackType;
@@ -2703,7 +2735,7 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
       break;
   }
   if (refChan>=0) {
-    if (sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
+    if (song.sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
       *ins=song.nullInsQSound;
     }
   }
@@ -2763,7 +2795,7 @@ void DivEngine::delInstrumentUnsafe(int index) {
     delete song.ins[index];
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       for (size_t j=0; j<song.subsong.size(); j++) {
         for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (song.subsong[j]->pat[i].data[k]==NULL) continue;
@@ -3073,7 +3105,7 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     }
   } else {
     bool used[DIV_MAX_PATTERNS];
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       memset(used,0,sizeof(bool)*DIV_MAX_PATTERNS);
       for (int j=0; j<curSubSong->ordersLen; j++) {
         used[curOrders->ord[i][j]]=true;
@@ -3108,6 +3140,10 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     }
   }
   BUSY_END;
@@ -3118,7 +3154,7 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
   if (curSubSong->ordersLen>=(DIV_MAX_PATTERNS-1)) return;
   warnings="";
   BUSY_BEGIN_SOFT;
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     bool didNotFind=true;
     logD("channel %d",i);
     order[i]=curOrders->ord[i][pos];
@@ -3142,14 +3178,14 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
   }
   if (where) { // at the end
     saveLock.lock();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       curOrders->ord[i][curSubSong->ordersLen]=order[i];
     }
     curSubSong->ordersLen++;
     saveLock.unlock();
   } else { // after current order
     saveLock.lock();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       for (int j=curSubSong->ordersLen; j>pos; j--) {
         curOrders->ord[i][j]=curOrders->ord[i][j-1];
       }
@@ -3160,6 +3196,10 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
     if (pos<=curOrder) curOrder++;
     if (playing && !freelance) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     }
   }
   BUSY_END;
@@ -3180,6 +3220,10 @@ void DivEngine::deleteOrder(int pos) {
   if (curOrder>=curSubSong->ordersLen) curOrder=curSubSong->ordersLen-1;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3203,6 +3247,10 @@ void DivEngine::moveOrderUp(int& pos) {
   pos--;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3226,12 +3274,16 @@ void DivEngine::moveOrderDown(int& pos) {
   pos++;
   if (playing && !freelance) {
     playSub(false);
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
 
 void DivEngine::exchangeIns(int one, int two) {
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     for (size_t j=0; j<song.subsong.size(); j++) {
       for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
@@ -3427,6 +3479,12 @@ void DivEngine::autoPatchbay() {
     }
   }
 
+  // file player
+  song.patchbay.reserve(DIV_MAX_OUTPUTS);
+  for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+    song.patchbay.push_back(0xffc00000|j|(j<<16));
+  }
+
   // wave/sample preview
   song.patchbay.reserve(DIV_MAX_OUTPUTS);
   for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
@@ -3511,7 +3569,7 @@ void DivEngine::patchDisconnectAll(unsigned int portSet) {
 }
 
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
-  if (chan<0 || chan>=chans) return;
+  if (chan<0 || chan>=song.chans) return;
   BUSY_BEGIN;
   pendingNotes.push_back(DivNoteEvent(chan,ins,note,vol,true));
   if (!playing) {
@@ -3523,7 +3581,7 @@ void DivEngine::noteOn(int chan, int ins, int note, int vol) {
 }
 
 void DivEngine::noteOff(int chan) {
-  if (chan<0 || chan>=chans) return;
+  if (chan<0 || chan>=song.chans) return;
   BUSY_BEGIN;
   pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
   if (!playing) {
@@ -3534,12 +3592,79 @@ void DivEngine::noteOff(int chan) {
   BUSY_END;
 }
 
-bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
+int DivEngine::getViableChannel(int chan, int off, int ins) {
+  // if the offset is zero, we don't have to do anything
+  if (off==0) return chan;
+
+  // if there isn't an instrument, just offset chan by off
+  if (ins==-1) {
+    return (chan+off)%song.chans;
+  }
+  
+  bool isViable[DIV_MAX_CHANS];
+  bool isAtLeastOneViable=false;
+  int finalChan=chan;
+  int finalChanType=getChannelType(finalChan);
+
+  // this is a copy of the routine in autoNoteOn...... I am lazy
+  DivInstrument* insInst=getIns(ins);
+  for (int i=0; i<song.chans; i++) {
+    if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || (getPreferInsType(i)==DIV_INS_NULL && finalChanType==DIV_CH_NOISE) || getPreferInsSecondType(i)==insInst->type) {
+      if (insInst->type==DIV_INS_OPL) {
+        if (insInst->fm.ops==2 || getChannelType(i)==DIV_CH_OP) {
+          isViable[i]=true;
+          isAtLeastOneViable=true;
+        } else {
+          isViable[i]=false;
+        }
+      } else {
+        isViable[i]=true;
+        isAtLeastOneViable=true;
+      }
+    } else {
+      isViable[i]=false;
+    }
+  }
+
+  // screw it if none of the channels are viable
+  if (!isAtLeastOneViable) {
+    return (chan+off)%song.chans;
+  }
+
+  // now offset (confined to viable channels)
+  int channelsCycled=0;
+  int i=(chan+1)%song.chans;
+  int attempts=0;
+  while (true) {
+    if (isViable[i]) {
+      channelsCycled++;
+      if (channelsCycled==off) {
+        // we found it
+        return i;
+      }
+    }
+
+    if (++i>=song.chans) {
+      i=0;
+    }
+
+    // fail-safe
+    if (++attempts>1024) {
+      logE("getViableChannel(): too many attempts!");
+      break;
+    }
+  }
+
+  // fail-safe
+  return (chan+off)%song.chans;
+}
+
+bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol, int transpose) {
   bool isViable[DIV_MAX_CHANS];
   bool canPlayAnyway=false;
   bool notInViableChannel=false;
   if (midiBaseChan<0) midiBaseChan=0;
-  if (midiBaseChan>=chans) midiBaseChan=chans-1;
+  if (midiBaseChan>=song.chans) midiBaseChan=song.chans-1;
   int finalChan=midiBaseChan;
   int finalChanType=getChannelType(finalChan);
 
@@ -3552,7 +3677,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
   // 1. check which channels are viable for this instrument
   DivInstrument* insInst=getIns(ins);
   if (getPreferInsType(finalChan)!=insInst->type && getPreferInsSecondType(finalChan)!=insInst->type && getPreferInsType(finalChan)!=DIV_INS_NULL) notInViableChannel=true;
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     if (ins==-1 || ins>=song.insLen || getPreferInsType(i)==insInst->type || (getPreferInsType(i)==DIV_INS_NULL && finalChanType==DIV_CH_NOISE) || getPreferInsSecondType(i)==insInst->type) {
       if (insInst->type==DIV_INS_OPL) {
         if (insInst->fm.ops==2 || getChannelType(i)==DIV_CH_OP) {
@@ -3577,10 +3702,10 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
-      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note,vol,true));
+      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note+transpose,vol,true));
       return true;
     }
-    if (++finalChan>=chans) {
+    if (++finalChan>=song.chans) {
       finalChan=0;
     }
   } while (finalChan!=midiBaseChan);
@@ -3591,14 +3716,14 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     if (isViable[finalChan] && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel) && chan[finalChan].midiAge<chan[candidate].midiAge) {
       candidate=finalChan;
     }
-    if (++finalChan>=chans) {
+    if (++finalChan>=song.chans) {
       finalChan=0;
     }
   } while (finalChan!=midiBaseChan);
 
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
-  pendingNotes.push_back(DivNoteEvent(candidate,ins,note,vol,true));
+  pendingNotes.push_back(DivNoteEvent(candidate,ins,note+transpose,vol,true));
   return true;
 }
 
@@ -3606,8 +3731,8 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   if (!playing) {
     return;
   }
-  //if (ch<0 || ch>=chans) return;
-  for (int i=0; i<chans; i++) {
+  //if (ch<0 || ch>=song.chans) return;
+  for (int i=0; i<song.chans; i++) {
     if (chan[i].midiNote==note) {
       pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
@@ -3619,7 +3744,7 @@ void DivEngine::autoNoteOffAll() {
   if (!playing) {
     return;
   }
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     if (chan[i].midiNote!=-1) {
       pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
@@ -3638,6 +3763,11 @@ void DivEngine::setOrder(unsigned char order) {
   prevOrder=curOrder;
   if (playing && !freelance) {
     playSub(false);
+
+    if (curFilePlayer && filePlayerSync) {
+      syncFilePlayer();
+      curFilePlayer->play();
+    }
   }
   BUSY_END;
 }
@@ -3658,6 +3788,10 @@ void DivEngine::updateSysFlags(int system, bool restart, bool render) {
   if (restart) {
     if (isPlaying()) {
       playSub(false);
+      if (curFilePlayer && filePlayerSync) {
+        syncFilePlayer();
+        curFilePlayer->play();
+      }
     } else if (freelance) {
       reset();
     }
@@ -3720,6 +3854,9 @@ bool DivEngine::switchMaster(bool full) {
       disCont[i].setRates(got.rate);
       disCont[i].setQuality(lowQuality,dcHiPass);
     }
+    if (curFilePlayer!=NULL) {
+      curFilePlayer->setOutputRate(got.rate);
+    }
     if (!output->setRun(true)) {
       logE("error while activating audio!");
       return false;
@@ -3732,7 +3869,7 @@ bool DivEngine::switchMaster(bool full) {
 }
 
 void DivEngine::setMidiBaseChan(int chan) {
-  if (chan<0 || chan>=chans) chan=0;
+  if (chan<0 || chan>=song.chans) chan=0;
   midiBaseChan=chan;
 }
 
@@ -3806,6 +3943,21 @@ TAAudioDesc& DivEngine::getAudioDescGot() {
   return got;
 }
 
+TAAudioDeviceStatus DivEngine::getAudioDeviceStatus() {
+  if (output==NULL) return TA_AUDIO_DEVICE_OK;
+  return output->getDeviceStatus();
+}
+
+void DivEngine::acceptAudioDeviceStatus() {
+  if (output==NULL) return;
+  output->acceptDeviceStatus();
+}
+
+int DivEngine::audioBackendCommand(TAAudioCommand which) {
+  if (output==NULL) return -1;
+  return output->specialCommand(which);
+}
+
 std::vector<String>& DivEngine::getAudioDevices() {
   return audioDevs;
 }
@@ -3852,7 +4004,7 @@ void DivEngine::initDispatch(bool isRender) {
   }
 
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i],isRender);
+    disCont[i].init(song.system[i],this,song.systemChans[i],got.rate,song.systemFlags[i],isRender);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality,dcHiPass);
   }
@@ -3861,7 +4013,7 @@ void DivEngine::initDispatch(bool isRender) {
     autoPatchbay();
     saveLock.unlock();
   }
-  recalcChans();
+  song.recalcChans();
   BUSY_END;
 }
 
@@ -3877,7 +4029,6 @@ void DivEngine::quitDispatch() {
   midiClockDrift=0;
   midiTimeCycles=0;
   midiTimeDrift=0;
-  chans=0;
   playing=false;
   curSpeed=0;
   endOfSong=false;
@@ -3891,9 +4042,8 @@ void DivEngine::quitDispatch() {
   nextSpeed=3;
   changeOrd=-1;
   changePos=0;
-  totalTicks=0;
-  totalTicksOff=0;
-  totalSeconds=0;
+  totalTime=TimeMicros(0,0);
+  totalTimeDrift=0;
   totalTicksR=0;
   curMidiClock=0;
   curMidiTime=0;
@@ -3902,6 +4052,9 @@ void DivEngine::quitDispatch() {
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
+  if (filePlayerSync) {
+    if (curFilePlayer!=NULL) curFilePlayer->stop();
+  }
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
@@ -3920,6 +4073,8 @@ bool DivEngine::initAudioBackend() {
       audioEngine=DIV_AUDIO_JACK;
     } else if (getConfString("audioEngine","SDL")=="PortAudio") {
       audioEngine=DIV_AUDIO_PORTAUDIO;
+    } else if (getConfString("audioEngine","SDL")=="ASIO") {
+      audioEngine=DIV_AUDIO_ASIO;
     } else {
       audioEngine=DIV_AUDIO_SDL;
     }
@@ -3981,6 +4136,21 @@ bool DivEngine::initAudioBackend() {
 #endif
 #else
       output=new TAAudioPA;
+#endif
+      break;
+    case DIV_AUDIO_ASIO:
+#ifndef HAVE_ASIO
+      logE("Furnace was not compiled with ASIO support!");
+      setConf("audioEngine","SDL");
+      saveConf();
+#ifdef HAVE_SDL2
+      output=new TAAudioSDL;
+#else
+      logE("Furnace was not compiled with SDL support either!");
+      output=new TAAudio;
+#endif
+#else
+      output=new TAAudioASIO;
 #endif
       break;
     case DIV_AUDIO_SDL:
@@ -4247,6 +4417,10 @@ bool DivEngine::init() {
   reset();
   active=true;
 
+  if (curFilePlayer!=NULL) {
+    curFilePlayer->setOutputRate(got.rate);
+  }
+
   if (!haveAudio) {
     return false;
   } else {
@@ -4277,6 +4451,10 @@ bool DivEngine::quit(bool saveConfig) {
     delete[] metroBuf;
     metroBuf=NULL;
     metroBufLen=0;
+  }
+  if (curFilePlayer!=NULL) {
+    delete curFilePlayer;
+    curFilePlayer=NULL;
   }
   if (yrw801ROM!=NULL) delete[] yrw801ROM;
   if (tg100ROM!=NULL) delete[] tg100ROM;

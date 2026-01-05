@@ -495,7 +495,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
     }
     ds.subsong.clear();
 
-    ds.linearPitch = 0;
+    ds.compatFlags.linearPitch = 0;
 
     unsigned int pal = 0;
 
@@ -654,6 +654,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         int curr_chan = 0;
         int map_ch = 0;
 
+        ds.systemChans[systemID]=5;
         ds.system[systemID++] = DIV_SYSTEM_NES;
         ds.systemFlags[0].set("resetSweep",true); // FamiTracker behavior
 
@@ -668,6 +669,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
 
         if (expansions & 1) {
+          ds.systemChans[systemID]=3;
           ds.system[systemID++] = DIV_SYSTEM_VRC6;
 
           for (int ch = 0; ch < 3; ch++) {
@@ -685,6 +687,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           vrc6_saw_chan = map_ch - 1;
         }
         if (expansions & 8) {
+          ds.systemChans[systemID]=3;
           ds.system[systemID++] = DIV_SYSTEM_MMC5;
 
           for (int ch = 0; ch < (eft ? 3 : 2); ch++) {
@@ -707,6 +710,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         if (expansions & 16) {
           ds.system[systemID] = DIV_SYSTEM_N163;
           ds.systemFlags[systemID].set("channels", (int)n163Chans - 1);
+          ds.systemChans[systemID]=CLAMP(n163Chans,1,8);
           systemID++;
 
           for (int ch = 0; ch < (int)n163Chans; ch++) {
@@ -716,12 +720,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             map_ch++;
           }
 
-          for (int ch = 0; ch < (8 - (int)n163Chans); ch++) {
+          /*for (int ch = 0; ch < (8 - (int)n163Chans); ch++) {
             map_channels[curr_chan] = map_ch; // do not populate and skip the missing N163 channels!
             map_ch++;
-          }
+          }*/
         }
         if (expansions & 4) {
+          ds.systemChans[systemID]=1;
           ds.system[systemID++] = DIV_SYSTEM_FDS;
 
           map_channels[curr_chan] = map_ch;
@@ -730,6 +735,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           map_ch++;
         }
         if (expansions & 2) {
+          ds.systemChans[systemID]=6;
           ds.system[systemID++] = DIV_SYSTEM_VRC7;
 
           for (int ch = 0; ch < 6; ch++) {
@@ -741,6 +747,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         }
         if (expansions & 32) {
           ds.system[systemID] = DIV_SYSTEM_AY8910;
+          ds.systemChans[systemID]=3;
           ds.systemFlags[systemID++].set("chipType", 2); // Sunsoft 5B
 
           for (int ch = 0; ch < 3; ch++) {
@@ -751,6 +758,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (expansions & 64) {
+          ds.systemChans[systemID]=3;
           ds.system[systemID++] = DIV_SYSTEM_AY8930;
 
           for (int ch = 0; ch < 3; ch++) {
@@ -761,6 +769,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (expansions & 128) {
+          ds.systemChans[systemID]=6;
           ds.system[systemID++] = DIV_SYSTEM_SAA1099;
 
           for (int ch = 0; ch < 6; ch++) {
@@ -770,6 +779,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (expansions & 256) {
+          ds.systemChans[systemID]=5;
           ds.system[systemID++] = DIV_SYSTEM_5E01;
 
           for (int ch = 0; ch < 5; ch++) {
@@ -779,6 +789,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (expansions & 512) {
+          ds.systemChans[systemID]=3;
           ds.system[systemID++] = DIV_SYSTEM_C64_6581;
 
           for (int ch = 0; ch < 3; ch++) {
@@ -788,6 +799,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (expansions & 1024) {
+          ds.systemChans[systemID]=3;
           ds.system[systemID++] = DIV_SYSTEM_C64_8580;
 
           for (int ch = 0; ch < 3; ch++) {
@@ -797,6 +809,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           }
         }
         if (expansions & 2048) {
+          ds.systemChans[systemID]=4;
           ds.system[systemID++] = DIV_SYSTEM_POKEY;
 
           for (int ch = 0; ch < 4; ch++) {
@@ -817,13 +830,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
             calcChans--; // no PCM channel for MMC5 in famitracker
           }
 
-          calcChans += getChannelCount(ds.system[i]);
-          total_chans += getChannelCount(ds.system[i]);
-
-          if (ds.system[i] == DIV_SYSTEM_N163) {
-            calcChans -= getChannelCount(ds.system[i]);
-            calcChans += (int)n163Chans;
-          }
+          calcChans += ds.systemChans[i];
+          total_chans += ds.systemChans[i];
         }
         if (calcChans != tchans) {
           // TODO: would ignore trigger CVE? too bad if so!
@@ -1986,7 +1994,6 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
           DivSample* sample = ds.sample[index];
 
-          sample->rate = 33144;
           sample->centerRate = 33144;
           sample->depth = DIV_SAMPLE_DEPTH_1BIT_DPCM;
 
@@ -2371,7 +2378,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
         CHECK_BLOCK_VERSION(3);
         unsigned int linear_pitch = reader.readI();
 
-        ds.linearPitch = linear_pitch == 0 ? 0 : 1;
+        ds.compatFlags.linearPitch = linear_pitch == 0 ? 0 : 1;
 
         if (blockVersion >= 2) {
           int fineTuneCents = reader.readC() * 100;
@@ -2803,13 +2810,15 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
       }
     }
 
+    ds.recalcChans();
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

@@ -50,15 +50,6 @@ the simplest path to using a sample is:
 - click the "Create instrument from sample" button (upload icon, to the left of "Zoom").
 - use the created instrument in the track.
 
-## compatible sample mode (LEGACY)
-
-**use of this mode is discouraged in favor of Sample type instruments.**
-
-effect `17xx` enables/disables compatible sample mode where supported (e.g. on Sega Genesis or PC Engine).
-
-in this mode, samples are mapped to notes in an octave from C to B, allowing you to use up to 12 samples.
-if you need to use more samples, you may change the sample bank using effect `EBxx`.
-
 ## notes
 
 due to limitations in some of those sound chips, some restrictions exist:
@@ -109,19 +100,13 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **no BRR filters**: when encoding to BRR, only use a "4-bit mode" with block filter set to 0.
   - this allows usage of sample offset effects on SNES.
   - only appears when applicable.
-
-- **Rate**: switches to normal rate values.
-- **Compat Rate**: switches to DefleMask-compatible rate values for sample mapping.
-  - **use of this is discouraged!**
 - **Hz**: base frequency of sample played at `C-4`.
 - **Note**: note corresponding to Hz.
-- **Fine**: fine tuning. ranges from -64 to 63, which maps to -1 to almost +1 semitone.
-
+- **Fine**: fine tuning. ranges from -64 to 63, which maps from -1 to almost +1 semitone.
 - **Loop**: enable or disable sample loop. only on supported chips.
 - **Mode**: direction of loop. backward and ping pong loops are only natively available on some chips.
-- **Start**: start of loop.
-- **End**: end of loop.
-
+- **Start**: start of loop. if the sample is on a chip that limits loop points to specific values, hovering over this will highlight them in the editor.
+- **End**: end of loop. similarly, hovering will highlight valid loop points.
 - **Chips:** set assignment to chips and sample banks.
   - sample will only be uploaded to selected chips.
   - columns correspond to chips in use.
@@ -134,17 +119,20 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Resize**: stretches sample. pops up a dialog to type new length.
 - **Resample**: stretches sample. pops up a dialog box:
   - **Rate**: new sample rate.
+  - **Length**: new sample length.
+  - **Factor**: multiplier of original sample rate.
   - **0.5x**: halves sample rate.
   - **==**: returns to original sample rate.
   - **2.0x**: doubles sample rate.
-  - **Factor**: multiplier of original sample rate.
   - **Filter**: selects interpolation filter for resampling.
 - **Undo**: undoes previous edit.
 - **Redo**: redoes undone edit.
-- **Amplify**: changes amplitude of selection. pops up a dialog to type amount.
+- **Amplify/Offset**: allows you to change amplitude of selection or offset it.
+  - **Volume**: amplifies selection.
+  - **DC Offset**: shifts selection up (positive values) or down (negative values).
 - **Normalize**: adjusts amplitude of selection to maximum without clipping.
-- **Fade in**: ramp amplitude of selection from 0 to original.
-- **Fade in**: ramp amplitude of selection from original to 0.
+- **Fade in**: ramps amplitude of selection from 0 to original.
+- **Fade in**: ramps amplitude of selection from original to 0.
 - **Insert silence**: inserts silence. pops up a dialog to type length.
 - **Apply silence**: reduces amplitude of selection to 0.
 - **Delete**: removes selection.
@@ -182,3 +170,8 @@ in the sample viewer:
   - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection.
   - **set loop to selection**: changes loop region to match selection.
   - **create wavetable from selection**: copies the selection into a new wavetable entry.
+
+in the bottom status bar:
+- **Select**: set selection start and end positions. total selection length will be shown next to them.
+- cursor position and sample value.
+- loop size in samples and bytes.

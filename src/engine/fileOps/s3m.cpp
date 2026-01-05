@@ -79,12 +79,12 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   try {
     DivSong ds;
     ds.version=DIV_VERSION_S3M;
-    ds.linearPitch=0;
-    ds.pitchMacroIsLinear=false;
-    ds.noSlidesOnFirstTick=true;
-    ds.rowResetsArpPos=true;
-    ds.ignoreJumpAtEnd=false;
-    ds.pitchSlideSpeed=12;
+    ds.compatFlags.linearPitch=0;
+    ds.compatFlags.pitchMacroIsLinear=false;
+    ds.compatFlags.noSlidesOnFirstTick=true;
+    ds.compatFlags.rowResetsArpPos=true;
+    ds.compatFlags.ignoreJumpAtEnd=false;
+    ds.compatFlags.pitchSlideSpeed=12;
 
     logV("Scream Tracker 3 module");
 
@@ -345,6 +345,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.systemName="PC";
     if (hasPCM) {
       ds.system[ds.systemLen]=DIV_SYSTEM_ES5506;
+      ds.systemChans[ds.systemLen]=32; // for now
       ds.systemVol[ds.systemLen]=(float)globalVol/64.0;
       ds.systemPan[ds.systemLen]=0;
       ds.systemFlags[ds.systemLen].set("volScale",3900);
@@ -354,6 +355,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
     if (hasFM) {
       ds.system[ds.systemLen]=opl2 ? DIV_SYSTEM_OPL2 : DIV_SYSTEM_OPL3;
+      ds.systemChans[ds.systemLen]=opl2?9:18; // for now
       ds.systemVol[ds.systemLen]=1.0f;
       ds.systemPan[ds.systemLen]=0;
       ds.systemLen++;
@@ -1179,7 +1181,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
 
     // find subsongs
-    ds.findSubSongs(DIV_MAX_CHANS);
+    ds.recalcChans();
+    ds.findSubSongs();
 
     // populate subsongs with default panning values
     if (masterVol&128) { // only in stereo mode
@@ -1214,8 +1217,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     saveLock.lock();
     song.unload();
     song=ds;
+    hasLoadedSomething=true;
     changeSong(0);
-    recalcChans();
     saveLock.unlock();
     BUSY_END;
     if (active) {

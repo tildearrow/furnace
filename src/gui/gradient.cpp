@@ -109,21 +109,28 @@ void Gradient2D::render() {
         if (dist>1) dist=1;
 
         ImU32 shadeColor=ImGui::ColorConvertFloat4ToU32(
+          // ps: multiplying dist to the color channels fixes old
+          // mixing, but breaks if the bg is 0. and vice versa (not
+          // multiplying fixes 0 bg mixing)
           ImVec4(
             i.color.x*i.color.w*dist,
             i.color.y*i.color.w*dist,
             i.color.z*i.color.w*dist,
-            1.0f
+            1.0f*dist // this idk
           )
         );
 
         ImU32 origColor=g[j*width+k];
+        // note: this really breaks the color mixing if theres a background
+        // and the bitshifts are necessary to avoid overflow (but prob only for alpha)
+        // this needs to be redone, its a temporary proof-of-concept solution anyway
         g[j*width+k]=(
-          (MIN(  0xff,    (origColor&0xff)  +  (shadeColor&0xff)  )) | // R
-          (MIN( 0xff00,  (origColor&0xff00) + (shadeColor&0xff00) )) | // G
-          (MIN(0xff0000,(origColor&0xff0000)+(shadeColor&0xff0000))) | // B
-          (origColor&0xff000000)                                       // A
+          (MIN(0xff,(origColor    &0xff)+(shadeColor    &0xff))    ) | // R
+          (MIN(0xff,(origColor>> 8&0xff)+(shadeColor>> 8&0xff))<< 8) | // G
+          (MIN(0xff,(origColor>>16&0xff)+(shadeColor>>16&0xff))<<16) | // B
+          (MIN(0xff,(origColor>>24&0xff)+(shadeColor>>24&0xff))<<24)   // A
         );
+        // ps 2: replacing this with ImAlphaBlendColors doesnt work
       }
     }
   }
