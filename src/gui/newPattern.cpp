@@ -1079,11 +1079,11 @@ void FurnaceGUI::drawPatternNew() {
 
       String debugText=fmt::sprintf(
         "NPR DEBUG (xC:xF, o/y)\n"
-        "pointer: %d:%d, %d/%d\n"
+        "pointer: %d:%d, %d/%d %s\n"
         "cursor: %d:%d, %d/%d\n"
         "selStart: %d:%d, %d/%d\n"
         "selEnd: %d:%d, %d/%d\n",
-        pointer.xCoarse,pointer.xFine,pointer.order,pointer.y,
+        pointer.xCoarse,pointer.xFine,pointer.order,pointer.y,hovered?"(hovered)":"",
         cursor.xCoarse,cursor.xFine,cursor.order,cursor.y,
         selStart.xCoarse,selStart.xFine,selStart.order,selStart.y,
         selEnd.xCoarse,selEnd.xFine,selEnd.order,selEnd.y
@@ -1195,32 +1195,45 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      // cursor background
-      if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
-        if (e->curSubSong->chanShow[cursor.xCoarse]) {
-          int ord=firstOrd;
-          int row=firstRow;
-          pos=top;
-          SETUP_ORDER_ALPHA;
-          for (int j=0; j<totalRows; j++) {
-            if (cursor.order==ord && cursor.y==row) {
-              dl->AddRectFilled(
-              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)],pos.y),
-              ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,1+cursor.xFine)],pos.y+lineHeight),
-                (hovered && pointer.xCoarse==cursor.xCoarse && pointer.xFine==cursor.xFine && pointer.y==cursor.y && pointer.order==cursor.order)?
-                  ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]):
-                  ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
-              );
-              break;
+      // cursor/hover background
+      {
+        int ord=firstOrd;
+        int row=firstRow;
+        pos=top;
+        SETUP_ORDER_ALPHA;
+        for (int j=0; j<totalRows; j++) {
+          bool hoverOverCursor=false;
+          if (cursor.order==ord && cursor.y==row) {
+            if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
+              if (e->curSubSong->chanShow[cursor.xCoarse]) {
+                hoverOverCursor=(hovered && pointer.xCoarse==cursor.xCoarse && pointer.xFine==cursor.xFine && pointer.y==cursor.y && pointer.order==cursor.order);
+                dl->AddRectFilled(
+                  ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)],pos.y),
+                  ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,1+cursor.xFine)],pos.y+lineHeight),
+                  hoverOverCursor?
+                    ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]):
+                    ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
+                );
+              }
             }
-
-            if (++row>=e->curSubSong->patLen) {
-              row=0;
-              ord++;
-              SETUP_ORDER_ALPHA;
-            }
-            pos.y+=lineHeight;
           }
+
+          if (!hoverOverCursor && hovered && pointer.order==ord && pointer.y==row) {
+            if (e->curSubSong->chanShow[pointer.xCoarse]) {
+              dl->AddRectFilled(
+                ImVec2(top.x+patChanX[pointer.xCoarse]+patFineOffsets[calcMaxFine(pointer.xCoarse,pointer.xFine)],pos.y),
+                ImVec2(top.x+patChanX[pointer.xCoarse]+patFineOffsets[calcMaxFine(pointer.xCoarse,1+pointer.xFine)],pos.y+lineHeight),
+                ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER])
+              );
+            }
+          }
+
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+            SETUP_ORDER_ALPHA;
+          }
+          pos.y+=lineHeight;
         }
       }
 

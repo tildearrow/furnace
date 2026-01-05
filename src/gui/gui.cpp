@@ -7661,6 +7661,9 @@ bool FurnaceGUI::loop() {
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
+  // new pattern renderer "field" trial.
+  newPatternRenderer=(rand()&1);
+
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setConfigPrefix("fp_");
 
@@ -9436,8 +9439,4 @@ FurnaceGUI::FurnaceGUI():
   strncpy(macroRelLabel,"REL",32);
   strncpy(emptyLabel,"...",32);
   strncpy(emptyLabel2,"..",32);
-
-  // new pattern renderer "field" trial.
-  //newPatternRenderer=(rand()&1);
-  newPatternRenderer=true;
 }
