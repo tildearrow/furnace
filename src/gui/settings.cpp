@@ -2426,6 +2426,8 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_NEXT_ORDER);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_PREV_ORDER);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_SELECTED);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_SELECTED);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_INCREASE_COLUMNS);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_DECREASE_COLUMNS);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_INTERPOLATE);
