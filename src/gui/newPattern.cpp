@@ -958,16 +958,16 @@ void FurnaceGUI::drawPatternNew() {
         pos=topHeaders+ImVec2(patChanX[i]+sizeRows.x,0);
 
         dl->AddLine(
-          ImVec2(pos.x-PAT_BORDER_SIZE*0.5,pos.y),
-          ImVec2(pos.x-PAT_BORDER_SIZE*0.5,maxAreaHeaders.y),
+          ImVec2(pos.x-PAT_BORDER_SIZE,pos.y),
+          ImVec2(pos.x-PAT_BORDER_SIZE,maxAreaHeaders.y),
           ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
           PAT_BORDER_SIZE
         );
       }
 
       dl->AddLine(
-        ImVec2(minAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE*0.5),
-        ImVec2(maxAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE*0.5),
+        ImVec2(minAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE),
+        ImVec2(maxAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE),
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
@@ -1252,8 +1252,8 @@ void FurnaceGUI::drawPatternNew() {
         if (top.x+patChanX[i+1]<winRect.Min.x) continue;
 
         dl->AddLine(
-          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,thisTop.y),
-          ImVec2(thisTop.x-PAT_BORDER_SIZE*0.5,maxArea.y),
+          ImVec2(thisTop.x-PAT_BORDER_SIZE,thisTop.y),
+          ImVec2(thisTop.x-PAT_BORDER_SIZE,maxArea.y),
           ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
           PAT_BORDER_SIZE
         );
@@ -1386,8 +1386,8 @@ void FurnaceGUI::drawPatternNew() {
       }
 
       dl->AddLine(
-        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,top.y),
-        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE*0.5,maxArea.y),
+        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE,top.y),
+        ImVec2(top.x+patChanX[chans]-PAT_BORDER_SIZE,maxArea.y),
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
@@ -1438,8 +1438,8 @@ void FurnaceGUI::drawPatternNew() {
       ImGui::GetStyle().Alpha=origAlpha;
 
       dl->AddLine(
-        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,topRows.y),
-        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE*0.5,maxArea.y),
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE,topRows.y),
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE,maxArea.y),
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
