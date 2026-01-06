@@ -1099,8 +1099,6 @@ void FurnaceGUI::drawPatternNew() {
         SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
           if (ord>=0 && ord<e->curSubSong->ordersLen) {
-            /*snprintf(id,63,"%3d",row);
-            dl->AddText(pos,rowIndexColor,id);*/
             ImU32 thisRowBg=0;
             if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
               if (editClone && !isPatUnique && secondTimer<0.5) {
@@ -1289,26 +1287,26 @@ void FurnaceGUI::drawPatternNew() {
             // note
             snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
             if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-              dl->AddText(pos,inactiveColor,id);
+              dl->AddText(pos,inactiveColor,id,id+3);
             } else {
-              dl->AddText(pos,activeColor,id);
+              dl->AddText(pos,activeColor,id,id+3);
             }
 
             // instrument
             if (e->curSubSong->chanCollapse[i]<3) {
               pos.x+=threeChars.x;
               if (pat->newData[row][DIV_PAT_INS]==-1) {
-                dl->AddText(pos,inactiveColor,emptyLabel2);
+                dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
               } else {
                 snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_INS]);
                 if (pat->newData[row][DIV_PAT_INS]<0 || pat->newData[row][DIV_PAT_INS]>=e->song.insLen) {
-                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id);
+                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id,id+2);
                 } else {
                   DivInstrumentType t=e->song.ins[pat->newData[row][DIV_PAT_INS]]->type;
                   if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
-                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id);
+                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id,id+2);
                   } else {
-                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id);
+                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id,id+2);
                   }
                 }
               }
@@ -1318,13 +1316,13 @@ void FurnaceGUI::drawPatternNew() {
             if (e->curSubSong->chanCollapse[i]<2) {
               pos.x+=twoChars.x;
               if (pat->newData[row][DIV_PAT_VOL]==-1) {
-                dl->AddText(pos,inactiveColor,emptyLabel2);
+                dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
               } else {
                 int volColor=(pat->newData[row][DIV_PAT_VOL]*127)/chanVolMax;
                 if (volColor>127) volColor=127;
                 if (volColor<0) volColor=0;
                 snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_VOL]);
-                dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id);
+                dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id,id+2);
               }
             }
 
@@ -1338,7 +1336,7 @@ void FurnaceGUI::drawPatternNew() {
                 // effect
                 pos.x+=twoChars.x;
                 if (pat->newData[row][index]==-1) {
-                  dl->AddText(pos,inactiveColor,emptyLabel2);
+                  dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
                 } else {
                   if (pat->newData[row][index]>0xff) {
                     snprintf(id,63,"??");
@@ -1352,16 +1350,16 @@ void FurnaceGUI::drawPatternNew() {
                       snprintf(id,63," %.1X",data);
                     }
                   }
-                  dl->AddText(pos,effectColor,id);
+                  dl->AddText(pos,effectColor,id,id+2);
                 }
 
                 // effect value
                 pos.x+=twoChars.x;
                 if (pat->newData[row][indexVal]==-1) {
-                  dl->AddText(pos,effectColor,emptyLabel2);
+                  dl->AddText(pos,effectColor,emptyLabel2,emptyLabel2+2);
                 } else {
                   snprintf(id,63,"%.2X",pat->newData[row][indexVal]);
-                  dl->AddText(pos,effectColor,id);
+                  dl->AddText(pos,effectColor,id,id+2);
                 }
               }
             }
@@ -1425,7 +1423,7 @@ void FurnaceGUI::drawPatternNew() {
       for (int j=0; j<totalRows; j++) {
         if (ord>=0 && ord<e->curSubSong->ordersLen) {
           snprintf(id,63,"%3d",row);
-          dl->AddText(pos,rowIndexColor,id);
+          dl->AddText(pos,rowIndexColor,id,id+3);
         }
         if (++row>=e->curSubSong->patLen) {
           row=0;
