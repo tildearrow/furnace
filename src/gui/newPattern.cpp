@@ -37,9 +37,19 @@
   } else { \
     ImGui::GetStyle().Alpha=disabledAlpha; \
   } \
-  activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
-  inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]); \
-  rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
+  if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) { \
+    activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2]); \
+    inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2]); \
+    rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2]); \
+  } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) { \
+    activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1]); \
+    inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1]); \
+    rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1]); \
+  } else { \
+    activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
+    inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]); \
+    rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]); \
+  }
 
 // this is ImGui's TABLE_BORDER_SIZE.
 #define PAT_BORDER_SIZE 1.0f
@@ -1113,8 +1123,8 @@ void FurnaceGUI::drawPatternNew() {
         int row=firstRow;
         bool isPlaying=e->isPlaying();
         pos=top;
-        SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
+          SETUP_ORDER_ALPHA;
           if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
             ImU32 thisRowBg=0;
             if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
@@ -1147,7 +1157,6 @@ void FurnaceGUI::drawPatternNew() {
           if (++row>=e->curSubSong->patLen) {
             row=0;
             ord++;
-            SETUP_ORDER_ALPHA;
           }
           pos.y+=lineHeight;
         }
@@ -1161,9 +1170,9 @@ void FurnaceGUI::drawPatternNew() {
         int curSelFindStage=0;
         ImRect selRect;
         pos=top;
-        SETUP_ORDER_ALPHA;
         // we find the selection's Y position.
         for (int j=0; j<totalRows; j++) {
+          SETUP_ORDER_ALPHA;
           // stage 1: find selection start
           if (curSelFindStage==0) {
             // we use a greater-or-equal comparison in case the start is behind and we got to highlight already
@@ -1204,7 +1213,6 @@ void FurnaceGUI::drawPatternNew() {
           if (++row>=e->curSubSong->patLen) {
             row=0;
             ord++;
-            SETUP_ORDER_ALPHA;
           }
           pos.y+=lineHeight;
         }
@@ -1215,8 +1223,8 @@ void FurnaceGUI::drawPatternNew() {
         int ord=firstOrd;
         int row=firstRow;
         pos=top;
-        SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
+          SETUP_ORDER_ALPHA;
           bool hoverOverCursor=false;
           if (cursor.order==ord && cursor.y==row) {
             if (cursor.xCoarse>=0 && cursor.xCoarse<chans) {
@@ -1246,7 +1254,6 @@ void FurnaceGUI::drawPatternNew() {
           if (++row>=e->curSubSong->patLen) {
             row=0;
             ord++;
-            SETUP_ORDER_ALPHA;
           }
           pos.y+=lineHeight;
         }
@@ -1283,12 +1290,12 @@ void FurnaceGUI::drawPatternNew() {
           pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
         }
 
-        SETUP_ORDER_ALPHA;
 
         // rows
         for (int j=0; j<totalRows; j++) {
           if (pos.y>=winRect.Max.y) break;
           if (pat && pos.y+lineHeight>=winRect.Min.y && (settings.viewPrevPattern || ord==curOrder)) {
+            SETUP_ORDER_ALPHA;
             if (isFirstChan) {
               // set the top-most and bottom-most Y positions
               if (topMostOrder==-1) {
@@ -1391,7 +1398,6 @@ void FurnaceGUI::drawPatternNew() {
             } else {
               pat=NULL;
             }
-            SETUP_ORDER_ALPHA;
           }
           pos.x=thisTop.x;
           pos.y+=lineHeight;
@@ -1443,9 +1449,9 @@ void FurnaceGUI::drawPatternNew() {
       int ord=firstOrd;
       int row=firstRow;
       pos=topRows;
-      SETUP_ORDER_ALPHA;
       for (int j=0; j<totalRows; j++) {
         if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
+          SETUP_ORDER_ALPHA;
           // test cursor pos (so many comparisons!)
           if (hoveredRow && (!orderLock || ord==curOrder) && ImRect(pos,pos+ImVec2(sizeRows.x,lineHeight)).Contains(ImGui::GetMousePos()) && selOrd<0 && selRow<0) {
             dl->AddRectFilled(
@@ -1468,7 +1474,6 @@ void FurnaceGUI::drawPatternNew() {
         if (++row>=e->curSubSong->patLen) {
           row=0;
           ord++;
-          SETUP_ORDER_ALPHA;
         }
         pos.y+=lineHeight;
       }
