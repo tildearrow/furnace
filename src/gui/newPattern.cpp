@@ -215,12 +215,8 @@ void FurnaceGUI::drawPatternNew() {
     };
 
     // starting positions
-    ImVec2 top=ImGui::GetCursorScreenPos();
-    ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
-    ImVec2 topHeaders=top+ImVec2(0,ImGui::GetScrollY());
-    ImVec2 pos=top;
-
     ImVec2 size=ImVec2(0.0f,lineHeight*totalRows);
+    ImVec2 sizeRows=ImVec2(threeChars.x+oneChar.x+PAT_BORDER_SIZE,lineHeight*totalRows);
 
     for (int i=0; i<chans; i++) {
       patChanX[i]=size.x;
@@ -240,7 +236,21 @@ void FurnaceGUI::drawPatternNew() {
     }
     patChanX[chans]=size.x;
 
+    if (settings.centerPattern) {
+      float centerOff=(ImGui::GetContentRegionAvail().x-(size.x+sizeRows.x))*0.5;
+      if (centerOff>0.0f) {
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
+      }
+    }
+
+    // ???
     size.x+=oneChar.x;
+
+    ImVec2 top=ImGui::GetCursorScreenPos();
+    ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
+    ImVec2 topHeaders=top+ImVec2(0,ImGui::GetScrollY());
+    ImVec2 pos=top;
+
 
     // add scroll if required
     if (nextAddScroll!=0.0f) {
@@ -275,7 +285,6 @@ void FurnaceGUI::drawPatternNew() {
     topMostRow=-1;
 
     // prepare the view
-    ImVec2 sizeRows=ImVec2(threeChars.x+oneChar.x+PAT_BORDER_SIZE,lineHeight*totalRows);
     ImVec2 sizeHeaders=ImVec2(size.x+sizeRows.x,ImGui::GetFrameHeight());
     ImVec2 minAreaHeaders=topHeaders;
     ImVec2 maxAreaHeaders=ImVec2(
@@ -340,6 +349,7 @@ void FurnaceGUI::drawPatternNew() {
     ImGui::PopStyleVar();
 
     // channel headers (frozen in place)
+    ImRect prevClipRect=ImRect(dl->GetClipRectMin(),dl->GetClipRectMax());
     ImGui::SetCursorScreenPos(topHeaders);
     ImGui::PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y),winRect.Max,true);
     ImGui::ItemSize(sizeHeaders,ImGui::GetStyle().FramePadding.y);
@@ -450,6 +460,10 @@ void FurnaceGUI::drawPatternNew() {
           sizeHeader.y+=6.0f*dpiScale;
         }
 
+        if (settings.channelStyle==1) {
+          sizeHeader.y+=2.0f*dpiScale;
+        }
+
         if (settings.channelStyle==2) {
           sizeHeader.y+=6.0f*dpiScale;
         }
@@ -540,9 +554,8 @@ void FurnaceGUI::drawPatternNew() {
                 chanHeadBase.z,
                 (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
               ));
-              dl->AddRectFilledMultiColor(rectHeader.Min,rectHeader.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
-              // TODO: this is actually broken. fix!
-              dl->AddLine(ImVec2(rectHeader.Min.x,rectHeader.Max.y),ImVec2(rectHeader.Max.x,rectHeader.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
+              dl->AddRectFilledMultiColor(rectHeader.Min,ImVec2(rectHeader.Max.x,rectHeader.Max.y-2.0f*dpiScale),fadeCol0,fadeCol0,fadeCol,fadeCol);
+              dl->AddLine(ImVec2(rectHeader.Min.x,rectHeader.Max.y-2.0f*dpiScale),ImVec2(rectHeader.Max.x,rectHeader.Max.y-2.0f*dpiScale),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
@@ -679,6 +692,10 @@ void FurnaceGUI::drawPatternNew() {
             6.0*dpiScale
           );
           ImVec2 minAreaV=window->DC.CursorPos;
+          if (settings.channelStyle==1) {
+            // special case for line channel style (remove a gap)
+            minAreaV.y-=2.0*dpiScale;
+          }
           ImVec2 maxAreaV=ImVec2(
             minAreaV.x+sizeV.x,
             minAreaV.y+sizeV.y
@@ -777,6 +794,7 @@ void FurnaceGUI::drawPatternNew() {
         }
 
         if (patChannelHints) {
+          ImGui::SetCursorPosY(ImGui::GetCursorPosY()-2.0*dpiScale);
           ImGuiWindow* win=ImGui::GetCurrentWindow();
           ImVec2 posMin=win->DC.CursorPos;
           ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
@@ -942,35 +960,39 @@ void FurnaceGUI::drawPatternNew() {
           }
         }
         sizeHeaders.y=ImGui::GetCursorScreenPos().y-topHeaders.y;
+        if ((patExtraButtons || patChannelNames || patChannelHints) || settings.channelVolStyle!=0) sizeHeaders.y-=ImGui::GetStyle().ItemSpacing.y;
         ImGui::EndGroup();
       }
 
-      //lastPatternWidth=ImGui::GetCursorPosX()-lpwStart+ImGui::GetStyle().ScrollbarSize;
       /*if (e->hasExtValue()) {
         ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
       }*/
 
 
-      //// NEW CODE.
-      for (int i=0; i<chans; i++) {
-        if (!e->curSubSong->chanShow[i]) continue;
+      //// BORDERS.
+      for (int i=0; i<=chans; i++) {
+        if (i<chans) {
+          if (!e->curSubSong->chanShow[i]) continue;
+        }
 
         pos=topHeaders+ImVec2(patChanX[i]+sizeRows.x,0);
 
         dl->AddLine(
           ImVec2(pos.x-PAT_BORDER_SIZE,pos.y),
-          ImVec2(pos.x-PAT_BORDER_SIZE,maxAreaHeaders.y),
+          ImVec2(pos.x-PAT_BORDER_SIZE,pos.y+sizeHeaders.y),
           ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
           PAT_BORDER_SIZE
         );
       }
 
+      dl->PushClipRect(prevClipRect.Min,prevClipRect.Max);
       dl->AddLine(
-        ImVec2(minAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE),
-        ImVec2(maxAreaHeaders.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE),
+        ImVec2(winRect.Min.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE),
+        ImVec2(winRect.Max.x,minAreaHeaders.y+sizeHeaders.y-PAT_BORDER_SIZE),
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
+      dl->PopClipRect();
     }
     ImGui::PopClipRect();
 
@@ -1057,7 +1079,7 @@ void FurnaceGUI::drawPatternNew() {
         pos=top;
         for (int j=0; j<totalRows; j++) {
           if (ord>=0 && ord<e->curSubSong->ordersLen) {
-            if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight)) {
+            if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight) && (settings.viewPrevPattern || ord==curOrder)) {
               pointer.order=ord;
               pointer.y=row;
               break;
@@ -1073,6 +1095,7 @@ void FurnaceGUI::drawPatternNew() {
 
       bool hovered=(
         pointer.xCoarse>=0 && pointer.y>=0 && pointer.order>=0 &&
+        (!orderLock || pointer.order==curOrder) &&
         ImGui::IsWindowHovered() &&
         ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())
       );
@@ -1098,7 +1121,7 @@ void FurnaceGUI::drawPatternNew() {
         pos=top;
         SETUP_ORDER_ALPHA;
         for (int j=0; j<totalRows; j++) {
-          if (ord>=0 && ord<e->curSubSong->ordersLen) {
+          if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
             ImU32 thisRowBg=0;
             if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
               if (editClone && !isPatUnique && secondTimer<0.5) {
@@ -1271,7 +1294,7 @@ void FurnaceGUI::drawPatternNew() {
         // rows
         for (int j=0; j<totalRows; j++) {
           if (pos.y>=winRect.Max.y) break;
-          if (pat && pos.y+lineHeight>=winRect.Min.y) {
+          if (pat && pos.y+lineHeight>=winRect.Min.y && (settings.viewPrevPattern || ord==curOrder)) {
             if (isFirstChan) {
               // set the top-most and bottom-most Y positions
               if (topMostOrder==-1) {
@@ -1421,8 +1444,12 @@ void FurnaceGUI::drawPatternNew() {
       pos=topRows;
       SETUP_ORDER_ALPHA;
       for (int j=0; j<totalRows; j++) {
-        if (ord>=0 && ord<e->curSubSong->ordersLen) {
-          snprintf(id,63,"%3d",row);
+        if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
+          if (settings.patRowsBase) {
+            snprintf(id,63," %2X",row);
+          } else {
+            snprintf(id,63,"%3d",row);
+          }
           dl->AddText(pos,rowIndexColor,id,id+3);
         }
         if (++row>=e->curSubSong->patLen) {
