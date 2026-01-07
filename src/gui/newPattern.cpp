@@ -29,6 +29,8 @@
 #include "../utfutils.h"
 #include <fmt/printf.h>
 
+#define MAX_PARTICLES 8192
+
 #define SETUP_ORDER_ALPHA \
   if (ord==curOrder) { \
     ImGui::GetStyle().Alpha=origAlpha; \
@@ -1976,6 +1978,7 @@ void FurnaceGUI::drawPatternNew() {
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
 
+          if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
           particles.push_back(Particle(
             color,
             partIcon,
@@ -2009,6 +2012,7 @@ void FurnaceGUI::drawPatternNew() {
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
             particles.push_back(Particle(
               pitchGrad,
               (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
@@ -2066,6 +2070,7 @@ void FurnaceGUI::drawPatternNew() {
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
             particles.push_back(Particle(
               pitchGrad,
               ICON_FA_GLASS,
@@ -2083,7 +2088,8 @@ void FurnaceGUI::drawPatternNew() {
       }
 
       // particle simulation
-      ImDrawList* fdl=ImGui::GetForegroundDrawList();
+      ImDrawList* fdl=ImGui::GetWindowDrawList();
+      fdl->PushClipRectFullScreen();
       if (!particles.empty()) WAKE_UP;
       fdl->AddCallback(_pushPartBlend,this);
       for (size_t i=0; i<particles.size(); i++) {
@@ -2103,6 +2109,7 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
       fdl->AddCallback(_popPartBlend,this);
+      fdl->PopClipRect();
     }
 
     ImGui::PopFont();
