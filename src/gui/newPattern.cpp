@@ -794,7 +794,7 @@ void FurnaceGUI::drawPatternNew() {
         }
 
         if (patChannelHints) {
-          ImGui::SetCursorPosY(ImGui::GetCursorPosY()-2.0*dpiScale);
+          if (!patChannelNames) ImGui::SetCursorPosY(ImGui::GetCursorPosY()-2.0*dpiScale);
           ImGuiWindow* win=ImGui::GetCurrentWindow();
           ImVec2 posMin=win->DC.CursorPos;
           ImGui::Dummy(ImVec2(dpiScale,settings.iconSize*dpiScale));
