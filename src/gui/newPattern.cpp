@@ -1309,7 +1309,7 @@ void FurnaceGUI::drawPatternNew() {
 
             // instrument
             if (e->curSubSong->chanCollapse[i]<3) {
-              pos.x+=threeChars.x;
+              pos.x+=noteCellSize.x;
               if (pat->newData[row][DIV_PAT_INS]==-1) {
                 dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
               } else {
@@ -1329,7 +1329,7 @@ void FurnaceGUI::drawPatternNew() {
 
             // volume
             if (e->curSubSong->chanCollapse[i]<2) {
-              pos.x+=twoChars.x;
+              pos.x+=insCellSize.x;
               if (pat->newData[row][DIV_PAT_VOL]==-1) {
                 dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
               } else {
@@ -1349,7 +1349,7 @@ void FurnaceGUI::drawPatternNew() {
                 ImU32 effectColor=inactiveColor;
 
                 // effect
-                pos.x+=twoChars.x;
+                pos.x+=(k==0)?volCellSize.x:effectValCellSize.x;
                 if (pat->newData[row][index]==-1) {
                   dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
                 } else {
@@ -1369,7 +1369,7 @@ void FurnaceGUI::drawPatternNew() {
                 }
 
                 // effect value
-                pos.x+=twoChars.x;
+                pos.x+=effectCellSize.x;
                 if (pat->newData[row][indexVal]==-1) {
                   dl->AddText(pos,effectColor,emptyLabel2,emptyLabel2+2);
                 } else {
