@@ -687,6 +687,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CV,
   GUI_WARN_RESET_CONFIG,
   GUI_WARN_IMPORT,
+  GUI_WARN_NPR,
   GUI_WARN_GENERIC
 };
 
@@ -1747,6 +1748,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
+  bool newPatternRenderer;
   bool quitNoSave;
   bool changeCoarse;
   bool orderLock;
@@ -2371,6 +2373,7 @@ class FurnaceGUI {
     bool introPlayed;
     bool protoWelcome;
     bool importedMOD, importedS3M, importedXM, importedIT;
+    bool nprFieldTrial;
     double popupTimer;
     Tutorial():
 #ifdef SUPPORT_XP
@@ -2383,6 +2386,7 @@ class FurnaceGUI {
       importedS3M(false),
       importedXM(false),
       importedIT(false),
+      nprFieldTrial(false),
       popupTimer(10.0f) {
     }
   } tutorial;
@@ -3015,6 +3019,7 @@ class FurnaceGUI {
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
+  ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
@@ -3058,6 +3063,7 @@ class FurnaceGUI {
   void drawGrooves();
   void drawOrders();
   void drawPattern();
+  void drawPatternNew();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
   void drawInsSID3(DivInstrument* ins);

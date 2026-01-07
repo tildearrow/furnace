@@ -476,6 +476,8 @@ void FurnaceGUI::drawMobileControls() {
       ImGui::EndTable();
     }
 
+    ImGui::Checkbox("New Pattern",&newPatternRenderer);
+
     ImGui::Separator();
 
     switch (mobScene) {
