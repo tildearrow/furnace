@@ -1473,12 +1473,14 @@ void FurnaceGUI::drawPatternNew() {
 
       ImGui::GetStyle().Alpha=origAlpha;
 
+      dl->PushClipRect(prevClipRect.Min,prevClipRect.Max);
       dl->AddLine(
-        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE,topRows.y),
-        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE,maxArea.y),
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE,winRect.Min.y),
+        ImVec2(maxAreaRows.x-PAT_BORDER_SIZE,winRect.Max.y),
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
+      dl->PopClipRect();
 
       // test for selection
       if (selOrd>=0 && selRow>=0) {
