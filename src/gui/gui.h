@@ -687,6 +687,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CV,
   GUI_WARN_RESET_CONFIG,
   GUI_WARN_IMPORT,
+  GUI_WARN_NPR,
   GUI_WARN_GENERIC
 };
 
@@ -2372,6 +2373,7 @@ class FurnaceGUI {
     bool introPlayed;
     bool protoWelcome;
     bool importedMOD, importedS3M, importedXM, importedIT;
+    bool nprFieldTrial;
     double popupTimer;
     Tutorial():
 #ifdef SUPPORT_XP
@@ -2384,6 +2386,7 @@ class FurnaceGUI {
       importedS3M(false),
       importedXM(false),
       importedIT(false),
+      nprFieldTrial(false),
       popupTimer(10.0f) {
     }
   } tutorial;

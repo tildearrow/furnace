@@ -692,6 +692,7 @@ void FurnaceGUI::syncTutorial() {
   tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
   tutorial.importedXM=e->getConfBool("tutImportedXM",false);
   tutorial.importedIT=e->getConfBool("tutImportedIT",false);
+  tutorial.nprFieldTrial=e->getConfBool("tutNPRFieldTrial",false);
 }
 
 void FurnaceGUI::commitTutorial() {
@@ -701,6 +702,7 @@ void FurnaceGUI::commitTutorial() {
   e->setConf("tutImportedS3M",tutorial.importedS3M);
   e->setConf("tutImportedXM",tutorial.importedXM);
   e->setConf("tutImportedIT",tutorial.importedIT);
+  e->setConf("tutNPRFieldTrial",tutorial.nprFieldTrial);
 }
 
 void FurnaceGUI::initRandomDemoSong() {

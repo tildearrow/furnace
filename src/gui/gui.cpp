@@ -4933,7 +4933,12 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      ImGui::Checkbox("New Pattern",&newPatternRenderer);
+      pushToggleColors(newPatternRenderer);
+      if (ImGui::SmallButton("NPR")) {
+        newPatternRenderer=!newPatternRenderer;
+      }
+      ImGui::SetItemTooltip(_("New Pattern Renderer"));
+      popToggleColors();
       ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying() && settings.playbackTime) {
@@ -6793,6 +6798,13 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+        case GUI_WARN_NPR:
+          if (ImGui::Button(_("Got it"))) {
+            tutorial.nprFieldTrial=true;
+            commitTutorial();
+            ImGui::CloseCurrentPopup();
+          }
+          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button(_("OK"))) {
             ImGui::CloseCurrentPopup();
@@ -7675,6 +7687,10 @@ bool FurnaceGUI::init() {
   syncState();
   syncSettings();
   syncTutorial();
+
+  if (!tutorial.nprFieldTrial && newPatternRenderer) {
+    showWarning(_("welcome to the New Pattern Renderer!\nit should be lighter on your CPU.\n\nif you find an issue, you can go back to the old pattern renderer by clicking the NPR button (next to Help).\nmake sure to report it!\n\nthank you!"),GUI_WARN_NPR);
+  }
 
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
