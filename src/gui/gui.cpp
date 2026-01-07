@@ -3794,11 +3794,13 @@ void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
     if (y>patWindowPos.y+patWindowSize.y-2.0f*dpiScale) {
       addScroll(1);
     }
-    if (x<patWindowPos.x+(mobileUI?40.0f:4.0f)*dpiScale) {
-      addScrollX(-1);
-    }
-    if (x>patWindowPos.x+patWindowSize.x-(mobileUI?40.0f:4.0f)*dpiScale) {
-      addScrollX(1);
+    if (!selectingFull) {
+      if (x<patWindowPos.x+(mobileUI?40.0f:4.0f)*dpiScale) {
+        addScrollX(-1);
+      }
+      if (x>patWindowPos.x+patWindowSize.x-(mobileUI?40.0f:4.0f)*dpiScale) {
+        addScrollX(1);
+      }
     }
   }
   if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive || orderScrollLocked) {
@@ -5176,6 +5178,7 @@ bool FurnaceGUI::loop() {
       if (!selectingFull) cursor=selEnd;
       finishSelection();
       if (!mobileUI) {
+        // TODO: don't demand if selectingFull?
         demandScrollX=true;
         if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
             cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {

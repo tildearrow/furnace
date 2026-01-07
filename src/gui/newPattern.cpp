@@ -964,11 +964,6 @@ void FurnaceGUI::drawPatternNew() {
         ImGui::EndGroup();
       }
 
-      /*if (e->hasExtValue()) {
-        ImGui::TextColored(uiColors[GUI_COLOR_EE_VALUE]," %.2X",e->getExtValue());
-      }*/
-
-
       //// BORDERS.
       for (int i=0; i<=chans; i++) {
         if (i<chans) {
@@ -1014,6 +1009,8 @@ void FurnaceGUI::drawPatternNew() {
     ImRect rect=ImRect(minArea,maxArea);
 
     // pattern view
+    // TODO: optimize further. too many comparisons are being done for each cell.
+    // perhaps pre-calculate starting row?
     dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::SetCursorScreenPos(top);
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
@@ -1021,13 +1018,6 @@ void FurnaceGUI::drawPatternNew() {
       // calculate X and Y position of mouse cursor
       SelectionPoint pointer=SelectionPoint(-1,0,-1,-1);
       ImVec2 pointerPos=ImGui::GetMousePos()-ImVec2(top.x,0);
-
-      // special value for row index
-      // TODO: just no. not ever.
-      /*
-      if (pointerPos.x>=top.x && pointerPos.x<patChanX[0]) {
-        pointer.xCoarse=-2;
-      }*/
 
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
@@ -1100,6 +1090,7 @@ void FurnaceGUI::drawPatternNew() {
         ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())
       );
 
+      /*
       String debugText=fmt::sprintf(
         "NPR DEBUG (xC:xF, o/y)\n"
         "pointer: %d:%d, %d/%d %s\n"
@@ -1112,6 +1103,7 @@ void FurnaceGUI::drawPatternNew() {
         selEnd.xCoarse,selEnd.xFine,selEnd.order,selEnd.y
       );
       dl->AddText(top+ImGui::GetCurrentWindow()->Scroll,0xffffffff,debugText.c_str());
+      */
 
       // row highlights
       {
@@ -1417,7 +1409,6 @@ void FurnaceGUI::drawPatternNew() {
 
       // test for selection
       if (hovered) {
-        //dl->AddText(top+ImVec2(0,lineHeight)+ImGui::GetCurrentWindow()->Scroll,0xffffffff,"Hovered!!!!!!!");
         if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
           startSelection(pointer.xCoarse,pointer.xFine,pointer.y,pointer.order);
         }
@@ -1439,12 +1430,32 @@ void FurnaceGUI::drawPatternNew() {
     ImGui::ItemSize(sizeRows,ImGui::GetStyle().FramePadding.y);
     if (ImGui::ItemAdd(rectRows,ImGui::GetID("PatternRows"),NULL,ImGuiItemFlags_AllowOverlap)) {
       // pattern rows
+      int selOrd=-1;
+      int selRow=-1;
+
+      bool hoveredRow=(
+        ImGui::IsWindowHovered() &&
+        ImRect(dl->GetClipRectMin(),dl->GetClipRectMax()).Contains(ImGui::GetMousePos())
+      );
+
       int ord=firstOrd;
       int row=firstRow;
       pos=topRows;
       SETUP_ORDER_ALPHA;
       for (int j=0; j<totalRows; j++) {
         if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
+          // test cursor pos (so many comparisons!)
+          if (hoveredRow && (!orderLock || ord==curOrder) && ImRect(pos,pos+ImVec2(sizeRows.x,lineHeight)).Contains(ImGui::GetMousePos()) && selOrd<0 && selRow<0) {
+            dl->AddRectFilled(
+              pos,
+              pos+ImVec2(sizeRows.x,lineHeight),
+              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER])
+            );
+
+            selOrd=ord;
+            selRow=row;
+          }
+
           if (settings.patRowsBase) {
             snprintf(id,63," %2X",row);
           } else {
@@ -1468,6 +1479,21 @@ void FurnaceGUI::drawPatternNew() {
         ImGui::ColorConvertFloat4ToU32(ImGui::GetStyle().Colors[ImGuiCol_TableBorderLight]),
         PAT_BORDER_SIZE
       );
+
+      // test for selection
+      if (selOrd>=0 && selRow>=0) {
+        if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+          startSelection(0,0,selRow,selOrd,true);
+        }
+
+        updateSelection(0,0,selRow,selOrd,true);
+
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && CHECK_LONG_HOLD) {
+          ImGui::InhibitInertialScroll();
+          NOTIFY_LONG_HOLD;
+          mobilePatSel=true;
+        }
+      }
     }
     dl->PopClipRect();
 
@@ -1727,6 +1753,21 @@ void FurnaceGUI::drawPatternNew() {
           i.label
         );
       }
+    }
+
+    // EExx value indicator
+    if (e->hasExtValue()) {
+      pos=ImVec2(topRows.x+sizeRows.x+6.0f*dpiScale,topHeaders.y+sizeHeaders.y+6.0f*dpiScale);
+      ImGui::RenderFrameDrawList(
+        dl,
+        pos,
+        pos+ImGui::GetStyle().FramePadding*2.0f+twoChars,
+        ImGui::GetColorU32(ImGuiCol_FrameBg,0.75f),
+        true,
+        ImGui::GetStyle().FrameRounding
+      );
+      snprintf(id,63,"%.2X",e->getExtValue());
+      dl->AddText(pos+ImGui::GetStyle().FramePadding,ImGui::GetColorU32(uiColors[GUI_COLOR_EE_VALUE]),id);
     }
 
     // let's draw a warning if the instrument cannot be previewed
