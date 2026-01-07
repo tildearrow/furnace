@@ -1457,7 +1457,7 @@ void FurnaceGUI::drawPatternNew() {
           }
 
           if (settings.patRowsBase) {
-            snprintf(id,63," %2X",row);
+            snprintf(id,63," %.2X",row);
           } else {
             snprintf(id,63,"%3d",row);
           }
