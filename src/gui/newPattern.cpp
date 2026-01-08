@@ -1011,14 +1011,48 @@ void FurnaceGUI::drawPatternNew() {
     if (rowsBegin<0) rowsBegin=0;
     if (rowsEnd>totalRows) rowsEnd=totalRows;
 
+    int lastOrd=firstOrd;
+    int lastRow=firstRow;
+    lastRow+=rowsEnd;
+    while (lastRow>=e->curSubSong->patLen) {
+      lastRow-=e->curSubSong->patLen;
+      lastOrd++;
+    }
+
     firstRow+=rowsBegin;
     while (firstRow>=e->curSubSong->patLen) {
       firstRow-=e->curSubSong->patLen;
       firstOrd++;
     }
 
-    /*String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
-    dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());*/
+    if (settings.viewPrevPattern) {
+      if (firstOrd<0) {
+        rowsBegin+=-firstOrd*e->curSubSong->patLen-firstRow;
+        firstOrd=0;
+        firstRow=0;
+      }
+
+      if (lastOrd>=e->curSubSong->ordersLen) {
+        rowsEnd-=e->curSubSong->patLen*(lastOrd-e->curSubSong->ordersLen)+lastRow;
+        lastOrd=e->curSubSong->ordersLen-1;
+        lastRow=e->curSubSong->patLen-1;
+      }
+    } else {
+      if (firstOrd<curOrder) {
+        rowsBegin+=(curOrder-firstOrd)*e->curSubSong->patLen-firstRow;
+        firstOrd=curOrder;
+        firstRow=0;
+      }
+
+      if (lastOrd>=curOrder+1) {
+        rowsEnd-=e->curSubSong->patLen*(lastOrd-(curOrder+1))+lastRow;
+        lastOrd=curOrder;
+        lastRow=e->curSubSong->patLen-1;
+      }
+    }
+
+    String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
+    dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());
 
     dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::SetCursorScreenPos(top);
@@ -1078,12 +1112,10 @@ void FurnaceGUI::drawPatternNew() {
         pos=top;
         pos.y+=lineHeight*rowsBegin;
         for (int j=rowsBegin; j<rowsEnd; j++) {
-          if (ord>=0 && ord<e->curSubSong->ordersLen) {
-            if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight) && (settings.viewPrevPattern || ord==curOrder)) {
-              pointer.order=ord;
-              pointer.y=row;
-              break;
-            }
+          if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight)) {
+            pointer.order=ord;
+            pointer.y=row;
+            break;
           }
           if (++row>=e->curSubSong->patLen) {
             row=0;
@@ -1127,43 +1159,43 @@ void FurnaceGUI::drawPatternNew() {
         }
         for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
-          if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
-            ImU32 thisRowBg=0;
-            if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
-              if (editClone && !isPatUnique && secondTimer<0.5) {
-                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]);
-              } else {
-                thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]);
-              }
-            } else if (isPlaying && oldRow==row && ord==playOrder) {
-              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]);
-            } else if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
-              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]);
-            } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
-              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]);
-            }
 
-            if (oldRow==row && ord==playOrder) {
-              // store playhead position
-              playheadY=pos.y;
+          ImU32 thisRowBg=0;
+          if (edit && cursor.y==row && cursor.order==ord && curWindowLast==GUI_WINDOW_PATTERN) {
+            if (editClone && !isPatUnique && secondTimer<0.5) {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING_CLONE]);
+            } else {
+              thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_EDITING]);
             }
+          } else if (isPlaying && oldRow==row && ord==playOrder) {
+            thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PLAY_HEAD]);
+          } else if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+            thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_2]);
+          } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+            thisRowBg=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_HI_1]);
+          }
 
-            if (thisRowBg) {
-              if (settings.overflowHighlight) {
-                dl->AddRectFilled(
-                  ImVec2(winRect.Min.x,pos.y),
-                  ImVec2(winRect.Max.x,pos.y+lineHeight),
-                  thisRowBg
-                );
-              } else {
-                dl->AddRectFilled(
-                  ImVec2(top.x+patChanX[0],pos.y),
-                  ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
-                  thisRowBg
-                );
-              }
+          if (oldRow==row && ord==playOrder) {
+            // store playhead position
+            playheadY=pos.y;
+          }
+
+          if (thisRowBg) {
+            if (settings.overflowHighlight) {
+              dl->AddRectFilled(
+                ImVec2(winRect.Min.x,pos.y),
+                ImVec2(winRect.Max.x,pos.y+lineHeight),
+                thisRowBg
+              );
+            } else {
+              dl->AddRectFilled(
+                ImVec2(top.x+patChanX[0],pos.y),
+                ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
+                thisRowBg
+              );
             }
           }
+
           if (++row>=e->curSubSong->patLen) {
             row=0;
             ord++;
@@ -1301,116 +1333,112 @@ void FurnaceGUI::drawPatternNew() {
         int chanVolMax=e->getMaxVolumeChan(i);
         if (chanVolMax<1) chanVolMax=1;
 
-        const DivPattern* pat=NULL;
-        if (ord>=0 && ord<e->curSubSong->ordersLen) {
-          pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
-        }
+        const DivPattern* pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord&0xff],true);
 
         // rows
         for (int j=rowsBegin; j<rowsEnd; j++) {
-          if (pat && (settings.viewPrevPattern || ord==curOrder)) {
-            // set color
-            SETUP_ORDER_ALPHA;
-            if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
-              activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2]);
-              inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2]);
-            } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
-              activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1]);
-              inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1]);
+          // set color
+          SETUP_ORDER_ALPHA;
+          if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+            activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2]);
+            inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2]);
+          } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+            activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1]);
+            inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1]);
+          } else {
+            activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+            inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+          }
+
+          if (isFirstChan) {
+            // set the top-most and bottom-most Y positions
+            // TODO: remove (we can use firstOrder/lastOrder and firstRow/lastRow)
+            if (topMostOrder==-1) {
+              topMostOrder=ord;
+            }
+            if (topMostRow==-1) {
+              topMostRow=row;
+            }
+            bottomMostOrder=ord;
+            bottomMostRow=row;
+          }
+
+          // note
+          snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
+          if (pat->newData[row][DIV_PAT_NOTE]==-1) {
+            dl->AddText(pos,inactiveColor,id,id+3);
+          } else {
+            dl->AddText(pos,activeColor,id,id+3);
+          }
+
+          // instrument
+          if (e->curSubSong->chanCollapse[i]<3) {
+            pos.x+=noteCellSize.x;
+            if (pat->newData[row][DIV_PAT_INS]==-1) {
+              dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
             } else {
-              activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-              inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-            }
-
-            if (isFirstChan) {
-              // set the top-most and bottom-most Y positions
-              if (topMostOrder==-1) {
-                topMostOrder=ord;
+              snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_INS]);
+              if (pat->newData[row][DIV_PAT_INS]<0 || pat->newData[row][DIV_PAT_INS]>=e->song.insLen) {
+                dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id,id+2);
+              } else {
+                DivInstrumentType t=e->song.ins[pat->newData[row][DIV_PAT_INS]]->type;
+                if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
+                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id,id+2);
+                } else {
+                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id,id+2);
+                }
               }
-              if (topMostRow==-1) {
-                topMostRow=row;
-              }
-              bottomMostOrder=ord;
-              bottomMostRow=row;
             }
+          }
 
-            // note
-            snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
-            if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-              dl->AddText(pos,inactiveColor,id,id+3);
+          // volume
+          if (e->curSubSong->chanCollapse[i]<2) {
+            pos.x+=insCellSize.x;
+            if (pat->newData[row][DIV_PAT_VOL]==-1) {
+              dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
             } else {
-              dl->AddText(pos,activeColor,id,id+3);
+              int volColor=(pat->newData[row][DIV_PAT_VOL]*127)/chanVolMax;
+              if (volColor>127) volColor=127;
+              if (volColor<0) volColor=0;
+              snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_VOL]);
+              dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id,id+2);
             }
+          }
 
-            // instrument
-            if (e->curSubSong->chanCollapse[i]<3) {
-              pos.x+=noteCellSize.x;
-              if (pat->newData[row][DIV_PAT_INS]==-1) {
+          // effects
+          if (e->curSubSong->chanCollapse[i]<1) {
+            for (int k=0; k<e->curPat[i].effectCols; k++) {
+              int index=DIV_PAT_FX(k);
+              int indexVal=DIV_PAT_FXVAL(k);
+              ImU32 effectColor=inactiveColor;
+
+              // effect
+              pos.x+=(k==0)?volCellSize.x:effectValCellSize.x;
+              if (pat->newData[row][index]==-1) {
                 dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
               } else {
-                snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_INS]);
-                if (pat->newData[row][DIV_PAT_INS]<0 || pat->newData[row][DIV_PAT_INS]>=e->song.insLen) {
-                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id,id+2);
+                if (pat->newData[row][index]>0xff) {
+                  snprintf(id,63,"??");
+                  effectColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
                 } else {
-                  DivInstrumentType t=e->song.ins[pat->newData[row][DIV_PAT_INS]]->type;
-                  if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
-                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id,id+2);
+                  const unsigned char data=pat->newData[row][index];
+                  effectColor=ImGui::GetColorU32(uiColors[fxColors[data]]);
+                  if (pat->newData[row][index]>=0x10 || settings.oneDigitEffects==0) {
+                    snprintf(id,63,"%.2X",data);
                   } else {
-                    dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id,id+2);
+                    snprintf(id,63," %.1X",data);
                   }
                 }
+                dl->AddText(pos,effectColor,id,id+2);
               }
-            }
 
-            // volume
-            if (e->curSubSong->chanCollapse[i]<2) {
-              pos.x+=insCellSize.x;
-              if (pat->newData[row][DIV_PAT_VOL]==-1) {
-                dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
+              // effect value
+              pos.x+=effectCellSize.x;
+              if (pat->newData[row][indexVal]==-1) {
+                dl->AddText(pos,effectColor,emptyLabel2,emptyLabel2+2);
               } else {
-                int volColor=(pat->newData[row][DIV_PAT_VOL]*127)/chanVolMax;
-                if (volColor>127) volColor=127;
-                if (volColor<0) volColor=0;
-                snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_VOL]);
-                dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id,id+2);
-              }
-            }
-
-            // effects
-            if (e->curSubSong->chanCollapse[i]<1) {
-              for (int k=0; k<e->curPat[i].effectCols; k++) {
-                int index=DIV_PAT_FX(k);
-                int indexVal=DIV_PAT_FXVAL(k);
-                ImU32 effectColor=inactiveColor;
-
-                // effect
-                pos.x+=(k==0)?volCellSize.x:effectValCellSize.x;
-                if (pat->newData[row][index]==-1) {
-                  dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
-                } else {
-                  if (pat->newData[row][index]>0xff) {
-                    snprintf(id,63,"??");
-                    effectColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-                  } else {
-                    const unsigned char data=pat->newData[row][index];
-                    effectColor=ImGui::GetColorU32(uiColors[fxColors[data]]);
-                    if (pat->newData[row][index]>=0x10 || settings.oneDigitEffects==0) {
-                      snprintf(id,63,"%.2X",data);
-                    } else {
-                      snprintf(id,63," %.1X",data);
-                    }
-                  }
-                  dl->AddText(pos,effectColor,id,id+2);
-                }
-
-                // effect value
-                pos.x+=effectCellSize.x;
-                if (pat->newData[row][indexVal]==-1) {
-                  dl->AddText(pos,effectColor,emptyLabel2,emptyLabel2+2);
-                } else {
-                  snprintf(id,63,"%.2X",pat->newData[row][indexVal]);
-                  dl->AddText(pos,effectColor,id,id+2);
-                }
+                snprintf(id,63,"%.2X",pat->newData[row][indexVal]);
+                dl->AddText(pos,effectColor,id,id+2);
               }
             }
           }
@@ -1419,11 +1447,7 @@ void FurnaceGUI::drawPatternNew() {
           if (++row>=e->curSubSong->patLen) {
             row=0;
             ord++;
-            if (ord>=0 && ord<e->curSubSong->ordersLen) {
-              pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
-            } else {
-              pat=NULL;
-            }
+            pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord&0xff],true);
           }
           pos.x=thisTop.x;
           pos.y+=lineHeight;
@@ -1477,34 +1501,33 @@ void FurnaceGUI::drawPatternNew() {
       pos=topRows;
       pos.y+=lineHeight*rowsBegin;
       for (int j=rowsBegin; j<rowsEnd; j++) {
-        if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
-          SETUP_ORDER_ALPHA;
-          // test cursor pos (so many comparisons!)
-          if (hoveredRow && (!orderLock || ord==curOrder) && ImRect(pos,pos+ImVec2(sizeRows.x,lineHeight)).Contains(ImGui::GetMousePos()) && selOrd<0 && selRow<0) {
-            dl->AddRectFilled(
-              pos,
-              pos+ImVec2(sizeRows.x,lineHeight),
-              ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER])
-            );
+        SETUP_ORDER_ALPHA;
+        // test cursor pos (so many comparisons!)
+        if (hoveredRow && (!orderLock || ord==curOrder) && ImRect(pos,pos+ImVec2(sizeRows.x,lineHeight)).Contains(ImGui::GetMousePos()) && selOrd<0 && selRow<0) {
+          dl->AddRectFilled(
+            pos,
+            pos+ImVec2(sizeRows.x,lineHeight),
+            ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER])
+          );
 
-            selOrd=ord;
-            selRow=row;
-          }
-
-          if (settings.patRowsBase) {
-            snprintf(id,63," %.2X",row);
-          } else {
-            snprintf(id,63,"%3d",row);
-          }
-
-          if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
-            dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2]),id,id+3);
-          } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
-            dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1]),id,id+3);
-          } else {
-            dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]),id,id+3);
-          }
+          selOrd=ord;
+          selRow=row;
         }
+
+        if (settings.patRowsBase) {
+          snprintf(id,63," %.2X",row);
+        } else {
+          snprintf(id,63,"%3d",row);
+        }
+
+        if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+          dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2]),id,id+3);
+        } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+          dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1]),id,id+3);
+        } else {
+          dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]),id,id+3);
+        }
+
         if (++row>=e->curSubSong->patLen) {
           row=0;
           ord++;
