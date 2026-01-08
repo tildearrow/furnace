@@ -5048,6 +5048,7 @@ bool FurnaceGUI::loop() {
     }
 
     MEASURE(calcChanOsc,calcChanOsc());
+    updateKeyHitPre();
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -5194,10 +5195,7 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    for (int i=0; i<e->getTotalChannelCount(); i++) {
-      keyHit1[i]-=0.08f;
-      if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
-    }
+    updateKeyHitPost();
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 

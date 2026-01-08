@@ -358,7 +358,6 @@ void FurnaceGUI::drawPatternNew() {
         if (!e->curSubSong->chanShow[i]) continue;
         ImGui::SetCursorScreenPos(ImVec2(topHeaders.x+patChanX[i]+sizeRows.x,topHeaders.y));
         // skip off-screen channels
-        // TODO: may cause issues with keyHit. test!
         if (ImGui::GetCursorScreenPos().x>winRect.Max.x) break;
         if (ImGui::GetCursorScreenPos().x+patChanX[i+1]-patChanX[i]<winRect.Min.x) continue;
 
@@ -372,62 +371,6 @@ void FurnaceGUI::drawPatternNew() {
         ImVec4 chanHeadHover=chanHead;
         ImVec4 chanHeadBase=chanHead;
 
-        // update key hit
-        if (e->keyHit[i]) {
-          keyHit1[i]=1.0f;
-
-          if (chanOscRandomPhase) {
-            chanOscChan[i].phaseOff=(float)rand()/(float)RAND_MAX;
-          } else {
-            chanOscChan[i].phaseOff=0.0f;
-          }
-
-          if (settings.channelFeedbackStyle==1) {
-            keyHit[i]=0.2;
-            if (!muted) {
-              int note=e->getChanState(i)->note+60;
-              if (note>=0 && note<180) {
-                pianoKeyHit[note].value=1.0;
-                pianoKeyHit[note].chan=i;
-              }
-            }
-          }
-          e->keyHit[i]=false;
-        }
-        if (settings.channelFeedbackStyle==2 && e->isRunning()) {
-          float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
-          if (e->getChanState(i)->keyOff) amount=0.0f;
-          keyHit[i]=amount*0.2f;
-          if (!muted && e->getChanState(i)->keyOn) {
-            int note=e->getChanState(i)->note+60;
-            if (note>=0 && note<180) {
-              pianoKeyHit[note].value=amount;
-              pianoKeyHit[note].chan=i;
-            }
-          }
-        } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
-          bool active=e->getChanState(i)->keyOn;
-          keyHit[i]=active?0.2f:0.0f;
-          if (!muted) {
-            int note=e->getChanState(i)->note+60;
-            if (note>=0 && note<180) {
-              pianoKeyHit[note].value=active?1.0f:0.0f;
-              pianoKeyHit[note].chan=i;
-            }
-          }
-        } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
-          float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
-          if (isnan(amount)) amount=0; // how is it nan tho??
-          if (e->getChanState(i)->keyOff) amount=0.0f;
-          keyHit[i]=amount*0.2f;
-          if (!muted && e->getChanState(i)->keyOn) {
-            int note=e->getChanState(i)->note+60;
-            if (note>=0 && note<180) {
-              pianoKeyHit[note].value=amount;
-              pianoKeyHit[note].chan=i;
-            }
-          }
-        }
         // set key hit colors
         if (settings.guiColorsBase) {
           chanHead.x*=1.0-keyHit[i]; chanHead.y*=1.0-keyHit[i]; chanHead.z*=1.0-keyHit[i];
@@ -438,8 +381,7 @@ void FurnaceGUI::drawPatternNew() {
           chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
           chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
         }
-        keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
-        if (keyHit[i]<0) keyHit[i]=0;
+
         // push colors
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
@@ -706,11 +648,6 @@ void FurnaceGUI::drawPatternNew() {
           if (ImGui::ItemAdd(rectV,ImGui::GetID(chanID))) {
             float xLeft=0.0f;
             float xRight=1.0f;
-
-            if (e->keyHit[i]) {
-              keyHit1[i]=1.0f;
-              e->keyHit[i]=false;
-            }
 
             if (e->isRunning()) {
               DivChannelState* cs=e->getChanState(i);
@@ -2196,3 +2133,75 @@ void FurnaceGUI::drawPatternNew() {
   ImGui::End();
 }
 
+void FurnaceGUI::updateKeyHitPre() {
+  for (int i=0; i<e->getTotalChannelCount(); i++) {
+    bool muted=e->isChannelMuted(i);
+    
+    // update key hit
+    if (e->keyHit[i]) {
+      keyHit1[i]=1.0f;
+
+      if (chanOscRandomPhase) {
+        chanOscChan[i].phaseOff=(float)rand()/(float)RAND_MAX;
+      } else {
+        chanOscChan[i].phaseOff=0.0f;
+      }
+
+      if (settings.channelFeedbackStyle==1) {
+        keyHit[i]=0.2;
+        if (!muted) {
+          int note=e->getChanState(i)->note+60;
+          if (note>=0 && note<180) {
+            pianoKeyHit[note].value=1.0;
+            pianoKeyHit[note].chan=i;
+          }
+        }
+      }
+      e->keyHit[i]=false;
+    }
+    if (settings.channelFeedbackStyle==2 && e->isRunning()) {
+      float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
+      if (e->getChanState(i)->keyOff) amount=0.0f;
+      keyHit[i]=amount*0.2f;
+      if (!muted && e->getChanState(i)->keyOn) {
+        int note=e->getChanState(i)->note+60;
+        if (note>=0 && note<180) {
+          pianoKeyHit[note].value=amount;
+          pianoKeyHit[note].chan=i;
+        }
+      }
+    } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
+      bool active=e->getChanState(i)->keyOn;
+      keyHit[i]=active?0.2f:0.0f;
+      if (!muted) {
+        int note=e->getChanState(i)->note+60;
+        if (note>=0 && note<180) {
+          pianoKeyHit[note].value=active?1.0f:0.0f;
+          pianoKeyHit[note].chan=i;
+        }
+      }
+    } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
+      float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
+      if (isnan(amount)) amount=0; // how is it nan tho??
+      if (e->getChanState(i)->keyOff) amount=0.0f;
+      keyHit[i]=amount*0.2f;
+      if (!muted && e->getChanState(i)->keyOn) {
+        int note=e->getChanState(i)->note+60;
+        if (note>=0 && note<180) {
+          pianoKeyHit[note].value=amount;
+          pianoKeyHit[note].chan=i;
+        }
+      }
+    }
+  }
+}
+
+void FurnaceGUI::updateKeyHitPost() {
+  for (int i=0; i<e->getTotalChannelCount(); i++) {
+    keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
+    if (keyHit[i]<0) keyHit[i]=0;
+
+    keyHit1[i]-=0.08f;
+    if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
+  }
+}
