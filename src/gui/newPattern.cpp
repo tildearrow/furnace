@@ -1122,6 +1122,9 @@ void FurnaceGUI::drawPatternNew() {
         bool isPlaying=e->isPlaying();
         pos=top;
         pos.y+=lineHeight*rowsBegin;
+        if (settings.overflowHighlight) {
+          dl->PushClipRect(ImVec2(prevClipRect.Min.x,topHeaders.y+sizeHeaders.y),prevClipRect.Max);
+        }
         for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
           if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
@@ -1146,11 +1149,19 @@ void FurnaceGUI::drawPatternNew() {
             }
 
             if (thisRowBg) {
-              dl->AddRectFilled(
-                ImVec2(top.x+patChanX[0],pos.y),
-                ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
-                thisRowBg
-              );
+              if (settings.overflowHighlight) {
+                dl->AddRectFilled(
+                  ImVec2(winRect.Min.x,pos.y),
+                  ImVec2(winRect.Max.x,pos.y+lineHeight),
+                  thisRowBg
+                );
+              } else {
+                dl->AddRectFilled(
+                  ImVec2(top.x+patChanX[0],pos.y),
+                  ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
+                  thisRowBg
+                );
+              }
             }
           }
           if (++row>=e->curSubSong->patLen) {
@@ -1158,6 +1169,9 @@ void FurnaceGUI::drawPatternNew() {
             ord++;
           }
           pos.y+=lineHeight;
+        }
+        if (settings.overflowHighlight) {
+          dl->PopClipRect();
         }
       }
 
