@@ -91,6 +91,10 @@ OPL4 PCM uses the [MultiPCM](../4-instrument/multipcm.md) instrument editor.
 
 when two channels are joined for 4-op mode, the channel bar will show `4OP` on a bracket tying them together.
 
+sample lengths on the Y8950 are padded to multiples of 512 samples. ADPCM samples ignore loop points; they may only be loop over the entire sample.
+
+OPL4 maximum sample length is 65535.
+
 ## chip config
 
 the following options are available in the Chip Manager window:

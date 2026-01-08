@@ -43,7 +43,7 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   mode=source.mode;
   type=(source.open>>1)&3;
   activeRelease=source.open&8;
-  linger=(source.macroType==DIV_MACRO_VOL && e->song.volMacroLinger);
+  linger=(source.macroType==DIV_MACRO_VOL && e->song.compatFlags.volMacroLinger);
   lfoPos=LFO_PHASE;
 }
 

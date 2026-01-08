@@ -652,6 +652,11 @@ inline void internal::executor::start(int exit_code)
 #else
 inline void internal::executor::start_process(std::vector<std::string> const &command)
 {
+    printf("---- WILL EXECUTE:\n");
+    for (const std::string& i: command) {
+      printf("- %s\n",i.c_str());
+    }
+    printf("END\n");
     stop();
     m_stdout.clear();
     m_exit_code = -1;

@@ -9,7 +9,7 @@ the console is powered by the Ricoh 2A03, a CPU with sound generator built-in. i
 ## effects
 
 - `11xx`: **write to delta modulation counter.** range is `00` to `7F`.
-  - this may be used to attenuate the triangle and noise channels; at `7F`, they will be at about 57% volume.
+  - this may be used to attenuate the triangle and noise channels; see "non-linear mixing" below.
   - will not work if a sample is playing.
 - `12xx`: **set duty cycle or noise mode of channel.**
   - may be `0` to `3` for the pulse channels:
@@ -72,11 +72,27 @@ the following options are available in the Chip Manager window:
   - DPCM: the default mode, playing 1-bit DPCM samples as supported by the hardware.
   - PCM: this mode provides crisper 7-bit samples by writing to the delta counter directly. uses a lot of CPU time in console.
 
+## non-linear mixing
+
+the triangle, noise, and PCM channels are mixed together non-linearly such that the level of the DMC (the "delta modulation counter", representing the PCM channel's amplitude) inversely affects the volume of the others. this can be intentionally used with effect `11xx` to hold the DMC at a level that lowers the volume of the triangle channel in a controlled fashion; at maximum DMC level (`117F`) the triangle plays at about 57% of full volume.
+
 ## DPCM samples
 
 due to hardware limitations, a loop in a DPCM sample must start on a multiple of 512 samples (512, 1024, 1536...) and have a length that is a multiple of 128 plus 8 samples (136, 264, 392...)
 
 NES DPCM only has 16 preset sample rates, shown in a table below. for help adapting samples to work with this, see the [limited samples guide](../9-guides/limited-samples.md).
+
+## envelope mode
+
+both pulse channels and the noise channel have a simple hardware envelope generator with two modes: one that holds the volume at whatever the software sets, and one that creates a downward ramp of volume starting from maximum and counting down to 0. the volume range of the ramp can't be controlled (similar to the triangle wave, for the same reason). the envelope can be set to loop each time it reaches 0.
+
+## frame counter
+
+the frame counter is a global counter that controls the speed of hardware envelopes and sweeps. the resulting speed depends on both the chip's clock rate and whether it's set to 4-step or 5-step mode.
+
+## length counter
+
+setting the length counter will automatically stop a note after the specified amount of time. note that the effect values aren't arranged in a convenient way for their lengths; for convenience, they are shown in a table below.
 
 ## short noise frequencies (NTSC)
 

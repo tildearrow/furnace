@@ -15,7 +15,7 @@ void FurnaceGUI::drawEffectList() {
     float availB=ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing();
     if (availB>0) {
       ImGui::PushTextWrapPos(availB);
-      ImGui::TextWrapped(_("Chip at cursor: %s"),e->getSystemName(e->sysOfChan[cursor.xCoarse]));
+      ImGui::TextWrapped(_("Chip at cursor: %s"),e->getSystemName(e->song.sysOfChan[cursor.xCoarse]));
       ImGui::PopTextWrapPos();
     }
     effectSearch.Draw(_("Search"));
@@ -55,7 +55,7 @@ void FurnaceGUI::drawEffectList() {
         }
         prevName=name;
         if (fxColors[i]==GUI_COLOR_PATTERN_EFFECT_PANNING) {
-          DivDispatch* dispatch=e->getDispatch(e->dispatchOfChan[cursor.xCoarse]);
+          DivDispatch* dispatch=e->getDispatch(e->song.dispatchOfChan[cursor.xCoarse]);
           if (dispatch!=NULL) {
             int outputs=dispatch->getOutputCount();
             if (outputs<2) {

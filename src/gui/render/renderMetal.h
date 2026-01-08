@@ -37,10 +37,8 @@ class FurnaceGUIRenderMetal: public FurnaceGUIRender {
     void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
-    bool newFrame();
+    void newFrame();
     bool canVSync();
-    void createFontsTexture();
-    void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
     void present();

@@ -8,3 +8,6 @@
 [submodule "extern/adpcm"]
 	path = extern/adpcm
 	url = https://github.com/superctr/adpcm
+[submodule "extern/asio"]
+	path = extern/asio
+	url = https://github.com/tildearrow/asio-cmake.git

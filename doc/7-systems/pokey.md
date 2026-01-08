@@ -33,7 +33,7 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
     - use for PWM effects (not automatic!).
   - bit 0: 15KHz mode.
 - `12xx`: **toggle two-tone mode.**
-  - when enabled, channel 2 modulates channel 1. I don't know how, but it does.
+  - when enabled, channel 2 modulates channel 1 in an oscillator sync-like manner.
   - only on ASAP core.
 
 ## info

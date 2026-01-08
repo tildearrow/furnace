@@ -4,19 +4,44 @@ Furnace allows you to export your song in several formats. this section deals wi
 
 ## audio
 
-this option allows you to export your song in .wav format. I know I know, no .mp3 or .ogg export yet, but you can use a converter.
+this option allows you to export your song to another audio format.
 
 - **Export type**:
-  - **one file**: exports your song to one .wav file.
-  - **multiple files (one per chip)**: exports the output of each chip to .wav files.
-  - **multiple files (one per channel)**: exports the output of each channel to .wav files.
-    - useful for usage with a channel visualizer such as corrscope.
-- **Bit depth**: default is 16-bit integer.
-- **Sample rate**: affects the quality of the output file.
-  - default is 44100, "CD quality".
-  - lower sample rates lose fidelity as upper frequencies disappear.
-  - higher sample rates gain frequencies that can't be heard at the cost of file size and rendering time.
-- **Channels in file**: default is 2 (stereo). Set to 1 for mono.
+  - **one file**: exports your song to a single file.
+  - **multiple files (one per chip)**: exports the output of each chip to separate files.
+  - **multiple files (one per channel)**: exports the output of each channel to separate files.
+    - ideal for use with a channel visualizer such as [corrscope](https://github.com/corrscope/corrscope).
+- **File Format**: select the output file format. each format has its own options.
+  - **Wave**: lossless uncompressed .wav format. largest file size but perfect quality. most useful for files that will need further editing.
+    - **Bit depth**: default is 16-bit integer.
+      - integer formats should be supported by all players, but are clipped to -1.0/+1.0 range.
+      - float formats are supported by most software players and have infinite range, but take more space.
+    - **Sample rate**: affects the quality of the output file.
+      - default is 44100, "CD quality".
+      - lower sample rates lose fidelity as upper frequencies disappear.
+      - higher sample rates gain frequencies that can't be heard at the cost of file size and rendering time.
+    - **Channels in file**: default is 2 (stereo). set to 1 for mono.
+  - **Opus**: modern lossy compressed .ogg format. better audio quality than MP3 or Vorbis. not supported by all players, especially Apple devices.
+    - **Channels in file**: default is 2 (stereo). set to 1 for mono.
+    - **Bit rate**: higher numbers result in better quality sound at the cost of larger file size. default is 128000.
+  - **FLAC (Free Lossless Audio Codec)**: lossless compressed .flac format. good for archival or editing, as it preserves original sound data.
+    - **Sample rate**: affects the quality of the output file. see above.
+    - **Channels in file**: default is 2 (stereo). set to 1 for mono.
+    - **Compression level**: higher levels take slightly longer to pack but yield much better compression. default is 6.0.
+  - **Vorbis**: lossy compressed .ogg format. better quality sound than MP3 with smaller file size. fairly common support except for Apple devices.
+    - **Sample rate**: affects the quality of the output file. see above.
+    - **Channels in file**: default is 2 (stereo). set to 1 for mono.
+    - **Quality**: compression rate. higher numbers produce larger files of higher fidelity. default is 8.0.
+  - **MP3**: lossy compressed .mp3 format. an old standard for compressed audio;  it enjoys widespread support but has poor quality.
+    - **Sample rate**: affects the quality of the output file. see above.
+    - **Channels in file**: default is 2 (stereo). set to 1 for mono.
+    - **Bit rate mode**:
+      - **Constant**: fixed bit rate regardless of content. default.
+        - **Bit rate**: higher numbers result in better quality sound at the cost of larger file size. default is 128000.
+      - **Variable**: bit rate adapts to the content. generates smaller files for the same quality. not all players support this mode.
+        - **Quality**: higher numbers produce larger files of higher fidelity. default is 6.0.        
+      - **Average**: a compromise; the steady bit rate of "constant" with higher quality, but less efficiently compressed than "variable". not all players support this mode.
+        - **Bit rate**: higher numbers result in better quality sound at the cost of larger file size. default is 128000.
 - **Loops**: sets the number of times the song will loop.
   - does not have effect if the song ends with `FFxx` effect.
 - **Fade out (seconds)**: sets the fade out time when the song is over.

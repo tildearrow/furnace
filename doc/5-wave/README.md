@@ -21,6 +21,7 @@ Konami SCC    |    32 | 256    |
 Seta X1-010   |   128 | 256    |
 Amiga         |  ≤256 | 256    |
 
+you may use up to 32768 wavetables in a module.
 
 ## wavetable editor
 

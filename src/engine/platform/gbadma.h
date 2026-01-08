@@ -54,8 +54,8 @@ class DivPlatformGBADMA: public DivDispatch {
   Channel chan[2];
   DivDispatchOscBuffer* oscBuf[2];
   bool isMuted[2];
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
   int outDepth;
 
   signed char* sampleMem;
@@ -93,6 +93,8 @@ class DivPlatformGBADMA: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformGBADMA();
+    ~DivPlatformGBADMA();
 
   private:
     void updateWave(int ch);

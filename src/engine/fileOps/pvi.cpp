@@ -125,7 +125,6 @@ void DivEngine::loadPVI(SafeReader& reader, std::vector<DivSample*>& ret, String
         {
             DivSample* s = new DivSample;
 
-            s->rate = PVI_SAMPLE_RATE;
             s->centerRate = PVI_SAMPLE_RATE;
             s->depth = DIV_SAMPLE_DEPTH_ADPCM_B;
             s->init((headers[i].end_pointer - headers[i].start_pointer) * 32 * 2);

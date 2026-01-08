@@ -31,10 +31,9 @@ extern "C" {
 class DivYM2608Interface: public DivOPNInterface {
   public:
     unsigned char* adpcmBMem;
-    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
+    DivYM2608Interface(): adpcmBMem(NULL) {}
 };
 
 class DivPlatformYM2608: public DivPlatformOPN {
@@ -67,11 +66,10 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivYM2608Interface iface;
-    unsigned int sampleOffB[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffB;
+    bool* sampleLoaded;
   
     DivPlatformAY8910* ay;
-    unsigned char sampleBank;
     unsigned char writeRSSOff, writeRSSOn;
     int globalRSSVolume;
 
@@ -124,10 +122,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setCSM(bool isCSM);
     void quit();
-    DivPlatformYM2608():
-      DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32, false, 16),
-      prescale(0x2d),
-      isCSM(0) {}
+    DivPlatformYM2608();
     ~DivPlatformYM2608();
 };
 #endif

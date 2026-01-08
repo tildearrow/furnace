@@ -173,20 +173,12 @@ void FurnaceGUIRenderGL1::clear(ImVec4 color) {
   C(glClear(GL_COLOR_BUFFER_BIT));
 }
 
-bool FurnaceGUIRenderGL1::newFrame() {
-  return ImGui_ImplOpenGL2_NewFrame();
+void FurnaceGUIRenderGL1::newFrame() {
+  ImGui_ImplOpenGL2_NewFrame();
 }
 
 bool FurnaceGUIRenderGL1::canVSync() {
   return swapIntervalSet;
-}
-
-void FurnaceGUIRenderGL1::createFontsTexture() {
-  ImGui_ImplOpenGL2_CreateFontsTexture();
-}
-
-void FurnaceGUIRenderGL1::destroyFontsTexture() {
-  ImGui_ImplOpenGL2_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderGL1::renderGUI() {

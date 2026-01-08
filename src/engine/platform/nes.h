@@ -30,7 +30,7 @@ class DivPlatformNES: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     int prevFreq;
     unsigned char duty, sweep, envMode, len;
-    bool sweepChanged, furnaceDac, setPos;
+    bool sweepChanged, setPos;
     Channel():
       SharedChannel<signed char>(15),
       prevFreq(65535),
@@ -39,7 +39,6 @@ class DivPlatformNES: public DivDispatch {
       envMode(3),
       len(0x1f),
       sweepChanged(false),
-      furnaceDac(false),
       setPos(false) {}
   };
   Channel chan[5];
@@ -57,9 +56,8 @@ class DivPlatformNES: public DivDispatch {
   int dacSample;
   unsigned char* dpcmMem;
   size_t dpcmMemLen;
-  bool sampleLoaded[256];
+  bool* sampleLoaded;
   unsigned char dpcmBank;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
   unsigned char apuType;
   unsigned char linearCount;
@@ -80,7 +78,7 @@ class DivPlatformNES: public DivDispatch {
   xgm::I5E01_APU* e1_NP;
   xgm::I5E01_DMC* e2_NP;
   unsigned char regPool[128];
-  unsigned int sampleOffDPCM[256];
+  unsigned int* sampleOffDPCM;
   DivMemoryComposition memCompo;
 
   friend void putDispatchChip(void*,int);
@@ -124,6 +122,7 @@ class DivPlatformNES: public DivDispatch {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformNES();
     ~DivPlatformNES();
 };
 

@@ -24,5 +24,6 @@
 
 std::string taEncodeBase64(const std::string& data);
 std::string taDecodeBase64(const char* str);
+std::string taDecodeBase64(const std::string& str);
 
 #endif

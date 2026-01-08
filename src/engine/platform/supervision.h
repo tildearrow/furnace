@@ -56,9 +56,9 @@ class DivPlatformSupervision: public DivDispatch {
   int tempR[32];
   int coreQuality;
   unsigned char regPool[64];
-  unsigned int sampleOff[256];
-  unsigned int sampleLen[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  unsigned int* sampleLen;
+  bool* sampleLoaded;
   DivMemoryComposition memCompo;
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -98,6 +98,7 @@ class DivPlatformSupervision: public DivDispatch {
     bool getDCOffRequired();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformSupervision();
     ~DivPlatformSupervision();
 };
 

@@ -328,7 +328,8 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Watara Supervision", {
       CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
-    }
+    },
+    "tickRate=50.81300813008130081301"
   );
   CATEGORY_END;
 
@@ -2626,6 +2627,63 @@ void FurnaceGUI::initSystemPresets() {
         ) // 12.5MHz
       }
     );
+    SUB_ENTRY(
+      _("Sega System Multi 32"), {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega System Multi 32 (extended channel 3)"), {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega System Multi 32 (CSM)"), {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Model 1/2"), {
+        CH(DIV_SYSTEM_YM2612, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Model 1/2 (extended channel 3)"), {
+        CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Model 1/2 (CSM)"), {
+        CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, 
+          "clockSel=2\n"
+          "chipType=0\n"
+        ), // discrete 8MHz YM3438
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, ""),
+        CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+      }
+    );
 
   ENTRY(
     _("Seta"), {}
@@ -3657,6 +3715,11 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_OPL4_DRUMS, 1.0f, 0, "")
       }
     );
+  ENTRY(
+    "Yamaha YMW258-F (MultiPCM)", {
+      CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN(_("Wavetable"),_("chips which use user-specified waveforms to generate sound."));
@@ -3925,17 +3988,17 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Arcade (YM2151 and SegaPCM)"), {
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_SEGAPCM_COMPAT, 1.0f, 0, "")
+      CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "")
     }
   );
   ENTRY(
-    _("Neo Geo CD"), {
-      CH(DIV_SYSTEM_YM2610, 1.0f, 0, "")
+    _("Neo Geo"), {
+      CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "")
     }
   );
   ENTRY(
-    _("Neo Geo CD (extended channel 2)"), {
-      CH(DIV_SYSTEM_YM2610_EXT, 1.0f, 0, "")
+    _("Neo Geo (extended channel 2)"), {
+      CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -3962,6 +4025,9 @@ void FurnaceGUISysDef::bake() {
       index,
       taEncodeBase64(i.flags)
     );
+    if (i.chans>0) {
+      definition+=fmt::sprintf("chans%d=%d\n",index,i.chans);
+    }
     index++;
   }
   if (!extra.empty()) {
@@ -4000,8 +4066,11 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e)
     nextStr=fmt::sprintf("flags%d",i);
     String flags=taDecodeBase64(conf.getString(nextStr.c_str(),"").c_str());
     conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("chans%d",i);
+    int chans=conf.getInt(nextStr.c_str(),0);
+    conf.remove(nextStr.c_str());
 
-    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));
+    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR,chans));
   }
   // extract extra
   extra=conf.toString();

@@ -113,7 +113,6 @@ void DivEngine::loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String
         {
             DivSample* s = new DivSample;
 
-            s->rate = headers[i].sample_rate;
             s->centerRate = headers[i].sample_rate;
             s->depth = DIV_SAMPLE_DEPTH_8BIT;
             s->init(headers[i].sample_length); //byte per sample

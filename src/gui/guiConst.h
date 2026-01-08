@@ -66,6 +66,10 @@ struct FurnaceGUIColorDef {
 };
 
 extern const int opOrder[4];
+extern const float topKeyStarts[5];
+extern const int topKeyNotes[5];
+extern const int bottomKeyNotes[7];
+extern const bool isTopKey[12];
 extern const char* noteNames[180];
 extern const char* noteNamesG[180];
 extern const char* noteNamesF[180];

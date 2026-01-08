@@ -9,7 +9,7 @@ Imported Targets
 
 This module provides the following imported targets, if found:
 
-``MPG123::libmpg123``
+``MPG123::mpg123``
   The mpg123 library
 
 Result Variables
@@ -39,13 +39,9 @@ if (mpg123_INCLUDE_DIR)
     set(mpg123_FIND_QUIETLY TRUE)
 endif ()
 
-find_package (PkgConfig QUIET)
-pkg_check_modules(PC_MPG123 QUIET libmpg123>=1.25.10)
-
+# tildearrow: don't use pkg-config for vendored build
 find_path (mpg123_INCLUDE_DIR mpg123.h
 	HINTS
-		${PC_MPG123_INCLUDEDIR}
-		${PC_MPG123_INCLUDE_DIRS}
 		${mpg123_ROOT}
 	)
 
@@ -59,17 +55,14 @@ find_library (mpg123_LIBRARY
 		libmpg123
 		libmpg123_static
 	HINTS
-		${PC_MPG123_LIBDIR}
-		${PC_MPG123_LIBRARY_DIRS}
 		${mpg123_ROOT}
 	)
 
-if (PC_MPG123_FOUND)
-	set (mpg123_VERSION ${PC_MPG123_VERSION})
-elseif (mpg123_INCLUDE_DIR)
-	file (READ "${mpg123_INCLUDE_DIR}/mpg123.h" _mpg123_h)
-	string (REGEX MATCH "[0-9]+.[0-9]+.[0-9]+" _mpg123_version_re "${_mpg123_h}")
-	set (mpg123_VERSION "${_mpg123_version_re}")
+if (mpg123_INCLUDE_DIR)
+	#file (READ "${mpg123_INCLUDE_DIR}/mpg123.h" _mpg123_h)
+	#string (REGEX MATCH "[0-9]+.[0-9]+.[0-9]+" _mpg123_version_re "${_mpg123_h}")
+	#set (mpg123_VERSION "${_mpg123_version_re}")
+        set (mpg123_VERSION "NO")
 endif ()
 
 # Handle the QUIETLY and REQUIRED arguments and set mpg123_FOUND
@@ -79,13 +72,11 @@ find_package_handle_standard_args (mpg123
 	REQUIRED_VARS
 		mpg123_LIBRARY
 		mpg123_INCLUDE_DIR
-	VERSION_VAR
-		mpg123_VERSION
 	)
 
-if (mpg123_FOUND AND NOT TARGET MPG123::libmpg123)
-	add_library (MPG123::libmpg123 UNKNOWN IMPORTED)
-	set_target_properties (MPG123::libmpg123
+if (mpg123_FOUND AND NOT TARGET MPG123::mpg123)
+	add_library (MPG123::mpg123 UNKNOWN IMPORTED)
+	set_target_properties (MPG123::mpg123
 		PROPERTIES 
 			IMPORTED_LOCATION "${mpg123_LIBRARY}"
 			INTERFACE_INCLUDE_DIRECTORIES "${mpg123_INCLUDE_DIR}"

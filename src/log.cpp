@@ -32,8 +32,8 @@ int logLevel=LOGLEVEL_TRACE;
 int logLevel=LOGLEVEL_TRACE; // until done
 #endif
 
-FILE* logOut;
-FILE* logFile;
+FILE* logOut=NULL;
+FILE* logFile=NULL;
 char* logFileBuf;
 char* logFileWriteBuf;
 unsigned int logFilePosI;
@@ -140,6 +140,7 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
   }
 
   if (logLevel<level) return 0;
+  if (logOut==NULL) return -1;
   switch (level) {
     case LOGLEVEL_ERROR:
       return fmt::fprintf(logOut,"\x1b[1;31m[ERROR]\x1b[m %s\n",logEntries[pos].text);
@@ -253,8 +254,8 @@ bool finishLogFile() {
 
   // flush
   logFileLockI.lock();
-  logFileNotify.notify_one();
   while (!iAmReallyDead) {
+    logFileNotify.notify_one();
     std::this_thread::yield();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }

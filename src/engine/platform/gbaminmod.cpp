@@ -417,7 +417,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -503,9 +503,9 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -674,7 +674,7 @@ size_t DivPlatformGBAMinMod::getSampleMemUsage(int index) {
 
 bool DivPlatformGBAMinMod::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -690,6 +690,8 @@ const DivMemoryComposition* DivPlatformGBAMinMod::getMemCompo(int index) {
 void DivPlatformGBAMinMod::renderSamples(int sysID) {
   size_t maxPos=getSampleMemCapacity();
   memset(sampleMem,0,maxPos);
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
   romMemCompo.entries.clear();
   romMemCompo.capacity=maxPos;
 
@@ -787,4 +789,15 @@ void DivPlatformGBAMinMod::quit() {
   for (int i=0; i<16; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformGBAMinMod::DivPlatformGBAMinMod() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformGBAMinMod::~DivPlatformGBAMinMod() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

@@ -37,6 +37,18 @@ void* TAAudio::getContext() {
   return NULL;
 }
 
+TAAudioDeviceStatus TAAudio::getDeviceStatus() {
+  return deviceStatus;
+}
+
+void TAAudio::acceptDeviceStatus() {
+  deviceStatus=TA_AUDIO_DEVICE_OK;
+}
+
+int TAAudio::specialCommand(TAAudioCommand which) {
+  return -1;
+}
+
 bool TAAudio::quit() {
   return true;
 }

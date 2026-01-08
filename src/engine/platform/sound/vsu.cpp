@@ -77,6 +77,9 @@ void VSU::Power(void)
   EnvelopeClockDivider[ch] = 4;
 
   LatcherClockDivider[ch] = 120;
+
+  for(int lr = 0; lr < 2; lr++)
+   last_output[ch][lr] = 0;
  }
 
  ModWavePos = 0;

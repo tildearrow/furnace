@@ -6,6 +6,15 @@ an "asset" refers to an instrument, wavetable or sample.
 
 ![instruments window](instruments.png)
 
+this window displays the list of instruments. each entry contains an icon representing an instrument's type and its name.
+
+the following actions can be done when hovering on an entry:
+
+- left click to set it as the current instrument.
+- double click to open the instrument editor.
+- right click to open a menu with options.
+- shift-left click to start multi-instrument playback. in this mode you will be able to play more than one instrument at once. see [multi-instrument](../8-advanced/multi-ins.md) for more information.
+
 buttons from left to right:
 
 - **Add**: pops up a menu to select which type of instrument to add. if only one instrument type is available, the menu is skipped.

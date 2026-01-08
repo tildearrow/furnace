@@ -574,10 +574,9 @@ void DivExportZSM::run() {
     e->got.rate=zsmrate&0xffff;
 
     // determine loop point
-    int loopOrder=0;
-    int loopRow=0;
-    int loopEnd=0;
-    e->walkSong(loopOrder,loopRow,loopEnd);
+    e->calcSongTimestamps();
+    int loopOrder=e->curSubSong->ts.loopStart.order;
+    int loopRow=e->curSubSong->ts.loopStart.row;
     logAppendf("loop point: %d %d",loopOrder,loopRow);
 
     zsm.init(zsmrate);

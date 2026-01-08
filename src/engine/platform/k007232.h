@@ -63,8 +63,8 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
       val(v) {}
   };
   FixedQueue<QueuedWrite,256> writes;
-  unsigned int sampleOffK007232[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOffK007232;
+  bool* sampleLoaded;
 
   int delay;
   unsigned char lastLoop, lastVolume, oscDivider;
@@ -110,10 +110,8 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    DivPlatformK007232():
-      DivDispatch(),
-      k007232_intf(),
-      k007232(*this) {}
+    DivPlatformK007232();
+    ~DivPlatformK007232();
 };
 
 #endif

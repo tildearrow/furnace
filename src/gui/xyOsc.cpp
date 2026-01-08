@@ -39,16 +39,18 @@ void FurnaceGUI::drawXYOsc() {
       int xyOscXChannelP1=xyOscXChannel+1;
       int xyOscYChannelP1=xyOscYChannel+1;
 
+      ImGui::AlignTextToFramePadding();
       ImGui::Text(_("X Channel"));
       ImGui::SameLine();
-      if (ImGui::DragInt("##XChannel",&xyOscXChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
+      if (ImGui::InputInt("##XChannel",&xyOscXChannelP1)) {
         xyOscXChannel=MIN(MAX(xyOscXChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();
       ImGui::Checkbox(_("Invert##X"),&xyOscXInvert);
+      ImGui::AlignTextToFramePadding();
       ImGui::Text(_("Y Channel"));
       ImGui::SameLine();
-      if (ImGui::DragInt("##YChannel",&xyOscYChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
+      if (ImGui::InputInt("##YChannel",&xyOscYChannelP1)) {
         xyOscYChannel=MIN(MAX(xyOscYChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();

@@ -32,7 +32,7 @@ class FurnaceSoftwareTexture: public FurnaceGUITexture {
 
 ImTextureID FurnaceGUIRenderSoftware::getTextureID(FurnaceGUITexture* which) {
   FurnaceSoftwareTexture* t=(FurnaceSoftwareTexture*)which;
-  return t->tex;
+  return (ImTextureID)t->tex;
 }
 
 FurnaceGUITextureFormat FurnaceGUIRenderSoftware::getTextureFormat(FurnaceGUITexture* which) {
@@ -105,20 +105,12 @@ void FurnaceGUIRenderSoftware::clear(ImVec4 color) {
   }
 }
 
-bool FurnaceGUIRenderSoftware::newFrame() {
-  return ImGui_ImplSW_NewFrame();
+void FurnaceGUIRenderSoftware::newFrame() {
+  ImGui_ImplSW_NewFrame();
 }
 
 bool FurnaceGUIRenderSoftware::canVSync() {
   return false;
-}
-
-void FurnaceGUIRenderSoftware::createFontsTexture() {
-  ImGui_ImplSW_CreateFontsTexture();
-}
-
-void FurnaceGUIRenderSoftware::destroyFontsTexture() {
-  ImGui_ImplSW_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderSoftware::renderGUI() {

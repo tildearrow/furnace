@@ -54,8 +54,8 @@ class DivPlatformGBAMinMod: public DivDispatch {
   Channel chan[16];
   DivDispatchOscBuffer* oscBuf[16];
   bool isMuted[16];
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
   int volScale;
   unsigned char chanMax;
 
@@ -121,6 +121,8 @@ class DivPlatformGBAMinMod: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformGBAMinMod();
+    ~DivPlatformGBAMinMod();
 
     float maxCPU;
   private:

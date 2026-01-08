@@ -135,8 +135,6 @@ in previous versions of Furnace a `9xxx` effect existed which set the sample pos
 
 ## other
 
-- `EBxx`: **Set LEGACY sample mode bank.** selects sample bank. used only for compatibility.
-  - does not apply on Amiga.
 - `EExx`: **Send external command.**
   - this effect is currently incomplete.
 - `F5xx`: **Disable macro.**

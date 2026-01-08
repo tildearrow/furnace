@@ -297,7 +297,7 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       //chwrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       chan[c.chan].insChanged=false;
@@ -384,9 +384,9 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SUPERVISION));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SUPERVISION));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -513,7 +513,7 @@ size_t DivPlatformSupervision::getSampleMemUsage(int index) {
 
 bool DivPlatformSupervision::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -524,7 +524,7 @@ const DivMemoryComposition* DivPlatformSupervision::getMemCompo(int index) {
 
 void DivPlatformSupervision::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
@@ -603,5 +603,15 @@ void DivPlatformSupervision::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformSupervision::DivPlatformSupervision() {
+  sampleOff=new unsigned int[32768];
+  sampleLen=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformSupervision::~DivPlatformSupervision() {
+  delete[] sampleOff;
+  delete[] sampleLen;
+  delete[] sampleLoaded;
 }

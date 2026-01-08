@@ -56,6 +56,7 @@ this is a list of file formats that Furnace supports.
   - Sun/NeXT sample (.au)
   - Audio Visual Research sample (.avr)
   - Apple Core Audio File sample (.caf)
+  - FLAC (Free Lossless Audio Codec) (.flac)
   - HMM Tool Kit sample (.htk)
   - Amiga IFF/SVX8/SV16 sample (.iff)
   <!--
@@ -63,6 +64,8 @@ this is a list of file formats that Furnace supports.
   - GNU Octave 2.1 / Matlab 5.0 sample (.mat)
   -->
   - GNU Octave/Matlab sample (.mat)
+  - MPEG-1/2 Audio (.m1a, .mp1, .mp2, .mp3)
+  - OGG (OGG Container Format) (.ogg, .oga, .opus)
   - Akai MPC 2k sample (.mpc)
   - Ensoniq PARIS sample (.paf)
   - Portable Voice Format sample (.pvf)

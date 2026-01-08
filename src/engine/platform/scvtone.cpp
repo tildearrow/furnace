@@ -100,7 +100,7 @@ void DivPlatformSCV::tick(bool sysTick) {
         } else {
           chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
         }
-        if (!parent->song.oldArpStrategy) {
+        if (!parent->song.compatFlags.oldArpStrategy) {
           if (chan[i].fixedArp) {
             chan[i].freq=(chan[i].baseNoteOverride)+chan[i].pitch+chan[i].pitch2;
           } else {
@@ -186,7 +186,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       //chwrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       chan[c.chan].insChanged=false;
@@ -267,9 +267,9 @@ int DivPlatformSCV::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;

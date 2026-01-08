@@ -18,8 +18,6 @@ furthermore, it has some PCM and LFO!
   - `03`: LFO enabled, shift 8.
   - when LFO is enabled, channel 2 is muted and its output is passed to channel 1's frequency.
 - `13xx`: **set LFO speed.**
-- `17xx`: **toggle LEGACY sample mode.**
-  - **this effect exists only for compatibility reasons! its use is NOT recommended. use Sample type instruments instead.**
 
 ## info
 
@@ -38,5 +36,5 @@ the following icons are displayed when channel status is enabled in the pattern 
 the following options are available in the Chip Manager window:
 
 - **Pseudo-PAL**: run the chip on a PAL clock. such a configuration has (probably) never existed, despite a planned official PAL version of the PC Engine.
-- **Disable anti-click**: waveform switching requires a phase reset, which may cause clicks. Furnace uses a wave-position predicting algorithm to minimize these clicks. enable this option to disable it.
+- **Disable anti-click**: waveform switching requires a phase reset, which may cause clicks. Furnace uses a wave-position predicting algorithm to minimize these clicks. check this option to disable the feature.
 - **Chip revision**: sets the chip revision. HuC6280A has less pops.

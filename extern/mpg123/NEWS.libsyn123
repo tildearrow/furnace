@@ -1,0 +1,17 @@
+Changes in libsyn23 libtool interface versions. Next to the version
+the mpg123 release where its changes first appeared to the public
+is given.
+
+2.0.2 (mpg123 1.32)
+	- Added syn123_distversion() and syn123_libversion().
+	- Added switch SYN123_PORTABLE_API to hide off_t and ssize_t
+	  (consistent with libmpg123).
+	- Added direct int64_t prototypes (syn123_resample_total64() and
+	  syn123_resample_inttotal64().
+	- Added syn123_resample_in() and syn123_resample_out() as
+	  replacements for syn123_resample_expect() and syn123_resample_inexpect().
+	- Deprecated ill-designed syn123_resample_expect() and
+	  syn123_resample_inexpect() in documentation.
+
+1.0.1 (mpg123 1.26)
+	- initial version

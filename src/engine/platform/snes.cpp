@@ -390,7 +390,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
       // this is the fix. it needs testing.
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         if (chan[c.chan].outVol!=chan[c.chan].vol) chan[c.chan].shallWriteVol=true;
         chan[c.chan].outVol=chan[c.chan].vol;
       }
@@ -482,7 +482,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SNES));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SNES));
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -964,9 +964,13 @@ size_t DivPlatformSNES::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformSNES::hasSamplePtrHeader(int index) {
+  return true;
+}
+
 bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -977,8 +981,8 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
 
 void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
-  memset(sampleOff,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="SPC/DSP Memory";
@@ -1076,4 +1080,15 @@ void DivPlatformSNES::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformSNES::DivPlatformSNES() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformSNES::~DivPlatformSNES() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
 }

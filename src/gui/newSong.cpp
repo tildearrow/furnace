@@ -130,7 +130,7 @@ void FurnaceGUI::drawNewSong() {
   ImVec2 avail=ImGui::GetContentRegionAvail();
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
-  if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+  if (ImGui::BeginChild("sysPickerC",avail,0,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
     if (newSongFirstFrame)
       ImGui::SetKeyboardFocusHere();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -289,6 +289,8 @@ void FurnaceGUI::drawNewSong() {
     orderCursor=-1;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
+    e->calcSongTimestamps();
     selStart=SelectionPoint();
     selEnd=SelectionPoint();
     cursor=SelectionPoint();

@@ -39,7 +39,14 @@ void FurnaceGUI::drawRegView() {
       } else {
         ImGui::PushFont(patFont);
         if (ImGui::BeginTable("Memory",17)) {
-          ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed);
+          float widthOne=ImGui::CalcTextSize("0").x;
+          if (size>0xfff) { // no im got gonna put some clamped log formula instead
+            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*4.0f);
+          } else if (size>0xff) {
+            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*3.0f);
+          } else {
+            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*2.0f);
+          }
           
           ImGui::TableNextRow();
           ImGui::TableNextColumn();

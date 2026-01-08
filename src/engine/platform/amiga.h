@@ -109,8 +109,8 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned char volTable[64][64];
 
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
 
   unsigned short regPool[256];
 
@@ -171,6 +171,8 @@ class DivPlatformAmiga: public DivDispatch {
     const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformAmiga();
+    ~DivPlatformAmiga();
 };
 
 #endif

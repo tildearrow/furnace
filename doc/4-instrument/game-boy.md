@@ -5,7 +5,7 @@ the Game Boy instrument editor consists of three tabs: one controlling envelope 
 ## Game Boy
 
 - **Use software envelope**: switch to volume macro instead of envelope.
-  - this exploits a bug in the Game Boy sound hardware in order to have software envelopes ("zombie mode").
+  - this exploits a bug in the Game Boy sound hardware in order to have software envelopes ("zombie mode", explained more in the [Game Boy system documentation](../7-systems/game-boy.md)).
   - only a couple emulators have accurate reproduction of this bug.
 - **Initialize envelope on every note**: forces a volume reset on each new note.
 - **Volume**: initial channel volume (0 to 15).

@@ -36,6 +36,20 @@ struct BufferSizeChangeEvent {
     bufsize(bs) {}
 };
 
+enum TAAudioDeviceStatus {
+  // device is working
+  TA_AUDIO_DEVICE_OK=0,
+  // device has reset - reload audio engine
+  TA_AUDIO_DEVICE_RESET,
+  // device has been removed - reload audio engine with another device
+  TA_AUDIO_DEVICE_REMOVED
+};
+
+enum TAAudioCommand {
+  // open control panel for audio device
+  TA_AUDIO_CMD_SETUP=0
+};
+
 enum TAAudioFormat {
   TA_AUDIO_FORMAT_F32=0,
   TA_AUDIO_FORMAT_F64,
@@ -157,6 +171,8 @@ class TAAudio {
   protected:
     TAAudioDesc desc;
     TAAudioFormat outFormat;
+    TAAudioDeviceStatus deviceStatus;
+
     bool running, initialized;
     float** inBufs;
     float** outBufs;
@@ -173,15 +189,19 @@ class TAAudio {
     void setCallback(void (*callback)(void*,float**,float**,int,int,unsigned int), void* user);
 
     virtual void* getContext();
+    virtual int specialCommand(TAAudioCommand which);
     virtual bool quit();
     virtual bool setRun(bool run);
     virtual std::vector<String> listAudioDevices();
+    TAAudioDeviceStatus getDeviceStatus();
+    void acceptDeviceStatus();
     bool initMidi(bool jack);
     void quitMidi();
     virtual bool init(TAAudioDesc& request, TAAudioDesc& response);
 
     TAAudio():
       outFormat(TA_AUDIO_FORMAT_F32),
+      deviceStatus(TA_AUDIO_DEVICE_OK),
       running(false),
       initialized(false),
       inBufs(NULL),

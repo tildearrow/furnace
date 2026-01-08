@@ -110,7 +110,6 @@ void DivEngine::loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String
         {
             DivSample* s = new DivSample;
 
-            s->rate = P86_SAMPLE_RATE;
             s->centerRate = P86_SAMPLE_RATE;
             s->depth = DIV_SAMPLE_DEPTH_8BIT;
             s->init(headers[i].sample_length); //byte per sample

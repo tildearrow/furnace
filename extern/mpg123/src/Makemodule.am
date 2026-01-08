@@ -1,0 +1,169 @@
+# Module for non-recursive mpg123 build system.
+
+include src/tests/Makemodule.am
+include src/compat/Makemodule.am
+include src/common/Makemodule.am
+if NEED_LIB
+include src/libout123/Makemodule.am
+if NEED_MAINLIB
+include src/libmpg123/Makemodule.am
+include src/libsyn123/Makemodule.am
+endif
+endif
+
+if BUILD_PROGRAMS
+bin_PROGRAMS += src/out123
+if HAVE_LFS_WRAP
+bin_PROGRAMS += \
+  src/mpg123 \
+  src/mpg123-id3dump \
+  src/mpg123-strip
+endif
+endif
+
+if NEED_LIB
+if NEED_MAINLIB
+# All main libraries need fmt123 header installed.
+include_HEADERS += src/include/fmt123.h
+endif
+endif
+
+src_mpg123_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123) \
+  $(LIBOUT123) \
+  $(LIBSYN123) \
+  @PROG_LIBS@
+
+src_mpg123_LDFLAGS = @EXEC_LT_LDFLAGS@
+
+src_out123_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBSYN123) \
+  $(LIBOUT123) \
+  @PROG_LIBS@
+
+src_out123_LDFLAGS = @EXEC_LT_LDFLAGS@
+
+EXTRA_DIST += \
+  src/version.h \
+  src/mpg123-with-modules \
+  src/out123-with-modules
+
+CLEANFILES += src/*.a
+
+src_mpg123_id3dump_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123) \
+  @PROG_LIBS@
+
+src_mpg123_strip_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123) \
+  @PROG_LIBS@
+
+src_mpg123_SOURCES = \
+  src/audio.c \
+  src/audio.h \
+  src/common.c \
+  src/common.h \
+  src/sysutil.c \
+  src/sysutil.h \
+  src/control_generic.c \
+  src/equalizer.c \
+  src/getlopt.c \
+  src/getlopt.h \
+  src/httpget.c \
+  src/httpget.h \
+  src/resolver.c \
+  src/resolver.h \
+  src/genre.h \
+  src/genre.c \
+  src/mpg123.c \
+  src/mpg123app.h \
+  src/metaprint.c \
+  src/metaprint.h \
+  src/local.h \
+  src/local.c \
+  src/playlist.c \
+  src/playlist.h \
+  src/streamdump.h \
+  src/streamdump.c \
+  src/term.c \
+  src/term.h \
+  src/terms.h \
+  src/win32_support.h
+
+# Does that finally work to build/link the correct object file?
+src_mpg123_SOURCES += 
+
+# Replace common.h by sysutil.h!
+src_out123_SOURCES = \
+  src/sysutil.c \
+  src/sysutil.h \
+  src/common.h \
+  src/getlopt.c \
+  src/getlopt.h \
+  src/local.h \
+  src/local.c \
+  src/filters.h \
+  src/filters.c \
+  src/out123.c \
+  src/mpg123app.h \
+  src/win32_support.h
+
+src_mpg123_id3dump_SOURCES = \
+  src/mpg123-id3dump.c \
+  src/getlopt.c \
+  src/getlopt.h
+
+src_mpg123_strip_SOURCES = \
+  src/mpg123-strip.c \
+  src/getlopt.c \
+  src/getlopt.h
+
+if TERM_POSIX
+src_mpg123_SOURCES += src/term_posix.c
+endif
+
+if TERM_WIN32
+src_mpg123_SOURCES += src/term_win32.c
+endif
+
+if TERM_NONE
+src_mpg123_SOURCES += src/term_none.c
+endif
+
+if NET123
+src_mpg123_SOURCES += src/net123.h
+endif
+
+if NET123_EXEC
+src_mpg123_SOURCES += src/net123_exec.c
+endif
+
+if NET123_WINHTTP
+src_mpg123_SOURCES += src/net123_winhttp.c
+src_mpg123_LDADD += -lwinhttp
+endif
+
+if NET123_WININET
+src_mpg123_SOURCES += src/net123_wininet.c
+src_mpg123_LDADD += -lwininet
+endif
+
+if WIN32_CODES
+src_mpg123_SOURCES += \
+  src/win32_support.c
+
+if NETWORK_WINSOCK
+src_mpg123_SOURCES += src/win32_net.c
+src_mpg123_LDADD += -lws2_32
+endif
+
+src_out123_SOURCES+= \
+  src/win32_support.c
+
+src_mpg123_id3dump_SOURCES += \
+  src/win32_support.c
+endif

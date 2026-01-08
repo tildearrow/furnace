@@ -308,21 +308,13 @@ void FurnaceGUIRenderDX11::clear(ImVec4 color) {
   context->ClearRenderTargetView(renderTarget,floatColor);
 }
 
-bool FurnaceGUIRenderDX11::newFrame() {
-  return ImGui_ImplDX11_NewFrame();
+void FurnaceGUIRenderDX11::newFrame() {
+  ImGui_ImplDX11_NewFrame();
 }
 
 bool FurnaceGUIRenderDX11::canVSync() {
   // TODO: find out how to retrieve VSync status
   return true;
-}
-
-void FurnaceGUIRenderDX11::createFontsTexture() {
-  ImGui_ImplDX11_CreateDeviceObjects();
-}
-
-void FurnaceGUIRenderDX11::destroyFontsTexture() {
-  ImGui_ImplDX11_InvalidateDeviceObjects();
 }
 
 void FurnaceGUIRenderDX11::renderGUI() {

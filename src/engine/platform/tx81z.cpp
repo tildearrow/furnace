@@ -229,7 +229,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
       immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0x40:0)|(chan[i].chVolR<<7));
-      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+      if (!parent->song.compatFlags.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i] || !op.enable) {
@@ -321,7 +321,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
 
       // fixed pitch
-      if (parent->song.linearPitch==2) {
+      if (parent->song.compatFlags.linearPitch) {
         bool freqChangeOp=false;
 
         if (op.egt) {
@@ -416,7 +416,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
-      if (!parent->song.oldArpStrategy) {
+      if (!parent->song.compatFlags.oldArpStrategy) {
         if (chan[i].fixedArp) {
           chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
         } else {
@@ -1006,7 +1006,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
