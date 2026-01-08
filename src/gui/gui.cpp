@@ -7677,7 +7677,7 @@ bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
   // new pattern renderer "field" trial.
-  newPatternRenderer=(rand()&1);
+  newPatternRenderer=(rand()&3);
 
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setConfigPrefix("fp_");
