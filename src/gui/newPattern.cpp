@@ -1711,7 +1711,7 @@ void FurnaceGUI::drawPatternNew() {
             floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
           }
 
-          chanPairPos=(patChanX[i+1]+patChanX[i])*0.5;
+          chanPairPos=top.x+(patChanX[i+1]+patChanX[i])*0.5;
           chanPairPosCenter=chanPairPos;
           chanPairPosMin=chanPairPos;
           chanPairPosMax=chanPairPos;
@@ -1739,7 +1739,7 @@ void FurnaceGUI::drawPatternNew() {
               continue;
             }
 
-            chanPairPos=(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
+            chanPairPos=top.x+(patChanX[pairCh+1]+patChanX[pairCh])*0.5;
             chanPairPosCenter+=chanPairPos;
             numPairs++;
             if (chanPairPos<chanPairPosMin) chanPairPosMin=chanPairPos;
