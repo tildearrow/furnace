@@ -36,19 +36,6 @@
     ImGui::GetStyle().Alpha=origAlpha; \
   } else { \
     ImGui::GetStyle().Alpha=disabledAlpha; \
-  } \
-  if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) { \
-    activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2]); \
-    inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2]); \
-    rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2]); \
-  } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) { \
-    activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1]); \
-    inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1]); \
-    rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1]); \
-  } else { \
-    activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]); \
-    inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]); \
-    rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]); \
   }
 
 // this is ImGui's TABLE_BORDER_SIZE.
@@ -309,9 +296,6 @@ void FurnaceGUI::drawPatternNew() {
 
     ImRect winRect=ImRect(ImGui::GetWindowPos(),ImGui::GetWindowPos()+ImGui::GetWindowSize());
 
-    ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-    ImU32 rowIndexColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]);
     float origAlpha=ImGui::GetStyle().Alpha;
     float disabledAlpha=ImGui::GetStyle().Alpha*ImGui::GetStyle().DisabledAlpha;
 
@@ -1021,8 +1005,21 @@ void FurnaceGUI::drawPatternNew() {
     ImRect rect=ImRect(minArea,maxArea);
 
     // pattern view
-    // TODO: optimize further. too many comparisons are being done for each cell.
-    // perhaps pre-calculate starting row?
+    // calculate drawing range (TODO: consider settings and invalid orders)
+    int rowsBegin=(int)((winRect.Min.y-top.y)/lineHeight);
+    int rowsEnd=ceil((winRect.Max.y-top.y)/lineHeight);
+    if (rowsBegin<0) rowsBegin=0;
+    if (rowsEnd>totalRows) rowsEnd=totalRows;
+
+    firstRow+=rowsBegin;
+    while (firstRow>=e->curSubSong->patLen) {
+      firstRow-=e->curSubSong->patLen;
+      firstOrd++;
+    }
+
+    /*String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
+    dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());*/
+
     dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::SetCursorScreenPos(top);
     ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
@@ -1079,7 +1076,8 @@ void FurnaceGUI::drawPatternNew() {
         int ord=firstOrd;
         int row=firstRow;
         pos=top;
-        for (int j=0; j<totalRows; j++) {
+        pos.y+=lineHeight*rowsBegin;
+        for (int j=rowsBegin; j<rowsEnd; j++) {
           if (ord>=0 && ord<e->curSubSong->ordersLen) {
             if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight) && (settings.viewPrevPattern || ord==curOrder)) {
               pointer.order=ord;
@@ -1123,7 +1121,8 @@ void FurnaceGUI::drawPatternNew() {
         int row=firstRow;
         bool isPlaying=e->isPlaying();
         pos=top;
-        for (int j=0; j<totalRows; j++) {
+        pos.y+=lineHeight*rowsBegin;
+        for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
           if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
             ImU32 thisRowBg=0;
@@ -1170,8 +1169,9 @@ void FurnaceGUI::drawPatternNew() {
         int curSelFindStage=0;
         ImRect selRect;
         pos=top;
+        pos.y+=lineHeight*rowsBegin;
         // we find the selection's Y position.
-        for (int j=0; j<totalRows; j++) {
+        for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
           // stage 1: find selection start
           if (curSelFindStage==0) {
@@ -1188,7 +1188,7 @@ void FurnaceGUI::drawPatternNew() {
               curSelFindStage=2;
             }
             // if this is the last row, check whether the end is ahead of our current view
-            if (j==totalRows-1) {
+            if (j==rowsEnd-1) {
               if (sel2.order>ord || (sel2.order==ord && sel2.y>row)) {
                 // pretend we found it
                 selRect.Max.y=pos.y+lineHeight;
@@ -1223,7 +1223,8 @@ void FurnaceGUI::drawPatternNew() {
         int ord=firstOrd;
         int row=firstRow;
         pos=top;
-        for (int j=0; j<totalRows; j++) {
+        pos.y+=lineHeight*rowsBegin;
+        for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
           bool hoverOverCursor=false;
           if (cursor.order==ord && cursor.y==row) {
@@ -1259,15 +1260,16 @@ void FurnaceGUI::drawPatternNew() {
         }
       }
 
-      // hover background
-
       // channels and borders
       bool isFirstChan=true;
+      ImU32 activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+      ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
 
         ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
         pos=thisTop;
+        pos.y+=lineHeight*rowsBegin;
 
         // check bounds
         if (thisTop.x>=winRect.Max.x) break;
@@ -1290,12 +1292,22 @@ void FurnaceGUI::drawPatternNew() {
           pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord],true);
         }
 
-
         // rows
-        for (int j=0; j<totalRows; j++) {
-          if (pos.y>=winRect.Max.y) break;
-          if (pat && pos.y+lineHeight>=winRect.Min.y && (settings.viewPrevPattern || ord==curOrder)) {
+        for (int j=rowsBegin; j<rowsEnd; j++) {
+          if (pat && (settings.viewPrevPattern || ord==curOrder)) {
+            // set color
             SETUP_ORDER_ALPHA;
+            if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+              activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI2]);
+              inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI2]);
+            } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+              activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE_HI1]);
+              inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE_HI1]);
+            } else {
+              activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+              inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+            }
+
             if (isFirstChan) {
               // set the top-most and bottom-most Y positions
               if (topMostOrder==-1) {
@@ -1449,7 +1461,8 @@ void FurnaceGUI::drawPatternNew() {
       int ord=firstOrd;
       int row=firstRow;
       pos=topRows;
-      for (int j=0; j<totalRows; j++) {
+      pos.y+=lineHeight*rowsBegin;
+      for (int j=rowsBegin; j<rowsEnd; j++) {
         if (ord>=0 && ord<e->curSubSong->ordersLen && (settings.viewPrevPattern || ord==curOrder)) {
           SETUP_ORDER_ALPHA;
           // test cursor pos (so many comparisons!)
@@ -1469,7 +1482,14 @@ void FurnaceGUI::drawPatternNew() {
           } else {
             snprintf(id,63,"%3d",row);
           }
-          dl->AddText(pos,rowIndexColor,id,id+3);
+
+          if (e->curSubSong->hilightB>0 && !(row%e->curSubSong->hilightB)) {
+            dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI2]),id,id+3);
+          } else if (e->curSubSong->hilightA>0 && !(row%e->curSubSong->hilightA)) {
+            dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX_HI1]),id,id+3);
+          } else {
+            dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]),id,id+3);
+          }
         }
         if (++row>=e->curSubSong->patLen) {
           row=0;
