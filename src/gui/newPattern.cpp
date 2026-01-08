@@ -357,6 +357,11 @@ void FurnaceGUI::drawPatternNew() {
         // skip hidden channels
         if (!e->curSubSong->chanShow[i]) continue;
         ImGui::SetCursorScreenPos(ImVec2(topHeaders.x+patChanX[i]+sizeRows.x,topHeaders.y));
+        // skip off-screen channels
+        // TODO: may cause issues with keyHit. test!
+        if (ImGui::GetCursorScreenPos().x>winRect.Max.x) break;
+        if (ImGui::GetCursorScreenPos().x+patChanX[i+1]-patChanX[i]<winRect.Min.x) continue;
+
         ImGui::BeginGroup();
         bool displayTooltip=false;
 
