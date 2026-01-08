@@ -1051,8 +1051,8 @@ void FurnaceGUI::drawPatternNew() {
       }
     }
 
-    String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
-    dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());
+    /*String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
+    dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());*/
 
     dl->PushClipRect(ImVec2(topRows.x+sizeRows.x,topHeaders.y+sizeHeaders.y),winRect.Max,true);
     ImGui::SetCursorScreenPos(top);
