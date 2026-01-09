@@ -4922,7 +4922,7 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?_("Help"):_("help"))) {
-        if (ImGui::MenuItem(_("open manual"))) 
+        if (ImGui::MenuItem(_("online manual"))) 
 #ifdef DIV_UNSTABLE
           SDL_OpenURL("https://github.com/tildearrow/furnace/tree/master/doc");
 #else
