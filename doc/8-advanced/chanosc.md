@@ -19,6 +19,7 @@ right-clicking the view will display the configuration view shown above:
 - **Gradient**: this allows you to use a gradient for determining the waveforms' colors instead of a single color. see the gradient section for more information.
   - if this option is off, a single color selector will be displayed.
   - if this option is on, see the "gradient" section below.
+- **Set to channel color**: uses the channel's color for the waveform.
 - **Text format**: this allows you to display some text on each oscilloscope view. the following codes may be used:
   - `%c`: channel name
   - `%C`: channel short name
