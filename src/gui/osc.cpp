@@ -18,10 +18,12 @@
  */
 
 #include "gui.h"
+#include "guiConst.h"
 #include "imgui_internal.h"
 #include <imgui.h>
 #include "../ta-log.h"
 #include "../engine/filter.h"
+#include "oscTrigger/analog.h"
 
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
@@ -54,13 +56,22 @@ void FurnaceGUI::readOsc() {
     if (oscValues[ch]==NULL) {
       oscValues[ch]=new float[2048];
     }
+    if (trigger[ch]==NULL) {
+      trigger[ch]=new TriggerAnalog(e->oscBuf[ch]);
+    }
+
+    if (triggerState>0 && trigger[ch]->trigger(winSize,(writePos-winSize)&0x7fff,triggerLevel,triggerState-1)) {
+      oscReadPos=trigger[ch]->getTriggerIndex();
+    } else {
+      oscReadPos=(writePos-winSize)&0x7fff;
+    }
     memset(oscValues[ch],0,2048*sizeof(float));
     float* sincITable=DivFilterTables::getSincIntegralSmallTable();
 
     float posFrac=0.0;
-    float factor=(float)oscWidth/(float)winSize;
+    float factor=(float)(oscWidth)/(float)winSize;
     int posInt=oscReadPos-(8.0f/factor);
-    for (int i=7; i<oscWidth-9; i++) {
+    for (int i=7; i<oscWidth-9+24; i++) {
       oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
 
       posFrac+=1.0;
@@ -96,6 +107,7 @@ void FurnaceGUI::readOsc() {
     for (int i=0; i<oscWidth; i++) {
       if (oscValues[ch][i]>0.001f || oscValues[ch][i]<-0.001f) {
         WAKE_UP;
+        break;
       }
     }
   }
@@ -110,7 +122,7 @@ void FurnaceGUI::readOsc() {
       avg+=oscValues[j][i];
     }
     avg/=e->getAudioDescGot().outChans;
-    oscValuesAverage[i]=avg*oscZoom*2.0f;
+    oscValuesAverage[i]=avg;
   }
 
   /*for (int i=0; i<oscWidth; i++) {
@@ -150,7 +162,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::runPendingDrawOsc(PendingDrawOsc* which) {
-  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize);
+  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize,which->zoom);
 }
 
 void FurnaceGUI::drawOsc() {
@@ -163,20 +175,21 @@ void FurnaceGUI::drawOsc() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (settings.oscTakesEntireWindow) {
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0)); // this ruins the sliders btw
     ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
   }
   if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags,_("Oscilloscope"))) {
+    bool showLevel=false;
     if (oscZoomSlider) {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
         if (oscZoom<0.5) oscZoom=0.5;
         if (oscZoom>2.0) oscZoom=2.0;
       } rightClickable
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("zoom: %.2fx (%.1fdB)"),oscZoom,20.0*log10(oscZoom*2.0));
+        ImGui::SetTooltip(_("zoom: %.2fx (%.1fdB)"),oscZoom,20.0*log10(oscZoom));
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
-        oscZoom=0.5;
+        oscZoom=1.0f;
       }
       ImGui::SameLine();
       if (ImGui::VSliderFloat("##OscWinSize",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscWindowSize,5.0,100.0)) {
@@ -188,6 +201,28 @@ void FurnaceGUI::drawOsc() {
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         oscWindowSize=20.0;
+      }
+      ImGui::SameLine();
+      ImGui::BeginDisabled(triggerState==0);
+      if (ImGui::VSliderFloat("##TrigLevel",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&triggerLevel,-1.0f,1.0f)) {
+        if (triggerLevel<-1.0f) triggerLevel=-1.0f;
+        if (triggerLevel>1.0f) triggerLevel=1.0f;
+      } rightClickable
+      if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+        showLevel=true;
+        ImGui::SetTooltip(_("level: %.2f"),triggerLevel);
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+        triggerLevel=0.0f;
+      }
+      ImGui::EndDisabled();
+      ImGui::SameLine();
+      if (ImGui::VSliderInt("##TrigEdge",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&triggerState,0,2,"")) {
+        if (triggerState<0) triggerState=0;
+        if (triggerState>2) triggerState=2;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s",_(triggerStates[triggerState]));
       }
       ImGui::SameLine();
     }
@@ -290,7 +325,17 @@ void FurnaceGUI::drawOsc() {
         dpiScale
       );
 
-      oscWidth=round(inRect.Max.x-inRect.Min.x)+24;
+      if (showLevel) {
+        float levelScaled=(1.0f-triggerLevel*oscZoom)/2.0f;
+        dl->AddLine(
+          ImLerp(rect.Min,rect.Max,ImVec2(0.0f,levelScaled)),
+          ImLerp(rect.Min,rect.Max,ImVec2(1.0f,levelScaled)),
+          guideColor,
+          dpiScale*2.0f
+        );
+      }
+
+      oscWidth=round(inRect.Max.x-inRect.Min.x);
       if (oscWidth<17) oscWidth=17;
       if (oscWidth>2048) oscWidth=2048;
 
@@ -299,23 +344,24 @@ void FurnaceGUI::drawOsc() {
         dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
       }
 
-      if ((oscWidth-24)>0) {
+      if ((oscWidth)>0) {
         if (settings.oscMono) {
           if (rend->supportsDrawOsc() && settings.shaderOsc) {
             _do.gui=this;
             _do.data=&oscValuesAverage[12];
-            _do.len=oscWidth-24;
+            _do.len=oscWidth;
             _do.pos0=inRect.Min;
             _do.pos1=inRect.Max;
             _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
             _do.lineSize=dpiScale*settings.oscLineSize;
+            _do.zoom=oscZoom;
 
             dl->AddCallback(_drawOsc,&_do);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
-            for (int i=0; i<oscWidth-24; i++) {
-              float x=(float)i/(float)(oscWidth-24);
-              float y=oscValuesAverage[i+12]*0.5f;
+            for (int i=0; i<oscWidth; i++) {
+              float x=(float)i/(float)(oscWidth);
+              float y=oscValuesAverage[i+12]*0.5f*oscZoom;
               if (!settings.oscEscapesBoundary) {
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
@@ -325,10 +371,10 @@ void FurnaceGUI::drawOsc() {
 
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
               dl->PopClipRect();
             } else {
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
             }
           }
         } else {
@@ -340,18 +386,19 @@ void FurnaceGUI::drawOsc() {
             if (rend->supportsDrawOsc() && settings.shaderOsc) {
               _do.gui=this;
               _do.data=&oscValues[ch][12];
-              _do.len=oscWidth-24;
+              _do.len=oscWidth;
               _do.pos0=inRect.Min;
               _do.pos1=inRect.Max;
               _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
               _do.lineSize=dpiScale*settings.oscLineSize;
+              _do.zoom=oscZoom;
 
               dl->AddCallback(_drawOsc,&_do);
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
-              for (int i=0; i<oscWidth-24; i++) {
-                float x=(float)i/(float)(oscWidth-24);
-                float y=oscValues[ch][i+12]*oscZoom;
+              for (int i=0; i<oscWidth; i++) {
+                float x=(float)i/(float)(oscWidth);
+                float y=oscValues[ch][i+12]*0.5f*oscZoom;
                 if (!settings.oscEscapesBoundary) {
                   if (y<-0.5f) y=-0.5f;
                   if (y>0.5f) y=0.5f;
@@ -362,10 +409,10 @@ void FurnaceGUI::drawOsc() {
               
               if (settings.oscEscapesBoundary) {
                 dl->PushClipRectFullScreen();
-                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
                 dl->PopClipRect();
               } else {
-                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
               }
             }
           }
