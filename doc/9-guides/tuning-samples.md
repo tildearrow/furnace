@@ -13,4 +13,6 @@ for this example, we'll use a sample of a note played at E and recorded at 22050
 - now, using the "Preview sample" button should play the note at C. entering an E in the pattern will now play it at or near E.
 - if the sample still sounds out of tune, adjust "Hz" or "Fine" to bring it in line.
 
-if notes seem "capped" – for example, playing anything over D-6 sounds like a D-6 – those notes exceed the maximum sample playback rate for the chip. the only solution is to use "Resample" to change the sample to a lower rate.
+to find the frequency of a note, open the [tuner](../8-advanced/tuner.md) (window > visualizers > tuner). when sound is played, the tuner will continually update to show the note closest to it. this corresponds to the highest peak shown in the [spectrum analyzer](../8-advanced/spectrum.md) (window > visualizers > spectrum).
+
+if notes seem "capped" – for example, playing anything over D-6 sounds like a D-6 – those notes exceed the maximum sample playback rate for the chip. the only solution is to use "Resample" to change the sample to a lower rate. similarly, if samples sound fine in the editor but out of tune when used in the track, there may be limitations on available playback rates. check the [chip's documentation](../7-systems/README.md) for details.
