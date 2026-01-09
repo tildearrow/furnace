@@ -67,6 +67,7 @@ bool Gradient2D::fromString(String val) {
 
   bgColor=ImGui::ColorConvertU32ToFloat4(bgColorH);
 
+  points.clear();
   for (size_t i=2; i<split.size(); i++) {
     Gradient2DPoint point;
     ImU32 colorH=0;

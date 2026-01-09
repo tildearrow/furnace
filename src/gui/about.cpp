@@ -197,6 +197,8 @@ const char* aboutLine[]={
   "@party",
   _N("all members of Deflers of Noice!"),
   "",
+  _N("FUCKINGS TO: gearhead 😴"),
+  "",
   _N("copyright © 2021-2025 tildearrow"),
   _N("(and contributors)."),
 #ifdef FURNACE_GPL3
