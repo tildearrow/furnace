@@ -212,15 +212,26 @@ bool DivCSPlayer::tick() {
           unsigned char param=stream.readC();
           chan[i].panbrelloDepth=param&15;
           chan[i].panbrelloRate=param>>4;
+          if (chan[i].panbrelloDepth==0) {
+            chan[i].panbrelloPos=0;
+          } else {
+            chan[i].panSpeed=0;
+          }
           break;
         }
-        case 0xce: // pan slide (TODO)
-          stream.readC();
+        case 0xce: // pan slide
+          chan[i].panSpeed=stream.readC();
+          if (chan[i].panSpeed) {
+            // panbrello and slides are incompatible
+            chan[i].panbrelloDepth=0;
+            chan[i].panbrelloRate=0;
+            chan[i].panbrelloPos=0;
+          }
           break;
         case 0xcf: { // panning
-          int panL=(unsigned char)stream.readC();
-          int panR=(unsigned char)stream.readC();
-          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,panL,panR));
+          chan[i].panL=(unsigned char)stream.readC();
+          chan[i].panR=(unsigned char)stream.readC();
+          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
           break;
         }
         case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5:
@@ -637,6 +648,74 @@ bool DivCSPlayer::tick() {
       }
       chan[i].arpTicks--;
     }
+
+    if (chan[i].panSpeed) {
+      int newPanL=chan[i].panL;
+      int newPanR=chan[i].panR;
+      // increase one side until it has reached max. then decrease the other.
+      if (chan[i].panSpeed>0) { // right
+        if (newPanR>=0xff) {
+          newPanL-=chan[i].panSpeed;
+        } else {
+          newPanR+=chan[i].panSpeed;
+        }
+      } else { // left
+        if (newPanL>=0xff) {
+          newPanR+=chan[i].panSpeed;
+        } else {
+          newPanL-=chan[i].panSpeed;
+        }
+      }
+
+      // clamp to boundaries
+      if (newPanL<0) newPanL=0;
+      if (newPanL>0xff) newPanL=0xff;
+      if (newPanR<0) newPanR=0;
+      if (newPanR>0xff) newPanR=0xff;
+
+      // set new pan
+      chan[i].panL=newPanL;
+      chan[i].panR=newPanR;
+
+      // send panning command
+      e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+    }
+
+    if (chan[i].panbrelloDepth>0) {
+      chan[i].panbrelloPos+=chan[i].panbrelloRate;
+      chan[i].panbrelloPos&=255;
+
+      // calculate inverted...
+      // split position into four sections and calculate panning value
+      switch (chan[i].panbrelloPos&0xc0) {
+        case 0: // center -> right
+          chan[i].panL=((chan[i].panbrelloPos&0x3f)<<2);
+          chan[i].panR=0;
+          break;
+        case 0x40: // right -> center
+          chan[i].panL=0xff-((chan[i].panbrelloPos&0x3f)<<2);
+          chan[i].panR=0;
+          break;
+        case 0x80: // center -> left
+          chan[i].panL=0;
+          chan[i].panR=((chan[i].panbrelloPos&0x3f)<<2);
+          break;
+        case 0xc0: // left -> center
+          chan[i].panL=0;
+          chan[i].panR=0xff-((chan[i].panbrelloPos&0x3f)<<2);
+          break;
+      }
+
+      // multiply by depth
+      chan[i].panL=(chan[i].panL*chan[i].panbrelloDepth)/15;
+      chan[i].panR=(chan[i].panR*chan[i].panbrelloDepth)/15;
+
+      // then invert it to get final panning
+      chan[i].panL^=0xff;
+      chan[i].panR^=0xff;
+
+      e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+    }
   }
 
   // cycle over access times in order to ensure deltas are always higher than 256
@@ -739,6 +818,7 @@ bool DivCSPlayer::init() {
   for (int i=0; i<128; i++) {
     tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
   }
+  
 
   arpSpeed=1;
   bAccessTS=new unsigned short[bLen];

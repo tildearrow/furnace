@@ -41,6 +41,8 @@ struct DivCSChannelState {
   int panbrelloDepth, panbrelloRate, panbrelloPos;
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks;
+  unsigned char panL, panR;
+  signed char panSpeed;
 
   unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos, callStackSize;
@@ -76,6 +78,9 @@ struct DivCSChannelState {
     arp(0),
     arpStage(0),
     arpTicks(0),
+    panL(255),
+    panR(255),
+    panSpeed(0),
     callStackPos(0),
     callStackSize(0),
     tracePos(0) {
