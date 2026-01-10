@@ -196,7 +196,7 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
           break;
         }
-        case 0xcc: // tremolo
+        case 0xcc: { // tremolo
           unsigned char param=stream.readC();
           chan[i].tremoloDepth=param&15;
           chan[i].tremoloRate=param>>4;
@@ -204,11 +204,13 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=-1;
           sendVolume=true;
           break;
-        case 0xcd: // panbrello
+        }
+        case 0xcd: { // panbrello
           unsigned char param=stream.readC();
           chan[i].panbrelloDepth=param&15;
           chan[i].panbrelloRate=param>>4;
           break;
+        }
         case 0xce: // pan slide (TODO)
           stream.readC();
           break;
@@ -596,7 +598,7 @@ bool DivCSPlayer::tick() {
       if (chan[i].tremoloDepth>0) {
         chan[i].tremoloPos+=chan[i].tremoloRate;
         chan[i].tremoloPos&=127;
-        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
+        e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
       } else {
         e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
       }
