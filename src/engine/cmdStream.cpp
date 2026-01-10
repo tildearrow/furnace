@@ -200,6 +200,9 @@ bool DivCSPlayer::tick() {
           unsigned char param=stream.readC();
           chan[i].tremoloDepth=param&15;
           chan[i].tremoloRate=param>>4;
+          if (chan[i].tremoloDepth==0) {
+            chan[i].tremoloPos=0;
+          }
           chan[i].volSpeed=0;
           chan[i].volSpeedTarget=-1;
           sendVolume=true;
