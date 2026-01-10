@@ -593,6 +593,13 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
+        // ADPCM-A/B specific warnings
+        if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A || sample->depth==DIV_SAMPLE_DEPTH_ADPCM_B) {
+          if (sample->samples&511) {
+            SAMPLE_WARN(warnLength,_("ADPCM sample is not padded to 256 bytes!"));
+          }
+        }
+
         // chips grid
         if (dispatch==NULL) continue;
 
