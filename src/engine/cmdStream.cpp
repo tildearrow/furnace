@@ -172,6 +172,7 @@ bool DivCSPlayer::tick() {
         case 0xc8: // vol slide
           chan[i].volSpeed=(short)(bigEndian?stream.readS_BE():stream.readS());
           chan[i].volSpeedTarget=-1;
+          chan[i].tremoloDepth=0;
           break;
         case 0xc9: // porta
           chan[i].portaTarget=(int)((unsigned char)stream.readC())-60;
@@ -195,11 +196,18 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
           break;
         }
-        case 0xcc: // tremolo (TODO)
-          stream.readC();
+        case 0xcc: // tremolo
+          unsigned char param=stream.readC();
+          chan[i].tremoloDepth=param&15;
+          chan[i].tremoloRate=param>>4;
+          chan[i].volSpeed=0;
+          chan[i].volSpeedTarget=-1;
+          sendVolume=true;
           break;
-        case 0xcd: // panbrello (TODO)
-          stream.readC();
+        case 0xcd: // panbrello
+          unsigned char param=stream.readC();
+          chan[i].panbrelloDepth=param&15;
+          chan[i].panbrelloRate=param>>4;
           break;
         case 0xce: // pan slide (TODO)
           stream.readC();
@@ -554,7 +562,7 @@ bool DivCSPlayer::tick() {
       if (mustTell) chan[i].readPos=stream.tell();
     }
 
-    if (sendVolume || chan[i].volSpeed!=0) {
+    if (sendVolume || chan[i].volSpeed!=0 || chan[i].tremoloDepth!=0) {
       int preSpeedVol=chan[i].volume;
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volSpeedTarget!=-1) {
@@ -578,13 +586,20 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=-1;
         }
       }
+
       if (chan[i].volume<0) {
         chan[i].volume=0;
       }
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
       }
-      e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      if (chan[i].tremoloDepth>0) {
+        chan[i].tremoloPos+=chan[i].tremoloRate;
+        chan[i].tremoloPos&=127;
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
+      } else {
+        e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      }
     }
 
     if (sendPitch || chan[i].vibratoDepth!=0) {
@@ -715,6 +730,9 @@ bool DivCSPlayer::init() {
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
+  }
+  for (int i=0; i<128; i++) {
+    tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
   }
 
   arpSpeed=1;
