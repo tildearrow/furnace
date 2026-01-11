@@ -807,6 +807,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       bool fbAllOps=flags.getBool("fbAllOps",false);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
+      bool hasSharedAdpcmBus=flags.getBool("hasSharedAdpcmBus",false);
 
       ImGui::Indent();
       if (ImGui::RadioButton(_("8MHz (Neo Geo MVS)"),clockSel==0)) {
@@ -840,6 +841,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       } rightClickable
 
+      if (ImGui::Checkbox(_("Use shared ADPCM memory space"),&hasSharedAdpcmBus)) {
+        altered=true;
+        mustRender=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
@@ -847,6 +853,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("fbAllOps",fbAllOps);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
+          flags.set("hasSharedAdpcmBus",hasSharedAdpcmBus);
         });
       }
       break;
