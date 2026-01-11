@@ -189,6 +189,8 @@ jobs:
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
         fi
 
+        echo "EXTRA FLAGS: ${CMAKE_EXTRA_ARGS[@]}"
+
         cmake \
           -B ${PWD}/build \
           -DCMAKE_INSTALL_PREFIX=/usr \
