@@ -117,7 +117,7 @@ enum FurnaceGUIRenderBackend {
       #define GUI_BACKEND_DEFAULT_NAME "SDL"
     #else
       #define GUI_BACKEND_DEFAULT GUI_BACKEND_SOFTWARE
-      #define GUI_BACKEDN_DEFAULT_NAME "Software"
+      #define GUI_BACKEND_DEFAULT_NAME "Software"
     #endif
   #endif
 #endif
@@ -152,6 +152,8 @@ enum FurnaceGUIRenderBackend {
 
 #define GUI_EDIT_OCTAVE_MIN -5
 #define GUI_EDIT_OCTAVE_MAX 7
+#define GUI_EDIT_PITCH_MIN -128
+#define GUI_EDIT_PITCH_MAX 127
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -728,6 +730,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_STEP_ONE,
   GUI_ACTION_OCTAVE_UP,
   GUI_ACTION_OCTAVE_DOWN,
+  GUI_ACTION_PITCH_UP,
+  GUI_ACTION_PITCH_DOWN,
   GUI_ACTION_INS_UP,
   GUI_ACTION_INS_DOWN,
   GUI_ACTION_STEP_UP,
@@ -1690,6 +1694,18 @@ enum NoteInputModes: unsigned char {
   GUI_NOTE_INPUT_CHORD
 };
 
+enum ScaleModes: unsigned char {
+  GUI_SCALE_CHROMATIC=0,
+  GUI_SCALE_MAJOR,
+  GUI_SCALE_MINOR,
+  GUI_SCALE_HARMONIC_MINOR,
+  GUI_SCALE_MELODIC_MINOR,
+  GUI_SCALE_HARMONIC_MAJOR,
+  GUI_SCALE_DOUBLE_HARMONIC,
+  GUI_SCALE_PHRYGIAN_DOMINANT,
+  GUI_SCALE_LYDIAN_DOMINANT,
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -1742,6 +1758,8 @@ class FurnaceGUI {
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
   unsigned char noteInputMode;
+  unsigned char scaleMode;
+  int scaleRoot;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
@@ -1751,6 +1769,7 @@ class FurnaceGUI {
   bool newPatternRenderer;
   bool quitNoSave;
   bool changeCoarse;
+  bool changePitch;
   bool orderLock;
   bool mobileEdit;
   bool killGraphics;
@@ -2939,7 +2958,6 @@ class FurnaceGUI {
   std::vector<String> randomDemoSong;
 
   void commandExportOptions();
-  
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
@@ -3193,6 +3211,7 @@ class FurnaceGUI {
   void noteInput(int num, int key, int vol=-1, int chanOff=0);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
+  int transposeToScale(int chromaticNote);
 
   void doGenerateWave();
 

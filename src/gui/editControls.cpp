@@ -177,6 +177,18 @@ const char* noteInputModes[4]={
   _N("Of fuckin' course!##PolyInput")
 };
 
+const char* scaleModeNames[9]={
+  _N("Chromatic##ScaleMode"),
+  _N("Major##ScaleMode"),
+  _N("Minor##ScaleMode"),
+  _N("Harmonic Minor##ScaleMode"),
+  _N("Melodic Minor##ScaleMode"),
+  _N("Harmonic Major##ScaleMode"),
+  _N("Double Harmonic##ScaleMode"),
+  _N("Phrygian Dominant##ScaleMode"),
+  _N("Lydian Dominant##ScaleMode"),
+};
+
 #define CHANGE_NOTE_INPUT_MODE \
   noteInputMode++; \
   if (noteInputMode>GUI_NOTE_INPUT_CHORD) noteInputMode=GUI_NOTE_INPUT_MONO; \
@@ -342,7 +354,6 @@ void FurnaceGUI::drawMobileControls() {
     ImGui::End();
     ImGui::PopStyleVar(2);
   }
-  
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
   if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_("Mobile Controls"))) {
@@ -687,17 +698,33 @@ void FurnaceGUI::drawEditControls() {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text(_("Octave"));
+          if (ImGui::SmallButton(changePitch?_("Pitch"):_("Octave"))) {
+            changePitch=!changePitch;
+          }
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-            e->autoNoteOffAll();
-            failedNoteOn=false;
+          if (changePitch) {
+            if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+              if (scaleRoot > 127) scaleRoot = 127;
+              if (scaleRoot < -128) scaleRoot = -128;
+              scaleRoot = (signed char)scaleRoot;
+              e->autoNoteOffAll();
+              failedNoteOn=false;
 
-            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
               nextWindow=GUI_WINDOW_PATTERN;
+              }
+            }
+          } else {
+            if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+              if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+              if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+              e->autoNoteOffAll();
+              failedNoteOn=false;
+
+              if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+                nextWindow=GUI_WINDOW_PATTERN;
+              }
             }
           }
 
@@ -728,7 +755,6 @@ void FurnaceGUI::drawEditControls() {
               }
             }
           }
-
           ImGui::EndTable();
         }
 
@@ -779,6 +805,7 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Step one row"));
         }
+        popToggleColors();
 
         ImGui::SameLine();
         pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
@@ -787,6 +814,25 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Polyphony"));
+        }
+        popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(scaleMode!=0);
+        ImGui::Button(_("Scale"));
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
+        }
+        if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
+          for (int i=0; i<9; i++) {
+            pushToggleColors(scaleMode==i);
+            if (ImGui::Button(_(scaleModeNames[i]))) {
+              scaleMode=i;
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::PopStyleColor();
+          }
+          ImGui::EndPopup();
         }
         popToggleColors();
       }
@@ -862,17 +908,33 @@ void FurnaceGUI::drawEditControls() {
         popToggleColors();
 
         ImGui::SameLine();
-        ImGui::Text(_("Octave"));
+        if (ImGui::SmallButton(changePitch?_("Pitch"):_("Octave"))) {
+          changePitch=!changePitch;
+        }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
+        if (changePitch) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+            if (scaleRoot > 127) scaleRoot = 127;
+            if (scaleRoot < -128) scaleRoot = -128;
+            scaleRoot = (signed char)scaleRoot;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
 
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
+            }
+          }
+        } else {
+          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
+
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              nextWindow=GUI_WINDOW_PATTERN;
+            }
           }
         }
 
@@ -901,7 +963,6 @@ void FurnaceGUI::drawEditControls() {
             }
           }
         }
-
         ImGui::SameLine();
         ImGui::Text(_("Follow"));
         ImGui::SameLine();
@@ -918,6 +979,24 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(scaleMode!=0);
+        ImGui::Button(_("Scale"));
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
+        }
+        if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
+          for (int i=0; i<9; i++) {
+            pushToggleColors(scaleMode==i);
+            if (ImGui::Button(_(scaleModeNames[i]))) {
+              scaleMode=i;
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::PopStyleColor();
+          }
+          ImGui::EndPopup();
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -985,20 +1064,62 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
-        ImGui::Text(_("Oct."));
+        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
+        if (ImGui::Button(noteInputModes[noteInputMode&3],buttonSize)) {
+          CHANGE_NOTE_INPUT_MODE;
+        }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Octave"));
+          ImGui::SetTooltip(_("Polyphony"));
+        }
+        popToggleColors();
+
+        pushToggleColors(scaleMode!=0);
+        ImGui::Button(_("Scale"),buttonSize);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
+        }
+        if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
+          for (int i=0; i<9; i++) {
+            pushToggleColors(scaleMode==i);
+            if (ImGui::Button(_(scaleModeNames[i]))) {
+              scaleMode=i;
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::PopStyleColor();
+          }
+          ImGui::EndPopup();
+        }
+        popToggleColors();
+        
+        if (ImGui::SmallButton(changePitch?_("Pitch"):_("Oct."))) {
+          changePitch=!changePitch;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(changePitch?_("Pitch"):_("Octave"));
         }
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
-          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
+        if (changePitch) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,0,0)) {
+            if (scaleRoot > 127) scaleRoot = 127;
+            if (scaleRoot < -128) scaleRoot = -128;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
 
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
+            }
+          }
+        } else {
+          if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
+
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              nextWindow=GUI_WINDOW_PATTERN;
+            }
           }
         }
 
@@ -1007,7 +1128,7 @@ void FurnaceGUI::drawEditControls() {
         }
         ImGui::SetNextItemWidth(avail);
         if (changeCoarse) {
-          if (ImGui::InputInt("##CoarseStep",&editStepCoarse,1,1)) {
+          if (ImGui::InputInt("##CoarseStep",&editStepCoarse,0,0)) {
             if (editStepCoarse>=e->curSubSong->patLen) editStepCoarse=e->curSubSong->patLen-1;
             if (editStepCoarse<0) editStepCoarse=0;
 
@@ -1044,15 +1165,6 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Pattern"));
-        }
-        popToggleColors();
-
-        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
-        if (ImGui::Button(_(noteInputModes[noteInputMode&3]))) {
-          CHANGE_NOTE_INPUT_MODE;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
       }
@@ -1154,6 +1266,24 @@ void FurnaceGUI::drawEditControls() {
           ImGui::SetTooltip(_("Polyphony"));
         }
         popToggleColors();
+
+        ImGui::SameLine();
+        pushToggleColors(scaleMode!=0);
+        ImGui::Button(_("Scale"));
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",_(scaleModeNames[scaleMode]));
+        }
+        if (ImGui::BeginPopupContextItem("scaleSelect",ImGuiPopupFlags_MouseButtonLeft)) {
+          for (int i=0; i<9; i++) {
+            pushToggleColors(scaleMode==i);
+            if (ImGui::Button(_(scaleModeNames[i]))) {
+              scaleMode=i;
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::PopStyleColor();
+          }
+          ImGui::EndPopup();
+        }
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -1161,22 +1291,37 @@ void FurnaceGUI::drawEditControls() {
       if (ImGui::Begin("Edit Controls",&editControlsOpen,globalWinFlags,_("Edit Controls"))) {
         ImGui::Columns(2);
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Octave"));
+        if (ImGui::SmallButton(changePitch?_("Pitch"):_("Octave"))) {
+          changePitch=!changePitch;
+        }
         ImGui::SameLine();
         float cursor=ImGui::GetCursorPosX();
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
-          if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
-          if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
-          e->autoNoteOffAll();
-          failedNoteOn=false;
+        if (changePitch) {
+          if (ImGui::InputInt("##ScaleRoot",&scaleRoot,1,1)) {
+            if (scaleRoot > 127) scaleRoot = 127;
+            if (scaleRoot < -128) scaleRoot = -128;
+            scaleRoot = (signed char)scaleRoot;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
 
-          if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
             nextWindow=GUI_WINDOW_PATTERN;
+            }
+          }
+        } else {
+          if (ImGui::InputInt("##Octave",&curOctave,1,1)) {
+            if (curOctave>GUI_EDIT_OCTAVE_MAX) curOctave=GUI_EDIT_OCTAVE_MAX;
+            if (curOctave<GUI_EDIT_OCTAVE_MIN) curOctave=GUI_EDIT_OCTAVE_MIN;
+            e->autoNoteOffAll();
+            failedNoteOn=false;
+
+            if (settings.insFocusesPattern && !ImGui::IsItemActive() && patternOpen) {
+              nextWindow=GUI_WINDOW_PATTERN;
+            }
           }
         }
-
         ImGui::AlignTextToFramePadding();
         if (ImGui::SmallButton(changeCoarse?_("Coarse"):_("Step"))) {
           changeCoarse=!changeCoarse;
