@@ -201,7 +201,7 @@ jobs:
 
     - name: Build
       run: |
-        cmake \
+        VERBOSE=1 cmake \
           --build ${PWD}/build \
           --config ${{ env.BUILD_TYPE }} \
           --parallel ${{ steps.build-cores.outputs.amount }}
