@@ -279,7 +279,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     ay->getRegisterWrites().clear();
 
     os=0;
-    if (!writes.empty()) {
+    while (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
@@ -288,10 +288,11 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
           fm->write(0x0,w.addr);
           fm->write(0x1,w.val);
           regPool[w.addr&0xff]=w.val;
-          delay=6;
+          if (w.addr>15) delay=6;
         }
         writes.pop_front();
       }
+      if (delay>0) break;
     }
     
     fm->generate(&fmout);
