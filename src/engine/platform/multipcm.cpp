@@ -495,6 +495,10 @@ int DivPlatformMultiPCM::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformMultiPCM::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformMultiPCM::keyOffAffectsArp(int ch) {
   return false;
 }

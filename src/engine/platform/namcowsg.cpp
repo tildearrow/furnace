@@ -523,6 +523,10 @@ int DivPlatformNamcoWSG::getOutputCount() {
   return (devType==30)?2:1;
 }
 
+bool DivPlatformNamcoWSG::hasSoftPan(int ch) {
+  return (devType==30);
+}
+
 bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {
   return true;
 }

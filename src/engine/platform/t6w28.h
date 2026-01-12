@@ -72,6 +72,7 @@ class DivPlatformT6W28: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);

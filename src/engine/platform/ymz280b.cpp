@@ -395,6 +395,10 @@ int DivPlatformYMZ280B::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformYMZ280B::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformYMZ280B::notifyInsChange(int ins) {
   for (int i=0; i<8; i++) {
     if (chan[i].ins==ins) {

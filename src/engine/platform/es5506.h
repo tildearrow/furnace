@@ -307,6 +307,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual bool keyOffAffectsArp(int ch) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void notifyInsChange(int ins) override;

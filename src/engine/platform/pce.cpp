@@ -610,6 +610,10 @@ int DivPlatformPCE::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformPCE::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformPCE::keyOffAffectsArp(int ch) {
   return true;
 }

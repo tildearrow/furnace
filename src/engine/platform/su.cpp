@@ -634,6 +634,10 @@ int DivPlatformSoundUnit::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSoundUnit::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformSoundUnit::keyOffAffectsArp(int ch) {
   return true;
 }

@@ -544,6 +544,10 @@ int DivPlatformPCMDAC::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformPCMDAC::hasSoftPan(int ch) {
+  return outStereo;
+}
+
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   if (ch>=chans) return NULL;
   return &chan[ch].std;

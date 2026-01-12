@@ -589,6 +589,10 @@ int DivPlatformDave::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformDave::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformDave::keyOffAffectsArp(int ch) {
   return true;
 }

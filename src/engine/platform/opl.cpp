@@ -2930,6 +2930,10 @@ int DivPlatformOPL::getOutputCount() {
   return totalOutputs;
 }
 
+bool DivPlatformOPL::hasSoftPan(int ch) {
+  return (chipType==4 && ch>=pcmChanOffs);
+}
+
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {
   return false;
 }

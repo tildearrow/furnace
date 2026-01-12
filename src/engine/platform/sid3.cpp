@@ -1332,6 +1332,10 @@ int DivPlatformSID3::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSID3::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformSID3::getDCOffRequired()
 {
   return false;

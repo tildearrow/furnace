@@ -508,6 +508,10 @@ int DivPlatformNDS::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformNDS::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformNDS::hasAcquireDirect() {
 #ifdef ORIG_NDS_CORE
   return false;

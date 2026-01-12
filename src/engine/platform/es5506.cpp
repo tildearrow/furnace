@@ -1355,6 +1355,10 @@ int DivPlatformES5506::getOutputCount() {
   return 12;
 }
 
+bool DivPlatformES5506::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformES5506::keyOffAffectsArp(int ch) {
   return true;
 }

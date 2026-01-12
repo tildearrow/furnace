@@ -535,6 +535,10 @@ int DivPlatformC140::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformC140::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformC140::notifyInsChange(int ins) {
   for (int i=0; i<totalChans; i++) {
     if (chan[i].ins==ins) {

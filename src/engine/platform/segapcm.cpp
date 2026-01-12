@@ -533,6 +533,10 @@ int DivPlatformSegaPCM::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSegaPCM::hasSoftPan(int ch) {
+  return true;
+}
+
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;

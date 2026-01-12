@@ -141,6 +141,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     float getPostAmp();
     void setFlags(const DivConfig& flags);

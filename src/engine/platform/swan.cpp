@@ -661,6 +661,10 @@ int DivPlatformSwan::getOutputCount() {
   return (stereo || useMdfn)?2:1;
 }
 
+bool DivPlatformSwan::hasSoftPan(int ch) {
+  return (stereo || useMdfn);
+}
+
 bool DivPlatformSwan::hasAcquireDirect() {
   return useMdfn;
 }

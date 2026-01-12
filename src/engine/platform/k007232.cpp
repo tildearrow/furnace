@@ -493,6 +493,10 @@ int DivPlatformK007232::getOutputCount() {
   return stereo?2:1;
 }
 
+bool DivPlatformK007232::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformK007232::hasAcquireDirect() {
   return true;
 }

@@ -831,6 +831,12 @@ class DivDispatch {
     virtual bool isVolGlobal();
 
     /**
+     * test whether a channel supports soft panning.
+     * @return truth.
+     */
+    virtual bool hasSoftPan(int ch);
+
+    /**
      * map MIDI velocity (from 0 to 127) to chip volume.
      * @param ch the chip channel. -1 means N/A.
      * @param vel input velocity, from 0.0 to 1.0.

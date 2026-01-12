@@ -74,6 +74,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;

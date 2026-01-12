@@ -83,6 +83,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     bool getLegacyAlwaysSetVolume();

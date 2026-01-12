@@ -890,6 +890,10 @@ int DivPlatformX1_010::getOutputCount() {
   return stereo?2:1;
 }
 
+bool DivPlatformX1_010::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {
   return true;
 }

@@ -94,6 +94,7 @@ class DivPlatformPowerNoise: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);

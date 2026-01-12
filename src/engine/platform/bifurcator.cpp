@@ -326,6 +326,10 @@ int DivPlatformBifurcator::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformBifurcator::hasSoftPan(int ch) {
+  return true;
+}
+
 DivMacroInt* DivPlatformBifurcator::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }

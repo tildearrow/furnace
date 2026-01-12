@@ -487,6 +487,10 @@ int DivPlatformLynx::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformLynx::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformLynx::forceIns() {
   for (int i=0; i<4; i++) {
     if (chan[i].active) {

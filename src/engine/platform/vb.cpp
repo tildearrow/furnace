@@ -565,6 +565,10 @@ int DivPlatformVB::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformVB::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformVB::keyOffAffectsArp(int ch) {
   return true;
 }

@@ -494,6 +494,10 @@ int DivPlatformPowerNoise::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformPowerNoise::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformPowerNoise::keyOffAffectsArp(int ch) {
   return true;
 }

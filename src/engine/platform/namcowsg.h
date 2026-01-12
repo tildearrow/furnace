@@ -71,6 +71,7 @@ class DivPlatformNamcoWSG: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     void setDeviceType(int type);
     void setFlags(const DivConfig& flags);

@@ -357,6 +357,10 @@ int DivPlatformRF5C68::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformRF5C68::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformRF5C68::notifyInsChange(int ins) {
   for (int i=0; i<8; i++) {
     if (chan[i].ins==ins) {

@@ -415,6 +415,10 @@ int DivPlatformSAA1099::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSAA1099::hasSoftPan(int ch) {
+  return true;
+}
+
 int DivPlatformSAA1099::getPortaFloor(int ch) {
   return 12;
 }

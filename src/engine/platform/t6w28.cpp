@@ -358,6 +358,10 @@ int DivPlatformT6W28::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformT6W28::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {
   return true;
 }

@@ -70,6 +70,7 @@ class DivPlatformYMZ280B: public DivDispatch {
     void muteChannel(int ch, bool mute);
     float getPostAmp();
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

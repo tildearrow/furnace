@@ -919,6 +919,10 @@ int DivPlatformSNES::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSNES::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformSNES::notifyInsChange(int ins) {
   for (int i=0; i<8; i++) {
     if (chan[i].ins==ins) {

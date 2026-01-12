@@ -617,6 +617,10 @@ int DivPlatformGBAMinMod::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformGBAMinMod::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformGBAMinMod::notifyInsChange(int ins) {
   for (int i=0; i<16; i++) {
     if (chan[i].ins==ins) {
