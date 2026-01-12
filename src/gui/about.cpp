@@ -186,6 +186,8 @@ const char* aboutLine[]={
   _N("PowerNoise emulator by scratchminer"),
   _N("ep128emu by Istvan Varga"),
   _N("NDS sound emulator by cam900"),
+  _N("Adlib-related formats import routines adapted from"),
+  _N("adlib2vgm by SudoMaker"),
   _N("openMSX YMF278 emulator (modified version) by the openMSX developers"),
   _N("SID2 emulator by LTVA (modification of reSID emulator)"),
   _N("SID3 emulator by LTVA"),
