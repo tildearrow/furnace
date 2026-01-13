@@ -1943,6 +1943,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                       if (map_channels[ch] == n163_chans[v]) {
                         if (pat->newData[row][DIV_PAT_FX(j)] == 0x12) {
                           pat->newData[row][DIV_PAT_FX(j)] = 0x110; // N163 wave change (we'll map this later)
+                        } else if (pat->newData[row][DIV_PAT_FX(j)] == 0x11) {
+                          // wave position (a value of 7F has special meaning)
+                          if (pat->newData[row][DIV_PAT_FXVAL(j)]==0x7f) {
+                            pat->newData[row][DIV_PAT_FX(j)]=-1;
+                            pat->newData[row][DIV_PAT_FXVAL(j)]=-1;
+                          }
                         }
                       }
                     }
