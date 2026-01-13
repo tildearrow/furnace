@@ -120,11 +120,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::Columns(e->getTotalChannelCount());
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         void* ch=e->getDispatchChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->dispatchOfChan[i],e->dispatchChanOfChan[i]);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
         if (ch==NULL) {
           ImGui::Text("NULL");
+        } else if (e->song.dispatchChanOfChan[i]<0) {
+          ImGui::Text("---");
         } else {
-          putDispatchChan(ch,e->dispatchChanOfChan[i],e->sysOfChan[i]);
+          putDispatchChan(ch,e->song.dispatchChanOfChan[i],e->song.sysOfChan[i]);
         }
         ImGui::NextColumn();
       }
@@ -576,6 +578,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::Text("Input Scale: %f",ImGui::GetIO().InputScale);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Audio Debug")) {
@@ -886,7 +889,7 @@ void FurnaceGUI::drawDebug() {
       auto DrawSpot=[&](const CursorJumpPoint& spot) {
         ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
       };
-      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Border)) {
+      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Borders)) {
         if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
           for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
             ImGui::TableNextRow();

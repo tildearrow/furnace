@@ -103,7 +103,7 @@ void DivPlatformPCE::acquireDirect(blip_buffer_t** bb, size_t len) {
           signed char dacData=((signed char)((unsigned char)s->data8[chan[i].dacPos]^0x80))>>3;
           chan[i].dacOut=CLAMP(dacData,-16,15);
           if (!isMuted[i]) {
-            chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].outVol));
+            chWrite(i,0x04,parent->song.compatFlags.disableSampleMacro?0xdf:(0xc0|chan[i].outVol));
             chWrite(i,0x06,chan[i].dacOut&0x1f);
           } else {
             chWrite(i,0x04,0xc0);
@@ -233,7 +233,7 @@ void DivPlatformPCE::tick(bool sysTick) {
             chan[i].dacPos=0;
           }
           chan[i].dacPeriod=0;
-          chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].vol));
+          chWrite(i,0x04,parent->song.compatFlags.disableSampleMacro?0xdf:(0xc0|chan[i].vol));
           addWrite(0xffff0000+(i<<8),chan[i].dacSample);
           chan[i].keyOn=true;
         }
@@ -269,11 +269,11 @@ void DivPlatformPCE::tick(bool sysTick) {
 
       if (i>=4) {
         int noiseSeek=(chan[i].fixedArp?chan[i].baseNoteOverride:(chan[i].note+chan[i].arpOff))+chan[i].pitch2;
-        if (!parent->song.properNoiseLayout && noiseSeek<0) noiseSeek=0;
+        if (!parent->song.compatFlags.properNoiseLayout && noiseSeek<0) noiseSeek=0;
         if (!NEW_ARP_STRAT) {
           noiseSeek=chan[i].noiseSeek;
         }
-        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.compatFlags.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
       }
       if (chan[i].keyOn) {
         //rWrite(16+i*5,0x80);
@@ -324,7 +324,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           break;
         } else {
            if (dumpWrites) {
-             chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
+             chWrite(c.chan,0x04,parent->song.compatFlags.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
              addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
            }
         }
@@ -341,7 +341,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         }
         chan[c.chan].active=true;
         chan[c.chan].macroInit(ins);
-        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         break;
@@ -359,7 +359,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       chWrite(c.chan,0x04,0x80|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].wave<0) {
@@ -476,9 +476,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -503,7 +503,7 @@ void DivPlatformPCE::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
   if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
-    chWrite(ch,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[ch].outVol));
+    chWrite(ch,0x04,parent->song.compatFlags.disableSampleMacro?0xdf:(0xc0|chan[ch].outVol));
     chWrite(ch,0x06,chan[ch].dacOut&0x1f);
   }
 }
@@ -608,6 +608,10 @@ void DivPlatformPCE::reset() {
 
 int DivPlatformPCE::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformPCE::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformPCE::keyOffAffectsArp(int ch) {

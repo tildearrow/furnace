@@ -95,7 +95,7 @@ void DivPlatformT6W28::writeOutVol(int ch) {
 double DivPlatformT6W28::NOTE_SN(int ch, int note) {
   double CHIP_DIVIDER=16;
   if (ch==3) CHIP_DIVIDER=15;
-  if (parent->song.linearPitch || !easyNoise) {
+  if (parent->song.compatFlags.linearPitch || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
   if (note>107) {
@@ -105,7 +105,7 @@ double DivPlatformT6W28::NOTE_SN(int ch, int note) {
 }
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
-  if (parent->song.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(107<<7)) {
+  if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(107<<7)) {
     int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(107<<7)))>>7;
     if (ret<0) ret=0;
     return ret;
@@ -187,7 +187,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         writeOutVol(c.chan);
       }
@@ -270,9 +270,9 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_T6W28));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_T6W28));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -356,6 +356,10 @@ void DivPlatformT6W28::reset() {
 
 int DivPlatformT6W28::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformT6W28::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {

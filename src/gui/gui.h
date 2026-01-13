@@ -82,7 +82,7 @@
 #define FM_PREVIEW_SIZE 512
 
 #define CHECK_HIDDEN_SYSTEM(x) \
-  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_SEGAPCM_COMPAT || x==DIV_SYSTEM_PONG || x==DIV_SYSTEM_UPD1771C)
+  (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_PONG || x==DIV_SYSTEM_UPD1771C)
 
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
@@ -688,6 +688,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CV,
   GUI_WARN_RESET_CONFIG,
   GUI_WARN_IMPORT,
+  GUI_WARN_NPR,
   GUI_WARN_GENERIC
 };
 
@@ -1377,12 +1378,14 @@ struct Gradient2D {
 struct FurnaceGUISysDefChip {
   DivSystem sys;
   float vol, pan, panFR;
+  int chans;
   String flags;
-  FurnaceGUISysDefChip(DivSystem s, float v, float p, const char* f, float pf=0.0):
+  FurnaceGUISysDefChip(DivSystem s, float v, float p, const char* f, float pf=0.0, int ch=0):
     sys(s),
     vol(v),
     pan(p),
     panFR(pf),
+    chans(ch),
     flags(f) {}
 };
 
@@ -1740,7 +1743,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
+  bool displayNew, displayExport, displayPalette, fullScreen, sysFullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
   unsigned char noteInputMode;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;
@@ -1748,6 +1751,7 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
+  bool newPatternRenderer;
   bool quitNoSave;
   bool changeCoarse;
   bool orderLock;
@@ -2093,6 +2097,7 @@ class FurnaceGUI {
     int sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
+    float channelFeedbackGamma;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2347,6 +2352,7 @@ class FurnaceGUI {
       sampleImportInstDetune(0),
       mixerStyle(1),
       mixerLayout(0),
+      channelFeedbackGamma(1.0f),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2370,6 +2376,7 @@ class FurnaceGUI {
     bool introPlayed;
     bool protoWelcome;
     bool importedMOD, importedS3M, importedXM, importedIT;
+    bool nprFieldTrial;
     double popupTimer;
     Tutorial():
 #ifdef SUPPORT_XP
@@ -2382,6 +2389,7 @@ class FurnaceGUI {
       importedS3M(false),
       importedXM(false),
       importedIT(false),
+      nprFieldTrial(false),
       popupTimer(10.0f) {
     }
   } tutorial;
@@ -2469,6 +2477,7 @@ class FurnaceGUI {
   DivWaveSynth wavePreview;
   int wavePreviewLen, wavePreviewHeight;
   bool wavePreviewInit, wavePreviewPaused;
+  float wavePreviewAccum;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
@@ -2702,9 +2711,10 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY, chanOscCenterStrat;
+  int chanOscCols, chanOscColorX, chanOscColorY, chanOscCenterStrat, chanOscColorMode;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify, chanOscLineSize;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscRandomPhase;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
+  bool chanOscNormalize, chanOscRandomPhase, chanOscAutoCols;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
@@ -2842,13 +2852,23 @@ class FurnaceGUI {
     PIANO_LABELS_OCTAVE_NOTE
   };
 
+  enum PianoKeyColorMode {
+    PIANO_KEY_COLOR_SINGLE=0,
+    PIANO_KEY_COLOR_CHANNEL,
+    PIANO_KEY_COLOR_INSTRUMENT
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
-  float pianoKeyHit[180];
+  struct pianoKeyState {
+    float value;
+    int chan;
+  };
+  pianoKeyState pianoKeyHit[180];
   bool pianoKeyPressed[180];
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
-  int pianoView, pianoInputPadMode, pianoLabelsMode;
+  int pianoView, pianoInputPadMode, pianoLabelsMode, pianoKeyColorMode;
 
   // effect sorting / searching
   bool effectsShow[10];
@@ -2977,6 +2997,7 @@ class FurnaceGUI {
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
   // piano
+  ImVec4 pianoKeyColor(int chan, ImVec4 fallback);
   void pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note);
 
   void updateWindowTitle();
@@ -3004,7 +3025,11 @@ class FurnaceGUI {
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
+  ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
+
+  void updateKeyHitPre();
+  void updateKeyHitPost();
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins);
@@ -3047,6 +3072,7 @@ class FurnaceGUI {
   void drawGrooves();
   void drawOrders();
   void drawPattern();
+  void drawPatternNew();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
   void drawInsSID3(DivInstrument* ins);
@@ -3089,7 +3115,7 @@ class FurnaceGUI {
   void drawRefPlayer();
   void drawMultiInsSetup();
 
-  float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f);
+  float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
   void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
@@ -3108,7 +3134,7 @@ class FurnaceGUI {
   bool importConfig(String path);
   bool exportConfig(String path);
 
-  float computeGradPos(int type, int chan);
+  float computeGradPos(int type, int chan, int totalChans);
 
   void resetColors();
   void resetKeybinds();

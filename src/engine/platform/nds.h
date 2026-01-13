@@ -95,6 +95,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void muteChannel(int ch, bool mute) override;
     virtual float getPostAmp() override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual bool hasAcquireDirect() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;

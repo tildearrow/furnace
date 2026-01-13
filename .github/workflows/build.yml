@@ -22,7 +22,7 @@ jobs:
           - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
           #- { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
           #- { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
-          - { name: 'macOS x86_64', os: macos-13, arch: x86_64 }
+          - { name: 'macOS x86_64', os: macos-14, arch: x86_64 }
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-22.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
@@ -179,6 +179,7 @@ jobs:
             CMAKE_EXTRA_ARGS+=('-DSUPPORT_XP=ON')
           fi
         elif [ '${{ runner.os }}' == 'macOS' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_C_FLAGS="-O2"' '-DCMAKE_CXX_FLAGS="-O2"')
           if [ '${{ matrix.config.arch }}' == 'arm64' ]; then
             CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64' '-DMAKE_BUNDLE=ON')
           else
@@ -187,6 +188,8 @@ jobs:
         elif [ '${{ runner.os }}' == 'Linux' ] && [ '${{ matrix.config.arch }}' == 'armhf' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
         fi
+
+        echo "EXTRA FLAGS: ${CMAKE_EXTRA_ARGS[@]}"
 
         cmake \
           -B ${PWD}/build \

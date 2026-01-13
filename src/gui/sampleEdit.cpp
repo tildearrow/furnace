@@ -396,7 +396,6 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_SEGAPCM:
-          case DIV_SYSTEM_SEGAPCM_COMPAT:
             if (sample->samples>65280) {
               SAMPLE_WARN(warnLength,_("SegaPCM: maximum sample length is 65280"));
             }
@@ -591,6 +590,13 @@ void FurnaceGUI::drawSampleEdit() {
             }
           } else if (sample->loopMode!=DIV_SAMPLE_LOOP_FORWARD) {
             SAMPLE_WARN(warnLoopMode,_("backward/ping-pong only supported in Generic PCM DAC\nping-pong also on ES5506"));
+          }
+        }
+
+        // ADPCM-A/B specific warnings
+        if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A || sample->depth==DIV_SAMPLE_DEPTH_ADPCM_B) {
+          if (sample->samples&511) {
+            SAMPLE_WARN(warnLength,_("ADPCM sample is not padded to 256 bytes!"));
           }
         }
 

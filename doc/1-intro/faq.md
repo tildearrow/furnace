@@ -78,6 +78,10 @@ if that's the case, you have two choices:
 
 on Linux and other Unix/Unix-like operating systems, KDE Plasma binds Ctrl-F1 to Ctrl-F4 to select virtual desktops by default. this interferes with Furnace's transpose key combinations.
 
+### how do I hide unused channels, or show them again?
+
+open the "Channels" window from the "window > song" menu. see the [channel window documentation](../8-advanced/channels.md) for details.
+
 ## chips
 
 ### will Furnace support the Sony PlayStation?
@@ -94,7 +98,7 @@ the Sega Saturn uses an extremely complicated Yamaha YMF292 sound chip, employin
 
 ### will Furnace support the Nintendo 64?
 
-the N64 lacks any form of audio synthesizer chip. many games use MIDI or XM or other such formats internally, but everything is mixed in software and sent to a simple stereo DAC.
+not directly, as the N64 lacks any form of audio synthesizer chip. many games use MIDI or XM or other such formats internally, but everything is mixed in software and sent to a simple stereo DAC. this can be simulated with any number of Generic PCM DAC channels at up to 48000 Hz, though realistically these would be limited by processor speed. most games used around 16 to 24 channels mixed at either 22047 or 32006 Hz with linear interpolation.
 
 ### will Furnace support this obscure PCM-only chip?
 
@@ -166,7 +170,7 @@ Furnace 0.7 is expected to support exporting ROM for SNES, C64 and Game Boy. the
 
 ### can Furnace export MP3/OGG/FLAC files?
 
-not presently. for now, use an external converter such as FFmpeg.
+yes! see the [export documentation](../2-interface/export.md#audio) for more information.
 
 ## other
 

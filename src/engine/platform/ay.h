@@ -128,6 +128,8 @@ class DivPlatformAY8910: public DivDispatch {
     int delay;
     int lastOut[2];
 
+    unsigned char atomicTFXDelay;
+
     bool extMode;
     unsigned int extClock;
     int dacRate;

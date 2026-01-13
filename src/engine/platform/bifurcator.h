@@ -62,6 +62,7 @@ class DivPlatformBifurcator: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void setFlags(const DivConfig& flags);

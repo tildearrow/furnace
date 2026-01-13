@@ -288,7 +288,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       chan[c.chan].keyOn=true;
@@ -372,9 +372,9 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA: {
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       }
       chan[c.chan].inPorta=c.value;
@@ -492,6 +492,10 @@ void DivPlatformPowerNoise::reset() {
 
 int DivPlatformPowerNoise::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformPowerNoise::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformPowerNoise::keyOffAffectsArp(int ch) {

@@ -29,6 +29,8 @@
 #include "../utfutils.h"
 #include <fmt/printf.h>
 
+#define MAX_PARTICLES 8192
+
 struct DelayedLabel {
   float posCenter, posY;
   ImVec2 textSize;
@@ -40,11 +42,11 @@ struct DelayedLabel {
     label(l) {}
 };
 
-inline float randRange(float min, float max) {
+static inline float randRange(float min, float max) {
   return min+((float)rand()/(float)RAND_MAX)*(max-min);
 }
 
-void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+static void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
       ((FurnaceGUI*)cmd->UserCallbackData)->pushPartBlend();
@@ -52,7 +54,7 @@ void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
-void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+static void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
       ((FurnaceGUI*)cmd->UserCallbackData)->popPartBlend();
@@ -419,6 +421,11 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 }
 
 void FurnaceGUI::drawPattern() {
+  if (newPatternRenderer) {
+    drawPatternNew();
+    return;
+  }
+
   //int delta0=SDL_GetPerformanceCounter();
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;
@@ -666,7 +673,8 @@ void FurnaceGUI::drawPattern() {
             if (!muted) {
               int note=e->getChanState(i)->note+60;
               if (note>=0 && note<180) {
-                pianoKeyHit[note]=1.0;
+                pianoKeyHit[note].value=1.0;
+                pianoKeyHit[note].chan=i;
               }
             }
           }
@@ -674,12 +682,13 @@ void FurnaceGUI::drawPattern() {
         }
         if (settings.channelFeedbackStyle==2 && e->isRunning()) {
           float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
-          if (!e->getChanState(i)->keyOn) amount=0.0f;
+          if (e->getChanState(i)->keyOff) amount=0.0f;
           keyHit[i]=amount*0.2f;
-          if (!muted) {
+          if (!muted && e->getChanState(i)->keyOn) {
             int note=e->getChanState(i)->note+60;
             if (note>=0 && note<180) {
-              pianoKeyHit[note]=amount;
+              pianoKeyHit[note].value=amount;
+              pianoKeyHit[note].chan=i;
             }
           }
         } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
@@ -688,7 +697,20 @@ void FurnaceGUI::drawPattern() {
           if (!muted) {
             int note=e->getChanState(i)->note+60;
             if (note>=0 && note<180) {
-              pianoKeyHit[note]=active?1.0f:0.0f;
+              pianoKeyHit[note].value=active?1.0f:0.0f;
+              pianoKeyHit[note].chan=i;
+            }
+          }
+        } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
+          float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
+          if (isnan(amount)) amount=0; // how is it nan tho??
+          if (e->getChanState(i)->keyOff) amount=0.0f;
+          keyHit[i]=amount*0.2f;
+          if (!muted && e->getChanState(i)->keyOn) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note].value=amount;
+              pianoKeyHit[note].chan=i;
             }
           }
         }
@@ -792,7 +814,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID),0);
-              ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
+              ImU32 col=hovered?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -1458,7 +1480,7 @@ void FurnaceGUI::drawPattern() {
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
-            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
             if (!e->curSubSong->chanShow[pairCh]) {
               continue;
             }
@@ -1514,7 +1536,7 @@ void FurnaceGUI::drawPattern() {
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
-            int pairCh=e->dispatchFirstChan[i]+pair.pairs[j];
+            int pairCh=e->song.dispatchFirstChan[i]+pair.pairs[j];
             if (!e->curSubSong->chanShow[pairCh]) {
               continue;
             }
@@ -1782,6 +1804,7 @@ void FurnaceGUI::drawPattern() {
 
           if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
 
+          if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
           particles.push_back(Particle(
             color,
             partIcon,
@@ -1815,6 +1838,7 @@ void FurnaceGUI::drawPattern() {
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
             particles.push_back(Particle(
               pitchGrad,
               (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
@@ -1872,6 +1896,7 @@ void FurnaceGUI::drawPattern() {
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
             particles.push_back(Particle(
               pitchGrad,
               ICON_FA_GLASS,
@@ -1889,7 +1914,8 @@ void FurnaceGUI::drawPattern() {
       }
 
       // particle simulation
-      ImDrawList* fdl=ImGui::GetForegroundDrawList();
+      ImDrawList* fdl=ImGui::GetWindowDrawList();
+      fdl->PushClipRectFullScreen();
       if (!particles.empty()) WAKE_UP;
       fdl->AddCallback(_pushPartBlend,this);
       for (size_t i=0; i<particles.size(); i++) {
@@ -1909,6 +1935,7 @@ void FurnaceGUI::drawPattern() {
         }
       }
       fdl->AddCallback(_popPartBlend,this);
+      fdl->PopClipRect();
     }
 
     ImGui::PopStyleColor(3);

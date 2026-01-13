@@ -782,6 +782,8 @@ src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
 src/engine/workPool.cpp
+
+src/engine/assetDir.cpp
 src/engine/cmdStream.cpp
 src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
@@ -992,6 +994,7 @@ src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/multiInsSetup.cpp
+src/gui/newPattern.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp

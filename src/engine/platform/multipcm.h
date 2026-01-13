@@ -114,6 +114,7 @@ class DivPlatformMultiPCM: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     bool getLegacyAlwaysSetVolume();

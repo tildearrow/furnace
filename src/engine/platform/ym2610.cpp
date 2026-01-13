@@ -262,8 +262,8 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -287,8 +287,8 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
             fm->write(0x1+((w.addr>>8)<<1),w.val);
 
             regPool[w.addr&0x1ff]=w.val;
+            delay=(w.addr>15)?32:1;
             writes.pop_front();
-            delay=32;
           } else {
             // Nuked write
             if (w.addrOrVal) {
@@ -387,8 +387,8 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -397,8 +397,11 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
     ay->getRegisterWrites().clear();
 
     os[0]=0; os[1]=0;
-    if (!writes.empty()) {
-      if (--delay<1 && !(fm->read(0)&0x80)) {
+    while (!writes.empty()) {
+      if (!(fm->read(0)&0x80)) {
+        delay=0;
+      }
+      if (delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
           delay=w.val*2;
@@ -406,10 +409,11 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
           fm->write(0x0+((w.addr>>8)<<1),w.addr);
           fm->write(0x1+((w.addr>>8)<<1),w.val);
           regPool[w.addr&0x1ff]=w.val;
-          delay=1;
+          if (w.addr>15) delay=1;
         }
         writes.pop_front();
       }
+      if (delay>0) break;
     }
     
     fm->generate(&fmout);
@@ -466,8 +470,8 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
     unsigned char subSubCycle=0;
 
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -511,6 +515,7 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.val;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -523,6 +528,7 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.addr&0xff;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             w.addrOrVal=true;
           }
@@ -714,7 +720,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+      if (!parent->song.compatFlags.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i] || !op.enable) {
@@ -836,7 +842,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.linearPitch) {
+      if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -1178,7 +1184,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL);
+      if (parent->song.compatFlags.brokenFMOff) chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
@@ -1280,7 +1286,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         }
         break;
       }
-      if (c.chan>=psgChanOffs || parent->song.linearPitch) { // PSG, ADPCM-B
+      if (c.chan>=psgChanOffs || parent->song.compatFlags.linearPitch) { // PSG, ADPCM-B
         int destFreq=NOTE_OPNB(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
@@ -1591,7 +1597,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     case DIV_CMD_PRE_PORTA:
       if (c.chan>=psgChanOffs) {
         if (chan[c.chan].active && c.value2) {
-          if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
+          if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FM));
         }
       }
       chan[c.chan].inPorta=c.value;

@@ -280,7 +280,7 @@ void FurnaceGUI::drawOrders() {
       ImGui::PushFont(patFont);
       bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
       float yHeight=ImGui::GetContentRegionAvail().y;
-      float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
+      float lineHeight=floor(ImGui::GetTextLineHeight()+4*dpiScale);
       if (e->isPlaying() || haveHitBounds) {
         if (followOrders) {
           float nextOrdScroll=(playOrder+1)*lineHeight-((yHeight-(tooSmall?ImGui::GetStyle().ScrollbarSize:0.0f))/2.0f);

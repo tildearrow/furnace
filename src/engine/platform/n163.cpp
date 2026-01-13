@@ -386,13 +386,13 @@ int DivPlatformN163::dispatch(DivCommand c) {
       int destFreq=destFreqD;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch)?1:16);
+        chan[c.chan].baseFreq+=c.value*((parent->song.compatFlags.linearPitch)?1:16);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch)?1:16);
+        chan[c.chan].baseFreq-=c.value*((parent->song.compatFlags.linearPitch)?1:16);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -456,12 +456,12 @@ int DivPlatformN163::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) {
+        if (parent->song.compatFlags.resetMacroOnPorta) {
           chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_N163));
           chan[c.chan].keyOn=true;
         }
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -593,7 +593,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  initChanMax=chanMax=flags.getInt("channels",0)&7;
+  initChanMax=chanMax=flags.getInt("channels",7)&7;
   multiplex=!flags.getBool("multiplex",false); // not accurate in real hardware
   rate=chipClock;
   rate/=15;
@@ -602,6 +602,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->setRate(rate);//=rate/(initChanMax+1);
   }
+  logV("N163: initChanMax: %d",initChanMax);
 
   lenCompensate=flags.getBool("lenCompensate",false);
 
@@ -617,6 +618,8 @@ int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, const DivConf
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  logV("N163: init(%d)",channels);
 
   memCompo.used=0;
   memCompo.capacity=128;

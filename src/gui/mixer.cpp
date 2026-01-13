@@ -329,7 +329,7 @@ void FurnaceGUI::drawMixer() {
         hoveredPortSet=0x1fff;
         hoveredSubPort=-1;
 
-        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),ImGuiChildFlags_Border)) {
+        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),ImGuiChildFlags_Borders)) {
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 topPos=ImGui::GetCursorPos();
           ImVec2 sysSize=calcPortSetSize(_("System"),displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);

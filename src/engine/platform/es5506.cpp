@@ -23,7 +23,7 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && !parent->song.linearPitch)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
+#define NOTE_ES5506(c,note) ((amigaPitch && !parent->song.compatFlags.linearPitch)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
@@ -338,6 +338,125 @@ void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
   }
 }
 
+void DivPlatformES5506::updatePCMChanges(int i) {
+  if (chan[i].pcmChanged.changed) {
+    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
+    if (chan[i].pcmChanged.index) {
+      const int next=chan[i].pcm.next;
+      bool sampleValid=false;
+      if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
+          ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
+        DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
+        int sample=next;
+        if (ins->amiga.useNoteMap) {
+          sample=noteMapind.map;
+        }
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          const unsigned int offES5506=sampleOffES5506[sample];
+          sampleValid=true;
+          chan[i].pcm.index=sample;
+          chan[i].pcm.isNoteMap=ins->amiga.useNoteMap;
+          DivSample* s=parent->getSample(sample);
+          // get frequency offset
+          double off=1.0;
+          double center=(double)s->centerRate;
+          if (center<1) {
+            off=1.0;
+          } else {
+            off=(double)center/parent->getCenterRate();
+          }
+          if (ins->amiga.useNoteMap) {
+            //chan[i].pcm.note=next;
+          }
+          // get loop mode
+          DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
+          const unsigned int start=offES5506<<10;
+          const unsigned int length=s->samples-1;
+          const unsigned int end=start+(length<<11);
+          const unsigned int nextBank=(offES5506>>22)&3;
+          const double nextFreqOffs=((amigaPitch && !parent->song.compatFlags.linearPitch)?16:PITCH_OFFSET)*off;
+          chan[i].pcm.loopMode=loopMode;
+          chan[i].pcm.bank=nextBank;
+          chan[i].pcm.start=start;
+          chan[i].pcm.end=end;
+          chan[i].pcm.length=length;
+          if ((chan[i].pcm.loopMode!=loopMode) || (chan[i].pcm.bank!=nextBank)) {
+            chan[i].pcm.loopMode=loopMode;
+            chan[i].pcm.bank=nextBank;
+            chan[i].pcmChanged.loopBank=1;
+          }
+          if (chan[i].pcm.nextFreqOffs!=nextFreqOffs) {
+            chan[i].pcm.nextFreqOffs=nextFreqOffs;
+            chan[i].noteChanged.offs=1;
+          }
+        }
+      }
+      if (sampleValid) {
+        if (!chan[i].keyOn) {
+          pageWrite(0x20|i,0x03,(chan[i].pcm.direction)?chan[i].pcm.end:chan[i].pcm.start);
+        }
+        chan[i].pcmChanged.slice=1;
+      }
+      chan[i].pcmChanged.index=0;
+    }
+    if (chan[i].pcmChanged.slice) {
+      if (!chan[i].keyOn) {
+        if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
+          // get loop mode
+          DivSample* s=parent->getSample(chan[i].pcm.index);
+          const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
+          const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
+          const unsigned int nextLoopEnd=(start+((s->loopEnd)<<11))&0xffffff80;
+          if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
+            chan[i].pcm.loopStart=nextLoopStart;
+            chan[i].pcm.loopEnd=nextLoopEnd;
+            chan[i].pcmChanged.position=1;
+          }
+        }
+      }
+      chan[i].pcmChanged.slice=0;
+    }
+    if (chan[i].pcmChanged.position) {
+      if (!chan[i].keyOn) {
+        pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
+        pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
+      }
+      chan[i].pcmChanged.position=0;
+    }
+    if (chan[i].pcmChanged.loopBank) {
+      if (!chan[i].keyOn) {
+        unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.direction?0x0040:0x0000);
+        chan[i].isReverseLoop=false;
+        switch (chan[i].pcm.loopMode) {
+          case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
+            loopFlag|=0x0008;
+            break;
+          /*
+          case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
+            loopFlag|=0x0038;
+            chan[i].isReverseLoop=true;
+            break;
+          */
+          case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
+            loopFlag|=0x0018;
+            break;
+          case DIV_SAMPLE_LOOP_MAX: // no loop
+          default:
+            break;
+        }
+        // Set loop mode & Bank
+        chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0xe0fd)|loopFlag;
+        chan[i].crDirValChanged=true;
+        chan[i].crChanged=true;
+      }
+      chan[i].pcmChanged.loopBank=0;
+    }
+    chan[i].pcmChanged.dummy=0;
+  }
+}
+
 void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     if (chan[i].crDirValInit) {
@@ -348,7 +467,6 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
     }
     chan[i].std.next();
-    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
@@ -569,121 +687,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       chan[i].volChanged.changed=0;
     }
-    if (chan[i].pcmChanged.changed) {
-      if (chan[i].pcmChanged.index) {
-        const int next=chan[i].pcm.next;
-        bool sampleValid=false;
-        if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
-            ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
-          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
-          int sample=next;
-          if (ins->amiga.useNoteMap) {
-            sample=noteMapind.map;
-          }
-          if (sample>=0 && sample<parent->song.sampleLen) {
-            const unsigned int offES5506=sampleOffES5506[sample];
-            sampleValid=true;
-            chan[i].pcm.index=sample;
-            chan[i].pcm.isNoteMap=ins->amiga.useNoteMap;
-            DivSample* s=parent->getSample(sample);
-            // get frequency offset
-            double off=1.0;
-            double center=(double)s->centerRate;
-            if (center<1) {
-              off=1.0;
-            } else {
-              off=(double)center/parent->getCenterRate();
-            }
-            if (ins->amiga.useNoteMap) {
-              //chan[i].pcm.note=next;
-            }
-            // get loop mode
-            DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
-            const unsigned int start=offES5506<<10;
-            const unsigned int length=s->samples-1;
-            const unsigned int end=start+(length<<11);
-            const unsigned int nextBank=(offES5506>>22)&3;
-            const double nextFreqOffs=((amigaPitch && !parent->song.linearPitch)?16:PITCH_OFFSET)*off;
-            chan[i].pcm.loopMode=loopMode;
-            chan[i].pcm.bank=nextBank;
-            chan[i].pcm.start=start;
-            chan[i].pcm.end=end;
-            chan[i].pcm.length=length;
-            if ((chan[i].pcm.loopMode!=loopMode) || (chan[i].pcm.bank!=nextBank)) {
-              chan[i].pcm.loopMode=loopMode;
-              chan[i].pcm.bank=nextBank;
-              chan[i].pcmChanged.loopBank=1;
-            }
-            if (chan[i].pcm.nextFreqOffs!=nextFreqOffs) {
-              chan[i].pcm.nextFreqOffs=nextFreqOffs;
-              chan[i].noteChanged.offs=1;
-            }
-          }
-        }
-        if (sampleValid) {
-          if (!chan[i].keyOn) {
-            pageWrite(0x20|i,0x03,(chan[i].pcm.direction)?chan[i].pcm.end:chan[i].pcm.start);
-          }
-          chan[i].pcmChanged.slice=1;
-        }
-        chan[i].pcmChanged.index=0;
-      }
-      if (chan[i].pcmChanged.slice) {
-        if (!chan[i].keyOn) {
-          if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
-            // get loop mode
-            DivSample* s=parent->getSample(chan[i].pcm.index);
-            const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
-            const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
-            const unsigned int nextLoopEnd=(start+((s->loopEnd)<<11))&0xffffff80;
-            if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
-              chan[i].pcm.loopStart=nextLoopStart;
-              chan[i].pcm.loopEnd=nextLoopEnd;
-              chan[i].pcmChanged.position=1;
-            }
-          }
-        }
-        chan[i].pcmChanged.slice=0;
-      }
-      if (chan[i].pcmChanged.position) {
-        if (!chan[i].keyOn) {
-          pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
-          pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
-        }
-        chan[i].pcmChanged.position=0;
-      }
-      if (chan[i].pcmChanged.loopBank) {
-        if (!chan[i].keyOn) {
-          unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.direction?0x0040:0x0000);
-          chan[i].isReverseLoop=false;
-          switch (chan[i].pcm.loopMode) {
-            case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
-              loopFlag|=0x0008;
-              break;
-            /*
-            case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
-              loopFlag|=0x0038;
-              chan[i].isReverseLoop=true;
-              break;
-            */
-            case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
-              loopFlag|=0x0018;
-              break;
-            case DIV_SAMPLE_LOOP_MAX: // no loop
-            default:
-              break;
-          }
-          // Set loop mode & Bank
-          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
-          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
-          chan[i].crWriteVal=(chan[i].crWriteVal&~0xe0fd)|loopFlag;
-          chan[i].crDirValChanged=true;
-          chan[i].crChanged=true;
-        }
-        chan[i].pcmChanged.loopBank=0;
-      }
-      chan[i].pcmChanged.dummy=0;
-    }
+    updatePCMChanges(i);
     if (chan[i].filterChanged.changed) {
       if (!chan[i].keyOn) {
         if (chan[i].filterChanged.mode) {
@@ -746,7 +750,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].pcm.nextPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (amigaPitch && !parent->song.linearPitch) {
+      if (amigaPitch && !parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
         chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
@@ -767,7 +771,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
-          chan[i].pcm.freqOffs=((amigaPitch && !parent->song.linearPitch)?16:PITCH_OFFSET)*off;
+          chan[i].pcm.freqOffs=((amigaPitch && !parent->song.compatFlags.linearPitch)?16:PITCH_OFFSET)*off;
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
@@ -960,6 +964,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].pcmChanged.changed=0xff;
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;
+        updatePCMChanges(c.chan);
         updateNoteChangesAsNeeded(c.chan);
       }
       if (!chan[c.chan].std.vol.will) {
@@ -1212,7 +1217,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       int nextFreq=chan[c.chan].baseFreq;
       int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
-      if (amigaPitch && !parent->song.linearPitch) {
+      if (amigaPitch && !parent->song.compatFlags.linearPitch) {
         c.value*=16;
       }
       if (destFreq>nextFreq) {
@@ -1244,9 +1249,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].nextNote=chan[c.chan].note;
         chan[c.chan].noteChanged.note=1;
       }
@@ -1353,6 +1358,10 @@ void DivPlatformES5506::reset() {
 
 int DivPlatformES5506::getOutputCount() {
   return 12;
+}
+
+bool DivPlatformES5506::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformES5506::keyOffAffectsArp(int ch) {

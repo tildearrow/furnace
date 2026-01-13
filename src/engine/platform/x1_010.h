@@ -70,7 +70,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     int fixedFreq;
     int wave, sample;
     unsigned char pan, autoEnvNum, autoEnvDen;
-    bool envChanged, furnacePCM, pcm, setPos;
+    bool envChanged, pcm, setPos;
     int lvol, rvol;
     int macroVolMul;
     unsigned char waveBank;
@@ -84,7 +84,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         autoEnvNum=autoEnvDen=0;
         active=false;
         insChanged=envChanged=freqChanged=true;
-        keyOn=keyOff=inPorta=furnacePCM=pcm=setPos=false;
+        keyOn=keyOff=inPorta=pcm=setPos=false;
         vol=outVol=lvol=rvol=15;
         waveBank=0;
     }
@@ -97,7 +97,6 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
       autoEnvNum(0),
       autoEnvDen(0),
       envChanged(true),
-      furnacePCM(false),
       pcm(false),
       setPos(false),
       lvol(15),
@@ -142,6 +141,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     float getPostAmp();
     void setFlags(const DivConfig& flags);

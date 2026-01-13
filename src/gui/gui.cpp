@@ -647,7 +647,7 @@ const char* FurnaceGUI::getSystemName(DivSystem which) {
 }
 
 void FurnaceGUI::updateScroll(int amount) {
-  float lineHeight=(PAT_FONT_SIZE+2*dpiScale);
+  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
   nextScroll=lineHeight*amount;
   haveHitBounds=false;
 }
@@ -658,13 +658,13 @@ void FurnaceGUI::updateScrollRaw(float amount) {
 }
 
 void FurnaceGUI::addScroll(int amount) {
-  float lineHeight=(PAT_FONT_SIZE+2*dpiScale);
+  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
   nextAddScroll=lineHeight*amount;
   haveHitBounds=false;
 }
 
 void FurnaceGUI::addScrollX(int amount) {
-  float lineHeight=(PAT_FONT_SIZE+2*dpiScale);
+  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
   nextAddScrollX=lineHeight*amount;
   haveHitBounds=false;
 }
@@ -942,7 +942,7 @@ ImVec4 FurnaceGUI::channelColor(int ch) {
       return uiColors[GUI_COLOR_CHANNEL_BG];
       break;
     case 1:
-      return uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
+      return e->curSubSong->chanColor[ch]?ImGui::ColorConvertU32ToFloat4(e->curSubSong->chanColor[ch]):uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
       break;
     case 2:
       return uiColors[GUI_COLOR_INSTR_STD+e->getPreferInsType(ch)];
@@ -1128,7 +1128,7 @@ Collapsed=0\n\
 \n\
 [Window][Tuner]\n\
 Pos=60,60\n\
-Size=395,171\n\
+Size=160,170\n\
 Collapsed=0\n\
 \n\
 [Window][Warning##Export AudioFileDialogOverWriteDialog]\n\
@@ -1244,6 +1244,21 @@ Pos=60,60\n\
 Size=300,300\n\
 Collapsed=0\n\
 \n\
+[Window][Multi-Ins Setup]\n\
+Pos=858,549\n\
+Size=250,165\n\
+Collapsed=0\n\
+\n\
+[Window][Spectrum]\n\
+Pos=771,384\n\
+Size=600,244\n\
+Collapsed=0\n\
+\n\
+[Window][Music Player]\n\
+Pos=704,243\n\
+Size=413,115\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
@@ -1295,16 +1310,14 @@ void FurnaceGUI::prepareLayout() {
 float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD) {
   float hl=e->curSubSong->hilightA;
   if (hl<=0.0f) hl=4.0f;
-  float timeBase=e->curSubSong->timeBase+1;
   float speedSum=0;
   for (int i=0; i<MIN(16,speeds.len); i++) {
     speedSum+=speeds.val[i];
   }
   speedSum/=MAX(1,speeds.len);
-  if (timeBase<1.0f) timeBase=1.0f;
   if (speedSum<1.0f) speedSum=1.0f;
   if (vD<1) vD=1;
-  return (60.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
+  return (60.0f*hz/(hl*speedSum))*(float)vN/(float)vD;
 }
 
 void FurnaceGUI::play(int row) {
@@ -3781,11 +3794,13 @@ void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
     if (y>patWindowPos.y+patWindowSize.y-2.0f*dpiScale) {
       addScroll(1);
     }
-    if (x<patWindowPos.x+(mobileUI?40.0f:4.0f)*dpiScale) {
-      addScrollX(-1);
-    }
-    if (x>patWindowPos.x+patWindowSize.x-(mobileUI?40.0f:4.0f)*dpiScale) {
-      addScrollX(1);
+    if (!selectingFull) {
+      if (x<patWindowPos.x+(mobileUI?40.0f:4.0f)*dpiScale) {
+        addScrollX(-1);
+      }
+      if (x>patWindowPos.x+patWindowSize.x-(mobileUI?40.0f:4.0f)*dpiScale) {
+        addScrollX(1);
+      }
     }
   }
   if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive || orderScrollLocked) {
@@ -3972,7 +3987,7 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
-            case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_RESIZED: {
               scrW=ev.window.data1;
               scrH=ev.window.data2;
               portrait=(scrW<scrH);
@@ -3980,7 +3995,32 @@ bool FurnaceGUI::loop() {
               logD("window resized to %dx%d",scrW,scrH);
               updateWindow=true;
               rend->resized(ev);
+
+              // check whether we're in fullscreen
+              int displayOfWindow=SDL_GetWindowDisplayIndex(sdlWin);
+              SDL_Rect displayRect;
+              if (displayOfWindow<0) {
+                logW("couldn't get display of window after resize! (%s)",SDL_GetError());
+                break;
+              }
+
+              if (SDL_GetDisplayBounds(displayOfWindow,&displayRect)!=0) {
+                logW("couldn't get display bounds after resize! (%s)",SDL_GetError());
+                break;
+              }
+
+              if (fullScreen) {
+                sysFullScreen=false;
+              } else {
+                if (scrW==displayRect.w && scrH==displayRect.h) {
+                  logD("we may be in fullscreen");
+                  sysFullScreen=true;
+                } else {
+                  sysFullScreen=false;
+                }
+              }
               break;
+            }
             case SDL_WINDOWEVENT_MOVED:
               scrX=ev.window.data1;
               scrY=ev.window.data2;
@@ -4145,7 +4185,7 @@ bool FurnaceGUI::loop() {
     // update config x/y/w/h values based on scrMax state
     if (updateWindow) {
       logV("updateWindow is true");
-      if (!scrMax && !fullScreen) {
+      if (!scrMax && !fullScreen && !sysFullScreen) {
         logV("updating scrConf");
         scrConfX=scrX;
         scrConfY=scrY;
@@ -4814,8 +4854,13 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?_("Settings"):_("settings"))) {
 #ifndef IS_MOBILE
-        if (ImGui::MenuItem(_("full screen"),BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
+        ImGui::BeginDisabled(sysFullScreen);
+        if (ImGui::MenuItem(_("full screen"),BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen || sysFullScreen)) {
           doAction(GUI_ACTION_FULLSCREEN);
+        }
+        ImGui::EndDisabled();
+        if (sysFullScreen) {
+          ImGui::SetItemTooltip(_("the system has set Furnace to full screen."));
         }
 #endif
         if (ImGui::MenuItem(_("lock layout"),NULL,lockLayout)) {
@@ -4907,6 +4952,12 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?_("Help"):_("help"))) {
+        if (ImGui::MenuItem(_("online manual"))) 
+#ifdef DIV_UNSTABLE
+          SDL_OpenURL("https://github.com/tildearrow/furnace/tree/master/doc");
+#else
+          SDL_OpenURL("https://tildearrow.org/furnace/doc/v" DIV_VERSION "/manual.pdf");
+#endif
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem(_("debug menu"),BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem(_("inspector"))) inspectorOpen=!inspectorOpen;
@@ -4918,6 +4969,13 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
+      pushToggleColors(newPatternRenderer);
+      if (ImGui::SmallButton("NPR")) {
+        newPatternRenderer=!newPatternRenderer;
+      }
+      ImGui::SetItemTooltip(_("New Pattern Renderer"));
+      popToggleColors();
+      ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying() && settings.playbackTime) {
         TimeMicros totalTime=e->getCurTime();
@@ -5026,6 +5084,7 @@ bool FurnaceGUI::loop() {
     }
 
     MEASURE(calcChanOsc,calcChanOsc());
+    updateKeyHitPre();
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -5161,6 +5220,7 @@ bool FurnaceGUI::loop() {
       if (!selectingFull) cursor=selEnd;
       finishSelection();
       if (!mobileUI) {
+        // TODO: don't demand if selectingFull?
         demandScrollX=true;
         if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
             cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
@@ -5171,10 +5231,7 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    for (int i=0; i<e->getTotalChannelCount(); i++) {
-      keyHit1[i]-=0.08f;
-      if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
-    }
+    updateKeyHitPost();
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
@@ -6146,7 +6203,7 @@ bool FurnaceGUI::loop() {
         ImVec2 romLogSize=ImGui::GetContentRegionAvail();
         romLogSize.y-=ImGui::GetFrameHeightWithSpacing();
         if (romLogSize.y<60.0f*dpiScale) romLogSize.y=60.0f*dpiScale;
-        if (ImGui::BeginChild("Export Log",romLogSize,ImGuiChildFlags_Border)) {
+        if (ImGui::BeginChild("Export Log",romLogSize,ImGuiChildFlags_Borders)) {
           pendingExport->logLock.lock();
           ImGui::PushFont(patFont);
           for (String& i: pendingExport->exportLog) {
@@ -6771,6 +6828,13 @@ bool FurnaceGUI::loop() {
                 tutorial.importedIT=true;
                 break;
             }
+            commitTutorial();
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_NPR:
+          if (ImGui::Button(_("Got it"))) {
+            tutorial.nprFieldTrial=true;
             commitTutorial();
             ImGui::CloseCurrentPopup();
           }
@@ -7646,6 +7710,9 @@ bool FurnaceGUI::loop() {
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
 
+  // new pattern renderer "field" trial.
+  newPatternRenderer=(rand()&3);
+
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setConfigPrefix("fp_");
 
@@ -7654,6 +7721,10 @@ bool FurnaceGUI::init() {
   syncState();
   syncSettings();
   syncTutorial();
+
+  if (!tutorial.nprFieldTrial && newPatternRenderer) {
+    showWarning(_("welcome to the New Pattern Renderer!\nit should be lighter on your CPU.\n\nif you find an issue, you can go back to the old pattern renderer by clicking the NPR button (next to Help).\nmake sure to report it!\n\nthank you!"),GUI_WARN_NPR);
+  }
 
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
@@ -8379,9 +8450,10 @@ void FurnaceGUI::syncState() {
   pianoView=e->getConfInt("pianoView",pianoView);
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
   pianoLabelsMode=e->getConfInt("pianoLabelsMode",pianoLabelsMode);
+  pianoKeyColorMode=e->getConfInt("pianoKeyColorMode",pianoKeyColorMode);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
-  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
+  chanOscAutoCols=e->getConfBool("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
   chanOscCenterStrat=e->getConfInt("chanOscCenterStrat",1);
@@ -8404,6 +8476,7 @@ void FurnaceGUI::syncState() {
   chanOscTextColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
   chanOscTextColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
+  chanOscColorMode=e->getConfInt("chanOscColorMode",0);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
 
@@ -8553,10 +8626,11 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("pianoView",pianoView);
   conf.set("pianoInputPadMode",pianoInputPadMode);
   conf.set("pianoLabelsMode",pianoLabelsMode);
+  conf.set("pianoKeyColorMode",pianoKeyColorMode);
 
   // commit per-chan osc state
   conf.set("chanOscCols",chanOscCols);
-  conf.set("chanOscAutoColsType",chanOscAutoColsType);
+  conf.set("chanOscAutoColsType",chanOscAutoCols);
   conf.set("chanOscColorX",chanOscColorX);
   conf.set("chanOscColorY",chanOscColorY);
   conf.set("chanOscCenterStrat",chanOscCenterStrat);
@@ -8580,6 +8654,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("chanOscTextColorA",chanOscTextColor.w);
   conf.set("chanOscUseGrad",chanOscUseGrad);
   conf.set("chanOscGrad",chanOscGrad.toString());
+  conf.set("chanOscColorMode",chanOscColorMode);
 
   // commit x-y osc state
   conf.set("xyOscXChannel",xyOscXChannel);
@@ -8736,6 +8811,7 @@ FurnaceGUI::FurnaceGUI():
   displayNew(false),
   displayPalette(false),
   fullScreen(false),
+  sysFullScreen(false),
   preserveChanPos(false),
   sysDupCloneChannels(true),
   sysDupEnd(false),
@@ -8756,6 +8832,7 @@ FurnaceGUI::FurnaceGUI():
   replacePendingSample(false),
   displayExportingROM(false),
   displayExportingCS(false),
+  newPatternRenderer(false),
   quitNoSave(false),
   changeCoarse(false),
   orderLock(false),
@@ -9001,6 +9078,7 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewHeight(255),
   wavePreviewInit(true),
   wavePreviewPaused(false),
+  wavePreviewAccum(0.0f),
   pgSys(0),
   pgAddr(0),
   pgVal(0),
@@ -9195,10 +9273,10 @@ FurnaceGUI::FurnaceGUI():
   triggerState(1),
   oscZoomSlider(false),
   chanOscCols(3),
-  chanOscAutoColsType(0),
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscCenterStrat(1),
+  chanOscColorMode(0),
   chanOscWindowSize(20.0f),
   chanOscTextX(0.0f),
   chanOscTextY(0.0f),
@@ -9210,6 +9288,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscUseGrad(false),
   chanOscNormalize(false),
   chanOscRandomPhase(false),
+  chanOscAutoCols(false),
   chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
@@ -9246,6 +9325,7 @@ FurnaceGUI::FurnaceGUI():
   pianoView(PIANO_LAYOUT_AUTOMATIC),
   pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
   pianoLabelsMode(PIANO_LABELS_OCTAVE),
+  pianoKeyColorMode(PIANO_KEY_COLOR_SINGLE),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -9257,6 +9337,7 @@ FurnaceGUI::FurnaceGUI():
   pianoView(PIANO_LAYOUT_STANDARD),
   pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
   pianoLabelsMode(PIANO_LABELS_OCTAVE),
+  pianoKeyColorMode(PIANO_KEY_COLOR_SINGLE),
 #endif
   hasACED(false),
   waveGenBaseShape(0),
@@ -9393,7 +9474,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(lastAudioLoads,0,sizeof(float)*120);
 
-  memset(pianoKeyHit,0,sizeof(float)*180);
+  memset(pianoKeyHit,0,sizeof(pianoKeyState)*180); // posiblly repace with a for loop
   memset(pianoKeyPressed,0,sizeof(bool)*180);
 
   memset(queryReplaceEffectMode,0,sizeof(int)*8);

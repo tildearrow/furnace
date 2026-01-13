@@ -37,8 +37,12 @@ struct DivCSChannelState {
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
+  int tremoloDepth, tremoloRate, tremoloPos;
+  int panbrelloDepth, panbrelloRate, panbrelloPos;
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks;
+  unsigned char panL, panR;
+  signed char panSpeed;
 
   unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos, callStackSize;
@@ -61,11 +65,22 @@ struct DivCSChannelState {
     vibratoDepth(0),
     vibratoRate(0),
     vibratoPos(0),
+    vibratoRange(15),
+    vibratoShape(0),
+    tremoloDepth(0),
+    tremoloRate(0),
+    tremoloPos(0),
+    panbrelloDepth(0),
+    panbrelloRate(0),
+    panbrelloPos(0),
     portaTarget(0),
     portaSpeed(0),
     arp(0),
     arpStage(0),
     arpTicks(0),
+    panL(255),
+    panR(255),
+    panSpeed(0),
     callStackPos(0),
     callStackSize(0),
     tracePos(0) {
@@ -93,6 +108,7 @@ class DivCSPlayer {
   bool bigEndian;
 
   short vibTable[64];
+  short tremTable[128];
   public:
     unsigned char* getData();
     unsigned short* getDataAccess();

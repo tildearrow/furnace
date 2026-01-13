@@ -203,6 +203,7 @@ class DivPlatformOPL: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void setCore(unsigned char which);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);

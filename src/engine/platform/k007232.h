@@ -94,6 +94,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool hasAcquireDirect();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

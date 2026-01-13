@@ -151,7 +151,7 @@ void FurnaceGUI::readOsc() {
   e->oscReadPos=readPos;
 }
 
-PendingDrawOsc _do;
+PendingDrawOsc _do[DIV_MAX_OUTPUTS];
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -347,16 +347,16 @@ void FurnaceGUI::drawOsc() {
       if ((oscWidth)>0) {
         if (settings.oscMono) {
           if (rend->supportsDrawOsc() && settings.shaderOsc) {
-            _do.gui=this;
-            _do.data=&oscValuesAverage[12];
-            _do.len=oscWidth;
-            _do.pos0=inRect.Min;
-            _do.pos1=inRect.Max;
-            _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
-            _do.lineSize=dpiScale*settings.oscLineSize;
-            _do.zoom=oscZoom;
+            _do[0].gui=this;
+            _do[0].data=&oscValuesAverage[12];
+            _do[0].len=oscWidth;
+            _do[0].pos0=inRect.Min;
+            _do[0].pos1=inRect.Max;
+            _do[0].color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
+            _do[0].lineSize=dpiScale*settings.oscLineSize;
+            _do[0].zoom=oscZoom;
 
-            dl->AddCallback(_drawOsc,&_do);
+            dl->AddCallback(_drawOsc,&_do[0]);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
             for (int i=0; i<oscWidth; i++) {
@@ -384,16 +384,16 @@ void FurnaceGUI::drawOsc() {
             }
 
             if (rend->supportsDrawOsc() && settings.shaderOsc) {
-              _do.gui=this;
-              _do.data=&oscValues[ch][12];
-              _do.len=oscWidth;
-              _do.pos0=inRect.Min;
-              _do.pos1=inRect.Max;
-              _do.color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
-              _do.lineSize=dpiScale*settings.oscLineSize;
-              _do.zoom=oscZoom;
+              _do[ch].gui=this;
+              _do[ch].data=&oscValues[ch][12];
+              _do[ch].len=oscWidth;
+              _do[ch].pos0=inRect.Min;
+              _do[ch].pos1=inRect.Max;
+              _do[ch].color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
+              _do[ch].lineSize=dpiScale*settings.oscLineSize;
+              _do[ch].zoom=oscZoom;
 
-              dl->AddCallback(_drawOsc,&_do);
+              dl->AddCallback(_drawOsc,&_do[ch]);
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
               for (int i=0; i<oscWidth; i++) {

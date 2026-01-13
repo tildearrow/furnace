@@ -172,6 +172,7 @@ bool DivCSPlayer::tick() {
         case 0xc8: // vol slide
           chan[i].volSpeed=(short)(bigEndian?stream.readS_BE():stream.readS());
           chan[i].volSpeedTarget=-1;
+          chan[i].tremoloDepth=0;
           break;
         case 0xc9: // porta
           chan[i].portaTarget=(int)((unsigned char)stream.readC())-60;
@@ -195,19 +196,42 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
           break;
         }
-        case 0xcc: // tremolo (TODO)
-          stream.readC();
+        case 0xcc: { // tremolo
+          unsigned char param=stream.readC();
+          chan[i].tremoloDepth=param&15;
+          chan[i].tremoloRate=param>>4;
+          if (chan[i].tremoloDepth==0) {
+            chan[i].tremoloPos=0;
+          }
+          chan[i].volSpeed=0;
+          chan[i].volSpeedTarget=-1;
+          sendVolume=true;
           break;
-        case 0xcd: // panbrello (TODO)
-          stream.readC();
+        }
+        case 0xcd: { // panbrello
+          unsigned char param=stream.readC();
+          chan[i].panbrelloDepth=param&15;
+          chan[i].panbrelloRate=param>>4;
+          if (chan[i].panbrelloDepth==0) {
+            chan[i].panbrelloPos=0;
+          } else {
+            chan[i].panSpeed=0;
+          }
           break;
-        case 0xce: // pan slide (TODO)
-          stream.readC();
+        }
+        case 0xce: // pan slide
+          chan[i].panSpeed=stream.readC();
+          if (chan[i].panSpeed) {
+            // panbrello and slides are incompatible
+            chan[i].panbrelloDepth=0;
+            chan[i].panbrelloRate=0;
+            chan[i].panbrelloPos=0;
+          }
           break;
         case 0xcf: { // panning
-          int panL=(unsigned char)stream.readC();
-          int panR=(unsigned char)stream.readC();
-          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,panL,panR));
+          chan[i].panL=(unsigned char)stream.readC();
+          chan[i].panR=(unsigned char)stream.readC();
+          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
           break;
         }
         case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5:
@@ -554,7 +578,7 @@ bool DivCSPlayer::tick() {
       if (mustTell) chan[i].readPos=stream.tell();
     }
 
-    if (sendVolume || chan[i].volSpeed!=0) {
+    if (sendVolume || chan[i].volSpeed!=0 || chan[i].tremoloDepth!=0) {
       int preSpeedVol=chan[i].volume;
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volSpeedTarget!=-1) {
@@ -578,13 +602,20 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=-1;
         }
       }
+
       if (chan[i].volume<0) {
         chan[i].volume=0;
       }
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
       }
-      e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      if (chan[i].tremoloDepth>0) {
+        chan[i].tremoloPos+=chan[i].tremoloRate;
+        chan[i].tremoloPos&=127;
+        e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
+      } else {
+        e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      }
     }
 
     if (sendPitch || chan[i].vibratoDepth!=0) {
@@ -596,7 +627,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (chan[i].portaSpeed) {
-      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.compatFlags.linearPitch?e->song.compatFlags.pitchSlideSpeed:1),chan[i].portaTarget));
     }
     if (chan[i].arp && !chan[i].portaSpeed) {
       if (chan[i].arpTicks==0) {
@@ -616,6 +647,74 @@ bool DivCSPlayer::tick() {
         chan[i].arpTicks=arpSpeed;
       }
       chan[i].arpTicks--;
+    }
+
+    if (chan[i].panSpeed) {
+      int newPanL=chan[i].panL;
+      int newPanR=chan[i].panR;
+      // increase one side until it has reached max. then decrease the other.
+      if (chan[i].panSpeed>0) { // right
+        if (newPanR>=0xff) {
+          newPanL-=chan[i].panSpeed;
+        } else {
+          newPanR+=chan[i].panSpeed;
+        }
+      } else { // left
+        if (newPanL>=0xff) {
+          newPanR+=chan[i].panSpeed;
+        } else {
+          newPanL-=chan[i].panSpeed;
+        }
+      }
+
+      // clamp to boundaries
+      if (newPanL<0) newPanL=0;
+      if (newPanL>0xff) newPanL=0xff;
+      if (newPanR<0) newPanR=0;
+      if (newPanR>0xff) newPanR=0xff;
+
+      // set new pan
+      chan[i].panL=newPanL;
+      chan[i].panR=newPanR;
+
+      // send panning command
+      e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+    }
+
+    if (chan[i].panbrelloDepth>0) {
+      chan[i].panbrelloPos+=chan[i].panbrelloRate;
+      chan[i].panbrelloPos&=255;
+
+      // calculate inverted...
+      // split position into four sections and calculate panning value
+      switch (chan[i].panbrelloPos&0xc0) {
+        case 0: // center -> right
+          chan[i].panL=((chan[i].panbrelloPos&0x3f)<<2);
+          chan[i].panR=0;
+          break;
+        case 0x40: // right -> center
+          chan[i].panL=0xff-((chan[i].panbrelloPos&0x3f)<<2);
+          chan[i].panR=0;
+          break;
+        case 0x80: // center -> left
+          chan[i].panL=0;
+          chan[i].panR=((chan[i].panbrelloPos&0x3f)<<2);
+          break;
+        case 0xc0: // left -> center
+          chan[i].panL=0;
+          chan[i].panR=0xff-((chan[i].panbrelloPos&0x3f)<<2);
+          break;
+      }
+
+      // multiply by depth
+      chan[i].panL=(chan[i].panL*chan[i].panbrelloDepth)/15;
+      chan[i].panR=(chan[i].panR*chan[i].panbrelloDepth)/15;
+
+      // then invert it to get final panning
+      chan[i].panL^=0xff;
+      chan[i].panR^=0xff;
+
+      e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
     }
   }
 
@@ -704,13 +803,22 @@ bool DivCSPlayer::init() {
 
   // initialize state
   for (int i=0; i<e->getTotalChannelCount(); i++) {
-    chan[i].volMax=(e->getDispatch(e->dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->dispatchChanOfChan[i]))<<8)|0xff;
+    if (e->song.dispatchChanOfChan[i]>=0) {
+      chan[i].volMax=(e->getDispatch(e->song.dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->song.dispatchChanOfChan[i]))<<8)|0xff;
+    } else {
+      // fallback
+      chan[i].volMax=0xfff;
+    }
     chan[i].volume=chan[i].volMax;
   }
 
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
+  for (int i=0; i<128; i++) {
+    tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
+  }
+  
 
   arpSpeed=1;
   bAccessTS=new unsigned short[bLen];

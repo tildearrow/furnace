@@ -1741,6 +1741,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
             // return now unless we gotta confirm overwrite
             if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
+              finalSelection.push_back(dirCheckPath);
               ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
               logV("confirm overwrite");
             } else {
@@ -1793,6 +1794,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       }
       ImGui::SameLine();
       if (ImGui::Button(_("No")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+        finalSelection.clear();
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();

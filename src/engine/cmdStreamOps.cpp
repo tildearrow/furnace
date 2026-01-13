@@ -1303,7 +1303,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // write header
   w->write("FCS",4);
-  w->writeS(chans);
+  w->writeS(song.chans);
   // flags
   w->writeC((options.longPointers?1:0)|(options.bigEndian?2:0));
   // reserved
@@ -1313,7 +1313,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     w->writeC(0);
   }
   // offsets
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chanStream[i]=new SafeWriter;
     chanStream[i]->init();
     if (options.longPointers) {
@@ -1323,7 +1323,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
   }
   // max stack sizes
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(0);
   }
 
@@ -1338,7 +1338,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // PASS 0: play the song and log channel command streams
   // song beginning marker
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chanStream[i]->writeC(0xd0);
     chanStream[i]->writeC(i);
     chanStream[i]->writeC(0x00);
@@ -1350,7 +1350,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     chanStream[i]->writeC(0x00);
   }
   while (!done) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       tickPos[i].push_back(chanStream[i]->tell());
     }
     if (loopTick==-1) {
@@ -1359,7 +1359,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
           logI("loop is on tick %d",tick);
           loopTick=tick;
           // loop marker
-          for (int i=0; i<chans; i++) {
+          for (int i=0; i<song.chans; i++) {
             chanStream[i]->writeC(0xd0);
             chanStream[i]->writeC(i);
             chanStream[i]->writeC(0x00);
@@ -1410,7 +1410,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       }
     }
     cmdStream.clear();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       chanStream[i]->writeC(0xde);
       // padding
       chanStream[i]->writeC(0x00);
@@ -1424,7 +1424,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     tick++;
   }
   if (!playing || loopTick<0) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       chanStream[i]->writeC(0xdf);
       // padding
       chanStream[i]->writeC(0x00);
@@ -1436,7 +1436,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       chanStream[i]->writeC(0x00);
     }
   } else {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       if ((int)tickPos[i].size()>loopTick) {
         chanStream[i]->writeC(0xda);
         chanStream[i]->writeI(tickPos[i][loopTick]);
@@ -1494,7 +1494,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
 
     // set preset instruments
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xb8) {
@@ -1536,7 +1536,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
 
     // set preset volumes
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xc7) {
@@ -1578,7 +1578,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
 
     // set speed dial commands
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xd7) {
@@ -1601,7 +1601,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   // PASS 2: condense delays
   if (!options.noDelayCondense) {
     // calculate delay usage
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayCount=0;
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
@@ -1639,7 +1639,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
 
     // condense delays
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayPos=-1;
       int delayCount=0;
@@ -1693,7 +1693,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // PASS 3: note off + one-tick wait
   // optimize one-tick gaps sometimes used in songs
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     unsigned char* buf=chanStream[h]->getFinalBuf();
     if (chanStream[h]->size()<8) continue;
     for (size_t i=0; i<chanStream[h]->size()-8; i+=8) {
@@ -1714,12 +1714,12 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // PASS 4: remove nop's
   // this includes modifying call addresses to compensate
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     chanStream[h]=stripNops(chanStream[h]);
   }
 
   // PASS 5: put all channels together
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chanStreamOff[i]=globalStream->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
     reloc8(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,globalStream->tell());
@@ -1798,7 +1798,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   // also find new offsets
   globalStream=stripNopsPacked(globalStream,sortedCmd,chanStreamOff);
 
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     chanStreamOff[h]+=w->tell();
   }
 
@@ -1807,7 +1807,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
   // calculate max stack sizes
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     std::stack<unsigned int> callStack;
     unsigned int maxStackSize=0;
     unsigned char* buf=w->getFinalBuf();
@@ -1866,7 +1866,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   delete globalStream;
 
   w->seek(40,SEEK_SET);
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     if (options.longPointers) {
       if (options.bigEndian) {
         w->writeI_BE(chanStreamOff[i]);
@@ -1884,7 +1884,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   logD("maximum stack sizes:");
   unsigned int cumulativeStackSize=0;
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(chanStackSize[i]);
     logD("- %d: %d",i,chanStackSize[i]);
     cumulativeStackSize+=chanStackSize[i];

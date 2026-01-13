@@ -31,7 +31,7 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     unsigned int dacPos;
     int dacSample;
     unsigned char duty;
-    bool pcm, furnaceDac, setPos;
+    bool pcm, setPos;
     Channel():
       SharedChannel<signed char>(15),
       dacPeriod(0),
@@ -41,7 +41,6 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
       dacSample(-1),
       duty(0),
       pcm(false),
-      furnaceDac(false),
       setPos(false) {}
   };
   Channel chan[3];

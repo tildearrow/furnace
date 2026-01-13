@@ -54,7 +54,7 @@ void FurnaceGUI::drawSysManager() {
       const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
 
       ImGui::PushID(i);
-      if (ImGui::BeginChild(rackID.c_str(),ImVec2(0,0),ImGuiChildFlags_Border|ImGuiChildFlags_AutoResizeY)) {
+      if (ImGui::BeginChild(rackID.c_str(),ImVec2(0,0),ImGuiChildFlags_Borders|ImGuiChildFlags_AutoResizeY)) {
         // swap handle and name
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }
@@ -145,7 +145,7 @@ void FurnaceGUI::drawSysManager() {
         // channel LEDs and chip config button
         float height=0;
         if (settings.rackShowLEDs) {
-          height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x));
+          height=drawSystemChannelInfo(sysDef,dispatchOff,ImGui::GetContentRegionAvail().x-(ImGui::CalcTextSize(ICON_FA_CHEVRON_DOWN).x+ImGui::GetStyle().ItemSpacing.x),e->song.systemChans[i]);
         }
 
         ImGuiID openedID=ImGui::GetID("OpenSysConfig");
@@ -168,7 +168,7 @@ void FurnaceGUI::drawSysManager() {
       ImGui::EndChild();
       ImGui::PopID();
 
-      dispatchOff+=sysDef->channels;
+      dispatchOff+=e->song.systemChans[i];
     }
 
     if (e->song.systemLen<DIV_MAX_CHIPS) {
