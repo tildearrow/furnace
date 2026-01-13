@@ -1740,7 +1740,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;
   bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, displayExport, displayPalette, fullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
+  bool displayNew, displayExport, displayPalette, fullScreen, sysFullScreen, preserveChanPos, sysDupCloneChannels, sysDupEnd;
   unsigned char noteInputMode;
   bool notifyWaveChange, notifySampleChange;
   bool recalcTimestamps;

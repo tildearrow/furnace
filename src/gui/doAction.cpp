@@ -210,6 +210,7 @@ void FurnaceGUI::doAction(int what) {
       followPattern=!followPattern;
       break;
     case GUI_ACTION_FULLSCREEN:
+      if (sysFullScreen) break;
       fullScreen=!fullScreen;
       SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
       break;
