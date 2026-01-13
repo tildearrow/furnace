@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: Debug
 
 jobs:
   build:
@@ -179,6 +179,7 @@ jobs:
             CMAKE_EXTRA_ARGS+=('-DSUPPORT_XP=ON')
           fi
         elif [ '${{ runner.os }}' == 'macOS' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_C_FLAGS="-O2"' '-DCMAKE_CXX_FLAGS="-O2"')
           if [ '${{ matrix.config.arch }}' == 'arm64' ]; then
             CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64' '-DMAKE_BUNDLE=ON')
           else
