@@ -326,8 +326,8 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -453,8 +453,8 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -533,8 +533,8 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     unsigned char subSubCycle=0;
 
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -2037,6 +2037,17 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
     rate=chipClock/(fmDivBase*2);
   } else {
     rate=fm->sample_rate(chipClock);
+  }
+  switch (ayDiv) {
+    case 8:
+      tfxRate=rate;
+      break;
+    case 16:
+      tfxRate=rate*2;
+      break;
+    default:
+      tfxRate=rate*4;
+      break;
   }
   for (int i=0; i<17; i++) {
     oscBuf[i]->setRate(rate);

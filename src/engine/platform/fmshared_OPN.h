@@ -165,6 +165,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
+    int tfxRate;
     unsigned char csmChan;
     unsigned char lfoValue;
     unsigned char lastExtChPan;
