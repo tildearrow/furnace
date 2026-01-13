@@ -281,6 +281,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   DivMemoryComposition memCompo;
   unsigned char regPool[4*16*128]; // 7 bit page x 16 registers per page x 32 bit per registers
 
+  void updatePCMChanges(int ch);
   void updateNoteChangesAsNeeded(int ch);
 
   friend void putDispatchChip(void*,int);
