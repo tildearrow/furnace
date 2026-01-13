@@ -435,6 +435,7 @@ void DivPlatformAY8910::fillStream(std::vector<DivDelayedWrite>& stream, int sRa
       writes.pop_front();
     }
   }
+  regWrites.clear();
 }
 
 void DivPlatformAY8910::updateOutSel(bool immediate) {
