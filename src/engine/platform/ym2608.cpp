@@ -589,6 +589,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.val;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -601,6 +602,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.addr&0xff;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             w.addrOrVal=true;
           }
