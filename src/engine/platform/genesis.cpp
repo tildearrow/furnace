@@ -928,7 +928,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
         chan[i].dacRate=chan[i].freq*off;
         if (chan[i].dacRate<1) chan[i].dacRate=1;
-        if (dumpWrites) addWrite(0xffff0001,chan[i].dacRate);
+        if (dumpWrites && !isMuted[i]) addWrite(0xffff0001,chan[i].dacRate);
       }
       chan[i].freqChanged=false;
     }
@@ -1071,11 +1071,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
         if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
           chan[c.chan].dacSample=-1;
-          if (dumpWrites) addWrite(0xffff0002,0);
+          if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0002,0);
           break;
         } else {
           rWrite(0x2b,1<<7);
-          if (dumpWrites) {
+          if (dumpWrites && !isMuted[c.chan]) {
             addWrite(0xffff0000,chan[c.chan].dacSample);
             addWrite(0xffff0003,chan[c.chan].dacDirection);
           }
@@ -1126,7 +1126,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       if (c.chan>=5 && c.chan<csmChan) {
         chan[c.chan].dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
+        if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0002,0);
         if (parent->song.compatFlags.brokenDACMode) {
           rWrite(0x2b,0);
           if (chan[c.chan].dacMode) break;
@@ -1139,7 +1139,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF_ENV:
       if (c.chan>=5) {
         chan[c.chan].dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
+        if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0002,0);
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
@@ -1277,14 +1277,14 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacDirection=c.value;
-      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].dacDirection);
+      if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0003,chan[c.chan].dacDirection);
       break;
     }
     case DIV_CMD_SAMPLE_POS:
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacPos=c.value;
       chan[c.chan].setPos=true;
-      if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dacPos);
+      if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0005,chan[c.chan].dacPos);
       break;
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
