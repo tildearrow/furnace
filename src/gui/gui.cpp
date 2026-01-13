@@ -647,7 +647,7 @@ const char* FurnaceGUI::getSystemName(DivSystem which) {
 }
 
 void FurnaceGUI::updateScroll(int amount) {
-  float lineHeight=(PAT_FONT_SIZE+2*dpiScale);
+  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
   nextScroll=lineHeight*amount;
   haveHitBounds=false;
 }
@@ -658,13 +658,13 @@ void FurnaceGUI::updateScrollRaw(float amount) {
 }
 
 void FurnaceGUI::addScroll(int amount) {
-  float lineHeight=(PAT_FONT_SIZE+2*dpiScale);
+  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
   nextAddScroll=lineHeight*amount;
   haveHitBounds=false;
 }
 
 void FurnaceGUI::addScrollX(int amount) {
-  float lineHeight=(PAT_FONT_SIZE+2*dpiScale);
+  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
   nextAddScrollX=lineHeight*amount;
   haveHitBounds=false;
 }

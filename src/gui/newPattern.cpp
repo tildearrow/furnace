@@ -158,7 +158,7 @@ void FurnaceGUI::drawPatternNew() {
     }*/
 
     ImGui::PushFont(patFont);
-    float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
+    float lineHeight=round(ImGui::GetTextLineHeight()+2*dpiScale);
     dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
     int totalRows=e->curSubSong->patLen+dummyRows*2;
     int firstRow=-dummyRows+1;
