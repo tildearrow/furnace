@@ -179,6 +179,7 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
       chan[i].tfx.counter += counterRatio;
       if (chan[i].tfx.counter >= chan[i].tfx.period) {
         chan[i].tfx.counter -= chan[i].tfx.period;
+        //assert(chan[i].tfx.counter < chan[i].tfx.period);
         switch (chan[i].tfx.mode) {
           case 0:
             // pwm
@@ -234,7 +235,7 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
     // YM2149 half-clock and Sunsoft 5B: timers run an octave too high
     // on AtomicSSG core timers run 2 octaves too high
     if (clockSel || sunsoft) chan[i].tfx.period = chan[i].tfx.period * 2;
-    if (selCore && !intellivision) chan[i].tfx.period = chan[i].tfx.period * 4;
+    //if (selCore && !intellivision) chan[i].tfx.period = chan[i].tfx.period * 4;
   }
 }
 
@@ -379,8 +380,11 @@ void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
     oscBuf[i]->begin(len);
   }
   for (size_t i=0; i<len; i++) {
-    runDAC(0,1);
-    runTFX(0,1);
+    if (++atomicTFXDelay>=8) {
+      atomicTFXDelay=0;
+      runDAC(0,8);
+      runTFX(0,(clockSel || sunsoft)?4:2);
+    }
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -1066,6 +1070,8 @@ void DivPlatformAY8910::reset() {
   ioPortB=false;
   portAVal=0;
   portBVal=0;
+
+  atomicTFXDelay=0;
 }
 
 int DivPlatformAY8910::getOutputCount() {
