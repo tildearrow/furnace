@@ -172,7 +172,7 @@ void FurnaceGUI::drawXYOsc() {
           float decay=exp2f(-1e3f/e->getAudioDescGot().rate/xyOscDecayTime);
           ImDrawListFlags prevFlags=dl->Flags;
           dl->Flags|=ImDrawFlags_RoundCornersNone;
-          if (!settings.oscAntiAlias || safeMode) {
+          if (safeMode) {
             dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
           }
           if (settings.oscEscapesBoundary) {
