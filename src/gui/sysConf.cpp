@@ -2670,6 +2670,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_OPL4_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
       int ramSize=flags.getInt("ramSize",0);
+      int fmMixL=flags.getInt("fmMixL",4);
+      int fmMixR=flags.getInt("fmMixR",4);
+      int pcmMixL=flags.getInt("pcmMixL",7);
+      int pcmMixR=flags.getInt("pcmMixR",7);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -2726,10 +2730,38 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      ImGui::Text("FM volume:");
+      if (CWSliderInt(_("Left##FMMixL"),&fmMixL,0,7)) {
+        if (fmMixL<0) fmMixL=0;
+        if (fmMixL>7) fmMixL=7;
+        altered=true;
+      } rightClickable
+      if (CWSliderInt(_("Right##FMMixR"),&fmMixR,0,7)) {
+        if (fmMixR<0) fmMixR=0;
+        if (fmMixR>7) fmMixR=7;
+        altered=true;
+      } rightClickable
+
+      ImGui::Text("PCM volume:");
+      if (CWSliderInt(_("Left##PCMMixL"),&pcmMixL,0,7)) {
+        if (pcmMixL<0) pcmMixL=0;
+        if (pcmMixL>7) pcmMixL=7;
+        altered=true;
+      } rightClickable
+      if (CWSliderInt(_("Right##PCMMixR"),&pcmMixR,0,7)) {
+        if (pcmMixR<0) pcmMixR=0;
+        if (pcmMixR>7) pcmMixR=7;
+        altered=true;
+      } rightClickable
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("ramSize",ramSize);
+          flags.set("fmMixL",fmMixL);
+          flags.set("fmMixR",fmMixR);
+          flags.set("pcmMixL",pcmMixL);
+          flags.set("pcmMixR",pcmMixR);
         });
       }
       break;

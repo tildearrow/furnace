@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev241"
-#define DIV_ENGINE_VERSION 241
+#define DIV_VERSION "dev242"
+#define DIV_ENGINE_VERSION 242
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02

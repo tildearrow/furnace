@@ -2395,6 +2395,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // OPL4 default mix levels
+    if (ds.version<242) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPL4 || ds.system[i]==DIV_SYSTEM_OPL4_DRUMS) {
+          ds.systemFlags[i].set("fmMixL",7);
+          ds.systemFlags[i].set("fmMixR",7);
+          ds.systemFlags[i].set("pcmMixL",7);
+          ds.systemFlags[i].set("pcmMixR",7);
+        }
+      }
+    }
+
     // warn on partial pitch linearity
     if (ds.compatFlags.linearPitch>1) {
       ds.compatFlags.linearPitch=1;
