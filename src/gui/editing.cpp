@@ -1973,6 +1973,8 @@ void FurnaceGUI::doDrag(bool copy) {
 
 void FurnaceGUI::moveSelected(int x, int y) {
   SelectionPoint selStartOld, selEndOld, selStartNew, selEndNew;
+  finishSelection();
+
   selStartOld=selStart;
   selEndOld=selEnd;
 
