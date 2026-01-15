@@ -21,4 +21,4 @@ the following options are available in the Chip Manager window:
 - **Maximum volume**: sets the max value in the volume column.
 - **Stereo**: when enabled, you may use panning effects.
 - **Interpolation**: "softens" samples played back at lower rates.
-- **Channels**: sets the number of available channels, from 1 up to 128.
+- **Channels**: sets the number of channels, from 1 to 128.

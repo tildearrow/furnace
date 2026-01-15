@@ -43,13 +43,13 @@ the effective BPM is displayed as well, taking all settings into account.
 - depending on the tempo and tick rate, the results may sound uneven. another way to reach a specific tempo with more control over the results is to use grooves. see the page on [grooves](../8-advanced/grooves.md) for details.
 
 **BPM**: the track's initial tempo in beats per minute.
-- note: this uses the highlight values below in calculating beats.
+- this is calculated using the previous settings and highlight values.
 
 **Highlight**: sets the pattern row highlights:
 - the first value represents the number of rows per beat.
 - the second value represents the number of rows per measure.
-- these don't have to line up with the music's actual beats and measures. set them as preferred for tracking.
-  - note: these values are used for the metronome and calculating BPM.
+- these don't have to line up with the track's actual beats and measures. set them as preferred for tracking.
+- these values are used for the metronome and calculating BPM.
 
 **Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. (Individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` commands.)
 
