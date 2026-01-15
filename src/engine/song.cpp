@@ -476,6 +476,15 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     patLen=reader.readS();
     ordersLen=reader.readS();
 
+    if (patLen<1 || patLen>DIV_MAX_ROWS) {
+      logE("invalid pattern length!");
+      return false;
+    }
+    if (ordersLen<1 || ordersLen>256) {
+      logE("invalid orders count!");
+      return false;
+    }
+
     hilightA=reader.readC();
     hilightB=reader.readC();
 
@@ -503,6 +512,10 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     for (int i=0; i<chans; i++) {
       pat[i].effectCols=reader.readC();
+      if (pat[i].effectCols<1 || pat[i].effectCols>8) {
+        logE("invalid effect column count!");
+        return false;
+      }
     }
 
     for (int i=0; i<chans; i++) {
@@ -543,6 +556,15 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     patLen=reader.readS();
     ordersLen=reader.readS();
 
+    if (patLen<1 || patLen>DIV_MAX_ROWS) {
+      logE("invalid pattern length!");
+      return false;
+    }
+    if (ordersLen<1 || ordersLen>256) {
+      logE("invalid orders count!");
+      return false;
+    }
+
     hilightA=reader.readC();
     hilightB=reader.readC();
 
@@ -568,6 +590,11 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     for (int i=0; i<chans; i++) {
       pat[i].effectCols=reader.readC();
+
+      if (pat[i].effectCols<1 || pat[i].effectCols>8) {
+        logE("invalid effect column count!");
+        return false;
+      }
     }
 
     for (int i=0; i<chans; i++) {
