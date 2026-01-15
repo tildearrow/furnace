@@ -129,7 +129,7 @@ sample offset is a 24-bit (3 byte) number.
 
 you may use these effects simultaneously in a row.
 
-if you do not set a byte, its its most recent value will be used.
+if you do not set a byte, its most recent value will be used.
 
 in previous versions of Furnace a `9xxx` effect existed which set the sample position to `$xxx00` (`xxx` was effectively multiplied by 256). this maps to `920x 91xx` in current Furnace.
 
