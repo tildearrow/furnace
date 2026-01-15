@@ -567,9 +567,9 @@ String FurnaceGUI::doCopy(bool cut, bool writeClipboard, const SelectionPoint& s
     for (; j<e->curSubSong->patLen && (j<=sEnd.y || jOrder<sEnd.order); j++) {
       int iCoarse=sStart.xCoarse;
       int iFine=sStart.xFine;
-      if (iFine>3 && !(iFine&1)) {
+      /*if (iFine>3 && !(iFine&1)) {
         iFine--;
-      }
+      }*/
       clipb+='\n';
       for (; iCoarse<=sEnd.xCoarse; iCoarse++) {
         if (!e->curSubSong->chanShow[iCoarse]) continue;
@@ -621,7 +621,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
   for (size_t i=2; i<data.size() && j<e->curSubSong->patLen; i++) {
     size_t charPos=0;
     int iCoarse=cursor.xCoarse;
-    int iFine=(startOff>2 && cursor.xFine>2)?(((cursor.xFine-1)&(~1))|1):startOff;
+    int iFine=(startOff>2 && cursor.xFine>2)?(cursor.xFine /*((cursor.xFine-1)&(~1))|1*/):startOff;
 
     String& line=data[i];
 
