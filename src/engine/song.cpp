@@ -351,6 +351,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
   // MAKE IT WORK
   while (!endOfSong) {
+    // if the virtual tempo nominator is zero, the song will go on forever.
+    if (curVirtualTempoN<1) {
+      ts.totalTime.seconds=INT_MAX;
+      break;
+    }
+
     // heuristic
     int advance=(curVirtualTempoD*ticks)/curVirtualTempoN;
     for (int i=0; i<chans; i++) {
@@ -376,13 +382,13 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     // run virtual tempo
     tempoAccum+=curVirtualTempoN*advance;
     while (tempoAccum>=curVirtualTempoD) {
-      int ticksToRun=tempoAccum/curVirtualTempoD;
-      tempoAccum%=curVirtualTempoD;
+      int ticksToRun=tempoAccum/MAX(1,curVirtualTempoD);
+      tempoAccum%=MAX(1,curVirtualTempoD);
       // tick counter
       ticks-=ticksToRun;
       if (ticks<0) {
         // if ticks is negative, we must call ticks back
-        tempoAccum+=-ticks*curVirtualTempoD;
+        tempoAccum+=-ticks*MAX(1,curVirtualTempoD);
       }
       if (ticks<=0) {
         if (shallStopSched) {
