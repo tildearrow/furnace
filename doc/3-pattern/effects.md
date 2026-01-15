@@ -111,7 +111,7 @@ not all chips support these effects.
 
 - `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
   - this effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** triggers note off after `xx` ticks. this triggers key off in FM/hardware envelope chips, or cuts note otherwise.
+- `ECxx`: **Note cut.** triggers note off after `xx` ticks. this triggers key off in FM/hardware envelope chips, or cuts the note otherwise.
 - `EDxx`: **Note delay.** delays note by `x` ticks.
 - `FCxx`: **Note release.** releases current note after `xx` ticks. this releases macros and triggers key off in FM/hardware envelope chips.
 - `E7xx`: **Macro release.** releases macros after `xx` ticks. this does not trigger key off.
@@ -129,7 +129,7 @@ sample offset is a 24-bit (3 byte) number.
 
 you may use these effects simultaneously in a row.
 
-if you do not set a byte, its last value will be used.
+if you do not set a byte, its its most recent value will be used.
 
 in previous versions of Furnace a `9xxx` effect existed which set the sample position to `$xxx00` (`xxx` was effectively multiplied by 256). this maps to `920x 91xx` in current Furnace.
 
