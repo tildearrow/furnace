@@ -1545,6 +1545,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       if (ds.version>=96) {
         subSong->virtualTempoN=reader.readS();
         subSong->virtualTempoD=reader.readS();
+
+        if (subSong->virtualTempoN<1) subSong->virtualTempoN=1;
+        if (subSong->virtualTempoD<1) subSong->virtualTempoD=1;
       } else {
         reader.readI();
       }
@@ -1638,6 +1641,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         for (int i=0; i<16; i++) {
           subSong->speeds.val[i]=(unsigned char)reader.readC();
         }
+        subSong->speeds.checkBounds();
 
         // grooves
         unsigned char grooveCount=reader.readC();
@@ -1648,6 +1652,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           for (int j=0; j<16; j++) {
             gp.val[j]=(unsigned char)reader.readC();
           }
+          gp.checkBounds();
 
           ds.grooves.push_back(gp);
         }

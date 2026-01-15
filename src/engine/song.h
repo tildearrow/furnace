@@ -63,6 +63,7 @@ struct DivGroovePattern {
   unsigned short len;
   bool readData(SafeReader& reader);
   void putData(SafeWriter* w);
+  void checkBounds();
   DivGroovePattern():
     len(1) {
     for (int i=0; i<16; i++) {

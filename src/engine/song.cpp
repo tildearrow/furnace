@@ -482,10 +482,14 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     virtualTempoN=reader.readS();
     virtualTempoD=reader.readS();
 
+    if (virtualTempoN<1) virtualTempoN=1;
+    if (virtualTempoD<1) virtualTempoD=1;
+
     speeds.len=reader.readC();
     for (int i=0; i<16; i++) {
       speeds.val[i]=reader.readS();
     }
+    speeds.checkBounds();
 
     name=reader.readString();
     notes=reader.readString();
@@ -545,6 +549,9 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     if (version>=96) {
       virtualTempoN=reader.readS();
       virtualTempoD=reader.readS();
+
+      if (virtualTempoN<1) virtualTempoN=1;
+      if (virtualTempoD<1) virtualTempoD=1;
     } else {
       reader.readI();
     }
@@ -591,6 +598,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
       for (int i=0; i<16; i++) {
         speeds.val[i]=(unsigned char)reader.readC();
       }
+      speeds.checkBounds();
     }
 
     for (int i=0; i<16; i++) {
@@ -1031,6 +1039,11 @@ void DivSong::unload() {
   subsong.clear();
 }
 
+void DivGroovePattern::checkBounds() {
+  if (len<1) len=1;
+  if (len>16) len=16;
+}
+
 bool DivGroovePattern::readData(SafeReader& reader) {
   unsigned char magic[4];
 
@@ -1046,6 +1059,7 @@ bool DivGroovePattern::readData(SafeReader& reader) {
   for (int i=0; i<16; i++) {
     val[i]=reader.readS();
   }
+  checkBounds();
 
   return true;
 }
