@@ -65,7 +65,7 @@ due to limitations in some of those sound chips, some restrictions exist:
 - Seta/Allumer X1-010: frequency resolution is terrible in the lower end. your sample can't be longer than 131072.
 - C219: sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
 
-furthermore, many of these chips have a limited amount of sample memory. check memory usage with the Memory Composition window (menu item "window > debug > memory composition").
+furthermore, many of these chips have a limited amount of sample memory. check memory usage in the Memory Composition window (window > debug > memory composition).
 
 ## the sample editor
 

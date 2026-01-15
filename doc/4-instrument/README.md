@@ -3,7 +3,7 @@
 the instrument editor allows you to edit instruments.
 it can be activated by double-clicking on an instrument in the instrument list.
 
-alternatively, the menu item "window > assets > instrument editor" displays it.
+it can also be found by going to window > assets > instrument editor in the main menu bar.
 
 ## main
 
