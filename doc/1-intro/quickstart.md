@@ -3,7 +3,7 @@
 Furnace is amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour from start to finish.
 
 this guide makes a few assumptions:
-* you've already installed Furnace and know where to find the `demos` folder that comes with it. look for `quickstart.fur` but don't open it yet.
+* you've already installed Furnace and know where to find the `demos` directory that comes with it. look for `quickstart.fur` but don't open it yet.
 * you haven't changed any configuration or layout yet. it should start up with the default Sega Genesis system.
 * you're working with a PC keyboard, US English, QWERTY layout. Mac users should already know the equivalents to the `Ctrl` and `Alt` keys.
 * you're comfortable with keyboard shortcuts. if not, a lot of this can also be done using buttons or menus, but please try the keyboard first. it's worth it to smooth out the tracking workflow.
@@ -221,6 +221,6 @@ now you know the basics of how to make music with Furnace. from here, the rest o
 
 a great way to learn how to make your own music is to study how others have done it. try the demo modules! not only do they sound good and show off Furnace's capabilities, but they're also great for learning tracking techniques. one recommended method is this: open a demo track you like, open a second copy, save it to a new file, use the menu option "edit > clear..." and click "clear all subsongs", and remake the track by transcribing from the original.
 
-remember that everything in the `instruments` folder is free for you to use in your own music, as well as instruments found in the demo songs.
+remember that everything in the `instruments` directory is free for you to use in your own music, as well as instruments found in the demo songs.
 
 most of all, don't be afraid to experiment. go play!
