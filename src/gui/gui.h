@@ -1624,7 +1624,7 @@ class FurnaceGUIRender {
     virtual bool canVSync();
     virtual void renderGUI();
     virtual void wipe(float alpha);
-    virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth, float zoom);
+    virtual void drawOsc(float* data, size_t len, ImVec2 pos0, ImVec2 pos1, ImVec4 color, ImVec2 canvasSize, float lineWidth);
     virtual void present();
     virtual bool supportsDrawOsc();
     virtual bool areTexturesSquare();
@@ -1655,7 +1655,6 @@ struct PendingDrawOsc {
   ImVec2 pos1;
   ImVec4 color;
   float lineSize;
-  float zoom;
   PendingDrawOsc():
     gui(NULL),
     data(NULL),
@@ -1663,8 +1662,7 @@ struct PendingDrawOsc {
     pos0(0,0),
     pos1(0,0),
     color(0,0,0,0),
-    lineSize(0.0f),
-    zoom(1.0f) {}
+    lineSize(0.0f) {}
 };
 
 struct MappedInput {

@@ -72,7 +72,7 @@ void FurnaceGUI::readOsc() {
     float factor=(float)(oscWidth)/(float)winSize;
     int posInt=oscReadPos-(8.0f/factor);
     for (int i=7; i<oscWidth-9+24; i++) {
-      oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
+      oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff]*oscZoom;
 
       posFrac+=1.0;
       while (posFrac>=1.0) {
@@ -82,7 +82,7 @@ void FurnaceGUI::readOsc() {
 
         float* t1=&sincITable[(63-n)<<3];
         float* t2=&sincITable[n<<3];
-        float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
+        float delta=(e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff])*oscZoom;
 
         oscValues[ch][i-7]+=t1[7]*-delta;
         oscValues[ch][i-6]+=t1[6]*-delta;
@@ -162,7 +162,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::runPendingDrawOsc(PendingDrawOsc* which) {
-  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize,which->zoom);
+  rend->drawOsc(which->data,which->len,which->pos0,which->pos1,which->color,ImVec2(canvasW,canvasH),which->lineSize);
 }
 
 void FurnaceGUI::drawOsc() {
@@ -181,9 +181,9 @@ void FurnaceGUI::drawOsc() {
   if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags,_("Oscilloscope"))) {
     bool showLevel=false;
     if (oscZoomSlider) {
-      if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
+      if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,4.0)) {
         if (oscZoom<0.5) oscZoom=0.5;
-        if (oscZoom>2.0) oscZoom=2.0;
+        if (oscZoom>4.0) oscZoom=4.0;
       } rightClickable
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("zoom: %.2fx (%.1fdB)"),oscZoom,20.0*log10(oscZoom));
@@ -354,14 +354,13 @@ void FurnaceGUI::drawOsc() {
             _do[0].pos1=inRect.Max;
             _do[0].color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
             _do[0].lineSize=dpiScale*settings.oscLineSize;
-            _do[0].zoom=oscZoom;
 
             dl->AddCallback(_drawOsc,&_do[0]);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
             for (int i=0; i<oscWidth; i++) {
               float x=(float)i/(float)(oscWidth);
-              float y=oscValuesAverage[i+12]*0.5f*oscZoom;
+              float y=oscValuesAverage[i+12]*0.5f;
               if (!settings.oscEscapesBoundary) {
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
@@ -391,14 +390,13 @@ void FurnaceGUI::drawOsc() {
               _do[ch].pos1=inRect.Max;
               _do[ch].color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
               _do[ch].lineSize=dpiScale*settings.oscLineSize;
-              _do[ch].zoom=oscZoom;
 
               dl->AddCallback(_drawOsc,&_do[ch]);
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
               for (int i=0; i<oscWidth; i++) {
                 float x=(float)i/(float)(oscWidth);
-                float y=oscValues[ch][i+12]*0.5f*oscZoom;
+                float y=oscValues[ch][i+12]*0.5f;
                 if (!settings.oscEscapesBoundary) {
                   if (y<-0.5f) y=-0.5f;
                   if (y>0.5f) y=0.5f;
