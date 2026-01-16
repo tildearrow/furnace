@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2448,7 +2448,7 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
     _("Sharp SM8521"), NULL, 0xc8, 0, 3, 3, 3,
     false, true, 0, false, 0, 32, 16,
-    _("a SoC with wavetable sound hardware."),
+    _("a SoC with wavetable sound hardware.\n\nWARNING: NOISE EMULATION IS CURRENTLY INACCURATE DUE TO LACK OF DOCUMENTATION."),
     DivChanDefFunc({
       DivChanDef(_("Channel 1"), "CH1", DIV_CH_WAVE , DIV_INS_SM8521),
       DivChanDef(_("Channel 2"), "CH2", DIV_CH_WAVE , DIV_INS_SM8521),

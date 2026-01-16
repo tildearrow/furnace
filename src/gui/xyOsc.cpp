@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -172,7 +172,7 @@ void FurnaceGUI::drawXYOsc() {
           float decay=exp2f(-1e3f/e->getAudioDescGot().rate/xyOscDecayTime);
           ImDrawListFlags prevFlags=dl->Flags;
           dl->Flags|=ImDrawFlags_RoundCornersNone;
-          if (!settings.oscAntiAlias || safeMode) {
+          if (safeMode) {
             dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
           }
           if (settings.oscEscapesBoundary) {

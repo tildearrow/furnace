@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2903,10 +2903,10 @@ void DivPlatformOPL::reset() {
       // Reset wavetable header
       immWrite(0x202,PCM_IN_RAM?0x10:0x00);
       // initialize mixer volume
-      fmMixL=7;
-      fmMixR=7;
-      pcmMixL=7;
-      pcmMixR=7;
+      fmMixL=fmMixLDef;
+      fmMixR=fmMixRDef;
+      pcmMixL=pcmMixLDef;
+      pcmMixR=pcmMixRDef;
       immWrite(PCM_ADDR_MIX_FM,((7-fmMixR)<<3)|(7-fmMixL));
       immWrite(PCM_ADDR_MIX_PCM,((7-pcmMixR)<<3)|(7-pcmMixL));
     } else {
@@ -3189,6 +3189,19 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   }
   compatPan=flags.getBool("compatPan",false);
   compatYPitch=flags.getBool("compatYPitch",false);
+
+  fmMixLDef=flags.getInt("fmMixL",4);
+  fmMixRDef=flags.getInt("fmMixR",4);
+  pcmMixLDef=flags.getInt("pcmMixL",7);
+  pcmMixRDef=flags.getInt("pcmMixR",7);
+  if (fmMixLDef<0) fmMixLDef=0;
+  if (fmMixLDef>7) fmMixLDef=7;
+  if (fmMixRDef<0) fmMixRDef=0;
+  if (fmMixRDef>7) fmMixRDef=7;
+  if (pcmMixLDef<0) pcmMixLDef=0;
+  if (pcmMixLDef>7) pcmMixLDef=7;
+  if (pcmMixRDef<0) pcmMixRDef=0;
+  if (pcmMixRDef>7) pcmMixRDef=7;
 
   for (int i=0; i<44; i++) {
     oscBuf[i]->setRate(rate);

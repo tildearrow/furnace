@@ -111,7 +111,7 @@ not all chips support these effects.
 
 - `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
   - this effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** triggers note off after `xx` ticks. this triggers key off in FM/hardware envelope chips, or cuts note otherwise.
+- `ECxx`: **Note cut.** triggers note off after `xx` ticks. this triggers key off in FM/hardware envelope chips, or cuts the note otherwise.
 - `EDxx`: **Note delay.** delays note by `x` ticks.
 - `FCxx`: **Note release.** releases current note after `xx` ticks. this releases macros and triggers key off in FM/hardware envelope chips.
 - `E7xx`: **Macro release.** releases macros after `xx` ticks. this does not trigger key off.
@@ -129,7 +129,7 @@ sample offset is a 24-bit (3 byte) number.
 
 you may use these effects simultaneously in a row.
 
-if you do not set a byte, its last value will be used.
+if you do not set a byte, its most recent value will be used.
 
 in previous versions of Furnace a `9xxx` effect existed which set the sample position to `$xxx00` (`xxx` was effectively multiplied by 256). this maps to `920x 91xx` in current Furnace.
 
@@ -146,52 +146,28 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 
 ## macro table
 
- ID  | macro
------|-----------------------------
-`00` | volume
-`01` | arpeggio
-`02` | duty/noise
-`03` | waveform
-`04` | pitch
-`05` | extra 1
-`06` | extra 2
-`07` | extra 3
-`08` | extra A (ALG)
-`09` | extra B (FM)
-`0A` | extra C (FMS)
-`0B` | extra D (AMS)
-`0C` | panning left
-`0D` | panning right
-`0E` | phase reset
-`0F` | extra 4
-`10` | extra 5
-`11` | extra 6
-`12` | extra 7
-`13` | extra 8
-|    | **operator 1 macros**
-`20` | AM
-`21` | AR
-`22` | DR
-`23` | MULT
-`24` | RR
-`25` | SL
-`26` | TL
-`27` | DT2
-`28` | RS
-`29` | DT
-`2A` | D2R
-`2B` | SSG-EG
-`2C` | DAM
-`2D` | DVB
-`2E` | EGT
-`2F` | KSL
-`30` | SUS
-`31` | VIB
-`32` | WS
-`33` | KSR
-`40` | **operator 2 macros**
-`60` | **operator 3 macros**
-`80` | **operator 4 macros**
+ ID  | macro         | ID   | op 1   | ID   | op 2   | ID   | op 3   | ID   | op 4   |
+-----|---------------|------|--------|------|--------|------|--------|------|--------|
+`00` | volume        | `20` | AM     | `40` | AM     | `60` | AM     | `80` | AM     |
+`01` | arpeggio      | `21` | AR     | `41` | AR     | `61` | AR     | `81` | AR     |
+`02` | duty/noise    | `22` | DR     | `42` | DR     | `62` | DR     | `82` | DR     |
+`03` | waveform      | `23` | MULT   | `43` | MULT   | `63` | MULT   | `83` | MULT   |
+`04` | pitch         | `24` | RR     | `44` | RR     | `64` | RR     | `84` | RR     |
+`05` | extra 1       | `25` | SL     | `45` | SL     | `65` | SL     | `85` | SL     |
+`06` | extra 2       | `26` | TL     | `46` | TL     | `66` | TL     | `86` | TL     |
+`07` | extra 3       | `27` | DT2    | `47` | DT2    | `67` | DT2    | `87` | DT2    |
+`08` | extra A (ALG) | `28` | RS     | `48` | RS     | `68` | RS     | `88` | RS     |
+`09` | extra B (FM)  | `29` | DT     | `49` | DT     | `69` | DT     | `89` | DT     |
+`0A` | extra C (FMS) | `2A` | D2R    | `4A` | D2R    | `6A` | D2R    | `8A` | D2R    |
+`0B` | extra D (AMS) | `2B` | SSG-EG | `4B` | SSG-EG | `6B` | SSG-EG | `8B` | SSG-EG |
+`0C` | panning left  | `2C` | DAM    | `4C` | DAM    | `6C` | DAM    | `8C` | DAM    |
+`0D` | panning right | `2D` | DVB    | `4D` | DVB    | `6D` | DVB    | `8D` | DVB    |
+`0E` | phase reset   | `2E` | EGT    | `4E` | EGT    | `6E` | EGT    | `8E` | EGT    |
+`0F` | extra 4       | `2F` | KSL    | `4F` | KSL    | `6F` | KSL    | `8F` | KSL    |
+`10` | extra 5       | `30` | SUS    | `50` | SUS    | `70` | SUS    | `90` | SUS    |
+`11` | extra 6       | `31` | VIB    | `51` | VIB    | `71` | VIB    | `91` | VIB    |
+`12` | extra 7       | `32` | WS     | `52` | WS     | `72` | WS     | `92` | WS     |
+`13` | extra 8       | `33` | KSR    | `53` | KSR    | `73` | KSR    | `93` | KSR    |
 
 the interpretation of duty, wave and extra macros depends on chip/instrument type:
 
