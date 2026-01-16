@@ -1377,6 +1377,58 @@ void FurnaceGUI::drawPattern() {
         demandScrollX=false;
       }
 
+      // Ctrl+scroll to increment/decrement selected values
+      // This must be checked BEFORE other wheel handlers to prevent default scrolling
+      if (isCtrlWheelModifierHeld() && wheelY!=0 && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+        // Check if there's a multi-cell selection
+        bool hasSelection=(sel1.order!=sel2.order || sel1.y!=sel2.y || sel1.xCoarse!=sel2.xCoarse || sel1.xFine!=sel2.xFine);
+        
+        // Determine which column to modify based on leftmost column in selection (or cursor if no selection)
+        // The leftmost column is always the note column (xFine==0), but we also support instrument, volume, and effect values
+        int targetFine;
+        if (hasSelection) {
+          // Use leftmost column (sel1) from selection
+          targetFine=sel1.xFine;
+        } else {
+          // No selection, use cursor position
+          targetFine=cursor.xFine;
+        }
+        
+        // Check what type of column this is
+        bool isNote=(targetFine==DIV_PAT_NOTE);
+        bool isIns=(targetFine==DIV_PAT_INS);
+        bool isVol=(targetFine==DIV_PAT_VOL);
+        bool isEffectVal=((targetFine&1)==0 && targetFine>=4);
+        
+        if (isNote || isIns || isVol || isEffectVal) {
+          int amount=(wheelY>0)?1:-1;
+          // Create a mask that only allows the column type of the leftmost column
+          OperationMask columnMask;
+          columnMask.note=false;
+          columnMask.ins=false;
+          columnMask.vol=false;
+          columnMask.effect=false;
+          columnMask.effectVal=false;
+          
+          if (isNote) {
+            columnMask.note=true;
+            doTranspose(amount,columnMask);
+          } else if (isIns) {
+            columnMask.ins=true;
+            doTranspose(amount,columnMask);
+          } else if (isVol) {
+            columnMask.vol=true;
+            doTranspose(amount,columnMask);
+          } else if (isEffectVal) {
+            columnMask.effectVal=true;
+            doTranspose(amount,columnMask);
+          }
+          // Consume the wheel event to prevent scrolling
+          wheelY=0;
+          wheelX=0;
+        }
+      }
+
       // cursor follows wheel
       if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern || selecting) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelX!=0 || wheelY!=0) {
@@ -1443,6 +1495,7 @@ void FurnaceGUI::drawPattern() {
           }
         }
       }
+
       // HACK: we need to capture the last scroll position in order to restore it during undo/redo
       patScroll=ImGui::GetScrollY();
       // HACK: rendering here would cause the pairs to be drawn behind the pattern for some reason...
