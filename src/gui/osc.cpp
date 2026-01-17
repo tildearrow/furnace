@@ -54,24 +54,24 @@ void FurnaceGUI::readOsc() {
 
   for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
     if (oscValues[ch]==NULL) {
-      oscValues[ch]=new float[2048];
+      oscValues[ch]=new float[2064]; // 2048, with 16 more values so the sinced wave is actually 2048 long
     }
     if (trigger[ch]==NULL) {
       trigger[ch]=new TriggerAnalog(e->oscBuf[ch]);
     }
 
-    if (triggerState>0 && trigger[ch]->trigger(winSize,(writePos-winSize)&0x7fff,triggerLevel,triggerState-1)) {
+    if (triggerState>0 && trigger[ch]->trigger(winSize,e->oscReadPos,triggerLevel,triggerState-1)) {
       oscReadPos=trigger[ch]->getTriggerIndex();
     } else {
       oscReadPos=(writePos-winSize)&0x7fff;
     }
-    memset(oscValues[ch],0,2048*sizeof(float));
+    memset(oscValues[ch],0,2064*sizeof(float));
     float* sincITable=DivFilterTables::getSincIntegralSmallTable();
 
     float posFrac=0.0;
     float factor=(float)(oscWidth)/(float)winSize;
     int posInt=oscReadPos-(8.0f/factor);
-    for (int i=7; i<oscWidth-9+24; i++) {
+    for (int i=7; i<oscWidth+7; i++) {
       oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff]*oscZoom;
 
       posFrac+=1.0;
@@ -116,7 +116,7 @@ void FurnaceGUI::readOsc() {
     oscValuesAverage=new float[2048];
   }
   memset(oscValuesAverage,0,2048*sizeof(float));
-  for (int i=0; i<oscWidth; i++) {
+  for (int i=0; i<oscWidth+16; i++) {
     float avg=0;
     for (int j=0; j<e->getAudioDescGot().outChans; j++) {
       avg+=oscValues[j][i];
@@ -173,11 +173,6 @@ void FurnaceGUI::drawOsc() {
   }
   if (!oscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (settings.oscTakesEntireWindow) {
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0,0));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0)); // this ruins the sliders btw
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing,ImVec2(0,0));
-  }
   if (ImGui::Begin("Oscilloscope",&oscOpen,globalWinFlags,_("Oscilloscope"))) {
     bool showLevel=false;
     if (oscZoomSlider) {
@@ -230,10 +225,22 @@ void FurnaceGUI::drawOsc() {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
 
-    static ImVec2 waveform[2048];
+    static ImVec2 waveform[2064];
     ImVec2 size=ImGui::GetContentRegionAvail();
-
     ImVec2 minArea=window->DC.CursorPos;
+    /* now
+     * why am i doing it like this instead of removing the window padding?
+     * because that breaks the title bar
+     * oh and im checking against the slider visibility because
+     * i dont want the waveform to touch the slider
+     */
+    if (settings.oscTakesEntireWindow && !oscZoomSlider) {
+      size=window->Size;
+      minArea=window->Pos;
+      size.y-=window->TitleBarHeight;
+      minArea.y+=window->TitleBarHeight;
+    }
+
     ImVec2 maxArea=ImVec2(
       minArea.x+size.x,
       minArea.y+size.y
@@ -249,7 +256,7 @@ void FurnaceGUI::drawOsc() {
     ImU32 borderColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_BORDER]);
     ImU32 refColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_REF]);
     ImU32 guideColor=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_GUIDE]);
-    ImGui::ItemSize(size,style.FramePadding.y);
+    ImGui::ItemSize(ImGui::GetContentRegionAvail(),style.FramePadding.y);
     if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
       if (safeMode || renderBackend==GUI_BACKEND_SOFTWARE) {
         dl->AddRectFilled(
@@ -344,12 +351,15 @@ void FurnaceGUI::drawOsc() {
         dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
       }
 
+      // what are the magic numbers?
+      // 24 - ???, related to the sinc step, 8x3?
+      // 27 - 12+16-1, 24/2 offset, 16 extra values, -1 offset
       if ((oscWidth)>0) {
         if (settings.oscMono) {
           if (rend->supportsDrawOsc() && settings.shaderOsc) {
             _do[0].gui=this;
-            _do[0].data=&oscValuesAverage[12];
-            _do[0].len=oscWidth;
+            _do[0].data=&oscValuesAverage[27];
+            _do[0].len=oscWidth-24;
             _do[0].pos0=inRect.Min;
             _do[0].pos1=inRect.Max;
             _do[0].color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE];
@@ -358,9 +368,9 @@ void FurnaceGUI::drawOsc() {
             dl->AddCallback(_drawOsc,&_do[0]);
             dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
           } else {
-            for (int i=0; i<oscWidth; i++) {
-              float x=(float)i/(float)(oscWidth);
-              float y=oscValuesAverage[i+12]*0.5f;
+            for (int i=0; i<oscWidth-24; i++) {
+              float x=(float)i/(float)(oscWidth-24);
+              float y=oscValuesAverage[i+27]*0.5f;
               if (!settings.oscEscapesBoundary) {
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
@@ -370,10 +380,10 @@ void FurnaceGUI::drawOsc() {
 
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
-              dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
               dl->PopClipRect();
             } else {
-              dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
             }
           }
         } else {
@@ -384,8 +394,8 @@ void FurnaceGUI::drawOsc() {
 
             if (rend->supportsDrawOsc() && settings.shaderOsc) {
               _do[ch].gui=this;
-              _do[ch].data=&oscValues[ch][12];
-              _do[ch].len=oscWidth;
+              _do[ch].data=&oscValues[ch][27];
+              _do[ch].len=oscWidth-24;
               _do[ch].pos0=inRect.Min;
               _do[ch].pos1=inRect.Max;
               _do[ch].color=isClipping?uiColors[GUI_COLOR_OSC_WAVE_PEAK]:uiColors[GUI_COLOR_OSC_WAVE_CH0+ch];
@@ -394,9 +404,9 @@ void FurnaceGUI::drawOsc() {
               dl->AddCallback(_drawOsc,&_do[ch]);
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
-              for (int i=0; i<oscWidth; i++) {
-                float x=(float)i/(float)(oscWidth);
-                float y=oscValues[ch][i+12]*0.5f;
+              for (int i=0; i<oscWidth-24; i++) {
+                float x=(float)i/(float)(oscWidth-24);
+                float y=oscValues[ch][i+27]*0.5f;
                 if (!settings.oscEscapesBoundary) {
                   if (y<-0.5f) y=-0.5f;
                   if (y>0.5f) y=0.5f;
@@ -407,10 +417,10 @@ void FurnaceGUI::drawOsc() {
               
               if (settings.oscEscapesBoundary) {
                 dl->PushClipRectFullScreen();
-                dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
                 dl->PopClipRect();
               } else {
-                dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
               }
             }
           }
@@ -439,9 +449,6 @@ void FurnaceGUI::drawOsc() {
       oscZoomSlider=!oscZoomSlider;
       NOTIFY_LONG_HOLD;
     }
-  }
-  if (settings.oscTakesEntireWindow) {
-    ImGui::PopStyleVar(3);
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_OSCILLOSCOPE;
   ImGui::End();

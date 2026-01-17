@@ -34,8 +34,8 @@ bool TriggerAnalog::trigger(unsigned short windowSize, unsigned short readPos, f
   triggered = false;
   // locate trigger
   bool triggerHigh = false, triggerLow = false, foundTrigger = false;
-  triggerIndex = 32768 - windowSize;
-  while (triggerIndex) {
+  triggerIndex = (32768 - windowSize)&0x7fff;
+  while (1) {
     triggerIndex--;
     float cur = chanBuf[(triggerIndex + windowSize/2 + readPos)&0x7fff];
     if (cur < level) {
