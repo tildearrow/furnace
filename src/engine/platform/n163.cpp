@@ -414,23 +414,29 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_N163_WAVE_POSITION:
-      chan[c.chan].curWavePos=c.value;
-      chan[c.chan].waveChanged=true;
-      break;
-    case DIV_CMD_N163_WAVE_LENGTH:
-      chan[c.chan].curWaveLen=c.value&0xfc;
-      chan[c.chan].freqChanged=true;
-      break;
-    case DIV_CMD_N163_WAVE_LOADPOS:
-      chan[c.chan].wavePos=c.value;
-      if (chan[c.chan].waveMode) {
-        chan[c.chan].waveUpdated=true;
+      if (c.value2&1) {
+        chan[c.chan].curWavePos=c.value;
+        chan[c.chan].waveChanged=true;
+      }
+
+      if (c.value2&2) {
+        chan[c.chan].wavePos=c.value;
+        if (chan[c.chan].waveMode) {
+          chan[c.chan].waveUpdated=true;
+        }
       }
       break;
-    case DIV_CMD_N163_WAVE_LOADLEN:
-      chan[c.chan].waveLen=c.value&0xfc;
-      if (chan[c.chan].waveMode) {
-        chan[c.chan].waveUpdated=true;
+    case DIV_CMD_N163_WAVE_LENGTH:
+      if (c.value2&1) {
+        chan[c.chan].curWaveLen=c.value&0xfc;
+        chan[c.chan].freqChanged=true;
+      }
+
+      if (c.value2&2) {
+        chan[c.chan].waveLen=c.value&0xfc;
+        if (chan[c.chan].waveMode) {
+          chan[c.chan].waveUpdated=true;
+        }
       }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:

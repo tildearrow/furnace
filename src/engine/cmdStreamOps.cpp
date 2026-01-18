@@ -84,8 +84,6 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
     case DIV_CMD_WS_SWEEP_TIME:
     case DIV_CMD_WS_SWEEP_AMOUNT:
-    case DIV_CMD_N163_WAVE_POSITION:
-    case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_N163_WAVE_UNUSED1:
     case DIV_CMD_N163_WAVE_UNUSED2:
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -213,6 +211,8 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
     case DIV_CMD_C64_PW_SLIDE:
     case DIV_CMD_C64_CUTOFF_SLIDE:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
       return 2;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
@@ -472,8 +472,6 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
     case DIV_CMD_WS_SWEEP_TIME:
     case DIV_CMD_WS_SWEEP_AMOUNT:
-    case DIV_CMD_N163_WAVE_POSITION:
-    case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_N163_WAVE_UNUSED1:
     case DIV_CMD_N163_WAVE_UNUSED2:
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -602,6 +600,8 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
     case DIV_CMD_C64_PW_SLIDE:
     case DIV_CMD_C64_CUTOFF_SLIDE:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;

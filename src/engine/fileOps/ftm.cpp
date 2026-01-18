@@ -113,7 +113,7 @@ const int ftEffectMap[]={
   0xfc, // delayed release
   0x09, // select groove
   0xe6, // delayed note transpose
-  0x11, // Namco 163 wave RAM offset
+  0x1a, // Namco 163 wave RAM offset
   -1,   // FDS vol env - not supported
   -1,   // FDS auto FM - not supported yet
   -1,   // phase reset - not supported
@@ -227,7 +227,7 @@ const int eftEffectMap[] = {
   0xfc,  // delayed release
   0x09,  // select groove
   0xe6,  // delayed note transpose
-  0x11,  // Namco 163 wave RAM offset
+  0x1a,  // Namco 163 wave RAM offset
   -1,    // FDS vol env - not supported
   -1,    // FDS auto FM - not supported yet
   -1,    // phase reset - not supported
@@ -1943,7 +1943,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                       if (map_channels[ch] == n163_chans[v]) {
                         if (pat->newData[row][DIV_PAT_FX(j)] == 0x12) {
                           pat->newData[row][DIV_PAT_FX(j)] = 0x110; // N163 wave change (we'll map this later)
-                        } else if (pat->newData[row][DIV_PAT_FX(j)] == 0x11) {
+                        } else if (pat->newData[row][DIV_PAT_FX(j)] == 0x1a) {
                           // wave position:
                           // - in FamiTracker this is in bytes
                           // - a value of 7F has special meaning

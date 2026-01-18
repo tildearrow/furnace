@@ -268,12 +268,12 @@ hex | description
  70 | sweep amount (b)
 ----|------------------------------------
     | **Namco 163 commands**
- 71 | wave position (b)
- 72 | wave length (b)
+ 71 | wave position (bb)
+ 72 | wave length (bb)
  73 | UNUSED (b)
  74 | UNUSED (b)
- 75 | wave load position (b)
- 76 | wave load length (b)
+ 75 | UNUSED (b)
+ 76 | UNUSED (b)
  77 | UNUSED (b)
  78 | channel limit (b)
  79 | global wave load (b)

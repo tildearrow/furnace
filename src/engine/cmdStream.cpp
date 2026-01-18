@@ -402,8 +402,6 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
           case DIV_CMD_WS_SWEEP_TIME:
           case DIV_CMD_WS_SWEEP_AMOUNT:
-          case DIV_CMD_N163_WAVE_POSITION:
-          case DIV_CMD_N163_WAVE_LENGTH:
           case DIV_CMD_N163_WAVE_UNUSED1:
           case DIV_CMD_N163_WAVE_UNUSED2:
           case DIV_CMD_N163_WAVE_LOADPOS:
@@ -533,6 +531,8 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
           case DIV_CMD_C64_PW_SLIDE:
           case DIV_CMD_C64_CUTOFF_SLIDE:
+          case DIV_CMD_N163_WAVE_POSITION:
+          case DIV_CMD_N163_WAVE_LENGTH:
             arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
