@@ -711,6 +711,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           ds.system[systemID] = DIV_SYSTEM_N163;
           ds.systemFlags[systemID].set("channels", (int)n163Chans - 1);
           ds.systemChans[systemID]=CLAMP(n163Chans,1,8);
+          ds.systemFlags[systemID].set("posLatch",true);
           systemID++;
 
           for (int ch = 0; ch < (int)n163Chans; ch++) {
@@ -1948,8 +1949,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                           // - in FamiTracker this is in bytes
                           // - a value of 7F has special meaning
                           if (pat->newData[row][DIV_PAT_FXVAL(j)]==0x7f) {
-                            pat->newData[row][DIV_PAT_FX(j)]=-1;
-                            pat->newData[row][DIV_PAT_FXVAL(j)]=-1;
+                            pat->newData[row][DIV_PAT_FXVAL(j)]=0xff;
                           } else {
                             pat->newData[row][DIV_PAT_FXVAL(j)]=MIN(pat->newData[row][DIV_PAT_FXVAL(j)]<<1,0xff);
                           }

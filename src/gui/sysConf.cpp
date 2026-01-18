@@ -1259,6 +1259,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int channels=flags.getInt("channels",7)+1;
       bool multiplex=flags.getBool("multiplex",false);
       bool lenCompensate=flags.getBool("lenCompensate",false);
+      bool posLatch=flags.getBool("posLatch",false);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -1304,6 +1305,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Scale frequency to wave length"),&lenCompensate)) {
         altered=true;
       }
+      if (ImGui::Checkbox(_("Waveform position latch"),&posLatch)) {
+        altered=true;
+      }
+      ImGui::SetItemTooltip(_("when enabled, a waveform position effect will lock the position, preventing instrument changes from changing it.\nuse a wave position effect with value FE or FF to unlock it."));
 
       if (altered) {
         e->lockSave([&]() {
@@ -1311,6 +1316,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("channels",channels-1);
           flags.set("multiplex",multiplex);
           flags.set("lenCompensate",lenCompensate);
+          flags.set("posLatch",posLatch);
         });
       }
       break;
