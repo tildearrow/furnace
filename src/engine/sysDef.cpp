@@ -1237,10 +1237,12 @@ void DivEngine::registerSystems() {
     },
     {
       {0x10, {DIV_CMD_WAVE, _("10xx: Select waveform")}},
-      {0x11, {DIV_CMD_N163_WAVE_POSITION, _("11xx: Set waveform position in RAM")}},
-      {0x12, {DIV_CMD_N163_WAVE_LENGTH, _("12xx: Set waveform length in RAM (04 to FC in steps of 4)")}},
-      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, _("15xx: Set waveform load position")}},
-      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, _("16xx: Set waveform load length (04 to FC in steps of 4)")}},
+      {0x11, {DIV_CMD_N163_WAVE_POSITION, _("11xx: Set waveform playback position in RAM"),effectVal,constVal<1>}},
+      {0x12, {DIV_CMD_N163_WAVE_LENGTH, _("12xx: Set waveform playback length in RAM (04 to FC in steps of 4)"),effectVal,constVal<1>}},
+      {0x15, {DIV_CMD_N163_WAVE_POSITION, _("15xx: Set waveform load position"),effectVal,constVal<2>}},
+      {0x16, {DIV_CMD_N163_WAVE_LENGTH, _("16xx: Set waveform load length (04 to FC in steps of 4)"),effectVal,constVal<2>}},
+      {0x1a, {DIV_CMD_N163_WAVE_POSITION, _("1Axx: Set waveform playback and load position in RAM"),effectVal,constVal<3>}},
+      {0x1b, {DIV_CMD_N163_WAVE_LENGTH, _("1Bxx: Set waveform playback and load length in RAM (04 to FC in steps of 4)"),effectVal,constVal<3>}},
     }
   );
 
