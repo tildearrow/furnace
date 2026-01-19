@@ -255,6 +255,7 @@ struct DivCompatFlags {
   bool oldSampleOffset;
   // new flags as of dev240
   bool oldCenterRate;
+  bool noVolSlideReset;
 
   void setDefaults();
   bool areDefaults();

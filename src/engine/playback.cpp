@@ -2232,24 +2232,34 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                 } else if (chan[i].volSpeed<0) {
                   chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
                 }
-                chan[i].volSpeed=0;
-                chan[i].volSpeedTarget=-1;
+                // COMPAT FLAG: don't stop volume slides after reaching target
+                // - when enabled, we don't reset the volume speed
+                if (!song.compatFlags.noVolSlideReset) {
+                  chan[i].volSpeed=0;
+                  chan[i].volSpeedTarget=-1;
+                }
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
                 dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
               }
             }
             // stop sliding if we reach maximum/minimum volume
-            // there isn't a compat flag for this yet... sorry...
             if (chan[i].volume>chan[i].volMax) {
               chan[i].volume=chan[i].volMax;
-              chan[i].volSpeed=0;
-              chan[i].volSpeedTarget=-1;
+              // COMPAT FLAG: don't stop volume slides after reaching target
+              if (!song.compatFlags.noVolSlideReset) {
+                chan[i].volSpeed=0;
+                chan[i].volSpeedTarget=-1;
+              }
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
             } else if (chan[i].volume<0) {
-              chan[i].volSpeed=0;
+              // COMPAT FLAG: don't stop volume slides after reaching target
+              if (!song.compatFlags.noVolSlideReset) {
+                chan[i].volSpeed=0;
+                chan[i].volSpeedTarget=-1;
+              }
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
               // COMPAT FLAG: legacy volume slides
               // - sets volume to max once a vol slide down has finished (thus setting volume to volMax+1)
@@ -2259,7 +2269,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               } else {
                 chan[i].volume=0;
               }
-              chan[i].volSpeedTarget=-1;
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
             } else {

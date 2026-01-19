@@ -426,6 +426,12 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("when enabled, the slide effect will not be disabled after it reaches its target."));
         }
+        if (ImGui::Checkbox(_("Don't reset volume slides after reaching target"),&e->song.compatFlags.noVolSlideReset)) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, volume slide speeds will not be reset after reaching target or bounds."));
+        }
         if (ImGui::Checkbox(_("Continuous vibrato"),&e->song.compatFlags.continuousVibrato)) {
           MARK_MODIFIED;
         }
