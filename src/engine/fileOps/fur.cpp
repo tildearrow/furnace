@@ -2412,6 +2412,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // Namco 163 no wave pos latch
+    if (ds.version<244) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_N163) {
+          ds.systemFlags[i].set("posLatch",false);
+        }
+      }
+    }
+
     // warn on partial pitch linearity
     if (ds.compatFlags.linearPitch>1) {
       ds.compatFlags.linearPitch=1;

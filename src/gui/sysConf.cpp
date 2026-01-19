@@ -1259,7 +1259,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int channels=flags.getInt("channels",7)+1;
       bool multiplex=flags.getBool("multiplex",false);
       bool lenCompensate=flags.getBool("lenCompensate",false);
-      bool posLatch=flags.getBool("posLatch",false);
+      bool posLatch=flags.getBool("posLatch",true);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();

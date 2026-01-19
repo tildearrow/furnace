@@ -635,7 +635,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   initChanMax=chanMax=flags.getInt("channels",7)&7;
   multiplex=!flags.getBool("multiplex",false); // not accurate in real hardware
-  posLatch=flags.getBool("posLatch",false);
+  posLatch=flags.getBool("posLatch",true);
   rate=chipClock;
   rate/=15;
   n163.set_multiplex(multiplex);
