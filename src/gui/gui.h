@@ -26,6 +26,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
+#include "oscTrigger/analog.h"
 #include <SDL.h>
 #include <fftw3.h>
 #include <stdint.h>
@@ -2696,12 +2697,15 @@ class FurnaceGUI {
   ImVec2 subPortPos;
 
   // oscilloscope
+  TriggerAnalog* trigger[DIV_MAX_OUTPUTS];
   int oscTotal, oscWidth;
   float* oscValues[DIV_MAX_OUTPUTS];
   float* oscValuesAverage;
   float oscZoom;
   float oscWindowSize;
   float oscInput, oscInput1;
+  float triggerLevel;
+  int triggerState;
   bool oscZoomSlider;
 
   // per-channel oscilloscope
