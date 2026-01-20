@@ -1796,7 +1796,7 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
-    case GUI_ACTION_SAMPLE_MOVE_NEW: {
+    case GUI_ACTION_SAMPLE_COPY_NEW: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       DivSample* sample=e->song.sample[curSample];
       SAMPLE_OP_BEGIN;
