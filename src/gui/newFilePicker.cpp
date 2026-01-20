@@ -577,9 +577,6 @@ bool FurnaceFilePicker::readDirectory(String path) {
   entries.clear();
   chosenEntries.clear();
   updateEntryName();
-  if (!entryNameHint.empty()) {
-    entryName=entryNameHint;
-  }
 
   // start new file thread
   String newPath=normalizePath(path);
@@ -619,12 +616,18 @@ void FurnaceFilePicker::setHomeDir(String where) {
 }
 
 void FurnaceFilePicker::updateEntryName() {
-  if (chosenEntries.empty()) {
-    entryName="";
-  } else if (chosenEntries.size()>1) {
-    entryName=_("<multiple files selected>");
-  } else {
-    entryName=chosenEntries[0]->name;
+  bool found=false;
+  for (int i=0; i<(int)chosenEntries.size(); i++) {
+    bool isDir=chosenEntries[i]->type==FP_TYPE_DIR;
+    if ((isDir && dirSelect) || (!isDir && !dirSelect)) {
+      if (found) {
+        entryName=_("<multiple files selected>");
+        break;
+      } else {
+        entryName=chosenEntries[i]->name;
+        found=true;
+      }
+    }
   }
 }
 
@@ -1053,7 +1056,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           }
           ImGui::PopID();
           ImGui::SameLine();
-          
+
           // why? can't I just not format?
           ImGui::TextNoHashHide("%s",i->name.c_str());
 
@@ -1654,16 +1657,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
             ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
             logV("confirm overwrite");
           } else {
-            curStatus=FP_STATUS_ACCEPTED;
-            if (noClose) {
-              for (FileEntry* j: chosenEntries) {
-                j->isSelected=false;
-              }
-              chosenEntries.clear();
-              updateEntryName();
-            } else {
-              isOpen=false;
-            }
+            acceptAndClose();
           }
         }
       } else {
@@ -1746,31 +1740,13 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
               logV("confirm overwrite");
             } else {
               finalSelection.push_back(dirCheckPath);
-              curStatus=FP_STATUS_ACCEPTED;
-              if (noClose) {
-                for (FileEntry* j: chosenEntries) {
-                  j->isSelected=false;
-                }
-                chosenEntries.clear();
-                updateEntryName();
-              } else {
-                isOpen=false;
-              }
+              acceptAndClose();
             }
           }
         } else {
           if (dirSelect) {
             finalSelection.push_back(path);
-            curStatus=FP_STATUS_ACCEPTED;
-            if (noClose) {
-              for (FileEntry* j: chosenEntries) {
-                j->isSelected=false;
-              }
-              chosenEntries.clear();
-              updateEntryName();
-            } else {
-              isOpen=false;
-            }
+            acceptAndClose();
           }
         }
       }
@@ -1780,16 +1756,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (ImGui::BeginPopupModal(_("Warning###ConfirmOverwrite"),NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings)) {
       ImGui::TextUnformatted(_("The file you selected already exists! Would you like to overwrite it?"));
       if (ImGui::Button(_("Yes"))) {
-        curStatus=FP_STATUS_ACCEPTED;
-        if (noClose) {
-          for (FileEntry* j: chosenEntries) {
-            j->isSelected=false;
-          }
-          chosenEntries.clear();
-          updateEntryName();
-        } else {
-          isOpen=false;
-        }
+        acceptAndClose();
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
@@ -1811,7 +1778,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::End();
     }
   }
-  
+
 
   hasSizeConstraints=false;
 
@@ -1872,7 +1839,9 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
     enforceScrollY=2;
     windowName=name;
   }
-  hint=entryNameHint;
+
+  entryName=hint.empty()?"":hint;
+
   isOpen=true;
 
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
@@ -1995,5 +1964,18 @@ FurnaceFilePicker::FurnaceFilePicker():
   for (int i=0; i<FP_TYPE_MAX; i++) {
     // "##File" is appended here for performance.
     defaultTypeStyle[i].icon=ICON_FA_QUESTION "##File";
+  }
+}
+
+void FurnaceFilePicker::acceptAndClose() {
+  curStatus=FP_STATUS_ACCEPTED;
+  if (noClose) {
+    for (FileEntry* j: chosenEntries) {
+      j->isSelected=false;
+    }
+    chosenEntries.clear();
+    updateEntryName();
+  } else {
+    isOpen=false;
   }
 }

@@ -106,7 +106,6 @@ class FurnaceFilePicker {
   String failMessage;
   String homeDir;
   String entryName;
-  String entryNameHint;
   ImGuiListClipper listClipper;
   ImVec2 minSize, maxSize;
   bool haveFiles, haveStat, stopReading, isOpen, isMobile;
@@ -159,6 +158,8 @@ class FurnaceFilePicker {
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
   void drawBookmarks(ImVec2& tableSize, String& newDir);
+
+  void acceptAndClose();
 
   public:
     void readDirectorySub();
