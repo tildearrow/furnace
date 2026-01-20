@@ -1069,8 +1069,8 @@ fcsFullCmdTable:
   .db 1
   .db 1
   ; Namco 163
-  .db 1
-  .db 1
+  .db 2
+  .db 2
   .db 1
   .db 1
   .db 1
