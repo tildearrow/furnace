@@ -845,6 +845,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_MAKE_INS", _N("Sample editor: Create instrument from sample"), 0),
   D("SAMPLE_SET_LOOP", _N("Sample editor: Set loop to selection"), FURKMOD_CMD|SDLK_l),
   D("SAMPLE_CREATE_WAVE", _N("Sample editor: Create wavetable from selection"), FURKMOD_CMD|SDLK_w),
+  D("SAMPLE_COPY_NEW", _N("Sample editor: Copy selection to new sample"), 0),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", _N("---Orders"), NOT_AN_ACTION),

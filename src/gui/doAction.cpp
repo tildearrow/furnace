@@ -1796,6 +1796,55 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
+    case GUI_ACTION_SAMPLE_MOVE_NEW: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+      if (end-start<1) {
+        showError(_("select at least one sample!"));
+        break;
+      }
+
+      curSample=e->addSample();
+      if (curSample==-1) {
+        showError(_("too many samples!"));
+        break;
+      }
+
+      DivSample* prevSample=sample;
+      e->lockEngine([this,prevSample,start,end]() {
+        DivSample* sample=e->getSample(curSample);
+        if (sample!=NULL) {
+          int length=end-start;
+          sample->centerRate=prevSample->centerRate;
+          sample->name=prevSample->name;
+          sample->loopStart=prevSample->loopStart;
+          sample->loopEnd=prevSample->loopEnd;
+          sample->loop=prevSample->loop;
+          sample->loopMode=prevSample->loopMode;
+          sample->brrEmphasis=prevSample->brrEmphasis;
+          sample->brrNoFilter=prevSample->brrNoFilter;
+          sample->dither=prevSample->dither;
+          sample->depth=prevSample->depth;
+          if (sample->init(length)) {
+            if (prevSample->getCurBuf()!=NULL) {
+              int offS=prevSample->getSampleOffset(start,0,sample->depth);
+              int offE=prevSample->getSampleOffset(end,0,sample->depth);
+              uint8_t *srcMem=(uint8_t*)prevSample->getCurBuf();
+              memcpy(sample->getCurBuf(),&srcMem[offS],offE-offS);
+            }
+          }
+        }
+        e->renderSamples();
+      });
+
+      // TODO: confirm these
+      wantScrollListSample=true;
+      MARK_MODIFIED;
+      updateSampleTex=true;
+      notifySampleChange=true;
+      break;
+    }
 
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {

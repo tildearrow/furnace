@@ -2013,6 +2013,9 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
           }
+          if (ImGui::MenuItem(_("copy selection to new sample"),BIND_FOR(GUI_ACTION_SAMPLE_MOVE_NEW))) {
+            doAction(GUI_ACTION_SAMPLE_MOVE_NEW);
+          }
           ImGui::EndPopup();
         }
 
