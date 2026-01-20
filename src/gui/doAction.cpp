@@ -1798,6 +1798,7 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_SAMPLE_COPY_NEW: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      int prevSampleNum=curSample;
       DivSample* sample=e->song.sample[curSample];
       SAMPLE_OP_BEGIN;
       if (end-start<1) {
@@ -1837,6 +1838,7 @@ void FurnaceGUI::doAction(int what) {
         }
         e->renderSamples();
       });
+      curSample=prevSampleNum;
 
       // TODO: confirm these
       wantScrollListSample=true;
