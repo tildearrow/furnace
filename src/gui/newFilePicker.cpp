@@ -616,17 +616,14 @@ void FurnaceFilePicker::setHomeDir(String where) {
 }
 
 void FurnaceFilePicker::updateEntryName() {
-  bool found=false;
-  for (int i=0; i<(int)chosenEntries.size(); i++) {
-    bool isDir=chosenEntries[i]->type==FP_TYPE_DIR;
+  if (chosenEntries.size() > 1) {
+    entryName=_("<multiple files selected>");
+  } else if (chosenEntries.size() == 1) {
+    FileEntry* entry=chosenEntries[0];
+    bool isDir=entry->type==FP_TYPE_DIR;
+    // only change the entry if the selection is valid
     if ((isDir && dirSelect) || (!isDir && !dirSelect)) {
-      if (found) {
-        entryName=_("<multiple files selected>");
-        break;
-      } else {
-        entryName=chosenEntries[i]->name;
-        found=true;
-      }
+      entryName=entry->name;
     }
   }
 }
