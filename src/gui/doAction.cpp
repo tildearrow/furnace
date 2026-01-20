@@ -1799,7 +1799,13 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_COPY_NEW: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       int prevSampleNum=curSample;
+
       DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT) {
+        showError(_("sample depth must be 16 or 8 bit!"));
+        break;
+      }
+
       SAMPLE_OP_BEGIN;
       if (end-start<1) {
         showError(_("select at least one sample!"));
