@@ -620,9 +620,8 @@ void FurnaceFilePicker::updateEntryName() {
     entryName=_("<multiple files selected>");
   } else if (chosenEntries.size() == 1) {
     FileEntry* entry=chosenEntries[0];
-    bool isDir=entry->type==FP_TYPE_DIR;
     // only change the entry if the selection is valid
-    if ((isDir && dirSelect) || (!isDir && !dirSelect)) {
+    if ((entry->isDir && dirSelect) || (!entry->isDir && !dirSelect)) {
       entryName=entry->name;
     }
   }
