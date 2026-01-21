@@ -313,11 +313,12 @@ int DivPlatformN163::dispatch(DivCommand c) {
         }
         if (!chan[c.chan].wavePosLatch) {
           chan[c.chan].wavePos=ins->n163.perChanPos?ins->n163.wavePosCh[c.chan&7]:ins->n163.wavePos;
-          chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
           chan[c.chan].waveMode=ins->n163.waveMode;
           chan[c.chan].curWavePos=chan[c.chan].wavePos;
-          chan[c.chan].curWaveLen=chan[c.chan].waveLen;
         }
+        // wave lengths are not latched.
+        chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
+        chan[c.chan].curWaveLen=chan[c.chan].waveLen;
         chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,true);
         if (chan[c.chan].wave<0) {
           chan[c.chan].wave=0;
@@ -439,10 +440,11 @@ int DivPlatformN163::dispatch(DivCommand c) {
 
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
           chan[c.chan].wavePos=ins->n163.perChanPos?ins->n163.wavePosCh[c.chan&7]:ins->n163.wavePos;
-          chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
           chan[c.chan].waveMode=ins->n163.waveMode;
           chan[c.chan].curWavePos=chan[c.chan].wavePos;
-          chan[c.chan].curWaveLen=chan[c.chan].waveLen;
+          // wave lengths are not latched.
+          //chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
+          //chan[c.chan].curWaveLen=chan[c.chan].waveLen;
         }
       }
       break;
