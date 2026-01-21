@@ -1306,11 +1306,11 @@ void FurnaceGUI::drawPatternNew() {
           }
 
           // note
-          snprintf(id,63,"%.31s",noteName(pat->newData[row][DIV_PAT_NOTE]));
+          const char* idN=noteName(pat->newData[row][DIV_PAT_NOTE]);
           if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-            dl->AddText(pos,inactiveColor,id,id+3);
+            dl->AddText(pos,inactiveColor,idN,idN+3);
           } else {
-            dl->AddText(pos,activeColor,id,id+3);
+            dl->AddText(pos,activeColor,idN,idN+3);
           }
 
           // instrument
