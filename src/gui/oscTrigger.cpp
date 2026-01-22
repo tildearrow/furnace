@@ -20,7 +20,7 @@
 // analog.cpp from unscope - https://github.com/Eknous-P/unscope
 // modified for Furnace
 
-#include "analog.h"
+#include "oscTrigger.h"
 
 #define CHECK_TRIGGERED foundTrigger=triggerLow&&triggerHigh
 

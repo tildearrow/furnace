@@ -26,7 +26,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
-#include "oscTrigger/analog.h"
+#include "oscTrigger.h"
 #include <SDL.h>
 #include <fftw3.h>
 #include <stdint.h>

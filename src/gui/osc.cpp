@@ -23,7 +23,7 @@
 #include <imgui.h>
 #include "../ta-log.h"
 #include "../engine/filter.h"
-#include "oscTrigger/analog.h"
+#include "oscTrigger.h"
 
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;

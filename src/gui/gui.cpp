@@ -8431,7 +8431,7 @@ void FurnaceGUI::syncState() {
   oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
   triggerLevel=e->getConfFloat("triggerLevel", 0.0f);
-  triggerState=e->getConfInt("triggerState", 1);
+  triggerState=e->getConfInt("triggerState", 0);
 
   spectrum.bins=e->getConfInt("spectrumBins",2048);
   spectrum.xZoom=e->getConfFloat("spectrumxZoom",1.0f);
@@ -9270,7 +9270,7 @@ FurnaceGUI::FurnaceGUI():
   oscInput(0.0f),
   oscInput1(0.0f),
   triggerLevel(0.0f),
-  triggerState(1),
+  triggerState(0),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscColorX(GUI_OSCREF_CENTER),
