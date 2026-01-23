@@ -1028,11 +1028,11 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
             } else if (shiftDown && multiSelect) {
               if (lastSelFilteredIndex>=0) {
                 if (lastSelFilteredIndex<selFilteredIndex) {
-                  toggleStart=lastSelFilteredIndex;
+                  toggleStart=lastSelFilteredIndex+1;
                   toggleEnd=selFilteredIndex+1;
                 } else {
                   toggleStart=selFilteredIndex;
-                  toggleEnd=lastSelFilteredIndex+1;
+                  toggleEnd=lastSelFilteredIndex;
                 }
               } else {
                 // fallback to the ctrl+click behavior
@@ -1045,6 +1045,8 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
                 j->isSelected=false;
               }
               chosenEntries.clear();
+              toggleStart=selFilteredIndex;
+              toggleEnd=selFilteredIndex+1;
             }
 
             for (int j=toggleStart; j<toggleEnd && j>=0 && j<(int)filteredEntries.size(); j++) {
