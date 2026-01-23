@@ -170,6 +170,7 @@ in the sample viewer:
   - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection.
   - **set loop to selection**: changes loop region to match selection.
   - **create wavetable from selection**: copies the selection into a new wavetable entry.
+  - **copy selection to new sample** copies the selection into a new sample.
 
 in the bottom status bar:
 - **Select**: set selection start and end positions. total selection length will be shown next to them.

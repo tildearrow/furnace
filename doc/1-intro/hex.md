@@ -94,7 +94,7 @@ now for decimal number `69420`:
 
 ## bitmask
 
-a bitmask is a value that actually represents a set of individual binary bits to be toggled, some of which may be grouped to form small binary numbers. these are used by adding up the value of each bit and converting the result to hex. in macros, these are shown in decimal.
+a **bitmask** is a value that actually represents a set of individual binary bits to be toggled, some of which may be grouped to form small binary numbers. these are used by adding up the value of each bit and converting the result to hex. in macros, these are shown in decimal.
 
 bit   |   binary    | decimal
 :----:|:-----------:|--------:
@@ -121,6 +121,29 @@ bit 1 | `.... ..0.` |   0
 bit 0 | `.... ...0` |   0
 
 added together, the resulting binary is `1010 1100`, which converts to hex as `AC` and to decimal as 172.
+
+a group of 8 bits (two hex digits) is commonly referred to as a **byte**. similarly, a group of 4 bits (one hex digit) is sometimes called a **nibble**.
+
+## hex to binary table
+
+hex | binary
+:--:|:-----:
+`0` | `0000`
+`1` | `0001`
+`2` | `0010`
+`3` | `0011`
+`4` | `0100`
+`5` | `0101`
+`6` | `0110`
+`7` | `0111`
+`8` | `1000`
+`9` | `1001`
+`A` | `1010`
+`B` | `1011`
+`C` | `1100`
+`D` | `1101`
+`E` | `1110`
+`F` | `1111`
 
 ## hex to decimal table
 
