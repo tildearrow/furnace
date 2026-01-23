@@ -466,7 +466,12 @@ void FurnaceGUI::drawPiano() {
                   break;
                 default:
                   e->synchronized([this,note]() {
-                    e->autoNoteOff(-1,note);
+                      // Apply scale transposition for piano preview
+                      // This is kind of freaky
+                      // Since the keys you click on aren't what is being played
+                      // When transposed to a scale
+                    int transposedNote = transposeToScale(note-60)+60;
+                    e->autoNoteOff(-1,transposedNote);
                     failedNoteOn=false;
                   });
                   break;
@@ -493,14 +498,22 @@ void FurnaceGUI::drawPiano() {
                     alterSampleMap(1,note);
                   } else {
                     e->synchronized([this,note]() {
-                      if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
+                      // Apply scale transposition for piano preview
+                      // This is kind of freaky
+                      // Since the keys you click on aren't what is being played
+                      // When transposed to a scale
+                      int transposedNote = transposeToScale(note-60)+60;
+                      if (!e->autoNoteOn(-1,curIns,transposedNote)) failedNoteOn=true;
                       for (int mi=0; mi<7; mi++) {
                         if (multiIns[mi]!=-1) {
-                          e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
+                          e->autoNoteOn(-1,multiIns[mi],transposedNote,-1,multiInsTranspose[mi]);
                         }
                       }
                     });
-                    if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
+                    if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) {
+                      int transposedNote = transposeToScale(note-60)+60;
+                      noteInput(transposedNote,0);
+                    }
                   }
                   break;
               }
