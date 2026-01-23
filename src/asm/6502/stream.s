@@ -55,7 +55,10 @@ chanVolSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*12) ; short
 chanPan=fcsAddrBase+24+(FCS_MAX_CHAN*14) ; short
 chanArpStage=fcsAddrBase+24+(FCS_MAX_CHAN*16) ; char
 chanArpTicks=fcsAddrBase+24+(FCS_MAX_CHAN*16)+1 ; char
-chanVibratoDebug=fcsAddrBase+24+(FCS_MAX_CHAN*18) ; char
+chanTremoloPos=fcsAddrBase+24+(FCS_MAX_CHAN*18) ; char
+chanTremolo=fcsAddrBase+24+(FCS_MAX_CHAN*18)+1 ; char
+chanPanbrelloPos=fcsAddrBase+24+(FCS_MAX_CHAN*20) ; char
+chanPanbrello=fcsAddrBase+24+(FCS_MAX_CHAN*20)+1 ; char
 
 ; may be used for driver detection
 fcsDriverInfo:
@@ -248,7 +251,20 @@ fcsVolSlideTarget:
   rts
 
 fcsNoOpOneByte:
+fcsPanSlide: ; TODO
   fcsReadNext
+  rts
+
+fcsTremolo:
+  fcsReadNext
+  sta chanTremolo,x
+  lda #1
+  sta fcsSendVolume
+  rts
+
+fcsPanbrello:
+  fcsReadNext
+  sta chanPanbrello,x
   rts
 
 fcsPan:
@@ -283,10 +299,10 @@ fcsCallI:
   ; fcsPushCall BEGIN
   ldy chanStackPtr,x
   lda chanPC,x
-  sta fcsGlobalStack,y
+  sta fcsGlobalStack.w,y
   iny
   lda chanPC+1,x
-  sta fcsGlobalStack,y
+  sta fcsGlobalStack.w,y
   iny
   sty chanStackPtr,x
   ; fcsPushCall END
@@ -330,6 +346,22 @@ fcsSpeedDialCmd:
   tay
   jmp (fcsTempPtr)
 
+fcsPresetVol:
+  lda fcsSpeedDial-224,y
+  sta chanVol+1,x
+  lda #0
+  sta chanVol,x
+  lda #1
+  sta fcsSendVolume
+  rts
+
+fcsPresetIns:
+  lda fcsSpeedDial-224,y
+  sta fcsArg0
+  ldy #4
+  jsr fcsDispatchCmd
+  rts
+
 fcsCall:
   ; get address and relocate it
   fcsReadNext
@@ -343,10 +375,10 @@ fcsCall:
   ; push channel PC to stack
   ldy chanStackPtr,x
   lda chanPC,x
-  sta fcsGlobalStack,y
+  sta fcsGlobalStack.w,y
   iny
   lda chanPC+1,x
-  sta fcsGlobalStack,y
+  sta fcsGlobalStack.w,y
   iny
   sty chanStackPtr,x
   ; fcsPushCall END
@@ -360,10 +392,10 @@ fcsCall:
 fcsRet:
   ldy chanStackPtr,x
   dey
-  lda fcsGlobalStack,y
+  lda fcsGlobalStack.w,y
   sta chanPC+1,x
   dey
-  lda fcsGlobalStack,y
+  lda fcsGlobalStack.w,y
   sta chanPC,x
   sty chanStackPtr,x
   rts
@@ -646,7 +678,6 @@ fcsChannelPost:
     ; at this point, a contains the vibrato pitch
     fcsPostVibratoCalc1:
       sta fcsArg0
-      sta chanVibratoDebug,x
       ; extend sign
       bmi +
       lda #0
@@ -852,9 +883,9 @@ fcsInit:
   ldy #0
 - sta chanStackPtr,x
   clc
-  adc fcsStackSize.w,y
+  adc fcsPtr+40+(FCS_MAX_CHAN*2).w,y
   clc
-  adc fcsStackSize.w,y
+  adc fcsPtr+40+(FCS_MAX_CHAN*2).w,y
   inx
   inx
   iny
@@ -921,9 +952,9 @@ fcsVibTable:
 ; $c9 fcsPorta,
 ; $ca fcsLegato,
 ; $cb fcsVolSlideTarget,
-; $cc fcsNoOpOneByte,
-; $cd fcsNoOpOneByte,
-; $ce fcsNoOpOneByte,
+; $cc fcsTremolo,
+; $cd fcsPanbrello,
+; $ce fcsPanSlide,
 ; $cf fcsPan,
 ; $d0 fcsOptPlaceholder,
 ; $d1 fcsNoOp,
@@ -941,17 +972,24 @@ fcsVibTable:
 ; $dd fcsWaitC,
 ; $de fcsWait1,
 ; $df fcsStop,
+; $e0-$e5 fcsPresetIns,
+; $e6-$eb fcsPresetVol,
+; $ec-$ef fcsSpeedDialCmd,
 fcsInsTableHigh:
   .db >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsOneByteDispatchB4, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp
-  .db >fcsPrePorta, >fcsArpTime, >fcsVibrato, >fcsVibRange, >fcsVibShape, >fcsPitch, >fcsArpeggio, >fcsVolume, >fcsVolSlide, >fcsPorta, >fcsLegato, >fcsVolSlideTarget, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsNoOpOneByte, >fcsPan
+  .db >fcsPrePorta, >fcsArpTime, >fcsVibrato, >fcsVibRange, >fcsVibShape, >fcsPitch, >fcsArpeggio, >fcsVolume, >fcsVolSlide, >fcsPorta, >fcsLegato, >fcsVolSlideTarget, >fcsTremolo, >fcsPanbrello, >fcsPanSlide, >fcsPan
   .db >fcsOptPlaceholder, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsCallI, >fcsOffWait, >fcsFullCmd, >fcsCall, >fcsRet, >fcsJump, >fcsTickRate, >fcsWaitS, >fcsWaitC, >fcsWait1, >fcsStop
-  .db >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd
+  .db >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns >fcsPresetIns,
+  .db >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol >fcsPresetVol,
+  .db >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd
 
 fcsInsTableLow:
   .db <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsOneByteDispatchB4, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp
-  .db <fcsPrePorta, <fcsArpTime, <fcsVibrato, <fcsVibRange, <fcsVibShape, <fcsPitch, <fcsArpeggio, <fcsVolume, <fcsVolSlide, <fcsPorta, <fcsLegato, <fcsVolSlideTarget, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsNoOpOneByte, <fcsPan
+  .db <fcsPrePorta, <fcsArpTime, <fcsVibrato, <fcsVibRange, <fcsVibShape, <fcsPitch, <fcsArpeggio, <fcsVolume, <fcsVolSlide, <fcsPorta, <fcsLegato, <fcsVolSlideTarget, <fcsTremolo, <fcsPanbrello, <fcsPanSlide, <fcsPan
   .db <fcsOptPlaceholder, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsCallI, <fcsOffWait, <fcsFullCmd, <fcsCall, <fcsRet, <fcsJump, <fcsTickRate, <fcsWaitS, <fcsWaitC, <fcsWait1, <fcsStop
-  .db <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd
+  .db <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns <fcsPresetIns,
+  .db <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol <fcsPresetVol,
+  .db <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd
 
 fcsCmdReadTableHigh:
   .db >fcsNoArgDispatch
