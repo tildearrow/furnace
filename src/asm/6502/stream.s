@@ -979,16 +979,16 @@ fcsInsTableHigh:
   .db >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsNoArgDispatchB4, >fcsOneByteDispatchB4, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp
   .db >fcsPrePorta, >fcsArpTime, >fcsVibrato, >fcsVibRange, >fcsVibShape, >fcsPitch, >fcsArpeggio, >fcsVolume, >fcsVolSlide, >fcsPorta, >fcsLegato, >fcsVolSlideTarget, >fcsTremolo, >fcsPanbrello, >fcsPanSlide, >fcsPan
   .db >fcsOptPlaceholder, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsNoOp, >fcsCallI, >fcsOffWait, >fcsFullCmd, >fcsCall, >fcsRet, >fcsJump, >fcsTickRate, >fcsWaitS, >fcsWaitC, >fcsWait1, >fcsStop
-  .db >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns >fcsPresetIns,
-  .db >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol >fcsPresetVol,
+  .db >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns, >fcsPresetIns,
+  .db >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol, >fcsPresetVol,
   .db >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd, >fcsSpeedDialCmd
 
 fcsInsTableLow:
   .db <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsNoArgDispatchB4, <fcsOneByteDispatchB4, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp
   .db <fcsPrePorta, <fcsArpTime, <fcsVibrato, <fcsVibRange, <fcsVibShape, <fcsPitch, <fcsArpeggio, <fcsVolume, <fcsVolSlide, <fcsPorta, <fcsLegato, <fcsVolSlideTarget, <fcsTremolo, <fcsPanbrello, <fcsPanSlide, <fcsPan
   .db <fcsOptPlaceholder, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsNoOp, <fcsCallI, <fcsOffWait, <fcsFullCmd, <fcsCall, <fcsRet, <fcsJump, <fcsTickRate, <fcsWaitS, <fcsWaitC, <fcsWait1, <fcsStop
-  .db <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns <fcsPresetIns,
-  .db <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol <fcsPresetVol,
+  .db <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns, <fcsPresetIns,
+  .db <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol, <fcsPresetVol,
   .db <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd, <fcsSpeedDialCmd
 
 fcsCmdReadTableHigh:
