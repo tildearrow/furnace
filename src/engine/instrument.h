@@ -259,6 +259,26 @@ struct DivInstrumentFM {
   }
 };
 
+enum DivCompiledMacroFormat {
+  // 8-bit unsigned
+  DIV_COMPILED_MACRO_U8=0,
+  // 8-bit signed
+  DIV_COMPILED_MACRO_S8,
+  // 16-bit unsigned
+  DIV_COMPILED_MACRO_U16,
+  // 16-bit signed
+  DIV_COMPILED_MACRO_S16,
+  // 8-bit special (for arpeggio macro)
+  // - start in relative mode.
+  // - read one byte. treat it as signed number.
+  // - if it is 0x7f, read two bytes (this will be the macro value).
+  // - if it is 0x80, switch between fixed and relative modes.
+  // - otherwise this is the macro value.
+  DIV_COMPILED_MACRO_BIT30,
+  // 4-bit unsigned (top first, bottom second)
+  DIV_COMPILED_MACRO_U4,
+};
+
 // this is getting out of hand
 struct DivInstrumentMacro {
   int val[256];
@@ -269,6 +289,10 @@ struct DivInstrumentMacro {
   // 32+: operator (top 3 bits select operator, starting from 1)
   unsigned char macroType;
 
+  /**
+   * compile a macro. for use with ROM export.
+   */
+  unsigned char* compile(DivCompiledMacroFormat format, int min, int max);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),
