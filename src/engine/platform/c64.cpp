@@ -278,7 +278,9 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     bool condition=chan[i].std.alg.will;
     DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
-    if ((!ins->c64.filterIsAbs) || macroRace) {
+    if (filterOld) {
+      condition=chan[i].std.alg.had && (_i==2||macroRace);
+    } else if ((!ins->c64.filterIsAbs) || macroRace) {
       condition=chan[i].std.alg.had;
     }
     if (condition) { // new cutoff macro
@@ -929,6 +931,7 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   no1EUpdate=flags.getBool("no1EUpdate",false);
   multiplyRel=flags.getBool("multiplyRel",false);
   macroRace=flags.getBool("macroRace",false);
+  filterOld=flags.getBool("filterOld",false);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
   initResetTime=flags.getInt("initResetTime",2);
