@@ -148,18 +148,37 @@ size | description
      |   - 5: 4-bit unsigned (top first, bottom second)
      |   - 6: ADSR macro
      |   - 7: LFO macro
-  1  | length
-  1  | loop point
-  1  | release point
   1  | step length
   1  | delay
  ??? | macro data...
 ```
 
-read length, loop and then release (1 byte).
-if it is a 2-byte macro, read a dummy byte.
+interpret macro data as follows.
 
-then read data.
+for 4/8/16-bit macros and arp macros:
+
+```
+size | description
+-----|----------------------
+  1  | length
+  1  | loop point
+  1  | release point
+ ??? | values...
+```
+
+arp macros are special:
+- read one byte. this will be the next (signed) value, unless it is $7F or $80.
+- if it is $80, toggle fixed/relative mode.
+- if it is $7F, the value is 16-bit. read two bytes and treat that as the (signed) value.
+
+for ADSR macros:
+
+```
+size | description
+-----|---------------------
+  2  | minimum value
+  2  | maximum value
+```
 
 ## binary command stream
 

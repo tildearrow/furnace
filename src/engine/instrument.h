@@ -277,6 +277,9 @@ enum DivCompiledMacroFormat {
   DIV_COMPILED_MACRO_BIT30,
   // 4-bit unsigned (top first, bottom second)
   DIV_COMPILED_MACRO_U4,
+  // these two are reserved.
+  DIV_COMPILED_MACRO_ADSR,
+  DIV_COMPILED_MACRO_LFO
 };
 
 // this is getting out of hand
@@ -292,7 +295,7 @@ struct DivInstrumentMacro {
   /**
    * compile a macro. for use with ROM export.
    */
-  unsigned char* compile(DivCompiledMacroFormat format, int min, int max);
+  void compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),

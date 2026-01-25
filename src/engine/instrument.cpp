@@ -25,6 +25,14 @@
 
 const DivInstrument defaultIns;
 
+/// instrument compilation
+
+void DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max) {
+  
+}
+
+/// the rest
+
 #define _C(x) x==other.x
 
 bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
