@@ -1016,16 +1016,18 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
             bool ctrlDown=(ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
             bool shiftDown=(ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
 
-            // toggling range: [toggleStart,toggleEnd)
+            // all entries in the range [toggleStart,toggleEnd) are toggled
             int toggleStart=-1;
             int toggleEnd=-1;
 
-            bool doNotAcknowledge=!multiSelect;
+            bool doNotAcknowledge=false;
             if (ctrlDown && multiSelect) {
               // toggle selection of the currently hovered item
+              doNotAcknowledge=true;
               toggleStart=selFilteredIndex;
               toggleEnd=selFilteredIndex+1;
             } else if (shiftDown && multiSelect) {
+              doNotAcknowledge=true;
               if (lastSelFilteredIndex>=0) {
                 if (lastSelFilteredIndex<selFilteredIndex) {
                   toggleStart=lastSelFilteredIndex+1;
@@ -1047,6 +1049,14 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
               chosenEntries.clear();
               toggleStart=selFilteredIndex;
               toggleEnd=selFilteredIndex+1;
+
+              if (!doNotAcknowledge) {
+                if (isMobile || singleClickSelect) {
+                  acknowledged=true;
+                } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                  acknowledged=true;
+                }
+              }
             }
 
             for (int j=toggleStart; j<toggleEnd && j>=0 && j<(int)filteredEntries.size(); j++) {
@@ -1069,13 +1079,6 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
                 chosenEntries.push_back(entry);
                 entry->isSelected=true;
                 updateEntryName();
-                if (!doNotAcknowledge) {
-                  if (isMobile || singleClickSelect) {
-                    acknowledged=true;
-                  } else if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-                    acknowledged=true;
-                  }
-                }
 
                 // trigger callback if set
                 if (selCallback!=NULL) {
