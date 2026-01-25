@@ -33,7 +33,7 @@
 #define ADSR_RR source.val[8]
 
 #define ADSR_BOTTOM (source.val[0]<<8)
-#define ADSR_TOP (source.val[1]<<8)
+#define ADSR_TOP ((source.val[1]<<8)|0xff)
 #define ADSR_SUS (source.val[5]<<8)
 
 #define LFO_SPEED source.val[11]
@@ -48,10 +48,28 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   type=(source.open>>1)&3;
   activeRelease=source.open&8;
   linger=(source.macroType==DIV_MACRO_VOL && e->song.compatFlags.volMacroLinger);
-  lfoPos=LFO_PHASE;
+  lfoDir=false;
 
   if (type==1) {
     pos=ADSR_BOTTOM;
+  } else if (type==2) {
+    // this will be pre-computed on compilation.
+    switch (LFO_WAVE&3) {
+      case 0: // triangle
+        if (LFO_PHASE&512) {
+          pos=ADSR_TOP+(((ADSR_BOTTOM-ADSR_TOP)*(LFO_PHASE&511))>>9);
+        } else {
+          pos=ADSR_BOTTOM+(((ADSR_TOP-ADSR_BOTTOM)*LFO_PHASE)>>9);
+        }
+        lfoDir=LFO_PHASE&512;
+        break;
+      case 1: // saw
+        pos=ADSR_BOTTOM+(((ADSR_TOP-ADSR_BOTTOM)*LFO_PHASE)>>10);
+        break;
+      case 2: // pulse
+        pos=LFO_PHASE;
+        break;
+    }
   }
 }
 
@@ -152,28 +170,37 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
           break;
       }
       val=(pos>>8);
-      }
     }
     if (type==2) { // LFO
-      lfoPos+=LFO_SPEED;
-      lfoPos&=1023;
-
-      int lfoOut=0;
       switch (LFO_WAVE&3) {
         case 0: // triangle
-          lfoOut=((lfoPos&512)?(1023-lfoPos):(lfoPos))>>1;
+          if (lfoDir) {
+            pos-=LFO_SPEED;
+            if (pos<ADSR_BOTTOM) {
+              lfoDir=false;
+              pos+=LFO_SPEED*2;
+            }
+          } else {
+            pos+=LFO_SPEED;
+            if (pos>ADSR_TOP) {
+              lfoDir=true;
+              pos-=LFO_SPEED*2;
+            }
+          }
+          val=pos>>8;
           break;
         case 1: // saw
-          lfoOut=lfoPos>>2;
+          pos+=LFO_SPEED;
+          if (pos>ADSR_TOP) {
+            pos-=(ADSR_TOP-ADSR_BOTTOM);
+          }
+          val=pos>>8;
           break;
         case 2: // pulse
-          lfoOut=(lfoPos&512)?255:0;
+          pos+=LFO_SPEED;
+          pos&=1023;
+          val=(pos&512)?ADSR_HIGH:ADSR_LOW;
           break;
-      }
-      if (ADSR_HIGH>ADSR_LOW) {
-        val=ADSR_LOW+((lfoOut+(ADSR_HIGH-ADSR_LOW)*lfoOut)>>8);
-      } else {
-        val=ADSR_HIGH+(((255-lfoOut)+(ADSR_LOW-ADSR_HIGH)*(255-lfoOut))>>8);
       }
     }
   }

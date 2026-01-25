@@ -2333,15 +2333,20 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
         }
 
+        const int adsrBottom=i.macro->val[0];
+        const int adsrTop=i.macro->val[1];
+        const int adsrRange=adsrTop-adsrBottom;
+        const int adsrParamMax=(adsrRange<<8)|0xff;
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Attack"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MAAR",&i.macro->val[2],0,255)) { PARAMETER
+        if (CWSliderInt("##MAAR",&i.macro->val[2],0,adsrParamMax)) { PARAMETER
           if (i.macro->val[2]<0) i.macro->val[2]=0;
-          if (i.macro->val[2]>255) i.macro->val[2]=255;
+          if (i.macro->val[2]>adsrParamMax) i.macro->val[2]=adsrParamMax;
         } rightClickable
 
         if (compact) {
@@ -2362,9 +2367,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Decay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
+          if (CWSliderInt("##MADR",&i.macro->val[4],0,adsrParamMax)) { PARAMETER
             if (i.macro->val[4]<0) i.macro->val[4]=0;
-            if (i.macro->val[4]>255) i.macro->val[4]=255;
+            if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
           } rightClickable
 
           ImGui::TableNextRow();
@@ -2373,9 +2378,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Sustain"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
-            if (i.macro->val[5]<0) i.macro->val[5]=0;
-            if (i.macro->val[5]>255) i.macro->val[5]=255;
+          if (CWSliderInt("##MASL",&i.macro->val[5],adsrBottom,adsrTop)) { PARAMETER
+            if (i.macro->val[5]<adsrBottom) i.macro->val[5]=adsrBottom;
+            if (i.macro->val[5]>adsrTop) i.macro->val[5]=adsrTop;
           } rightClickable
 
           ImGui::TableNextRow();
@@ -2395,9 +2400,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("SusDecay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
+          if (CWSliderInt("##MASR",&i.macro->val[7],0,adsrParamMax)) { PARAMETER
             if (i.macro->val[7]<0) i.macro->val[7]=0;
-            if (i.macro->val[7]>255) i.macro->val[7]=255;
+            if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
           } rightClickable
 
           ImGui::TableNextRow();
@@ -2406,9 +2411,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Release"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
+          if (CWSliderInt("##MARR",&i.macro->val[8],0,adsrParamMax)) { PARAMETER
             if (i.macro->val[8]<0) i.macro->val[8]=0;
-            if (i.macro->val[8]>255) i.macro->val[8]=255;
+            if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
           } rightClickable
         } else {
           ImGui::TableNextColumn();
@@ -2416,9 +2421,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Sustain"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
-            if (i.macro->val[5]<0) i.macro->val[5]=0;
-            if (i.macro->val[5]>255) i.macro->val[5]=255;
+          if (CWSliderInt("##MASL",&i.macro->val[5],adsrBottom,adsrTop)) { PARAMETER
+            if (i.macro->val[5]<adsrBottom) i.macro->val[5]=adsrBottom;
+            if (i.macro->val[5]>adsrTop) i.macro->val[5]=adsrTop;
           } rightClickable
 
           ImGui::TableNextRow();
@@ -2448,9 +2453,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Decay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
+          if (CWSliderInt("##MADR",&i.macro->val[4],0,adsrParamMax)) { PARAMETER
             if (i.macro->val[4]<0) i.macro->val[4]=0;
-            if (i.macro->val[4]>255) i.macro->val[4]=255;
+            if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
           } rightClickable
 
           ImGui::TableNextColumn();
@@ -2458,9 +2463,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("SusDecay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
+          if (CWSliderInt("##MASR",&i.macro->val[7],0,adsrParamMax)) { PARAMETER
             if (i.macro->val[7]<0) i.macro->val[7]=0;
-            if (i.macro->val[7]>255) i.macro->val[7]=255;
+            if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
           } rightClickable
 
           ImGui::TableNextRow();
@@ -2472,9 +2477,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Release"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
+          if (CWSliderInt("##MARR",&i.macro->val[8],0,adsrParamMax)) { PARAMETER
             if (i.macro->val[8]<0) i.macro->val[8]=0;
-            if (i.macro->val[8]>255) i.macro->val[8]=255;
+            if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
           } rightClickable
         }
 
