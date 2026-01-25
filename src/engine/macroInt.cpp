@@ -32,6 +32,10 @@
 #define ADSR_SR source.val[7]
 #define ADSR_RR source.val[8]
 
+#define ADSR_BOTTOM (source.val[0]<<8)
+#define ADSR_TOP (source.val[1]<<8)
+#define ADSR_SUS (source.val[5]<<8)
+
 #define LFO_SPEED source.val[11]
 #define LFO_WAVE source.val[12]
 #define LFO_PHASE source.val[13]
@@ -45,6 +49,10 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   activeRelease=source.open&8;
   linger=(source.macroType==DIV_MACRO_VOL && e->song.compatFlags.volMacroLinger);
   lfoPos=LFO_PHASE;
+
+  if (type==1) {
+    pos=ADSR_BOTTOM;
+  }
 }
 
 void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tick) {
@@ -110,43 +118,40 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
       switch (lastPos) {
         case 0: // attack
           pos+=ADSR_AR;
-          if (pos>255) {
-            pos=255;
+          if (pos>ADSR_TOP) {
+            pos=ADSR_TOP;
             lastPos=1;
             delay=ADSR_HT;
           }
           break;
         case 1: // decay
           pos-=ADSR_DR;
-          if (pos<=ADSR_SL) {
-            pos=ADSR_SL;
+          if (pos<=ADSR_SUS) {
+            pos=ADSR_SUS;
             lastPos=2;
             delay=ADSR_ST;
           }
           break;
         case 2: // sustain
           pos-=ADSR_SR;
-          if (pos<0) {
-            pos=0;
+          if (pos<ADSR_BOTTOM) {
+            pos=ADSR_BOTTOM;
             lastPos=4;
           }
           break;
         case 3: // release
           pos-=ADSR_RR;
-          if (pos<0) {
-            pos=0;
+          if (pos<ADSR_BOTTOM) {
+            pos=ADSR_BOTTOM;
             lastPos=4;
           }
           break;
         case 4: // end
-          pos=0;
+          pos=ADSR_BOTTOM;
           if (!linger) has=false;
           break;
       }
-      if (ADSR_HIGH>ADSR_LOW) {
-        val=ADSR_LOW+((pos+(ADSR_HIGH-ADSR_LOW)*pos)>>8);
-      } else {
-        val=ADSR_HIGH+(((255-pos)+(ADSR_LOW-ADSR_HIGH)*(255-pos))>>8);
+      val=(pos>>8);
       }
     }
     if (type==2) { // LFO
