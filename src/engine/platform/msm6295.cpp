@@ -343,6 +343,10 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
   }
 }
 
+size_t DivPlatformMSM6295::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformMSM6295::getSampleMem(int index) {
   return index == 0 ? adpcmMem : NULL;
 }
