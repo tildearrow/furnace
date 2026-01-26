@@ -1166,6 +1166,7 @@ struct DivInstrument : DivInstrumentPOD {
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
 
   void convertC64SpecialMacro();
+  void convertOldADSRLFO();
 
   /**
    * save the instrument to a SafeWriter.

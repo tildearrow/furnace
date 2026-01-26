@@ -2869,6 +2869,11 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     convertC64SpecialMacro();
   }
 
+  // <245 old ADSR/LFO macro behavior
+  if (version<245) {
+    convertOldADSRLFO();
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -3628,6 +3633,11 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     convertC64SpecialMacro();
   }
 
+  // <245 old ADSR/LFO macro behavior
+  if (version<245) {
+    convertOldADSRLFO();
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -3695,6 +3705,28 @@ void DivInstrument::convertC64SpecialMacro() {
   std.ex4Macro.len=maxLen;
 
   std.ex3Macro=DivInstrumentMacro(DIV_MACRO_EX3);
+}
+
+void DivInstrument::convertOldADSRLFO() {
+  DivInstrumentMacro* macro=NULL;
+  for (int j=0; (macro=std.macroByType((DivMacroType)j)); j++) {
+    if (macro->open&2) { // ADSR macro
+      const int bottom=macro->val[0];
+      const int top=macro->val[1];
+      const int range=abs(top-bottom);
+
+      // convert attack/decay/sus decay/release
+      macro->val[2]*=range;
+      macro->val[4]*=range;
+      macro->val[7]*=range;
+      macro->val[8]*=range;
+
+      // convert sustain level
+      macro->val[5]=(range*macro->val[5])/255;
+    } else if (macro->open&4) { // LFO macro
+      // TODO
+    }
+  }
 }
 
 bool DivInstrument::save(const char* path, DivSong* song, bool writeInsName) {
