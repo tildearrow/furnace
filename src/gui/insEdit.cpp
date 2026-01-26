@@ -2344,7 +2344,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Attack"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MAAR",&i.macro->val[2],0,adsrParamMax)) { PARAMETER
+        if (CWSliderInt("##MAAR",&i.macro->val[2],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
           if (i.macro->val[2]<0) i.macro->val[2]=0;
           if (i.macro->val[2]>adsrParamMax) i.macro->val[2]=adsrParamMax;
         } rightClickable
@@ -2367,7 +2367,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Decay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MADR",&i.macro->val[4],0,adsrParamMax)) { PARAMETER
+          if (CWSliderInt("##MADR",&i.macro->val[4],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
             if (i.macro->val[4]<0) i.macro->val[4]=0;
             if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
           } rightClickable
@@ -2400,7 +2400,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("SusDecay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MASR",&i.macro->val[7],0,adsrParamMax)) { PARAMETER
+          if (CWSliderInt("##MASR",&i.macro->val[7],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
             if (i.macro->val[7]<0) i.macro->val[7]=0;
             if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
           } rightClickable
@@ -2411,7 +2411,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Release"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MARR",&i.macro->val[8],0,adsrParamMax)) { PARAMETER
+          if (CWSliderInt("##MARR",&i.macro->val[8],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
             if (i.macro->val[8]<0) i.macro->val[8]=0;
             if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
           } rightClickable
@@ -2453,7 +2453,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Decay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MADR",&i.macro->val[4],0,adsrParamMax)) { PARAMETER
+          if (CWSliderInt("##MADR",&i.macro->val[4],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
             if (i.macro->val[4]<0) i.macro->val[4]=0;
             if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
           } rightClickable
@@ -2463,7 +2463,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("SusDecay"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MASR",&i.macro->val[7],0,adsrParamMax)) { PARAMETER
+          if (CWSliderInt("##MASR",&i.macro->val[7],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
             if (i.macro->val[7]<0) i.macro->val[7]=0;
             if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
           } rightClickable
@@ -2477,7 +2477,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::Text(_("Release"));
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (CWSliderInt("##MARR",&i.macro->val[8],0,adsrParamMax)) { PARAMETER
+          if (CWSliderInt("##MARR",&i.macro->val[8],0,adsrParamMax,"%d",ImGuiSliderFlags_Logarithmic)) { PARAMETER
             if (i.macro->val[8]<0) i.macro->val[8]=0;
             if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
           } rightClickable
@@ -2518,15 +2518,21 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
         }
 
+        const int lfoBottom=i.macro->val[0];
+        const int lfoTop=i.macro->val[1];
+        const int lfoShape=i.macro->val[12];
+        const int lfoRange=lfoTop-lfoBottom;
+        const int lfoParamMax=(lfoShape==2)?1024:((lfoRange<<8)|0xff);
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Speed"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderInt("##MLSpeed",&i.macro->val[11],0,255)) { PARAMETER
+        if (CWSliderInt("##MLSpeed",&i.macro->val[11],0,lfoParamMax>>1)) { PARAMETER
           if (i.macro->val[11]<0) i.macro->val[11]=0;
-          if (i.macro->val[11]>255) i.macro->val[11]=255;
+          if (i.macro->val[11]>(lfoParamMax>>1)) i.macro->val[11]=lfoParamMax>>1;
         } rightClickable
 
         if (compact) ImGui::TableNextRow();
