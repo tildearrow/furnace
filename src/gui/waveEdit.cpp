@@ -398,7 +398,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::TableNextColumn();
         ImGui::Text(_("Width"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual Boy and WonderSwan\n- 64 on FDS\n- 128 on X1-010\n- 256 on SID3\nany other widths will be scaled during playback."));
+          ImGui::SetTooltip(_("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual Boy and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback."));
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
@@ -412,7 +412,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::Text(_("Height"));
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010, SCC and SID3\nany other heights will be scaled during playback."));
+          ImGui::SetTooltip(_("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010 and SCC\nany other heights will be scaled during playback."));
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
@@ -493,36 +493,6 @@ void FurnaceGUI::drawWaveEdit() {
                 if (ImGui::BeginTable("WGShapeProps",2)) {
                   ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
                   ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text(_("Duty"));
-                  ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (CWSliderFloat("##WGDuty",&waveGenDuty,0.0f,1.0f)) {
-                    doGenerateWave();
-                  } rightClickable
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text(_("Exponent"));
-                  ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (CWSliderInt("##WGExp",&waveGenPower,1,8)) {
-                    doGenerateWave();
-                  } rightClickable
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text(_("XOR Point"));
-                  ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (CWSliderFloat("##WGXOR",&waveGenInvertPoint,0.0f,1.0f)) {
-                    doGenerateWave();
-                  } rightClickable
 
                   ImGui::EndTable();
                 }
@@ -646,127 +616,6 @@ void FurnaceGUI::drawWaveEdit() {
                     }
                     ImGui::PopID();
                   }
-                  ImGui::EndTable();
-                }
-
-                CENTER_TEXT(_("Connection Diagram"));
-                ImGui::Text(_("Connection Diagram"));
-
-                if (ImGui::BeginTable("WGFMCon",6)) {
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text(">>");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("1");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("2");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("3");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("4");
-                  ImGui::TableNextColumn();
-                  ImGui::Text(_("Out"));
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text("1");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO1",&waveGenFMCon0[0])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO2",&waveGenFMCon0[1])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO3",&waveGenFMCon0[2])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO4",&waveGenFMCon0[3])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConOO",&waveGenFMCon0[4])) {
-                    doGenerateWave();
-                  }
-                  
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text("2");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con11",&waveGenFMCon1[0])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con12",&waveGenFMCon1[1])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con13",&waveGenFMCon1[2])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con14",&waveGenFMCon1[3])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[4])) {
-                    doGenerateWave();
-                  }
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text("3");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con21",&waveGenFMCon2[0])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con22",&waveGenFMCon2[1])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con23",&waveGenFMCon2[2])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con24",&waveGenFMCon2[3])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[4])) {
-                    doGenerateWave();
-                  }
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text("4");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con31",&waveGenFMCon3[0])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con32",&waveGenFMCon3[1])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con33",&waveGenFMCon3[2])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con34",&waveGenFMCon3[3])) {
-                    doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[4])) {
-                    doGenerateWave();
-                  }
-
                   ImGui::EndTable();
                 }
 
@@ -963,113 +812,6 @@ void FurnaceGUI::drawWaveEdit() {
                   ImGui::EndTable();
                 }
 
-                ImVec2 buttonSize=ImGui::GetContentRegionAvail();
-                buttonSize.y=0.0f;
-                ImVec2 buttonSizeHalf=buttonSize;
-                buttonSizeHalf.x-=ImGui::GetStyle().ItemSpacing.x;
-                buttonSizeHalf.x*=0.5;
-
-                if (ImGui::Button(_("Normalize"),buttonSize)) {
-                  e->lockEngine([this,wave]() {
-                    // find lowest point
-                    int lowest=wave->max;
-                    for (int i=0; i<wave->len; i++) {
-                      if (wave->data[i]<lowest) lowest=wave->data[i];
-                    }
-
-                    // find highest point
-                    int highest=0;
-                    for (int i=0; i<wave->len; i++) {
-                      if (wave->data[i]>highest) highest=wave->data[i];
-                    }
-
-                    // abort if lowest and highest points are equal
-                    if (lowest==highest) return;
-
-                    // abort if lowest and highest points already span the entire height
-                    if (lowest==wave->max && highest==0) return;
-
-                    // apply offset
-                    for (int i=0; i<wave->len; i++) {
-                      wave->data[i]-=lowest;
-                    }
-                    highest-=lowest;
-
-                    // scale
-                    for (int i=0; i<wave->len; i++) {
-                      wave->data[i]=(wave->data[i]*wave->max)/highest;
-                    }
-                    MARK_MODIFIED;
-                  });
-                  e->notifyWaveChange(curWave);
-                }
-                if (ImGui::Button(_("Invert"),buttonSizeHalf)) {
-                  e->lockEngine([this,wave]() {
-                    for (int i=0; i<wave->len; i++) {
-                      wave->data[i]=wave->max-wave->data[i];
-                    }
-                    MARK_MODIFIED;
-                  });
-                  e->notifyWaveChange(curWave);
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(_("Reverse"),buttonSizeHalf)) {
-                  e->lockEngine([this,wave]() {
-                    int origData[256];
-                    memcpy(origData,wave->data,wave->len*sizeof(int));
-
-                    for (int i=0; i<wave->len; i++) {
-                      wave->data[i]=origData[wave->len-1-i];
-                    }
-                    MARK_MODIFIED;
-                  });
-                  e->notifyWaveChange(curWave);
-                }
-
-                if (ImGui::Button(_("Half"),buttonSizeHalf)) {
-                  int origData[256];
-                  memcpy(origData,wave->data,wave->len*sizeof(int));
-
-                  for (int i=0; i<wave->len; i++) {
-                    wave->data[i]=origData[i>>1];
-                  }
-                  e->notifyWaveChange(curWave);
-                  MARK_MODIFIED;
-                }
-                ImGui::SameLine();
-                if (ImGui::Button(_("Double"),buttonSizeHalf)) {
-                  int origData[256];
-                  memcpy(origData,wave->data,wave->len*sizeof(int));
-
-                  for (int i=0; i<wave->len; i++) {
-                    wave->data[i]=origData[(i*2)%wave->len];
-                  }
-                  e->notifyWaveChange(curWave);
-                  MARK_MODIFIED;
-                }
-
-                if (ImGui::Button(_("Convert Signed/Unsigned"),buttonSize)) {
-                  if (wave->max>0) e->lockEngine([this,wave]() {
-                    for (int i=0; i<wave->len; i++) {
-                      if (wave->data[i]>(wave->max/2)) {
-                        wave->data[i]-=(wave->max+1)/2;
-                      } else {
-                        wave->data[i]+=(wave->max+1)/2;
-                      }
-                    }
-                    MARK_MODIFIED;
-                  });
-                  e->notifyWaveChange(curWave);
-                }
-                if (ImGui::Button(_("Randomize"),buttonSize)) {
-                  if (wave->max>0) e->lockEngine([this,wave]() {
-                    for (int i=0; i<wave->len; i++) {
-                      wave->data[i]=rand()%(wave->max+1);
-                    }
-                    MARK_MODIFIED;
-                  });
-                  e->notifyWaveChange(curWave);
-                }
                 ImGui::EndTabItem();
               }
               ImGui::EndTabBar();

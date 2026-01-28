@@ -92,7 +92,6 @@
 #include "platform/nds.h"
 #include "platform/bifurcator.h"
 #include "platform/sid2.h"
-#include "platform/sid3.h"
 #include "platform/multipcm.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -763,9 +762,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SID2:
       dispatch=new DivPlatformSID2;
-      break;
-    case DIV_SYSTEM_SID3:
-      dispatch=new DivPlatformSID3;
       break;
     case DIV_SYSTEM_OPL4:
       dispatch=new DivPlatformOPL;

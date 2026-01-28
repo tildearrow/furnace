@@ -1217,7 +1217,6 @@ fcsFullCmdTable:
   .db 1
   .db 1
   .db 1
-  ; SID3
   .db 1
   .db 1
   .db 1
@@ -1234,7 +1233,6 @@ fcsFullCmdTable:
   ; slide
   .db 2
   .db 2
-  ; SID3 continued
   .db 1
   .db 1
   .db 1

@@ -3107,163 +3107,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  if (ImGui::BeginMenu(_("operation mask..."))) {
-    drawOpMask(opMaskDelete);
-    ImGui::SameLine();
-    ImGui::Text(_("delete"));
-
-    drawOpMask(opMaskPullDelete);
-    ImGui::SameLine();
-    ImGui::Text(_("pull delete"));
-
-    drawOpMask(opMaskInsert);
-    ImGui::SameLine();
-    ImGui::Text(_("insert"));
-
-    drawOpMask(opMaskPaste);
-    ImGui::SameLine();
-    ImGui::Text(_("paste"));
-
-    drawOpMask(opMaskTransposeNote);
-    ImGui::SameLine();
-    ImGui::Text(_("transpose (note)"));
-
-    drawOpMask(opMaskTransposeValue);
-    ImGui::SameLine();
-    ImGui::Text(_("transpose (value)"));
-
-    drawOpMask(opMaskInterpolate);
-    ImGui::SameLine();
-    ImGui::Text(_("interpolate"));
-
-    drawOpMask(opMaskFade);
-    ImGui::SameLine();
-    ImGui::Text(_("fade"));
-
-    drawOpMask(opMaskInvertVal);
-    ImGui::SameLine();
-    ImGui::Text(_("invert values"));
-
-    drawOpMask(opMaskScale);
-    ImGui::SameLine();
-    ImGui::Text(_("scale"));
-
-    drawOpMask(opMaskRandomize);
-    ImGui::SameLine();
-    ImGui::Text(_("randomize"));
-
-    drawOpMask(opMaskFlip);
-    ImGui::SameLine();
-    ImGui::Text(_("flip"));
-
-    drawOpMask(opMaskCollapseExpand);
-    ImGui::SameLine();
-    ImGui::Text(_("collapse/expand"));
-
-    ImGui::EndMenu();
-  }
-
-  ImGui::Text(_("input latch"));
-  ImGui::PushFont(patFont);
-  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
-    static char id[64];
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    ImGui::Text("C-4");
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-    if (latchIns==-2) {
-      strcpy(id,"&&##LatchIns");
-    } else if (latchIns==-1) {
-      strcpy(id,"..##LatchIns");
-    } else {
-      snprintf(id,63,"%.2X##LatchIns",latchIns&0xff);
-    }
-    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=1;
-      latchNibble=false;
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchIns=-2;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      ImGui::SetTooltip(_("&&: selected instrument\n..: no instrument"));
-      ImGui::PopStyleColor();
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-    if (latchVol==-1) {
-      strcpy(id,"..##LatchVol");
-    } else {
-      snprintf(id,63,"%.2X##LatchVol",latchVol&0xff);
-    }
-    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=2;
-      latchNibble=false;
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchVol=-1;
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    if (latchEffect==-1) {
-      strcpy(id,"..##LatchFX");
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-    } else {
-      const unsigned char data=latchEffect;
-      snprintf(id,63,"%.2X##LatchFX",data);
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-    }
-
-    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=3;
-      latchNibble=false;
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchEffect=-1;
-    }
-    ImGui::TableNextColumn();
-    if (latchEffectVal==-1) {
-      strcpy(id,"..##LatchFXV");
-    } else {
-      snprintf(id,63,"%.2X##LatchFXV",latchEffectVal&0xff);
-    }
-    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=4;
-      latchNibble=false;
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchEffectVal=-1;
-    }
-    ImGui::PopStyleColor();
-    ImGui::EndTable();
-  }
-  ImGui::PopFont();
-  ImGui::SameLine();
-  if (ImGui::Button(_("Set"))) {
-    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-    latchIns=pat->newData[cursor.y][DIV_PAT_INS];
-    latchVol=pat->newData[cursor.y][DIV_PAT_VOL];
-    latchEffect=pat->newData[cursor.y][DIV_PAT_FX(0)];
-    latchEffectVal=pat->newData[cursor.y][DIV_PAT_FXVAL(0)];
-    latchTarget=0;
-    latchNibble=false;
-  }
-  ImGui::SameLine();
-  if (ImGui::Button(_("Reset"))) {
-    latchIns=-2;
-    latchVol=-1;
-    latchEffect=-1;
-    latchEffectVal=-1;
-    latchTarget=0;
-    latchNibble=false;
-  }
-  ImGui::Separator();
-
   if (ImGui::MenuItem(_("note up"),BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
   if (ImGui::MenuItem(_("note down"),BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
   if (ImGui::MenuItem(_("octave up"),BIND_FOR(GUI_ACTION_PAT_OCTAVE_UP))) doTranspose(12,opMaskTransposeNote);
@@ -3308,38 +3151,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::EndMenu();
   }
 
-  if (ImGui::BeginMenu(_("gradient/fade..."))) {
-    if (ImGui::InputInt(_("Start"),&fadeMin,1,16)) {
-      if (fadeMin<0) fadeMin=0;
-      if (fadeMode) {
-        if (fadeMin>15) fadeMin=15;
-      } else {
-        if (fadeMin>255) fadeMin=255;
-      }
-    }
-    if (ImGui::InputInt(_("End"),&fadeMax,1,16)) {
-      if (fadeMax<0) fadeMax=0;
-      if (fadeMode) {
-        if (fadeMax>15) fadeMax=15;
-      } else {
-        if (fadeMax>255) fadeMax=255;
-      }
-    }
-    if (ImGui::Checkbox(_("Nibble mode"),&fadeMode)) {
-      if (fadeMode) {
-        if (fadeMin>15) fadeMin=15;
-        if (fadeMax>15) fadeMax=15;
-      } else {
-        if (fadeMin>255) fadeMin=255;
-        if (fadeMax>255) fadeMax=255;
-      }
-    }
-    if (ImGui::Button(_("Go ahead"))) {
-      doFade(fadeMin,fadeMax,fadeMode);
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndMenu();
-  }
   if (ImGui::BeginMenu(_("scale..."))) {
     if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,10,"%.1f%%")) {
       if (scaleMax<0.0f) scaleMax=0.0f;
@@ -3347,49 +3158,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     if (ImGui::Button(_("Scale"))) {
       doScale(scaleMax);
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndMenu();
-  }
-  if (ImGui::BeginMenu(_("randomize..."))) {
-    if (ImGui::InputInt(_("Minimum"),&randomizeMin,1,16)) {
-      if (randomizeMin<0) randomizeMin=0;
-      if (randomMode) {
-        if (randomizeMin>15) randomizeMin=15;
-      } else {
-        if (randomizeMin>255) randomizeMin=255;
-      }
-      if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
-    }
-    if (ImGui::InputInt(_("Maximum"),&randomizeMax,1,16)) {
-      if (randomizeMax<0) randomizeMax=0;
-      if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
-      if (randomMode) {
-        if (randomizeMax>15) randomizeMax=15;
-      } else {
-        if (randomizeMax>255) randomizeMax=255;
-      }
-    }
-    if (ImGui::Checkbox(_("Nibble mode"),&randomMode)) {
-      if (randomMode) {
-        if (randomizeMin>15) randomizeMin=15;
-        if (randomizeMax>15) randomizeMax=15;
-      } else {
-        if (randomizeMin>255) randomizeMin=255;
-        if (randomizeMax>255) randomizeMax=255;
-      }
-    }
-    if (selStart.xFine>2 || selEnd.xFine>2 || selStart.xCoarse!=selEnd.xCoarse) {
-      ImGui::Checkbox(_("Set effect"),&randomizeEffect);
-      if (randomizeEffect) {
-        if (ImGui::InputScalar(_("Effect"),ImGuiDataType_S32,&randomizeEffectVal,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
-          if (randomizeEffectVal<0) randomizeEffectVal=0;
-          if (randomizeEffectVal>255) randomizeEffectVal=255;
-        }
-      }
-    }
-    if (ImGui::Button(_("Randomize"))) {
-      doRandomize(randomizeMin,randomizeMax,randomMode,randomizeEffect,randomizeEffectVal);
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndMenu();
@@ -3895,7 +3663,6 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(readOsc)
   DECLARE_METRIC(osc)
   DECLARE_METRIC(chanOsc)
-  DECLARE_METRIC(xyOsc)
   DECLARE_METRIC(volMeter)
   DECLARE_METRIC(settings)
   DECLARE_METRIC(debug)
@@ -3916,7 +3683,6 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(effectList)
   DECLARE_METRIC(userPresets)
   DECLARE_METRIC(refPlayer)
-  DECLARE_METRIC(multiInsSetup)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -4561,12 +4327,10 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(clockOpen);
         IMPORT_CLOSE(speedOpen);
         IMPORT_CLOSE(groovesOpen);
-        IMPORT_CLOSE(xyOscOpen);
         IMPORT_CLOSE(memoryOpen);
         IMPORT_CLOSE(csPlayerOpen);
         IMPORT_CLOSE(userPresetsOpen);
         IMPORT_CLOSE(refPlayerOpen);
-        IMPORT_CLOSE(multiInsSetupOpen);
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -4921,7 +4685,6 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu(_("visualizers"))) {
           if (ImGui::MenuItem(_("oscilloscope (master)"),BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
           if (ImGui::MenuItem(_("oscilloscope (per-channel)"),BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
-          if (ImGui::MenuItem(_("oscilloscope (X-Y)"),BIND_FOR(GUI_ACTION_WINDOW_XY_OSC),xyOscOpen)) xyOscOpen=!xyOscOpen;
           if (ImGui::MenuItem(_("volume meter"),BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
           if (ImGui::MenuItem(_("tuner"),BIND_FOR(GUI_ACTION_WINDOW_TUNER),tunerOpen)) tunerOpen=!tunerOpen;
           if (ImGui::MenuItem(_("spectrum"),BIND_FOR(GUI_ACTION_WINDOW_SPECTRUM),spectrumOpen)) spectrumOpen=!spectrumOpen;
@@ -4946,7 +4709,6 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("play/edit controls"),BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
         if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
-        if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
 
         ImGui::EndMenu();
@@ -5153,7 +4915,6 @@ bool FurnaceGUI::loop() {
       MEASURE(readOsc,readOsc());
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
-      MEASURE(xyOsc,drawXYOsc());
       MEASURE(volMeter,drawVolMeter());
       MEASURE(grooves,drawGrooves());
       MEASURE(regView,drawRegView());
@@ -5161,7 +4922,6 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
       MEASURE(refPlayer,drawRefPlayer());
-      MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(patManager,drawPatManager());
       MEASURE(tuner,drawTuner());
       MEASURE(spectrum,drawSpectrum());
@@ -5190,7 +4950,6 @@ bool FurnaceGUI::loop() {
 
       MEASURE(osc,drawOsc());
       MEASURE(chanOsc,drawChanOsc());
-      MEASURE(xyOsc,drawXYOsc());
       MEASURE(volMeter,drawVolMeter());
       MEASURE(settings,drawSettings());
       MEASURE(debug,drawDebug());
@@ -5211,7 +4970,6 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
       MEASURE(refPlayer,drawRefPlayer());
-      MEASURE(multiInsSetup,drawMultiInsSetup());
 
     }
 
@@ -8349,7 +8107,6 @@ void FurnaceGUI::syncState() {
   mixerOpen=e->getConfBool("mixerOpen",false);
   oscOpen=e->getConfBool("oscOpen",true);
   chanOscOpen=e->getConfBool("chanOscOpen",false);
-  xyOscOpen=e->getConfBool("xyOscOpen",false);
   memoryOpen=e->getConfBool("memoryOpen",false);
   csPlayerOpen=e->getConfBool("csPlayerOpen",false);
   volMeterOpen=e->getConfBool("volMeterOpen",true);
@@ -8377,7 +8134,6 @@ void FurnaceGUI::syncState() {
   spoilerOpen=e->getConfBool("spoilerOpen",false);
   userPresetsOpen=e->getConfBool("userPresetsOpen",false);
   refPlayerOpen=e->getConfBool("refPlayerOpen",false);
-  multiInsSetupOpen=e->getConfBool("multiInsSetupOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -8478,16 +8234,6 @@ void FurnaceGUI::syncState() {
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
 
-  xyOscXChannel=e->getConfInt("xyOscXChannel",0);
-  xyOscXInvert=e->getConfBool("xyOscXInvert",false);
-  xyOscYChannel=e->getConfInt("xyOscYChannel",1);
-  xyOscYInvert=e->getConfBool("xyOscYInvert",false);
-  xyOscZoom=e->getConfFloat("xyOscZoom",1.0f);
-  xyOscSamples=e->getConfInt("xyOscSamples",32768);
-  xyOscDecayTime=e->getConfFloat("xyOscDecayTime",10.0f);
-  xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
-  xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
-
   cvHiScore=e->getConfInt("cvHiScore",25000);
 
   newFilePicker->loadSettings(e->getConfObject());
@@ -8534,7 +8280,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("mixerOpen",mixerOpen);
   conf.set("oscOpen",oscOpen);
   conf.set("chanOscOpen",chanOscOpen);
-  conf.set("xyOscOpen",xyOscOpen);
   conf.set("memoryOpen",memoryOpen);
   conf.set("csPlayerOpen",csPlayerOpen);
   conf.set("volMeterOpen",volMeterOpen);
@@ -8558,7 +8303,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("spoilerOpen",spoilerOpen);
   conf.set("userPresetsOpen",userPresetsOpen);
   conf.set("refPlayerOpen",refPlayerOpen);
-  conf.set("multiInsSetupOpen",multiInsSetupOpen);
 
   // commit dir state
   conf.set("insListDir",insListDir);
@@ -8651,17 +8395,6 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("chanOscUseGrad",chanOscUseGrad);
   conf.set("chanOscGrad",chanOscGrad.toString());
   conf.set("chanOscColorMode",chanOscColorMode);
-
-  // commit x-y osc state
-  conf.set("xyOscXChannel",xyOscXChannel);
-  conf.set("xyOscXInvert",xyOscXInvert);
-  conf.set("xyOscYChannel",xyOscYChannel);
-  conf.set("xyOscYInvert",xyOscYInvert);
-  conf.set("xyOscZoom",xyOscZoom);
-  conf.set("xyOscSamples",xyOscSamples);
-  conf.set("xyOscDecayTime",xyOscDecayTime);
-  conf.set("xyOscIntensity",xyOscIntensity);
-  conf.set("xyOscThickness",xyOscThickness);
 
   // commit recent files
   for (int i=0; i<30; i++) {
@@ -9003,13 +8736,11 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
-  xyOscOpen(false),
   memoryOpen(false),
   csPlayerOpen(false),
   cvOpen(false),
   userPresetsOpen(false),
   refPlayerOpen(false),
-  multiInsSetupOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),
@@ -9285,17 +9016,6 @@ FurnaceGUI::FurnaceGUI():
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
   chanOscWorkPool(NULL),
-  xyOscPointTex(NULL),
-  xyOscOptions(false),
-  xyOscXChannel(0),
-  xyOscXInvert(false),
-  xyOscYChannel(1),
-  xyOscYInvert(false),
-  xyOscZoom(1.0f),
-  xyOscSamples(32768),
-  xyOscDecayTime(10.0f),
-  xyOscIntensity(2.0f),
-  xyOscThickness(2.0f),
   tunerFFTInBuf(NULL),
   tunerFFTOutBuf(NULL),
   tunerPlan(NULL),

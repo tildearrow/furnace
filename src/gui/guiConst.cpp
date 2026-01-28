@@ -202,7 +202,6 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"SID2",ICON_FA_KEYBOARD_O,ICON_FUR_INS_SID2},
   {"Watara Supervision",ICON_FA_GAMEPAD,ICON_FUR_INS_SUPERVISION},
   {"NEC μPD1771C",ICON_FA_BAR_CHART,ICON_FUR_INS_UPD1771C},
-  {"SID3",ICON_FA_KEYBOARD_O,ICON_FUR_INS_SID3},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
@@ -670,12 +669,10 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_FIND", _N("Find/Replace"), FURKMOD_CMD|SDLK_f),
   D("WINDOW_CLOCK", _N("Clock"), 0),
   D("WINDOW_GROOVES", _N("Grooves"), 0),
-  D("WINDOW_XY_OSC", _N("Oscilloscope (X-Y)"), 0),
   D("WINDOW_MEMORY", _N("Memory Composition"), 0),
   D("WINDOW_CS_PLAYER", _N("Command Stream Player"), 0),
   D("WINDOW_USER_PRESETS", _N("User Presets"), 0),
   D("WINDOW_REF_PLAYER", _N("Reference Music Player"), 0),
-  D("MULTI_INS_SETUP", _N("Multi-Instrument Setup"), 0),
 
   D("COLLAPSE_WINDOW", _N("Collapse/expand current window"), 0),
   D("CLOSE_WINDOW", _N("Close current window"), FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -1099,7 +1096,6 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_SID2,"",ImVec4(0.6f,0.75f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_SUPERVISION,"",ImVec4(0.52f,1.0f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_UPD1771C,"",ImVec4(0.94f,0.52f,0.6f,1.0f)),
-  D(GUI_COLOR_INSTR_SID3,"",ImVec4(0.6f,0.75f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1361,7 +1357,6 @@ const int availableSystems[]={
   DIV_SYSTEM_OPL4_DRUMS,
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
-  DIV_SYSTEM_SID3,
   DIV_SYSTEM_MULTIPCM,
   0 // don't remove this last one!
 };
@@ -1465,7 +1460,6 @@ const int chipsSpecial[]={
   DIV_SYSTEM_SID2,
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
-  DIV_SYSTEM_SID3,
   0 // don't remove this last one!
 };
 

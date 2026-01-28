@@ -383,7 +383,6 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SID2,
   GUI_COLOR_INSTR_SUPERVISION,
   GUI_COLOR_INSTR_UPD1771C,
-  GUI_COLOR_INSTR_SID3,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -576,7 +575,6 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
-  GUI_WINDOW_XY_OSC,
   GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_MEMORY,
   GUI_WINDOW_CS_PLAYER,
@@ -787,12 +785,10 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_WINDOW_CLOCK,
   GUI_ACTION_WINDOW_GROOVES,
-  GUI_ACTION_WINDOW_XY_OSC,
   GUI_ACTION_WINDOW_MEMORY,
   GUI_ACTION_WINDOW_CS_PLAYER,
   GUI_ACTION_WINDOW_USER_PRESETS,
   GUI_ACTION_WINDOW_REF_PLAYER,
-  GUI_ACTION_WINDOW_MULTI_INS_SETUP,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -2434,8 +2430,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
-  bool multiInsSetupOpen;
+  bool groovesOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
 
   bool cvNotSerious;
 
@@ -2761,19 +2756,6 @@ class FurnaceGUI {
       planI(NULL) {}
   } chanOscChan[DIV_MAX_CHANS];
 
-  // x-y oscilloscope
-  FurnaceGUITexture* xyOscPointTex;
-  bool xyOscOptions;
-  int xyOscXChannel;
-  bool xyOscXInvert;
-  int xyOscYChannel;
-  bool xyOscYInvert;
-  float xyOscZoom;
-  int xyOscSamples;
-  float xyOscDecayTime;
-  float xyOscIntensity;
-  float xyOscThickness;
-
   // spectrum and tuner
   double* tunerFFTInBuf;
   fftw_complex* tunerFFTOutBuf;
@@ -2950,11 +2932,9 @@ class FurnaceGUI {
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
-  void drawWaveformSID3(unsigned char type, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
-  void drawSID3Env(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins, bool supportsKVS=true);
@@ -3070,7 +3050,6 @@ class FurnaceGUI {
   void drawPatternNew();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
-  void drawInsSID3(DivInstrument* ins);
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);
@@ -3105,10 +3084,8 @@ class FurnaceGUI {
   void drawSpoiler();
   void drawClock();
   void drawTutorial();
-  void drawXYOsc();
   void drawUserPresets();
   void drawRefPlayer();
-  void drawMultiInsSetup();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);

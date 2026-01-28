@@ -440,13 +440,6 @@ void FurnaceGUI::drawSystemChannelInfoText(const DivSysDef* whichDef) {
         }
         chanCount[chanDef.type]++;
         break;
-      case DIV_INS_SID3:
-        if (chanDef.type!=DIV_CH_WAVE) {
-          chanCount[CHANNEL_TYPE_OTHER]++;
-        } else {
-          chanCount[CHANNEL_TYPE_WAVE]++;
-        }
-        break;
       case DIV_INS_C64: // uncategorizable (by me)
       case DIV_INS_TIA:
       case DIV_INS_PET:

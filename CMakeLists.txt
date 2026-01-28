@@ -752,7 +752,6 @@ src/engine/platform/sound/sid2/wave8580_P_T.cc
 src/engine/platform/sound/sid2/wave8580__ST.cc
 src/engine/platform/sound/sid2/wave.cc
 
-src/engine/platform/sound/sid3.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
@@ -883,7 +882,6 @@ src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
 src/engine/platform/sid2.cpp
-src/engine/platform/sid3.cpp
 src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
@@ -992,7 +990,6 @@ src/gui/log.cpp
 src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
-src/gui/multiInsSetup.cpp
 src/gui/newPattern.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
@@ -1024,7 +1021,6 @@ src/gui/userPresets.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
-src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
 

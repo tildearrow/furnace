@@ -296,28 +296,28 @@ const char* cmdName[]={
   "MULTIPCM_LFO_RESET",
   "MULTIPCM_LEVEL_DIRECT",
 
-  "SID3_SPECIAL_WAVE",
-  "SID3_RING_MOD_SRC",
-  "SID3_HARD_SYNC_SRC",
-  "SID3_PHASE_MOD_SRC",
-  "SID3_WAVE_MIX",
-  "SID3_LFSR_FEEDBACK_BITS",
-  "SID3_1_BIT_NOISE",
-  "SID3_FILTER_DISTORTION",
-  "SID3_FILTER_OUTPUT_VOLUME",
-  "SID3_CHANNEL_INVERSION",
-  "SID3_FILTER_CONNECTION",
-  "SID3_FILTER_MATRIX",
-  "SID3_FILTER_ENABLE",
+  "REMOVED_SPECIAL_WAVE",
+  "REMOVED_RING_MOD_SRC",
+  "REMOVED_HARD_SYNC_SRC",
+  "REMOVED_PHASE_MOD_SRC",
+  "REMOVED_WAVE_MIX",
+  "REMOVED_LFSR_FEEDBACK_BITS",
+  "REMOVED_1_BIT_NOISE",
+  "REMOVED_FILTER_DISTORTION",
+  "REMOVED_FILTER_OUTPUT_VOLUME",
+  "REMOVED_CHANNEL_INVERSION",
+  "REMOVED_FILTER_CONNECTION",
+  "REMOVED_FILTER_MATRIX",
+  "REMOVED_FILTER_ENABLE",
 
   "C64_PW_SLIDE",
   "C64_CUTOFF_SLIDE",
 
-  "SID3_PHASE_RESET",
-  "SID3_NOISE_PHASE_RESET",
-  "SID3_ENVELOPE_RESET",
-  "SID3_CUTOFF_SCALING",
-  "SID3_RESONANCE_SCALING",
+  "REMOVED_PHASE_RESET",
+  "REMOVED_NOISE_PHASE_RESET",
+  "REMOVED_ENVELOPE_RESET",
+  "REMOVED_CUTOFF_SCALING",
+  "REMOVED_RESONANCE_SCALING",
 
   "WS_GLOBAL_SPEAKER_VOLUME",
 
@@ -1704,7 +1704,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
 // this is called by nextTick().
 // this reads the next row:
 // 1. update pattern console visualizer
-// 2. update the metronome
 // 3. call processRowPre() on all channels
 // 4. call processRow() on all channels
 // 5. mark row as "walked" on
@@ -1761,22 +1760,6 @@ void DivEngine::nextRow() {
     }
     // print orders and pattern row
     printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
-  }
-
-  // update and tick metronome if necessary
-  // elapsedBeats/Bars is used by the GUI for the clock
-  if (curSubSong->hilightA>0) {
-    if ((curRow%curSubSong->hilightA)==0) {
-      pendingMetroTick=1;
-      elapsedBeats++;
-    }
-  }
-  if (curSubSong->hilightB>0) {
-    if ((curRow%curSubSong->hilightB)==0) {
-      pendingMetroTick=2;
-      elapsedBars++;
-      elapsedBeats=0;
-    }
   }
 
   // set the previous order as we'll be in the next one once done
@@ -3085,16 +3068,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       disCont[i].runPos=0;
     }
 
-    // resize the metronome tick buffer if necessary
-    if (metroTickLen<size) {
-      if (metroTick!=NULL) delete[] metroTick;
-      metroTick=new unsigned char[size];
-      metroTickLen=size;
-    }
-
-    // reset the metronome tick buffer
-    memset(metroTick,0,size);
-
     // this variable counts how many loops we had to go through in order to fill audio buffer
     // it prevents hangs under extraordinary bug situations
     int attempts=0;
@@ -3144,13 +3117,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               break;
             }
           }
-        }
-        // check whether we gotta insert a metronome tick
-        if (pendingMetroTick) {
-          unsigned int realPos=size-runLeftG;
-          if (realPos>=size) realPos=size-1;
-          metroTick[realPos]=pendingMetroTick;
-          pendingMetroTick=0;
         }
       } else {
         // we don't have to tick yet. run chip dispatches.
@@ -3283,43 +3249,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
-  // process metronome
-  // resize the metronome's audio buffer if necessary
-  if (metroBufLen<size || metroBuf==NULL) {
-    if (metroBuf!=NULL) delete[] metroBuf;
-    metroBuf=new float[size];
-    metroBufLen=size;
-  }
-
-  memset(metroBuf,0,metroBufLen*sizeof(float));
-
-  // insert metronome ticks
-  // a 1400Hz tick is used for bars (highlight 2) and a 1050Hz one for beats (highlight 1)
-  if (mustPlay && metronome && !freelance) {
-    for (size_t i=0; i<size; i++) {
-      if (metroTick[i]) {
-        if (metroTick[i]==2) {
-          metroFreq=1400/got.rate;
-        } else {
-          metroFreq=1050/got.rate;
-        }
-        metroPos=0;
-        metroAmp=0.7f;
-      }
-      // mix in the tick
-      if (metroAmp>0.0f) {
-        for (int j=0; j<outChans; j++) {
-          metroBuf[i]=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
-        }
-      }
-      // decay
-      metroAmp-=0.0003f;
-      if (metroAmp<0.0f) metroAmp=0.0f;
-      metroPos+=metroFreq;
-      while (metroPos>=1) metroPos--;
-    }
-  }
-
   // calculate volume of reference file player (so we can attenuate the rest according to the mix slider)
   // -1 to 0: player volume goes from 0% to 100%
   // 0 to +1: tracker volume goes from 100% to 0%
@@ -3385,11 +3314,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         // sample preview
         for (size_t j=0; j<size; j++) {
           out[destSubPort][j]+=previewVol*(samp_bbOut[j]/32768.0);
-        }
-      } else if (srcPortSet==0xffe && playing && !halted) {
-        // metronome
-        for (size_t j=0; j<size; j++) {
-          out[destSubPort][j]+=metroBuf[j];
         }
       }
 

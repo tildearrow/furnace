@@ -3911,11 +3911,6 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    _("SID3"), {
-      CH(DIV_SYSTEM_SID3, 1.0f, 0, "")
-    }
-  );
-  ENTRY(
     _("Watara Supervision"), {
       CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
     }

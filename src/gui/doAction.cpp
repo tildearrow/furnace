@@ -170,7 +170,6 @@ void FurnaceGUI::doAction(int what) {
       edit=!edit;
       break;
     case GUI_ACTION_METRONOME:
-      e->setMetronome(!e->getMetronome());
       break;
     case GUI_ACTION_ORDER_LOCK:
       orderLock=!orderLock;
@@ -354,9 +353,6 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_GROOVES:
       nextWindow=GUI_WINDOW_GROOVES;
       break;
-    case GUI_ACTION_WINDOW_XY_OSC:
-      nextWindow=GUI_WINDOW_XY_OSC;
-      break;
     case GUI_ACTION_WINDOW_MEMORY:
       nextWindow=GUI_WINDOW_MEMORY;
       break;
@@ -368,9 +364,6 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WINDOW_REF_PLAYER:
       nextWindow=GUI_WINDOW_REF_PLAYER;
-      break;
-    case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
-      nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
@@ -468,9 +461,6 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_GROOVES:
           groovesOpen=false;
           break;
-        case GUI_WINDOW_XY_OSC:
-          xyOscOpen=false;
-          break;
         case GUI_WINDOW_MEMORY:
           memoryOpen=false;
           break;
@@ -482,9 +472,6 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_REF_PLAYER:
           refPlayerOpen=false;
-          break;
-        case GUI_WINDOW_MULTI_INS_SETUP:
-          multiInsSetupOpen=false;
           break;
         case GUI_WINDOW_TUNER:
           tunerOpen=false;

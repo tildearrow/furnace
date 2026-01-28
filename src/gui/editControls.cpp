@@ -406,14 +406,6 @@ void FurnaceGUI::drawMobileControls() {
       edit=!edit;
     }
     popToggleColors();
-
-    bool metro=e->getMetronome();
-    pushToggleColors(metro);
-    if (portrait) ImGui::SameLine();
-    if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
-      e->setMetronome(!metro);
-    }
-    popToggleColors();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
   ImGui::End();
@@ -592,10 +584,6 @@ void FurnaceGUI::drawMobileControls() {
           compatFlagsOpen=!compatFlagsOpen;
         }
         ImGui::SameLine();
-        if (ImGui::Button(_("XYOsc"))) {
-          xyOscOpen=!xyOscOpen;
-        }
-        ImGui::SameLine();
         if (ImGui::Button(_("Meter"))) {
           volMeterOpen=!volMeterOpen;
         }
@@ -754,11 +742,6 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Checkbox(_("Lock"),&ol)) {
           doAction(GUI_ACTION_ORDER_LOCK);
         }
-        ImGui::SameLine();
-        bool metro=e->getMetronome();
-        if (ImGui::Checkbox(_("Metronome"),&metro)) {
-          e->setMetronome(metro);
-        }
 
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Follow"));
@@ -847,17 +830,6 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Lock cursor/selection to this order"));
-        }
-        popToggleColors();
-
-        ImGui::SameLine();
-        bool metro=e->getMetronome();
-        pushToggleColors(metro);
-        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
-          e->setMetronome(!metro);
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Metronome"));
         }
         popToggleColors();
 
@@ -972,16 +944,6 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Lock cursor/selection to this order"));
-        }
-        popToggleColors();
-
-        bool metro=e->getMetronome();
-        pushToggleColors(metro);
-        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
-          e->setMetronome(!metro);
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Metronome"));
         }
         popToggleColors();
 
@@ -1120,17 +1082,6 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Lock cursor/selection to this order"));
-        }
-        popToggleColors();
-
-        bool metro=e->getMetronome();
-        ImGui::SameLine();
-        pushToggleColors(metro);
-        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
-          e->setMetronome(!metro);
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Metronome"));
         }
         popToggleColors();
 

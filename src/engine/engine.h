@@ -353,7 +353,6 @@ class DivEngine {
   bool disableStatusOut;
   bool extValuePresent;
   bool repeatPattern;
-  bool metronome;
   bool exporting;
   bool stopExport;
   bool halted;
@@ -391,7 +390,7 @@ class DivEngine {
   TimeMicros totalTime;
   double totalTimeDrift;
   int curMidiTimePiece, curMidiTimeCode;
-  unsigned char extValue, pendingMetroTick;
+  unsigned char extValue;
   DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
   short tempoAccum;
@@ -466,13 +465,6 @@ class DivEngine {
   short* samp_bbIn;
   short* samp_bbOut;
 
-  unsigned char* metroTick;
-  size_t metroTickLen;
-  float* metroBuf;
-  size_t metroBufLen;
-  float metroFreq, metroPos;
-  float metroAmp;
-  float metroVol;
   float previewVol;
 
   float* filePlayerBuf[DIV_MAX_OUTPUTS];
@@ -1139,15 +1131,6 @@ class DivEngine {
     // set the console mode.
     void setConsoleMode(bool enable, bool statusOut=true);
 
-    // get metronome
-    bool getMetronome();
-
-    // set metronome
-    void setMetronome(bool enable);
-
-    // set metronome volume (1.0 = 100%)
-    void setMetronomeVol(float vol);
-
     // get buffer position
     int getBufferPos();
 
@@ -1344,7 +1327,6 @@ class DivEngine {
       disableStatusOut(false),
       extValuePresent(false),
       repeatPattern(false),
-      metronome(false),
       exporting(false),
       stopExport(false),
       halted(false),
@@ -1404,7 +1386,6 @@ class DivEngine {
       curMidiTimePiece(0),
       curMidiTimeCode(0),
       extValue(0),
-      pendingMetroTick(0),
       virtualTempoN(150),
       virtualTempoD(150),
       tempoAccum(0),
@@ -1431,14 +1412,6 @@ class DivEngine {
       samp_prevSample(0),
       samp_bbIn(NULL),
       samp_bbOut(NULL),
-      metroTick(NULL),
-      metroTickLen(0),
-      metroBuf(NULL),
-      metroBufLen(0),
-      metroFreq(0),
-      metroPos(0),
-      metroAmp(0.0f),
-      metroVol(1.0f),
       previewVol(1.0f),
       filePlayerBufLen(0),
       curFilePlayer(NULL),

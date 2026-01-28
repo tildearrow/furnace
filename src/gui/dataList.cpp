@@ -562,15 +562,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
       ImGui::EndPopup();
     }
-    ImGui::SameLine();
-    pushToggleColors(insListDir);
-    if (ImGui::Button(ICON_FA_SITEMAP "##DirMode")) {
-      doAction(GUI_ACTION_INS_LIST_DIR_VIEW);
-    }
-    popToggleColors();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(_("Toggle folders/standard view"));
-    }
     if (!insListDir) {
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_ARROW_UP "##InsUp")) {
@@ -998,9 +989,6 @@ void FurnaceGUI::drawWaveList(bool asChild) {
             doAction(GUI_ACTION_WAVE_LIST_SAVE_ALL);
           }
         }
-        if (buttonSpace<7.0f) if (ImGui::MenuItem("folder view",NULL,waveListDir)) {
-          doAction(GUI_ACTION_WAVE_LIST_DIR_VIEW);
-        }
         if (buttonSpace<(waveListDir?7.0f:8.0f)) {
           if (!waveListDir) {
             if (ImGui::MenuItem("move up")) {
@@ -1263,9 +1251,6 @@ void FurnaceGUI::drawSampleList(bool asChild) {
           if (ImGui::MenuItem("save all...")) {
             doAction(GUI_ACTION_SAMPLE_LIST_SAVE_ALL);
           }
-        }
-        if (buttonSpace<8.0f) if (ImGui::MenuItem("folder view",NULL,sampleListDir)) {
-          doAction(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
         }
         if (buttonSpace<(sampleListDir?8.0f:9.0f)) {
           if (!sampleListDir) {
