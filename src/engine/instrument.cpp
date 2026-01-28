@@ -3710,10 +3710,10 @@ void DivInstrument::convertC64SpecialMacro() {
 void DivInstrument::convertOldADSRLFO() {
   DivInstrumentMacro* macro=NULL;
   for (int j=0; (macro=std.macroByType((DivMacroType)j)); j++) {
+    const int bottom=macro->val[0];
+    const int top=macro->val[1];
+    const int range=abs(top-bottom);
     if (macro->open&2) { // ADSR macro
-      const int bottom=macro->val[0];
-      const int top=macro->val[1];
-      const int range=abs(top-bottom);
 
       // convert attack/decay/sus decay/release
       macro->val[2]*=range;
@@ -3724,7 +3724,13 @@ void DivInstrument::convertOldADSRLFO() {
       // convert sustain level
       macro->val[5]=(range*macro->val[5])/255;
     } else if (macro->open&4) { // LFO macro
-      // TODO
+      // convert speed
+      // this is not required for square LFOs
+      if ((macro->val[12]&3)==0) { // triangle
+        macro->val[11]=(range*macro->val[11])>>1;
+      } else if ((macro->val[12]&3)==1) { // saw
+        macro->val[11]=(range*macro->val[11])>>2;
+      }
     }
   }
 }
