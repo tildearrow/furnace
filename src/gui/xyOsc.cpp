@@ -213,7 +213,7 @@ void FurnaceGUI::drawXYOsc() {
         } else if (valX<=-INFINITY) {
           ImGui::SetTooltip(_("(-Infinity)dB,%.1fdB"),valY);
         } else if (valY<=-INFINITY) {
-          ImGui::SetTooltip(_("%.1fdB,(-Infinity)dB"),valY);
+          ImGui::SetTooltip(_("%.1fdB,(-Infinity)dB"),valX);
         } else {
           ImGui::SetTooltip(_("%.1fdB,%.1fdB"),valX,valY);
         }
