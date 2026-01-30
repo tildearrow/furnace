@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -425,6 +425,12 @@ void FurnaceGUI::drawCompatFlags() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("when enabled, the slide effect will not be disabled after it reaches its target."));
+        }
+        if (ImGui::Checkbox(_("Don't reset volume slides after reaching target"),&e->song.compatFlags.noVolSlideReset)) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, volume slide speeds will not be reset after reaching target or bounds."));
         }
         if (ImGui::Checkbox(_("Continuous vibrato"),&e->song.compatFlags.continuousVibrato)) {
           MARK_MODIFIED;

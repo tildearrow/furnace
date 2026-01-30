@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,7 +133,8 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
     int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, totalOutputs, ramSize;
-    int fmMixL=7, fmMixR=7, pcmMixL=7, pcmMixR=7;
+    int fmMixL, fmMixR, pcmMixL, pcmMixR;
+    int fmMixLDef, fmMixRDef, pcmMixLDef, pcmMixRDef;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -203,6 +204,7 @@ class DivPlatformOPL: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void setCore(unsigned char which);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);

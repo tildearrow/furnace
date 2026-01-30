@@ -134,12 +134,15 @@ all these menu items show or hide their associated windows.
 
 ## help
 
-- **effect list**: displays the effect list.
+- **online manual**: opens the online manual in your default browser.
+  - the online manual is frequently updated to match Furnace's development; it may contain material that doesn't apply to the most recent stable release.
+- **effect list**: displays the [effect list](../3-pattern/effects.md).
 - **debug menu**: this menu contains various debug utilities.
   - unless you are working with the Furnace codebase, it's not useful.
 - **inspector**: this option shows the Dear ImGui Metrics/Debugger window.
   - unless you are working with the Furnace codebase, it's not useful.
 - **panic**: this resets all chips while the song is playing, effectively silencing everything.
+- **welcome screen**: displays the welcome screen that appears when Furnace is first run.
 - **about...**: displays the About screen.
 
 at the end of the menu bar, more information may be shown:

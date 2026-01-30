@@ -2,14 +2,183 @@
 
 ## instrument data
 
-TODO
+### C64
 
-## macro data
+```
+size | description
+-----|----------------------------------
+  1  | waveform/flags
+     | - bit 7: noise
+     | - bit 6: pulse
+     | - bit 5: saw
+     | - bit 4: triangle
+     | - bit 3: test
+     | - bit 2: sync
+     | - bit 1: ring
+     | - bit 0: gate (always on)
+  1  | filter flags
+     | - bit 7: don't test before new note
+     | - bit 6: enable filter
+     | - bit 5: init filter
+     | - bit 3: ch3off
+     | - bit 2: high pass
+     | - bit 1: band pass
+     | - bit 0: low pass
+  1  | other flags
+     | - bit 7: reset duty on new note
+     | - bit 6: absolute cutoff macro
+     | - bit 5: absolute duty macro
+-----|----------------------------------
+     | **macro pointers**
+  2  | vol
+  2  | arp
+  2  | duty
+  2  | wave
+  2  | pitch
+  2  | cutoff
+  2  | resonance
+  2  | filter mode
+  2  | filter toggle
+  2  | special
+  2  | attack
+  2  | decay
+  2  | sustain
+  2  | release
+```
 
-read length, loop and then release (1 byte).
-if it is a 2-byte macro, read a dummy byte.
+### SNES
 
-then read data.
+```
+size | description
+-----|----------------------------------
+  1  | ADSR/gain
+  1  | decay 2/release mode
+     | - bit 3-7: decay 2
+     | - bit 0-2: mode
+     |   - 0: direct
+     |   - 1: effective linear
+     |   - 2: effective exp
+     |   - 3: delayed
+-----|----------------------------------
+     | **sample data**
+  1  | type
+     | - 0: sample
+     | - 1: sample map
+     | - 2: wavetable
+  2  | value
+     | - sample: sample index
+     | - sample map: pointer to sample map
+     | - wavetable: wave width
+-----|----------------------------------
+     | **macro pointers**
+  2  | vol
+  2  | arp
+  2  | noise freq
+  2  | wave
+  2  | pan left
+  2  | pan right
+  2  | pitch
+  2  | special
+-----|----------------------------------
+     | **wave synth data (only in wavetable mode)**
+  1  | enable synth
+     | - bit 6: global
+     | - bit 0: enable
+  1  | synth effect
+  2  | wave 1
+  2  | wave 2
+  1  | update rate
+  1  | speed
+  1  | amount
+  1  | power
+```
+
+### Game Boy
+
+```
+size | description
+-----|----------------------------------
+  1  | volume
+  1  | length/dir
+  1  | sound length
+  1  | flags
+     | - bit 7: software env
+     | - bit 6: init env on every note
+     | - bit 5: double wave length
+-----|----------------------------------
+     | **macro pointers**
+  2  | vol
+  2  | arp
+  2  | duty/noise
+  2  | wave
+  2  | pan
+  2  | pitch
+  2  | phase reset
+-----|----------------------------------
+     | **wave synth data**
+  1  | enable synth
+     | - bit 6: global
+     | - bit 0: enable
+  1  | synth effect
+  2  | wave 1
+  2  | wave 2
+  1  | update rate
+  1  | speed
+  1  | amount
+  1  | power
+-----|----------------------------------
+     | **hardware sequence**
+ ??? | data...
+```
+
+## compiled macro data
+
+```
+size | description
+-----|-------------------------------------------------
+  1  | flags/macro data type
+     | - bit 6: release mode
+     |   - active when enabled; passive otherwise
+     | - bit 0-5: macro data type
+     |   - 0: 8-bit unsigned
+     |   - 1: 8-bit signed
+     |   - 2: 16-bit unsigned
+     |   - 3: 16-bit signed
+     |   - 4: arp macro
+     |   - 5: 4-bit unsigned (top first, bottom second)
+     |   - 6: ADSR macro
+     |   - 7: LFO macro
+  1  | step length
+  1  | delay
+ ??? | macro data...
+```
+
+interpret macro data as follows.
+
+for 4/8/16-bit macros and arp macros:
+
+```
+size | description
+-----|----------------------
+  1  | length
+  1  | loop point
+  1  | release point
+ ??? | values...
+```
+
+arp macros are special:
+- read one byte. this will be the next (signed) value, unless it is $7F or $80.
+- if it is $80, toggle fixed/relative mode.
+- if it is $7F, the value is 16-bit. read two bytes and treat that as the (signed) value.
+
+for ADSR macros:
+
+```
+size | description
+-----|---------------------
+  2  | minimum value
+  2  | maximum value
+```
 
 ## binary command stream
 
@@ -268,12 +437,12 @@ hex | description
  70 | sweep amount (b)
 ----|------------------------------------
     | **Namco 163 commands**
- 71 | wave position (b)
- 72 | wave length (b)
+ 71 | wave position (bb)
+ 72 | wave length (bb)
  73 | UNUSED (b)
  74 | UNUSED (b)
- 75 | wave load position (b)
- 76 | wave load length (b)
+ 75 | UNUSED (b)
+ 76 | UNUSED (b)
  77 | UNUSED (b)
  78 | channel limit (b)
  79 | global wave load (b)

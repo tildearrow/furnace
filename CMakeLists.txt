@@ -1002,6 +1002,7 @@ src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/multiInsSetup.cpp
+src/gui/newPattern.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,7 @@ struct DivGroovePattern {
   unsigned short len;
   bool readData(SafeReader& reader);
   void putData(SafeWriter* w);
+  void checkBounds();
   DivGroovePattern():
     len(1) {
     for (int i=0; i<16; i++) {
@@ -256,6 +257,7 @@ struct DivCompatFlags {
   bool oldSampleOffset;
   // new flags as of dev240
   bool oldCenterRate;
+  bool noVolSlideReset;
 
   void setDefaults();
   bool areDefaults();

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -326,8 +326,8 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -453,8 +453,8 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -463,7 +463,7 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     ay->getRegisterWrites().clear();
 
     os[0]=0; os[1]=0;
-    if (!writes.empty()) {
+    while (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
@@ -472,10 +472,11 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
           fm->write(0x0+((w.addr>>8)<<1),w.addr);
           fm->write(0x1+((w.addr>>8)<<1),w.val);
           regPool[w.addr&0x1ff]=w.val;
-          delay=4;
+          if (w.addr>15) delay=4;
         }
         writes.pop_front();
       }
+      if (delay>0) break;
     }
     
     fm->generate(&fmout);
@@ -532,8 +533,8 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
     unsigned char subSubCycle=0;
 
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -588,6 +589,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.val;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -600,6 +602,7 @@ void DivPlatformYM2608::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.addr&0xff;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             w.addrOrVal=true;
           }
@@ -2034,6 +2037,17 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
     rate=chipClock/(fmDivBase*2);
   } else {
     rate=fm->sample_rate(chipClock);
+  }
+  switch (ayDiv) {
+    case 8:
+      tfxRate=rate;
+      break;
+    case 16:
+      tfxRate=rate*2;
+      break;
+    default:
+      tfxRate=rate*4;
+      break;
   }
   for (int i=0; i<17; i++) {
     oscBuf[i]->setRate(rate);

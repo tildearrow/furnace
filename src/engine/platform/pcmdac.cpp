@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -542,6 +542,10 @@ void DivPlatformPCMDAC::reset() {
 
 int DivPlatformPCMDAC::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformPCMDAC::hasSoftPan(int ch) {
+  return outStereo;
 }
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {

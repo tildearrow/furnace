@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -262,8 +262,8 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -287,8 +287,8 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
             fm->write(0x1+((w.addr>>8)<<1),w.val);
 
             regPool[w.addr&0x1ff]=w.val;
+            delay=(w.addr>15)?32:1;
             writes.pop_front();
-            delay=32;
           } else {
             // Nuked write
             if (w.addrOrVal) {
@@ -387,8 +387,8 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -397,8 +397,11 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
     ay->getRegisterWrites().clear();
 
     os[0]=0; os[1]=0;
-    if (!writes.empty()) {
-      if (--delay<1 && !(fm->read(0)&0x80)) {
+    while (!writes.empty()) {
+      if (!(fm->read(0)&0x80)) {
+        delay=0;
+      }
+      if (delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
           delay=w.val*2;
@@ -406,10 +409,11 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
           fm->write(0x0+((w.addr>>8)<<1),w.addr);
           fm->write(0x1+((w.addr>>8)<<1),w.val);
           regPool[w.addr&0x1ff]=w.val;
-          delay=1;
+          if (w.addr>15) delay=1;
         }
         writes.pop_front();
       }
+      if (delay>0) break;
     }
     
     fm->generate(&fmout);
@@ -466,8 +470,8 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
     unsigned char subSubCycle=0;
 
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -511,6 +515,7 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.val;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -523,6 +528,7 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.addr&0xff;
 
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             w.addrOrVal=true;
           }

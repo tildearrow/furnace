@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "n163.h"
 #include "../engine.h"
 #include "../../ta-log.h"
+#include "IconsFontAwesome4.h"
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
@@ -206,7 +207,7 @@ void DivPlatformN163::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
+    if (chan[i].std.duty.had && !chan[i].wavePosLatch) {
       if (chan[i].curWavePos!=chan[i].std.duty.val) {
         chan[i].curWavePos=chan[i].std.duty.val;
         chan[i].waveChanged=true;
@@ -230,7 +231,7 @@ void DivPlatformN163::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.ex1.had) {
+    if (chan[i].std.ex1.had && !chan[i].wavePosLatch) {
       if (chan[i].curWaveLen!=(chan[i].std.ex1.val&0xfc)) {
         chan[i].curWaveLen=chan[i].std.ex1.val&0xfc;
         chan[i].freqChanged=true;
@@ -310,10 +311,13 @@ int DivPlatformN163::dispatch(DivCommand c) {
         if (ins->n163.wave>=0) {
           chan[c.chan].wave=ins->n163.wave;
         }
-        chan[c.chan].wavePos=ins->n163.perChanPos?ins->n163.wavePosCh[c.chan&7]:ins->n163.wavePos;
+        if (!chan[c.chan].wavePosLatch) {
+          chan[c.chan].wavePos=ins->n163.perChanPos?ins->n163.wavePosCh[c.chan&7]:ins->n163.wavePos;
+          chan[c.chan].waveMode=ins->n163.waveMode;
+          chan[c.chan].curWavePos=chan[c.chan].wavePos;
+        }
+        // wave lengths are not latched.
         chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
-        chan[c.chan].waveMode=ins->n163.waveMode;
-        chan[c.chan].curWavePos=chan[c.chan].wavePos;
         chan[c.chan].curWaveLen=chan[c.chan].waveLen;
         chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,true);
         if (chan[c.chan].wave<0) {
@@ -414,23 +418,47 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_N163_WAVE_POSITION:
-      chan[c.chan].curWavePos=c.value;
-      chan[c.chan].waveChanged=true;
-      break;
-    case DIV_CMD_N163_WAVE_LENGTH:
-      chan[c.chan].curWaveLen=c.value&0xfc;
-      chan[c.chan].freqChanged=true;
-      break;
-    case DIV_CMD_N163_WAVE_LOADPOS:
-      chan[c.chan].wavePos=c.value;
-      if (chan[c.chan].waveMode) {
-        chan[c.chan].waveUpdated=true;
+      if (c.value2&1) {
+        chan[c.chan].curWavePos=c.value;
+        chan[c.chan].waveChanged=true;
+      }
+
+      if (c.value2&2) {
+        chan[c.chan].wavePos=c.value;
+        if (chan[c.chan].waveMode) {
+          chan[c.chan].waveUpdated=true;
+        }
+      }
+
+      // wave position latching.
+      // if enabled in chip flags, setting wave pos through effects will "lock" it
+      // to a specific value until a wave pos effect with value FE or FF is used.
+      if (posLatch) {
+        chan[c.chan].wavePosLatch=true;
+        if (c.value>=0xfe) {
+          chan[c.chan].wavePosLatch=false;
+
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
+          chan[c.chan].wavePos=ins->n163.perChanPos?ins->n163.wavePosCh[c.chan&7]:ins->n163.wavePos;
+          chan[c.chan].waveMode=ins->n163.waveMode;
+          chan[c.chan].curWavePos=chan[c.chan].wavePos;
+          // wave lengths are not latched.
+          //chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
+          //chan[c.chan].curWaveLen=chan[c.chan].waveLen;
+        }
       }
       break;
-    case DIV_CMD_N163_WAVE_LOADLEN:
-      chan[c.chan].waveLen=c.value&0xfc;
-      if (chan[c.chan].waveMode) {
-        chan[c.chan].waveUpdated=true;
+    case DIV_CMD_N163_WAVE_LENGTH:
+      if (c.value2&1) {
+        chan[c.chan].curWaveLen=c.value&0xfc;
+        chan[c.chan].freqChanged=true;
+      }
+
+      if (c.value2&2) {
+        chan[c.chan].waveLen=c.value&0xfc;
+        if (chan[c.chan].waveMode) {
+          chan[c.chan].waveUpdated=true;
+        }
       }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
@@ -537,6 +565,20 @@ DivDispatchOscBuffer* DivPlatformN163::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+DivChannelModeHints DivPlatformN163::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  if (!posLatch) return ret;
+
+  ret.count=1;
+  ret.hint[0]=ICON_FA_LOCK;
+  ret.type[0]=0;
+  if (chan[ch].wavePosLatch) {
+    ret.type[0]=21;
+  }
+
+  return ret;
+}
+
 unsigned char* DivPlatformN163::getRegisterPool() {
   return regPool;
 }
@@ -595,6 +637,7 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   initChanMax=chanMax=flags.getInt("channels",7)&7;
   multiplex=!flags.getBool("multiplex",false); // not accurate in real hardware
+  posLatch=flags.getBool("posLatch",true);
   rate=chipClock;
   rate/=15;
   n163.set_multiplex(multiplex);

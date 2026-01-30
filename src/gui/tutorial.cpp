@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -692,6 +692,7 @@ void FurnaceGUI::syncTutorial() {
   tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
   tutorial.importedXM=e->getConfBool("tutImportedXM",false);
   tutorial.importedIT=e->getConfBool("tutImportedIT",false);
+  tutorial.nprFieldTrial=e->getConfBool("tutNPRFieldTrial",false);
 }
 
 void FurnaceGUI::commitTutorial() {
@@ -701,6 +702,7 @@ void FurnaceGUI::commitTutorial() {
   e->setConf("tutImportedS3M",tutorial.importedS3M);
   e->setConf("tutImportedXM",tutorial.importedXM);
   e->setConf("tutImportedIT",tutorial.importedIT);
+  e->setConf("tutNPRFieldTrial",tutorial.nprFieldTrial);
 }
 
 void FurnaceGUI::initRandomDemoSong() {

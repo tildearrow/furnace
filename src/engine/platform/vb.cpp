@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -563,6 +563,10 @@ void DivPlatformVB::reset() {
 
 int DivPlatformVB::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformVB::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformVB::keyOffAffectsArp(int ch) {

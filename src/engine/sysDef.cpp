@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1238,10 +1238,12 @@ void DivEngine::registerSystems() {
     },
     {
       {0x10, {DIV_CMD_WAVE, _("10xx: Select waveform")}},
-      {0x11, {DIV_CMD_N163_WAVE_POSITION, _("11xx: Set waveform position in RAM")}},
-      {0x12, {DIV_CMD_N163_WAVE_LENGTH, _("12xx: Set waveform length in RAM (04 to FC in steps of 4)")}},
-      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, _("15xx: Set waveform load position")}},
-      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, _("16xx: Set waveform load length (04 to FC in steps of 4)")}},
+      {0x11, {DIV_CMD_N163_WAVE_POSITION, _("11xx: Set waveform playback position in RAM"),effectVal,constVal<1>}},
+      {0x12, {DIV_CMD_N163_WAVE_LENGTH, _("12xx: Set waveform playback length in RAM (04 to FC in steps of 4)"),effectVal,constVal<1>}},
+      {0x15, {DIV_CMD_N163_WAVE_POSITION, _("15xx: Set waveform load position"),effectVal,constVal<2>}},
+      {0x16, {DIV_CMD_N163_WAVE_LENGTH, _("16xx: Set waveform load length (04 to FC in steps of 4)"),effectVal,constVal<2>}},
+      {0x1a, {DIV_CMD_N163_WAVE_POSITION, _("1Axx: Set waveform playback and load position in RAM"),effectVal,constVal<3>}},
+      {0x1b, {DIV_CMD_N163_WAVE_LENGTH, _("1Bxx: Set waveform playback and load length in RAM (04 to FC in steps of 4)"),effectVal,constVal<3>}},
     }
   );
 
@@ -2449,7 +2451,7 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
     _("Sharp SM8521"), NULL, 0xc8, 0, 3, 3, 3,
     false, true, 0, false, 0, 32, 16,
-    _("a SoC with wavetable sound hardware."),
+    _("a SoC with wavetable sound hardware.\n\nWARNING: NOISE EMULATION IS CURRENTLY INACCURATE DUE TO LACK OF DOCUMENTATION."),
     DivChanDefFunc({
       DivChanDef(_("Channel 1"), "CH1", DIV_CH_WAVE , DIV_INS_SM8521),
       DivChanDef(_("Channel 2"), "CH2", DIV_CH_WAVE , DIV_INS_SM8521),

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3665,14 +3665,6 @@ void FurnaceGUI::drawSettings() {
         ImGui::Unindent();
         ImGui::EndDisabled();
 
-        // SUBSECTION WAVE EDITOR
-        CONFIG_SUBSECTION(_("Wave Editor"));
-        bool waveLayoutB=settings.waveLayout;
-        if (ImGui::Checkbox(_("Use compact wave editor"),&waveLayoutB)) {
-          settings.waveLayout=waveLayoutB;
-          settingsChanged=true;
-        }
-
         // SUBSECTION FM EDITOR
         CONFIG_SUBSECTION(_("FM Editor"));
         ImGui::Text(_("FM parameter names:"));
@@ -5201,7 +5193,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_LAYOUTS) {
     settings.fmLayout=conf.getInt("fmLayout",4);
     settings.sampleLayout=conf.getInt("sampleLayout",0);
-    settings.waveLayout=conf.getInt("waveLayout",0);
     settings.exportOptionsLayout=conf.getInt("exportOptionsLayout",1);
     settings.unifiedDataView=conf.getInt("unifiedDataView",0);
     settings.macroLayout=conf.getInt("macroLayout",0);
@@ -5375,7 +5366,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.frameBorders,0,1);
   clampSetting(settings.effectDeletionAltersValue,0,1);
   clampSetting(settings.sampleLayout,0,1);
-  clampSetting(settings.waveLayout,0,1);
   clampSetting(settings.separateFMColors,0,1);
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
@@ -5791,7 +5781,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_LAYOUTS) {
     conf.set("fmLayout",settings.fmLayout);
     conf.set("sampleLayout",settings.sampleLayout);
-    conf.set("waveLayout",settings.waveLayout);
     conf.set("exportOptionsLayout",settings.exportOptionsLayout);
     conf.set("unifiedDataView",settings.unifiedDataView);
     conf.set("macroLayout",settings.macroLayout);

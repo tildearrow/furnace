@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,7 +113,7 @@ const int ftEffectMap[]={
   0xfc, // delayed release
   0x09, // select groove
   0xe6, // delayed note transpose
-  0x11, // Namco 163 wave RAM offset
+  0x1a, // Namco 163 wave RAM offset
   -1,   // FDS vol env - not supported
   -1,   // FDS auto FM - not supported yet
   -1,   // phase reset - not supported
@@ -227,7 +227,7 @@ const int eftEffectMap[] = {
   0xfc,  // delayed release
   0x09,  // select groove
   0xe6,  // delayed note transpose
-  0x11,  // Namco 163 wave RAM offset
+  0x1a,  // Namco 163 wave RAM offset
   -1,    // FDS vol env - not supported
   -1,    // FDS auto FM - not supported yet
   -1,    // phase reset - not supported
@@ -711,6 +711,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
           ds.system[systemID] = DIV_SYSTEM_N163;
           ds.systemFlags[systemID].set("channels", (int)n163Chans - 1);
           ds.systemChans[systemID]=CLAMP(n163Chans,1,8);
+          ds.systemFlags[systemID].set("posLatch",true);
           systemID++;
 
           for (int ch = 0; ch < (int)n163Chans; ch++) {
@@ -1943,6 +1944,15 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
                       if (map_channels[ch] == n163_chans[v]) {
                         if (pat->newData[row][DIV_PAT_FX(j)] == 0x12) {
                           pat->newData[row][DIV_PAT_FX(j)] = 0x110; // N163 wave change (we'll map this later)
+                        } else if (pat->newData[row][DIV_PAT_FX(j)] == 0x1a) {
+                          // wave position:
+                          // - in FamiTracker this is in bytes
+                          // - a value of 7F has special meaning
+                          if (pat->newData[row][DIV_PAT_FXVAL(j)]==0x7f) {
+                            pat->newData[row][DIV_PAT_FXVAL(j)]=0xff;
+                          } else {
+                            pat->newData[row][DIV_PAT_FXVAL(j)]=MIN(pat->newData[row][DIV_PAT_FXVAL(j)]<<1,0xff);
+                          }
                         }
                       }
                     }

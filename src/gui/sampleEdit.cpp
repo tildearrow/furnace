@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -590,6 +590,13 @@ void FurnaceGUI::drawSampleEdit() {
             }
           } else if (sample->loopMode!=DIV_SAMPLE_LOOP_FORWARD) {
             SAMPLE_WARN(warnLoopMode,_("backward/ping-pong only supported in Generic PCM DAC\nping-pong also on ES5506"));
+          }
+        }
+
+        // ADPCM-A/B specific warnings
+        if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A || sample->depth==DIV_SAMPLE_DEPTH_ADPCM_B) {
+          if (sample->samples&511) {
+            SAMPLE_WARN(warnLength,_("ADPCM sample is not padded to 256 bytes!"));
           }
         }
 
@@ -2005,6 +2012,9 @@ void FurnaceGUI::drawSampleEdit() {
           }
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
+          }
+          if (ImGui::MenuItem(_("copy selection to new sample"),BIND_FOR(GUI_ACTION_SAMPLE_COPY_NEW))) {
+            doAction(GUI_ACTION_SAMPLE_COPY_NEW);
           }
           ImGui::EndPopup();
         }

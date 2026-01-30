@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -888,6 +888,10 @@ void DivPlatformX1_010::reset() {
 
 int DivPlatformX1_010::getOutputCount() {
   return stereo?2:1;
+}
+
+bool DivPlatformX1_010::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,6 +210,7 @@ void FurnaceGUI::doAction(int what) {
       followPattern=!followPattern;
       break;
     case GUI_ACTION_FULLSCREEN:
+      if (sysFullScreen) break;
       fullScreen=!fullScreen;
       SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
       break;
@@ -1793,6 +1794,63 @@ void FurnaceGUI::doAction(int what) {
           RESET_WAVE_MACRO_ZOOM;
         }
       }
+      break;
+    }
+    case GUI_ACTION_SAMPLE_COPY_NEW: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      int prevSampleNum=curSample;
+
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT) {
+        showError(_("sample depth must be 16 or 8 bit!"));
+        break;
+      }
+
+      SAMPLE_OP_BEGIN;
+      if (end-start<1) {
+        showError(_("select at least one sample!"));
+        break;
+      }
+
+      curSample=e->addSample();
+      if (curSample==-1) {
+        showError(_("too many samples!"));
+        break;
+      }
+
+      DivSample* prevSample=sample;
+      e->lockEngine([this,prevSample,start,end]() {
+        DivSample* sample=e->getSample(curSample);
+        if (sample!=NULL) {
+          int length=end-start;
+          sample->centerRate=prevSample->centerRate;
+          sample->name=prevSample->name;
+          sample->loopStart=prevSample->loopStart;
+          sample->loopEnd=prevSample->loopEnd;
+          sample->loop=prevSample->loop;
+          sample->loopMode=prevSample->loopMode;
+          sample->brrEmphasis=prevSample->brrEmphasis;
+          sample->brrNoFilter=prevSample->brrNoFilter;
+          sample->dither=prevSample->dither;
+          sample->depth=prevSample->depth;
+          if (sample->init(length)) {
+            if (prevSample->getCurBuf()!=NULL) {
+              int offS=prevSample->getSampleOffset(start,0,sample->depth);
+              int offE=prevSample->getSampleOffset(end,0,sample->depth);
+              uint8_t *srcMem=(uint8_t*)prevSample->getCurBuf();
+              memcpy(sample->getCurBuf(),&srcMem[offS],offE-offS);
+            }
+          }
+        }
+        e->renderSamples();
+      });
+      curSample=prevSampleNum;
+
+      // TODO: confirm these
+      wantScrollListSample=true;
+      MARK_MODIFIED;
+      updateSampleTex=true;
+      notifySampleChange=true;
       break;
     }
 

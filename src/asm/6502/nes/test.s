@@ -142,8 +142,26 @@ nmi:
   php
   pha
 
+  lda pendingTick
+  beq +
+
+  ; if a tick took longer than one frame, we most likely hung
+  ppuPos 3, 3
+
+  ldx #$ff
+- inx
+  lda crashText.w,x
+  sta PPUDATA
+  bne -
+
+  ; disable VBlank interrupt and quit
+  lda #$00
+  sta PPUCTRL
+
+  rti
+
   ; read controller
-  lda joyInput
++ lda joyInput
   sta joyPrev
   lda #$01
   sta JOY1
@@ -186,10 +204,6 @@ nmi:
 
   ppuPos 14, 9
   lda chanPitch.w,x
-  jsr printNum
-
-  ppuPos 20, 9
-  lda chanVibratoDebug.w,x
   jsr printNum
 
   ppuPos 14, 10
@@ -633,6 +647,10 @@ screenText:
 
 hexChar:
   .db "0123456789ABCDEF"
+
+crashText:
+  .db "CRASH: "
+  .db 0
 
 ppuPalette:
   .db $0e, $00, $10, $30

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8949,13 +8949,14 @@ void FurnaceGUI::drawInsEdit() {
           memset(oldData,0,256*sizeof(int));
           memcpy(oldData,lastMacroDesc.macro->val,lastMacroDesc.macro->len*sizeof(int));
 
+          unsigned char oldLen=lastMacroDesc.macro->len;
           lastMacroDesc.macro->len=MIN(255,((double)lastMacroDesc.macro->len*(macroScaleX/100.0)));
 
           for (int i=0; i<lastMacroDesc.macro->len; i++) {
             int val=0;
             bool bit30=false;
             double posX=round((double)i*(100.0/macroScaleX)-0.01);
-            if (posX>=0 && posX<lastMacroDesc.macro->len) {
+            if (posX>=0 && posX<oldLen) {
               val=round((double)deBit30(oldData[(int)posX])*(macroScaleY/100.0));
               bit30=enBit30(oldData[(int)posX]);
               if (val<lastMacroDesc.min) val=lastMacroDesc.min;

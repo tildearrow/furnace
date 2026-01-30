@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -521,6 +521,10 @@ void DivPlatformNamcoWSG::reset() {
 
 int DivPlatformNamcoWSG::getOutputCount() {
   return (devType==30)?2:1;
+}
+
+bool DivPlatformNamcoWSG::hasSoftPan(int ch) {
+  return (devType==30);
 }
 
 bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {

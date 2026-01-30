@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,9 +31,10 @@ class DivPlatformN163: public DivDispatch {
     short wave, wavePos, waveLen;
     short curWavePos, curWaveLen;
     bool waveMode;
+    bool wavePosLatch;
     bool volumeChanged;
     bool waveChanged, waveUpdated;
-    DivWaveSynth ws;
+    DivWaveSynth ws;    
     Channel():
       SharedChannel<signed char>(15),
       resVol(15),
@@ -43,6 +44,7 @@ class DivPlatformN163: public DivDispatch {
       curWavePos(0),
       curWaveLen(0),
       waveMode(0),
+      wavePosLatch(false),
       volumeChanged(false),
       waveChanged(false),
       waveUpdated(false) {}
@@ -61,7 +63,7 @@ class DivPlatformN163: public DivDispatch {
   unsigned char initChanMax;
   unsigned char chanMax;
   short loadWave, loadPos;
-  bool multiplex, lenCompensate;
+  bool multiplex, lenCompensate, posLatch;
 
   n163_core n163;
   unsigned char regPool[128];
@@ -83,6 +85,7 @@ class DivPlatformN163: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    DivChannelModeHints getModeHints(int chan);
     const DivMemoryComposition* getMemCompo(int index);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
