@@ -34,6 +34,8 @@
 
 #define ADSR_BOTTOM (source.val[0]<<8)
 #define ADSR_TOP ((source.val[1]<<8)|0xff)
+#define ADSR_BOTTOM_INV ((source.val[0]<<8)|0xff)
+#define ADSR_TOP_INV (source.val[1]<<8)
 #define ADSR_SUS (source.val[5]<<8)
 
 #define LFO_SPEED source.val[11]
@@ -52,6 +54,10 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
 
   if (type==1) {
     pos=ADSR_BOTTOM;
+    // if the bottom is higher than the top, set the fractional part to max.
+    if (ADSR_LOW>ADSR_HIGH) {
+      pos|=0xff;
+    }
   } else if (type==2) {
     // this will be pre-computed on compilation.
     switch (LFO_WAVE&3) {
@@ -133,41 +139,84 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     }
     if (type==1) { // ADSR
       if (released && lastPos<3) lastPos=3;
-      switch (lastPos) {
-        case 0: // attack
-          pos+=ADSR_AR;
-          if (pos>ADSR_TOP) {
-            pos=ADSR_TOP;
-            lastPos=1;
-            delay=ADSR_HT;
-          }
-          break;
-        case 1: // decay
-          pos-=ADSR_DR;
-          if (pos<=ADSR_SUS) {
-            pos=ADSR_SUS;
-            lastPos=2;
-            delay=ADSR_ST;
-          }
-          break;
-        case 2: // sustain
-          pos-=ADSR_SR;
-          if (pos<ADSR_BOTTOM) {
+
+      // we invert the directions if bottom is higher than top.
+      // during ROM export this will be compiled to two separate functions
+      // (one for normal and another for inverted)
+      if (ADSR_LOW>ADSR_HIGH) {
+        switch (lastPos) {
+          case 0: // attack
+            pos-=ADSR_AR;
+            if (pos<ADSR_TOP_INV) {
+              pos=ADSR_TOP_INV;
+              lastPos=1;
+              delay=ADSR_HT;
+            }
+            break;
+          case 1: // decay
+            pos+=ADSR_DR;
+            if (pos>=ADSR_SUS) {
+              pos=ADSR_SUS;
+              lastPos=2;
+              delay=ADSR_ST;
+            }
+            break;
+          case 2: // sustain
+            pos+=ADSR_SR;
+            if (pos>ADSR_BOTTOM_INV) {
+              pos=ADSR_BOTTOM_INV;
+              lastPos=4;
+            }
+            break;
+          case 3: // release
+            pos+=ADSR_RR;
+            if (pos>ADSR_BOTTOM_INV) {
+              pos=ADSR_BOTTOM_INV;
+              lastPos=4;
+            }
+            break;
+          case 4: // end
+            pos=ADSR_BOTTOM_INV;
+            if (!linger) has=false;
+            break;
+        }
+      } else {
+        switch (lastPos) {
+          case 0: // attack
+            pos+=ADSR_AR;
+            if (pos>ADSR_TOP) {
+              pos=ADSR_TOP;
+              lastPos=1;
+              delay=ADSR_HT;
+            }
+            break;
+          case 1: // decay
+            pos-=ADSR_DR;
+            if (pos<=ADSR_SUS) {
+              pos=ADSR_SUS;
+              lastPos=2;
+              delay=ADSR_ST;
+            }
+            break;
+          case 2: // sustain
+            pos-=ADSR_SR;
+            if (pos<ADSR_BOTTOM) {
+              pos=ADSR_BOTTOM;
+              lastPos=4;
+            }
+            break;
+          case 3: // release
+            pos-=ADSR_RR;
+            if (pos<ADSR_BOTTOM) {
+              pos=ADSR_BOTTOM;
+              lastPos=4;
+            }
+            break;
+          case 4: // end
             pos=ADSR_BOTTOM;
-            lastPos=4;
-          }
-          break;
-        case 3: // release
-          pos-=ADSR_RR;
-          if (pos<ADSR_BOTTOM) {
-            pos=ADSR_BOTTOM;
-            lastPos=4;
-          }
-          break;
-        case 4: // end
-          pos=ADSR_BOTTOM;
-          if (!linger) has=false;
-          break;
+            if (!linger) has=false;
+            break;
+        }
       }
       val=(pos>>8);
     }

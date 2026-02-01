@@ -3712,24 +3712,25 @@ void DivInstrument::convertOldADSRLFO() {
   for (int j=0; (macro=std.macroByType((DivMacroType)j)); j++) {
     const int bottom=macro->val[0];
     const int top=macro->val[1];
-    const int range=abs(top-bottom);
+    const int actualRange=abs(top-bottom);
+    const int range=((actualRange+1)<<8)-1;
     if (macro->open&2) { // ADSR macro
 
       // convert attack/decay/sus decay/release
-      macro->val[2]*=range;
-      macro->val[4]*=range;
-      macro->val[7]*=range;
-      macro->val[8]*=range;
+      macro->val[2]=(macro->val[2]*range)/255;
+      macro->val[4]=(macro->val[4]*range)/255;
+      macro->val[7]=(macro->val[7]*range)/255;
+      macro->val[8]=(macro->val[8]*range)/255;
 
       // convert sustain level
-      macro->val[5]=(range*macro->val[5])/255;
+      macro->val[5]=(actualRange*macro->val[5])/255;
     } else if (macro->open&4) { // LFO macro
       // convert speed
       // this is not required for square LFOs
       if ((macro->val[12]&3)==0) { // triangle
-        macro->val[11]=(range*macro->val[11])>>1;
+        macro->val[11]=(actualRange*macro->val[11])>>1;
       } else if ((macro->val[12]&3)==1) { // saw
-        macro->val[11]=(range*macro->val[11])>>2;
+        macro->val[11]=(actualRange*macro->val[11])>>2;
       }
     }
   }
