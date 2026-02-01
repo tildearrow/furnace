@@ -221,35 +221,70 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
       val=(pos>>8);
     }
     if (type==2) { // LFO
-      switch (LFO_WAVE&3) {
-        case 0: // triangle
-          if (lfoDir) {
-            pos-=LFO_SPEED;
-            if (pos<ADSR_BOTTOM) {
-              lfoDir=false;
-              pos+=LFO_SPEED*2;
+      // same thing here.
+      // at compile time we could make wave 3 "inverted saw" and just flip the values.
+      if (ADSR_LOW>ADSR_HIGH) {
+        switch (LFO_WAVE&3) {
+          case 0: // triangle
+            if (lfoDir) {
+              pos+=LFO_SPEED;
+              if (pos>ADSR_BOTTOM_INV) {
+                lfoDir=false;
+                pos-=LFO_SPEED*2;
+              }
+            } else {
+              pos-=LFO_SPEED;
+              if (pos<ADSR_TOP_INV) {
+                lfoDir=true;
+                pos+=LFO_SPEED*2;
+              }
             }
-          } else {
+            val=pos>>8;
+            break;
+          case 1: // saw
+            pos-=LFO_SPEED;
+            if (pos<ADSR_TOP_INV) {
+              pos+=(ADSR_BOTTOM_INV-ADSR_TOP_INV);
+            }
+            val=pos>>8;
+            break;
+          case 2: // pulse
+            pos+=LFO_SPEED;
+            pos&=1023;
+            val=(pos&512)?ADSR_HIGH:ADSR_LOW;
+            break;
+        }
+      } else {
+        switch (LFO_WAVE&3) {
+          case 0: // triangle
+            if (lfoDir) {
+              pos-=LFO_SPEED;
+              if (pos<ADSR_BOTTOM) {
+                lfoDir=false;
+                pos+=LFO_SPEED*2;
+              }
+            } else {
+              pos+=LFO_SPEED;
+              if (pos>ADSR_TOP) {
+                lfoDir=true;
+                pos-=LFO_SPEED*2;
+              }
+            }
+            val=pos>>8;
+            break;
+          case 1: // saw
             pos+=LFO_SPEED;
             if (pos>ADSR_TOP) {
-              lfoDir=true;
-              pos-=LFO_SPEED*2;
+              pos-=(ADSR_TOP-ADSR_BOTTOM);
             }
-          }
-          val=pos>>8;
-          break;
-        case 1: // saw
-          pos+=LFO_SPEED;
-          if (pos>ADSR_TOP) {
-            pos-=(ADSR_TOP-ADSR_BOTTOM);
-          }
-          val=pos>>8;
-          break;
-        case 2: // pulse
-          pos+=LFO_SPEED;
-          pos&=1023;
-          val=(pos&512)?ADSR_HIGH:ADSR_LOW;
-          break;
+            val=pos>>8;
+            break;
+          case 2: // pulse
+            pos+=LFO_SPEED;
+            pos&=1023;
+            val=(pos&512)?ADSR_HIGH:ADSR_LOW;
+            break;
+        }
       }
     }
   }
