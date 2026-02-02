@@ -58,6 +58,16 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (setHz<1) setHz=1;
         if (setHz>999) setHz=999;
         e->setSongRate(setHz);
+
+        while((float)e->curSubSong->macroSpeedMult * e->curSubSong->hz > 999.0)
+        {
+          e->curSubSong->macroSpeedMult--;
+        }
+        if(e->curSubSong->macroSpeedMult == 0)
+        {
+          e->curSubSong->macroSpeedMult = 1;
+        }
+        e->updateMacroSpeedMult();
         recalcTimestamps=true;
       }
       if (tempoView) {
@@ -218,6 +228,31 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       ImGui::SameLine();
       */
       ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Macro mult."));
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(halfAvail);
+      int macroMult=e->curSubSong->macroSpeedMult;
+      if (ImGui::InputScalar("##MacroSpeedMult",ImGuiDataType_U8,&macroMult,&_ONE,&_TWO_HUNDRED_FIFTY_FIVE)) { MARK_MODIFIED
+        while((float)macroMult * e->curSubSong->hz > 999.0)
+        {
+          macroMult--;
+        }
+        if(macroMult == 0)
+        {
+          macroMult = 1;
+        }
+        e->curSubSong->macroSpeedMult = macroMult;
+        e->updateMacroSpeedMult();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Macro speed multiplier"));
+      }
+      ImGui::SameLine();
+      ImGui::Text("%.2f Hz",e->curSubSong->hz * (float)e->curSubSong->macroSpeedMult);
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
