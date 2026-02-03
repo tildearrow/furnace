@@ -147,7 +147,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
         switch (lastPos) {
           case 0: // attack
             pos-=ADSR_AR;
-            if (pos<ADSR_TOP_INV) {
+            if (pos<=ADSR_TOP_INV) {
               pos=ADSR_TOP_INV;
               lastPos=1;
               delay=ADSR_HT;
@@ -163,14 +163,14 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
             break;
           case 2: // sustain
             pos+=ADSR_SR;
-            if (pos>ADSR_BOTTOM_INV) {
+            if (pos>=ADSR_BOTTOM_INV) {
               pos=ADSR_BOTTOM_INV;
               lastPos=4;
             }
             break;
           case 3: // release
             pos+=ADSR_RR;
-            if (pos>ADSR_BOTTOM_INV) {
+            if (pos>=ADSR_BOTTOM_INV) {
               pos=ADSR_BOTTOM_INV;
               lastPos=4;
             }
@@ -184,7 +184,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
         switch (lastPos) {
           case 0: // attack
             pos+=ADSR_AR;
-            if (pos>ADSR_TOP) {
+            if (pos>=ADSR_TOP) {
               pos=ADSR_TOP;
               lastPos=1;
               delay=ADSR_HT;
@@ -200,14 +200,14 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
             break;
           case 2: // sustain
             pos-=ADSR_SR;
-            if (pos<ADSR_BOTTOM) {
+            if (pos<=ADSR_BOTTOM) {
               pos=ADSR_BOTTOM;
               lastPos=4;
             }
             break;
           case 3: // release
             pos-=ADSR_RR;
-            if (pos<ADSR_BOTTOM) {
+            if (pos<=ADSR_BOTTOM) {
               pos=ADSR_BOTTOM;
               lastPos=4;
             }
