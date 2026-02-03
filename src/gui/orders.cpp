@@ -152,6 +152,10 @@ void FurnaceGUI::drawOrderButtons() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(_("Duplicate order (right-click to deep clone)"));
   }
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+    NOTIFY_LONG_HOLD;
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
+  }
   NEXT_BUTTON;
 
   if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
@@ -181,6 +185,10 @@ void FurnaceGUI::drawOrderButtons() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(_("Place copy of current order at end of song (right-click to deep clone)"));
+  }
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+    NOTIFY_LONG_HOLD;
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
   }
   NEXT_BUTTON;
 
