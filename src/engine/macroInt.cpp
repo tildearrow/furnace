@@ -73,7 +73,7 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
         pos=ADSR_BOTTOM+(((ADSR_TOP-ADSR_BOTTOM)*LFO_PHASE)>>10);
         break;
       case 2: // pulse
-        pos=LFO_PHASE;
+        pos=LFO_PHASE<<6;
         break;
     }
   }
@@ -250,8 +250,8 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
             break;
           case 2: // pulse
             pos+=LFO_SPEED;
-            pos&=1023;
-            val=(pos&512)?ADSR_HIGH:ADSR_LOW;
+            pos&=65535;
+            val=(pos&32768)?ADSR_HIGH:ADSR_LOW;
             break;
         }
       } else {

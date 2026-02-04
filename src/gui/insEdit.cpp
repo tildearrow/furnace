@@ -2522,7 +2522,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         const int lfoTop=i.macro->val[1];
         const int lfoShape=i.macro->val[12];
         const int lfoRange=abs(lfoTop-lfoBottom);
-        const int lfoParamMax=(lfoShape==2)?1024:((lfoRange<<8)|0xff);
+        const int lfoParamMax=(lfoShape==2)?32768:((lfoRange<<8)|0xff);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

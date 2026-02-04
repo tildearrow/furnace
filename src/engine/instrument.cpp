@@ -3726,11 +3726,12 @@ void DivInstrument::convertOldADSRLFO() {
       macro->val[5]=(actualRange*macro->val[5])/255;
     } else if (macro->open&4) { // LFO macro
       // convert speed
-      // this is not required for square LFOs
       if ((macro->val[12]&3)==0) { // triangle
         macro->val[11]=(actualRange*macro->val[11])>>1;
       } else if ((macro->val[12]&3)==1) { // saw
         macro->val[11]=(actualRange*macro->val[11])>>2;
+      } else if ((macro->val[12]&3)==2) { // square
+        macro->val[11]<<=6;
       }
     }
   }
