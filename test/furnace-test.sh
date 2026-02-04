@@ -35,13 +35,5 @@ echo "--- STEP 3: check deltas"
 if [ -z $lastTest ]; then
   echo "skipping since this apparently is your first run."
 else
-  for i in `ls "test/result/$testDir"`; do
-    echo -n "$i... "
-    if ./test/assert_delta "test/delta/$testDir/$i"; then
-      echo "[1;32mOK[m"
-    else
-      echo "[1;31mFAIL FAIL FAIL[m"
-      ffmpeg -loglevel quiet -i "test/delta/$testDir/$i" -lavfi showspectrumpic -y "test/delta/$testDir/$i.png"
-    fi
-  done
+  ls "test/delta/$testDir/*.wav" | parallel -t -j6 bash "test/last-stage.sh" '{}'
 fi
