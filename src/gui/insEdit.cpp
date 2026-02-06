@@ -2090,6 +2090,14 @@ void FurnaceGUI::drawFMPreview(const ImVec2& size) {
 #define MACRO_VZOOM i.ins->temp.vZoom[i.macro->macroType]
 #define MACRO_VSCROLL i.ins->temp.vScroll[i.macro->macroType]
 
+#define ADSR_LENGTH_HINT(_x,_range) \
+  if (_x<1) { \
+    ImGui::SetTooltip(_("forever")); \
+  } else { \
+    const int lHint=((((_range)<<8)|0xff)+(_x)-1)/(_x); \
+    ImGui::SetTooltip(ngettext("~%d tick","~%d ticks",lHint),lHint); \
+  }
+
 void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index) {
   static float asFloat[256];
   static int asInt[256];
@@ -2348,6 +2356,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[2]<0) i.macro->val[2]=0;
           if (i.macro->val[2]>adsrParamMax) i.macro->val[2]=adsrParamMax;
         } rightClickable
+        if (ImGui::IsItemHovered()) {
+          ADSR_LENGTH_HINT(i.macro->val[2],adsrRange);
+        }
 
         if (compact) {
           ImGui::TableNextRow();
@@ -2371,6 +2382,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->val[4]<0) i.macro->val[4]=0;
             if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
           } rightClickable
+          if (ImGui::IsItemHovered()) {
+            ADSR_LENGTH_HINT(i.macro->val[4],adsrTop-i.macro->val[5]);
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -2404,6 +2418,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->val[7]<0) i.macro->val[7]=0;
             if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
           } rightClickable
+          if (ImGui::IsItemHovered()) {
+            ADSR_LENGTH_HINT(i.macro->val[7],i.macro->val[5]-adsrBottom);
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -2415,6 +2432,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->val[8]<0) i.macro->val[8]=0;
             if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
           } rightClickable
+          if (ImGui::IsItemHovered()) {
+            ADSR_LENGTH_HINT(i.macro->val[8],i.macro->val[5]-adsrBottom);
+          }
         } else {
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -2457,6 +2477,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->val[4]<0) i.macro->val[4]=0;
             if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
           } rightClickable
+          if (ImGui::IsItemHovered()) {
+            ADSR_LENGTH_HINT(i.macro->val[4],adsrTop-i.macro->val[5]);
+          }
 
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
@@ -2467,6 +2490,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->val[7]<0) i.macro->val[7]=0;
             if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
           } rightClickable
+          if (ImGui::IsItemHovered()) {
+            ADSR_LENGTH_HINT(i.macro->val[7],i.macro->val[5]-adsrBottom);
+          }
 
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
@@ -2481,6 +2507,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
             if (i.macro->val[8]<0) i.macro->val[8]=0;
             if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
           } rightClickable
+          if (ImGui::IsItemHovered()) {
+            ADSR_LENGTH_HINT(i.macro->val[8],i.macro->val[5]-adsrBottom);
+          }
         }
 
         ImGui::EndTable();
