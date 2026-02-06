@@ -3724,10 +3724,10 @@ void DivInstrument::convertOldADSRLFO() {
     const int range=((actualRange)<<8);
     if (macro->open&2) { // ADSR macro
       // convert attack/decay/sus decay/release
-      macro->val[2]=(macro->val[2]*range)>>8;
-      macro->val[4]=(macro->val[4]*range)>>8;
-      macro->val[7]=(macro->val[7]*range)>>8;
-      macro->val[8]=(macro->val[8]*range)>>8;
+      macro->val[2]=(macro->val[2]*range)/255;
+      macro->val[4]=(macro->val[4]*range)/255;
+      macro->val[7]=(macro->val[7]*range)/255;
+      macro->val[8]=(macro->val[8]*range)/255;
 
       // convert sustain level
       macro->val[5]=bottom+(((top-bottom)*macro->val[5])/256);
