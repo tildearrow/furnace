@@ -3710,6 +3710,14 @@ void DivInstrument::convertC64SpecialMacro() {
 void DivInstrument::convertOldADSRLFO() {
   DivInstrumentMacro* macro=NULL;
   for (int j=0; (macro=std.macroByType((DivMacroType)j)); j++) {
+    // a Furnace bug resulted in inverted ADSR/LFO macros not having
+    // full range. compensate for that.
+    if (macro->open&2 || macro->open&4) {
+      if (macro->val[0]>=macro->val[1]) {
+        macro->val[0]=macro->val[1]+((255+(macro->val[0]-macro->val[1])*255)>>8);
+      }
+    }
+
     const int bottom=macro->val[0];
     const int top=macro->val[1];
     const int actualRange=abs(top-bottom);

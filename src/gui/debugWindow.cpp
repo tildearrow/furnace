@@ -271,10 +271,12 @@ void FurnaceGUI::drawDebug() {
           ImGui::TextColored(macroStruct->masked?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"masked");
           ImGui::SameLine();
           ImGui::TextColored(macroStruct->activeRelease?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"activeRelease");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->lfoDir?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"lfoDir");
 
           ImGui::Text("mode: %d - type: %d",macroStruct->mode,macroStruct->type);
           ImGui::Text("macroType: %d",macroStruct->macroType);
-          ImGui::Text("pos: %d - lastPos: %d - lfoPos: %d - delay: %d",macroStruct->pos,macroStruct->lastPos,macroStruct->lfoPos,macroStruct->delay);
+          ImGui::Text("pos: %d - lastPos: %d - delay: %d",macroStruct->pos,macroStruct->lastPos,macroStruct->delay);
           ImGui::Text("val: %d",macroStruct->val);
         }
       }
