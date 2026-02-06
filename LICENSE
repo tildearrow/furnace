@@ -2,6 +2,6 @@
 
 most of Furnace is under the GNU General Public License (GPL) version 2 or later.
 
-the ASIO SDK is distributed under the GNU General Public License (GPL) version 3, as lermitted by Steinberg's dual licensing model. **enabling ASIO support at build time will result in a GPLv3-licensed binary**.
+the ASIO SDK is distributed under the GNU General Public License (GPL) version 3, as permitted by Steinberg's dual licensing model. **enabling ASIO support at build time will result in a GPLv3-licensed binary**.
 
 certain components, such as emulation cores, libraries and tools, are under various licenses, which can be found in their respective source files/trees.

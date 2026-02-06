@@ -770,6 +770,19 @@ const DivMemoryComposition* DivPlatformQSound::getMemCompo(int index) {
   return &memCompo;
 }
 
+DivSamplePos DivPlatformQSound::getSamplePos(int ch) {
+  if (ch>=16) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  int f=chan[ch].freq;
+  unsigned int pos=((qsound_read_data(&chip,(((ch-1)&15)<<3)|0)<<16)&0x7fff0000)|((qsound_read_data(&chip,(ch<<3)|1)^0x8000));
+  if (ch==7) logV("%d pos: %x",ch,pos);
+  return DivSamplePos(
+    chan[ch].sample,
+    pos-(offPCM[chan[ch].sample]^0x8000),
+    f
+  );
+}
+
 void DivPlatformQSound::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(offPCM,0,32768*sizeof(unsigned int));
