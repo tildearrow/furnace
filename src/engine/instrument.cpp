@@ -375,6 +375,32 @@ DivInstrumentMacro* DivInstrumentSTD::macroByType(DivMacroType type) {
   return NULL;
 }
 
+DivInstrumentMacro* DivInstrumentSTD::OpMacro::macroByType(DivMacroTypeOp type) {
+  switch (type) {
+    CONSIDER(amMacro,DIV_MACRO_OP_AM)
+    CONSIDER(arMacro,DIV_MACRO_OP_AR)
+    CONSIDER(drMacro,DIV_MACRO_OP_DR)
+    CONSIDER(multMacro,DIV_MACRO_OP_MULT)
+    CONSIDER(rrMacro,DIV_MACRO_OP_RR)
+    CONSIDER(slMacro,DIV_MACRO_OP_SL)
+    CONSIDER(tlMacro,DIV_MACRO_OP_TL)
+    CONSIDER(dt2Macro,DIV_MACRO_OP_DT2)
+    CONSIDER(rsMacro,DIV_MACRO_OP_RS)
+    CONSIDER(dtMacro,DIV_MACRO_OP_DT)
+    CONSIDER(d2rMacro,DIV_MACRO_OP_D2R)
+    CONSIDER(ssgMacro,DIV_MACRO_OP_SSG)
+    CONSIDER(damMacro,DIV_MACRO_OP_DAM)
+    CONSIDER(dvbMacro,DIV_MACRO_OP_DVB)
+    CONSIDER(egtMacro,DIV_MACRO_OP_EGT)
+    CONSIDER(kslMacro,DIV_MACRO_OP_KSL)
+    CONSIDER(susMacro,DIV_MACRO_OP_SUS)
+    CONSIDER(vibMacro,DIV_MACRO_OP_VIB)
+    CONSIDER(wsMacro,DIV_MACRO_OP_WS)
+    CONSIDER(ksrMacro,DIV_MACRO_OP_KSR)
+  }
+  return NULL;
+}
+
 #undef CONSIDER
 
 #define FEATURE_BEGIN(x) \
@@ -3707,39 +3733,49 @@ void DivInstrument::convertC64SpecialMacro() {
   std.ex3Macro=DivInstrumentMacro(DIV_MACRO_EX3);
 }
 
+void DivInstrumentMacro::convertOldADSRLFO() {
+  // a Furnace bug resulted in inverted ADSR/LFO macros not having
+  // full range. compensate for that.
+  if ((open&2) || (open&4)) {
+    if (val[0]>=val[1]) {
+      val[0]=val[1]+((255+(val[0]-val[1])*255)>>8);
+    }
+  }
+
+  const int bottom=val[0];
+  const int top=val[1];
+  const int actualRange=abs(top-bottom);
+  const int range=((actualRange)<<8);
+  if (open&2) { // ADSR macro
+    // convert attack/decay/sus decay/release
+    val[2]=(val[2]*range)/255;
+    val[4]=(val[4]*range)/255;
+    val[7]=(val[7]*range)/255;
+    val[8]=(val[8]*range)/255;
+
+    // convert sustain level
+    val[5]=bottom+(((top-bottom)*val[5])/256);
+  } else if (open&4) { // LFO macro
+    // convert speed
+    if ((val[12]&3)==0) { // triangle
+      val[11]=(actualRange*val[11])>>1;
+    } else if ((val[12]&3)==1) { // saw
+      val[11]=(actualRange*val[11])>>2;
+    } else if ((val[12]&3)==2) { // square
+      val[11]<<=6;
+    }
+  }
+}
+
 void DivInstrument::convertOldADSRLFO() {
   DivInstrumentMacro* macro=NULL;
   for (int j=0; (macro=std.macroByType((DivMacroType)j)); j++) {
-    // a Furnace bug resulted in inverted ADSR/LFO macros not having
-    // full range. compensate for that.
-    if (macro->open&2 || macro->open&4) {
-      if (macro->val[0]>=macro->val[1]) {
-        macro->val[0]=macro->val[1]+((255+(macro->val[0]-macro->val[1])*255)>>8);
-      }
-    }
+    macro->convertOldADSRLFO();
+  }
 
-    const int bottom=macro->val[0];
-    const int top=macro->val[1];
-    const int actualRange=abs(top-bottom);
-    const int range=((actualRange)<<8);
-    if (macro->open&2) { // ADSR macro
-      // convert attack/decay/sus decay/release
-      macro->val[2]=(macro->val[2]*range)/255;
-      macro->val[4]=(macro->val[4]*range)/255;
-      macro->val[7]=(macro->val[7]*range)/255;
-      macro->val[8]=(macro->val[8]*range)/255;
-
-      // convert sustain level
-      macro->val[5]=bottom+(((top-bottom)*macro->val[5])/256);
-    } else if (macro->open&4) { // LFO macro
-      // convert speed
-      if ((macro->val[12]&3)==0) { // triangle
-        macro->val[11]=(actualRange*macro->val[11])>>1;
-      } else if ((macro->val[12]&3)==1) { // saw
-        macro->val[11]=(actualRange*macro->val[11])>>2;
-      } else if ((macro->val[12]&3)==2) { // square
-        macro->val[11]<<=6;
-      }
+  for (int op=0; op<4; op++) {
+    for (int j=DIV_MACRO_OP_AM; (macro=std.opMacros[op].macroByType((DivMacroTypeOp)j)); j++) {
+      macro->convertOldADSRLFO();
     }
   }
 }
