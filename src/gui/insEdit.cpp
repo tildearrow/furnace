@@ -2333,8 +2333,8 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
         }
 
-        const int adsrBottom=i.macro->val[0];
-        const int adsrTop=i.macro->val[1];
+        const int adsrBottom=MIN(i.macro->val[0],i.macro->val[1]);
+        const int adsrTop=MAX(i.macro->val[0],i.macro->val[1]);
         const int adsrRange=abs(adsrTop-adsrBottom);
         const int adsrParamMax=(adsrRange<<8)|0xff;
 

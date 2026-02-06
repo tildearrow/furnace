@@ -3713,9 +3713,8 @@ void DivInstrument::convertOldADSRLFO() {
     const int bottom=macro->val[0];
     const int top=macro->val[1];
     const int actualRange=abs(top-bottom);
-    const int range=((actualRange+1)<<8)-1;
+    const int range=((actualRange)<<8);
     if (macro->open&2) { // ADSR macro
-
       // convert attack/decay/sus decay/release
       macro->val[2]=(macro->val[2]*range)>>8;
       macro->val[4]=(macro->val[4]*range)>>8;
@@ -3723,7 +3722,7 @@ void DivInstrument::convertOldADSRLFO() {
       macro->val[8]=(macro->val[8]*range)>>8;
 
       // convert sustain level
-      macro->val[5]=bottom+(((top-bottom)*macro->val[5])/255);
+      macro->val[5]=bottom+(((top-bottom)*macro->val[5])/256);
     } else if (macro->open&4) { // LFO macro
       // convert speed
       if ((macro->val[12]&3)==0) { // triangle
