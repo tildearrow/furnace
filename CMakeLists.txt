@@ -736,6 +736,7 @@ src/engine/platform/sound/qsound.c
 src/engine/platform/sound/swan.c
 
 src/engine/platform/sound/su.cpp
+src/engine/platform/sound/sgu.c
 
 src/engine/platform/sound/vic20sound.c
 
@@ -874,6 +875,7 @@ src/engine/platform/x1_010.cpp
 src/engine/platform/pokey.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/su.cpp
+src/engine/platform/sgu.cpp
 src/engine/platform/swan.cpp
 src/engine/platform/t6w28.cpp
 src/engine/platform/vb.cpp
