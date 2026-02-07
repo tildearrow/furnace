@@ -574,6 +574,23 @@ bool DivInstrumentSID2::operator==(const DivInstrumentSID2& other) {
   );
 }
 
+bool DivInstrumentSGU::Operator::operator==(const DivInstrumentSGU::Operator& other) {
+  return (
+    _C(wpar) &&
+    _C(sync) &&
+    _C(ring)
+  );
+}
+
+bool DivInstrumentSGU::operator==(const DivInstrumentSGU& other) {
+  return (
+    _C(op[0]) &&
+    _C(op[1]) &&
+    _C(op[2]) &&
+    _C(op[3])
+  );
+}
+
 #undef _C
 
 #define CONSIDER(x,t) \
@@ -1410,6 +1427,20 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureSG(SafeWriter* w) {
+  FEATURE_BEGIN("SG");
+
+  for (int i=0; i<4; i++) {
+    w->writeC(
+      (sgu.op[i].wpar&0x0f)|
+      (sgu.op[i].sync?0x10:0)|
+      (sgu.op[i].ring?0x20:0)
+    );
+  }
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1457,6 +1488,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featurePN=false;
   bool featureS2=false;
   bool featureS3=false;
+  bool featureSG=false;
 
   bool checkForWL=false;
 
@@ -1713,6 +1745,14 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         break;
       case DIV_INS_UPD1771C:
         break;
+      case DIV_INS_SGU:
+        featureFM=true;
+        featureEF=true;
+        featureSU=true;
+        featureSG=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -1771,6 +1811,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (sid3!=defaultIns.sid3) {
       featureS3=true;
+    }
+    if (sgu!=defaultIns.sgu) {
+      featureSG=true;
     }
   }
 
@@ -1927,6 +1970,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS3) {
     writeFeatureS3(w);
+  }
+  if (featureSG) {
+    writeFeatureSG(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -3020,6 +3066,19 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureSG(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  for (int i=0; i<4; i++) {
+    unsigned char next=reader.readC();
+    sgu.op[i].wpar=next&0x0f;
+    sgu.op[i].sync=next&0x10;
+    sgu.op[i].ring=next&0x20;
+  }
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -3100,6 +3159,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureS2(reader,version);
     } else if (memcmp(featCode,"S3",2)==0) { // SID3
       readFeatureS3(reader,version);
+    } else if (memcmp(featCode,"SG",2)==0) { // SGU
+      readFeatureSG(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0) || (memcmp(featCode,"LS",2)==0) || (memcmp(featCode,"LW",2)==0))) {
         // nothing

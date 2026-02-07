@@ -99,6 +99,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SUPERVISION=64,
   DIV_INS_UPD1771C=65,
   DIV_INS_SID3=66,
+  DIV_INS_SGU=67,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -1018,6 +1019,34 @@ struct DivInstrumentSID3 {
     }
 };
 
+struct DivInstrumentSGU {
+  struct Operator {
+    unsigned char wpar; // 4-bit waveform parameter (meaning depends on WAVE)
+                        //   SINE/TRI: [0]skew [1]half [2]abs
+                        //   SAW: [0]invert [2:1]quantize
+                        //   PULSE: 0=use duty, 1-7=fixed width x/8
+                        //   PERIODIC_NOISE: [1:0]LFSR tap select
+                        //   SAMPLE: unused
+    bool sync;          // hard sync to previous operator
+    bool ring;          // ring modulation from previous operator
+
+    bool operator==(const Operator& other);
+    bool operator!=(const Operator& other) {
+      return !(*this==other);
+    }
+    Operator():
+      wpar(0),
+      sync(false),
+      ring(false) {}
+  } op[4];
+
+  bool operator==(const DivInstrumentSGU& other);
+  bool operator!=(const DivInstrumentSGU& other) {
+    return !(*this==other);
+  }
+  DivInstrumentSGU() {}
+};
+
 struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
@@ -1037,6 +1066,7 @@ struct DivInstrumentPOD {
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
   DivInstrumentSID3 sid3;
+  DivInstrumentSGU sgu;
 
   DivInstrumentPOD() :
     type(DIV_INS_FM) {
@@ -1152,6 +1182,7 @@ struct DivInstrument : DivInstrumentPOD {
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
   void writeFeatureS3(SafeWriter* w);
+  void writeFeatureSG(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -1178,6 +1209,7 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
   void readFeatureS3(SafeReader& reader, short version);
+  void readFeatureSG(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

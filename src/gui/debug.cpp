@@ -58,6 +58,7 @@
 #include "../engine/platform/c140.h"
 #include "../engine/platform/msm6295.h"
 #include "../engine/platform/multipcm.h"
+#include "../engine/platform/sgu.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -541,6 +542,43 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- delay: %d",ch->delay);
       ImGui::Text("- curChan: %.2x",ch->curChan);
       ImGui::Text("- curAddr: %.2x",ch->curAddr);
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_SGU: {
+      DivPlatformSGU* ch=(DivPlatformSGU*)data;
+      unsigned int muteMask=0;
+      unsigned int activeMask=0;
+      unsigned int keyMask=0;
+      unsigned int pcmMask=0;
+      for (int i=0; i<SGU_CHNS; i++) {
+        if (ch->isMuted[i]) {
+          muteMask|=(1u<<i);
+        }
+        if (ch->chan[i].active) {
+          activeMask|=(1u<<i);
+        }
+        if (ch->chan[i].gate) {
+          keyMask|=(1u<<i);
+        }
+        if (ch->chan[i].pcm) {
+          pcmMask|=(1u<<i);
+        }
+      }
+      ImGui::Text("> SGU-1");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("* Masks:");
+      ImGui::Text(" - mute: %.3x",muteMask);
+      ImGui::Text(" - active: %.3x",activeMask);
+      ImGui::Text(" - gate: %.3x",keyMask);
+      ImGui::Text(" - pcm: %.3x",pcmMask);
+      ImGui::Text("* Sample RAM:");
+      ImGui::Text(" - used: %d",(int)ch->chip.pcm_size);
+      ImGui::Text(" - capacity: %d",(int)SGU_PCM_RAM_SIZE);
+      ImGui::Text(" - entries: %d",(int)ch->memCompo.entries.size());
+      ImGui::Text("* Write queue:");
+      ImGui::Text(" - pending: %d",(int)ch->writes.size());
+      ImGui::Text(" - capacity: %d",(int)ch->writes.capacity());
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -1095,6 +1133,28 @@ void putDispatchChan(void* data, int chanNum, int type) {
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->writeCtrl?colorOn:colorOff,">> WriteCtrl");
       ImGui::TextColored(ch->levelDirect?colorOn:colorOff,">> LevelDirect");
+      break;
+    }
+    case DIV_SYSTEM_SGU: {
+      DivPlatformSGU::Channel* ch=(DivPlatformSGU::Channel*)data;
+      ImGui::Text("> SGU-1");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- control: %.2x",ch->control);
+      ImGui::Text("- duty: %.2x",ch->duty);
+      ImGui::Text("- cutoff: %d",ch->cutoff);
+      ImGui::Text("- res: %.2x",ch->res);
+      ImGui::Text("- pan: %d",ch->pan);
+      ImGui::Text("- sample: %d",ch->sample);
+      ImGui::TextColored(ch->gate?colorOn:colorOff,">> Gate");
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->pcm?colorOn:colorOff,">> PCM");
+      ImGui::TextColored(ch->pcmLoop?colorOn:colorOff,">> PCMLoop");
+      ImGui::TextColored(ch->phaseReset?colorOn:colorOff,">> PhaseReset");
+      ImGui::TextColored(ch->filterPhaseReset?colorOn:colorOff,">> FilterPhaseReset");
+      ImGui::TextColored(ch->timerSync?colorOn:colorOff,">> TimerSync");
+      ImGui::TextColored(ch->freqSweep?colorOn:colorOff,">> FreqSweep");
+      ImGui::TextColored(ch->volSweep?colorOn:colorOff,">> VolSweep");
+      ImGui::TextColored(ch->cutSweep?colorOn:colorOff,">> CutSweep");
       break;
     }
     default:
