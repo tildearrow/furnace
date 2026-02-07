@@ -107,6 +107,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Bifurcator
     - SID2
     - SID3
+    - SGU-1
     - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
