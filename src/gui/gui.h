@@ -2939,7 +2939,7 @@ class FurnaceGUI {
   std::vector<String> randomDemoSong;
 
   void commandExportOptions();
-  
+
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
@@ -2949,7 +2949,7 @@ class FurnaceGUI {
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
-  void drawWaveformSGU(unsigned char type, const ImVec2& size);
+  void drawWaveformSGU(unsigned char type, const ImVec2& size, int sampleIdx=-1);
   void drawWaveformSID3(unsigned char type, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size);

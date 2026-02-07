@@ -333,9 +333,25 @@ void DivPlatformSGU::tick(bool sysTick) {
 
     // Frequency update
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+      // Apply per-operator arp/pitch offsets (first active op wins)
+      int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
+      bool arpFixed=chan[i].fixedArp;
+      int pitch2=chan[i].pitch2;
+      for (int o=0; o<SGU_OP_PER_CH; o++) {
+        if (chan[i].opsState[o].hasOpArp) {
+          arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride:chan[i].opsState[o].arpOff;
+          arpFixed=chan[i].opsState[o].fixedArp;
+          break;
+        }
+      }
+      for (int o=0; o<SGU_OP_PER_CH; o++) {
+        if (chan[i].opsState[o].hasOpPitch) {
+          pitch2+=chan[i].opsState[o].pitch2;
+          break;
+        }
+      }
       chan[i].freq=parent->calcFreq(chan[i].baseFreq, chan[i].pitch,
-          chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,
-          chan[i].fixedArp, false, 2, chan[i].pitch2, chipClock, CHIP_FREQBASE);
+          arp, arpFixed, false, 2, pitch2, chipClock, CHIP_FREQBASE);
 
       if (chan[i].pcm) {
         DivSample* sample=parent->getSample(chan[i].sample);
@@ -488,12 +504,9 @@ void DivPlatformSGU::tick(bool sysTick) {
         opDirty=true;
       }
 
-      // detune/fixed pitch
-      if (m.ssg.had) {
-        // WPAR macro (reuse SSG-EG macro slot)
-        chan[i].wpar[o]=m.ssg.val&0x0f;
-        opDirty=true;
-      }
+      // per-operator arpeggio/pitch (ssg=Op.Arp, dt=Op.Pitch)
+      chan[i].handleArpFmOp(0,o);
+      chan[i].handlePitchFmOp(o);
 
       if (m.dt2.had) {
         opE.delay=m.dt2.val;
@@ -642,6 +655,9 @@ void DivPlatformSGU::commitState(int ch, DivInstrument* ins) {
     chan[ch].state.fm=ins->fm;
     chan[ch].state.esfm=ins->esfm;
 
+    // Set sample for operators using sample waveform
+    chan[ch].sample=ins->amiga.initSample;
+
     // Copy SGU-specific per-operator fields
     for (int o=0; o<SGU_OP_PER_CH; o++) {
       chan[ch].wpar[o]=ins->sgu.op[o].wpar;
@@ -660,6 +676,7 @@ int DivPlatformSGU::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       // 1. Initialize macros first
       chan[c.chan].macroInit(ins);
+      memset(chan[c.chan].opsState,0,sizeof(chan[c.chan].opsState));
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }

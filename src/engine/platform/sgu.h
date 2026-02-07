@@ -34,6 +34,61 @@ class DivPlatformSGU: public DivDispatch {
     unsigned char wpar[SGU_OP_PER_CH];
     bool sync[SGU_OP_PER_CH];
     bool ring[SGU_OP_PER_CH];
+    struct {
+      int baseNoteOverride;
+      bool fixedArp;
+      int arpOff;
+      int pitch2;
+      bool hasOpArp;
+      bool hasOpPitch;
+    } opsState[SGU_OP_PER_CH];
+
+    void handleArpFmOp(int offset=0, int o=0) {
+      DivMacroInt::IntOp& m=this->std.op[o];
+      if (m.ssg.had) {
+        opsState[o].hasOpArp=true;
+
+        if (m.ssg.val<0) {
+          if (!(m.ssg.val&0x40000000)) {
+            opsState[o].baseNoteOverride=(m.ssg.val|0x40000000)+offset;
+            opsState[o].fixedArp=true;
+          } else {
+            opsState[o].arpOff=m.ssg.val;
+            opsState[o].fixedArp=false;
+          }
+        } else {
+          if (m.ssg.val&0x40000000) {
+            opsState[o].baseNoteOverride=(m.ssg.val&(~0x40000000))+offset;
+            opsState[o].fixedArp=true;
+          } else {
+            opsState[o].arpOff=m.ssg.val;
+            opsState[o].fixedArp=false;
+          }
+        }
+        freqChanged=true;
+      } else {
+        opsState[o].hasOpArp=false;
+      }
+    }
+
+    void handlePitchFmOp(int o) {
+      DivMacroInt::IntOp& m=this->std.op[o];
+
+      if (m.dt.had) {
+        opsState[o].hasOpPitch=true;
+
+        if (m.dt.mode) {
+          opsState[o].pitch2+=m.dt.val;
+          CLAMP_VAR(opsState[o].pitch2,-131071,131071);
+        } else {
+          opsState[o].pitch2=m.dt.val;
+        }
+        this->freqChanged=true;
+      } else {
+        opsState[o].hasOpPitch=false;
+      }
+    }
+
     bool gate, pcm, phaseReset, filterPhaseReset;
     bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep, released;
     unsigned short freqSweepP, volSweepP, cutSweepP;
@@ -80,6 +135,7 @@ class DivPlatformSGU: public DivDispatch {
       cutoff_slide(0),
       pw_slide(0),
       virtual_duty(0) {
+        memset(opsState,0,sizeof(opsState));
         for (int i=0; i<SGU_OP_PER_CH; i++) {
           wpar[i]=0;
           sync[i]=false;
