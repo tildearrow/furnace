@@ -3436,8 +3436,8 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
     if (dragItem!=NULL) { \
       if (dragItem->IsDataType("FUR_OP")) { \
         if (opToMove!=i && opToMove>=0) { \
-          int destOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i; \
-          int sourceOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[opToMove]:opToMove; \
+          int destOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM && ins->type!=DIV_INS_SGU)?opOrder[i]:i; \
+          int sourceOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM && ins->type!=DIV_INS_SGU)?opOrder[opToMove]:opToMove; \
           if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
             e->lockEngine([ins,destOp,sourceOp]() { \
               ins->fm.op[destOp]=ins->fm.op[sourceOp]; \
