@@ -3754,7 +3754,7 @@ void DivInstrumentMacro::convertOldADSRLFO() {
     val[8]=(val[8]*range)/255;
 
     // convert sustain level
-    val[5]=bottom+(((top-bottom)*val[5])/256);
+    val[5]=bottom+(((top-bottom)*val[5])/255);
   } else if (open&4) { // LFO macro
     // convert speed
     if ((val[12]&3)==0) { // triangle

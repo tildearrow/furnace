@@ -36,7 +36,8 @@
 #define ADSR_TOP ((source.val[1]<<8)|0xff)
 #define ADSR_BOTTOM_INV ((source.val[0]<<8)|0xff)
 #define ADSR_TOP_INV (source.val[1]<<8)
-#define ADSR_SUS (source.val[5]<<8)
+#define ADSR_SUS ((source.val[5]<<8)|0xff)
+#define ADSR_SUS_INV (source.val[5]<<8)
 
 #define LFO_SPEED source.val[11]
 #define LFO_WAVE source.val[12]
@@ -155,8 +156,8 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
             break;
           case 1: // decay
             pos+=ADSR_DR;
-            if (pos>=ADSR_SUS) {
-              pos=ADSR_SUS;
+            if (pos>=ADSR_SUS_INV) {
+              pos=ADSR_SUS_INV;
               lastPos=2;
               delay=ADSR_ST;
             }
