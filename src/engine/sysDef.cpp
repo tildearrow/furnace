@@ -2254,7 +2254,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SGU]=new DivSysDef(
-    _("SGU-1"), NULL, 0xd2, 0, 9, 9, 9,
+    _("SGU-1"), NULL, 0xef, 0, 9, 9, 9,
     true, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("what if you cherry-picked the best features of OPL/ESFM, OPM, SID, POKEY, and Paula and glued them together?"),
     DivChanDefFunc([](unsigned short ch) -> DivChanDef {
