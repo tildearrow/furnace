@@ -24,6 +24,8 @@
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
+#include "../hashUtils.h"
+#include <vector>
 
 struct DivSong;
 struct DivInstrument;
@@ -149,6 +151,17 @@ enum DivMacroTypeOp: unsigned char {
   DIV_MACRO_OP_VIB,
   DIV_MACRO_OP_WS,
   DIV_MACRO_OP_KSR,
+};
+
+enum DivXattrType: unsigned char {
+  DIV_XATTR_STRING,
+  DIV_XATTR_UINT,
+  DIV_XATTR_INT,
+  DIV_XATTR_FLOAT32,
+
+  // the bool value is stored directly in the type
+  // as the least significant bit.
+  DIV_XATTR_BOOLEAN,
 };
 
 // FM operator structure:
@@ -306,6 +319,55 @@ struct DivInstrumentMacro {
     rel(255),
     macroType(initType) {
     memset(val,0,256*sizeof(int));
+  }
+};
+
+struct DivInstrumentXattr {
+  String name;
+  DivXattrType type;
+
+  String str_val;
+  union {
+    unsigned int uint_val;
+    int int_val;
+    float float_val;
+    bool bool_val;
+  };
+
+  DivInstrumentXattr():
+    name("example.empty"),
+    type(DIV_XATTR_STRING),
+    str_val(),
+    int_val(0) {};
+};
+
+// Hasher object for Xattr
+template<>
+struct std::hash<DivInstrumentXattr>
+{
+  size_t operator()(const DivInstrumentXattr& xattr) const noexcept {
+    size_t hash=0;
+    hash=combineHash(hash, xattr.name);
+    hash=combineHash(hash, xattr.type);
+
+    switch (xattr.type) {
+      case DIV_XATTR_STRING:
+      hash=combineHash(hash, xattr.str_val);
+      break;
+      case DIV_XATTR_UINT:
+      hash=combineHash(hash, xattr.uint_val);
+      break;
+      case DIV_XATTR_INT:
+      hash=combineHash(hash, xattr.int_val);
+      break;
+      case DIV_XATTR_FLOAT32:
+      hash=combineHash(hash, xattr.float_val);
+      break;
+      case DIV_XATTR_BOOLEAN:
+      hash=combineHash(hash, xattr.bool_val);
+      break;
+    }
+    return hash;
   }
 };
 
@@ -1067,12 +1129,16 @@ struct DivInstrumentUndoStep {
   DivInstrumentUndoStep() :
     name(""),
     nameValid(false),
+    xattrsValid(false),
     processTime(0) {
   }
 
   MemPatch podPatch;
   String name;
   bool nameValid;
+
+  std::vector<DivInstrumentXattr> xattrs;
+  bool xattrsValid;
   size_t processTime;
 
   void applyAndReverse(DivInstrument* target);
@@ -1081,6 +1147,7 @@ struct DivInstrumentUndoStep {
 
 struct DivInstrument : DivInstrumentPOD {
   String name;
+  std::vector<DivInstrumentXattr> xattrs;
 
   DivInstrumentTemp temp;
 
@@ -1135,6 +1202,7 @@ struct DivInstrument : DivInstrumentPOD {
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
   void writeFeatureS3(SafeWriter* w);
+  void writeFeatureXA(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -1161,6 +1229,7 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
   void readFeatureS3(SafeReader& reader, short version);
+  void readFeatureXA(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

@@ -22,6 +22,7 @@
 #include "instrument.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../hashUtils.h"
 
 const DivInstrument defaultIns;
 
@@ -490,9 +491,22 @@ void DivInstrumentUndoStep::applyAndReverse(DivInstrument* target) {
   if (nameValid) {
     name.swap(target->name);
   }
+
+  if (xattrsValid) {
+    target->xattrs=xattrs;
+  }
   podPatch.applyAndReverse((DivInstrumentPOD*)target, sizeof(DivInstrumentPOD));
 }
 
+static size_t computeXattrsHash(const std::vector<DivInstrumentXattr> *vec) {
+  size_t hash=0;
+  std::hash<DivInstrumentXattr> hasher;
+  for (const auto &i: *vec) {
+    hash=combineHash(hash, hasher(i));
+  }
+
+  return hash;
+}
 bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post) {
   processTime=processTime_;
 
@@ -503,7 +517,22 @@ bool DivInstrumentUndoStep::makeUndoPatch(size_t processTime_, const DivInstrume
     name=pre->name;
   }
 
-  return nameValid || podPatch.isValid();
+  // check xattrs
+  size_t hash=0;
+  size_t post_hash=0;
+  if (!pre->xattrs.empty() || !post->xattrs.empty()) {
+    hash=computeXattrsHash(&pre->xattrs);
+    post_hash=computeXattrsHash(&post->xattrs);
+    logD("Xattrs pre hash: %lld", hash);
+    logD("Xattrs post hash: %lld", post_hash);
+
+    if (hash!=post_hash) {
+      xattrsValid=true;
+      xattrs=pre->xattrs;
+    }
+  }
+
+  return xattrsValid || nameValid || podPatch.isValid();
 }
 
 bool DivInstrument::recordUndoStepIfChanged(size_t processTime, const DivInstrument* old) {
@@ -1149,6 +1178,69 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureXA(SafeWriter* w) {
+  FEATURE_BEGIN("XA");
+  for (auto const &i : this->xattrs) {
+    w->writeString(i.name, false);
+    if ((i.type & ~1) == DIV_XATTR_BOOLEAN) {
+      // handle boolean data type here
+      // the unnecessary casting here is because of MSVC
+      w->writeC(i.type | (unsigned char)i.bool_val);
+      continue;
+    }
+    w->writeC(i.type);
+    switch (i.type) {
+      case DIV_XATTR_STRING:
+      w->writeString(i.str_val, false);
+      break;
+      case DIV_XATTR_UINT: {
+        unsigned int value = i.uint_val;
+        unsigned char vlq_byte = 0;
+
+        do {
+          vlq_byte = value & 0x7F;
+          value >>= 7;
+          vlq_byte |= (value != 0) << 7;
+          w->writeC(vlq_byte);
+        } while (value);
+
+        break;
+      }
+      case DIV_XATTR_INT: {
+        int value = i.int_val;
+        unsigned char vlq_byte = 0;
+
+        // write initial VLQ byte (which contains sign bit)
+        if (i.int_val < 0) {
+          value = -value;
+          vlq_byte |= 0x40;
+        }
+
+        vlq_byte |= value & 0x3F;
+        value >>= 6;
+        vlq_byte |= (value != 0) << 7;
+        w->writeC(vlq_byte);
+
+        while (value) {
+          vlq_byte = value & 0x7F;
+          value >>= 7;
+          vlq_byte |= (value != 0) << 7;
+          w->writeC(vlq_byte);
+        }
+        break;
+      }
+      case DIV_XATTR_FLOAT32:
+      w->writeF(i.float_val);
+      break;
+      default:
+      // this should be unreachable
+      break;
+    }
+  }
+  // a empty string, as feature termination
+  w->writeC(0);
+  FEATURE_END;
+}
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1196,6 +1288,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featurePN=false;
   bool featureS2=false;
   bool featureS3=false;
+  bool featureXA=false;
 
   bool checkForWL=false;
 
@@ -1595,6 +1688,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
   }
 
+  if (!xattrs.empty()) {
+    featureXA = true;
+  }
   // write features
   if (featureNA) {
     writeFeatureNA(w);
@@ -1666,6 +1762,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS3) {
     writeFeatureS3(w);
+  }
+  if (featureXA) {
+    writeFeatureXA(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -2759,6 +2858,71 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureXA(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+  DivInstrumentXattr xattr;
+
+  while (true) {
+    xattr.name=reader.readString();
+
+    if (!xattr.name.length()) {
+      break;
+    }
+    xattr.type=(DivXattrType)reader.readC();
+    if ((xattr.type & ~1) == DIV_XATTR_BOOLEAN) {
+      xattr.bool_val = xattr.type & 1;
+      xattr.type = DIV_XATTR_BOOLEAN;
+      xattrs.push_back(xattr);
+      xattr = DivInstrumentXattr();
+      continue;
+    }
+
+    switch (xattr.type) {
+      case DIV_XATTR_STRING:
+      xattr.str_val=reader.readString();
+      break;
+      case DIV_XATTR_UINT: {
+        unsigned char byte=0;
+        unsigned int shift_count=0;
+        do {
+          byte = reader.readC();
+          xattr.uint_val |= (byte & 0x7F) << shift_count;
+          shift_count += 7;
+        } while (byte & 0x80);
+        break;
+      }
+      case DIV_XATTR_INT: {
+        unsigned char byte=reader.readC();
+        unsigned char sign_bit=0;
+        unsigned int shift_count=6;
+
+        sign_bit = byte & 0x40;
+        xattr.uint_val |= byte & 0x3F;
+        while (byte & 0x80) {
+          byte=reader.readC();
+          xattr.uint_val |= (byte & 0x7F) << shift_count;
+          shift_count += 7;
+        }
+
+        // if the sign bit is on in the first byte of the VLQ encoded integer,
+        // negate the integer
+        if (sign_bit) {
+          xattr.int_val = -xattr.int_val;
+        }
+        break;
+      }
+      case DIV_XATTR_FLOAT32:
+      xattr.float_val = reader.readF();
+      break;
+      default:
+      // this should be unreachable
+      break;
+    }
+    xattrs.push_back(xattr);
+    xattr = DivInstrumentXattr();
+  }
+  READ_FEAT_END;
+}
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -2839,6 +3003,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureS2(reader,version);
     } else if (memcmp(featCode,"S3",2)==0) { // SID3
       readFeatureS3(reader,version);
+    } else if (memcmp(featCode,"XA",2)==0) { // extended attributes
+      readFeatureXA(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0) || (memcmp(featCode,"LS",2)==0) || (memcmp(featCode,"LW",2)==0))) {
         // nothing
@@ -3931,5 +4097,6 @@ DivInstrument& DivInstrument::operator=( const DivInstrument& ins ) {
   // undo/redo history is specifically not copied
   *(DivInstrumentPOD*)this=ins;
   name=ins.name;
+  xattrs=ins.xattrs;
   return *this;
 }

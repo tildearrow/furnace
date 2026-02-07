@@ -338,6 +338,14 @@ const char* sid3SpecialWaveforms[]={
   _N("Clipped Saw")
 };
 
+const char* xattrTypeNames[5] = {
+  _N("String"),
+  _N("Unsigned integer"),
+  _N("Integer"),
+  _N("Float"),
+  _N("Boolean"),
+};
+
 const bool opIsOutput[8][4]={
   {false,false,false,true},
   {false,false,false,true},
@@ -8795,6 +8803,98 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           drawMacros(macroList,macroEditStateMacros,ins);
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Attributes")) {
+          if (ImGui::BeginTable("AttrTable", 4)) {
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Name"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Type"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Value"));
+            ImGui::TableNextColumn();
+            ImGui::Text(_("Actions"));
+            for (unsigned int i=0;i<ins->xattrs.size();i++) {
+              ImGui::PushID(i);
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              if (ImGui::InputText("##AttrName", &ins->xattrs[i].name, ImGuiInputTextFlags_UndoRedo)) {
+                MARK_MODIFIED;
+              }
+              ImGui::TableNextColumn();
+              if (ImGui::BeginCombo("##AttrType",xattrTypeNames[ins->xattrs[i].type])) {
+                if (ImGui::Selectable(_("String"), ins->xattrs[i].type==DIV_XATTR_STRING)) {
+                  MARK_MODIFIED;
+                  ins->xattrs[i].type = DIV_XATTR_STRING;
+                }
+                if (ImGui::Selectable(_("Unsigned integer"), ins->xattrs[i].type==DIV_XATTR_UINT)) {
+                  MARK_MODIFIED;
+                  ins->xattrs[i].type = DIV_XATTR_UINT;
+                }
+                if (ImGui::Selectable(_("Integer"), ins->xattrs[i].type==DIV_XATTR_INT)) {
+                  MARK_MODIFIED;
+                  ins->xattrs[i].type = DIV_XATTR_INT;
+                }
+                if (ImGui::Selectable(_("Float"), ins->xattrs[i].type==DIV_XATTR_FLOAT32)) {
+                  MARK_MODIFIED;
+                  ins->xattrs[i].type = DIV_XATTR_FLOAT32;
+                }
+                if (ImGui::Selectable(_("Boolean"), ins->xattrs[i].type==DIV_XATTR_BOOLEAN)) {
+                  MARK_MODIFIED;
+                  ins->xattrs[i].type = DIV_XATTR_BOOLEAN;
+                }
+                ImGui::EndCombo();
+              }
+              ImGui::TableNextColumn();
+              switch (ins->xattrs[i].type) {
+                case DIV_XATTR_STRING:
+                if (ImGui::InputText("##AttrValue", &ins->xattrs[i].str_val, ImGuiInputTextFlags_UndoRedo)) {
+                  MARK_MODIFIED;
+                }
+                break;
+                case DIV_XATTR_UINT: {
+                  // this is stupid
+                  unsigned int int_step = 1;
+                  if (ImGui::InputScalar("##AttrValue", ImGuiDataType_U32, &ins->xattrs[i].uint_val, &int_step)) {
+                    MARK_MODIFIED;
+                  }
+                }
+                break;
+                case DIV_XATTR_INT:
+                if (ImGui::InputInt("##AttrValue", &ins->xattrs[i].int_val)) {
+                  MARK_MODIFIED;
+                }
+                break;
+                case DIV_XATTR_FLOAT32:
+                if (ImGui::InputFloat("##AttrValue", &ins->xattrs[i].float_val)) {
+                  MARK_MODIFIED;
+                }
+                break;
+                case DIV_XATTR_BOOLEAN:
+                if (ImGui::Checkbox("##AttrValue", &ins->xattrs[i].bool_val)) {
+                  MARK_MODIFIED;
+                }
+                break;
+              }
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_TIMES "##AttrRemove")) {
+                ins->xattrs.erase(ins->xattrs.begin() + i);
+              }
+              ImGui::PopID();
+            }
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_PLUS)) {
+              ins->xattrs.push_back(DivInstrumentXattr());
+            }
+            ImGui::EndTable();
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_AY) {
