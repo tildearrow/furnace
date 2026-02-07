@@ -25,6 +25,7 @@ the following sound chips have sample support:
 - SNES
 - WonderSwan (channel 2 only)
 - Sound Unit
+- SGU-1
 - VERA (last channel only)
 - Y8950 (last channel only)
 - Konami K007232
