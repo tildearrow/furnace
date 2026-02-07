@@ -282,8 +282,8 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
             break;
           case 2: // pulse
             pos+=LFO_SPEED;
-            pos&=1023;
-            val=(pos&512)?ADSR_HIGH:ADSR_LOW;
+            pos&=65535;
+            val=(pos&32768)?ADSR_HIGH:ADSR_LOW;
             break;
         }
       }
