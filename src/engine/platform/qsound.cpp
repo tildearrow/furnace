@@ -742,6 +742,10 @@ int DivPlatformQSound::getRegisterPoolDepth() {
   return 16;
 }
 
+size_t DivPlatformQSound::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformQSound::getSampleMem(int index) {
   return (index == 0 || index == 1) ? sampleMem : NULL;
 }

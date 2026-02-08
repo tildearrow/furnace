@@ -1430,6 +1430,11 @@ unsigned char* DivPlatformES5506::getRegisterPool() {
 int DivPlatformES5506::getRegisterPoolSize() {
   return 4*16*128; // 7 bit page x 16 registers per page x 32 bit per registers
 }
+
+size_t DivPlatformES5506::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformES5506::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
