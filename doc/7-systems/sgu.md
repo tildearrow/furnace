@@ -1,6 +1,13 @@
 # SGU-1
 
-a brand new sound chip that cherry-picks the best features of OPL/ESFM, OPM, SID, POKEY, and Paula, combining 4-operator FM synthesis with per-channel subtractive filtering and hardware sweeps.
+a new audio-synthesis hardware under development as part of the X65 Microcomputer Project.
+cherry-picks the best features of OPL/ESFM, OPM, SID, POKEY, and Paula,
+combining 4-operator FM synthesis with per-channel subtractive filtering and hardware sweeps.
+
+SGU-1 is implemented using a microcontroller paired with an audio CODEC chip.
+Together they generate a stereo 48 kHz I²S stream, which is converted to an analog stereo line-out signal.
+Contemporary audio-synthesis chips with advanced features are no longer manufactured,
+so creating our own solution was the only practical way to bring such capabilities to the X65.
 
 it has the following capabilities:
 
