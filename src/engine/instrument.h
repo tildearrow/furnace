@@ -272,14 +272,19 @@ enum DivCompiledMacroFormat {
   // - start in relative mode.
   // - read one byte. treat it as signed number.
   // - if it is 0x7f, read two bytes (this will be the macro value).
-  // - if it is 0x80, switch between fixed and relative modes.
+  // - if it is 0x80, fixed mode is on for this value.
   // - otherwise this is the macro value.
   DIV_COMPILED_MACRO_BIT30,
   // 4-bit unsigned (top first, bottom second)
   DIV_COMPILED_MACRO_U4,
-  // these two are reserved.
-  DIV_COMPILED_MACRO_ADSR,
-  DIV_COMPILED_MACRO_LFO
+  // these four are reserved.
+  DIV_COMPILED_MACRO_ADSR16,
+  DIV_COMPILED_MACRO_ADSR8,
+  DIV_COMPILED_MACRO_LFO16,
+  DIV_COMPILED_MACRO_LFO8,
+  // these are reserved as well. only implement if necessary.
+  DIV_COMPILED_MACRO_ADSR24,
+  DIV_COMPILED_MACRO_LFO24,
 };
 
 // this is getting out of hand
@@ -300,8 +305,13 @@ struct DivInstrumentMacro {
 
   /**
    * compile a macro. for use with ROM export.
+   * @param w a SafeWriter where the compiled macro will be written to.
+   * @param format a format hint. this is ignored for ADSR/LFO macros.
+   * @param min minimum value.
+   * @param max maximum value.
+   * @return whether compilation was successful.
    */
-  void compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
+  bool compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),

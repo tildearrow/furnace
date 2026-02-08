@@ -146,8 +146,13 @@ size | description
      |   - 3: 16-bit signed
      |   - 4: arp macro
      |   - 5: 4-bit unsigned (top first, bottom second)
-     |   - 6: ADSR macro
-     |   - 7: LFO macro
+     |   - 6: ADSR macro (16-bit)
+     |   - 7: ADSR macro (8-bit)
+     |   - 8: LFO macro (16-bit)
+     |   - 9: LFO macro (8-bit)
+     |   - 10: ADSR macro (24-bit)
+     |   - 11: LFO macro (24-bit)
+     |     - these two are there just in case. you do not have to implement them.
   1  | step length
   1  | delay
  ??? | macro data...
@@ -168,16 +173,75 @@ size | description
 
 arp macros are special:
 - read one byte. this will be the next (signed) value, unless it is $7F or $80.
-- if it is $80, toggle fixed/relative mode.
+- if it is $80, fixed mode is on for this value.
 - if it is $7F, the value is 16-bit. read two bytes and treat that as the (signed) value.
 
-for ADSR macros:
+for 16-bit ADSR macros:
 
 ```
 size | description
 -----|---------------------
   2  | minimum value
   2  | maximum value
+  2  | sustain level
+  1  | hold time
+  1  | sustain time
+  3  | attack rate
+  3  | decay rate
+  3  | sustain decay
+  3  | release rate
+```
+
+for 8-bit ADSR macros:
+
+```
+size | description
+-----|---------------------
+  1  | minimum value
+  1  | maximum value
+  1  | sustain level
+  1  | hold time
+  1  | sustain time
+  2  | attack rate
+  2  | decay rate
+  2  | sustain decay
+  2  | release rate
+```
+
+for 16-bit LFO macros:
+
+```
+size | description
+-----|---------------------
+  2  | minimum value
+  2  | maximum value
+  3  | initial accumulator value
+  3  | speed
+  1  | flags
+     | - bit 2: initial direction (set when down)
+     | - bit 0-1: shape
+     |   - 0: triangle
+     |   - 1: saw (down to up)
+     |   - 2: pulse
+     |   - 3: saw (up to down)
+```
+
+for 8-bit LFO macros:
+
+```
+size | description
+-----|---------------------
+  1  | minimum value
+  1  | maximum value
+  2  | initial accumulator value
+  2  | speed
+  1  | flags
+     | - bit 7: initial direction (set when down)
+     | - bit 0-1: shape
+     |   - 0: triangle
+     |   - 1: saw (down to up)
+     |   - 2: pulse
+     |   - 3: saw (up to down)
 ```
 
 ## binary command stream

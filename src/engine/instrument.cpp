@@ -27,8 +27,243 @@ const DivInstrument defaultIns;
 
 /// instrument compilation
 
-void DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max) {
-  
+#define WRITE_HEADER_COMMON \
+  w->writeC(compFlags); \
+  w->writeC(speed); \
+  w->writeC(delay);
+
+#define WRITE_HEADER_SEQ \
+  WRITE_HEADER_COMMON; \
+  w->writeC(len); \
+  w->writeC(loop); \
+  w->writeC(rel);
+
+#define ADSR_LOW val[0]
+#define ADSR_HIGH val[1]
+#define ADSR_AR val[2]
+#define ADSR_HT val[3]
+#define ADSR_DR val[4]
+#define ADSR_SL val[5]
+#define ADSR_ST val[6]
+#define ADSR_SR val[7]
+#define ADSR_RR val[8]
+
+#define ADSR_BOTTOM (val[0]<<8)
+#define ADSR_TOP ((val[1]<<8)|0xff)
+
+#define LFO_SPEED val[11]
+#define LFO_WAVE val[12]
+#define LFO_PHASE val[13]
+#define LFO_LOOP val[14]
+#define LFO_GLOBAL val[15]
+
+bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max) {
+  unsigned char compFlags=0;
+  if (open&2) {
+    // ADSR
+    switch (format) {
+      case DIV_COMPILED_MACRO_U4:
+      case DIV_COMPILED_MACRO_U8:
+      case DIV_COMPILED_MACRO_S8:
+        format=DIV_COMPILED_MACRO_ADSR8;
+        break;
+      case DIV_COMPILED_MACRO_U16:
+      case DIV_COMPILED_MACRO_S16:
+      case DIV_COMPILED_MACRO_BIT30:
+        format=DIV_COMPILED_MACRO_ADSR16;
+        break;
+      default:
+        logE("compile(): invalid format!");
+        return false;
+    }
+
+    compFlags=format;
+
+    switch (format) {
+      case DIV_COMPILED_MACRO_ADSR8:
+        WRITE_HEADER_COMMON;
+
+        w->writeC(ADSR_LOW); // low
+        w->writeC(ADSR_HIGH); // high
+        w->writeC(ADSR_SL); // SL
+        w->writeC(ADSR_HT); // HT
+        w->writeC(ADSR_ST); // ST
+        w->writeS(ADSR_AR); // AR
+        w->writeS(ADSR_DR); // DR
+        w->writeS(ADSR_SR); // SR
+        w->writeS(ADSR_RR); // RR
+        break;
+      case DIV_COMPILED_MACRO_ADSR16:
+        WRITE_HEADER_COMMON;
+
+        w->writeS(ADSR_LOW); // low
+        w->writeS(ADSR_HIGH); // high
+        w->writeS(ADSR_SL); // SL
+        w->writeC(ADSR_HT); // HT
+        w->writeC(ADSR_ST); // ST
+        w->writeC(ADSR_AR);     // AR
+        w->writeC(ADSR_AR>>8);
+        w->writeC(ADSR_AR>>16);
+        w->writeC(ADSR_DR);     // DR
+        w->writeC(ADSR_DR>>8);
+        w->writeC(ADSR_DR>>16);
+        w->writeC(ADSR_SR);     // SR
+        w->writeC(ADSR_SR>>8);
+        w->writeC(ADSR_SR>>16);
+        w->writeC(ADSR_RR);     // RR
+        w->writeC(ADSR_RR>>8);
+        w->writeC(ADSR_RR>>16);
+        break;
+      default:
+        logE("compile(): the hell!");
+        return false;
+    }
+  } else if (open&4) {
+    // LFO
+    switch (format) {
+      case DIV_COMPILED_MACRO_U4:
+      case DIV_COMPILED_MACRO_U8:
+      case DIV_COMPILED_MACRO_S8:
+        format=DIV_COMPILED_MACRO_LFO8;
+        break;
+      case DIV_COMPILED_MACRO_U16:
+      case DIV_COMPILED_MACRO_S16:
+      case DIV_COMPILED_MACRO_BIT30:
+        format=DIV_COMPILED_MACRO_LFO16;
+        break;
+      default:
+        logE("compile(): invalid format!");
+        return false;
+    }
+
+    compFlags=format;
+
+    int initAccum=0;
+    int lfoLow=ADSR_LOW;
+    int lfoHigh=ADSR_HIGH;
+    unsigned char lfoShape=LFO_WAVE&3;
+    int lfoPhase=LFO_PHASE;
+    bool lfoDir=false;
+
+    if (lfoLow>lfoHigh) {
+      // invert direction
+      lfoLow^=lfoHigh;
+      lfoHigh^=lfoLow;
+      lfoLow^=lfoHigh;
+
+      switch (lfoShape) {
+        case 0:
+        case 2:
+          // triangle/pulse - shift phase
+          lfoPhase^=512;
+          break;
+        default:
+          // saw - use reverse saw shape
+          lfoShape=3;
+          break;
+      }
+    }
+
+    unsigned char lfoFlags=(lfoShape)|(lfoDir?128:0);
+
+    switch (LFO_WAVE&3) {
+      case 0: // triangle
+        if (lfoPhase&512) {
+          initAccum=lfoHigh+(((lfoLow-lfoHigh)*(lfoPhase&511))>>9);
+        } else {
+          initAccum=lfoLow+(((lfoHigh-lfoLow)*lfoPhase)>>9);
+        }
+        lfoDir=lfoPhase&512;
+        break;
+      case 1: // saw
+        initAccum=lfoLow+(((lfoHigh-lfoLow)*lfoPhase)>>10);
+        break;
+      case 2: // pulse
+        initAccum=lfoPhase<<6;
+        break;
+    }
+
+    switch (format) {
+      case DIV_COMPILED_MACRO_LFO8:
+        WRITE_HEADER_COMMON;
+        w->writeC(ADSR_LOW); // low
+        w->writeC(ADSR_HIGH); // high
+        w->writeS(initAccum);
+        w->writeS(LFO_SPEED);
+        w->writeC(lfoFlags);
+        break;
+      case DIV_COMPILED_MACRO_LFO16:
+        WRITE_HEADER_COMMON;
+        w->writeS(ADSR_LOW); // low
+        w->writeS(ADSR_HIGH); // high
+        w->writeC(initAccum);
+        w->writeC(initAccum>>8);
+        w->writeC(initAccum>>16);
+        w->writeC(LFO_SPEED);
+        w->writeC(LFO_SPEED>>8);
+        w->writeC(LFO_SPEED>>16);
+        w->writeC(lfoFlags);
+        break;
+      default:
+        logE("compile(): the hell!");
+        return false;
+    }
+  } else {
+    // something else
+    compFlags=format;
+    if (open&8) {
+      compFlags|=64;
+    }
+    switch (format) {
+      case DIV_COMPILED_MACRO_U8:
+      case DIV_COMPILED_MACRO_S8:
+        WRITE_HEADER_SEQ;
+        for (int i=0; i<len; i++) {
+          w->writeC(val[i]);
+        }
+        break;
+      case DIV_COMPILED_MACRO_U16:
+      case DIV_COMPILED_MACRO_S16:
+        WRITE_HEADER_SEQ;
+        for (int i=0; i<len; i++) {
+          w->writeS(val[i]);
+        }
+        break;
+      case DIV_COMPILED_MACRO_BIT30:
+        WRITE_HEADER_SEQ;
+        for (int i=0; i<len; i++) {
+          bool bit30=false;
+          int valNoBit30=val[i];
+          if (val[i]<0) {
+            if (!(val[i]&0x40000000)) bit30=true;
+            valNoBit30|=0x40000000;
+          } else {
+            if (val[i]&0x40000000) bit30=true;
+            valNoBit30&=~0x40000000;
+          }
+          if (bit30) {
+            w->writeC(0x80);
+          }
+          if (valNoBit30>126 || valNoBit30<-127) {
+            w->writeC(0x7f);
+            w->writeS(valNoBit30);
+          } else {
+            w->writeC(valNoBit30);
+          }
+        }
+        break;
+      case DIV_COMPILED_MACRO_U4:
+        WRITE_HEADER_SEQ;
+        for (int i=0; i<len; i+=2) {
+          w->writeC(((val[i]&15)<<4)|(val[i+1]&15));
+        }
+        break;
+      default:
+        logE("compile(): invalid format!");
+        return false;
+    }
+  }
+  return true;
 }
 
 /// the rest
