@@ -266,6 +266,48 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
   return true;
 }
 
+bool DivInstrument::compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start, unsigned int macroSeek) {
+  // this function compiles all macros in the provided list.
+  // the current seek position must be the list of pointers.
+  // start indicates the starting position of instrument data.
+  // macroSeek indicates how many bytes to skip between macro pointers and macro data.
+  std::vector<unsigned int> macroPtr;
+
+  size_t macroPtrPos=w->tell();
+
+  w->seek(macroSeek+which.size()*2,SEEK_CUR);
+
+  // compile macros
+  for (DivCompileMacroDef i: which) {
+    DivInstrumentMacro* macro=std.macroByType((DivMacroType)i.type);
+    // skip non-existent macros
+    if (macro==NULL) {
+      logW("macro is NULL!");
+      macroPtr.push_back(0);
+      continue;
+    }
+    // skip unused macros
+    if (macro->len==0) {
+      logV("empty macro");
+      macroPtr.push_back(0);
+      continue;
+    }
+    macroPtr.push_back(w->tell());
+    if (!macro->compile(w,i.format,i.minRange,i.maxRange)) return false;
+  }
+
+  // write macro pointers
+  w->seek(macroPtrPos,SEEK_SET);
+  for (unsigned int i: macroPtr) {
+    w->writeS(i);
+  }
+  return true;
+}
+
+bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
+  return false;
+}
+
 /// the rest
 
 #define _C(x) x==other.x

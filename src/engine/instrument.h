@@ -24,6 +24,7 @@
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
+#include <initializer_list>
 
 struct DivSong;
 struct DivInstrument;
@@ -285,6 +286,15 @@ enum DivCompiledMacroFormat {
   // these are reserved as well. only implement if necessary.
   DIV_COMPILED_MACRO_ADSR24,
   DIV_COMPILED_MACRO_LFO24,
+};
+
+struct DivCompileMacroDef {
+  unsigned char type;
+  DivCompiledMacroFormat format;
+  int minRange, maxRange;
+
+  DivCompileMacroDef(unsigned char t, DivCompiledMacroFormat f, int x1, int x2):
+    type(t), format(f), minRange(x1), maxRange(x2) {}
 };
 
 // this is getting out of hand
@@ -1081,7 +1091,7 @@ struct MemPatch {
 };
 
 struct DivInstrumentUndoStep {
-  DivInstrumentUndoStep() :
+  DivInstrumentUndoStep():
     name(""),
     nameValid(false),
     processTime(0) {
@@ -1096,15 +1106,15 @@ struct DivInstrumentUndoStep {
   bool makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post);
 };
 
-struct DivInstrument : DivInstrumentPOD {
+struct DivInstrument: DivInstrumentPOD {
   String name;
 
   DivInstrumentTemp temp;
 
-  DivInstrument() :
+  DivInstrument():
     name("") {
       // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
-      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
+      memset((unsigned char*)(DivInstrumentPOD*)this,0,sizeof(DivInstrumentPOD));
       new ((DivInstrumentPOD*)this) DivInstrumentPOD;
   }
 
@@ -1184,6 +1194,17 @@ struct DivInstrument : DivInstrumentPOD {
 
   void convertC64SpecialMacro();
   void convertOldADSRLFO();
+
+  bool compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start, unsigned int macroSeek);
+
+  /**
+   * compile the instrument for ROM export.
+   * addresses must be relocated when placed in ROM!
+   * @param w a SafeWriter where the compiled instrument will be written to.
+   * @param insType instrument type. we don't use the type set in this instrument because it may be different from the desired type.
+   * @return whether compilation was successful.
+   */
+  bool compile(SafeWriter* w, DivInstrumentType insType);
 
   /**
    * save the instrument to a SafeWriter.
