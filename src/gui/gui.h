@@ -2664,6 +2664,7 @@ class FurnaceGUI {
   double resampleTarget;
   int resampleStrat;
   float amplifyVol, amplifyOff;
+  float noiseGateThreshold;
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
@@ -2681,7 +2682,7 @@ class FurnaceGUI {
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt, openSampleNoiseGateOpt;
 
   // mixer
   // 0xxx: output
