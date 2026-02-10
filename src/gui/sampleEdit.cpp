@@ -2092,6 +2092,11 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("set loop to selection"),BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
+          ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
+          if (ImGui::MenuItem(_("trim after loop end"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
+          }
+          ImGui::EndDisabled();
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
           }

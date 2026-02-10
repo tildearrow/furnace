@@ -1854,6 +1854,25 @@ void FurnaceGUI::doAction(int what) {
       break;
     }
 
+    case GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) break;
+      if (!sample->isLoopable()) break;
+      if ((unsigned int)sample->loopEnd>=sample->samples) break;
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        sample->trim(0,sample->loopEnd);
+        updateSampleTex=true;
+        notifySampleChange=true;
+        e->renderSamples(curSample);
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
+
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {
         setOrder(curOrder-1);
