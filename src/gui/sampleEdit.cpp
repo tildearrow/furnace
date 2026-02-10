@@ -2093,7 +2093,7 @@ void FurnaceGUI::drawSampleEdit() {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
           ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
-          if (ImGui::MenuItem(_("trim after loop end"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
+          if (ImGui::MenuItem(_("trim to the end of the loop"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
           }
           ImGui::EndDisabled();
