@@ -331,6 +331,7 @@ TAParamResult pVersion(String) {
   printf("- emu2413 by Digital Sound Antiques (MIT)\n");
   printf("- adpcm by superctr (public domain)\n");
   printf("- adpcm-xq by David Bryant (BSD 3-clause)\n");
+  printf("- TinySoundFont by Bernhard Schelling (MIT)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
   printf("- MAME AY-3-8910 emulation core by Couriersud (BSD 3-clause)\n");
   printf("- MAME SAA1099 emulation core by Juergen Buchmueller and Manuel Abadia (BSD 3-clause)\n");

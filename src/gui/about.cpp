@@ -140,6 +140,7 @@ const char* aboutLine[]={
   _N("backward-cpp by Google"),
   _N("adpcm by superctr"),
   _N("adpcm-xq by David Bryant"),
+  _N("TinySoundFont by Bernhard Schelling"),
   _N("Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"),
   _N("YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"),
   _N("ESFMu (modified version) by Kagamiin~"),

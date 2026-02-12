@@ -664,6 +664,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_MU5_ROM_OPEN,
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
+  GUI_FILE_IMPORT_SOUNDFONT,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -1727,6 +1728,7 @@ class FurnaceGUI {
   String mmlStringW, grooveString, grooveListString, mmlStringModTable;
   String mmlStringSNES[DIV_MAX_CHIPS];
   String folderString;
+  String soundfontPath;
 
   struct PaletteSearchResult { int id; std::vector<int> highlightChars; };
   std::vector<DivSystem> sysSearchResults;
@@ -1738,6 +1740,7 @@ class FurnaceGUI {
   std::vector<FurnaceGUIWaveSizeEntry> waveSizeList;
   std::vector<String> availRenderDrivers;
   std::vector<String> availAudioDrivers;
+  std::vector<SoundfontPreset> soundfontPresetList;
 
   bool quit, warnQuit, willCommit, edit, editClone, isPatUnique, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints, vgmExportDPCM07;
   bool vgmExportDirectStream, displayInsTypeList, displayWaveSizeList;

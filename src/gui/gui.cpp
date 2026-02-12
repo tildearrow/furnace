@@ -2394,6 +2394,17 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         false
       );
       break;
+    case GUI_FILE_IMPORT_SOUNDFONT:
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Open SoundFont File"),
+        {_("SoundFont file"), "*.sf2"},
+        workingDirSample,
+        dpiScale,
+        NULL,
+        false
+      );
+      break;
     case GUI_FILE_TEST_OPEN:
       if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -4680,6 +4691,10 @@ bool FurnaceGUI::loop() {
           openFileDialog(GUI_FILE_SAVE);
         }
         ImGui::Separator();
+        if (ImGui::MenuItem(_("import soundfont"))) {
+          openFileDialog(GUI_FILE_IMPORT_SOUNDFONT);
+        }
+        ImGui::Separator();
         if (settings.exportOptionsLayout==0) {
           if (ImGui::BeginMenu(_("export audio..."))) {
             drawExportAudio();
@@ -5314,6 +5329,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_SAMPLE_SAVE:
         case GUI_FILE_SAMPLE_SAVE_RAW:
         case GUI_FILE_SAMPLE_SAVE_ALL:
+        case GUI_FILE_IMPORT_SOUNDFONT:
           workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -6012,6 +6028,11 @@ bool FurnaceGUI::loop() {
                   e->getFilePlayer()->play();
                 }
               });
+              break;
+            case GUI_FILE_IMPORT_SOUNDFONT:
+              soundfontPath=copyOfName;
+              e->preloadSoundfont(copyOfName,soundfontPresetList);
+              ImGui::OpenPopup(_("Import SoundFont"));
               break;
             case GUI_FILE_TEST_OPEN:
               showWarning(fmt::sprintf(_("You opened: %s"),copyOfName),GUI_WARN_GENERIC);
@@ -7234,6 +7255,29 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow(_("Import SoundFont"),canvasW,canvasH);
+    if (ImGui::BeginPopupModal(_("Import SoundFont"),NULL,0)) {
+      if (ImGui::BeginChild("sflist",ImVec2(400.0f*dpiScale,300.0f))) {
+        for (size_t i=0; i<soundfontPresetList.size(); i++) {
+          ImGui::PushID(i);
+          ImGui::Checkbox(soundfontPresetList[i].name.c_str(),&soundfontPresetList[i].selected);
+          ImGui::PopID();
+        }
+      }
+      ImGui::EndChild();
+      if (ImGui::Button(_("OK"))) {
+        std::vector<unsigned int> which;
+        for (auto i:soundfontPresetList) {
+          if (i.selected)
+            which.push_back(i.index);
+        }
+        e->loadSoundfont(soundfontPath,which,false);
+        MARK_MODIFIED;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
     centerNextWindow(_("Import Raw Sample"),canvasW,canvasH);
     if (ImGui::BeginPopupModal(_("Import Raw Sample"),NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text(_("Data type:"));
@@ -8279,7 +8323,8 @@ bool FurnaceGUI::init() {
   compatFormats+="*.pdx ";
   compatFormats+="*.pzi ";
   compatFormats+="*.p86 ";
-  compatFormats+="*.p";
+  compatFormats+="*.p ";
+  compatFormats+="*.sf2";
   audioLoadFormats[1]=compatFormats;
 
   audioLoadFormats.push_back(_("NES DPCM data"));
@@ -8308,6 +8353,9 @@ bool FurnaceGUI::init() {
 
   audioLoadFormats.push_back(_("PMD OKI ADPCM sample bank"));
   audioLoadFormats.push_back("*.p");
+
+  audioLoadFormats.push_back(_("soundfont")); // TODO: replace
+  audioLoadFormats.push_back("*.sf2");
 
   audioLoadFormats.push_back(_("all files"));
   audioLoadFormats.push_back("*");

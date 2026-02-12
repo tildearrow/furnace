@@ -157,7 +157,7 @@ else()
   set(MAKE_BUNDLE OFF)
 endif()
 
-set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders extern/blip_buf src/icon)
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders extern/blip_buf extern/tsf src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -777,6 +777,7 @@ src/engine/fileOps/ppc.cpp
 src/engine/fileOps/pps.cpp
 src/engine/fileOps/pvi.cpp
 src/engine/fileOps/pzi.cpp
+src/engine/fileOps/sf.cpp
 
 src/engine/brrUtils.c
 src/engine/safeReader.cpp

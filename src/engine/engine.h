@@ -21,6 +21,7 @@
 #define _ENGINE_H
 #include "config.h"
 #include "instrument.h"
+#include "safeReader.h"
 #include "song.h"
 #include "dispatch.h"
 #include "effect.h"
@@ -333,6 +334,21 @@ struct DivEffectContainer {
   }
 };
 
+struct SoundfontPreset {
+  String name;
+  unsigned int index;
+  bool selected;
+  SoundfontPreset(String n, unsigned int i, bool s) {
+    name=n;
+    index=i;
+    selected=s;
+  }
+  SoundfontPreset():
+    name(""),
+    index(0),
+    selected(false) {}
+};
+
 extern const char* cmdName[];
 
 class DivEngine {
@@ -536,7 +552,7 @@ class DivEngine {
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
  
- //sample banks
+  // sample banks
   void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPC(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
@@ -544,8 +560,6 @@ class DivEngine {
   void loadPDX(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
-
-
 
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
@@ -999,6 +1013,10 @@ class DivEngine {
     // get sample from file
     //DivSample* sampleFromFile(const char* path);
     std::vector<DivSample*> sampleFromFile(const char* path);
+
+    // import soundfont
+    void preloadSoundfont(String path, std::vector<SoundfontPreset>& ret);
+    void loadSoundfont(String path, std::vector<unsigned int> which, bool genSampleMap);
 
     // get raw sample
     DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles, int rate);
