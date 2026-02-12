@@ -1578,13 +1578,16 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     ImGui::TextUnformatted(_("Name: "));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x*0.68f);
+    if (isFirstFrame) { // TODO: how do I get `mobileUI` here? to add `&& !mobileUI`
+      ImGui::SetKeyboardFocusHere();
+    }
     if (ImGui::InputText("##EntryName",&entryName)) {
       for (FileEntry* j: chosenEntries) {
         j->isSelected=false;
       }
       chosenEntries.clear();
     }
-    if ((ImGui::IsKeyDown(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivatedAfterEdit()) {
+    if ((ImGui::IsKeyDown(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemFocused()) {
       if (!entryName.empty()) {
         acknowledged=true;
       }
@@ -1795,6 +1798,8 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
     enforceScrollY=2;
   }
+
+  isFirstFrame=false;
   return (curStatus!=FP_STATUS_WAITING);
 }
 
@@ -1809,6 +1814,7 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
     return false;
   }
 
+  isFirstFrame=true;
   isModal=(flags&FP_FLAGS_MODAL);
   noClose=(flags&FP_FLAGS_NO_CLOSE);
   confirmOverwrite=(flags&FP_FLAGS_SAVE);
@@ -1926,6 +1932,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   stopReading(false),
   isOpen(false),
   isMobile(false),
+  isFirstFrame(false),
   multiSelect(false),
   confirmOverwrite(false),
   dirSelect(false),
