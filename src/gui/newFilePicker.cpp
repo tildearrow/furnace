@@ -1397,7 +1397,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(_("OK")).x));
       ImGui::InputText("##EditablePath",&editablePath);
-      if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemDeactivatedAfterEdit()) {
+      if ((ImGui::IsKeyPressed(ImGuiKey_Enter) || ImGui::IsKeyReleased(ImGuiKey_Enter)) && ImGui::IsItemFocused()) {
         newDir=editablePath;
       }
       ImGui::SameLine();
