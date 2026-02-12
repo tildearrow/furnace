@@ -1643,6 +1643,10 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleFilterOpt=true;
       break;
+    case GUI_ACTION_SAMPLE_NOISE_GATE:
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      openSampleNoiseGateOpt=true;
+      break;
     case GUI_ACTION_SAMPLE_PREVIEW:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       e->previewSample(curSample);
@@ -1891,6 +1895,16 @@ void FurnaceGUI::doAction(int what) {
       sampleSelStart=-1;
       sampleSelEnd=-1;
       MARK_MODIFIED;
+      break;
+    }
+
+    case GUI_ACTION_SAMPLE_SELECT_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->isLoopable()) {
+        sampleSelStart=sample->loopStart;
+        sampleSelEnd=sample->loopEnd;
+      }
       break;
     }
 

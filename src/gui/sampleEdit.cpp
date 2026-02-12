@@ -1322,7 +1322,9 @@ void FurnaceGUI::drawSampleEdit() {
       }
       sameLineMaybe();
       ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Button(ICON_FA_MAGIC "##SNoiseGate");
+      if (ImGui::Button(ICON_FA_MAGIC "##SNoiseGate")) {
+        doAction(GUI_ACTION_SAMPLE_NOISE_GATE);
+      }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Noise Gate"));
       }
@@ -2092,6 +2094,9 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("set loop to selection"),BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
+          if (ImGui::MenuItem(_("set selection to loop length"),BIND_FOR(GUI_ACTION_SAMPLE_SELECT_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_SELECT_LOOP);
+          }
           ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
           if (ImGui::MenuItem(_("trim to the end of the loop"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
@@ -2102,6 +2107,9 @@ void FurnaceGUI::drawSampleEdit() {
             doAction(GUI_ACTION_SAMPLE_TRIM_TO_LOOP);
           }
           ImGui::EndDisabled();
+
+          ImGui::Separator();
+
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
           }

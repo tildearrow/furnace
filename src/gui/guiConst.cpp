@@ -832,6 +832,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_INSERT", _N("Sample editor: Insert silence"), SDLK_INSERT),
   D("SAMPLE_DELETE", _N("Sample editor: Delete"), SDLK_DELETE),
   D("SAMPLE_TRIM", _N("Sample editor: Trim"), FURKMOD_CMD|SDLK_DELETE),
+  D("SAMPLE_NOISE_GATE", _N("Sample editor: Noise Gate"), 0),
   D("SAMPLE_REVERSE", _N("Sample editor: Reverse"), FURKMOD_CMD|SDLK_t),
   D("SAMPLE_INVERT", _N("Sample editor: Invert"), FURKMOD_CMD|FURKMOD_SHIFT|SDLK_t),
   D("SAMPLE_SIGN", _N("Sample editor: Signed/unsigned exchange"), FURKMOD_CMD|SDLK_u),
@@ -848,6 +849,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_COPY_NEW", _N("Sample editor: Copy selection to new sample"), 0),
   D("SAMPLE_TRIM_AFTER_LOOP", _N("Sample editor: Trim to the end of the loop"), 0),
   D("SAMPLE_TRIM_TO_LOOP", _N("Sample editor: Trim around loop points"), 0),
+  D("SAMPLE_SELECT_LOOP", _N("Sample editor: Set selection to loop length"), 0),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", _N("---Orders"), NOT_AN_ACTION),
