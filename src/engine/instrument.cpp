@@ -266,46 +266,102 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
   return true;
 }
 
-bool DivInstrument::compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start, unsigned int macroSeek) {
+bool DivInstrument::compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start) {
   // this function compiles all macros in the provided list.
   // the current seek position must be the list of pointers.
   // start indicates the starting position of instrument data.
-  // macroSeek indicates how many bytes to skip between macro pointers and macro data.
   std::vector<unsigned int> macroPtr;
 
   size_t macroPtrPos=w->tell();
 
-  w->seek(macroSeek+which.size()*2,SEEK_CUR);
-
-  // compile macros
+  // check which macros are used
   for (DivCompileMacroDef i: which) {
     DivInstrumentMacro* macro=std.macroByType((DivMacroType)i.type);
     // skip non-existent macros
     if (macro==NULL) {
       logW("macro is NULL!");
-      macroPtr.push_back(0);
       continue;
     }
     // skip unused macros
     if (macro->len==0) {
       logV("empty macro");
-      macroPtr.push_back(0);
       continue;
     }
-    macroPtr.push_back(w->tell());
+    macroPtr.push_back(0);
+    w->writeS(0);
+  }
+  // "end of list" marker
+  w->writeS(0);
+
+  // compile macros
+  size_t index=0;
+  for (DivCompileMacroDef i: which) {
+    DivInstrumentMacro* macro=std.macroByType((DivMacroType)i.type);
+    // skip non-existent macros
+    if (macro==NULL) {
+      continue;
+    }
+    // skip unused macros
+    if (macro->len==0) {
+      continue;
+    }
+    macroPtr[index++]=w->tell();
     if (!macro->compile(w,i.format,i.minRange,i.maxRange)) return false;
   }
 
   // write macro pointers
+  size_t finalPos=w->tell();
   w->seek(macroPtrPos,SEEK_SET);
   for (unsigned int i: macroPtr) {
     w->writeS(i);
   }
+  w->seek(finalPos,SEEK_SET);
   return true;
 }
 
 bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
-  return false;
+  switch (insType) {
+    case DIV_INS_C64:
+      w->writeC(
+        (c64.noiseOn?128:0)|
+        (c64.pulseOn?64:0)|
+        (c64.sawOn?32:0)|
+        (c64.triOn?16:0)|
+        8|
+        (c64.ringMod?4:0)|
+        (c64.oscSync?2:0)|
+        1
+      );
+      w->writeC(
+        (c64.ch3off?128:0)|
+        (c64.hp?64:0)|
+        (c64.bp?32:0)|
+        (c64.lp?16:0)|
+        (c64.noTest?4:0)|
+        (c64.toFilter?2:0)|
+        (c64.initFilter?1:0)
+      );
+      w->writeC(
+        (c64.resetDuty?128:0)|
+        (c64.filterIsAbs?64:0)|
+        (c64.dutyIsAbs?32:0)
+      );
+      w->writeC((c64.a<<4)|(c64.d&15));
+      w->writeC((c64.s<<4)|(c64.r&15));
+      w->writeS(c64.duty);
+      w->writeC((c64.res<<4)|(c64.cut&7));
+      w->writeC(c64.cut>>3);
+
+      compileMacros(w,{
+        DivCompileMacroDef(DIV_MACRO_VOL,DIV_COMPILED_MACRO_U4,0,15),
+        DivCompileMacroDef(DIV_MACRO_ARP,DIV_COMPILED_MACRO_BIT30,-256,256),
+      },0);
+      break;
+    default:
+      logE("compile(): not implemented!");
+      return false;
+  }
+  return true;
 }
 
 /// the rest

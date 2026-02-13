@@ -13,37 +13,36 @@ size | description
      | - bit 5: saw
      | - bit 4: triangle
      | - bit 3: test
-     | - bit 2: sync
-     | - bit 1: ring
+     | - bit 2: ring
+     | - bit 1: sync
      | - bit 0: gate (always on)
   1  | filter flags
-     | - bit 7: don't test before new note
-     | - bit 6: enable filter
-     | - bit 5: init filter
-     | - bit 3: ch3off
-     | - bit 2: high pass
-     | - bit 1: band pass
-     | - bit 0: low pass
+     | - bit 7: ch3off
+     | - bit 6: high pass
+     | - bit 5: band pass
+     | - bit 4: low pass
+     | - bit 2: don't test before new note
+     | - bit 1: enable filter
+     | - bit 0: init filter
   1  | other flags
      | - bit 7: reset duty on new note
      | - bit 6: absolute cutoff macro
      | - bit 5: absolute duty macro
+  1  | attack/decay
+     | - bit 4-7: attack
+     | - bit 0-3: decay
+  1  | sustain/release
+     | - bit 4-7: sustain
+     | - bit 0-3: release
+  2  | initial duty
+  2  | initial cutoff/resonance
+     | - first byte:
+     |   - bit 4-7: resonance
+     |   - bit 0-2: cutoff (low 3 bits)
+     | - second byte: cutoff (high 8 bits)
+     | - this is how it is stored in SID registers.
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | duty
-  2  | wave
-  2  | pitch
-  2  | cutoff
-  2  | resonance
-  2  | filter mode
-  2  | filter toggle
-  2  | special
-  2  | attack
-  2  | decay
-  2  | sustain
-  2  | release
+ 2?? | macro pointers... (0 = end of list)
 ```
 
 ### SNES
@@ -69,16 +68,9 @@ size | description
      | - sample: sample index
      | - sample map: pointer to sample map
      | - wavetable: wave width
+  2  | pointer to wave synth data (0 = disabled)
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | noise freq
-  2  | wave
-  2  | pan left
-  2  | pan right
-  2  | pitch
-  2  | special
+ 2?? | macro pointers... (0 = end of list)
 -----|----------------------------------
      | **wave synth data (only in wavetable mode)**
   1  | enable synth
@@ -105,15 +97,10 @@ size | description
      | - bit 7: software env
      | - bit 6: init env on every note
      | - bit 5: double wave length
+  2  | pointer to wave synth data (0 = disabled)
+  2  | pointer to hardware sequence (0 = empty)
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | duty/noise
-  2  | wave
-  2  | pan
-  2  | pitch
-  2  | phase reset
+ 2?? | macro pointers... (0 = end of list)
 -----|----------------------------------
      | **wave synth data**
   1  | enable synth
@@ -136,6 +123,8 @@ size | description
 ```
 size | description
 -----|-------------------------------------------------
+  1  | macro type
+     | - these are the same as the macro on/off/restart effect ones.
   1  | flags/macro data type
      | - bit 6: release mode
      |   - active when enabled; passive otherwise

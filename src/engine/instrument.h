@@ -1195,7 +1195,7 @@ struct DivInstrument: DivInstrumentPOD {
   void convertC64SpecialMacro();
   void convertOldADSRLFO();
 
-  bool compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start, unsigned int macroSeek);
+  bool compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start);
 
   /**
    * compile the instrument for ROM export.
