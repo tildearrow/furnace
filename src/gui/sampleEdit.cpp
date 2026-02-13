@@ -1321,12 +1321,12 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip(_("Trim"));
       }
       sameLineMaybe();
-      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
       if (ImGui::Button(ICON_FA_MAGIC "##SNoiseGate")) {
-        doAction(GUI_ACTION_SAMPLE_NOISE_GATE);
+        openSampleNoiseGateOpt=true;
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Noise Gate"));
+        ImGui::SetTooltip(_("Trim Side-Noise"));
       }
       if (openSampleNoiseGateOpt) {
         openSampleNoiseGateOpt=false;
@@ -1339,66 +1339,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (noiseGateThreshold>0.0f) noiseGateThreshold=0.0f;
         }
         if (ImGui::Button(_("Apply"))) {
-          sample->prepareUndo(true);
-          e->lockEngine([this,sample]() {
-            if (sample->depth==DIV_SAMPLE_DEPTH_16BIT && sample->data16!=NULL && sample->samples>0) {
-              SAMPLE_OP_BEGIN;
-              float linThreshold=powf(10.0f,noiseGateThreshold/20.0f)*32767.0f;
-              unsigned int newStart=start;
-              unsigned int newEnd=end;
-              unsigned int windowSize=128;
-              if (windowSize>(end-start)) windowSize=end-start;
-              unsigned int minCount=windowSize/4;
-              if (minCount<1) minCount=1;
-
-              for (unsigned int i=start; i+windowSize<=end; i++) {
-                unsigned int count=0;
-                for (unsigned int j=0; j<windowSize; j++) {
-                  if (fabsf((float)sample->data16[i+j])>=linThreshold) {
-                    count++;
-                  }
-                }
-                if (count>=minCount) {
-                  newStart=i;
-                  break;
-                }
-              }
-
-              for (unsigned int i=end; i>=start+windowSize; i--) {
-                unsigned int count=0;
-                for (unsigned int j=0; j<windowSize; j++) {
-                  if (fabsf((float)sample->data16[i-windowSize+j])>=linThreshold) {
-                    count++;
-                  }
-                }
-                if (count>=minCount) {
-                  newEnd=i;
-                  break;
-                }
-              }
-
-              if (newStart<newEnd && (newStart>start || newEnd<end)) {
-                if (start==0 && end==sample->samples) {
-                  sample->trim(newStart,newEnd);
-                } else {
-                  if (newEnd<end) {
-                    sample->strip(newEnd,end);
-                  }
-                  if (newStart>start) {
-                    sample->strip(start,newStart);
-                  }
-                  sampleSelStart=start;
-                  sampleSelEnd=start+(newEnd-newStart);
-                }
-              }
-            }
-
-            updateSampleTex=true;
-            notifySampleChange=true;
-
-            e->renderSamples(curSample);
-          });
-          MARK_MODIFIED;
+          doAction(GUI_ACTION_SAMPLE_NOISE_GATE);
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -1573,6 +1514,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
       ImGui::Button(ICON_FUR_CROSSFADE "##CrossFade");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Crossfade loop points"));
@@ -1641,6 +1583,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       }
+      ImGui::EndDisabled();
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
         e->previewSample(curSample);

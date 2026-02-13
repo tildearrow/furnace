@@ -23,6 +23,7 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 
+#include <math.h>
 #include "actionUtil.h"
 #include "sampleUtil.h"
 
@@ -1643,10 +1644,81 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleFilterOpt=true;
       break;
-    case GUI_ACTION_SAMPLE_NOISE_GATE:
-      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
-      openSampleNoiseGateOpt=true;
-      break;
+		case GUI_ACTION_SAMPLE_NOISE_GATE: {
+		  if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+		  DivSample* sample=e->song.sample[curSample];
+		  if ((sample->depth==DIV_SAMPLE_DEPTH_16BIT || sample->depth==DIV_SAMPLE_DEPTH_8BIT) && sample->getCurBuf()!=NULL && sample->samples>0) {
+			sample->prepareUndo(true);
+			e->lockEngine([this,sample]() {
+			  SAMPLE_OP_BEGIN;
+			  float linThreshold=powf(10.0f,noiseGateThreshold/20.0f)*(sample->depth==DIV_SAMPLE_DEPTH_16BIT?32767.0f:127.0f);
+			  unsigned int newStart=start;
+			  unsigned int newEnd=end;
+			  unsigned int windowSize=128;
+			  if (windowSize>(end-start)) windowSize=end-start;
+			  unsigned int minCount=windowSize/4;
+			  if (minCount<1) minCount=1;
+
+			  // scan forward/backward using a sliding window sum (O(n)) to find
+			  // the first/last window where enough samples exceed the threshold.
+			  auto scanEdges=[&](auto* buf) {
+				// forward: prime then slide
+				unsigned int count=0;
+				for (unsigned int j=0; j<windowSize; j++) {
+				  if (fabsf((float)buf[start+j])>=linThreshold) count++;
+				}
+				for (unsigned int i=start; i+windowSize<=end; i++) {
+				  if (count>=minCount) {
+					newStart=i;
+					break;
+				  }
+				  if (fabsf((float)buf[i])>=linThreshold) count--;
+				  if (i+windowSize<end && fabsf((float)buf[i+windowSize])>=linThreshold) count++;
+				}
+				// backward: prime then slide
+				count=0;
+				for (unsigned int j=0; j<windowSize; j++) {
+				  if (fabsf((float)buf[end-windowSize+j])>=linThreshold) count++;
+				}
+				for (unsigned int i=end; (i-start)>=windowSize; i--) {
+				  if (count>=minCount) {
+					newEnd=i;
+					break;
+				  }
+				  if (fabsf((float)buf[i-1])>=linThreshold) count--;
+				  if (i>=start+windowSize && fabsf((float)buf[i-windowSize-1])>=linThreshold) count++;
+				}
+			  };
+
+			  if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+				scanEdges(sample->data16);
+			  } else {
+				scanEdges(sample->data8);
+			  }
+
+			  if (newStart<newEnd && (newStart>start || newEnd<end)) {
+				if (start==0 && end==sample->samples) {
+				  sample->trim(newStart,newEnd);
+				} else {
+				  // strip end before start to avoid shifting start index
+				  if (newEnd<end) {
+					sample->strip(newEnd,end);
+				  }
+				  if (newStart>start) {
+					sample->strip(start,newStart);
+				  }
+				  sampleSelStart=start;
+				  sampleSelEnd=start+(newEnd-newStart);
+				}
+			  }
+			  updateSampleTex=true;
+			  notifySampleChange=true;
+			  e->renderSamples(curSample);
+			});
+			MARK_MODIFIED;
+		  }
+		  break;
+		}
     case GUI_ACTION_SAMPLE_PREVIEW:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       e->previewSample(curSample);

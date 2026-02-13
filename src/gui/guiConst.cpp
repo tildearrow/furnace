@@ -832,7 +832,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_INSERT", _N("Sample editor: Insert silence"), SDLK_INSERT),
   D("SAMPLE_DELETE", _N("Sample editor: Delete"), SDLK_DELETE),
   D("SAMPLE_TRIM", _N("Sample editor: Trim"), FURKMOD_CMD|SDLK_DELETE),
-  D("SAMPLE_NOISE_GATE", _N("Sample editor: Noise Gate"), 0),
+  D("SAMPLE_NOISE_GATE", _N("Sample editor: Trim Side-Noise"), 0),
   D("SAMPLE_REVERSE", _N("Sample editor: Reverse"), FURKMOD_CMD|SDLK_t),
   D("SAMPLE_INVERT", _N("Sample editor: Invert"), FURKMOD_CMD|FURKMOD_SHIFT|SDLK_t),
   D("SAMPLE_SIGN", _N("Sample editor: Signed/unsigned exchange"), FURKMOD_CMD|SDLK_u),
