@@ -356,6 +356,18 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
       compileMacros(w,{
         DivCompileMacroDef(DIV_MACRO_VOL,DIV_COMPILED_MACRO_U4,0,15),
         DivCompileMacroDef(DIV_MACRO_ARP,DIV_COMPILED_MACRO_BIT30,-256,256),
+        DivCompileMacroDef(DIV_MACRO_DUTY,DIV_COMPILED_MACRO_S16,c64.dutyIsAbs?0:-4095,4095),
+        DivCompileMacroDef(DIV_MACRO_WAVE,DIV_COMPILED_MACRO_U4,0,15),
+        DivCompileMacroDef(DIV_MACRO_PITCH,DIV_COMPILED_MACRO_S16,-2048,2047),
+        DivCompileMacroDef(DIV_MACRO_ALG,DIV_COMPILED_MACRO_S16,c64.filterIsAbs?0:-2047,2047), // cutoff
+        DivCompileMacroDef(DIV_MACRO_EX2,DIV_COMPILED_MACRO_U4,0,15), // resonance
+        DivCompileMacroDef(DIV_MACRO_EX1,DIV_COMPILED_MACRO_U4,0,15), // filter mode
+        DivCompileMacroDef(DIV_MACRO_EX3,DIV_COMPILED_MACRO_U8,0,1), // filter toggle
+        DivCompileMacroDef(DIV_MACRO_EX4,DIV_COMPILED_MACRO_U4,0,15), // special
+        DivCompileMacroDef(DIV_MACRO_EX5,DIV_COMPILED_MACRO_U4,0,15), // attack
+        DivCompileMacroDef(DIV_MACRO_EX6,DIV_COMPILED_MACRO_U4,0,15), // decay
+        DivCompileMacroDef(DIV_MACRO_EX7,DIV_COMPILED_MACRO_U4,0,15), // sustain
+        DivCompileMacroDef(DIV_MACRO_EX8,DIV_COMPILED_MACRO_U4,0,15) // release
       },0);
       break;
     default:
