@@ -23,7 +23,6 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 
-#include <math.h>
 #include "actionUtil.h"
 #include "sampleUtil.h"
 
