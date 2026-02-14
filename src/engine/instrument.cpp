@@ -28,6 +28,7 @@ const DivInstrument defaultIns;
 /// instrument compilation
 
 #define WRITE_HEADER_COMMON \
+  w->writeC(macroType); \
   w->writeC(compFlags); \
   w->writeC(speed); \
   w->writeC(delay);
