@@ -1598,7 +1598,7 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SFixLoopOpt");
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Tune Loop..."));
+        ImGui::SetTooltip(_("Align Loop Points"));
       }
       if (ImGui::BeginPopup("SFixLoopOpt")) {
         if (this->sampleFixLoopTarget<0 || this->sampleFixLoopTarget>=7) this->sampleFixLoopTarget=0;
