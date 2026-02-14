@@ -1812,6 +1812,10 @@ bool FurnaceFilePicker::isOpened() {
   return isOpen;
 }
 
+bool FurnaceFilePicker::isSave() {
+  return isSave_;
+}
+
 bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, const std::vector<String>& filter, FilePickerSelectCallback selectCallback) {
   if (isOpen) return false;
   if (filter.size()&1) {
@@ -1820,10 +1824,12 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   }
 
   focusEntryName=true;
+  flags=flags;
   isModal=(flags&FP_FLAGS_MODAL);
   noClose=(flags&FP_FLAGS_NO_CLOSE);
   confirmOverwrite=(flags&FP_FLAGS_SAVE);
   multiSelect=(flags&FP_FLAGS_MULTI_SELECT);
+  isSave_=(flags&FP_FLAGS_SAVE);
   dirSelect=(flags&FP_FLAGS_DIR_SELECT);
   isEmbed=(flags&FP_FLAGS_EMBEDDABLE);
 
