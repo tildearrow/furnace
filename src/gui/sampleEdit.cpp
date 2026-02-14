@@ -51,6 +51,16 @@ const double timeMultipliers[13]={
   3600.0
 };
 
+const char* sampleFixLoopTargets[]={
+  _N("Amiga"),
+  _N("SNES"),
+  _N("Namco C219"),
+  _N("Nintendo DS PCM16"),
+  _N("Nintendo DS PCM8"),
+  _N("Nintendo DS IMA"),
+  _N("GBA DMA Sound")
+};
+
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
 
@@ -1322,24 +1332,24 @@ void FurnaceGUI::drawSampleEdit() {
       }
       sameLineMaybe();
       ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
-      if (ImGui::Button(ICON_FA_MAGIC "##SNoiseGate")) {
-        openSampleNoiseGateOpt=true;
+      if (ImGui::Button(ICON_FA_MAGIC "##STrimSideNoise")) {
+        openTrimSideNoiseOpt=true;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Trim Side-Noise"));
       }
-      if (openSampleNoiseGateOpt) {
-        openSampleNoiseGateOpt=false;
-        ImGui::OpenPopup("SNoiseGateOpt");
+      if (openTrimSideNoiseOpt) {
+        openTrimSideNoiseOpt=false;
+        ImGui::OpenPopup("STrimSideNoiseOpt");
       }
-      if (ImGui::BeginPopupContextItem("SNoiseGateOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+      if (ImGui::BeginPopupContextItem("STrimSideNoiseOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         ImGui::Text(_("Threshold (dB)"));
-        if (ImGui::InputFloat("##SNGThreshold",&noiseGateThreshold,1.0f,5.0f,"%.1f")) {
-          if (noiseGateThreshold<-144.0f) noiseGateThreshold=-144.0f;
-          if (noiseGateThreshold>0.0f) noiseGateThreshold=0.0f;
+        if (ImGui::InputFloat("##STSNThreshold",&trimSideNoiseThreshold,1.0f,5.0f,"%.1f")) {
+          if (trimSideNoiseThreshold<-144.0f) trimSideNoiseThreshold=-144.0f;
+          if (trimSideNoiseThreshold>0.0f) trimSideNoiseThreshold=0.0f;
         }
         if (ImGui::Button(_("Apply"))) {
-          doAction(GUI_ACTION_SAMPLE_NOISE_GATE);
+          doAction(GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE);
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -1580,6 +1590,23 @@ void FurnaceGUI::drawSampleEdit() {
             MARK_MODIFIED;
             ImGui::CloseCurrentPopup();
           }
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_MAGIC "##SFixLoop")) {
+        ImGui::OpenPopup("SFixLoopOpt");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Tune Loop..."));
+      }
+      if (ImGui::BeginPopup("SFixLoopOpt")) {
+        if (this->sampleFixLoopTarget<0 || this->sampleFixLoopTarget>=7) this->sampleFixLoopTarget=0;
+        ImGui::Combo(_("Target"),&this->sampleFixLoopTarget,LocalizedComboGetter,sampleFixLoopTargets,7);
+        ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
+        if (ImGui::Button(_("Apply"))) {
+          doAction(GUI_ACTION_SAMPLE_FIX_LOOP);
+          ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
       }

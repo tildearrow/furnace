@@ -2559,7 +2559,7 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SILENCE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_DELETE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM);
-            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_NOISE_GATE);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_REVERSE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_INVERT);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SIGN);
