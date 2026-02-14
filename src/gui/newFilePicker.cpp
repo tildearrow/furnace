@@ -1025,6 +1025,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
               // select this entry
               chosenEntries.push_back(i);
               i->isSelected=true;
+              focusEntryName=true;
               updateEntryName();
               if (!doNotAcknowledge) {
                 if (isMobile || singleClickSelect) {
@@ -1583,9 +1584,10 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     ImGui::TextUnformatted(_("Name: "));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x*0.68f);
-    if (isFirstFrame && !isMobile) {
+    if (focusEntryName && !isMobile) {
       ImGui::SetKeyboardFocusHere();
     }
+    focusEntryName=false;
     if (ImGui::InputText("##EntryName",&entryName)) {
       for (FileEntry* j: chosenEntries) {
         j->isSelected=false;
@@ -1783,7 +1785,6 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
   }
 
-
   hasSizeConstraints=false;
 
   if (!newDir.empty() || readDrives) {
@@ -1804,7 +1805,6 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     enforceScrollY=2;
   }
 
-  isFirstFrame=false;
   return (curStatus!=FP_STATUS_WAITING);
 }
 
@@ -1819,7 +1819,7 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
     return false;
   }
 
-  isFirstFrame=true;
+  focusEntryName=true;
   isModal=(flags&FP_FLAGS_MODAL);
   noClose=(flags&FP_FLAGS_NO_CLOSE);
   confirmOverwrite=(flags&FP_FLAGS_SAVE);
@@ -1937,7 +1937,7 @@ FurnaceFilePicker::FurnaceFilePicker():
   stopReading(false),
   isOpen(false),
   isMobile(false),
-  isFirstFrame(false),
+  focusEntryName(false),
   multiSelect(false),
   confirmOverwrite(false),
   dirSelect(false),

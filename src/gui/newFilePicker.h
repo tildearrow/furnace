@@ -108,7 +108,7 @@ class FurnaceFilePicker {
   String entryName;
   ImGuiListClipper listClipper;
   ImVec2 minSize, maxSize;
-  bool haveFiles, haveStat, stopReading, isOpen, isMobile, isFirstFrame;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile, focusEntryName;
   bool sortInvert[FP_SORT_MAX];
   bool multiSelect;
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
