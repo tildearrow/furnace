@@ -1824,7 +1824,6 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   }
 
   focusEntryName=true;
-  flags=flags;
   isModal=(flags&FP_FLAGS_MODAL);
   noClose=(flags&FP_FLAGS_NO_CLOSE);
   confirmOverwrite=(flags&FP_FLAGS_SAVE);
