@@ -1758,7 +1758,8 @@ void FurnaceGUI::doAction(int what) {
           unsigned int minCount=windowSize/4;
           if (minCount<1) minCount=1;
 
-          auto scanEdges=[&](auto* buf) {
+          if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            short* buf=sample->data16;
             unsigned int count=0;
             for (unsigned int j=0; j<windowSize; j++) {
               if (fabsf((float)buf[start+j])>=linThreshold) count++;
@@ -1783,12 +1784,32 @@ void FurnaceGUI::doAction(int what) {
               if (fabsf((float)buf[i-1])>=linThreshold) count--;
               if (i>=start+windowSize && fabsf((float)buf[i-windowSize-1])>=linThreshold) count++;
             }
-          };
-
-          if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-            scanEdges(sample->data16);
           } else {
-            scanEdges(sample->data8);
+            signed char* buf=sample->data8;
+            unsigned int count=0;
+            for (unsigned int j=0; j<windowSize; j++) {
+              if (fabsf((float)buf[start+j])>=linThreshold) count++;
+            }
+            for (unsigned int i=start; i+windowSize<=end; i++) {
+              if (count>=minCount) {
+                newStart=i;
+                break;
+              }
+              if (fabsf((float)buf[i])>=linThreshold) count--;
+              if (i+windowSize<end && fabsf((float)buf[i+windowSize])>=linThreshold) count++;
+            }
+            count=0;
+            for (unsigned int j=0; j<windowSize; j++) {
+              if (fabsf((float)buf[end-windowSize+j])>=linThreshold) count++;
+            }
+            for (unsigned int i=end; (i-start)>=windowSize; i--) {
+              if (count>=minCount) {
+                newEnd=i;
+                break;
+              }
+              if (fabsf((float)buf[i-1])>=linThreshold) count--;
+              if (i>=start+windowSize && fabsf((float)buf[i-windowSize-1])>=linThreshold) count++;
+            }
           }
 
           if (newStart<newEnd && (newStart>start || newEnd<end)) {
