@@ -2462,8 +2462,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_SM8521:/*  {
-      bool noAntiClick=flags.getBool("noAntiClick",false);
+    case DIV_SYSTEM_SM8521: {
+    /* bool noAntiClick=flags.getBool("noAntiClick",false);
 
       if (ImGui::Checkbox(_("Disable anti-click"),&noAntiClick)) {
         altered=true;
@@ -2473,9 +2473,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("noAntiClick",noAntiClick);
         });
-      }
+      }*/
       break;
-    }*/
+    }
     case DIV_SYSTEM_K053260: {
       int clockSel=flags.getInt("clockSel",0);
 
