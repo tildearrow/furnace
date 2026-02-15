@@ -7073,9 +7073,7 @@ bool FurnaceGUI::loop() {
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingSamples.size();
       if (sizeY>(canvasH-180.0*dpiScale)) {
         sizeY=canvasH-180.0*dpiScale;
-        if (sizeY<60.0*dpiScale) {
-          sizeY=60.0*dpiScale;
-        }
+        if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
       }
       if (ImGui::BeginTable("PendingSamplesList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
         if (sampleBankSearchQuery.empty()) {
@@ -7101,9 +7099,7 @@ bool FurnaceGUI::loop() {
                 }
               }
             }
-            if (pendingSamples[i].second) {
-              anySelected=true;
-            }
+            if (pendingSamples[i].second) anySelected=true;
           }
         } else {
           // display search results
@@ -9409,7 +9405,7 @@ FurnaceGUI::FurnaceGUI():
   memset(waveGenFMCon0,0,sizeof(bool)*5);
   memset(waveGenFMCon1,0,sizeof(bool)*5);
   memset(waveGenFMCon2,0,sizeof(bool)*5);
-  memset(waveGenFMCon3,0,sizeof(bool) * 5);
+  memset(waveGenFMCon3,0,sizeof(bool)*5);
   memset(waveGenFMCon4,0,sizeof(bool)*5);
 
   waveGenAmp[0]=1.0f;
