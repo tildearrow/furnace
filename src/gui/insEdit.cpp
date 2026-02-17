@@ -7407,6 +7407,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_OUTLVL),&ins->std.opMacros[ordi].egtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_VOLUME]));
                 if (ins->type==DIV_INS_SGU) {
                   macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_MODIN),&ins->std.opMacros[ordi].susMacro,0,7,64,uiColors[GUI_COLOR_MACRO_VOLUME]));
+                  macroList.push_back(FurnaceGUIMacroDesc(_("WaveParm"),&ins->std.opMacros[ordi].rsMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
                 } else {
                   macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_MODIN),&ins->std.opMacros[ordi].d2rMacro,0,7,64,uiColors[GUI_COLOR_MACRO_VOLUME]));
                 }
