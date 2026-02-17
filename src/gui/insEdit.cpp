@@ -5232,7 +5232,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
               }
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[ordi].wpar,&_ZERO,&_FIFTEEN,"WPAR: %d")); rightClickable
+              P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[ordi].wpar,&_ZERO,&_FIFTEEN,"WPAR: %X")); rightClickable
               bool syncOn=ins->sgu.op[ordi].sync;
               if (ImGui::Checkbox("SYNC##SGU",&syncOn)) { PARAMETER
                 ins->sgu.op[ordi].sync=syncOn;
@@ -5788,6 +5788,11 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                     ImGui::EndCombo();
                   }
                 }
+                if (ins->type==DIV_INS_SGU) {
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  snprintf(tempID,1024,"%s: %%X","WPAR");
+                  P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[i].wpar,&_ZERO,&_FIFTEEN,tempID)); rightClickable
+                }
 
                 // params
                 ImGui::Separator();
@@ -5861,9 +5866,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
                 if (ins->type==DIV_INS_SGU) {
                   int ordi=i;
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  snprintf(tempID,1024,"%s: %%d","WPAR");
-                  P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[ordi].wpar,&_ZERO,&_FIFTEEN,tempID)); rightClickable
                   bool syncOn=ins->sgu.op[ordi].sync;
                   if (ImGui::Checkbox("SYNC##SGU",&syncOn)) { PARAMETER
                     ins->sgu.op[ordi].sync=syncOn;
@@ -6553,8 +6555,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               } else {
                 sName=e->song.sample[ins->amiga.initSample]->name;
               }
-              ImGui::Text(_("Sample"));
-              ImGui::SameLine();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
               if (ImGui::BeginCombo("##SGUSample",sName.c_str())) {
                 String id;
@@ -6566,6 +6566,16 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
                 ImGui::EndCombo();
               }
+              ImGui::TableNextColumn();
+              ImGui::Text(_("Sample"));
+            }
+
+            if (ins->type==DIV_INS_SGU) {
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[i].wpar,&_ZERO,&_FIFTEEN,"%X")); rightClickable
+              ImGui::TableNextColumn();
+              ImGui::Text(_("WaveParm"));
             }
 
             if (ins->type==DIV_INS_ESFM || ins->type==DIV_INS_SGU) {
@@ -6635,8 +6645,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           }
           if (ins->type==DIV_INS_SGU) {
             int ordi=i;
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[ordi].wpar,&_ZERO,&_FIFTEEN,"WPAR: %d")); rightClickable
             bool syncOn=ins->sgu.op[ordi].sync;
             if (ImGui::Checkbox("SYNC##SGU",&syncOn)) { PARAMETER
               ins->sgu.op[ordi].sync=syncOn;
@@ -8940,8 +8948,10 @@ void FurnaceGUI::drawInsEdit() {
               case DIV_INS_SGU:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
               if (ins->type != DIV_INS_SGU) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Skew"),&ins->std.dutyMacro,-128,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSoundUnitWaves,false,NULL));
               }
               macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,-127,127,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
