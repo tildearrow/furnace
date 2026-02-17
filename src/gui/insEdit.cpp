@@ -4564,6 +4564,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             drawESFMAlgorithm(ins->esfm, ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
           }
           kvsConfig(ins);
+          break;
         }
         case DIV_INS_SGU: {
           ImGui::TableNextColumn();
@@ -4578,6 +4579,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             drawESFMAlgorithm(ins->esfm, ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
           }
           kvsConfig(ins, false);
+          break;
         }
         default:
           break;

@@ -1791,6 +1791,7 @@ class FurnaceGUI {
   void* fmPreviewOPZ;
   void* fmPreviewOPZInterface;
   void* fmPreviewESFM;
+  void* fmPreviewSGU;
   String* editString;
   SDL_Event userEvent;
 
@@ -2966,6 +2967,7 @@ class FurnaceGUI {
   void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
+  void renderFMPreviewSGU(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, const DivInstrumentSGU& sguParams, int sampleIdx, int pos=0);
 
   void VerticalText(const char* fmt, ...);
   void VerticalText(float maxSize, bool centered, const char* fmt, ...);
