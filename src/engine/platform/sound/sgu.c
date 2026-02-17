@@ -28,6 +28,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(_MSC_VER)
+#include <intrin.h>
+#endif
+
 #include "./sgu.h"
 
 #define minval(a, b) (((a) < (b)) ? (a) : (b))
@@ -47,6 +51,26 @@ static inline int32_t clamp(int32_t value, int32_t minval, int32_t maxval)
     if (value > maxval)
         return maxval;
     return value;
+}
+
+static inline uint32_t sgu_clz32(uint32_t value)
+{
+#if defined(_MSC_VER)
+    unsigned long index;
+    return _BitScanReverse(&index, value) ? (31u - (uint32_t)index) : 32u;
+#elif defined(__GNUC__) || defined(__clang__)
+    return value ? (uint32_t)__builtin_clz(value) : 32u;
+#else
+    if (value == 0)
+        return 32u;
+    uint32_t count = 0;
+    while ((value & 0x80000000u) == 0u)
+    {
+        value <<= 1;
+        count++;
+    }
+    return count;
+#endif
 }
 
 //-------------------------------------------------
@@ -150,7 +174,7 @@ static inline uint32_t keycode_from_freq16_32(uint16_t freq16)
 {
     if (freq16 < 0x0100)
         return 0;
-    uint32_t msb = 31u - __builtin_clz((uint32_t)freq16); // 8..15
+    uint32_t msb = 31u - sgu_clz32((uint32_t)freq16); // 8..15
     uint32_t block = msb - 8u;                            // 0..7
     uint32_t mant2 = (freq16 >> (msb - 2)) & 3u;          // 0..3
     return (block << 2) | mant2;                          // 0..31
@@ -283,7 +307,7 @@ static inline void freq16_to_ksl_params(uint16_t freq16, uint32_t *block, uint32
         *fnum_4msb = 0;
         return;
     }
-    uint32_t msb = 31u - __builtin_clz((uint32_t)freq16); // 8..15
+    uint32_t msb = 31u - sgu_clz32((uint32_t)freq16); // 8..15
     *block = msb - 8u;                                    // 0..7
     *fnum_4msb = (freq16 >> (msb - 4)) & 0x0F;            // top 4 bits after implicit leading 1
 }
