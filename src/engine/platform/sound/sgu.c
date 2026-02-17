@@ -120,7 +120,7 @@ static inline uint32_t opl_key_scale_atten(uint32_t block, uint32_t fnum_4msb)
 //-------------------------------------------------
 static inline int32_t detune_adjustment(uint32_t detune, uint32_t keycode)
 {
-    // Detune uses Furnace encoding:
+    // Detune uses following encoding:
     //   0 = -3 (strongest negative)
     //   1 = -2
     //   2 = -1
@@ -1364,7 +1364,7 @@ void SGU_Reset(struct SGU *sgu)
     sgu->lfo_pm_counter = 0;
     sgu->lfo_am = 0;
 
-    for (size_t ch = 0; ch < SGU_CHNS; ch++)
+    for (uint8_t ch = 0; ch < SGU_CHNS; ch++)
     {
         fm_channel_reset(&sgu->m_channel[ch], ch);
 
