@@ -445,7 +445,7 @@ void DivPlatformSGU::tick(bool sysTick) {
         opDirty=true;
       }
       if (m.ksr.had) {
-        op.ksr=m.ksr.val;
+        op.ksr=m.ksr.val&3;
         opDirty=true;
       }
       if (m.mult.had) {
@@ -501,6 +501,11 @@ void DivPlatformSGU::tick(bool sysTick) {
       }
       if (m.ws.had) {
         op.ws=m.ws.val;
+        opDirty=true;
+      }
+      if (m.rs.had) {
+        // WaveParm (RS macro repurposed for SGU WPAR register bits)
+        chan[i].wpar[o]=m.rs.val&0x0f;
         opDirty=true;
       }
 
@@ -561,7 +566,7 @@ void DivPlatformSGU::applyOpRegs(int ch, int o, const DivInstrumentFM::Operator&
   const unsigned char dt = op.dt & 0x07;  // 3-bit DT
   const unsigned char sr = op.d2r & 0x1f; // 5-bit SR/D2R
   const unsigned char delay = opE.delay & 0x07; // 3-bit DELAY
-  const unsigned char ksr = op.rs & 0x03;  // 2-bit KSR
+  const unsigned char ksr = op.ksr & 0x03;  // 2-bit KSR
   const unsigned char wpar = chan[ch].wpar[o] & 0x0F; // 4-bit WPAR bitmap
   const unsigned char dam = op.dam & 0x01;  // 1-bit TRMD
   const unsigned char dvb = op.dvb & 0x01;  // 1-bit VIBD
@@ -1015,7 +1020,7 @@ int DivPlatformSGU::dispatch(DivCommand c) {
         for (int o=0; o<SGU_OP_PER_CH; o++) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
           DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
-          op.ksr=c.value2&1;
+          op.ksr=c.value2&3;
           applyOpRegs(c.chan,o,op,opE);
         }
       } else {
@@ -1023,7 +1028,7 @@ int DivPlatformSGU::dispatch(DivCommand c) {
         if (o >= 4) break;
         DivInstrumentFM::Operator& op=chan[c.chan].state.fm.op[o];
         DivInstrumentESFM::Operator& opE=chan[c.chan].state.esfm.op[o];
-        op.ksr=c.value2&1;
+        op.ksr=c.value2&3;
         applyOpRegs(c.chan,o,op,opE);
       }
       break;
