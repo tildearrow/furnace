@@ -4543,7 +4543,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           }
           break;
         }
-        case DIV_INS_SGU:
         case DIV_INS_ESFM: {
           ImGui::TableNextColumn();
           if (ins->type!=DIV_INS_SGU) {
@@ -4565,6 +4564,20 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             drawESFMAlgorithm(ins->esfm, ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
           }
           kvsConfig(ins);
+        }
+        case DIV_INS_SGU: {
+          ImGui::TableNextColumn();
+          ImGui::TableNextColumn();
+          if (fmPreviewOn) {
+            drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+            if (!fmPreviewPaused) {
+              renderFMPreview(ins,1);
+              WAKE_UP;
+            }
+          } else {
+            drawESFMAlgorithm(ins->esfm, ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+          }
+          kvsConfig(ins, false);
         }
         default:
           break;
