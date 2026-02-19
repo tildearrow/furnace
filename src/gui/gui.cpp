@@ -88,6 +88,63 @@ void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
   }
 }
 
+static const int majorScale[7] = {0, 2, 4, 5, 7, 9, 11};
+static const int minorScale[7] = {0, 2, 3, 5, 7, 8, 10};
+static const int harmonicMinorScale[7] = {0, 2, 3, 5, 7, 8, 11};
+static const int melodicMinorScale[7] = {0, 2, 3, 5, 7, 9, 11};
+static const int harmonicMajorScale[7] = {0, 2, 4, 5, 7, 8, 11};
+static const int doubleHarmonicScale[7] = {0, 1, 4, 5, 7, 8, 11};
+static const int phrygianDominantScale[7] = {0, 1, 4, 5, 7, 8, 10};
+static const int lydianDominantScale[7] = {0, 2, 4, 6, 7, 9, 10};
+
+int FurnaceGUI::transposeToScale(int chromaticNote) {
+  if (scaleMode == GUI_SCALE_CHROMATIC) {
+    return chromaticNote+scaleRoot;
+  }
+
+  const int* currentScale;
+  switch (scaleMode) {
+    case GUI_SCALE_MAJOR:
+      currentScale = majorScale;
+      break;
+    case GUI_SCALE_MINOR:
+      currentScale = minorScale;
+      break;
+    case GUI_SCALE_HARMONIC_MINOR:
+      currentScale = harmonicMinorScale;
+      break;
+    case GUI_SCALE_MELODIC_MINOR:
+      currentScale = melodicMinorScale;
+      break;
+    case GUI_SCALE_HARMONIC_MAJOR:
+      currentScale = harmonicMajorScale;
+      break;
+    case GUI_SCALE_DOUBLE_HARMONIC:
+      currentScale = doubleHarmonicScale;
+      break;
+    case GUI_SCALE_PHRYGIAN_DOMINANT:
+      currentScale = phrygianDominantScale;
+      break;
+    case GUI_SCALE_LYDIAN_DOMINANT:
+      currentScale = lydianDominantScale;
+      break;  
+    default:
+      currentScale = majorScale;
+      break;
+  }
+  int octave = chromaticNote/12;
+  int noteInOctave = chromaticNote%12;
+  if (chromaticNote<0 && noteInOctave!=0) {
+    octave-=1;
+    noteInOctave+=12;
+  }
+  int scalePos = noteInOctave%7;
+  int extraOctaves = noteInOctave/7;
+  int scaledNote = currentScale[scalePos];
+  int result = (octave+extraOctaves)*12+scaledNote+scaleRoot;
+  return result;
+}
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
   wavePreview.setEngine(e);
@@ -1397,6 +1454,8 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
   if (it!=noteKeys.cend()) {
     int key=it->second;
     int num=12*curOctave+key;
+    num = transposeToScale(num);
+
     if (num<-60) num=-60; // C-(-5)
     if (num>119) num=119; // B-9
 
@@ -1802,6 +1861,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (it!=noteKeys.cend()) {
               int key=it->second;
               int num=12*curOctave+key;
+              num = transposeToScale(num);
 
               if (num<-60) num=-60; // C-(-5)
               if (num>119) num=119; // B-9
@@ -3575,12 +3635,11 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           if (it!=noteKeys.cend()) {
             int key=it->second;
             int num=12*curOctave+key;
-
-            if (num<-60) num=-60; // C-(-5)
-            if (num>119) num=119; // B-9
-
+            int transposedNum = transposeToScale(num);
+            if (transposedNum<-60) transposedNum=-60;
+            if (transposedNum>119) transposedNum=119;
             if (key!=100 && key!=101 && key!=102) {
-              previewNote(cursor.xCoarse,num);
+              previewNote(cursor.xCoarse,transposedNum);
             }
           }
           break;
@@ -4290,8 +4349,10 @@ bool FurnaceGUI::loop() {
           case TA_MIDI_NOTE_ON:
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
               if (midiMap.noteInput && edit && msg.data[1]!=0) {
+                int midiNote = msg.data[0]-12;
+                int transposedNote = transposeToScale(midiNote);
                 noteInput(
-                  msg.data[0]-12,
+                  transposedNote,
                   0,
                   midiMap.volInput?msg.data[1]:-1,
                   chordInputOffset
@@ -8767,6 +8828,8 @@ FurnaceGUI::FurnaceGUI():
   sysDupCloneChannels(true),
   sysDupEnd(false),
   noteInputMode(GUI_NOTE_INPUT_POLY),
+  scaleMode(GUI_SCALE_CHROMATIC),
+  scaleRoot(0),
   notifyWaveChange(false),
   notifySampleChange(false),
   recalcTimestamps(true),
@@ -8786,6 +8849,7 @@ FurnaceGUI::FurnaceGUI():
   newPatternRenderer(true),
   quitNoSave(false),
   changeCoarse(false),
+  changePitch(false),
   orderLock(false),
   mobileEdit(false),
   killGraphics(false),
