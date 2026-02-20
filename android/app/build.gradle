@@ -9,7 +9,7 @@ else {
 
 android {
     if (buildAsApplication) {
-        namespace "org.tildearrow.furnace"
+        namespace = "org.tildearrow.furnace"
     }
     compileSdkVersion 26
     defaultConfig {
@@ -31,6 +31,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
     applicationVariants.all { variant ->
         tasks["merge${variant.name.capitalize()}Assets"]
             .dependsOn("externalNativeBuild${variant.name.capitalize()}")
@@ -47,7 +51,7 @@ android {
        
     }
     lint {
-        abortOnError false
+        abortOnError = false
     }
 
     if (buildAsLibrary) {
