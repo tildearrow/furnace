@@ -89,17 +89,21 @@ this table contains a list of modulation input/output level values which resembl
 each operator can use one of 8 waveforms. the **Waveform Parameter (WPAR)** provides per-operator wave shaping whose meaning depends on the selected waveform.
 
 - `0`: **sine.**
-  - WPAR bit 0 (SKEW): shifts the peak position using the channel duty value.
-  - WPAR bit 1 (HALF): half-sine - the negative portion is silenced.
-  - WPAR bit 2 (ABS): absolute sine - the negative portion is mirrored to positive.
+  - shared WPAR behavior with triangle and sawtooth:
+    - bit 3 = `0`: bits 0..2 select an OPL-style waveform variant:
+      - `1` (**HALF_L**): half-sine; part of the wave before duty is silenced.
+      - `2` (**HALF_H**): half-sine; part of the wave after duty is silenced.
+      - `3` (**ABS_L**): absolute-sine; part of the wave before duty is negated.
+      - `4` (**ABS_H**): absolute-sine; part of the wave after duty is negated.
+    - bit 3 = `1`: quantizes waveform table lookup by zeroing low bits (stepped waveforms).
+      - bits 0..2 select how many low bits are zeroed: `(bits 0..2 + 1)`.
 - `1`: **triangle.**
-  - same WPAR modifiers as sine (SKEW, HALF, ABS).
+  - same WPAR behavior as sine and sawtooth (see `0` above).
 - `2`: **sawtooth.**
-  - WPAR bit 0: inverted (falling instead of rising).
-  - WPAR bits 2:1: quantize the waveform (0: no quantization, 1-3: progressively coarser steps).
+  - same WPAR behavior as sine and triangle (see `0` above).
 - `3`: **pulse.**
   - WPAR `0`: uses the channel pulse width (set with the Duty macro or `12xx` effect).
-  - WPAR `1` to `7`: fixed per-operator pulse width of x/8 (1/8, 2/8, etc.).
+  - WPAR `1` to `15`: fixed per-operator pulse width of x/16 (x low units, 16-x high units).
 - `4`: **noise.** white noise using a 32-bit LFSR.
 - `5`: **periodic noise.** metallic/tonal noise using a configurable 6-bit LFSR.
   - WPAR bits 1:0 select the tap configuration:
