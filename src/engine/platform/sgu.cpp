@@ -1090,7 +1090,7 @@ int DivPlatformSGU::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_FIXFREQ:
-      // SGU fixed frequency is derived from MUL+DT registers, not ESFM-style block/fnum
+      // SGU fixed frequency is derived from MUL+DT registers; ESFM-style block/fnum command routing is not implemented.
       break;
     case DIV_CMD_ESFM_OP_PANNING: {
       // SGU does not have per-operator L/R panning (register fields repurposed)
