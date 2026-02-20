@@ -125,19 +125,18 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 - PULSE
   Selects channel pulse width or a fixed per-operator pulse width:
   0 => use channel pulse width
-  1..7 => x/8 pulse width (x low units, 8-x high units)
-- SAW
-  bit 0 => selects rising/falling (inverted value)
-  bits 1..2 => quantize wave table look-up; zero { 0, 4, 6, 8 } last bits
-- SINE, TRIANGLE
-  bit 0 (SKEW): skew waveform peak position using channel duty value
-  bit 1 (HALF): half-sine - negative portion silenced
-  bit 2 (ABS): absolute sine - negative portion mirrored
-  Examples: WPAR=2 = half-sine/triangle (positive only)
-            WPAR=4 = absolute sine/triangle (frequency doubled)
-            WPAR=3 = skewed + half
+  1..15 => x/16 pulse width (x low units, 16-x high units)
+- SINE, TRIANGLE, SAWTOOTH
+  bit 3 = 0:
+    bits 0..2 selects OPL-style variant of the base waveform:
+    1 (HALF_L): "half-sine" - part of the wave before DUTY is silenced
+    2 (HALF_H): "half-sine" - part of the wave after DUTY is silenced
+    3 (ABS_L) : "absolute-sine" - negate part of the wave before DUTY
+    4 (ABS_H) : "absolute-sine" - negate part of the wave after DUTY
+  bit 3 = 1: quantize wave table look-up by zeroing out some low bits, creating stepped waveforms:
+    bits 0..2: selects how many bits to zero-out (bits0..2 + 1)
 - PERIODIC_NOISE
-  WPAR[1:0] selects 6-bit LFSR tap configuration:
+  bits 0..1: selects 6-bit LFSR tap configuration:
     0: taps 3,4 (~31 states)
     1: taps 2,3 (~31 states)
     2: taps 0,2,3 (~63 states)
@@ -236,10 +235,13 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 #define SGU_OP5_FIX(reg)   ((reg) & SGU_OP5_FIX_BIT)
 #define SGU_OP5_WPAR(reg)  ((reg) & SGU_OP5_WPAR_MASK)
 
-// WPAR bit meanings for SINE/TRIANGLE waveforms (OPL-style modifiers)
-#define SGU_WPAR_SKEW (1 << 0) // bit 0: skew peak position using channel duty
-#define SGU_WPAR_HALF (1 << 1) // bit 1: half-sine - negative portion silenced
-#define SGU_WPAR_ABS  (1 << 2) // bit 2: absolute - negative portion mirrored
+// WPAR OPL-style modifiers
+#define SGU_WPAR_HALF_L (1) // "half-sine" - part of the wave before DUTY is silenced
+#define SGU_WPAR_HALF_H (2) // "half-sine" - part of the wave AFTER DUTY is silenced
+#define SGU_WPAR_ABS_L  (3) // "absolute-sine" - negate part of the wave before DUTY
+#define SGU_WPAR_ABS_H  (4) // "absolute-sine" - negate part of the wave after DUTY
+// WPAR wave quantization
+#define SGU_WPAR_QUANT  (1 << 3) // bit 3: quantize wave table look-up by zeroing out some low bits
 
 // R6: [7]TRMD [6]VIBD [5]SYNC [4]RING [3:1]MOD [0]TL_msb
 #define SGU_OP6_TL_MSB_BIT 0x01
@@ -344,21 +346,14 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 
 // Waveform types for operator R7[2:0] (all 8 waveforms implemented)
 // - WAVE_SINE, WAVE_TRIANGLE: OPL-style wave modifiers via WPAR
-//     bit 0 (SKEW): shift peak position using channel duty
-//     bit 1 (HALF): half-sine - negative portion silenced
-//     bit 2 (ABS): absolute sine - negative portion mirrored
 // - WAVE_NOISE: 32-bit LFSR white noise, SID-compatible clocking (freq16 * 0.9537 Hz)
 // - WAVE_PERIODIC_NOISE: Configurable 6-bit LFSR metallic/tonal noise
 //     Frequency: channel freq16 × operator multiplier (R0[3:0])
-//     Timbre: WPAR[1:0] selects tap configuration (per-operator):
-//       0: taps 3,4 (~31 states)
-//       1: taps 2,3 (~31 states)
-//       2: taps 0,2,3 (~63 states)
-//       3: taps 0,2,3,5 (~63 states)
+//     Timbre: WPAR[1:0] selects tap configuration (per-operator)
 // - WAVE_SAMPLE: PCM sample playback as FM operator waveform
 //     Uses channel pcmrst register as base address for 1024-sample waveform
 //     Phase (0-1023) indexes into sample region, looping naturally
-typedef enum : uint8_t
+typedef enum
 {
     SGU_WAVE_SINE = 0,
     SGU_WAVE_TRIANGLE = 1,
@@ -371,7 +366,7 @@ typedef enum : uint8_t
 } sgu_waveform_t;
 
 // WPAR[1:0] selects 6-bit LFSR tap configuration for PERIODIC_NOISE
-typedef enum : uint8_t
+typedef enum
 {
     SGU_LFSR_TAP34 = 0,   // taps 3,4 (XOR) - simple periodic
     SGU_LFSR_TAP23 = 1,   // taps 2,3 (XOR) - simple periodic
@@ -389,133 +384,157 @@ enum envelope_state : uint8_t
     SGU_EG_STATES = 4
 };
 
+struct SGU_OP
+{
+    // R0: [7]TRM [6]VIB [5:4]KSR [3:0]MUL
+    // - TRM/VIB enable LFO AM/PM (depth set in R6).
+    // - KSR selects rate-scaling strength (2-bit).
+    // - MUL is OPL-style multiplier (0 => 0.5×, 1..15 => 1×..15×).
+    uint8_t reg0;
+
+    // R1: [7:6]KSL [5:0]TL
+    // - TL is output attenuation in 0.75 dB steps.
+    // - KSL scales attenuation by pitch (OPL-style).
+    uint8_t reg1;
+
+    // R2: [7:4]AR_lo4 [3:0]DR_lo4
+    // R3: [7:4]SL [3:0]RR
+    // R4: [7:5]DT [4:0]SR
+    // ADSR envelope:
+    // Attack, Decay, Sustain Level and Rate, Release Rate
+    // - AR/DR/SR are 5-bit values using R7 msbs; SL/RR are 4-bit.
+    // - DT selects detune table entry (signed adjustment).
+    uint8_t reg2;
+    uint8_t reg3;
+    uint8_t reg4;
+
+    // R5: [7:5]DELAY [4]FIX [3:0]WPAR
+    // - DELAY adds 2**(DELAY + 8) samples to key-on (phase + envelope).
+    // - FIX selects fixed-frequency mode.
+    // - WPAR is a per-waveform shape parameter.
+    uint8_t reg5;
+
+    // R6: [7]TRMD [6]VIBD [5]SYNC [4]RING [3:1]MOD [0]TL_msb
+    // - TRMD/VIBD set LFO depth.
+    // - SYNC hard-syncs to previous operator wrap.
+    // - RING multiplies by previous operator output.
+    // - MOD sets phase modulation depth (6 dB steps); op0 uses feedback.
+    // - TL_msb extends total level to 7 bits.
+    uint8_t reg6;
+
+    // R7: [7:5]OUT [4]AR_msb [3]DR_msb [2:0]WAVE
+    // - AR/DR msb extend envelope rates to 5 bits.
+    // - OUT sets direct mix level (6 dB steps).
+    // - WAVE selects waveform (0..5 implemented).
+    uint8_t reg7;
+};
+
+struct SGU_CH
+{
+    struct SGU_OP op[SGU_OP_PER_CH];
+
+    uint16_t freq; // 16-bit phase increment / playback rate
+    int8_t vol;    // signed 8-bit; sign allows inversion.
+    int8_t pan;    // positive Right, negative Left
+
+    // flags0:
+    //  - bit 0: (GATE) ADSR envelope is running when set; key-on/key-off,
+    //    rising edge is starting the envelope generator and resetting the signal phase.
+    //  - bit 3: PCM enable (when set, src = pcm[pcmpos])
+    //  - bit 4: ring mod enable (multiply by next channel's raw sample)
+    //  - bits 5..7: filter mode selects (LP/HP/BP) (implemented as bitmask picks)
+    uint8_t flags0;
+
+    // flags1:
+    //  - bit 0: one-shot phase reset request (handled at end of channel processing)
+    //  - bit 2: PCM loop enable
+    //  - bit 3: timer sync enable (enables restimer-based periodic phase reset)
+    //  - bit 4: freq sweep enable
+    //  - bit 5: vol sweep enable
+    //  - bit 6: cutoff sweep enable
+    uint8_t flags1;
+
+    // cutoff: filter cutoff control (scaled to ff inside filter section).
+    uint16_t cutoff;
+
+    // duty[6:0]: pulse width for WAVE_PULSE (0..127), where low = duty steps, high = 128 - duty
+    uint8_t duty;
+
+    // reson: resonance amount (0..255). Used as (256 - reson) feedback term.
+    uint8_t reson;
+
+    // PCM playback pointers.
+    uint16_t pcmpos; // current sample position
+    uint16_t pcmbnd; // boundary/end position
+    uint16_t pcmrst; // loop restart position
+
+    // Sweep parameter blocks:
+    // speed: period in "ticks" (same domain as Pm) between sweep steps
+    // amt:   step amount + direction/mode bits (interpretation differs by sweep type)
+    // bound: limit value (coarse, often compared against high byte of freq/cutoff)
+    struct
+    {
+        uint16_t speed;
+        uint8_t amt;
+        uint8_t bound;
+    } swfreq;
+    struct
+    {
+        uint16_t speed;
+        uint8_t amt;
+        uint8_t bound;
+    } swvol;
+    struct
+    {
+        uint16_t speed;
+        uint8_t amt;
+        uint8_t bound;
+    } swcut;
+
+    // restimer: period for periodic phase reset when SGU_FLAGS1_TIMER_SYNC is set.
+    uint16_t restimer;
+
+    // ### Used for implementation specific purposes.
+    // Default function in X65 deployment special2 changes the channel mapped into
+    // CPU memory space, which consists of 64 registers only
+    // and would not fit all channels at once.
+    // Channel FFh is special, as it maps service registers into memory space.
+    // Chip identifier, UniqueID and mixer/DSP controls.
+    uint8_t special1;
+    uint8_t special2;
+};
+
+// Per-operator state, packed for cache locality (20 bytes per operator)
+struct sgu_op_state
+{
+    uint32_t phase;                     // current phase value (10.22 format)
+    int16_t value;                      // current operator value
+    uint16_t envelope_attenuation;      // computed envelope attenuation (4.6 format)
+    uint16_t eg_delay_counter;          // delay counter (samples)
+    uint16_t blep_frac;                 // fractional phase at edge (for sub-sample interpolation)
+    int16_t blep_prev_sample;           // previous raw sample for edge detection
+    enum envelope_state envelope_state; // current envelope state
+    uint8_t blep;                       // BLEP damping after dramatic phase changes
+    uint32_t lfsr_state;                // per-operator noise LFSR state
+};
+
+// op_flags packed boolean bit groups (4 bits each, one per operator)
+#define OP_FLAGS_PHASE_WRAP 0  // bits 0-3:   phase wrap flag (for SYNC)
+#define OP_FLAGS_KEY_STATE  4  // bits 4-7:   current key state
+#define OP_FLAGS_KEYON_GATE 8  // bits 8-11:  last raw key state (edge detect)
+#define OP_FLAGS_EG_DELAY   12 // bits 12-15: envelope delay active
+
+#define OP_FLAG_GET(flags, group, op) (((flags) >> ((group) + (op))) & 1u)
+#define OP_FLAG_SET(flags, group, op) ((flags) |= (1u << ((group) + (op))))
+#define OP_FLAG_CLR(flags, group, op) ((flags) &= ~(1u << ((group) + (op))))
+
 struct SGU
 {
-    struct SGU_CH
-    {
-        struct SGU_OP
-        {
-            // R0: [7]TRM [6]VIB [5:4]KSR [3:0]MUL
-            // - TRM/VIB enable LFO AM/PM (depth set in R6).
-            // - KSR selects rate-scaling strength (2-bit).
-            // - MUL is OPL-style multiplier (0 => 0.5×, 1..15 => 1×..15×).
-            uint8_t reg0;
 
-            // R1: [7:6]KSL [5:0]TL
-            // - TL is output attenuation in 0.75 dB steps.
-            // - KSL scales attenuation by pitch (OPL-style).
-            uint8_t reg1;
-
-            // R2: [7:4]AR_lo4 [3:0]DR_lo4
-            // R3: [7:4]SL [3:0]RR
-            // R4: [7:5]DT [4:0]SR
-            // ADSR envelope:
-            // Attack, Decay, Sustain Level and Rate, Release Rate
-            // - AR/DR/SR are 5-bit values using R7 msbs; SL/RR are 4-bit.
-            // - DT selects detune table entry (signed adjustment).
-            uint8_t reg2;
-            uint8_t reg3;
-            uint8_t reg4;
-
-            // R5: [7:5]DELAY [4]FIX [3:0]WPAR
-            // - DELAY adds 2**(DELAY + 8) samples to key-on (phase + envelope).
-            // - FIX selects fixed-frequency mode.
-            // - WPAR is a per-waveform shape parameter.
-            uint8_t reg5;
-
-            // R6: [7]TRMD [6]VIBD [5]SYNC [4]RING [3:1]MOD [0]TL_msb
-            // - TRMD/VIBD set LFO depth.
-            // - SYNC hard-syncs to previous operator wrap.
-            // - RING multiplies by previous operator output.
-            // - MOD sets phase modulation depth (6 dB steps); op0 uses feedback.
-            // - TL_msb extends total level to 7 bits.
-            uint8_t reg6;
-
-            // R7: [7:5]OUT [4]AR_msb [3]DR_msb [2:0]WAVE
-            // - AR/DR msb extend envelope rates to 5 bits.
-            // - OUT sets direct mix level (6 dB steps).
-            // - WAVE selects waveform (0..5 implemented).
-            uint8_t reg7;
-
-        } op[SGU_OP_PER_CH];
-
-        uint16_t freq; // 16-bit phase increment / playback rate
-        int8_t vol;    // signed 8-bit; sign allows inversion.
-        int8_t pan;    // positive Right, negative Left
-
-        // flags0:
-        //  - bit 0: (GATE) ADSR envelope is running when set; key-on/key-off,
-        //    rising edge is starting the envelope generator and resetting the signal phase.
-        //  - bit 3: PCM enable (when set, src = pcm[pcmpos])
-        //  - bit 4: ring mod enable (multiply by next channel's raw sample)
-        //  - bits 5..7: filter mode selects (LP/HP/BP) (implemented as bitmask picks)
-        uint8_t flags0;
-
-        // flags1:
-        //  - bit 0: one-shot phase reset request (handled at end of channel processing)
-        //  - bit 2: PCM loop enable
-        //  - bit 3: timer sync enable (enables restimer-based periodic phase reset)
-        //  - bit 4: freq sweep enable
-        //  - bit 5: vol sweep enable
-        //  - bit 6: cutoff sweep enable
-        uint8_t flags1;
-
-        // cutoff: filter cutoff control (scaled to ff inside filter section).
-        uint16_t cutoff;
-
-        // duty[6:0]: pulse width for WAVE_PULSE (0..127), where low = duty steps, high = 128 - duty
-        uint8_t duty;
-
-        // reson: resonance amount (0..255). Used as (256 - reson) feedback term.
-        uint8_t reson;
-
-        // PCM playback pointers.
-        uint16_t pcmpos; // current sample position
-        uint16_t pcmbnd; // boundary/end position
-        uint16_t pcmrst; // loop restart position
-
-        // Sweep parameter blocks:
-        // speed: period in "ticks" (same domain as Pm) between sweep steps
-        // amt:   step amount + direction/mode bits (interpretation differs by sweep type)
-        // bound: limit value (coarse, often compared against high byte of freq/cutoff)
-        struct
-        {
-            uint16_t speed;
-            uint8_t amt;
-            uint8_t bound;
-        } swfreq;
-        struct
-        {
-            uint16_t speed;
-            uint8_t amt;
-            uint8_t bound;
-        } swvol;
-        struct
-        {
-            uint16_t speed;
-            uint8_t amt;
-            uint8_t bound;
-        } swcut;
-
-        // restimer: period for periodic phase reset when SGU_FLAGS1_TIMER_SYNC is set.
-        uint16_t restimer;
-
-        // ### Used for implementation specific purposes.
-        // Default function in X65 deployment special2 changes the channel mapped into
-        // CPU memory space, which consists of 64 registers only
-        // and would not fit all channels at once.
-        // Channel FFh is special, as it maps service registers into memory space.
-        // Chip identifier, UniqueID and mixer/DSP controls.
-        uint8_t special1;
-        uint8_t special2;
-
-    } chan[SGU_CHNS];
-
-    // PCM sample memory (signed 8-bit).
-    int8_t pcm[SGU_PCM_RAM_SIZE];
-
-    // Per-channel mute (software-side, not part of chip spec).
-    bool muted[SGU_CHNS];
+    // ========================================================================
+    // HOT RUNTIME STATE (offset 0..~2KB from struct base)
+    // Placed first for efficient ARM Thumb-2 addressing (12-bit immediate offsets).
+    // ========================================================================
 
     // ------ private generator state ------
     uint32_t sample_counter;   // sample clock ticks
@@ -529,27 +548,15 @@ struct SGU
     // channels internal state
     struct sgu_ch_state
     {
-        int16_t op0_fb;                                    // feedback memory for first operator
-        uint32_t phase[SGU_OP_PER_CH];                     // current phase value (10.22 format)
-        uint32_t prev_phase[SGU_OP_PER_CH];                // previous phase value (for noise boundary detection)
-        int16_t value[SGU_OP_PER_CH];                      // current operator value
-        int16_t out[SGU_OP_PER_CH];                        // current output value
-        uint16_t envelope_attenuation[SGU_OP_PER_CH];      // computed envelope attenuation (4.6 format)
-        enum envelope_state envelope_state[SGU_OP_PER_CH]; // current envelope state
-        uint32_t lfsr_state[SGU_OP_PER_CH];                // per-operator noise LFSR state
-        bool phase_wrap[SGU_OP_PER_CH];                    // phase wrap flag for current sample (for SYNC)
-        bool key_state[SGU_OP_PER_CH];                     // current key state: on or off
-        bool keyon_live[SGU_OP_PER_CH];                    // live key on state
-        bool keyon_gate[SGU_OP_PER_CH];                    // last raw key state (edge detect for delay)
-        bool eg_delay_run[SGU_OP_PER_CH];                  // envelope delay active
-        uint16_t eg_delay_counter[SGU_OP_PER_CH];          // delay counter (samples)
-        uint8_t blep[SGU_OP_PER_CH];                       // BLEP damping after dramatic phase changes
-        uint16_t blep_frac[SGU_OP_PER_CH];                 // fractional phase at edge (for sub-sample interpolation)
-        int16_t blep_prev_sample[SGU_OP_PER_CH];           // previous raw sample for edge detection
+        int16_t op0_fb;                        // feedback memory for first operator
+        uint16_t op_flags;                     // packed boolean flags (see OP_FLAGS_*)
+        struct sgu_op_state op[SGU_OP_PER_CH]; // per-operator state (AoS layout)
     } m_channel[SGU_CHNS];
 
-    // precomputed waveforms (1024 samples each)
-    int16_t waveform_lut[SGU_WAVEFORM_LENGTH / 2];
+    // Cached per-sample globals (written by Setup, read by both cores)
+    int32_t cached_lfo_raw_pm;
+    bool cached_env_tick;
+    uint32_t cached_env_counter_tick;
 
     // src[i] = raw oscillator sample for channel i (16-bit, used for ring mod).
     // post[i] = processed sample after volume/filter (higher precision int32).
@@ -563,9 +570,6 @@ struct SGU
     // Last mixed output sample (left/right), also returned by NextSample().
     int32_t L, R;
     int64_t L_in, R_in, L_q16, R_q16; // used for high-pass filtering
-
-    // Size of PCM RAM actually used (must be power of 2, <= pcm[] size).
-    uint32_t pcm_size;
 
     // ------ SID-like channel processing state (post-FM) ------
 
@@ -585,9 +589,17 @@ struct SGU
     // PCM phase accumulator for fractional PCM playback
     int32_t pcm_phase_accum[SGU_CHNS];
 
-    // Panning gain lookup tables (computed once in Init)
-    uint8_t pan_gain_lut_l[256];
-    uint8_t pan_gain_lut_r[256];
+    // PCM sample memory (signed 8-bit)
+    int8_t *pcm;
+
+    // Per-channel mute (software-side, not part of chip spec).
+    bool muted[SGU_CHNS];
+
+    // ========================================================================
+    // REGISTER MAP (must be contiguous for SGU_Write)
+    // SGU_Write does: ((uint8_t *)sgu->chan)[addr13] = data;
+    // ========================================================================
+    struct SGU_CH __attribute__((aligned(4))) chan[SGU_CHNS];
 };
 
 // -----------------------------------------------------------------------------
@@ -598,6 +610,16 @@ void SGU_Reset(struct SGU *sgu);
 void SGU_Write(struct SGU *sgu, uint16_t addr13, uint8_t data);
 
 void SGU_NextSample(struct SGU *sgu, int32_t *l, int32_t *r);
+
+// Split API for dual-core rendering:
+// Setup: update global state (LFO, envelope). Call once per sample.
+void SGU_NextSample_Setup(struct SGU *sgu);
+// Channels: process channels [ch_start, ch_end). Accumulates into *l, *r.
+void SGU_NextSample_Channels(struct SGU *sgu, unsigned ch_start, unsigned ch_end,
+                             int32_t *l, int32_t *r);
+// Finalize: DC-removal HPF and output clamping.
+void SGU_NextSample_Finalize(struct SGU *sgu, int64_t L, int64_t R,
+                             int32_t *l, int32_t *r);
 
 // Convenience getter: returns mono downmix of current per-channel post-pan samples (averaged).
 // This is not used in NextSample, but useful for taps/meters/debug.
