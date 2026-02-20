@@ -3400,13 +3400,15 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
   if (ImGui::MenuItem(_("flip selection"),BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
 
+  ImGui::Separator();
+
   ImGui::SetNextItemWidth(120.0f*dpiScale);
   if (ImGui::InputInt(_("collapse/expand amount##CollapseAmount"),&collapseAmount,1,4)) {
     if (collapseAmount<2) collapseAmount=2;
     if (collapseAmount>256) collapseAmount=256;
   }
-  if (ImGui::MenuItem(_("collapse"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
-  if (ImGui::MenuItem(_("expand"),BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
+  if (ImGui::MenuItem(_("collapse rows"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
+  if (ImGui::MenuItem(_("expand rows"),BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
 
   if (topMenu) {
     ImGui::Separator();
@@ -3418,6 +3420,12 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::Separator();
     if (ImGui::MenuItem(_("collapse song"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG))) doAction(GUI_ACTION_PAT_COLLAPSE_SONG);
     if (ImGui::MenuItem(_("expand song"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG))) doAction(GUI_ACTION_PAT_EXPAND_SONG);
+  }
+
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem(_("minimize channels"),BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SELECTED))) doAction(GUI_ACTION_PAT_COLLAPSE_SELECTED);
+    if (ImGui::MenuItem(_("maximize channels"),BIND_FOR(GUI_ACTION_PAT_EXPAND_SELECTED))) doAction(GUI_ACTION_PAT_EXPAND_SELECTED);
   }
 
   if (topMenu) {
