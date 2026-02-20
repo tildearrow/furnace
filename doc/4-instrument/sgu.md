@@ -120,11 +120,17 @@ each operator can use one of 8 waveforms. the **Waveform Parameter (WPAR)** prov
 
 ### fixed frequency mode
 
-each operator has a Fixed Frequency mode. once enabled, the operator ignores the channel pitch and derives its frequency from the MUL and DT register values.
+each operator has a Fixed Frequency mode. once enabled, the operator ignores channel pitch and computes a fixed `freq16` value from `MUL` and `DT`.
 
-the fixed frequency is determined by the formula: `freq = (8 + (MUL * 247 + 7) / 15) << DT`, producing a range of approximately 8 to 32640 Hz.
+the fixed value is `freq16 = base[MUL] << DT`, where `base` is:
+`{8, 24, 41, 57, 74, 90, 107, 123, 140, 156, 173, 189, 206, 222, 239, 255}`.
+this is equivalent to the integer formula `freq16 = (8 + (MUL * 247 + 7) / 15) << DT`, with a range of `8..32640`.
 
-when fixed frequency mode is enabled, the DT slider controls the octave/scaling factor rather than acting as a detune offset.
+`freq16` is an internal tuning value, not direct Hz. in SGU's tuning scale:
+`Hz = freq16 * 1000000 / 16777216` (so `8..32640` maps to about `0.48..1945.50 Hz`).
+
+in fixed mode the operator phase step is computed directly,
+so ratio-mode detune and vibrato PM are bypassed.
 
 ## Sound Unit
 
@@ -152,19 +158,11 @@ these macros allow you to control several parameters of each operator per tick.
 
 many operator parameters listed in the FM section above are available as macros.
 
-### operator arpeggio and pitch macros
-
-among the available macros are **Op. Arpeggio** and **Op. Pitch**.
-
-in the current SGU-1 implementation, these do not stack per operator. for each channel, the first operator (OP1 to OP4) with an active Op. Arpeggio macro is used as the arpeggio source, and the first operator with an active Op. Pitch macro is used as the pitch source.
-
-the **Detune (DT)** FM parameter is still respected when using these macros.
-
 ### fixed frequency macros
 
-when fixed frequency is enabled for an operator, the editor currently shows **Block** and **FreqNum** in place of **Op. Arpeggio**/**Op. Pitch**.
+SGU does not use ESFM-style **Block**/**FreqNum** fixed-frequency macro/effect routing.
 
-however, SGU-1 fixed frequency is derived directly from **MULT** and **DT** (see formula above), and fixed-frequency effect/macro routing is not currently implemented in the SGU backend. use **MULT**/**DT** (or the **Fixed Freq** control) to shape fixed pitch.
+when fixed frequency is enabled, the editor uses the **Fixed Freq** control, which writes **MULT** and **DT** directly (see formula above). `DIV_CMD_FM_FIXFREQ` routing is currently ignored by the SGU replayer.
 
 ## Macros
 
