@@ -91,7 +91,7 @@ class DivPlatformC64: public DivDispatch {
   int pcmCycle, lineRate;
   short cutoff_slide;
 
-  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace, noSoftPCM;
+  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace, filterOld, noSoftPCM;
   unsigned char chanOrder[3];
   unsigned char testAD, testSR;
 
