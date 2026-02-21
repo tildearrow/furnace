@@ -2093,6 +2093,7 @@ class FurnaceGUI {
     int s3mOPL3;
     int songNotesWrap;
     int rackShowLEDs;
+    int warnNotePassthrough;
     int sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
@@ -2347,6 +2348,7 @@ class FurnaceGUI {
       s3mOPL3(1),
       songNotesWrap(0),
       rackShowLEDs(1),
+      warnNotePassthrough(0),
       sampleImportInstDetune(0),
       mixerStyle(1),
       mixerLayout(0),
@@ -2940,8 +2942,18 @@ class FurnaceGUI {
 
   std::vector<String> randomDemoSong;
 
+  // used for storing warning dialog options, when appliable
+  struct WarnChoice {
+    const char* name; // TODO: do not include key name embedded in string; instead, figure out how to make a key string for this
+    int key;
+    std::function<void ()> action;
+    bool destructive=false;
+  };
+  bool warnIsOpen; // workaround ImGui::IsPopupOpen crashing if not used in the right place
+  std::vector<WarnChoice> warnChoices;
+
   void commandExportOptions();
-  
+
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
@@ -3271,8 +3283,8 @@ class FurnaceGUI {
 
   public:
     void editStr(String* which);
-    void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
+    void showWarning(String what, FurnaceGUIWarnings type);
     String getLastError();
     const char* noteNameNormal(short note);
     const char* noteName(short note);
