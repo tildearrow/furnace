@@ -2942,12 +2942,12 @@ class FurnaceGUI {
 
   // used for storing warning dialog options, when appliable
   struct WarnChoice {
-    const char* name; // TODO: do not include key name embedded in string;
-                      // instead, figure out how to make a key string for this
+    const char* name; // TODO: do not include key name embedded in string; instead, figure out how to make a key string for this
     int key;
     std::function<void ()> action;
     bool destructive=false;
   };
+  bool warnIsOpen; // workaround ImGui::IsPopupOpen crashing if not used in the right place
   std::vector<WarnChoice> warnChoices;
 
   void commandExportOptions();

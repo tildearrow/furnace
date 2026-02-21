@@ -1796,6 +1796,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
         // pattern input otherwise
         if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
+        if (warnIsOpen) break;
         if (!ev.key.repeat || settings.inputRepeat) {
           if (cursor.xFine==0) { // note
             auto it=noteKeys.find(ev.key.keysym.scancode);
@@ -2831,16 +2832,15 @@ void FurnaceGUI::editStr(String* which) {
 }
 
 void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
-  typedef FurnaceGUI::WarnChoice WarnChoice;
-
   warnString=what;
   warnAction=type;
+  warnIsOpen=true;
   warnQuit=true;
 
   const char* tYes="Yes (Y)";
   int kYes=ImGuiKey_Y;
 
-  const char* tNo="Yes (N)";
+  const char* tNo="No (N)";
   int kNo=ImGuiKey_N;
 
   const char* tCancel="Cancel (Esc)";
@@ -2852,7 +2852,7 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
   const char* tOk="Ok (Enter)";
   int kOk=ImGuiKey_Enter;
 
-  WarnChoice wCancel={tCancel,kCancel,[]{}};
+  FurnaceGUI::WarnChoice wCancel={tCancel,kCancel,[]{}};
 
   switch (type) {
     case GUI_WARN_QUIT:
@@ -3866,6 +3866,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           }
           // fall-through
         default: {
+          if (warnIsOpen) break;
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -6336,6 +6337,7 @@ bool FurnaceGUI::loop() {
 
     if (warnQuit && introPos>=11.0) {
       warnQuit=false;
+      warnIsOpen=true;
       ImGui::OpenPopup(_("Warning"));
     }
 
@@ -6700,6 +6702,7 @@ bool FurnaceGUI::loop() {
               selEnd.order=0;
               MARK_MODIFIED;
               recalcTimestamps=true;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Current subsong"))) {
@@ -6714,6 +6717,7 @@ bool FurnaceGUI::loop() {
               selEnd.order=0;
               MARK_MODIFIED;
               recalcTimestamps=true;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Orders"))) {
@@ -6729,6 +6733,7 @@ bool FurnaceGUI::loop() {
               selEnd.order=0;
               MARK_MODIFIED;
               recalcTimestamps=true;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Pattern"))) {
@@ -6741,6 +6746,7 @@ bool FurnaceGUI::loop() {
               });
               MARK_MODIFIED;
               recalcTimestamps=true;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Instruments"))) {
@@ -6750,6 +6756,7 @@ bool FurnaceGUI::loop() {
               });
               setCurIns(-1);
               MARK_MODIFIED;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Wavetables"))) {
@@ -6759,6 +6766,7 @@ bool FurnaceGUI::loop() {
               });
               curWave=0;
               MARK_MODIFIED;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Samples"))) {
@@ -6768,6 +6776,7 @@ bool FurnaceGUI::loop() {
               });
               curSample=0;
               MARK_MODIFIED;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
 
@@ -6785,6 +6794,7 @@ bool FurnaceGUI::loop() {
               });
               MARK_MODIFIED;
               recalcTimestamps=true;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Remove unused patterns"))) {
@@ -6794,12 +6804,14 @@ bool FurnaceGUI::loop() {
               });
               MARK_MODIFIED;
               recalcTimestamps=true;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             if (ImGui::Button(_("Remove unused instruments"))) {
               stop();
               e->delUnusedIns();
               MARK_MODIFIED;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             /*
@@ -6807,12 +6819,14 @@ bool FurnaceGUI::loop() {
               stop();
               e->delUnusedWaves();
               MARK_MODIFIED;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }*/
             if (ImGui::Button(_("Remove unused samples"))) {
               stop();
               e->delUnusedSamples();
               MARK_MODIFIED;
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
 
@@ -6827,6 +6841,7 @@ bool FurnaceGUI::loop() {
             ImGui::TableNextColumn();
             ImGui::TableNextColumn();
             if (ImGui::Button(_("Never mind! Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
             }
             ImGui::TableNextColumn();
@@ -6835,12 +6850,14 @@ bool FurnaceGUI::loop() {
           break;
         }
         default: {
+          static_assert(sizeof(int) == sizeof(ImGuiKey), "sizes must match (safety check)");
+
           // For other warning types, follow `warnChoices`
           for (size_t i=0; i<warnChoices.size(); i++) {
-            WarnChoice& wc=warnChoices[i];
+            FurnaceGUI::WarnChoice& wc=warnChoices[i];
             if (wc.destructive) pushDestColor();
-            static_assert(sizeof(int) == sizeof(ImGuiKey)); // needed for this to work
             if (ImGui::Button(_(wc.name)) || (wc.key != -1 && ImGui::IsKeyPressed((ImGuiKey)wc.key))) {
+              warnIsOpen=false;
               ImGui::CloseCurrentPopup();
               wc.action();
             }
@@ -9334,7 +9351,8 @@ FurnaceGUI::FurnaceGUI():
   romMultiFile(false),
   romExportSave(false),
   pendingExport(NULL),
-  romExportExists(false) {
+  romExportExists(false),
+  warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
