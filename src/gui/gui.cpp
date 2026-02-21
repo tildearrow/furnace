@@ -6856,6 +6856,7 @@ bool FurnaceGUI::loop() {
           for (size_t i=0; i<warnChoices.size(); i++) {
             FurnaceGUI::WarnChoice& wc=warnChoices[i];
             if (wc.destructive) pushDestColor();
+            // TODO: show only text (no key hint) when warnNotePassthrough is on (except on ESC)
             bool recKey=(wc.key != -1) && ImGui::IsKeyPressed((ImGuiKey)wc.key) && (!settings.warnNotePassthrough || wc.key==ImGuiKey_Escape);
             if (ImGui::Button(_(wc.name)) || recKey) {
               warnIsOpen=false;
