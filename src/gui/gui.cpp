@@ -2994,7 +2994,7 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
             }
           }
           settingsChanged=true;
-        }},
+        },true},
         {tNo,kNo,[]{}},
       };
       break;
