@@ -2559,6 +2559,7 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SILENCE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_DELETE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_REVERSE);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_INVERT);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SIGN);
@@ -2570,6 +2571,7 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_ZOOM_AUTO);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_MAKE_INS);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SET_LOOP);
+            drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_SELECT_LOOP);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
             drawKeybindSettingsTableRow(GUI_ACTION_SAMPLE_TRIM_TO_LOOP);
 

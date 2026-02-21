@@ -949,11 +949,13 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_INSERT,
   GUI_ACTION_SAMPLE_DELETE,
   GUI_ACTION_SAMPLE_TRIM,
+  GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE,
   GUI_ACTION_SAMPLE_REVERSE,
   GUI_ACTION_SAMPLE_INVERT,
   GUI_ACTION_SAMPLE_SIGN,
   GUI_ACTION_SAMPLE_FILTER,
   GUI_ACTION_SAMPLE_CROSSFADE_LOOP,
+  GUI_ACTION_SAMPLE_FIX_LOOP,
   GUI_ACTION_SAMPLE_PREVIEW,
   GUI_ACTION_SAMPLE_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_ZOOM_IN,
@@ -965,6 +967,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_COPY_NEW,
   GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP,
   GUI_ACTION_SAMPLE_TRIM_TO_LOOP,
+  GUI_ACTION_SAMPLE_SELECT_LOOP,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -2665,8 +2668,9 @@ class FurnaceGUI {
   int resizeSize, silenceSize;
   double resampleTarget;
   int resampleStrat;
+  int sampleFixLoopTarget;
   float amplifyVol, amplifyOff;
-  float noiseGateThreshold;
+  float trimSideNoiseThreshold;
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
@@ -2684,7 +2688,7 @@ class FurnaceGUI {
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt, openSampleNoiseGateOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt, openTrimSideNoiseOpt;
 
   // mixer
   // 0xxx: output

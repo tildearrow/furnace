@@ -51,6 +51,16 @@ const double timeMultipliers[13]={
   3600.0
 };
 
+const char* sampleFixLoopTargets[]={
+  _N("Amiga"),
+  _N("SNES"),
+  _N("Namco C219"),
+  _N("Nintendo DS PCM16"),
+  _N("Nintendo DS PCM8"),
+  _N("Nintendo DS IMA"),
+  _N("GBA DMA Sound")
+};
+
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
 
@@ -1321,82 +1331,25 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SetTooltip(_("Trim"));
       }
       sameLineMaybe();
-      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
-      ImGui::Button(ICON_FA_MAGIC "##SNoiseGate");
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
+      if (ImGui::Button(ICON_FA_MAGIC "##STrimSideNoise")) {
+        openTrimSideNoiseOpt=true;
+      }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_("Noise Gate"));
+        ImGui::SetTooltip(_("Trim Side-Noise"));
       }
-      if (openSampleNoiseGateOpt) {
-        openSampleNoiseGateOpt=false;
-        ImGui::OpenPopup("SNoiseGateOpt");
+      if (openTrimSideNoiseOpt) {
+        openTrimSideNoiseOpt=false;
+        ImGui::OpenPopup("STrimSideNoiseOpt");
       }
-      if (ImGui::BeginPopupContextItem("SNoiseGateOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+      if (ImGui::BeginPopupContextItem("STrimSideNoiseOpt",ImGuiPopupFlags_MouseButtonLeft)) {
         ImGui::Text(_("Threshold (dB)"));
-        if (ImGui::InputFloat("##SNGThreshold",&noiseGateThreshold,1.0f,5.0f,"%.1f")) {
-          if (noiseGateThreshold<-144.0f) noiseGateThreshold=-144.0f;
-          if (noiseGateThreshold>0.0f) noiseGateThreshold=0.0f;
+        if (ImGui::InputFloat("##STSNThreshold",&trimSideNoiseThreshold,1.0f,5.0f,"%.1f")) {
+          if (trimSideNoiseThreshold<-144.0f) trimSideNoiseThreshold=-144.0f;
+          if (trimSideNoiseThreshold>0.0f) trimSideNoiseThreshold=0.0f;
         }
         if (ImGui::Button(_("Apply"))) {
-          sample->prepareUndo(true);
-          e->lockEngine([this,sample]() {
-            if (sample->depth==DIV_SAMPLE_DEPTH_16BIT && sample->data16!=NULL && sample->samples>0) {
-              SAMPLE_OP_BEGIN;
-              float linThreshold=powf(10.0f,noiseGateThreshold/20.0f)*32767.0f;
-              unsigned int newStart=start;
-              unsigned int newEnd=end;
-              unsigned int windowSize=128;
-              if (windowSize>(end-start)) windowSize=end-start;
-              unsigned int minCount=windowSize/4;
-              if (minCount<1) minCount=1;
-
-              for (unsigned int i=start; i+windowSize<=end; i++) {
-                unsigned int count=0;
-                for (unsigned int j=0; j<windowSize; j++) {
-                  if (fabsf((float)sample->data16[i+j])>=linThreshold) {
-                    count++;
-                  }
-                }
-                if (count>=minCount) {
-                  newStart=i;
-                  break;
-                }
-              }
-
-              for (unsigned int i=end; i>=start+windowSize; i--) {
-                unsigned int count=0;
-                for (unsigned int j=0; j<windowSize; j++) {
-                  if (fabsf((float)sample->data16[i-windowSize+j])>=linThreshold) {
-                    count++;
-                  }
-                }
-                if (count>=minCount) {
-                  newEnd=i;
-                  break;
-                }
-              }
-
-              if (newStart<newEnd && (newStart>start || newEnd<end)) {
-                if (start==0 && end==sample->samples) {
-                  sample->trim(newStart,newEnd);
-                } else {
-                  if (newEnd<end) {
-                    sample->strip(newEnd,end);
-                  }
-                  if (newStart>start) {
-                    sample->strip(start,newStart);
-                  }
-                  sampleSelStart=start;
-                  sampleSelEnd=start+(newEnd-newStart);
-                }
-              }
-            }
-
-            updateSampleTex=true;
-            notifySampleChange=true;
-
-            e->renderSamples(curSample);
-          });
-          MARK_MODIFIED;
+          doAction(GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE);
           ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
@@ -1571,6 +1524,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
       ImGui::Button(ICON_FUR_CROSSFADE "##CrossFade");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Crossfade loop points"));
@@ -1639,6 +1593,24 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_MAGIC "##SFixLoop")) {
+        ImGui::OpenPopup("SFixLoopOpt");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Align Loop Points"));
+      }
+      if (ImGui::BeginPopup("SFixLoopOpt")) {
+        if (this->sampleFixLoopTarget<0 || this->sampleFixLoopTarget>=7) this->sampleFixLoopTarget=0;
+        ImGui::Combo(_("Target"),&this->sampleFixLoopTarget,LocalizedComboGetter,sampleFixLoopTargets,7);
+        ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
+        if (ImGui::Button(_("Apply"))) {
+          doAction(GUI_ACTION_SAMPLE_FIX_LOOP);
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::EndDisabled();
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
         e->previewSample(curSample);
@@ -2092,6 +2064,9 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("set loop to selection"),BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
+          if (ImGui::MenuItem(_("set selection to loop length"),BIND_FOR(GUI_ACTION_SAMPLE_SELECT_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_SELECT_LOOP);
+          }
           ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
           if (ImGui::MenuItem(_("trim to the end of the loop"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
@@ -2102,6 +2077,9 @@ void FurnaceGUI::drawSampleEdit() {
             doAction(GUI_ACTION_SAMPLE_TRIM_TO_LOOP);
           }
           ImGui::EndDisabled();
+
+          ImGui::Separator();
+
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
           }
