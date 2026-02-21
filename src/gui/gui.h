@@ -2940,8 +2940,18 @@ class FurnaceGUI {
 
   std::vector<String> randomDemoSong;
 
+  // used for storing warning dialog options, when appliable
+  struct WarnChoice {
+    const char* name; // TODO: do not include key name embedded in string;
+                      // instead, figure out how to make a key string for this
+    int key;
+    std::function<void ()> action;
+    bool destructive=false;
+  };
+  std::vector<WarnChoice> warnChoices;
+
   void commandExportOptions();
-  
+
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
@@ -3271,8 +3281,8 @@ class FurnaceGUI {
 
   public:
     void editStr(String* which);
-    void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
+    void showWarning(String what, FurnaceGUIWarnings type);
     String getLastError();
     const char* noteNameNormal(short note);
     const char* noteName(short note);
