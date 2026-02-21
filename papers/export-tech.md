@@ -13,37 +13,36 @@ size | description
      | - bit 5: saw
      | - bit 4: triangle
      | - bit 3: test
-     | - bit 2: sync
-     | - bit 1: ring
+     | - bit 2: ring
+     | - bit 1: sync
      | - bit 0: gate (always on)
   1  | filter flags
-     | - bit 7: don't test before new note
-     | - bit 6: enable filter
-     | - bit 5: init filter
-     | - bit 3: ch3off
-     | - bit 2: high pass
-     | - bit 1: band pass
-     | - bit 0: low pass
+     | - bit 7: ch3off
+     | - bit 6: high pass
+     | - bit 5: band pass
+     | - bit 4: low pass
+     | - bit 2: don't test before new note
+     | - bit 1: enable filter
+     | - bit 0: init filter
   1  | other flags
      | - bit 7: reset duty on new note
      | - bit 6: absolute cutoff macro
      | - bit 5: absolute duty macro
+  1  | attack/decay
+     | - bit 4-7: attack
+     | - bit 0-3: decay
+  1  | sustain/release
+     | - bit 4-7: sustain
+     | - bit 0-3: release
+  2  | initial duty
+  2  | initial cutoff/resonance
+     | - first byte:
+     |   - bit 4-7: resonance
+     |   - bit 0-2: cutoff (low 3 bits)
+     | - second byte: cutoff (high 8 bits)
+     | - this is how it is stored in SID registers.
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | duty
-  2  | wave
-  2  | pitch
-  2  | cutoff
-  2  | resonance
-  2  | filter mode
-  2  | filter toggle
-  2  | special
-  2  | attack
-  2  | decay
-  2  | sustain
-  2  | release
+ 2?? | macro pointers... (0 = end of list)
 ```
 
 ### SNES
@@ -69,16 +68,9 @@ size | description
      | - sample: sample index
      | - sample map: pointer to sample map
      | - wavetable: wave width
+  2  | pointer to wave synth data (0 = disabled)
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | noise freq
-  2  | wave
-  2  | pan left
-  2  | pan right
-  2  | pitch
-  2  | special
+ 2?? | macro pointers... (0 = end of list)
 -----|----------------------------------
      | **wave synth data (only in wavetable mode)**
   1  | enable synth
@@ -105,15 +97,10 @@ size | description
      | - bit 7: software env
      | - bit 6: init env on every note
      | - bit 5: double wave length
+  2  | pointer to wave synth data (0 = disabled)
+  2  | pointer to hardware sequence (0 = empty)
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | duty/noise
-  2  | wave
-  2  | pan
-  2  | pitch
-  2  | phase reset
+ 2?? | macro pointers... (0 = end of list)
 -----|----------------------------------
      | **wave synth data**
   1  | enable synth
@@ -136,6 +123,8 @@ size | description
 ```
 size | description
 -----|-------------------------------------------------
+  1  | macro type
+     | - these are the same as the macro on/off/restart effect ones.
   1  | flags/macro data type
      | - bit 6: release mode
      |   - active when enabled; passive otherwise
@@ -146,8 +135,13 @@ size | description
      |   - 3: 16-bit signed
      |   - 4: arp macro
      |   - 5: 4-bit unsigned (top first, bottom second)
-     |   - 6: ADSR macro
-     |   - 7: LFO macro
+     |   - 6: ADSR macro (16-bit)
+     |   - 7: ADSR macro (8-bit)
+     |   - 8: LFO macro (16-bit)
+     |   - 9: LFO macro (8-bit)
+     |   - 10: ADSR macro (24-bit)
+     |   - 11: LFO macro (24-bit)
+     |     - these two are there just in case. you do not have to implement them.
   1  | step length
   1  | delay
  ??? | macro data...
@@ -168,16 +162,75 @@ size | description
 
 arp macros are special:
 - read one byte. this will be the next (signed) value, unless it is $7F or $80.
-- if it is $80, toggle fixed/relative mode.
+- if it is $80, fixed mode is on for this value.
 - if it is $7F, the value is 16-bit. read two bytes and treat that as the (signed) value.
 
-for ADSR macros:
+for 16-bit ADSR macros:
 
 ```
 size | description
 -----|---------------------
   2  | minimum value
   2  | maximum value
+  2  | sustain level
+  1  | hold time
+  1  | sustain time
+  3  | attack rate
+  3  | decay rate
+  3  | sustain decay
+  3  | release rate
+```
+
+for 8-bit ADSR macros:
+
+```
+size | description
+-----|---------------------
+  1  | minimum value
+  1  | maximum value
+  1  | sustain level
+  1  | hold time
+  1  | sustain time
+  2  | attack rate
+  2  | decay rate
+  2  | sustain decay
+  2  | release rate
+```
+
+for 16-bit LFO macros:
+
+```
+size | description
+-----|---------------------
+  2  | minimum value
+  2  | maximum value
+  3  | initial accumulator value
+  3  | speed
+  1  | flags
+     | - bit 2: initial direction (set when down)
+     | - bit 0-1: shape
+     |   - 0: triangle
+     |   - 1: saw (down to up)
+     |   - 2: pulse
+     |   - 3: saw (up to down)
+```
+
+for 8-bit LFO macros:
+
+```
+size | description
+-----|---------------------
+  1  | minimum value
+  1  | maximum value
+  2  | initial accumulator value
+  2  | speed
+  1  | flags
+     | - bit 7: initial direction (set when down)
+     | - bit 0-1: shape
+     |   - 0: triangle
+     |   - 1: saw (down to up)
+     |   - 2: pulse
+     |   - 3: saw (up to down)
 ```
 
 ## binary command stream

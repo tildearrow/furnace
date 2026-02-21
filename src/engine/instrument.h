@@ -24,6 +24,7 @@
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
+#include <initializer_list>
 
 struct DivSong;
 struct DivInstrument;
@@ -272,14 +273,28 @@ enum DivCompiledMacroFormat {
   // - start in relative mode.
   // - read one byte. treat it as signed number.
   // - if it is 0x7f, read two bytes (this will be the macro value).
-  // - if it is 0x80, switch between fixed and relative modes.
+  // - if it is 0x80, fixed mode is on for this value.
   // - otherwise this is the macro value.
   DIV_COMPILED_MACRO_BIT30,
   // 4-bit unsigned (top first, bottom second)
   DIV_COMPILED_MACRO_U4,
-  // these two are reserved.
-  DIV_COMPILED_MACRO_ADSR,
-  DIV_COMPILED_MACRO_LFO
+  // these four are reserved.
+  DIV_COMPILED_MACRO_ADSR16,
+  DIV_COMPILED_MACRO_ADSR8,
+  DIV_COMPILED_MACRO_LFO16,
+  DIV_COMPILED_MACRO_LFO8,
+  // these are reserved as well. only implement if necessary.
+  DIV_COMPILED_MACRO_ADSR24,
+  DIV_COMPILED_MACRO_LFO24,
+};
+
+struct DivCompileMacroDef {
+  unsigned char type;
+  DivCompiledMacroFormat format;
+  int minRange, maxRange;
+
+  DivCompileMacroDef(unsigned char t, DivCompiledMacroFormat f, int x1, int x2):
+    type(t), format(f), minRange(x1), maxRange(x2) {}
 };
 
 // this is getting out of hand
@@ -293,9 +308,20 @@ struct DivInstrumentMacro {
   unsigned char macroType;
 
   /**
-   * compile a macro. for use with ROM export.
+   * convert from the previous ADSR/LFO macro format.
+   * INTERNAL. DO NOT USE.
    */
-  void compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
+  void convertOldADSRLFO();
+
+  /**
+   * compile a macro. for use with ROM export.
+   * @param w a SafeWriter where the compiled macro will be written to.
+   * @param format a format hint. this is ignored for ADSR/LFO macros.
+   * @param min minimum value.
+   * @param max maximum value.
+   * @return whether compilation was successful.
+   */
+  bool compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),
@@ -355,6 +381,7 @@ struct DivInstrumentSTD {
     DivInstrumentMacro vibMacro;
     DivInstrumentMacro wsMacro;
     DivInstrumentMacro ksrMacro;
+    DivInstrumentMacro* macroByType(DivMacroTypeOp type);
     OpMacro():
       amMacro(DIV_MACRO_OP_AM), arMacro(DIV_MACRO_OP_AR), drMacro(DIV_MACRO_OP_DR), multMacro(DIV_MACRO_OP_MULT),
       rrMacro(DIV_MACRO_OP_RR), slMacro(DIV_MACRO_OP_SL), tlMacro(DIV_MACRO_OP_TL,true), dt2Macro(DIV_MACRO_OP_DT2),
@@ -1064,7 +1091,7 @@ struct MemPatch {
 };
 
 struct DivInstrumentUndoStep {
-  DivInstrumentUndoStep() :
+  DivInstrumentUndoStep():
     name(""),
     nameValid(false),
     processTime(0) {
@@ -1079,15 +1106,15 @@ struct DivInstrumentUndoStep {
   bool makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post);
 };
 
-struct DivInstrument : DivInstrumentPOD {
+struct DivInstrument: DivInstrumentPOD {
   String name;
 
   DivInstrumentTemp temp;
 
-  DivInstrument() :
+  DivInstrument():
     name("") {
       // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
-      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
+      memset((unsigned char*)(DivInstrumentPOD*)this,0,sizeof(DivInstrumentPOD));
       new ((DivInstrumentPOD*)this) DivInstrumentPOD;
   }
 
@@ -1166,6 +1193,18 @@ struct DivInstrument : DivInstrumentPOD {
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
 
   void convertC64SpecialMacro();
+  void convertOldADSRLFO();
+
+  bool compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start);
+
+  /**
+   * compile the instrument for ROM export.
+   * addresses must be relocated when placed in ROM!
+   * @param w a SafeWriter where the compiled instrument will be written to.
+   * @param insType instrument type. we don't use the type set in this instrument because it may be different from the desired type.
+   * @return whether compilation was successful.
+   */
+  bool compile(SafeWriter* w, DivInstrumentType insType);
 
   /**
    * save the instrument to a SafeWriter.

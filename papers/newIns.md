@@ -226,6 +226,7 @@ notes:
 - meaning of panning macros varies depending on instrument type:
   - for hard-panned chips (e.g. FM and Game Boy): left panning is 2-bit panning macro (left/right)
   - otherwise both left and right panning macros are used
+- ADSR/LFO macros before version 245 have different behavior. see the sub-section at the bottom for more information.
 
 ```
 size | description
@@ -287,7 +288,7 @@ size | description
 
 ## interpreting macro mode values
 
-- sequence (normal): I think this is obvious...
+- sequence (normal): I know you've got it
 - ADSR:
   - `val[0]`: bottom
   - `val[1]`: top
@@ -307,6 +308,44 @@ size | description
   - `val[13]`: phase
   - `val[14]`: loop
   - `val[15]`: global (not sure how will I implement this)
+
+## ADSR/LFO macro behavior
+
+ADSR/LFO macros work by altering an accumulator. this accumulator is a fixed-point number with 8-bit fractional precision.
+
+in ADSR mode, the accumulator is set to the bottom and increased by the attack rate. then it is decreased by decay rate until it hits the sustain level, and so on.
+all rates are fixed-point numbers and the levels (bottom, top and sustain level) are integers.
+the output value is the accumulator's integer part.
+
+in LFO mode, the accumulator is altered depending on the shape:
+- saw: goes from bottom to top and then wraps around
+- triangle: goes from bottom to top, then back to bottom
+- pulse: goes from 0 to 255.255, then it wraps around.
+the speed is a fixed-point number, and the phase goes from 0 to 1023, determining the starting phase of the accumulator.
+the output value for saw and triangle is thr accumulator's integer part. for pulse, it is top if greater or equal than 128, and bottom otherwise.
+
+### ADSR/LFO macro behavior before version 245
+
+in previous versions of Furnace, ADSR macros used an integer accumulator with a range of 0-255. the output was this accumulator scaled between bottom and top.
+
+LFO macros were different as well. the accumulator was an integer with a range of 0-1023. this determined the position in the LFO shape, so that:
+- saw: 0 is bottom; 1023 is top
+- triangle: 0 is bottom; 512 is top; 1023 is bottom
+- pulse: 0-511 are bottom; 512-1023 are top
+
+Furnace will convert instruments and adapt them to the new behavior. these are the formulas I employ for conversion.
+
+1. if the bottom is higher than the top (an "inverted" range), a Furnace bug would result in these macros not using the full range. compensate for that by setting the bottom to `top+((255+(bottom-top)*255)/256)`.
+2. calculate the range: `abs(top-bottom)`.
+2. for ADSR macros:
+  - set all rates to (rate*range*256)/255.
+  - set the sustain level to `bottom+(((top-bottom)*susLevel)/255)`.
+3. otherwise, for LFO macros, convert the speed:
+  - triangle: `(range*speed)/2`
+  - saw: `(range*speed)/4`
+  - square: `speed*64`
+
+this change has been made in order to avoid a multiplication and therefore simplify hardware playback drivers.
 
 # C64 data (64)
 

@@ -237,6 +237,51 @@ void FurnaceGUI::drawDebug() {
       
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Macro Int Debug")) {
+      static int ch=0;
+      static int macroIndex=0;
+      ImGui::Text("Damn it, get back to work already!\nMacro indices are the same as macro on/off/restart effect.");
+
+      ImGui::InputInt("Channel...",&ch);
+      ImGui::InputInt("Macro ID...",&macroIndex);
+
+      DivMacroInt* macroInt=e->getMacroInt(ch);
+      if (macroInt==NULL) {
+        ImGui::Text("YAAAAAAAAAAAAAAAAAAAA");
+      } else {
+        DivMacroStruct* macroStruct=macroInt->structByType(macroIndex);
+
+        if (macroStruct==NULL) {
+          ImGui::Text("WAAAAAAAAAAAAAAAAAHHHHH");
+        } else {
+          ImGui::TextColored(macroStruct->has?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"has");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->had?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"had");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->actualHad?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"actualHad");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->finished?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"finished");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->will?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"will");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->linger?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"linger");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->began?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"began");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->masked?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"masked");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->activeRelease?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"activeRelease");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->lfoDir?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"lfoDir");
+
+          ImGui::Text("mode: %d - type: %d",macroStruct->mode,macroStruct->type);
+          ImGui::Text("macroType: %d",macroStruct->macroType);
+          ImGui::Text("pos: %d - lastPos: %d - delay: %d",macroStruct->pos,macroStruct->lastPos,macroStruct->delay);
+          ImGui::Text("val: %d",macroStruct->val);
+        }
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);
