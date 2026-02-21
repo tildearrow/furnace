@@ -2093,6 +2093,7 @@ class FurnaceGUI {
     int s3mOPL3;
     int songNotesWrap;
     int rackShowLEDs;
+    int warnNotePassthrough;
     int sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
@@ -2347,6 +2348,7 @@ class FurnaceGUI {
       s3mOPL3(1),
       songNotesWrap(0),
       rackShowLEDs(1),
+      warnNotePassthrough(0),
       sampleImportInstDetune(0),
       mixerStyle(1),
       mixerLayout(0),

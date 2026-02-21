@@ -1796,7 +1796,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         }
         // pattern input otherwise
         if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
-        if (warnIsOpen) break;
+        if (warnIsOpen && !settings.warnNotePassthrough) break;
         if (!ev.key.repeat || settings.inputRepeat) {
           if (cursor.xFine==0) { // note
             auto it=noteKeys.find(ev.key.keysym.scancode);
@@ -3866,7 +3866,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           }
           // fall-through
         default: {
-          if (warnIsOpen) break;
+          if (warnIsOpen && !settings.warnNotePassthrough) break;
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -6856,7 +6856,8 @@ bool FurnaceGUI::loop() {
           for (size_t i=0; i<warnChoices.size(); i++) {
             FurnaceGUI::WarnChoice& wc=warnChoices[i];
             if (wc.destructive) pushDestColor();
-            if (ImGui::Button(_(wc.name)) || (wc.key != -1 && ImGui::IsKeyPressed((ImGuiKey)wc.key))) {
+            bool recKey=(wc.key != -1) && ImGui::IsKeyPressed((ImGuiKey)wc.key) && (!settings.warnNotePassthrough || wc.key==ImGuiKey_Escape);
+            if (ImGui::Button(_(wc.name)) || recKey) {
               warnIsOpen=false;
               ImGui::CloseCurrentPopup();
               wc.action();
