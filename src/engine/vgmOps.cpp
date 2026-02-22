@@ -174,6 +174,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(3);
         }
         break;
+      case DIV_SYSTEM_SEGAPCM_DISCRETE:
+        for (int i=8; i<16; i++) {
+          w->writeC(0xc0);
+          w->writeS((0x86|baseAddr2S)+(i<<3));
+          w->writeC(3);
+        }
+        break;
       case DIV_SYSTEM_X1_010:
         for (int i=0; i<16; i++) {
           w->writeC(0xc8);
@@ -976,6 +983,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_SEGAPCM:
+    case DIV_SYSTEM_SEGAPCM_DISCRETE:
       w->writeC(0xc0);
       w->writeS(baseAddr2S|(write.addr&0xffff));
       w->writeC(write.val);
@@ -1501,11 +1509,24 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         break;
       case DIV_SYSTEM_SEGAPCM:
+      case DIV_SYSTEM_SEGAPCM_DISCRETE:
         if (!hasSegaPCM) {
-          hasSegaPCM=4000000;
+          hasSegaPCM=disCont[i].dispatch->chipClock;
           CHIP_VOL(4,0.67);
           willExport[i]=true;
           writeSegaPCM[0]=disCont[i].dispatch;
+          if (song.system[i]==DIV_SYSTEM_SEGAPCM_DISCRETE) {
+            segaPCMOffset=0x70000c;
+          } else {
+            switch (song.systemFlags[i].getInt("memSize",0)) {
+              case 0:
+                segaPCMOffset=0xf8000d;
+                break;
+              case 1:
+                segaPCMOffset=0x70000c;
+                break;
+            }
+          }
         } else if (!(hasSegaPCM&0x40000000)) {
           isSecond[i]=true;
           CHIP_VOL_SECOND(4,0.67);
