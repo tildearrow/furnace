@@ -239,22 +239,22 @@ ex | AY-3-8910    | AY8930         | Lynx      | MSM5232      | SAA1099  |
  7 |              |                |           |              |          |
  8 |              |                |           |              |          |
 
-ex | C64           | SID2          | SID3               | Sound Unit        |
-:-:|---------------|---------------|--------------------|-------------------|
- D | Duty          | Duty          | Duty               | Duty              |
- W | Waveform      | Waveform      | Waveform           | Waveform          |
- 1 | Filter Mode   | Filter Mode   | Special            | Cutoff            |
- 2 | Resonance     | Resonance     | Attack             | Resonance         |
- 3 | Filter Toggle | Filter Toggle | Decay              | Control           |
- A | Cutoff        | Cutoff        | Special Wave       |                   |
- B |               |               | Phase Mod Source   |                   |
- C |               | Noise Mode    | Ring Mod Source    |                   |
- D |               | Wave Mix      | Hard Sync Source   |                   |
- 4 | Special       | Special       | Sustain            | Phase Reset Timer |
- 5 | Attack        | Attack        | Sustain Rate       |                   |
- 6 | Decay         | Decay         | Release            |                   |
- 7 | Sustain       | Sustain       | Noise LFSR bits    |                   |
- 8 | Release       | Release       | Wave Mix           |                   |
+ex | C64           | SID2          | SID3               | Sound Unit        | SGU-1             |
+:-:|---------------|---------------|--------------------|-------------------|-------------------|
+ D | Duty          | Duty          | Duty               | Duty              | Duty              |
+ W | Waveform      | Waveform      | Waveform           | Waveform          |                   |
+ 1 | Filter Mode   | Filter Mode   | Special            | Cutoff            | Cutoff            |
+ 2 | Resonance     | Resonance     | Attack             | Resonance         | Resonance         |
+ 3 | Filter Toggle | Filter Toggle | Decay              | Control           | Filter Control    |
+ A | Cutoff        | Cutoff        | Special Wave       |                   |                   |
+ B |               |               | Phase Mod Source   |                   |                   |
+ C |               | Noise Mode    | Ring Mod Source    |                   |                   |
+ D |               | Wave Mix      | Hard Sync Source   |                   |                   |
+ 4 | Special       | Special       | Sustain            | Phase Reset Timer | Sync Timer        |
+ 5 | Attack        | Attack        | Sustain Rate       |                   | Op. Sync          |
+ 6 | Decay         | Decay         | Release            |                   | Op. Ring          |
+ 7 | Sustain       | Sustain       | Noise LFSR bits    |                   | Ch. Ring Mod      |
+ 8 | Release       | Release       | Wave Mix           |                   |                   |
 
 SID3 instruments also use some of the FM operator macros in the main macros list:
 
@@ -282,3 +282,14 @@ SID3 instruments use FM operator macros for filters:
  EGT | Channel Output Connection |
  KSL | Connection Matrix Row     |
  KSR | Filter Mode               |
+
+SGU-1 instruments reinterpret some FM operator macros:
+
+  ex   | SGU-1          |
+:-----:|----------------|
+ DT2   | Envelope Delay |
+ SSG   | Op. Arpeggio   |
+ DT    | Op. Pitch      |
+ EGT   | Output Level   |
+ SUS   | MOD IN         |
+ RS    | Op. Panning    |

@@ -2253,6 +2253,23 @@ void DivEngine::registerSystems() {
     suEffectHandlerMap
   );
 
+  sysDefs[DIV_SYSTEM_SGU]=new DivSysDef(
+    _("SGU-1"), NULL, 0xef, 0, 9, 9, 9,
+    true, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    _("what if you cherry-picked the best features of OPL/ESFM, OPM, SID, POKEY, and Paula and glued them together?"),
+    DivChanDefFunc([](unsigned short ch) -> DivChanDef {
+      return DivChanDef(
+        fmt::sprintf(_("Channel %d"),ch+1),
+        fmt::sprintf(_("CH%d"),ch+1),
+        DIV_CH_NOISE,
+        DIV_INS_SGU,
+        DIV_INS_AMIGA
+      );
+    }),
+    {},
+    suEffectHandlerMap
+  );
+
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
     _("OKI MSM6295"), NULL, 0xaa, 0, 4, 4, 4,
     false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,
