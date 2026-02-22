@@ -2837,19 +2837,19 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
   warnIsOpen=true;
   warnQuit=true;
 
-  const char* tYes="Yes (Y)";
+  const char* tYes="Yes";
   int kYes=ImGuiKey_Y;
 
-  const char* tNo="No (N)";
+  const char* tNo="No";
   int kNo=ImGuiKey_N;
 
-  const char* tCancel="Cancel (Esc)";
+  const char* tCancel="Cancel";
   int kCancel=ImGuiKey_Escape;
 
-  const char* tGotIt="Got It (Enter)";
+  const char* tGotIt="Got It";
   int kGotIt=ImGuiKey_Enter;
 
-  const char* tOk="Ok (Enter)";
+  const char* tOk="Ok";
   int kOk=ImGuiKey_Enter;
 
   FurnaceGUI::WarnChoice wCancel={tCancel,kCancel,[]{}};
@@ -3129,6 +3129,14 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
       logW("invalid warning type: %d",(int)type);
       break;
   }
+}
+
+FurnaceGUI::WarnChoice::WarnChoice(const char* name, int key, std::function<void ()> action, bool destructive):
+  name(name),
+  key(key),
+  action(action),
+  destructive(destructive) {
+  if (key!=-1) nameHint=fmt::sprintf(" (%s)",ImGui::GetKeyName((ImGuiKey)key));
 }
 
 void FurnaceGUI::showError(String what) {
@@ -6856,9 +6864,10 @@ bool FurnaceGUI::loop() {
           for (size_t i=0; i<warnChoices.size(); i++) {
             FurnaceGUI::WarnChoice& wc=warnChoices[i];
             if (wc.destructive) pushDestColor();
-            // TODO: show only text (no key hint) when warnNotePassthrough is on (except on ESC)
-            bool recKey=(wc.key != -1) && ImGui::IsKeyPressed((ImGuiKey)wc.key) && (!settings.warnNotePassthrough || wc.key==ImGuiKey_Escape);
-            if (ImGui::Button(_(wc.name)) || recKey) {
+            bool passthroughKey=!settings.warnNotePassthrough || wc.key==ImGuiKey_Escape;
+            bool keyAccepted=(wc.key != -1) && ImGui::IsKeyPressed((ImGuiKey)wc.key) && passthroughKey;
+            String name=passthroughKey?(fmt::sprintf("%s%s",_(wc.name),wc.nameHint)):(_(wc.name));
+            if (ImGui::Button(_(name.c_str())) || keyAccepted) {
               warnIsOpen=false;
               ImGui::CloseCurrentPopup();
               wc.action();
