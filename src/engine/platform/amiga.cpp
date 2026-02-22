@@ -981,6 +981,10 @@ int DivPlatformAmiga::getRegisterPoolDepth() {
   return 16;
 }
 
+size_t DivPlatformAmiga::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformAmiga::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }

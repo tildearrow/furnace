@@ -978,6 +978,12 @@ class DivDispatch {
     virtual const char** getRegisterSheet();
 
     /**
+     * Get number of sample memory buffer.
+     * @return number of sample memory buffers.
+     */
+    virtual size_t getSampleMemNum();
+
+    /**
      * Get sample memory buffer.
      * @param index the memory index.
      * @return a pointer to sample memory, or NULL.

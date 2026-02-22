@@ -947,6 +947,10 @@ void DivPlatformX1_010::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+size_t DivPlatformX1_010::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformX1_010::getSampleMem(int index) {
   return index >= 0 ? sampleMem : 0;
 }

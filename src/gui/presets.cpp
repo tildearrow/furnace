@@ -248,13 +248,37 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
     SUB_ENTRY(
+      _("Neo Geo AES (with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0,
+          "clockSel=1\n"
+          "hasSharedAdpcmBus=true\n"
+        )
+      }
+    );
+    SUB_ENTRY(
       _("Neo Geo AES (extended channel 2)"), {
         CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "clockSel=1")
       }
     );
     SUB_ENTRY(
+      _("Neo Geo AES (extended channel 2, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0,
+          "clockSel=1\n"
+          "hasSharedAdpcmBus=true\n"
+        )
+      }
+    );
+    SUB_ENTRY(
       _("Neo Geo AES (CSM)"), {
         CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "clockSel=1")
+      }
+    );
+    SUB_ENTRY(
+      _("Neo Geo AES (CSM, with Shared ADPCM memory space))"), {
+        CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0,
+          "clockSel=1\n"
+          "hasSharedAdpcmBus=true\n"
+        )
       }
     );
   ENTRY(
@@ -2743,13 +2767,28 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
+      _("Neo Geo MVS (with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "hasSharedAdpcmBus=true")
+      }
+    );
+    SUB_ENTRY(
       _("Neo Geo MVS (extended channel 2)"), {
         CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
       }
     );
     SUB_ENTRY(
+      _("Neo Geo MVS (extended channel 2, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "hasSharedAdpcmBus=true")
+      }
+    );
+    SUB_ENTRY(
       _("Neo Geo MVS (CSM)"), {
         CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Neo Geo MVS (CSM, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "hasSharedAdpcmBus=true")
       }
     );
     SUB_ENTRY(
@@ -3321,13 +3360,28 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
     SUB_ENTRY(
+      _("Yamaha YM2610 (OPNB with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_FULL, 1.0f, 0, "hasSharedAdpcmBus=true")
+      }
+    );
+    SUB_ENTRY(
       _("Yamaha YM2610 (extended channel 2)"), {
         CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "")
       }
     );
     SUB_ENTRY(
+      _("Yamaha YM2610 (extended channel 2, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_FULL_EXT, 1.0f, 0, "hasSharedAdpcmBus=true")
+      }
+    );
+    SUB_ENTRY(
       _("Yamaha YM2610 (CSM)"), {
         CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Yamaha YM2610 (CSM, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610_CSM, 1.0f, 0, "hasSharedAdpcmBus=true")
       }
     );
   ENTRY(
@@ -3336,13 +3390,28 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
     SUB_ENTRY(
+      _("Yamaha YM2610B (OPNB2 with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "hasSharedAdpcmBus=true")
+      }
+    );
+    SUB_ENTRY(
       _("Yamaha YM2610B (extended channel 3)"), {
         CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "")
       }
     );
     SUB_ENTRY(
+      _("Yamaha YM2610B (extended channel 3, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610B_EXT, 1.0f, 0, "hasSharedAdpcmBus=true")
+      }
+    );
+    SUB_ENTRY(
       _("Yamaha YM2610B (CSM)"), {
         CH(DIV_SYSTEM_YM2610B_CSM, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Yamaha YM2610B (CSM, with Shared ADPCM memory space)"), {
+        CH(DIV_SYSTEM_YM2610B_CSM, 1.0f, 0, "hasSharedAdpcmBus=true")
       }
     );
   ENTRY(

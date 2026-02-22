@@ -90,6 +90,7 @@ class DivPlatformQSound: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    size_t getSampleMemNum();
     const void* getSampleMem(int index = 0);
     const char* getSampleMemName(int index=0);
     size_t getSampleMemCapacity(int index = 0);

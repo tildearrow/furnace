@@ -410,6 +410,10 @@ int DivPlatformRF5C68::getRegisterPoolSize() {
   return 144;
 }
 
+size_t DivPlatformRF5C68::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformRF5C68::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
