@@ -82,6 +82,7 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 - `5Bxy`: **set KSR of operator.**
   - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
+- `61xx`: **set algorithm** (0 to 1 for OPL1 and OPL2, 0 to 3 for OPL3 in 4-op mode).
 
 ## info
 

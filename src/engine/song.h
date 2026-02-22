@@ -113,6 +113,7 @@ struct DivSubSong {
   DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
   float hz;
+  int macroSpeedMult;
   int patLen, ordersLen;
 
   DivOrders orders;
@@ -158,6 +159,7 @@ struct DivSubSong {
     virtualTempoN(150),
     virtualTempoD(150),
     hz(60.0),
+    macroSpeedMult(1),
     patLen(64),
     ordersLen(1) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {

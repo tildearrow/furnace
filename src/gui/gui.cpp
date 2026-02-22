@@ -1933,7 +1933,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Open File"),
-        {_("compatible files"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
+        {_("compatible files"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe *.a2m *.a2t *.rad",
          _("all files"), "*"},
         workingDirSong,
         dpiScale
@@ -1992,7 +1992,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
-        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn *.a2i *.a2b *.a2w *.a2f",
          _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
@@ -2009,6 +2009,10 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          _("VOPM preset bank"), "*.opm",
          _("Wohlstand WOPL bank"), "*.wopl",
          _("Wohlstand WOPN bank"), "*.wopn",
+         _("Adlib Tracker 2 instrument"), "*.a2i",
+         _("Adlib Tracker 2 instrument with fm macros"), "*.a2f",
+         _("Adlib Tracker 2 instrument bank"), "*.a2b",
+         _("Adlib Tracker 2 instrument bank with arp/vib/fm macros"), "*.a2w",
          _("all files"), "*"},
         workingDirIns,
         dpiScale,
@@ -2655,6 +2659,21 @@ int FurnaceGUI::load(String path) {
   }
   if (!tutorial.importedIT && e->song.version==DIV_VERSION_IT) {
     showWarning(_("you have imported an Impulse Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your IT player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n  - channel volume changes are not supported\n  - New Note Actions (NNA) are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+  }
+  if (e->song.version==DIV_VERSION_A2M) {
+
+    String warn = _("you have imported an Adlib Tracker ][ module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your Adlib Tracker modules player\n- import is not perfect. your song may sound different:\n  - global volume changes are not supported\n\nhave fun!");
+
+    if(e->song.subsong[0]->macroSpeedMult > 1)
+    {
+      warn += fmt::sprintf(_GN("\n\nin this module macros execution speed is %d time larger than song rate. Conversion may be inaccurate.", 
+        "\n\nin this module macros execution speed is %d times larger than song rate. Conversion may be inaccurate.", e->song.subsong[0]->macroSpeedMult), e->song.subsong[0]->macroSpeedMult);
+    }
+
+    showWarning(warn,GUI_WARN_IMPORT);
+  }
+  if (e->song.version==DIV_VERSION_RAD) {
+    showWarning(_("you have imported a Reality Adlib Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your RAD modules player\n- import is not perfect. your song may sound different:\n  - riffs (both global ones and instrument ones) are not supported and are instead imported as separate subsongs\n  - \"Play riff\" effects (Rxx) are replaced with dummy A0xx effects\n  - \"Play transposed riff\" effects (Txx) are replaced with dummy A1xx effects\n\nhave fun!"),GUI_WARN_IMPORT);
   }
   return 0;
 }
@@ -5295,7 +5314,16 @@ bool FurnaceGUI::loop() {
           info=_("| Groove");
         }
 
-        info+=fmt::sprintf(_(" @ %gHz (%g BPM) "),e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->getVirtualTempoN(),e->getVirtualTempoD()));
+        info+=fmt::sprintf(_(" @ %gHz (%g BPM)"),e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->getVirtualTempoN(),e->getVirtualTempoD()));
+
+        if(e->curSubSong->macroSpeedMult > 1)
+        {
+          info+=fmt::sprintf(_(", macros @ %g Hz "),e->getCurHz() * e->curSubSong->macroSpeedMult);
+        }
+        else
+        {
+          info += fmt::sprintf(" ");
+        }
 
         if (settings.orderRowsBase) {
           info+=fmt::sprintf(_("| Order %.2X/%.2X "),playOrder,e->curSubSong->ordersLen-1);
@@ -6470,7 +6498,7 @@ bool FurnaceGUI::loop() {
 
       if (audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN) ImGui::Text(_("Channel %d of %d"),curFile+1,totalFiles);
 
-      ImGui::ProgressBar(curProgress,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
+      ImGui::ProgressBar(curProgress,ImVec2(600.0f*dpiScale,0),fmt::sprintf("%.2f%%",curProgress*100.0f).c_str());
 
       if (ImGui::Button(_("Abort"))) {
         if (e->haltAudioFile()) {

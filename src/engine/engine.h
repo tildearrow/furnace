@@ -66,6 +66,8 @@ class DivWorkPool;
 #define DIV_VERSION_TFE 0xff05
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
+#define DIV_VERSION_A2M 0xff08
+#define DIV_VERSION_RAD 0xff09
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -381,6 +383,7 @@ class DivEngine {
   size_t bufferPos;
   double divider;
   int cycles;
+  int macroMultCycles;
   double clockDrift;
   int midiClockCycles;
   double midiClockDrift;
@@ -520,6 +523,10 @@ class DivEngine {
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
 
+  // a big pile of adlib formats, sigh
+  bool loadAT2M(unsigned char* file, size_t len); // supports both a2m and a2t
+  bool loadRAD(unsigned char* file, size_t len);
+
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -535,8 +542,12 @@ class DivEngine {
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2I(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2B(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2W(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
+  void loadA2F(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
  
- //sample banks
+  //sample banks
   void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPC(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
@@ -1163,6 +1174,9 @@ class DivEngine {
     // is engine halted
     bool isHalted();
 
+    // update speed parameters according to macro speed multiplier
+    void updateMacroSpeedMult();
+
     // get register cheatsheet
     const char** getRegisterSheet(int sys);
 
@@ -1386,6 +1400,7 @@ class DivEngine {
       bufferPos(0),
       divider(60),
       cycles(0),
+      macroMultCycles(0),
       clockDrift(0),
       midiClockCycles(0),
       midiClockDrift(0),
