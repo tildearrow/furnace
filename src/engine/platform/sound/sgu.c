@@ -1063,9 +1063,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
 
                 if (ch_reg->swvol.amt & 32) // up
                 {
-                    int v = ch_reg->vol + (ch_reg->swvol.amt & 31);
-                    ch_reg->vol = (v > 127) ? 127 : (v < -128) ? -128
-                                                               : (int8_t)v;
+                    ch_reg->vol += (ch_reg->swvol.amt & 31);
 
                     // If not wrapping, clamp at upper bound.
                     if (ch_reg->vol > (int8_t)ch_reg->swvol.bound && !(ch_reg->swvol.amt & 64))
@@ -1094,9 +1092,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                 }
                 else // down
                 {
-                    int v = ch_reg->vol - (ch_reg->swvol.amt & 31);
-                    ch_reg->vol = (v > 127) ? 127 : (v < -128) ? -128
-                                                               : (int8_t)v;
+                    ch_reg->vol -= (ch_reg->swvol.amt & 31);
 
                     if (ch_reg->vol & 0x80)
                     {
