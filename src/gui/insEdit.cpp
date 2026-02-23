@@ -2200,7 +2200,7 @@ void FurnaceGUI::kvsConfig(DivInstrument* ins, bool supportsKVS) {
         ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
         for (int i=0; i<4; i++) {
-          int o=(opCount==4 && ins->type!=DIV_INS_ESFM)?orderedOps[i]:i;
+          int o=(opCount==4 && ins->type!=DIV_INS_ESFM && ins->type!=DIV_INS_SGU)?orderedOps[i]:i;
           if (!(i&1)) ImGui::TableNextRow();
           const char* label=_("AUTO##OPKVS");
           if (ins->fm.op[o].kvs==0) {
@@ -5326,7 +5326,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(8.0f*dpiScale,4.0f*dpiScale));
       if (ImGui::BeginTable("AltFMOperators",columns,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersInner)) {
         for (int i=0; i<opCount; i++) {
-          DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM)?opOrder[i]:i];
+          DivInstrumentFM::Operator& op=fmOrigin.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_ESFM && ins->type!=DIV_INS_SGU)?opOrder[i]:i];
           DivInstrumentESFM::Operator& opE=ins->esfm.op[i];
           if ((settings.fmLayout!=6 && ((i+1)&1)) || i==0 || settings.fmLayout==5) ImGui::TableNextRow();
           ImGui::TableNextColumn();
