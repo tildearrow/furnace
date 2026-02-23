@@ -162,6 +162,10 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef __attribute__
+#define __attribute__(x)
+#endif
+
 // -----------------------------------------------------------------------------
 // Operator register offsets (0-7 within each operator's 8-byte block)
 // -----------------------------------------------------------------------------
