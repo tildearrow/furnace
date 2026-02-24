@@ -1356,7 +1356,8 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     }
     ImGui::SetItemTooltip(_("Go to home directory"));
     ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_CHEVRON_UP "##ParentDir")) {
+    bool altUp=ImGui::IsKeyPressed(ImGuiKey_UpArrow) && ImGui::IsKeyDown(ImGuiKey_LeftAlt);
+    if (ImGui::Button(ICON_FA_CHEVRON_UP "##ParentDir") || altUp) {
       logV("Parent dir......");
       size_t pos=path.rfind(DIR_SEPARATOR);
 #ifdef _WIN32
