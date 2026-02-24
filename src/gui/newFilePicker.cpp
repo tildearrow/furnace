@@ -1390,9 +1390,12 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     ImGui::SetItemTooltip(_("Drives"));
 #endif
     ImGui::SameLine();
+
+    bool focusPathEdit=false;
     if (ImGui::Button(ICON_FA_PENCIL "##EditPath")) {
       editablePath=path;
       editingPath=true;
+      focusPathEdit=true;
     }
     ImGui::SetItemTooltip(_("Edit path"));
 
@@ -1402,6 +1405,9 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
     if (editingPath) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(ImGui::GetStyle().ItemSpacing.x+ImGui::GetStyle().FramePadding.x*2.0f+ImGui::CalcTextSize(_("OK")).x));
+      if (focusPathEdit && !isMobile) {
+        ImGui::SetKeyboardFocusHere();
+      }
       ImGui::InputText("##EditablePath",&editablePath);
       if (inputConfirmed()) {
         newDir=editablePath;
