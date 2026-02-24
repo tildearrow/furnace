@@ -316,8 +316,8 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 #define SGU1_CHN_SWCUT_BND    (0x1B)
 #define SGU1_CHN_RESTIMER_L   (0x1C)
 #define SGU1_CHN_RESTIMER_H   (0x1D)
-#define SGU1_CHN_SPECIAL1     (0x1E)
-#define SGU1_CHN_SPECIAL2     (0x1F)
+#define SGU1_CHN_LFOW         (0x1E)
+#define SGU1_CHN_SPECIAL      (0x1F)
 
 // channel control bits
 #define SGU1_FLAGS0_CTL_GATE      (1 << 0)
@@ -498,14 +498,19 @@ struct SGU_CH
     // restimer: period for periodic phase reset when SGU_FLAGS1_TIMER_SYNC is set.
     uint16_t restimer;
 
+    // lfow: LFO waveform shape register
+    //   [1:0] AM shape (0=saw, 1=square, 2=triangle, 3=noise)
+    //   [3:2] PM shape (0=saw, 1=square, 2=triangle, 3=noise)
+    //   [7:4] reserved
+    uint8_t lfow;
+
     // ### Used for implementation specific purposes.
-    // Default function in X65 deployment special2 changes the channel mapped into
+    // Default function in X65 deployment `special` changes the channel mapped into
     // CPU memory space, which consists of 64 registers only
     // and would not fit all channels at once.
     // Channel FFh is special, as it maps service registers into memory space.
     // Chip identifier, UniqueID and mixer/DSP controls.
-    uint8_t special1;
-    uint8_t special2;
+    uint8_t special;
 };
 
 // Per-operator state, packed for cache locality (20 bytes per operator)
@@ -544,10 +549,11 @@ struct SGU
     uint32_t sample_counter;   // sample clock ticks
     uint32_t envelope_counter; // envelope counter; low 2 bits are sub-counter
 
-    // internal state - global LFO
-    uint16_t lfo_am_counter; // LFO AM counter
-    uint16_t lfo_pm_counter; // LFO PM counter
-    uint8_t lfo_am;          // current LFO AM value
+    // internal state - global LFO (OPM-style shared counter domain)
+    uint16_t lfo_counter;    // shared LFO counter (0..16383, wraps at 16384)
+    uint32_t lfo_lfsr;       // OPM-style LFSR for noise shapes (feedback: bit17^bit14^1)
+    uint8_t lfo_noise_am;    // latched noise value for AM (0..127)
+    int8_t lfo_noise_pm;     // latched noise value for PM (-8..+7)
 
     // channels internal state
     struct sgu_ch_state
@@ -558,7 +564,10 @@ struct SGU
     } m_channel[SGU_CHNS];
 
     // Cached per-sample globals (written by Setup, read by both cores)
-    int32_t cached_lfo_raw_pm;
+    uint8_t cached_lfo_phase_am;    // AM phase index (0..255)
+    uint8_t cached_lfo_phase_pm;    // PM phase index (0..255)
+    uint8_t cached_lfo_noise_am;    // latched AM noise value
+    int8_t cached_lfo_noise_pm;     // latched PM noise value
     bool cached_env_tick;
     uint32_t cached_env_counter_tick;
 

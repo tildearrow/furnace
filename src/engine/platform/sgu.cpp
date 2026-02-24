@@ -71,8 +71,8 @@ static const char* regCheatSheetSGU[]={
   "CHx_SWCUT_BND", "3B+x*40",
   "CHx_RESTIMER_L", "3C+x*40",
   "CHx_RESTIMER_H", "3D+x*40",
-  "CHx_SPECIAL1", "3E+x*40",
-  "CHx_SPECIAL2", "3F+x*40",
+  "CHx_LFOW", "3E+x*40",
+  "CHx_SPECIAL", "3F+x*40",
   NULL
 };
 
@@ -258,6 +258,32 @@ void DivPlatformSGU::tick(bool sysTick) {
       bool chRing=chan[i].std.ex7.val&1;
       chan[i].control=(chan[i].control&0x0e)|(chRing?1:0);
       writeControl(i);
+    }
+
+    // LFO AM Shape (from waveMacro) and PM Shape (from ex8Macro)
+    {
+      bool lfowDirty=false;
+      if (chan[i].std.wave.had) {
+        unsigned char newAm=chan[i].std.wave.val&3;
+        if (chan[i].lfowAm!=newAm) {
+          chan[i].lfowAm=newAm;
+          lfowDirty=true;
+        }
+      }
+      if (chan[i].std.ex8.had) {
+        unsigned char newPm=chan[i].std.ex8.val&3;
+        if (chan[i].lfowPm!=newPm) {
+          chan[i].lfowPm=newPm;
+          lfowDirty=true;
+        }
+      }
+      if (lfowDirty) {
+        unsigned char newLfow=(chan[i].lfow&0xF0)|(chan[i].lfowAm&3)|((chan[i].lfowPm&3)<<2);
+        if (chan[i].lfow!=newLfow) {
+          chan[i].lfow=newLfow;
+          chWrite(i,SGU1_CHN_LFOW,chan[i].lfow);
+        }
+      }
     }
 
     // run hardware sequence
@@ -1414,6 +1440,7 @@ void DivPlatformSGU::forceIns() {
     writeControl(i);
     writeControlUpper(i);
     chWrite(i,SGU1_CHN_DUTY,chan[i].duty);
+    chWrite(i,SGU1_CHN_LFOW,chan[i].lfow);
   }
 }
 
