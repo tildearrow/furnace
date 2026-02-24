@@ -89,6 +89,7 @@ class DivPlatformSGU: public DivDispatch {
       }
     }
 
+    unsigned char lfowAm, lfowPm, lfow;
     bool gate, pcm, phaseReset, filterPhaseReset;
     bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep, released;
     unsigned short freqSweepP, volSweepP, cutSweepP;
@@ -110,6 +111,9 @@ class DivPlatformSGU: public DivDispatch {
       sample(-1),
       pan(0),
       duty(63),
+      lfowAm(0),
+      lfowPm(0),
+      lfow(0),
       gate(false),
       pcm(false),
       phaseReset(false),

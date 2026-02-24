@@ -349,34 +349,87 @@ static inline uint8_t compute_eg_rate(uint8_t op_reg[], uint32_t keycode, enum e
 }
 
 //-------------------------------------------------
-//  clock_lfo - clock the global LFO for AM and PM
-//  Called once per sample (global state)
+//  clock_lfo - clock the global LFO (OPM-style shared counter domain)
+//  Called once per sample (global state).
+//  One shared counter. PM derives 256-step cycle over 8192 samples (~5.86 Hz @ 48kHz).
+//  AM derives 256-step cycle over 16384 samples (~2.93 Hz @ 48kHz).
+//  LFSR uses OPM taps: feedback = bit17 ^ bit14 ^ 1, clocked each sample.
 //-------------------------------------------------
-static inline int32_t clock_lfo(uint16_t *lfo_am_counter, uint16_t *lfo_pm_counter, uint8_t *lfo_am)
+static inline void clock_lfo(struct SGU *sgu)
 {
-    // OPL has two fixed-frequency LFOs, one for AM, one for PM
+    uint16_t counter = sgu->lfo_counter;
+    counter = (counter + 1) & 0x3FFF; // wrap at 16384
+    sgu->lfo_counter = counter;
 
-    // the AM LFO has 210*64 steps; at a nominal 50kHz output,
-    // this equates to a period of 50000/(210*64) = 3.72Hz
-    uint32_t am_counter = (*lfo_am_counter)++;
-    if (am_counter >= 210 * 64 - 1)
-        *lfo_am_counter = 0;
+    // Derive phase indices
+    uint8_t lfoPhasePm = (uint8_t)((counter >> 5) & 0xFF); // 256-step over 8192 samples
+    uint8_t lfoPhaseAm = (uint8_t)((counter >> 6) & 0xFF); // 256-step over 16384 samples
 
-    // low 8 bits are fractional; compute at max depth and scale per-operator later
-    int shift = 7;
+    // Clock LFSR each sample (OPM-style: feedback = bit17 ^ bit14 ^ 1)
+    uint32_t lfsr = sgu->lfo_lfsr;
+    uint32_t bit = ((lfsr >> 17) ^ (lfsr >> 14) ^ 1) & 1;
+    lfsr = (lfsr << 1) | bit;
+    sgu->lfo_lfsr = lfsr;
 
-    // AM value is the upper bits of the value, inverted across the midpoint
-    // to produce a triangle
-    *lfo_am = (uint8_t)(((am_counter < 105 * 64) ? am_counter : (210 * 64 + 63 - am_counter)) >> shift);
+    // Latch noise values at phase boundaries
+    // AM noise latches when AM phase changes (every 64 samples)
+    if ((counter & 0x3F) == 0)
+        sgu->lfo_noise_am = (uint8_t)((lfsr >> 1) & 0x7F); // 0..127
+    // PM noise latches when PM phase changes (every 32 samples)
+    if ((counter & 0x1F) == 0)
+        sgu->lfo_noise_pm = (int8_t)(((lfsr >> 9) & 0x0F) - 8); // -8..+7
 
-    // the PM LFO has 8192 steps, or a nominal period of 6.1Hz
-    uint32_t pm_counter = (*lfo_pm_counter)++;
+    sgu->cached_lfo_phase_am = lfoPhaseAm;
+    sgu->cached_lfo_phase_pm = lfoPhasePm;
+    sgu->cached_lfo_noise_am = sgu->lfo_noise_am;
+    sgu->cached_lfo_noise_pm = sgu->lfo_noise_pm;
+}
 
-    // PM LFO is broken into 8 chunks, each lasting 1024 steps; the PM value
-    // depends on the upper bits of FNUM, so this value is a fraction and
-    // sign to apply to that value, as a 1.3 value
-    static int8_t const pm_scale[8] = {8, 4, 0, -4, -8, -4, 0, 4};
-    return pm_scale[(pm_counter >> 10) & 7];
+//-------------------------------------------------
+//  lfo_compute_am - compute per-channel AM value from phase and shape
+//  Returns uint8_t (0..127), used as envelope attenuation offset
+//-------------------------------------------------
+static inline uint8_t lfo_compute_am(uint8_t phaseAm, uint8_t amShape, uint8_t noiseAm)
+{
+    switch (amShape)
+    {
+    case 0: // Saw: 0 at phase 0, 127 at phase 255
+        return phaseAm >> 1;
+    case 1: // Square: 0 for first half, 126 for second half
+        return (phaseAm < 128) ? 0 : 126;
+    case 2: // Triangle: 0→127→0 over one cycle
+        return (phaseAm < 128) ? phaseAm : (uint8_t)(255 - phaseAm);
+    case 3: // Noise: latched LFSR value
+        return noiseAm;
+    default:
+        return 0;
+    }
+}
+
+//-------------------------------------------------
+//  lfo_compute_pm - compute per-channel PM value from phase and shape
+//  Returns int32_t in range -8..+8, compatible with existing PM plumbing
+//-------------------------------------------------
+static inline int32_t lfo_compute_pm(uint8_t phasePm, uint8_t pmShape, int8_t noisePm)
+{
+    switch (pmShape)
+    {
+    case 0: // Saw: falling sawtooth, +8 at phase 0, -8 at phase 255
+        return ((int32_t)128 - (int32_t)phasePm) >> 4;
+    case 1: // Square: +8 for first half, -8 for second half
+        return (phasePm < 128) ? 8 : -8;
+    case 2: // Triangle: 0→+8→0→-8→0 over one cycle
+    {
+        int32_t halfphase = (int32_t)(phasePm & 0x7F); // 0..127
+        int32_t tri = (halfphase < 64) ? halfphase : (128 - halfphase);
+        tri >>= 3; // scale to 0..8
+        return (phasePm >= 128) ? -tri : tri;
+    }
+    case 3: // Noise: latched LFSR value
+        return (int32_t)noisePm;
+    default:
+        return 0;
+    }
 }
 
 //-------------------------------------------------
@@ -604,10 +657,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Setup(struct SGU *restric
         sgu->envelope_counter += 4 - EG_CLOCK_DIVIDER;
 
     // clock the global LFO (once per sample)
-    sgu->cached_lfo_raw_pm = clock_lfo(
-        &sgu->lfo_am_counter,
-        &sgu->lfo_pm_counter,
-        &sgu->lfo_am);
+    clock_lfo(sgu);
     sgu->cached_env_tick = ((sgu->envelope_counter & 3u) == 0u);
     sgu->cached_env_counter_tick = sgu->envelope_counter >> 2;
 }
@@ -624,7 +674,10 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
     int32_t L = 0;
     int32_t R = 0;
 
-    const int32_t lfo_raw_pm = sgu->cached_lfo_raw_pm;
+    const uint8_t lfoPhaseAm = sgu->cached_lfo_phase_am;
+    const uint8_t lfoPhasePm = sgu->cached_lfo_phase_pm;
+    const uint8_t lfoNoiseAm = sgu->cached_lfo_noise_am;
+    const int8_t lfoNoisePm = sgu->cached_lfo_noise_pm;
     const bool env_tick = sgu->cached_env_tick;
     const uint32_t env_counter_tick = sgu->cached_env_counter_tick;
 
@@ -677,6 +730,14 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
             uint32_t ch_keycode, block, fnum_4msb;
             freq16_decode(ch_freq, &ch_keycode, &block, &fnum_4msb);
             uint32_t ch_ksl_atten = opl_key_scale_atten(block, fnum_4msb);
+
+            // Per-channel LFO: read shape from lfow register
+            const uint8_t ch_lfow = ch_reg->lfow;
+            const uint8_t amShape = ch_lfow & 3;
+            const uint8_t pmShape = (ch_lfow >> 2) & 3;
+            const uint8_t ch_lfo_am = lfo_compute_am(lfoPhaseAm, amShape, lfoNoiseAm);
+            const int32_t lfo_raw_pm = lfo_compute_pm(lfoPhasePm, pmShape, lfoNoisePm);
+
             const uint32_t phase_step_pm0 = sgu_phase_step_from_freq_clamped((int32_t)ch_freq);
             const int32_t pm_mul = (int32_t)ch_freq * lfo_raw_pm;
             const uint32_t phase_step_pm_half = sgu_phase_step_from_freq_clamped((int32_t)ch_freq + (pm_mul >> 11));
@@ -948,7 +1009,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                     // add in LFO AM modulation (apply per-operator AM depth)
                     if (SGU_OP0_TRM(op_reg[0]))
                     {
-                        uint32_t am_offset = sgu->lfo_am;
+                        uint32_t am_offset = ch_lfo_am;
                         if (!SGU_OP6_TRMD(op_reg[6]))
                             am_offset >>= 2;
                         env_att += am_offset;
@@ -1351,9 +1412,10 @@ void SGU_Reset(struct SGU *sgu)
 
     sgu->sample_counter = 0;
     sgu->envelope_counter = 0;
-    sgu->lfo_am_counter = 0;
-    sgu->lfo_pm_counter = 0;
-    sgu->lfo_am = 0;
+    sgu->lfo_counter = 0;
+    sgu->lfo_lfsr = 0x1FFFF; // non-zero seed (17 bits set)
+    sgu->lfo_noise_am = 0;
+    sgu->lfo_noise_pm = 0;
 
     for (uint8_t ch = 0; ch < SGU_CHNS; ch++)
     {
