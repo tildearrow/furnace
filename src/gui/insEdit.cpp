@@ -7311,9 +7311,12 @@ void FurnaceGUI::drawInsEdit() {
 
           insTabFM(ins);
 
-          if (ins->type!=DIV_INS_ESFM && ins->type!=DIV_INS_SGU) {
+          if (ins->type!=DIV_INS_ESFM) {
             if (ImGui::BeginTabItem(_("FM Macros"))) {
-              if (ins->type==DIV_INS_OPLL) {
+              if (ins->type==DIV_INS_SGU) {
+                macroList.push_back(FurnaceGUIMacroDesc(_("LFO AM Shape"),&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+                macroList.push_back(FurnaceGUIMacroDesc(_("LFO PM Shape"),&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+              } else if (ins->type==DIV_INS_OPLL) {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_FB),&ins->std.fbMacro,0,7,96,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DC),&ins->std.fmsMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
