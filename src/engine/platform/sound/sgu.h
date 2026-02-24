@@ -379,7 +379,7 @@ typedef enum
 } sgu_lfsr_t;
 
 // Envelope states
-enum envelope_state : uint8_t
+enum envelope_state
 {
     SGU_EG_ATTACK = 0,
     SGU_EG_DECAY = 1,
