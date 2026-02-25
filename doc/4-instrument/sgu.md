@@ -1,8 +1,9 @@
 # SGU-1 instrument editor
 
-the SGU-1 instrument editor is divided into 7 tabs:
+the SGU-1 instrument editor is divided into 8 tabs:
 
 - **FM**: for controlling the basic parameters of the 4-operator FM sound source.
+- **FM Macros**: for macros controlling the LFO waveform shapes (AM and PM).
 - **Macros (OP1)**: for macros controlling parameters of operator 1.
 - **Macros (OP2)**: for macros controlling parameters of operator 2.
 - **Macros (OP3)**: for macros controlling parameters of operator 3.
@@ -28,7 +29,7 @@ additionally, SGU-1 extends each operator with hard sync, ring modulation, a wav
 these apply to each operator:
 
 - the crossed-arrows button can be dragged to rearrange operators.
-- **Amplitude Modulation (AM)**: makes the operator affected by LFO tremolo.
+- **Amplitude Modulation (AM)**: makes the operator affected by LFO tremolo. the LFO AM waveform shape is selectable per channel via the FM Macros tab.
 - **AM Depth (DAM)**: when enabled, LFO tremolo is deeper (1dB off; 4.8dB on).
 - **Envelope Delay (DL)**: determines the delay time before the envelope is triggered. the bigger the value, the longer the delay (0 to 7).
   - a change of one unit doubles or halves the delay time (2^(DL+8) samples).
@@ -51,7 +52,7 @@ these apply to each operator:
 - **Waveform Parameter (WPAR)**: per-operator wave shaping parameter (0 to 15). the meaning depends on the selected waveform. see [waveforms](#waveforms) below.
 - **Hard Sync (SYNC)**: when enabled, this operator's phase resets whenever the previous operator's phase wraps around. creates hard-edged, harmonically rich timbres. for operator 1, the previous operator is operator 4.
 - **Ring Modulation (RING)**: when enabled, this operator's output is multiplied by the previous operator's output, producing sum and difference frequencies for bell-like or metallic tones. for operator 1, the previous operator is operator 4.
-- **Vibrato (VIB)**: makes the operator affected by LFO vibrato.
+- **Vibrato (VIB)**: makes the operator affected by LFO vibrato. the LFO PM waveform shape is selectable per channel via the FM Macros tab.
 - **Vibrato Depth (DVB)**: when enabled, vibrato is deeper.
 
 ![FM ADSR chart](FM-ADSRchart.png)
@@ -151,6 +152,25 @@ the hardware sequencer allows automating sweep parameters. the available command
 - **WAIT_REL**: pause until key release.
 - **LOOP**: jump to a position in the sequence.
 - **LOOP_REL**: jump to a position until key release.
+
+## FM Macros
+
+these macros control the per-channel LFO waveform shapes for amplitude modulation (AM/tremolo) and phase modulation (PM/vibrato).
+
+SGU-1 uses an OPM-style shared LFO counter with per-channel waveform shape selection. the AM LFO cycles at ~2.93 Hz and the PM LFO cycles at ~5.86 Hz (both at 48 kHz sample rate).
+
+- **LFO AM Shape**: selects the tremolo waveform shape for this channel (0 to 3).
+  - `0`: **Saw** — rising ramp.
+  - `1`: **Square** — on/off tremolo.
+  - `2`: **Triangle** — smooth symmetric tremolo (default OPL-like behavior).
+  - `3`: **Random** — noise-based tremolo from an OPM-style LFSR.
+- **LFO PM Shape**: selects the vibrato waveform shape for this channel (0 to 3).
+  - `0`: **Saw** — falling sawtooth pitch sweep.
+  - `1`: **Square** — alternating sharp pitch shift.
+  - `2`: **Triangle** — smooth symmetric vibrato (default OPL-like behavior).
+  - `3`: **Random** — noise-based vibrato from an OPM-style LFSR.
+
+the shape selection only affects operators that have AM or VIB enabled. the depth is still controlled per-operator by DAM and DVB.
 
 ## OP1-OP4 Macros
 

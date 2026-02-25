@@ -242,7 +242,7 @@ ex | AY-3-8910    | AY8930         | Lynx      | MSM5232      | SAA1099  |
 ex | C64           | SID2          | SID3               | Sound Unit        | SGU-1             |
 :-:|---------------|---------------|--------------------|-------------------|-------------------|
  D | Duty          | Duty          | Duty               | Duty              | Duty              |
- W | Waveform      | Waveform      | Waveform           | Waveform          |                   |
+ W | Waveform      | Waveform      | Waveform           | Waveform          | LFO AM Shape      |
  1 | Filter Mode   | Filter Mode   | Special            | Cutoff            | Cutoff            |
  2 | Resonance     | Resonance     | Attack             | Resonance         | Resonance         |
  3 | Filter Toggle | Filter Toggle | Decay              | Control           | Filter Control    |
@@ -254,7 +254,7 @@ ex | C64           | SID2          | SID3               | Sound Unit        | SG
  5 | Attack        | Attack        | Sustain Rate       |                   | Op. Sync          |
  6 | Decay         | Decay         | Release            |                   | Op. Ring          |
  7 | Sustain       | Sustain       | Noise LFSR bits    |                   | Ch. Ring Mod      |
- 8 | Release       | Release       | Wave Mix           |                   |                   |
+ 8 | Release       | Release       | Wave Mix           |                   | LFO PM Shape      |
 
 SID3 instruments also use some of the FM operator macros in the main macros list:
 

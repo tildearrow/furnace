@@ -22,6 +22,7 @@ it has the following capabilities:
 - 128 pulse widths for pulse waveform
 - volume, frequency and cutoff sweep units (per-channel)
 - phase reset timer (per-channel)
+- per-channel LFO waveform shape selection (saw, square, triangle, noise) for AM (tremolo) and PM (vibrato)
 - 64KB PCM sample memory
 - hardware sequencer (same as Sound Unit)
 
