@@ -71,6 +71,7 @@ typedef struct
 	FLAC__StreamMetadata *metadata ;
 
 	const int32_t * const * wbuffer ;
+	unsigned wbuffer_size ;
 	int32_t * rbuffer [FLAC__MAX_CHANNELS] ;
 
 	int32_t* encbuffer ;
@@ -193,6 +194,12 @@ flac_buffer_copy (SF_PRIVATE *psf)
 	*/
 	if (frame->header.blocksize > FLAC__MAX_BLOCK_SIZE)
 	{	psf_log_printf (psf, "Ooops : frame->header.blocksize (%d) > FLAC__MAX_BLOCK_SIZE (%d)\n", __func__, __LINE__, frame->header.blocksize, FLAC__MAX_BLOCK_SIZE) ;
+		psf->error = SFE_INTERNAL ;
+		return 0 ;
+		} ;
+
+	if (frame->header.blocksize > pflac->wbuffer_size)
+	{	psf_log_printf (psf, "Ooops : frame->header.blocksize (%d) > pflac->wbuffer_size (%d)\n", __func__, __LINE__, frame->header.blocksize, pflac->wbuffer_size) ;
 		psf->error = SFE_INTERNAL ;
 		return 0 ;
 		} ;
@@ -402,6 +409,7 @@ sf_flac_write_callback (const FLAC__StreamDecoder * UNUSED (decoder), const FLAC
 	pflac->bufferpos = 0 ;
 
 	pflac->wbuffer = buffer ;
+	pflac->wbuffer_size = pflac->frame->header.blocksize ;
 
 	flac_buffer_copy (psf) ;
 
