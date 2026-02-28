@@ -72,6 +72,7 @@ void VSU::Power(void)
   IntervalCounter[ch] = 0;
   EnvelopeCounter[ch] = 1;
 
+  SampleClockDivider[ch] = 120;
   EffectsClockDivider[ch] = 4800;
   IntervalClockDivider[ch] = 4;
   EnvelopeClockDivider[ch] = 4;
@@ -281,24 +282,15 @@ void VSU::Update(int timestamp)
   int clocks = timestamp - last_ts;
   int running_timestamp = last_ts;
 
-  // Output sound here
-  CalcCurrentOutput(ch, left, right);
-  if (left!=last_output[ch][0]) {
-    blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
-  last_output[ch][0] = left;
-  }
-  if (right!=last_output[ch][1]) {
-    blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
-  last_output[ch][1] = right;
-  }
-  oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
-
   if(!(IntlControl[ch] & 0x80))
    continue;
 
   while(clocks > 0)
   {
    int chunk_clocks = clocks;
+
+   if (chunk_clocks > SampleClockDivider[ch])
+    chunk_clocks = SampleClockDivider[ch];
 
    if(chunk_clocks > EffectsClockDivider[ch])
     chunk_clocks = EffectsClockDivider[ch];
@@ -354,6 +346,23 @@ void VSU::Update(int timestamp)
      NoiseLatcherClockDivider = 120;
      NoiseLatcher = ((lfsr & 1) << 6) - (lfsr & 1);
     }
+   }
+
+   SampleClockDivider[ch] -= chunk_clocks;
+   while(SampleClockDivider[ch] <= 0) {
+    SampleClockDivider[ch] += 120;
+
+    // Output sound here
+    CalcCurrentOutput(ch, left, right);
+    if (left!=last_output[ch][0]) {
+      blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
+    last_output[ch][0] = left;
+    }
+    if (right!=last_output[ch][1]) {
+      blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
+    last_output[ch][1] = right;
+    }
+    oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
    }
 
    EffectsClockDivider[ch] -= chunk_clocks;
@@ -467,18 +476,6 @@ void VSU::Update(int timestamp)
    } // end while(EffectsClockDivider[ch] <= 0)
    clocks -= chunk_clocks;
    running_timestamp += chunk_clocks;
-
-   // Output sound here too.
-   CalcCurrentOutput(ch, left, right);
-   if (left!=last_output[ch][0]) {
-     blip_add_delta(bb[0],running_timestamp,left - last_output[ch][0]);
-   last_output[ch][0] = left;
-   }
-   if (right!=last_output[ch][1]) {
-     blip_add_delta(bb[1],running_timestamp,right - last_output[ch][1]);
-   last_output[ch][1] = right;
-   }
-   oscBuf[ch]->putSample(running_timestamp,(left+right)*8);
   }
  }
  last_ts = timestamp;
