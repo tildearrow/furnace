@@ -17,8 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "../engine/bsr.h"
 #include "gui.h"
 #include <imgui.h>
+
+#define ENABLE_REGVIEW_OPTIONS \
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) { \
+    regViewOptions=!regViewOptions; \
+  } \
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) { \
+    NOTIFY_LONG_HOLD; \
+    regViewOptions=!regViewOptions; \
+  }
 
 void FurnaceGUI::drawRegView() {
   if (nextWindow==GUI_WINDOW_REGISTER_VIEW) {
@@ -28,51 +38,70 @@ void FurnaceGUI::drawRegView() {
   }
   if (!regViewOpen) return;
   if (ImGui::Begin("Register View",&regViewOpen,globalWinFlags,_("Register View"))) {
-    for (int i=0; i<e->song.systemLen; i++) {
-      ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
-      int size=0;
-      int depth=8;
-      unsigned char* regPool=e->getRegisterPool(i,size,depth);
-      unsigned short* regPoolW=(unsigned short*)regPool;
-      if (regPool==NULL) {
-        ImGui::Text(_("- no register pool available"));
-      } else {
-        ImGui::PushFont(patFont);
-        if (ImGui::BeginTable("Memory",17)) {
-          float widthOne=ImGui::CalcTextSize("0").x;
-          if (size>0xfff) { // no im got gonna put some clamped log formula instead
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*4.0f);
-          } else if (size>0xff) {
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*3.0f);
-          } else {
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*2.0f);
-          }
-          
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          for (int i=0; i<16; i++) {
-            ImGui::TableNextColumn();
-            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %X",i);
-          }
-          for (int i=0; i<=((size-1)>>4); i++) {
+    if (regViewOptions) {
+      if (ImGui::BeginTable("regViewSettings",1)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Bytes per columns"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputInt("##RegViewColumns",&regViewColumns,1,4)) {
+          if (regViewColumns<1) regViewColumns=1;
+          if (regViewColumns>64) regViewColumns=64;
+        }
+      }
+      if (ImGui::Button(_("OK"))) {
+        regViewOptions=false;
+      }
+    } else {
+      for (int i=0; i<e->song.systemLen; i++) {
+        ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
+        ENABLE_REGVIEW_OPTIONS
+        int size=0;
+        int depth=8;
+        unsigned char* regPool=e->getRegisterPool(i,size,depth);
+        unsigned short* regPoolW=(unsigned short*)regPool;
+        if (regPool==NULL) {
+          ImGui::Text(_("- no register pool available"));
+          ENABLE_REGVIEW_OPTIONS
+        } else {
+          ImGui::PushFont(patFont);
+          int rows=MAX(1,regViewColumns/MAX(1,(1<<(bsr(depth)-4))));
+          if (ImGui::BeginTable("Memory",1+rows)) {
+            int calcSize=size/rows;
+            int calcSizeMul=(bsr32(calcSize)+3)>>2;
+            float widthOne=ImGui::CalcTextSize("0").x;
+            float widthMul=1.0f+((float)calcSizeMul);
+            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*widthMul);
+
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%.2X",i*16);
-            for (int j=0; j<16; j++) {
+            for (int i=0; i<rows; i++) {
               ImGui::TableNextColumn();
-              if (i*16+j>=size) continue;
-              if (depth == 8) {
-                ImGui::Text("%.2x",regPool[i*16+j]);
-              } else if (depth == 16) {
-                ImGui::Text("%.4x",regPoolW[i*16+j]);
-              } else {
-                ImGui::Text("??");
+              ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %X",i);
+              ENABLE_REGVIEW_OPTIONS
+            }
+            for (int i=0; i<size; i+=rows) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%.2X",i);
+              ENABLE_REGVIEW_OPTIONS
+              for (int j=0; j<rows; j++) {
+                ImGui::TableNextColumn();
+                if (i+j>=size) continue;
+                switch (depth) {
+                  case 8: ImGui::Text("%.2x",regPool[i+j]); break;
+                  case 16: ImGui::Text("%.4x",regPoolW[i+j]); break;
+                  default: ImGui::Text("??"); break;
+                }
+                ENABLE_REGVIEW_OPTIONS
               }
             }
+            ImGui::EndTable();
           }
-          ImGui::EndTable();
+          ImGui::PopFont();
         }
-        ImGui::PopFont();
       }
     }
   }

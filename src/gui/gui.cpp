@@ -8483,6 +8483,9 @@ void FurnaceGUI::syncState() {
   xyOscIntensity=e->getConfFloat("xyOscIntensity",2.0f);
   xyOscThickness=e->getConfFloat("xyOscThickness",2.0f);
 
+  regViewColumns=e->getConfInt("regViewColumns",16);
+  regViewOptions=e->getConfBool("regViewOptions",false);
+
   cvHiScore=e->getConfInt("cvHiScore",25000);
 
   newFilePicker->loadSettings(e->getConfObject());
@@ -8657,6 +8660,10 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("xyOscDecayTime",xyOscDecayTime);
   conf.set("xyOscIntensity",xyOscIntensity);
   conf.set("xyOscThickness",xyOscThickness);
+
+  // commit register view state
+  conf.set("regViewColumns",regViewColumns);
+  conf.set("regViewOptions",regViewOptions);
 
   // commit recent files
   for (int i=0; i<30; i++) {
@@ -9294,6 +9301,8 @@ FurnaceGUI::FurnaceGUI():
   xyOscDecayTime(10.0f),
   xyOscIntensity(2.0f),
   xyOscThickness(2.0f),
+  regViewColumns(16),
+  regViewOptions(false),
   tunerFFTInBuf(NULL),
   tunerFFTOutBuf(NULL),
   tunerPlan(NULL),
