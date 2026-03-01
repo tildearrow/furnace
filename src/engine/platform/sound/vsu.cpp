@@ -184,14 +184,16 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
              Frequency[ch] |= V << 0;
              EffFreq[ch] &= 0xFF00;
              EffFreq[ch] |= V << 0;
-             ModLock = 1;
+             if (ch == 4)
+              ModLock = 1;
 	     break;
 
    case 0x3: Frequency[ch] &= 0x00FF;
              Frequency[ch] |= (V & 0x7) << 8;
              EffFreq[ch] &= 0x00FF;
              EffFreq[ch] |= (V & 0x7) << 8;
-             ModLock = 2;
+             if (ch == 4)
+              ModLock = 2;
 	     break;
 
    case 0x4: EnvControl[ch] &= 0xFF00;
