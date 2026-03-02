@@ -1259,12 +1259,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0xc0: case 0xc1: case 0xc2: case 0xc3: // set Hz
+        if((double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult > 1025.0) break; //macro rate can't exceed 1025 Hz
         // Cxxx, where `xxx` is between 1 and 1023
         // divider is the tick rate in Hz
         // cycles is the number of samples between ticks
         // clockDrift is used for accuracy and subticks for low-latency mode
         // (where we run faster thsn the tick rate to allow sub-tick note events from live playback)
-        divider=(double)(((effect&0x3)<<8)|effectVal);
+        divider=(double)(((effect&0x3)<<8)|effectVal) * (double)curSubSong->macroSpeedMult;
         if (divider<1) divider=1;
         cycles=got.rate/divider;
         clockDrift=0;
@@ -2006,6 +2007,14 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   // prevent a division by zero
   if (divider<1) divider=1;
 
+  bool advanceSong = false;
+  macroMultCycles++;
+  if(macroMultCycles == curSubSong->macroSpeedMult)
+  {
+    macroMultCycles = 0;
+    advanceSong = true;
+  }
+
   // low-latency mode only
   // set the tick multiplier so that when multiplied by the divider the product is close to 1000
   if (lowLatency && !skipping && !inhibitLowLat) {
@@ -2024,412 +2033,416 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     cycles++;
   }
 
-  // don't let user play anything during export
-  if (exporting) pendingNotes.clear();
+  if(advanceSong)
+  {
+    // don't let user play anything during export
+    if (exporting) pendingNotes.clear();
 
-  // process pending notes (live playback)
+    // process pending notes (live playback)
   if (!pendingNotes.empty()) {
-    bool isOn[DIV_MAX_CHANS];
-    memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
-
-    // this is a check that nullifies any note off event that right after a note on
+      bool isOn[DIV_MAX_CHANS];
+      memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
+  
+      // this is a check that nullifies any note off event that right after a note on
     // it prevents a situation where some notes do not play
     for (int i=pendingNotes.size()-1; i>=0; i--) {
-      if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=song.chans) continue;
-      if (pendingNotes[i].on) {
-        isOn[pendingNotes[i].channel]=true;
-      } else {
-        // this is a note off - check whether the channel is going up.
+        if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=song.chans) continue;
+        if (pendingNotes[i].on) {
+          isOn[pendingNotes[i].channel]=true;
+        } else {
+          // this is a note off - check whether the channel is going up.
         // if so, cancel this event.
         if (isOn[pendingNotes[i].channel]) {
-          //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
-          pendingNotes[i].nop=true;
-        }
-      }
-    }
-  }
-
-  // process pending notes, for real this time
-  while (!pendingNotes.empty()) {
-    // fetch event
-    DivNoteEvent& note=pendingNotes.front();
-    // don't if channel is out of bounds or event is canceled
-    if (note.nop || note.channel<0 || note.channel>=song.chans) {
-      pendingNotes.pop_front();
-      continue;
-    }
-    // process an instrument change event
-    if (note.insChange) {
-      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,0));
-      pendingNotes.pop_front();
-      continue;
-    }
-    // otherwise process a note event
-    if (note.on) {
-      // note on
-      // set the instrument except on MIDI direct mode
-      if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
-        dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
-      }
-      // set volume as long as there's one associated with the event
-      // and the chip has per-channel volume
-      if (note.volume>=0 && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
-        // map velocity to curve and then to equivalent chip volume
-        float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
-        int mappedVol=0;
-        if (song.dispatchChanOfChan[note.channel]>=0) {
-          mappedVol=disCont[song.dispatchOfChan[note.channel]].dispatch->mapVelocity(song.dispatchChanOfChan[note.channel],curvedVol);
-        }
-        // fire command
-        dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
-      }
-      // send note on command and set channel state
-      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
-      keyHit[note.channel]=true;
-      chan[note.channel].note=note.note;
-      chan[note.channel].releasing=false;
-      // this prevents a duplicate note from being played while editing the pattern
-      chan[note.channel].noteOnInhibit=true;
-      chan[note.channel].lastIns=note.ins;
-    } else {
-      // note off
-      DivMacroInt* macroInt=NULL;
-      if (song.dispatchChanOfChan[note.channel]>=0) {
-        macroInt=disCont[song.dispatchOfChan[note.channel]].dispatch->getChanMacroInt(song.dispatchChanOfChan[note.channel]);
-      }
-      if (macroInt!=NULL) {
-        // if the current instrument has a release point in any macros and
-        // volume is per-channel, send a note release instead of a note off
-        if (macroInt->hasRelease && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
-        } else {
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
-        }
-      } else {
-        dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
-      }
-    }
-    pendingNotes.pop_front();
-  }
-
-  // tick the engine state if we are not in freelance mode (engine active but not running).
-  // this includes ticking the sub-tick counter, processing delayed rows,
-  // effects and of course, playing the next row.
-  if (!freelance) {
-    // decrease sub-tick counter (low-latency mode)
-    // run a tick once it reached zero
-    if (--subticks<=0) {
-      subticks=tickMult;
-
-      // apply delayed rows before potentially advancing to a new row, which would overwrite the
-      // delayed row's state before it has a chance to do anything. a typical example would be
-      // a delay scheduling a note-on to be simultaneous with the next row, and the next row also
-      // containing a delayed note. if we don't apply the delayed row first, the world explodes.
-      for (int i=0; i<song.chans; i++) {
-        // delay effects
-        if (chan[i].rowDelay>0) {
-          if (--chan[i].rowDelay==0) {
-            // we call processRow() here for the delayed row
-            processRow(i,true);
+            //logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+            pendingNotes[i].nop=true;
           }
         }
       }
+    }
 
-      // advance tempo accumulator (for virtual tempo) unless we are step playing and waiting for the next step (stepPlay==2)
+    // process pending notes, for real this time
+  while (!pendingNotes.empty()) {
+      // fetch event
+    DivNoteEvent& note=pendingNotes.front();
+      // don't if channel is out of bounds or event is canceled
+    if (note.nop || note.channel<0 || note.channel>=song.chans) {
+        pendingNotes.pop_front();
+        continue;
+      }
+      // process an instrument change event
+    if (note.insChange) {
+        dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,0));
+        pendingNotes.pop_front();
+        continue;
+      }
+      // otherwise process a note event
+    if (note.on) {
+        // note on
+      // set the instrument except on MIDI direct mode
+      if (!(midiIsDirect && midiIsDirectProgram && note.fromMIDI)) {
+          dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
+        }
+        // set volume as long as there's one associated with the event
+      // and the chip has per-channel volume
+      if (note.volume>=0 && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+          // map velocity to curve and then to equivalent chip volume
+        float curvedVol=pow((float)note.volume/127.0f,midiVolExp);
+          int mappedVol=0;
+        if (song.dispatchChanOfChan[note.channel]>=0) {
+          mappedVol=disCont[song.dispatchOfChan[note.channel]].dispatch->mapVelocity(song.dispatchChanOfChan[note.channel],curvedVol);
+          }
+        // fire command
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,note.channel,mappedVol));
+        }
+        // send note on command and set channel state
+      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
+        keyHit[note.channel]=true;
+        chan[note.channel].note=note.note;
+        chan[note.channel].releasing=false;
+        // this prevents a duplicate note from being played while editing the pattern
+      chan[note.channel].noteOnInhibit=true;
+        chan[note.channel].lastIns=note.ins;
+      } else {
+        // note off
+      DivMacroInt* macroInt=NULL;
+      if (song.dispatchChanOfChan[note.channel]>=0) {
+        macroInt=disCont[song.dispatchOfChan[note.channel]].dispatch->getChanMacroInt(song.dispatchChanOfChan[note.channel]);
+        }
+      if (macroInt!=NULL) {
+          // if the current instrument has a release point in any macros and
+        // volume is per-channel, send a note release instead of a note off
+        if (macroInt->hasRelease && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
+          } else {
+            dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+          }
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+        }
+      }
+      pendingNotes.pop_front();
+    }
+  }
+
+  if(advanceSong)
+  {
+    // tick the engine state if we are not in freelance mode (engine active but not running).
+  // this includes ticking the sub-tick counter, processing delayed rows,
+  // effects and of course, playing the next row.
+  if (!freelance) {
+      // decrease sub-tick counter (low-latency mode)
+    // run a tick once it reached zero
+    if (--subticks<=0) {
+        subticks=tickMult;
+
+        // apply delayed rows before potentially advancing to a new row, which would overwrite the
+        // delayed row's state before it has a chance to do anything. a typical example would be
+        // a delay scheduling a note-on to be simultaneous with the next row, and the next row also
+        // containing a delayed note. if we don't apply the delayed row first, the world explodes.
+        for (int i=0; i<song.chans; i++) {
+          // delay effects
+          if (chan[i].rowDelay>0) {
+            if (--chan[i].rowDelay==0) {
+              // we call processRow() here for the delayed row
+            processRow(i,true);
+            }
+          }
+        }
+
+        // advance tempo accumulator (for virtual tempo) unless we are step playing and waiting for the next step (stepPlay==2)
       // then advance tick counter and then call nextRow()
       if (stepPlay!=1) {
-        // increase accumulator by virtual tempo numerator
+          // increase accumulator by virtual tempo numerator
         tempoAccum+=virtualTempoN;
-        // while accumulator is higher than virtual tempo denominator
+          // while accumulator is higher than virtual tempo denominator
         while (tempoAccum>=virtualTempoD) {
-          // wrap the accumulator back
+            // wrap the accumulator back
           tempoAccum-=virtualTempoD;
-          // tick the tick counter
+            // tick the tick counter
           if (--ticks<=0) {
-            ret=endOfSong;
-            // get out if the song is going to stop (we'll stop at the end of this function)
+              ret=endOfSong;
+              // get out if the song is going to stop (we'll stop at the end of this function)
             if (shallStopSched) {
-              logV("acknowledging scheduled stop");
-              shallStop=true;
-              break;
-            } else if (endOfSong) {
-              // COMPAT FLAG: loop modality
+                logV("acknowledging scheduled stop");
+                shallStop=true;
+                break;
+              } else if (endOfSong) {
+                // COMPAT FLAG: loop modality
               // - 0: reset channels. call playSub() to seek back to the loop position
               // - 1: soft-reset channels. same as 0 for now
               // - 2: don't reset
               if (song.compatFlags.loopModality!=2) {
-                playSub(true);
+                  playSub(true);
+                }
               }
-            }
-            endOfSong=false;
-            // check whether we were told to step to the next row
+              endOfSong=false;
+              // check whether we were told to step to the next row
             // if so, go back to waiting state (stepPlay==1) and update position
             if (stepPlay==2) {
-              stepPlay=1;
-              playPosLock.lock();
-              prevOrder=curOrder;
-              prevRow=curRow;
-              playPosLock.unlock();
-
+                stepPlay=1;
+                playPosLock.lock();
+                prevOrder=curOrder;
+                prevRow=curRow;
+                playPosLock.unlock();
+  
               // also set the playback position and sync file player if necessary
               TimeMicros rowTS=curSubSong->ts.getTimes(curOrder,curRow);
               if (rowTS.seconds!=-1) {
                 totalTime=rowTS;
               }
-              if (curFilePlayer && filePlayerSync) {
+                if (curFilePlayer && filePlayerSync) {
                 syncFilePlayer();
               }
             }
             // ...and now process the next row!
             nextRow();
-            break;
+              break;
+            }
           }
+          // under no circumstances shall the accumulator become this large
+          if (tempoAccum>1023) tempoAccum=1023;
         }
-        // under no circumstances shall the accumulator become this large
-        if (tempoAccum>1023) tempoAccum=1023;
-      }
-
-      // process stuff such as effects
-      if (!shallStop) for (int i=0; i<song.chans; i++) {
-        // retrigger
-        if (chan[i].retrigSpeed) {
-          if (--chan[i].retrigTick<0) {
-            chan[i].retrigTick=chan[i].retrigSpeed-1;
-            // retrigger is a null note, which allows it to be combined with a pitch slide
+        // process stuff such as effects
+        if (!shallStop) for (int i=0; i<song.chans; i++) {
+          // retrigger
+          if (chan[i].retrigSpeed) {
+            if (--chan[i].retrigTick<0) {
+              chan[i].retrigTick=chan[i].retrigSpeed-1;
+              // retrigger is a null note, which allows it to be combined with a pitch slide
             dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
-            keyHit[i]=true;
+              keyHit[i]=true;
+            }
           }
-        }
 
-        // volume slides and tremolo
-        // COMPAT FLAG: don't slide on the first tick of a row
+          // volume slides and tremolo
+          // COMPAT FLAG: don't slide on the first tick of a row
         // - Amiga/PC tracker behavior where slides and vibrato do not take course during the first tick of a row
         if (!song.compatFlags.noSlidesOnFirstTick || !firstTick) {
-          // volume slides
+            // volume slides
           if (chan[i].volSpeed!=0) {
-            // the call to GET_VOLUME is part of a compatibility process
+              // the call to GET_VOLUME is part of a compatibility process
             // where the stored volume in the dispatch may be different
             // from our volume (see legacy volume slides)
             chan[i].volume=(chan[i].volume&0xff)|(dispatchCmd(DivCommand(DIV_CMD_GET_VOLUME,i))<<8);
-            int preSpeedVol=chan[i].volume;
-            chan[i].volume+=chan[i].volSpeed;
-            // handle scivolando
+              int preSpeedVol=chan[i].volume;
+              chan[i].volume+=chan[i].volSpeed;
+              // handle scivolando
             if (chan[i].volSpeedTarget!=-1) {
-              bool atTarget=false;
-              if (chan[i].volSpeed>0) {
-                atTarget=(chan[i].volume>=chan[i].volSpeedTarget);
-              } else if (chan[i].volSpeed<0) {
-                atTarget=(chan[i].volume<=chan[i].volSpeedTarget);
-              } else {
-                atTarget=true;
-                chan[i].volSpeedTarget=chan[i].volume;
-              }
-
-              if (atTarget) {
-                // once we are there, stop the slide
+                bool atTarget=false;
                 if (chan[i].volSpeed>0) {
-                  chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+                  atTarget=(chan[i].volume>=chan[i].volSpeedTarget);
                 } else if (chan[i].volSpeed<0) {
-                  chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+                  atTarget=(chan[i].volume<=chan[i].volSpeedTarget);
+                } else {
+                  atTarget=true;
+                  chan[i].volSpeedTarget=chan[i].volume;
                 }
+
+                if (atTarget) {
+                  // once we are there, stop the slide
+                if (chan[i].volSpeed>0) {
+                    chan[i].volume=MAX(preSpeedVol,chan[i].volSpeedTarget);
+                  } else if (chan[i].volSpeed<0) {
+                    chan[i].volume=MIN(preSpeedVol,chan[i].volSpeedTarget);
+                  }
                 // COMPAT FLAG: don't stop volume slides after reaching target
                 // - when enabled, we don't reset the volume speed
                 if (!song.compatFlags.noVolSlideReset) {
+                    chan[i].volSpeed=0;
+                    chan[i].volSpeedTarget=-1;
+                }
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+                  dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
+                }
+              }
+              // stop sliding if we reach maximum/minimum volume
+            if (chan[i].volume>chan[i].volMax) {
+                chan[i].volume=chan[i].volMax;
+              // COMPAT FLAG: don't stop volume slides after reaching target
+              if (!song.compatFlags.noVolSlideReset) {
                   chan[i].volSpeed=0;
                   chan[i].volSpeedTarget=-1;
-                }
+              }
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
                 dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
                 dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-              }
-            }
-            // stop sliding if we reach maximum/minimum volume
-            if (chan[i].volume>chan[i].volMax) {
-              chan[i].volume=chan[i].volMax;
+              } else if (chan[i].volume<0) {
               // COMPAT FLAG: don't stop volume slides after reaching target
               if (!song.compatFlags.noVolSlideReset) {
-                chan[i].volSpeed=0;
+                  chan[i].volSpeed=0;
                 chan[i].volSpeedTarget=-1;
               }
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-            } else if (chan[i].volume<0) {
-              // COMPAT FLAG: don't stop volume slides after reaching target
-              if (!song.compatFlags.noVolSlideReset) {
-                chan[i].volSpeed=0;
-                chan[i].volSpeedTarget=-1;
-              }
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
-              // COMPAT FLAG: legacy volume slides
+                dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,0));
+                // COMPAT FLAG: legacy volume slides
               // - sets volume to max once a vol slide down has finished (thus setting volume to volMax+1)
               // - there is more to this, such as the first step of volume macro resulting in unpredictable behavior, but I don't feel like implementing THAT...
               if (song.compatFlags.legacyVolumeSlides) {
-                chan[i].volume=chan[i].volMax+1;
+                  chan[i].volume=chan[i].volMax+1;
+                } else {
+                  chan[i].volume=0;
+                }
+                  dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+                dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
               } else {
-                chan[i].volume=0;
+                dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
               }
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
-            } else {
-              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-            }
-          } else if (chan[i].tremoloDepth>0) {
-            // tremolo (increase position in look-up table and send a volume change)
+            } else if (chan[i].tremoloDepth>0) {
+              // tremolo (increase position in look-up table and send a volume change)
             chan[i].tremoloPos+=chan[i].tremoloRate;
-            chan[i].tremoloPos&=127;
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
+              chan[i].tremoloPos&=127;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
+            }
           }
-        }
 
-        // panning slides
-        if (chan[i].panSpeed!=0) {
-          int newPanL=chan[i].panL;
-          int newPanR=chan[i].panR;
-          // increase one side until it has reached max. then decrease the other.
+          // panning slides
+          if (chan[i].panSpeed!=0) {
+            int newPanL=chan[i].panL;
+            int newPanR=chan[i].panR;
+            // increase one side until it has reached max. then decrease the other.
           if (chan[i].panSpeed>0) { // right
-            if (newPanR>=0xff) {
-              newPanL-=chan[i].panSpeed;
-            } else {
-              newPanR+=chan[i].panSpeed;
+              if (newPanR>=0xff) {
+                newPanL-=chan[i].panSpeed;
+              } else {
+                newPanR+=chan[i].panSpeed;
+              }
+            } else { // left
+              if (newPanL>=0xff) {
+                newPanR+=chan[i].panSpeed;
+              } else {
+                newPanL-=chan[i].panSpeed;
+              }
             }
-          } else { // left
-            if (newPanL>=0xff) {
-              newPanR+=chan[i].panSpeed;
-            } else {
-              newPanL-=chan[i].panSpeed;
-            }
-          }
 
-          // clamp to boundaries
+            // clamp to boundaries
           if (newPanL<0) newPanL=0;
-          if (newPanL>0xff) newPanL=0xff;
-          if (newPanR<0) newPanR=0;
-          if (newPanR>0xff) newPanR=0xff;
+            if (newPanL>0xff) newPanL=0xff;
+            if (newPanR<0) newPanR=0;
+            if (newPanR>0xff) newPanR=0xff;
 
-          // set new pan
+            // set new pan
           chan[i].panL=newPanL;
-          chan[i].panR=newPanR;
+            chan[i].panR=newPanR;
 
-          // send panning command
+            // send panning command
           dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
-        } else if (chan[i].panDepth>0) {
-          // panbrello, similar to vibrato and tremolo
+          } else if (chan[i].panDepth>0) {
+            // panbrello, similar to vibrato and tremolo
           chan[i].panPos+=chan[i].panRate;
-          chan[i].panPos&=255;
+            chan[i].panPos&=255;
 
-          // calculate inverted...
-          // split position into four sections and calculate panning value
+            // calculate inverted...
+            // split position into four sections and calculate panning value
           switch (chan[i].panPos&0xc0) {
-            case 0: // center -> right
-              chan[i].panL=((chan[i].panPos&0x3f)<<2);
-              chan[i].panR=0;
-              break;
-            case 0x40: // right -> center
-              chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
-              chan[i].panR=0;
-              break;
-            case 0x80: // center -> left
-              chan[i].panL=0;
-              chan[i].panR=((chan[i].panPos&0x3f)<<2);
-              break;
-            case 0xc0: // left -> center
-              chan[i].panL=0;
-              chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
-              break;
+              case 0: // center -> right
+                chan[i].panL=((chan[i].panPos&0x3f)<<2);
+                chan[i].panR=0;
+                break;
+              case 0x40: // right -> center
+                chan[i].panL=0xff-((chan[i].panPos&0x3f)<<2);
+                chan[i].panR=0;
+                break;
+              case 0x80: // center -> left
+                chan[i].panL=0;
+                chan[i].panR=((chan[i].panPos&0x3f)<<2);
+                break;
+              case 0xc0: // left -> center
+                chan[i].panL=0;
+                chan[i].panR=0xff-((chan[i].panPos&0x3f)<<2);
+                break;
+            }
+
+            // multiply by depth
+            chan[i].panL=(chan[i].panL*chan[i].panDepth)/15;
+            chan[i].panR=(chan[i].panR*chan[i].panDepth)/15;
+
+            // then invert it to get final panning
+            chan[i].panL^=0xff;
+            chan[i].panR^=0xff;
+
+            dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
           }
 
-          // multiply by depth
-          chan[i].panL=(chan[i].panL*chan[i].panDepth)/15;
-          chan[i].panR=(chan[i].panR*chan[i].panDepth)/15;
-
-          // then invert it to get final panning
-          chan[i].panL^=0xff;
-          chan[i].panR^=0xff;
-
-          dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
-        }
-
-        // vibrato
-        if (chan[i].vibratoDepth>0) {
-          chan[i].vibratoPos+=chan[i].vibratoRate;
-          // clamp vibrato position
+          // vibrato
+          if (chan[i].vibratoDepth>0) {
+            chan[i].vibratoPos+=chan[i].vibratoRate;
+            // clamp vibrato position
           while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
 
-          // this is for the GUI's pattern visualizer
+            // this is for the GUI's pattern visualizer
           chan[i].vibratoPosGiant+=chan[i].vibratoRate;
-          while (chan[i].vibratoPosGiant>=512) chan[i].vibratoPosGiant-=512;
+            while (chan[i].vibratoPosGiant>=512) chan[i].vibratoPosGiant-=512;
 
-          // look-up table
+            // look-up table
           int vibratoOut=0;
-          switch (chan[i].vibratoShape) {
-            case 1: // sine, up only
-              vibratoOut=MAX(0,vibTable[chan[i].vibratoPos]);
-              break;
-            case 2: // sine, down only
-              vibratoOut=MIN(0,vibTable[chan[i].vibratoPos]);
-              break;
-            case 3: // triangle
-              vibratoOut=(chan[i].vibratoPos&31);
-              if (chan[i].vibratoPos&16) {
-                vibratoOut=32-(chan[i].vibratoPos&31);
-              }
-              if (chan[i].vibratoPos&32) {
-                vibratoOut=-vibratoOut;
-              }
-              vibratoOut<<=3;
-              break;
-            case 4: // ramp up
-              vibratoOut=chan[i].vibratoPos<<1;
-              break;
-            case 5: // ramp down
-              vibratoOut=-chan[i].vibratoPos<<1;
-              break;
-            case 6: // square
-              vibratoOut=(chan[i].vibratoPos>=32)?-127:127;
-              break;
-            case 7: // random (TODO: use LFSR)
-              vibratoOut=(rand()&255)-128;
-              break;
-            case 8: // square up
-              vibratoOut=(chan[i].vibratoPos>=32)?0:127;
-              break;
-            case 9: // square down
-              vibratoOut=(chan[i].vibratoPos>=32)?0:-127;
-              break;
-            case 10: // half sine up
-              vibratoOut=vibTable[chan[i].vibratoPos>>1];
-              break;
-            case 11: // half sine down
-              vibratoOut=vibTable[32|(chan[i].vibratoPos>>1)];
-              break;
-            default: // sine
-              vibratoOut=vibTable[chan[i].vibratoPos];
-              break;
-          }
-          // vibrato and pitch are merged into one
+            switch (chan[i].vibratoShape) {
+              case 1: // sine, up only
+                vibratoOut=MAX(0,vibTable[chan[i].vibratoPos]);
+                break;
+              case 2: // sine, down only
+                vibratoOut=MIN(0,vibTable[chan[i].vibratoPos]);
+                break;
+              case 3: // triangle
+                vibratoOut=(chan[i].vibratoPos&31);
+                if (chan[i].vibratoPos&16) {
+                  vibratoOut=32-(chan[i].vibratoPos&31);
+                }
+                if (chan[i].vibratoPos&32) {
+                  vibratoOut=-vibratoOut;
+                }
+                vibratoOut<<=3;
+                break;
+              case 4: // ramp up
+                vibratoOut=chan[i].vibratoPos<<1;
+                break;
+              case 5: // ramp down
+                vibratoOut=-chan[i].vibratoPos<<1;
+                break;
+              case 6: // square
+                vibratoOut=(chan[i].vibratoPos>=32)?-127:127;
+                break;
+              case 7: // random (TODO: use LFSR)
+                vibratoOut=(rand()&255)-128;
+                break;
+              case 8: // square up
+                vibratoOut=(chan[i].vibratoPos>=32)?0:127;
+                break;
+              case 9: // square down
+                vibratoOut=(chan[i].vibratoPos>=32)?0:-127;
+                break;
+              case 10: // half sine up
+                vibratoOut=vibTable[chan[i].vibratoPos>>1];
+                break;
+              case 11: // half sine down
+                vibratoOut=vibTable[32|(chan[i].vibratoPos>>1)];
+                break;
+              default: // sine
+                vibratoOut=vibTable[chan[i].vibratoPos];
+                break;
+            }
+            // vibrato and pitch are merged into one
           dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibratoOut*chan[i].vibratoFine)>>4)/15)));
-        }
-
-        // delayed legato
-        if (chan[i].legatoDelay>0) {
-          if (--chan[i].legatoDelay<1) {
-            // change note and send legato
-            chan[i].note+=chan[i].legatoTarget;
-            dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-            dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
-            chan[i].legatoDelay=-1;
-            chan[i].legatoTarget=0;
           }
-        }
 
-        // portamento and pitch slides
-        // COMPAT FLAG: don't slide on the first tick of a row
+          // delayed legato
+          if (chan[i].legatoDelay>0) {
+            if (--chan[i].legatoDelay<1) {
+              // change note and send legato
+            chan[i].note+=chan[i].legatoTarget;
+              dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+              dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+              chan[i].legatoDelay=-1;
+              chan[i].legatoTarget=0;
+            }
+          }
+
+          // portamento and pitch slides
+          // COMPAT FLAG: don't slide on the first tick of a row
         // - Amiga/PC tracker behavior where slides and vibrato do not take course during the first tick of a row
         if (!song.compatFlags.noSlidesOnFirstTick || !firstTick) {
-          // portamento only runs if the channel has been used and the porta speed is higher than 0
+            // portamento only runs if the channel has been used and the porta speed is higher than 0
           if ((chan[i].keyOn || chan[i].keyOff) && chan[i].portaSpeed>0) {
-            // send a portamento update command to the dispatch.
+              // send a portamento update command to the dispatch.
             // it returns whether the portamento is complete and has reached the target note.
             // COMPAT FLAG: pitch linearity
             // - 0: none (pitch control and slides non-linear)
@@ -2437,115 +2450,116 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             // COMPAT FLAG: reset pitch slide/portamento upon reaching target (inverted in the GUI)
             // - when disabled, portamento remains active after it has finished
             if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.compatFlags.linearPitch?song.compatFlags.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.compatFlags.targetResetsSlides) {
-              // if we are here, it means we reached the target and shall stop
+                // if we are here, it means we reached the target and shall stop
               chan[i].portaSpeed=0;
-              dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-              chan[i].oldNote=chan[i].note;
-              chan[i].note=chan[i].portaNote;
-              chan[i].inPorta=false;
-              // send legato just in case
+                dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                chan[i].oldNote=chan[i].note;
+                chan[i].note=chan[i].portaNote;
+                chan[i].inPorta=false;
+                // send legato just in case
               dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-              dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+                dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+              }
             }
           }
-        }
 
-        // note cut
-        if (chan[i].cut>0) {
-          if (--chan[i].cut<1) {
-            if (chan[i].cutType==2) { // macro release
-              dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
-              chan[i].releasing=true;
-            } else { // note off or release
-              chan[i].oldNote=chan[i].note;
-              //chan[i].note=-1;
-              // COMPAT FLAG: reset slides on note off (inverted in the GUI)
+          // note cut
+          if (chan[i].cut>0) {
+            if (--chan[i].cut<1) {
+              if (chan[i].cutType==2) { // macro release
+                dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
+                chan[i].releasing=true;
+              } else { // note off or release
+                chan[i].oldNote=chan[i].note;
+                //chan[i].note=-1;
+                // COMPAT FLAG: reset slides on note off (inverted in the GUI)
               // - a portamento/pitch slide will be halted upon encountering note off
               // - this will not occur if the stopPortaOnNoteOff flag is on and this is a portamento
               if (chan[i].inPorta && song.compatFlags.noteOffResetsSlides) {
-                chan[i].keyOff=true;
-                chan[i].keyOn=false;
-                // stopOnOff will be false if stopPortaOnNoteOff flag is off
+                  chan[i].keyOff=true;
+                  chan[i].keyOn=false;
+                  // stopOnOff will be false if stopPortaOnNoteOff flag is off
                 if (chan[i].stopOnOff) {
-                  chan[i].portaNote=-1;
-                  chan[i].portaSpeed=-1;
-                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                  chan[i].stopOnOff=false;
-                }
-                // depending on the system, portamento may still be disabled
+                    chan[i].portaNote=-1;
+                    chan[i].portaSpeed=-1;
+                    dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                    chan[i].stopOnOff=false;
+                  }
+                  // depending on the system, portamento may still be disabled
                 if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
-                  chan[i].portaNote=-1;
-                  chan[i].portaSpeed=-1;
-                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
-                }
-                dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
-                // another compatibility hack which schedules a second reset later just in case
+                    chan[i].portaNote=-1;
+                    chan[i].portaSpeed=-1;
+                    dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+                  }
+                  dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+                  // another compatibility hack which schedules a second reset later just in case
                 chan[i].scheduledSlideReset=true;
-              }
-              if (chan[i].cutType==1) { // note release
-                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
-              } else { // note off
-                dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
-              }
-              // I am not sure why is this here and not inside the previous statement
+                }
+                if (chan[i].cutType==1) { // note release
+                  dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,i));
+                } else { // note off
+                  dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
+                }
+                // I am not sure why is this here and not inside the previous statement
               chan[i].releasing=true;
+              }
             }
           }
-        }
 
-        // volume cut/mute
-        if (chan[i].volCut>0) {
-          if (--chan[i].volCut<1) {
-            chan[i].volume=0;
-            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-            dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+          // volume cut/mute
+          if (chan[i].volCut>0) {
+            if (--chan[i].volCut<1) {
+              chan[i].volume=0;
+              dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+              dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+            }
           }
-        }
 
-        // arpeggio
-        if (chan[i].resetArp) {
-          // if we must reset arp, sent a legato with the current note
+          // arpeggio
+          if (chan[i].resetArp) {
+            // if we must reset arp, sent a legato with the current note
           dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-          dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
-          chan[i].resetArp=false;
-        }
-        // COMPAT FLAG: reset arp position on row change
+            dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
+            chan[i].resetArp=false;
+          }
+          // COMPAT FLAG: reset arp position on row change
         // - simulates Amiga/PC tracker behavior where the next row resets arp pos
         if (song.compatFlags.rowResetsArpPos && firstTick) {
-          chan[i].arpStage=-1;
-        }
-        // arpeggio (actually)
+            chan[i].arpStage=-1;
+          }
+          // arpeggio (actually)
         // don't run it if arp yield is enabled (which will be if a compat flag is on)
         if (chan[i].arp!=0 && !chan[i].arpYield && chan[i].portaSpeed<1) {
-          if (--chan[i].arpTicks<1) {
-            chan[i].arpTicks=curSubSong->arpLen;
-            // there are three arp stages, corresponding to note, note+x and note+y in the 00xy effect
+            if (--chan[i].arpTicks<1) {
+              chan[i].arpTicks=curSubSong->arpLen;
+              // there are three arp stages, corresponding to note, note+x and note+y in the 00xy effect
             chan[i].arpStage++;
-            if (chan[i].arpStage>2) chan[i].arpStage=0;
-            // arp is sent as legato
+              if (chan[i].arpStage>2) chan[i].arpStage=0;
+              // arp is sent as legato
             switch (chan[i].arpStage) {
-              case 0:
-                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
-                break;
-              case 1:
-                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
-                break;
-              case 2:
-                dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
-                break;
+                case 0:
+                  dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+                  break;
+                case 1:
+                  dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+                  break;
+                case 2:
+                  dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+                  break;
+              }
             }
-          }
-        } else {
-          // acknowledge arp yield
+          } else {
+            // acknowledge arp yield
           chan[i].arpYield=false;
+          }
         }
       }
-    }
-  } else {
-    // we are in freelance mode
+    } else {
+      // we are in freelance mode
     // still tick the subtick counter
-    if (--subticks<=0) {
-      subticks=tickMult;
+      if (--subticks<=0) {
+        subticks=tickMult;
+      }
     }
   }
 
