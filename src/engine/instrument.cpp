@@ -371,7 +371,74 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
       },0);
       break;
     case DIV_INS_SNES:
-      
+      // SNES data
+      w->writeC(
+        (snes.useEnv?0x80:0x00)|
+        ((snes.d&7)<<4)|
+        (snes.d&15)
+      );
+      if (snes.sus) {
+        w->writeC(
+          ((snes.s&7)<<4)|
+          (snes.d2&31)
+        );
+      } else {
+        w->writeC(
+          ((snes.s&7)<<4)|
+          (snes.r&31)
+        );
+      }
+      switch (snes.gainMode) {
+        case DivInstrumentSNES::GAIN_MODE_DIRECT:
+          w->writeC(snes.gain&127);
+          break;
+        case DivInstrumentSNES::GAIN_MODE_DEC_LINEAR:
+          w->writeC(0x80|(snes.gain&31));
+          break;
+        case DivInstrumentSNES::GAIN_MODE_INC_LINEAR:
+          w->writeC(0xc0|(snes.gain&31));
+          break;
+        case DivInstrumentSNES::GAIN_MODE_DEC_LOG:
+          w->writeC(0xa0|(snes.gain&31));
+          break;
+        case DivInstrumentSNES::GAIN_MODE_INC_INVLOG:
+          w->writeC(0xe0|(snes.gain&31));
+          break;
+      }
+      if (snes.sus) {
+        w->writeC((snes.sus&3)|(snes.r<<2));
+      } else {
+        w->writeC(0);
+      }
+      // sample data
+      if (amiga.useWave) {
+        w->writeC(2);
+        w->writeS(amiga.waveLen+1);
+        // pointer
+        w->writeS(0);
+      } else if (amiga.useNoteMap) {
+        w->writeC(1);
+        // pointer
+        w->writeS(0);
+        w->writeS(0);
+      } else {
+        w->writeC(0);
+        w->writeS(amiga.initSample);
+        w->writeS(0);
+      }
+      // macros
+      compileMacros(w,{
+        DivCompileMacroDef(DIV_MACRO_VOL,DIV_COMPILED_MACRO_U8,0,127),
+        DivCompileMacroDef(DIV_MACRO_ARP,DIV_COMPILED_MACRO_BIT30,-256,256),
+        DivCompileMacroDef(DIV_MACRO_DUTY,DIV_COMPILED_MACRO_U8,0,31),
+        DivCompileMacroDef(DIV_MACRO_WAVE,DIV_COMPILED_MACRO_U16,0,32767),
+        DivCompileMacroDef(DIV_MACRO_PAN_LEFT,DIV_COMPILED_MACRO_U8,0,127),
+        DivCompileMacroDef(DIV_MACRO_PAN_RIGHT,DIV_COMPILED_MACRO_U8,0,127),
+        DivCompileMacroDef(DIV_MACRO_PITCH,DIV_COMPILED_MACRO_S16,-2048,2047),
+        DivCompileMacroDef(DIV_MACRO_EX1,DIV_COMPILED_MACRO_U8,0,31), // special
+        DivCompileMacroDef(DIV_MACRO_EX2,DIV_COMPILED_MACRO_U8,0,255), // gain
+      },0);
+      // wave synth and sample map
       break;
     default:
       logE("compile(): not implemented!");
