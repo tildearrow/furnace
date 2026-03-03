@@ -370,6 +370,9 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
         DivCompileMacroDef(DIV_MACRO_EX8,DIV_COMPILED_MACRO_U4,0,15) // release
       },0);
       break;
+    case DIV_INS_SNES:
+      
+      break;
     default:
       logE("compile(): not implemented!");
       return false;

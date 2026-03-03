@@ -7235,10 +7235,15 @@ bool FurnaceGUI::loop() {
       ImGui::Text(_("Sample rate"));
       ImGui::SameLine();
       ImGui::SetNextItemWidth(120.0f*dpiScale);
+      pushWarningColor(pendingRawSampleRate>384000);
       if (ImGui::InputInt("##RSRate",&pendingRawSampleRate,100,1000)) {
         if (pendingRawSampleRate<100) pendingRawSampleRate=100;
-        if (pendingRawSampleRate>384000) pendingRawSampleRate=384000;
       }
+      if (pendingRawSampleRate>384000) {
+        ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+      }
+      popWarningColor();
+      
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();

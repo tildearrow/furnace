@@ -425,7 +425,6 @@ std::vector<DivSample*> DivEngine::sampleFromFile(const char* path) {
   }
 
   if (sample->centerRate<100) sample->centerRate=100;
-  if (sample->centerRate>384000) sample->centerRate=384000;
   sfWrap.doClose();
   BUSY_END;
   ret.push_back(sample);

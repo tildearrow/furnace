@@ -763,12 +763,16 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          pushWarningColor(targetRate>384000);
           if (ImGui::InputInt("##SampleRate",&targetRate,10,200)) { MARK_MODIFIED
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
           }
+          if (targetRate>384000) {
+            ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+          }
+          popWarningColor();
           
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Note"));
@@ -805,7 +809,6 @@ void FurnaceGUI::drawSampleEdit() {
 
             targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0));
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
           }
@@ -835,7 +838,6 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
           }
@@ -1120,27 +1122,28 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        pushWarningColor(resampleTarget>384000);
         if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
+        if (resampleTarget>384000) {
+          ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+        }
+        popWarningColor();
         double factor=resampleTarget/(double)targetRate;
         unsigned int targetLength=round(sample->samples*factor);
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
           resampleTarget=(double)targetRate*factor;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
@@ -1150,7 +1153,6 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
