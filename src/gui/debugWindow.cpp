@@ -282,6 +282,20 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Instrument Compiler")) {
+      if (ImGui::BeginCombo("Type",(insCompileType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insCompileType][0]))) {
+        for (int i=0; insTypes[i][0]; i++) {
+          if (ImGui::Selectable(insTypes[i][0],insCompileType==i)) {
+            insCompileType=i;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (ImGui::Button("Let's Go!")) {
+        openFileDialog(GUI_FILE_EXPORT_COMPILED_INS);
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Sample Debug")) {
       for (int i=0; i<e->song.sampleLen; i++) {
         DivSample* sample=e->getSample(i);

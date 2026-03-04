@@ -2244,6 +2244,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         );
       }
       break;
+    case GUI_FILE_EXPORT_COMPILED_INS:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export Compiled Instruments"),
+        {_("binary file"), "*.bin"},
+        workingDirROMExport,
+        dpiScale
+      );
+      break;
     case GUI_FILE_LOAD_MAIN_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -5630,6 +5639,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
+        case GUI_FILE_EXPORT_COMPILED_INS:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
@@ -5736,7 +5746,7 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM || curFileDialog==GUI_FILE_EXPORT_COMPILED_INS) {
             checkExtension(".bin");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
@@ -6218,6 +6228,25 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
+            case GUI_FILE_EXPORT_COMPILED_INS: {
+              romExportPath=copyOfName;
+              SafeWriter* w=e->compileAllIns(insCompileType);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+              } else {
+                showError(fmt::sprintf(_("could not export compiled instruments! (%s)"),e->getLastError()));
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_TEXT: {
               SafeWriter* w=e->saveText(false);
               if (w!=NULL) {
@@ -9354,6 +9383,7 @@ FurnaceGUI::FurnaceGUI():
   romExportSave(false),
   pendingExport(NULL),
   romExportExists(false),
+  insCompileType(DIV_INS_SNES),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

@@ -645,6 +645,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
   GUI_FILE_EXPORT_ROM,
+  GUI_FILE_EXPORT_COMPILED_INS,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_HEAD_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -2936,6 +2937,7 @@ class FurnaceGUI {
   DivROMExport* pendingExport;
   bool romExportAvail[DIV_ROM_MAX];
   bool romExportExists;
+  int insCompileType;
 
   // user presets window
   std::vector<int> selectedUserPreset;

@@ -641,6 +641,8 @@ class DivEngine {
     SafeWriter* saveFur(bool notPrimary=false);
     // return a ROM exporter.
     DivROMExport* buildROM(DivROMExportOptions sys);
+    // compile instruments.
+    SafeWriter* compileAllIns(int insType);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing

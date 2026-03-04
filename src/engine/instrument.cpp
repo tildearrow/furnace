@@ -447,6 +447,36 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
   return true;
 }
 
+SafeWriter* DivEngine::compileAllIns(int insType) {
+  SafeWriter* w=new SafeWriter;
+  w->init();
+
+  std::vector<unsigned short> ptrs;
+
+  // pointers
+  for (size_t i=0; i<song.ins.size(); i++) {
+    w->writeS(0);
+  }
+
+  // compile instruments
+  for (DivInstrument* i: song.ins) {
+    ptrs.push_back(w->tell());
+    if (!i->compile(w,(DivInstrumentType)insType)) {
+      logE("Compilation Error. Prepare for unforeseen consequences...");
+      delete w;
+      return NULL;
+    }
+  }
+
+  w->seek(0,SEEK_SET);
+  for (unsigned short i: ptrs) {
+    w->writeS(i);
+  }
+  w->seek(0,SEEK_END);
+
+  return w;
+}
+
 /// the rest
 
 #define _C(x) x==other.x
