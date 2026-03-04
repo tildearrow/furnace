@@ -95,3 +95,4 @@ extern const FurnaceGUIColors fxColors[256];
 extern const char* fxColorsNames[10];
 extern const char* chanNames[];
 extern unsigned char chanNamesHierarchy[];
+extern const char* triggerStates[3];
