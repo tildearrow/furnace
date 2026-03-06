@@ -320,6 +320,78 @@ bool DivInstrument::compileMacros(SafeWriter* w, std::initializer_list<DivCompil
   return true;
 }
 
+bool DivInstrument::compileWaveSynth(SafeWriter* w) {
+  w->writeC((ws.enabled?1:0)|(ws.global?64:0));
+  w->writeC(ws.effect);
+  w->writeS(ws.wave1);
+  w->writeS(ws.wave2);
+  w->writeC(ws.rateDivider);
+  w->writeC(ws.speed);
+  w->writeC(ws.param1);
+  w->writeC(ws.param2);
+  return true;
+}
+
+bool DivInstrument::compileSampleMap(SafeWriter* w, bool nes) {
+  // don't compile sample map if disabled
+  if (!amiga.useNoteMap) return false;
+
+  int low=120;
+  int high=0;
+
+  // find lower/upper boundaries
+  for (int i=0; i<120; i++) {
+    if (amiga.noteMap[i].map!=-1) {
+      low=i;
+      break;
+    }
+  }
+  for (int i=119; i>=0; i--) {
+    if (amiga.noteMap[i].map!=-1) {
+      high=i;
+      break;
+    }
+  }
+
+  // write pointers
+  int count=high-low+1;
+  int ptrCount=nes?8:6;
+
+  w->writeS(w->tell()+ptrCount); // map low
+  w->writeS(w->tell()+ptrCount-2+count); // map high
+  w->writeS(w->tell()+ptrCount-4+count*2); // note
+  if (nes) {
+    w->writeS(w->tell()+ptrCount-6+count*3); // DPCM delta
+  }
+
+  // write tables
+  // map low
+  for (int i=low; i<=high; i++) {
+    w->writeC(amiga.noteMap[i].map&0xff);
+  }
+  // map high
+  for (int i=low; i<=high; i++) {
+    w->writeC((amiga.noteMap[i].map>>8)&0xff);
+  }
+  if (nes) {
+    // DPCM freq
+    for (int i=low; i<=high; i++) {
+      w->writeC(amiga.noteMap[i].dpcmFreq);
+    }
+    // DPCM delta
+    for (int i=low; i<=high; i++) {
+      w->writeC(amiga.noteMap[i].dpcmDelta);
+    }
+  } else {
+    // note
+    for (int i=low; i<=high; i++) {
+      w->writeC(amiga.noteMap[i].freq);
+    }
+  }
+
+  return true;
+}
+
 bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
   switch (insType) {
     case DIV_INS_C64:
@@ -370,8 +442,10 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
         DivCompileMacroDef(DIV_MACRO_EX8,DIV_COMPILED_MACRO_U4,0,15) // release
       },0);
       break;
-    case DIV_INS_SNES:
+    case DIV_INS_SNES: {
       // SNES data
+      size_t specialPtrLoc=0;
+      size_t specialPtr=0;
       w->writeC(
         (snes.useEnv?0x80:0x00)|
         ((snes.d&7)<<4)|
@@ -415,10 +489,12 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
         w->writeC(2);
         w->writeS(amiga.waveLen+1);
         // pointer
+        specialPtrLoc=w->tell();
         w->writeS(0);
       } else if (amiga.useNoteMap) {
         w->writeC(1);
         // pointer
+        specialPtrLoc=w->tell();
         w->writeS(0);
         w->writeS(0);
       } else {
@@ -439,7 +515,23 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
         DivCompileMacroDef(DIV_MACRO_EX2,DIV_COMPILED_MACRO_U8,0,255), // gain
       },0);
       // wave synth and sample map
+      if (amiga.useWave) {
+        if (ws.enabled) {
+          specialPtr=w->tell();
+          compileWaveSynth(w);
+          w->seek(specialPtrLoc,SEEK_SET);
+          w->writeS(specialPtr);
+          w->seek(0,SEEK_END);
+        }
+      } else if (amiga.useNoteMap) {
+        specialPtr=w->tell();
+        compileSampleMap(w,false);
+        w->seek(specialPtrLoc,SEEK_SET);
+        w->writeS(specialPtr);
+        w->seek(0,SEEK_END);
+      }
       break;
+    }
     default:
       logE("compile(): not implemented!");
       return false;
