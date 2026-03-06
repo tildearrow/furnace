@@ -2253,6 +2253,15 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_EXPORT_COMPILED_INS_ONE:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export Compiled Instrument"),
+        {_("binary file"), "*.bin"},
+        workingDirROMExport,
+        dpiScale
+      );
+      break;
     case GUI_FILE_LOAD_MAIN_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -5640,6 +5649,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_COMPILED_INS:
+        case GUI_FILE_EXPORT_COMPILED_INS_ONE:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
@@ -5746,7 +5756,9 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
-          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM || curFileDialog==GUI_FILE_EXPORT_COMPILED_INS) {
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
+              curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
+              curFileDialog==GUI_FILE_EXPORT_COMPILED_INS_ONE) {
             checkExtension(".bin");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
@@ -6245,6 +6257,33 @@ bool FurnaceGUI::loop() {
               } else {
                 showError(fmt::sprintf(_("could not export compiled instruments! (%s)"),e->getLastError()));
               }
+              break;
+            }
+            case GUI_FILE_EXPORT_COMPILED_INS_ONE: {
+              if (curIns<0 || curIns>=(int)e->song.ins.size()) {
+                showError(_("I'm sure you can see why that's not the best idea right now..."));
+                break;
+              }
+              romExportPath=copyOfName;
+              SafeWriter* w=new SafeWriter;
+              w->init();
+
+              DivInstrument* ins=e->song.ins[curIns];
+
+              if (ins->compile(w,(DivInstrumentType)insCompileType)) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+              } else {
+                showError(fmt::sprintf(_("could not compile instrument! (%s)"),e->getLastError()));
+              }
+              w->finish();
+              delete w;
               break;
             }
             case GUI_FILE_EXPORT_TEXT: {

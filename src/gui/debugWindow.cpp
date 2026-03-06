@@ -294,6 +294,9 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Let's Go!")) {
         openFileDialog(GUI_FILE_EXPORT_COMPILED_INS);
       }
+      if (ImGui::Button("Export only the current instrument")) {
+        openFileDialog(GUI_FILE_EXPORT_COMPILED_INS_ONE);
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Sample Debug")) {
