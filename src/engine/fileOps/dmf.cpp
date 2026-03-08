@@ -1416,7 +1416,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     addWarning(".dmf format does not support virtual tempo");
   }
 
-  if (song.tuning<439.99 && song.tuning>440.01) {
+  if (song.tuning<439.99 || song.tuning>440.01) {
     addWarning(".dmf format does not support tuning");
   }
 
