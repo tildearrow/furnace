@@ -8922,6 +8922,8 @@ FurnaceGUI::FurnaceGUI():
   fmPreviewOPLL(NULL),
   fmPreviewOPZ(NULL),
   fmPreviewOPZInterface(NULL),
+  fmPreviewESFM(NULL),
+  fmPreviewSGU(NULL),
   editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),

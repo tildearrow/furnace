@@ -133,6 +133,7 @@ the following instrument types are available:
 - 64: Supervision
 - 65: µPD1771C
 - 66: SID3
+- 67: SGU-1
 
 the following feature codes are recognized:
 
@@ -164,6 +165,7 @@ the following feature codes are recognized:
 - `PN`: PowerNoise ins data
 - `S2`: SID2 ins data
 - `S3`: SID3 ins data
+- `SG`: SGU-1 ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there are sample/wave lists.
@@ -836,5 +838,16 @@ size | description
   1  | cutoff scaling level
   1  | cutoff scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
   1  | resonance scaling level
-  1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9` 
+  1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
+```
+
+# SGU data (SG)
+
+```
+size | description
+-----|------------------------------------
+ 4×1 | operator data (×4 operators)
+     | - bit 0-3: WPAR (waveform parameter)
+     | - bit 4: sync (hard sync with previous operator)
+     | - bit 5: ring (ring modulation from previous operator)
 ```
