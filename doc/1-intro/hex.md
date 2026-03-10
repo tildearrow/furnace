@@ -122,7 +122,7 @@ bit 0 | `.... ...0` |   0
 
 added together, the resulting binary is `1010 1100`, which converts to hex as `AC` and to decimal as 172.
 
-a group of 8 bits (two hex digits) is commonly referred to as a **byte**. similarly, a group of 4 bits (one hex digit) is sometimes called a **nibble**.
+a group of 8 bits (two hex digits) is commonly referred to as a **byte**. similarly, a group of 4 bits (one hex digit) is sometimes called a **nybble** or **nibble**.
 
 ## hex to binary table
 
