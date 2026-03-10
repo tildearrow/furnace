@@ -6,7 +6,7 @@ the ADPCM-A instrument editor contains two tabs: Sample and Macros.
 
 for sample settings, see [the Sample instrument editor](sample.md).
 
-note that samples on ADPCM-A are tied to one frequency.
+note that samples on ADPCM-A are tied to a single frequency that is determined by the chip.
 
 ## Macros
 

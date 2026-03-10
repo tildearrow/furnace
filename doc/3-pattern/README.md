@@ -24,6 +24,8 @@ you may change the cursor position by clicking anywhere on the pattern.
 
 to select an area, press and hold the left mouse button. then drag the mouse and release the button to finish selection.
 
+you can select multiple entire rows at once by clicking and dragging on row numbers.
+
 right-clicking within the pattern view brings up a pop-up menu with most options from the [edit menu](../2-interface/menu-bar.md).
 
 
