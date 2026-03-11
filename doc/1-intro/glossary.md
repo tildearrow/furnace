@@ -137,6 +137,8 @@
 **square wave**: a wave consisting of only two values, high and low, with equal durations within the wave's period.
 - this is equivalent to a pulse wave with a duty of 50%.
 
+**SSG-EG**: Software-controlled Sound Generator - Envelope Generator. a feature of all Yamaha OPN series sound chips. it is the AY-3-8910/YM2149 envelope generator applied to each individual FM operator. more information can be found in the documentation for each chip that has it.
+
 **supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
 
 **tap**: a specified bit location within an LFSR.
