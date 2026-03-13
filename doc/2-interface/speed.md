@@ -1,13 +1,12 @@
 ## speed
 
 there are multiple ways to set the tempo of a song.
-the effective BPM is displayed as well, taking all settings into account.
 
 **Base Tempo**: tempo in beats per minute (BPM). this is affected by the Highlight settings below.
 - clicking the Base Tempo button switches to the more technical Tick Rate.
 
-**Tick Rate**: the frequency of ticks per second, thus the rate at which notes and effects are processed.
-- all values are allowed for all chips, though most chips have hardware limitations that mean they should stay at either 60 (approximately NTSC) or 50 (exactly PAL).
+**Tick Rate**: the frequency of ticks per second, thus the rate at which notes and effects are processed. range is from 1 to 999.
+- all values are allowed for all chips. the default value is determined by the video frame rate of the system selected when the song was created, as this is usually the tick rate of a typical sound driver running on that system. this is almost always either 60 (approximately NTSC) or 50 (exactly PAL).
 - clicking the Tick Rate button switches to the more traditional Base Tempo BPM setting.
 
 **Speed**: the number of ticks per row.
@@ -30,6 +29,6 @@ the effective BPM is displayed as well, taking all settings into account.
 - these don't have to line up with the track's actual beats and measures. set them as preferred for tracking.
 - these values are used for the metronome and calculating BPM.
 
-**Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. (Individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` commands.)
+**Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. Individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` effects.
 
 **Song Length**: how many orders are in the order list. decreasing it will hide the orders at the bottom. increasing it will restore those orders; increasing it further will add new orders of all `00` patterns.

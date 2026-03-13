@@ -183,7 +183,7 @@ the release mode parameter determines how macro release (`===` or `REL` in the p
 
 note: ADSR envelopes operate differently in versions 0.6.8.3 and prior.
 
-- **Bottom** and **Top** determine the macro's output range Bottom can be larger than Top to invert the envelope. all outputs will be between these two values.
+- **Bottom** and **Top** determine the macro's output range. Bottom can be larger than Top to invert the envelope. all outputs will be between these two values, inclusive.
 - the Attack, Decay, SusDecay, and Release portions of the envelope change value by the specified amount before each tick, including the first.
     - 0 equals no change; the value stays at Bottom.
     - 1 equals 1/256 of a step per tick, the slowest possible change.
@@ -208,13 +208,13 @@ note: ADSR envelopes operate differently in versions 0.6.8.3 and prior.
 note: LFO envelopes operate differently in versions 0.6.8.3 and prior.
 
 - **Bottom** and **Top** determine the macro's output range. Bottom can be larger than Top to invert the waveform. all outputs will be between these two values.
-- **Speed** determines the LFO frequency, and depends on the LFO shape set further below.
+- **Speed** determines the LFO frequency, and depends on the LFO Shape set further below.
   - for triangle and saw, this is how much the output value changes per tick measured in 1/128 of a step.
     - 0 equals no change; the value stays frozen at its initial state determined by Phase.
     - 1 equals 1/128 of a step per tick, the slowest possible change.
     - the maximum value is the number of steps between Bottom and Top multiplied by 128 and minus 1.
     - this happens before the first tick plays; an Attack of 128 will start the note at one step from Bottom toward Top.
-  - for Square, this is how much of a single cycle passes per tick, measured in 1/65536 of a cycle.
+  - for square, this is how much of a single cycle passes per tick, measured in 1/65536 of a cycle.
     - 0 equals no change.
     - 1 equals 1/65535 of a cycle per tick, the slowest possible.
     - the maximum value is 32768 which makes output alternate between Bottom and Top in a two-tick cycle, the fastest possible.
