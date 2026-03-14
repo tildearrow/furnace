@@ -1177,6 +1177,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::EndDisabled();
       if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
         doUndoSample();
       }
@@ -1193,6 +1194,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Amplify/Offset"));
