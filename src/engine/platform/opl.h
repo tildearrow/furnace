@@ -69,7 +69,7 @@ class DivPlatformOPL: public DivDispatch {
         freqH(0),
         freqL(0),
         sample(-1),
-        fixedFreq(0),
+        fixedFreq(-1),
         fourOp(false),
         hardReset(false),
         writeCtrl(false),
