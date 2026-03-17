@@ -1165,7 +1165,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       if (tchans>DIV_MAX_CHANS) {
         tchans=DIV_MAX_CHANS;
-        logW("too many channels!");
+        logE("too many channels!");
+        lastError="too many channels!";
+        delete[] file;
+        return false;
       }
       logV("system len: %d",ds.systemLen);
       if (ds.systemLen<1) {
