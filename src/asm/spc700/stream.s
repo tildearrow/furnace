@@ -498,6 +498,7 @@ fcsChannelCmd:
 
   ; this is a note
   fcsNote:
+    nop
     mov fcsArg0, a
     mov chanNote+x, a
     mov a, #0
