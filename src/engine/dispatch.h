@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// dispatch.h: definition of a DivDispatch and related things.
+
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
@@ -32,15 +34,19 @@
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
-// HOW TO ADD A NEW COMMAND:
-// add it to this enum. then see playback.cpp.
-// there is a const char* cmdName[] array, which contains the command
-// names as strings for the commands (and other debug stuff).
-//
-// if you miss it, the program will crash or misbehave at some point.
-//
-// the comments are: (arg1, arg2) -> val
-// not all commands have a return value
+/**
+ * DivDispatchCmds - the enum containing all engine commands.
+ * these are sent from the engine to dispatches during playback.
+ *
+ * HOW TO ADD A NEW COMMAND:
+ * - append it to this enum.
+ *   - if you place it at the beginning or in the middle of this enum, you'll break the command stream format, so don't.
+ * - in playback.cpp there is a const char* cmdName[] array, which contains the command names as strings for the commands (and other debug stuff).
+ *   - if you miss it, Furnace won't compile.
+ *
+ * the comments are: (arg1, arg2) -> val
+ * not all commands have a return value
+ */
 enum DivDispatchCmds {
   DIV_CMD_NOTE_ON=0, // (note)
   DIV_CMD_NOTE_OFF,
@@ -324,22 +330,37 @@ enum DivDispatchCmds {
   DIV_CMD_MAX
 };
 
+/**
+ * a DivCommand encapsulates an engine command.
+ */
 struct DivCommand {
+  // the command type.
   DivDispatchCmds cmd;
+  // chan: the destination channel.
+  // - when generated in the engine, this is relative to the first channel in the song.
+  // - when sent to the dispatch, the engine will remap it relative to the first channel in that dispatch.
+  // dis: this is the same as chan, but does not become remapped.
+  // - it always is relative to the first channel in the song.
+  // - normally you shouldn't use this. it's only used during remapping.
   unsigned char chan, dis;
+  // the two parameters of a command.
   int value, value2;
+
+  // two-value constructor.
   DivCommand(DivDispatchCmds c, unsigned char ch, int val, int val2):
     cmd(c),
     chan(ch),
     dis(ch),
     value(val),
     value2(val2) {}
+  // single-value constructor.
   DivCommand(DivDispatchCmds c, unsigned char ch, int val):
     cmd(c),
     chan(ch),
     dis(ch),
     value(val),
     value2(0) {}
+  // no-parameter constructor.
   DivCommand(DivDispatchCmds c, unsigned char ch):
     cmd(c),
     chan(ch),
