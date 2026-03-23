@@ -369,6 +369,9 @@ struct DivCommand {
     value2(0) {}
 };
 
+/**
+ * currently we don't use this but eventually we will.
+ */
 struct DivPitchTable {
   int pitch[(12*128)+1];
   unsigned char linearity, blockBits;
@@ -392,21 +395,31 @@ struct DivPitchTable {
   }
 };
 
+/**
+ * a delayed command, to be executed later.
+ * currently unused.
+ */
 struct DivDelayedCommand {
   int ticks;
   DivCommand cmd;
 };
 
+/**
+ * standard specification for a register write.
+ * used in register dump-based exports (e.g. VGM).
+ */
 struct DivRegWrite {
   /**
+   * the address.
    * an address of 0xffffxx00 indicates a Furnace specific command.
-   * the following addresses are available:
+   * usually, instance refers to chip.
+   * the following commands are available:
    * - 0xffffxx00: start sample playback
    *   - xx is the instance ID
-   *   - data is the sample number
+   *   - value is the sample number
    * - 0xffffxx01: set sample rate
    *   - xx is the instance ID
-   *   - data is the sample rate
+   *   - value is the sample rate
    * - 0xffffxx02: stop sample playback
    *   - xx is the instance ID
    * - 0xffffxx03: set sample playback direction
@@ -415,12 +428,13 @@ struct DivRegWrite {
    *   - for use in VGM export
    * - 0xffffxx05: set sample position
    *   - xx is the instance ID
-   *   - data is the sample position
+   *   - value is the sample position
    * - 0xffffffff: reset
    * - 0xfffffffe: add delay
-   *   - data is the delay
+   *   - value is the delay in cycles
    */
   unsigned int addr;
+  // the value to write.
   unsigned int val;
   DivRegWrite():
     addr(0), val(0) {}
@@ -428,24 +442,38 @@ struct DivRegWrite {
     addr(a), val(v) {}
 };
 
+/**
+ * a delayed register write.
+ */
 struct DivDelayedWrite {
+  // the write's delay.
   int time;
   // this variable is internal.
   // it is used by VGM export to make sure these writes are in order.
   // do not change.
   int order;
+  // the register write.
   DivRegWrite write;
+  // constructor with order.
   DivDelayedWrite(int t, int o, unsigned int a, unsigned int v):
     time(t),
     order(o),
     write(a,v) {}
+  // constructor.
   DivDelayedWrite(int t, unsigned int a, unsigned int v):
     time(t),
     order(0),
     write(a,v) {}
 };
 
+/**
+ * encapsulates a channel's sample position.
+ * this is used by DivDispatch::getSamplePos().
+ */
 struct DivSamplePos {
+  // sample: the sample index.
+  // pos: the current position.
+  // freq: the frequency in Hz.
   int sample, pos, freq;
   DivSamplePos(int s, int p, int f):
     sample(s),
@@ -457,22 +485,49 @@ struct DivSamplePos {
     freq(0) {}
 };
 
+// these are used to determine fractional precision of the chan osc buffer's needle.
+// I was planning to give the needle more precision on 64-bit systems until
+// I ran into all sorts of issues, so I decided to keep it at 16 for everyone.
 constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?16:16;
 constexpr size_t OSCBUF_MASK=(UINTMAX_C(1)<<OSCBUF_PREC)-1;
 
+// don't use this unless you know what you're doing. stick to putSample().
 #define putSampleIKnowWhatIAmDoing(_ob,_pos,_val) \
   _ob->data[_pos]=_val;
 
-// the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
+/**
+ * this is a buffer for a channel's output.
+ * it is used for the per-channel oscilloscope.
+ * it should not be used for per-channel audio export as its output is optimized and may have a lower rate/quality.
+ */
 struct DivDispatchOscBuffer {
+  // the input rate of this osc buffer.
+  // the output buffer will be filled at a rate of 65536 samples per second no matter what.
   size_t rate;
+  // used to calculate resampling rate for the output.
   size_t rateMul;
+  // current position in the output buffer, as a fixed point number.
+  // it is 16.16 for performance reasons.
   unsigned int needle;
+  // the read position of the output buffer.
+  // set by the GUI after rendering the per-chan osc.
   unsigned short readNeedle;
+  // this was formerly used but now disabled as part of an optimization...
   //unsigned short lastSample;
+  // follow: serves no purpose. formerly a debug option.
+  // mustNotKillNeedle: set when the needle's fractional part is non-zero. moves start and end positions by one if they differ to prevent glitches.
   bool follow, mustNotKillNeedle;
+  // the output data.
+  // if a sample is -1, it means "hold the previous sample".
+  // if you're wondering why, it's to speed up acquireDirect() by not having to fill in each sample.
+  // actual -1 samples become -2 to avoid conflicts. see what I told you about optimization?
   short data[65536];
 
+  /**
+   * put a sample into the output buffer.
+   * @param pos offset relative to the needle (should be the same as the position in acquire()).
+   * @param val the input sample.
+   */
   inline void putSample(const size_t pos, const short val) {
     unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
     if (val==-1) {
@@ -482,6 +537,8 @@ struct DivDispatchOscBuffer {
     //lastSample=val;
     data[realPos]=val;
   }
+  // this was an inline function, but I decided to turn it into a macro for further optimization.
+  // if you must know what this actually does and how to use it, go to platform/esfm.cpp.
   /*
   inline void putSampleIKnowWhatIAmDoing(const unsigned short pos, const short val) {
     //unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
@@ -492,6 +549,11 @@ struct DivDispatchOscBuffer {
     //lastSample=val;
     data[pos]=val;
   }*/
+  /**
+   * begin processing of a new frame.
+   * must be called at the beginning of acquire() before you start feeding samples.
+   * @param len the frame's length (how many input samples to make room for).
+   */
   inline void begin(size_t len) {
     size_t calc=(len*rateMul);
     unsigned short start=needle>>16;
@@ -514,12 +576,20 @@ struct DivDispatchOscBuffer {
     memset(&data[start],-1,(end-start)*sizeof(short));
     //data[needle>>16]=lastSample;
   }
+  /**
+   * finish processing of the current frame and advances the needle.
+   * must be called at the end of acquire().
+   * @param len the frame's length.
+   */
   inline void end(size_t len) {
     size_t calc=len*rateMul;
     needle+=calc;
     mustNotKillNeedle=needle&0xffff;//(data[needle>>16]!=-1);
     //data[needle>>16]=lastSample;
   }
+  /**
+   * reset the buffer and state.
+   */
   void reset() {
     memset(data,-1,65536*sizeof(short));
     needle=0;
@@ -527,6 +597,10 @@ struct DivDispatchOscBuffer {
     mustNotKillNeedle=false;
     //lastSample=0;
   }
+  /**
+   * set the input rate and recalculate internals.
+   * @param r input rate.
+   */
   void setRate(unsigned int r) {
     double rateMulD=65536.0/(double)r;
     rateMulD*=(double)(UINTMAX_C(1)<<OSCBUF_PREC);
@@ -545,24 +619,39 @@ struct DivDispatchOscBuffer {
   }
 };
 
+/**
+ * a channel pair provides a hint to the GUI which informs the user which channels are paired with a channel for modulation
+ * (e.g. ring/freq/phase mod, filtering and register sharing).
+ */
 struct DivChannelPair {
+  // the label.
   const char* label;
-  // -1: none
+  // the paired channels.
+  // -1 means "none".
   signed char pairs[8];
 
+  // constructor to pair up to 8 channels.
   DivChannelPair(const char* l, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7):
     label(l),
     pairs{p0,p1,p2,p3,p4,p5,p6,p7} {}
+  // constructor to pair a single channel.
   DivChannelPair(const char* l, signed char p):
     label(l),
     pairs{p,-1,-1,-1,-1,-1,-1,-1} {}
+  // empty.
   DivChannelPair():
     label(NULL),
     pairs{-1,-1,-1,-1,-1,-1,-1,-1} {}
 };
 
+/**
+ * mode hints provide the GUI with information about a channel's status.
+ * this is presented to the user when the channel status option is enabled in the pattern view.
+ */
 struct DivChannelModeHints {
+  // names of channel mode hints.
   const char* hint[4];
+  // types of modes.
   // valid types:
   // - 0: disabled
   // - 1: volume
@@ -588,7 +677,7 @@ struct DivChannelModeHints {
   // - 21: warning
   // - 22: error
   unsigned char type[4];
-  // up to 4
+  // number of hints. up to 4.
   unsigned char count;
 
   DivChannelModeHints():
@@ -597,6 +686,9 @@ struct DivChannelModeHints {
     count(0) {}
 };
 
+/**
+ * this enum describe possible types for memory entries in a memory composition struct.
+ */
 enum DivMemoryEntryType {
   DIV_MEMORY_FREE=0, // shouldn't be used
   DIV_MEMORY_PADDING,
@@ -620,10 +712,19 @@ enum DivMemoryEntryType {
   DIV_MEMORY_BANK7,
 };
 
+/**
+ * a memory entry describes a region of data within a chip's memory.
+ * this is contained by the memory composition struct.
+ */
 struct DivMemoryEntry {
+  // the type of this entry.
   DivMemoryEntryType type;
+  // name.
   String name;
+  // related asset (usually a sample).
+  // used by the GUI to let the user jump to a sample by clicking on the region.
   int asset;
+  // the region within memory that this entry occupies.
   size_t begin, end;
   DivMemoryEntry(DivMemoryEntryType t, String n, int a, size_t b, size_t e):
     type(t),
@@ -639,6 +740,10 @@ struct DivMemoryEntry {
     end(0) {}
 };
 
+/**
+ * possible waveform view formats.
+ * used by the GUI to display live memory data over the memory composition graph.
+ */
 enum DivMemoryWaveView: unsigned char {
   DIV_MEMORY_WAVE_NONE=0,
   DIV_MEMORY_WAVE_4BIT, // Namco 163
@@ -646,12 +751,22 @@ enum DivMemoryWaveView: unsigned char {
   DIV_MEMORY_WAVE_8BIT_SIGNED, // SCC
 };
 
+/**
+ * used to describe the contents of a chip's memory, such as samples, waveforms and other data.
+ * returned by DivDispatch::getMemCompo().
+ */
 struct DivMemoryComposition {
+  // contains memory entries.
   std::vector<DivMemoryEntry> entries;
+  // name of this memory space.
   String name;
+  // capacity of this memory space, in bytes.
   size_t capacity;
+  // how much memory is in use.
   size_t used;
+  // a pointer to memory contents. used if waveformView is not NONE.
   const unsigned char* memory;
+  // this may be set to allow the GUI to display a visualization of memory data alongside the graph.
   DivMemoryWaveView waveformView;
   DivMemoryComposition():
     name(""),
@@ -661,16 +776,29 @@ struct DivMemoryComposition {
     waveformView(DIV_MEMORY_WAVE_NONE) {}
 };
 
+// forward declarations
 class DivEngine;
 class DivMacroInt;
 
+/**
+ * a "dispatch" performs the following:
+ * - processes engine commands
+ * - runs macros (if necessary)
+ * - performs register writes
+ * - emulates a sound chip, synthesizes sound or otherwise provides an audible output to the engine
+ * it is one of the vital components of Furnace.
+ * it gets its name from the fact this is where commands are dispatched to.
+ * this is not called DivChip because not all dispatches are chips (despite the UI calling them chips). an example is the Generic PCM DAC.
+ */
 class DivDispatch {
   protected:
+    // the parent engine attached to this dispatch.
     DivEngine* parent;
+    // this contains all register writes made to a chip.
+    // only populate this when dumpWrites is enabled!
     std::vector<DivRegWrite> regWrites;
-    /**
-     * please honor these variables if needed.
-     */
+    // skipRegisterWrites: set while the engine is "seeking" in the song. when set, you shouldn't write to registers.
+    // dumpWrites: set when the engine wants to know what are we writing. used during register dump export (e.g. VGM).
     bool skipRegisterWrites, dumpWrites;
   public:
     /**
