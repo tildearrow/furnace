@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// chipUtils.h: definition of SharedChannel.
+// I should merge this with dispatch.h.
+
 #ifndef _CHIP_UTILS_H
 #define _CHIP_UTILS_H
 

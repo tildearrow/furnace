@@ -1249,11 +1249,16 @@ class DivDispatch {
 #define COLOR_NTSC (315000000.0/88.0)
 #define COLOR_PAL (283.75*15625.0+25.0)
 
+// this macro clamps a variable.
 #define CLAMP_VAR(x,xMin,xMax) \
   if ((x)<(xMin)) (x)=(xMin); \
   if ((x)>(xMax)) (x)=(xMax);
 
+// used to determine whether we can use handleArp() to handle the arpeggio macro.
+// otherwise, baseFreq must be altered on each arp macro tick.
 #define NEW_ARP_STRAT (parent->song.compatFlags.linearPitch && !parent->song.compatFlags.oldArpStrategy)
+
+// this is used by DIV_CMD_LEGATO handling code in some dispatches for compatibility.
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif
