@@ -786,9 +786,12 @@ class DivMacroInt;
  * - runs macros (if necessary)
  * - performs register writes
  * - emulates a sound chip, synthesizes sound or otherwise provides an audible output to the engine
- * it is one of the vital components of Furnace.
+ * it is one of the vital components of Furnace. it is referred to as "chip" in the UI.
  * it gets its name from the fact this is where commands are dispatched to.
  * this is not called DivChip because not all dispatches are chips (despite the UI calling them chips). an example is the Generic PCM DAC.
+ *
+ * implementations lie in platform/ and are prefixed with DivPlatform*.
+ * check out platform/pce.cpp and platform/pce.h. these are templates I use frequently when adding new chips.
  */
 class DivDispatch {
   protected:
@@ -1229,6 +1232,7 @@ class DivDispatch {
 //   - freqChanged: whether baseFreq and/or pitch have changed, and a frequency recalculation is required on the next tick.
 // - the following definitions will help you calculate baseFreq.
 // - to use them, define CHIP_DIVIDER and/or CHIP_FREQBASE in your code (not in the header though!).
+//   the value depends on the chip.
 #define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
 #define NOTE_PERIODIC_NOROUND(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
