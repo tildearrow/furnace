@@ -81,8 +81,6 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
 
-      if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
-
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
       if (ImGui::Button("Abort")) {
@@ -282,7 +280,10 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Instrument Compiler")) {
+    if (ImGui::TreeNode("ROM Export Work")) {
+      ImGui::PushFont(headFont);
+      ImGui::TextUnformatted("Instrument");
+      ImGui::PopFont();
       if (ImGui::BeginCombo("Type",(insCompileType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insCompileType][0]))) {
         for (int i=0; insTypes[i][0]; i++) {
           if (ImGui::Selectable(insTypes[i][0],insCompileType==i)) {
@@ -296,6 +297,20 @@ void FurnaceGUI::drawDebug() {
       }
       if (ImGui::Button("Export only the current instrument")) {
         openFileDialog(GUI_FILE_EXPORT_COMPILED_INS_ONE);
+      }
+
+      ImGui::PushFont(headFont);
+      ImGui::TextUnformatted("Sequence");
+      ImGui::PopFont();
+      if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
+
+      ImGui::PushFont(headFont);
+      ImGui::TextUnformatted("Sample Data");
+      ImGui::PopFont();
+      ImGui::InputInt("Chip Index",&sampleCompileDispatch);
+      ImGui::InputInt("Memory Index",&sampleCompileIndex);
+      if (ImGui::Button("Compile Memory")) {
+        openFileDialog(GUI_FILE_EXPORT_COMPILED_SAMPLE);
       }
       ImGui::TreePop();
     }

@@ -237,6 +237,10 @@ const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
   return NULL;
 }
 
+const void* DivDispatch::compileSampleMem(int index, size_t& size) {
+  return NULL;
+}
+
 bool DivDispatch::isSampleLoaded(int index, int sample) {
   printf("you are calling.\n");
   return false;

@@ -1316,7 +1316,7 @@ class DivDispatch {
      * @param index the memory index.
      * @return memory start offset in bytes.
      */
-    virtual size_t getSampleMemOffset(int index = 0);
+    virtual size_t getSampleMemOffset(int index=0);
 
     /**
      * Get sample memory usage.
@@ -1346,6 +1346,16 @@ class DivDispatch {
      * @return a pointer to DivMemoryComposition, or NULL.
      */
     virtual const DivMemoryComposition* getMemCompo(int index);
+
+    /**
+     * get a "compiled" version of sample memory.
+     * this may be the same as getSampleMem() or not (may include extra data such as sample offsets).
+     * used in ROM export.
+     * @param index the memory index.
+     * @param size the memory size will be stored here.
+     * @return a pointer to compiled sample memory which must be deallocated after use (delete[]), or NULL if not implemented.
+     */
+    virtual const void* compileSampleMem(int index, size_t& size);
 
     /**
      * Render samples into sample memory.
