@@ -870,7 +870,8 @@ void DivPlatformSNES::reset() {
   // this can't be 0 or channel 1 won't play
   // this can't be 0x100 either as that's used by SPC700 page 1 and the stack
   // this may not even be 0x200 as some space will be taken by the playback routine and variables
-  sampleTableBase=0x200;
+  // I hope 0x400 is good enough...
+  sampleTableBase=0x400;
   rWrite(0x5d,sampleTableBase>>8);
   rWrite(0x0c,127); // global volume left
   rWrite(0x1c,127); // global volume right
@@ -983,6 +984,14 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
   return &memCompo;
 }
 
+const void* DivPlatformSNES::compileSampleMem(int index, size_t& size) {
+  size=MIN(sampleMemLen,65536)-sampleTableBase;
+  unsigned char* ret=new unsigned char[size];
+  memcpy(ret,&copyOfSampleMem[sampleTableBase],size);
+
+  return ret;
+}
+
 void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,32768*sizeof(unsigned int));
@@ -992,11 +1001,26 @@ void DivPlatformSNES::renderSamples(int sysID) {
   memCompo.name="SPC/DSP Memory";
 
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"State",-1,0,sampleTableBase));
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,sampleTableBase,sampleTableBase+8*4));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Channel Sample Pointers",-1,sampleTableBase,sampleTableBase+8*4));
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,sampleTableBase+8*4,sampleTableBase+8*4+8*9*16));
 
   // skip past sample table and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
+  size_t sampleTablePos=memPos;
+  
+  // allocate sample table
+  int maxSample=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      continue;
+    }
+    maxSample=i;
+  }
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,memPos,memPos+(maxSample+1)*4));
+  memPos+=(maxSample+1)*4;
+
+  // write samples
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1028,6 +1052,31 @@ void DivPlatformSNES::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  // finish sample table
+  for (int i=0; i<=maxSample; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      // unavailable
+      copyOfSampleMem[sampleTablePos+i*4]=0;
+      copyOfSampleMem[sampleTablePos+i*4+1]=0;
+      copyOfSampleMem[sampleTablePos+i*4+2]=0;
+      copyOfSampleMem[sampleTablePos+i*4+3]=0;
+      continue;
+    }
+
+    int start=sampleOff[i];
+    int end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
+    int loop=MAX(start,end-1);
+    if (s->isLoopable()) {
+      loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
+    }
+
+    copyOfSampleMem[sampleTablePos+i*4]=start&0xff;
+    copyOfSampleMem[sampleTablePos+i*4+1]=start>>8;
+    copyOfSampleMem[sampleTablePos+i*4+2]=loop&0xff;
+    copyOfSampleMem[sampleTablePos+i*4+3]=loop>>8;
+  }
 
   // even if the delay is 0, the DSP will still operate the first buffer sample
   // so the ARAM buffer size becomes 4 bytes when the delay is 0

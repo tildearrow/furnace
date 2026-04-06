@@ -312,6 +312,7 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Compile Memory")) {
         openFileDialog(GUI_FILE_EXPORT_COMPILED_SAMPLE);
       }
+      ImGui::Text("%" PRIu64 " bytes (compile to update)",sampleCompileSize);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Sample Debug")) {

@@ -15,12 +15,17 @@ fcsVolMax=volMaxArray
 fcsCmdTableLow=fcsCmdTableExample
 fcsCmdTableHigh=fcsCmdTableExample
 
+; sample data goes here...
+sampleData:
 dir:
-  .dw dummySaw, dummySaw
-  .dsw 14, 0
+  .incbin "sample.bin"
 
-dummySaw:
-  .db $b0, $01, $23, $45, $67, $89, $ab, $cd, $ef
+waveRAM=dir+$20
+actualDir=waveRAM+$480
+
+; instrument data...
+insData:
+  .incbin "ins.bin"
 
 fcsDummyFunc:
   ret
@@ -83,8 +88,6 @@ loop:
   beq loop
   call !fcsTick
   bra loop
-
-.ORGA $1000
 
 cmdStream:
   .incbin "seq.bin"

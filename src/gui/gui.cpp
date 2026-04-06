@@ -6298,7 +6298,28 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_COMPILED_SAMPLE: {
-              // here's a little stub...
+              romExportPath=copyOfName;
+              DivDispatch* dis=e->getDispatch(sampleCompileDispatch);
+              if (dis==NULL) {
+                showError(_("invalid chip index!"));
+                break;
+              }
+              const unsigned char* compiledMem=(const unsigned char*)dis->compileSampleMem(sampleCompileIndex,sampleCompileSize);
+              if (compiledMem!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  if (fwrite(compiledMem,1,sampleCompileSize,f)!=sampleCompileSize) {
+                    showWarning(_("did not write entire file!"),GUI_WARN_GENERIC);
+                  }
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                delete[] compiledMem;
+              } else {
+                showError(_("couldn't compile memory. check whether the chip's dispatch supports doing so, and that the memory index is in range."));
+              }
               break;
             }
             case GUI_FILE_EXPORT_TEXT: {
@@ -9438,6 +9459,9 @@ FurnaceGUI::FurnaceGUI():
   pendingExport(NULL),
   romExportExists(false),
   insCompileType(DIV_INS_SNES),
+  sampleCompileDispatch(0),
+  sampleCompileIndex(0),
+  sampleCompileSize(0),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;
