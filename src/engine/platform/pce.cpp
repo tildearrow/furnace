@@ -378,10 +378,10 @@ void DivPlatformPCE::tick(bool sysTick) {
       }
       // clamp the final period...
       if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (chan[i].freq>4096) chan[i].freq=4096;
       // ...and write it
       chWrite(i,0x02,chan[i].freq&0xff);
-      chWrite(i,0x03,chan[i].freq>>8);
+      chWrite(i,0x03,(chan[i].freq>>8)&0xf);
 
       // if we're in noise mode, calculate the noise pitch value.
       if (i>=4) {
@@ -411,7 +411,7 @@ void DivPlatformPCE::tick(bool sysTick) {
   }
   // if we have a scheduled LFO register update, do it now.
   if (updateLFO) {
-    rWrite(0x08,lfoSpeed);
+    rWrite(0x08,lfoSpeed); // TODO: 0 is treated to 256 in chip
     rWrite(0x09,lfoMode);
     updateLFO=false;
   }
