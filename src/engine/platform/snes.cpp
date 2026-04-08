@@ -1055,6 +1055,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
 
   // finish sample table
   for (int i=0; i<=maxSample; i++) {
+    if (i>=parent->song.sampleLen) break;
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
       // unavailable
