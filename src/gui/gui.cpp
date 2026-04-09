@@ -3837,6 +3837,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
+    quit=true;
   } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
     commitState(e->getConfObject());
     e->saveConf();
@@ -4508,6 +4509,9 @@ bool FurnaceGUI::loop() {
           if (requestQuit()) {
             return true;
           }
+          break;
+        case SDL_APP_TERMINATING:
+          quit=true;
           break;
       }
     }
