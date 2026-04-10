@@ -4817,6 +4817,42 @@ void FurnaceGUI::drawSettings() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
+
+  if (ImGui::Begin("New Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags,_("New Settings"))) {
+    if (ImGui::BeginTable("nnsTable",2,ImGuiTableFlags_Resizable)) {
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.2f);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.8f);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (ImGui::InputTextWithHint("##nnsSearch", _("Search..."), settingsFilter.InputBuf, IM_ARRAYSIZE(settingsFilter.InputBuf)))
+        settingsFilter.Build();
+      float scrollPos=-1.0f;
+      if (ImGui::BeginChild("nnsSidebar", ImGui::GetContentRegionAvail())) {
+        for (SettingsCategory& c:allSettings) {
+          c.drawSidebar(&settingsFilter,&scrollPos);
+          if (scrollPos!=-1.0f) {
+            logV("settings: cat set scroll to %f",  scrollPos);
+          }
+        }
+      }
+      ImGui::EndChild();
+      ImGui::TableNextColumn();
+      if (ImGui::BeginChild("nnsEntries", ImGui::GetContentRegionAvail())) {
+        for (SettingsCategory& c:allSettings) {
+          if (c.drawSettings(&settingsFilter))
+            settingsChanged=true;
+        }
+        if (scrollPos!=-1.0f) {
+          ImGui::SetScrollY(scrollPos);
+        }
+      }
+      ImGui::EndChild();
+      ImGui::EndTable();
+    }
+  }
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
+  ImGui::End();
 }
 
 void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {

@@ -40,6 +40,7 @@
 
 #include "fileDialog.h"
 #include "newFilePicker.h"
+#include "newSettings.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -2374,6 +2375,10 @@ class FurnaceGUI {
       defaultAuthorName(""),
       locale("") {}
   } settings;
+
+  ImGuiTextFilter settingsFilter;
+  std::vector<SettingsCategory> allSettings;
+  void initSettings();
 
   struct Tutorial {
     bool introPlayed;

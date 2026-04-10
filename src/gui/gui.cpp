@@ -8406,6 +8406,8 @@ bool FurnaceGUI::init() {
   audioLoadFormats.push_back(_("all files"));
   audioLoadFormats.push_back("*");
 
+  initSettings();
+
   logI("done!");
   return true;
 }
