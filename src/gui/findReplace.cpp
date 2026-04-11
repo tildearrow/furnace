@@ -44,7 +44,7 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
 };
 
 bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false) {
-  const int emptyVal=noteMode?-61:-1;
+  const int emptyVal=-1;
   switch (mode) {
     case GUI_QUERY_IGNORE:
       return true;
