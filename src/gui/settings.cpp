@@ -4818,27 +4818,32 @@ void FurnaceGUI::drawSettings() {
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
 
-  if (ImGui::Begin("New Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags,_("New Settings"))) {
+  if (ImGui::Begin("New Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags,_("New Settings"))) {
+    const float buttonsHeight=ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*4.0f;
     if (ImGui::BeginTable("nnsTable",2,ImGuiTableFlags_Resizable)) {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.2f);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.8f);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-      if (ImGui::InputTextWithHint("##nnsSearch", _("Search..."), settingsFilter.InputBuf, IM_ARRAYSIZE(settingsFilter.InputBuf)))
+      if (ImGui::InputTextWithHint("##nnsSearch",_("Search..."),settingsFilter.InputBuf,IM_ARRAYSIZE(settingsFilter.InputBuf)))
         settingsFilter.Build();
       float scrollPos=-1.0f;
-      if (ImGui::BeginChild("nnsSidebar", ImGui::GetContentRegionAvail())) {
+      ImVec2 childSize=ImGui::GetContentRegionAvail();
+      childSize.y-=buttonsHeight;
+      if (ImGui::BeginChild("nnsSidebar",childSize)) {
         for (SettingsCategory& c:allSettings) {
           c.drawSidebar(&settingsFilter,&scrollPos);
           if (scrollPos!=-1.0f) {
-            logV("settings: cat set scroll to %f",  scrollPos);
+            logV("settings: cat set scroll to %f",scrollPos);
           }
         }
       }
       ImGui::EndChild();
       ImGui::TableNextColumn();
-      if (ImGui::BeginChild("nnsEntries", ImGui::GetContentRegionAvail())) {
+      childSize=ImGui::GetContentRegionAvail();
+      childSize.y-=buttonsHeight;
+      if (ImGui::BeginChild("nnsEntries",childSize)) {
         for (SettingsCategory& c:allSettings) {
           if (c.drawSettings(&settingsFilter))
             settingsChanged=true;
@@ -4850,6 +4855,27 @@ void FurnaceGUI::drawSettings() {
       ImGui::EndChild();
       ImGui::EndTable();
     }
+    ImGui::Separator();
+    if (ImGui::Button(_("OK##SettingsOK"))) {
+      settingsOpen=false;
+      willCommit=true;
+      settingsChanged=false;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(_("Cancel##SettingsCancel"))) {
+      settingsOpen=false;
+      audioEngineChanged=false;
+      syncSettings();
+      settingsChanged=false;
+    }
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!settingsChanged);
+    if (ImGui::Button(_("Apply##SettingsApply"))) {
+      settingsOpen=true;
+      willCommit=true;
+      settingsChanged=false;
+    }
+    ImGui::EndDisabled();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();

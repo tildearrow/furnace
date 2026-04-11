@@ -18,7 +18,7 @@ void FurnaceGUI::drawEffectList() {
       ImGui::TextWrapped(_("Chip at cursor: %s"),e->getSystemName(e->song.sysOfChan[cursor.xCoarse]));
       ImGui::PopTextWrapPos();
     }
-    if (ImGui::InputTextWithHint("##effectsSearch", _("Search..."), effectSearch.InputBuf, IM_ARRAYSIZE(effectSearch.InputBuf)))
+    if (ImGui::InputTextWithHint("##effectsSearch",_("Search..."),effectSearch.InputBuf,IM_ARRAYSIZE(effectSearch.InputBuf)))
       effectSearch.Build();
     ImGui::SameLine();
     ImGui::Button(ICON_FA_BARS "##SortEffects");

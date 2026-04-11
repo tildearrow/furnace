@@ -18,9 +18,6 @@
  */
 
 #include "gui.h"
-#include <cstddef>
-#include <imgui.h>
-#include <imgui_internal.h>
 // #include "newSettings.h"
 
 SettingEntry::SettingEntry(const char* n, std::function<bool(void)> f) {
