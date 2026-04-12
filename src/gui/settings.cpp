@@ -2287,6 +2287,8 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_RECENT);
             drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_INSTRUMENTS);
             drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_SAMPLES);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_INSTRUMENT_CHANGE);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_ADD_CHIP);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
