@@ -6957,10 +6957,9 @@ bool FurnaceGUI::loop() {
           for (size_t i=0; i<warnChoices.size(); i++) {
             FurnaceGUI::WarnChoice& wc=warnChoices[i];
             if (wc.destructive) pushDestColor();
-            bool passthroughKey=!settings.warnNotePassthrough || wc.key==ImGuiKey_Escape;
-            bool keyAccepted=(wc.key != -1) && ImGui::IsKeyPressed((ImGuiKey)wc.key) && passthroughKey;
-            String name=passthroughKey?(fmt::sprintf("%s",_(wc.name))):(_(wc.name));
-            if (ImGui::Button(_(name.c_str())) || keyAccepted) {
+            bool bypassShortcut=settings.warnNotePassthrough && wc.key!=ImGuiKey_Escape;
+            if (!bypassShortcut) ImGui::SetNextItemShortcut(wc.key,ImGuiInputFlags_Tooltip);
+            if (ImGui::Button(_(wc.name))) {
               ImGui::CloseCurrentPopup();
               wc.action();
             }
