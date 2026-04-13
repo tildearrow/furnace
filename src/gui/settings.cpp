@@ -44,6 +44,8 @@
 #include <dirent.h>
 #endif
 
+#include "newSettings.h"
+
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
 #if defined(_WIN32) || defined(__APPLE__) || defined(IS_MOBILE)
@@ -294,33 +296,6 @@ const char* specificControls[18]={
   _N("Effect 8 value")
 };
 
-#define SAMPLE_RATE_SELECTABLE(x) \
-  if (ImGui::Selectable(#x,settings.audioRate==x)) { \
-    settings.audioRate=x; \
-    settingsChanged=true; \
-  }
-
-#define BUFFER_SIZE_SELECTABLE(x) \
-  if (ImGui::Selectable(#x,settings.audioBufSize==x)) { \
-    settings.audioBufSize=x; \
-    settingsChanged=true; \
-  }
-
-#define UI_COLOR_CONFIG(what,label) \
-  ImGui::PushID(what); \
-  if (ImGui::ColorEdit4(label,(float*)&uiColors[what])) { \
-    applyUISettings(false); \
-    settingsChanged=true; \
-  } \
-  ImGui::PopID();
-
-#define KEYBIND_CONFIG_BEGIN(id) \
-  if (ImGui::BeginTable(id,2,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX|ImGuiTableFlags_NoClip)) {
-
-#define KEYBIND_CONFIG_END \
-    ImGui::EndTable(); \
-  }
-
 #define CONFIG_SUBSECTION(what) \
   if (_subInit) { \
     ImGui::Separator(); \
@@ -341,18 +316,6 @@ const char* specificControls[18]={
 #define END_SECTION } \
   ImGui::EndChild(); \
   ImGui::EndTabItem();
-
-#define CORE_QUALITY(_name,_play,_render) \
-  ImGui::TableNextRow(); \
-  ImGui::TableNextColumn(); \
-  ImGui::AlignTextToFramePadding(); \
-  ImGui::Text(_name); \
-  ImGui::TableNextColumn(); \
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
-  if (ImGui::Combo("##" _name "Q",&settings._play,LocalizedComboGetter,coreQualities,6)) settingsChanged=true; \
-  ImGui::TableNextColumn(); \
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
-  if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
 String stripName(String what) {
   String ret;
@@ -4826,14 +4789,18 @@ void FurnaceGUI::drawSettings() {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-      if (ImGui::InputTextWithHint("##nnsSearch",_("Search..."),settingsFilter.InputBuf,IM_ARRAYSIZE(settingsFilter.InputBuf)))
+      if (ImGui::InputTextWithHint("##nnsSearch",_("Search..."),settingsFilter.InputBuf,IM_ARRAYSIZE(settingsFilter.InputBuf))) {
         settingsFilter.Build();
+        settingsShowItemResults=true;
+      }
       float scrollPos=-1.0f;
       ImVec2 childSize=ImGui::GetContentRegionAvail();
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsSidebar",childSize)) {
         for (SettingsCategory& c:allSettings) {
-          c.drawSidebar(&settingsFilter,&scrollPos);
+          if (c.drawSidebar(&settingsFilter,&scrollPos)) {
+            settingsShowItemResults=false;
+          }
           if (scrollPos!=-1.0f) {
             logV("settings: cat set scroll to %f",scrollPos);
           }
@@ -4845,7 +4812,7 @@ void FurnaceGUI::drawSettings() {
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsEntries",childSize)) {
         for (SettingsCategory& c:allSettings) {
-          if (c.drawSettings(&settingsFilter))
+          if (c.drawSettings(&settingsFilter,settingsShowItemResults))
             settingsChanged=true;
         }
         if (scrollPos!=-1.0f) {
@@ -4871,7 +4838,6 @@ void FurnaceGUI::drawSettings() {
     ImGui::SameLine();
     ImGui::BeginDisabled(!settingsChanged);
     if (ImGui::Button(_("Apply##SettingsApply"))) {
-      settingsOpen=true;
       willCommit=true;
       settingsChanged=false;
     }

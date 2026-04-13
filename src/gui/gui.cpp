@@ -9008,6 +9008,7 @@ FurnaceGUI::FurnaceGUI():
   totalLength(0.0),
   curProgress(0.0f),
   totalFiles(0),
+  settingsShowItemResults(true),
   localeRequiresJapanese(false),
   localeRequiresChinese(false),
   localeRequiresChineseTrad(false),

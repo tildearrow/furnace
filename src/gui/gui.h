@@ -2378,7 +2378,10 @@ class FurnaceGUI {
 
   ImGuiTextFilter settingsFilter;
   std::vector<SettingsCategory> allSettings;
-  void initSettings();
+  // when clicking on a category while the filter is active,
+  // set to false so the filter is ignored for items.
+  // otherwise set to true on filter update
+  bool settingsShowItemResults;
 
   struct Tutorial {
     bool introPlayed;
@@ -3168,6 +3171,7 @@ class FurnaceGUI {
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
+  void initSettings();
   void syncSettings();
   void commitSettings();
   void syncTutorial();
