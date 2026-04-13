@@ -32,6 +32,7 @@ class DivPlatformDummy: public DivDispatch {
   };
   Channel chan[128];
   DivDispatchOscBuffer* oscBuf[128];
+  DivPitchTable pitchTable;
   bool isMuted[128];
   unsigned char chans;  
   friend void putDispatchChip(void*,int);

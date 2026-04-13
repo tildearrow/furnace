@@ -17,7 +17,56 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
- #include "dispatch.h"
+#include "dispatch.h"
 
+int DivPitchTable::get(int base, int pitch1, int pitch2) {
+  int offset=base+pitch1+pitch2;
 
- 
+  if (!linearity) {
+    return offset;
+  }
+
+  int coarse=offset>>7;
+  int fine=offset&127;
+  int index=coarse%12;
+  int octave=period?
+    ((coarse/12)-shift):
+    (shift-(coarse/12));
+
+  int root=pitch[index]>>octave;
+  int diff=pitchDiff[index]>>octave;
+
+  return root+((diff*fine)>>7);
+}
+
+int DivPitchTable::getBase(int note) {
+  if (!linearity) {
+    if (period) {
+      return pitch[note%12]>>(note/12);
+    }
+    return pitch[note%12]>>(14-(note/12));
+  }
+  return get(note<<7,0,0);
+}
+
+void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod) {
+  period=isPeriod;
+  shift=period?0:9;
+
+  logV("DivPitchTable init(%f,%f,%f,%x,%s)",tuning,clock,divider,maximum,isPeriod?"period":"freq");
+  logV("(shift: %d)",shift);
+
+  for (int i=0; i<=12; i++) {
+    int nbase=i+shift*12;
+    double fbase=(period?(tuning*0.0625):tuning)*pow(2.0,(float)(nbase+3)/(12.0));
+    int bf=period?
+           round((clock/fbase)/divider):
+           round(fbase*(divider/clock));
+    pitch[i]=bf;
+  }
+
+  for (int i=0; i<12; i++) {
+    pitchDiff[i]=pitch[i+1]-pitch[i];
+    logV("- %d: %x (%x)",i,pitch[i],pitchDiff[i]);
+  }
+}

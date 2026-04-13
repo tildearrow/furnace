@@ -67,7 +67,12 @@ void DivPlatformDummy::tick(bool sysTick) {
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
+      chan[i].freq=pitchTable.get(chan[i].baseFreq,chan[i].pitch,0);
+      int origCalc=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,0,false,false,0,0,chipClock,CHIP_FREQBASE);
+      logV("%d: CF %x - PT %x (delta %d)",i,origCalc,chan[i].freq,chan[i].freq-origCalc);
+      /*
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,0,false,false,0,0,chipClock,CHIP_FREQBASE);
+      */
     }
   }
 }
@@ -161,6 +166,7 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivCon
   }
   rate=65536;
   chipClock=65536;
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false);
   chans=channels;
   reset();
   return channels;

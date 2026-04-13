@@ -534,25 +534,34 @@ struct DivCommand {
  * currently we don't use this but eventually we will.
  */
 struct DivPitchTable {
-  int pitch[(12*128)+1];
-  unsigned char linearity, blockBits;
+  int pitch[12+1];
+  int pitchDiff[12+1];
+  unsigned char linearity, blockBits, shift;
   bool period;
 
   // get pitch
-  int get(int base, int pitch, int pitch2);
+  int get(int base, int pitch1, int pitch2);
 
   // linear: note
   // non-linear: get(note,0,0)
   int getBase(int note);
 
-  // calculate pitch table
-  void init(float tuning, double clock, double divider, int octave, unsigned char linear, bool isPeriod, unsigned char block=0);
+  /**
+   * calculate pitch table.
+   * @param tuning the A-4 tuning to use.
+   * @param clock the chip's clock.
+   * @param divider the divider or frequency base.
+   * @param maximum the maximum period/frequency value supported by the chip.
+   * @param period whether to use periods instead of accumulator values.
+   */
+  void init(float tuning, double clock, double divider, int maximum, bool period);
 
   DivPitchTable():
     linearity(2),
     blockBits(0),
     period(false) {
     memset(pitch,0,sizeof(pitch));
+    memset(pitchDiff,0,sizeof(pitchDiff));
   }
 };
 
