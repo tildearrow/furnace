@@ -66,8 +66,8 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter) {
         isCategoryEmpty=false;
         break;
       }
-      if (isCategoryEmpty) drawOwnSettings=false;
     }
+    if (isCategoryEmpty) drawOwnSettings=false;
   }
   bool ret=false;
   if (drawOwnSettings) {
@@ -114,16 +114,15 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollP
     if (filter->IsActive()) {
       if (!filter->PassFilter(_(name))) {
         if (!categoryPassFilterRecursive(filter)) return false;
-        else {
-          ImGui::BeginDisabled();
-          popDisabled=true;
-        }
+        else popDisabled=true;
       }
       treeFlags|=ImGuiTreeNodeFlags_DefaultOpen;
     }
+    ImGui::BeginDisabled(popDisabled);
+    popDisabled=true;
     if (ImGui::TreeNodeEx(_(name), treeFlags)) {
-      popDisabled=false;
       ImGui::EndDisabled();
+      popDisabled=false;
       for (SettingsCategory& c:children)
         ret=c.drawSidebar(filter, targetScrollPos);
       ImGui::TreePop();
