@@ -20,14 +20,114 @@
 #include "newSettings.h"
 #include "gui.h"
 
-SettingEntry::SettingEntry(const char* n, std::function<bool(void)> f) {
-  name=n;
-  drawFunction=f;
+SettingEntry::SettingEntry():
+  type(SettingNone),
+  label(NULL),
+  tooltip(NULL),
+  confName(NULL),
+  value(NULL),
+  extData(NULL),
+  callback([]{}),
+  customDrawFunction([]{return false;}) {}
+
+SettingEntry::SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x, const char* d, entryCallback f) {
+  type=t,
+  label=l;
+  confName=n;
+  value=v;
+  extData=x;
+  tooltip=d;
+  callback=f;
+  customDrawFunction=[]{return false;};
 }
 
-SettingEntry::SettingEntry(const SettingEntry& s) {
-  name=s.name;
-  drawFunction=s.drawFunction;
+SettingEntry::SettingEntry(const char* l, const char* n, entryDrawFunction f) {
+  type=SettingCustom;
+  label=l;
+  confName=n;
+  value=NULL;
+  extData=NULL;
+  tooltip=NULL;
+  callback=[]{};
+  customDrawFunction=f;
+}
+
+bool SettingEntry::draw() {
+  bool ret=false;
+  switch (type) {
+    case SettingCheckbox: {
+      bool valueB=getValue<int>();
+      if (ImGui::Checkbox(_(label), &valueB)) {
+        setValue<int>(valueB);
+        callback();
+        ret=true;
+      }
+      break;
+    }
+    case SettingRadio: {
+      if (extData==NULL) assert(0 && "SettingRadio requires extData!");
+      SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
+      ImGui::BeginGroup();
+      ImGui::TextUnformatted(_(label));
+      ImGui::Indent();
+      for (size_t i=0; choices[i].choice; i++) {
+        SettingEntryMultiChoiceExtData<int> ch=choices[i];
+        if (ImGui::RadioButton(_(ch.choice), getValue<int>()==ch.value)) {
+          setValue<int>(ch.value);
+          callback();
+          ret=true;
+        }
+      }
+      ImGui::Unindent();
+      ImGui::EndGroup();
+      break;
+    }
+    case SettingComboInt: {
+      if (extData==NULL) assert(0 && "SettingRadio requires extData!");
+      SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
+      const char* preview=choices[0].choice; // fallback?
+      for (size_t i=0; choices[i].choice; i++) {
+        if (choices[i].value==getValue<int>()) {
+          preview=choices[i].choice;
+          break;
+        }
+      }
+      if (ImGui::BeginCombo(_(label),_(preview))) {
+        for (size_t i=0; choices[i].choice; i++) {
+          if (ImGui::Selectable(choices[i].choice,getValue<int>()==choices[i].value)) {
+            setValue(choices[i].value);
+            callback();
+            ret=true;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      break;
+    }
+    case SettingCustom:
+      return customDrawFunction();
+    case SettingNone:
+    default:
+      break;
+  }
+  if (tooltip) {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s",_(tooltip));
+    }
+  }
+  return ret;
+}
+
+bool SettingEntry::passesFilter(ImGuiTextFilter* filter) {
+  return filter->PassFilter(_(label));
+}
+
+void SettingEntry::loadConf(DivConfig& conf) {
+  
+}
+
+void SettingEntry::saveConf(DivConfig& conf) {
+  
 }
 
 SettingsCategory::SettingsCategory():
@@ -35,6 +135,13 @@ SettingsCategory::SettingsCategory():
   settings({}),
   children({}),
   scrollPos(0.0f) {}
+
+SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingEntry> s) {
+  name=n;
+  settings=s;
+  children={};
+  scrollPos=0.0f;
+}
 
 SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingEntry> s, std::initializer_list<SettingsCategory> c) {
   name=n;
@@ -62,7 +169,7 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter) {
     // otherwise...
     bool isCategoryEmpty=true;
     for (SettingEntry& s:settings) {
-      if (filter->PassFilter(_(s.name))) {
+      if (s.passesFilter(filter)) {
         isCategoryEmpty=false;
         break;
       }
@@ -76,9 +183,9 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter) {
     // ImGui::TextColored(ImVec4(1.0f,.5f,.5f,1.f), "%f",scrollPos);
     for (SettingEntry& s:settings) {
       if (filter->IsActive() && doFilter) {
-        if (!filter->PassFilter(_(s.name))) continue;
+        if (!s.passesFilter(filter)) continue;
       }
-      if (s.drawFunction()) ret=true;
+      if (s.draw()) ret=true;
     }
   }
   ImGui::Indent();
@@ -145,188 +252,50 @@ SettingsCategory::~SettingsCategory() {
 #define _C(...) allSettings.push_back(SettingsCategory(__VA_ARGS__))
 #define _CC SettingsCategory
 
+constexpr SettingEntryMultiChoiceExtData<int> playOnLoadChoices[]={
+  {_N("No##pol0"),0},
+  {_N("Only if already playing##pol1"),1},
+  {_N("Yes##pol0"),2},
+  {NULL,0}
+};
+
+#if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
+constexpr SettingEntryMultiChoiceExtData<int> audioEngineChoices[]={
+#ifdef HAVE_JACK
+  {"JACK",DIV_AUDIO_JACK},
+#endif
+  {"SDL",DIV_AUDIO_SDL},
+#ifdef HAVE_PA
+  {"PortAudio",DIV_AUDIO_PORTAUDIO},
+#endif
+#ifdef HAVE_ASIO
+  {"ASIO",DIV_AUDIO_ASIO},
+#endif
+  {NULL,0}
+};
+#endif
+
 void FurnaceGUI::initSettings() {
   _C(_N("General"),{},{
     _CC(_N("Program"),{
-#ifdef HAVE_LOCALE
-      _S(_N("Language"),[this]{
-        bool changed=false;
-        String curLocale=settings.locale;
-        const char* localeRestart=locales[0][2];
-        if (curLocale=="") {
-          curLocale="<System>";
-        } else {
-          for (int i=1; locales[i][0]; i++) {
-            if (strcmp(curLocale.c_str(),locales[i][1])==0) {
-              curLocale=locales[i][0];
-              break;
-            }
-          }
-        }
-        if (ImGui::BeginCombo(_("Language"),curLocale.c_str())) {
-          for (int i=0; locales[i][0]; i++) {
-            if (ImGui::Selectable(locales[i][0],strcmp(settings.locale.c_str(),locales[i][1])==0)) {
-              settings.locale=locales[i][1];
-              changed=true;
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("%s",locales[i][2]);
-            }
-          }
-          ImGui::EndCombo();
-        } else {
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s",localeRestart);
-          }
-        }
-        return changed;
-      }),
-#endif
-      _S(_N("Render Backend"),[this]{
-        String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
-        bool changed=false;
-        if (ImGui::BeginCombo(_("Render backend"),curRenderBackend.c_str())) {
-#ifdef HAVE_RENDER_SDL
-          if (ImGui::Selectable("SDL Renderer",curRenderBackend=="SDL")) {
-            settings.renderBackend="SDL";
-            changed=true;
-          }
-#endif
-#ifdef HAVE_RENDER_DX11
-          if (ImGui::Selectable("DirectX 11",curRenderBackend=="DirectX 11")) {
-            settings.renderBackend="DirectX 11";
-            changed=true;
-          }
-#endif
-#ifdef HAVE_RENDER_DX9
-          if (ImGui::Selectable("DirectX 9",curRenderBackend=="DirectX 9")) {
-            settings.renderBackend="DirectX 9";
-            changed=true;
-          }
-#endif
-#ifdef HAVE_RENDER_METAL
-          if (ImGui::Selectable("Metal",curRenderBackend=="Metal")) {
-            settings.renderBackend="Metal";
-            changed=true;
-          }
-#endif
-#ifdef HAVE_RENDER_GL
-#ifdef USE_GLES
-          if (ImGui::Selectable("OpenGL ES 2.0",curRenderBackend=="OpenGL ES 2.0")) {
-            settings.renderBackend="OpenGL ES 2.0";
-            changed=true;
-          }
-#else
-          if (ImGui::Selectable("OpenGL 3.0",curRenderBackend=="OpenGL 3.0")) {
-            settings.renderBackend="OpenGL 3.0";
-            changed=true;
-          }
-          if (ImGui::Selectable("OpenGL 2.0",curRenderBackend=="OpenGL 2.0")) {
-            settings.renderBackend="OpenGL 2.0";
-            changed=true;
-          }
-#endif
-#endif
-#ifdef HAVE_RENDER_GL1
-          if (ImGui::Selectable("OpenGL 1.1",curRenderBackend=="OpenGL 1.1")) {
-            settings.renderBackend="OpenGL 1.1";
-            changed=true;
-          }
-#endif
-          if (ImGui::Selectable("Software",curRenderBackend=="Software")) {
-            settings.renderBackend="Software";
-            changed=true;
-          }
-          ImGui::EndCombo();
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
-        }
-        return changed;
-      }),
-      SETTING_CHECKBOX("VSync",vsync),
-      SETTING_CHECKBOX("Display render time",displayRenderTime),
-    },{}),
-    _CC(_N("File"),{
-      SETTING_CHECKBOX("Save unused patterns",saveUnusedPatterns),
-      SETTING_RADIO("Play after opening song:",playOnLoad)
-      SETTING_RADIO_BUTTON("No##pol0",playOnLoad,0)
-      SETTING_RADIO_BUTTON("Only if already playing##pol1",playOnLoad,1)
-      SETTING_RADIO_BUTTON("Yes##pol0",playOnLoad,2)
-      SETTING_RADIO_END,
-      SETTING_RADIO("Audio export loop/fade out time:",persistFadeOut)
-      SETTING_RADIO_BUTTON("Set to these values on start-up:##fot0",persistFadeOut,0)
-      {
-        ImGui::BeginDisabled(settings.persistFadeOut);
-        ImGui::Indent();
-        if (ImGui::InputInt(_("Loops"),&settings.exportLoops,1,2)) {
-          if (settings.exportLoops<0) settings.exportLoops=0;
-          audioExportOptions.loops=settings.exportLoops;
-          settingsChanged=true;
-        }
-        if (ImGui::InputDouble(_("Fade out (seconds)"),&settings.exportFadeOut,1.0,2.0,"%.1f")) {
-          if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
-          audioExportOptions.fadeOut=settings.exportFadeOut;
-          settingsChanged=true;
-        }
-        ImGui::Unindent();
-        ImGui::EndDisabled();
-      }
-      SETTING_RADIO_BUTTON("Remember last values##fot1",persistFadeOut,1)
-      SETTING_RADIO_END,
-      SETTING_CHECKBOX("Store instrument name in .fui",writeInsNames),
-      SETTING_CHECKBOX("Load instrument name from .fui",readInsNames),
-      SETTING_CHECKBOX("Auto-fill file name when saving",autoFillSave),
-    },{}),
-    _CC(_N("Start-up"),{
-#ifndef NO_INTRO
-      SETTING_RADIO("Play intro on start-up:",alwaysPlayIntro)
-      SETTING_RADIO_BUTTON("No##pis0",alwaysPlayIntro,0)
-      SETTING_RADIO_BUTTON("Short##pis1",alwaysPlayIntro,1)
-      SETTING_RADIO_BUTTON("Full (short when loading song)##pis2",alwaysPlayIntro,2)
-      SETTING_RADIO_BUTTON("Full (always)##pis3",alwaysPlayIntro,3)
-      SETTING_RADIO_END,
-#endif
-      SETTING_CHECKBOX("Disable fade-in during start-up",disableFadeIn),
-      SETTING_CHECKBOX("Do not maximize on start-up when the Furnace window is too big",noMaximizeWorkaround)
-    },{}),
+      _S(
+        SettingRadio,_N("Play after opening song:"),
+        "playOnLoad",&settings.playOnLoad,(void*)playOnLoadChoices
+      ),
+      _S(
+        SettingCheckbox,_N("Store instrument name in .fui"),
+        "writeInsNames",&settings.writeInsNames
+      ),
+    })
   });
   _C(_N("Audio"),{},{
-    _CC(_N("Mixing"),{
-      _S(_N("Quality"),[this]{
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Quality"));
-        ImGui::SameLine();
-        return ImGui::Combo("##Quality",&settings.audioQuality,LocalizedComboGetter,audioQualities,2);
-      }),
-      SETTING_CHECKBOX("Software clipping",clampSamples),
-      SETTING_CHECKBOX("DC offset correction",audioHiPass),
-    },{}),
-    _CC(_N("Volumes"),{
-      _S("Metronome volume",[this]{
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Metronome volume"));
-        ImGui::SameLine();
-        if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
-          if (settings.metroVol<0) settings.metroVol=0;
-          if (settings.metroVol>200) settings.metroVol=200;
-          e->setMetronomeVol(((float)settings.metroVol)/100.0f);
-          return true;
-        }
-        return false;
-      }),
-      _S("Sample preview volume",[this]{
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Sample preview volume"));
-        ImGui::SameLine();
-        if (ImGui::SliderInt("##SampleVol",&settings.sampleVol,0,100,"%d%%")) {
-          if (settings.sampleVol<0) settings.sampleVol=0;
-          if (settings.sampleVol>100) settings.sampleVol=100;
-          e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);
-          return true;
-        }
-        return false;
-      })
-    },{}),
+    _CC(_N("Output"),{
+#if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
+      _S(
+        SettingComboInt,_N("Backend"),
+        "audioEngine",&settings.audioEngine,(void*)audioEngineChoices
+      ),
+#endif
+    })
   });
 }

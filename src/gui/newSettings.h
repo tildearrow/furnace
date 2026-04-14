@@ -20,15 +20,51 @@
 #ifndef NEW_SETTINGS_H
 #define NEW_SETTINGS_H
 
+#include "../engine/config.h"
 #include "imgui.h"
 #include <functional>
 #include <initializer_list>
 
-struct SettingEntry {
-  const char* name;
-  std::function<bool(void)> drawFunction;
-  SettingEntry(const char* n, std::function<bool(void)> f);
-  SettingEntry(const SettingEntry& s);
+typedef std::function<void(void)> entryCallback;
+typedef std::function<bool(void)> entryDrawFunction;
+
+enum SettingType {
+  SettingNone=0,
+  SettingCheckbox,
+  SettingRadio,
+  SettingComboInt,
+  SettingComboStr,
+
+  SettingCustom
+};
+
+template <typename T>
+struct SettingEntryMultiChoiceExtData {
+  const char* choice;
+  T value;
+};
+
+class SettingEntry {
+  SettingType type;
+  const char* label; const char* tooltip;
+  const char* confName;
+  void* value; void* extData;
+  entryCallback callback;
+  // only used for SettingCustom
+  entryDrawFunction customDrawFunction;
+
+  template<typename T> T getValue() {return *(T*)value;}
+  template<typename T> void setValue(T v) {*(T*)value=v;}
+  public:
+    SettingEntry();
+    SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, const char* d=NULL, entryCallback f=[]{});
+    SettingEntry(const char* l, const char* n, entryDrawFunction f);
+
+    bool draw();
+    bool passesFilter(ImGuiTextFilter* filter);
+
+    void loadConf(DivConfig& conf);
+    void saveConf(DivConfig& conf);
 };
 
 class SettingsCategory {
@@ -38,6 +74,7 @@ class SettingsCategory {
   float scrollPos;
   public:
     SettingsCategory();
+    SettingsCategory(const char* n, std::initializer_list<SettingEntry> s);
     SettingsCategory(const char* n, std::initializer_list<SettingEntry> s, std::initializer_list<SettingsCategory> c);
     SettingsCategory(const SettingsCategory& s);
 
