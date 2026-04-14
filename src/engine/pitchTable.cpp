@@ -33,8 +33,45 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
     ((coarse/12)-shift):
     (shift-(coarse/12));
 
-  int root=pitch[index]>>octave;
-  int diff=pitchDiff[index]>>octave;
+  int root=pitch[index];
+  int diff=pitchDiff[index];
+
+  // shift the root pitch and delta by the "octave" and then round
+  if (octave>0) {
+#if defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__)) && !defined(ANDROID)
+    asm(
+      "movb %[octave], %%cl\n"
+      "movl %[i_root], %%eax\n"
+      "sarl %%cl, %%eax\n"
+      "jnc rootShiftEnd\n"
+      "inc %%eax\n"
+      "rootShiftEnd:\n"
+      "movl %%eax, %[root]\n"
+      "\n"
+      "movl %[i_diff], %%eax\n"
+      "sarl %%cl, %%eax\n"
+      "jnc diffShiftEnd\n"
+      "inc %%eax\n"
+      "diffShiftEnd:\n"
+      "movl %%eax, %[diff]\n"
+      "\n"
+    : [root] "+m" (root),
+      [diff] "+m" (diff)
+    : [i_root] "m" (root),
+      [i_diff] "m" (diff),
+      [octave] "m" (octave)
+    : "eax", "cl"
+    );
+#else
+    bool carry=root&(1<<(octave-1));
+    root>>=octave;
+    if (carry) root++;
+
+    carry=diff&(1<<(octave-1));
+    diff>>=octave;
+    if (carry) diff++;
+#endif
+  }
 
   return root+((diff*fine)>>7);
 }
