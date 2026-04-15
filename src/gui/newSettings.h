@@ -25,23 +25,53 @@
 #include <functional>
 #include <initializer_list>
 
+// user-defined function that gets called when the setting value gets changed
 typedef std::function<void(void)> entryCallback;
+// if none of the below types suit the setting, the draw function may be user-defined.
+// return true on setting change
 typedef std::function<bool(void)> entryDrawFunction;
 
+// common setting types.
+// some use external data (extData)
 enum SettingType {
   SettingNone=0,
-  SettingCheckbox,
-  SettingRadio,
-  SettingComboInt,
-  SettingComboStr,
+  SettingCheckbox,    // basic checkbox. no extData required
+  SettingRadio,       // radio buttons. extData - NULL-terminated array of SettingEntryMultiChoiceExtData<int>
+  SettingComboInt,    // combo, where the setting value is an integer. extData - NULL-terminated array of SettingEntryMultiChoiceExtData<int>
+  SettingComboStr,    // combo, where the setting value is a string. extData - NULL-terminated array of SettingEntryMultiChoiceExtData<String>
+  SettingSliderFloat, // float slider. extData - pointer to NumericInputExtData<float>
+  SettingSliderInt,   // int slider. extData - pointer to NumericInputExtData<int>
+  SettingInputInt,    // int input. extData - pointer to NumericInputExtData<int>
+  SettingInputStr,    // string input. extData - pointer to int containing the max string length. NULL for unlimited
+  SettingPath,        // string input with a folder icon button, which opens a file picker. no extData required
+  SettingColor,       // color picker. no extData required
+  SettingKeybind,     // keybind input. no extData required
 
-  SettingCustom
+  SettingCustom       // user-defined type
 };
 
+// multi-choice setting value definition
+// used by SettingRadio, SettingComboInt, SettingComboStr
+// a choice with a NULL value indicates the end of a definition array
 template <typename T>
 struct SettingEntryMultiChoiceExtData {
+  // the text of the choice. if localized, use _N()
   const char* choice;
+  // the value of the choice
   T value;
+};
+
+// numeric input definition
+// used by SettingSliderFloat, SettingSliderInt, SettingInputInt
+template <typename T>
+struct NumericInputExtData {
+  // minimum value of the input
+  T min;
+  // maximum value of the input
+  T max;
+  // optional, display format.
+  // set to NULL if not used
+  const char* fmt;
 };
 
 class SettingEntry {
@@ -112,33 +142,6 @@ extern const char* valueInputStyles[];
 extern const char* valueSInputStyles[];
 extern const char* messageTypes[];
 extern const char* specificControls[];
-
-#define SETTING_CHECKBOX(name,setting) \
-  SettingEntry(_N(name),[this] { \
-    bool B##setting=settings.setting; \
-    if (ImGui::Checkbox(_(name),&B##setting)) { \
-      settings.setting=B##setting; \
-      return true; \
-    } \
-    return false; \
-  })
-
-#define SETTING_RADIO(name,setting) \
-  SettingEntry(_N(name),[this] { \
-    ImGui::Text(_(name)); \
-    ImGui::Indent(); \
-    bool ret=false; \
-
-#define SETTING_RADIO_BUTTON(name,setting,v) \
-    if (ImGui::RadioButton(_(name),settings.setting==v)) { \
-      settings.setting=v; \
-      ret=true; \
-    }
-
-#define SETTING_RADIO_END \
-    ImGui::Unindent(); \
-    return ret; \
-  })
 
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \
