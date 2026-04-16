@@ -288,7 +288,7 @@ void FurnaceGUI::initSettings() {
       SETTING_CHECKBOX(
         _N("Store instrument name in .fui"),
         writeInsNames
-      ).addTooltip("this is a test"),
+      ),
     })
   });
   _C(_N("Audio"),{},{
