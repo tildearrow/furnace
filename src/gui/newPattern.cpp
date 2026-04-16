@@ -2201,7 +2201,7 @@ void FurnaceGUI::updateKeyHitPost() {
     keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
     if (keyHit[i]<0) keyHit[i]=0;
 
-    keyHit1[i]-=0.08f;
+    keyHit1[i]-=ImGui::GetIO().DeltaTime*4.8f; // 0.08 at 60fps
     if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
   }
 }
