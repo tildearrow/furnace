@@ -93,6 +93,10 @@ class SettingEntry {
     static SettingEntry Checkbox(const char* label, const char* confName, void* value) {
       return SettingEntry(SettingCheckbox,label,confName,value);
     }
+    SettingEntry& addTooltip(const char* text) {
+      tooltip=text;
+      return *this;
+    }
 
     bool draw();
     bool passesFilter(ImGuiTextFilter* filter);

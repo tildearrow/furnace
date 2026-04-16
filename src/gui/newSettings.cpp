@@ -275,6 +275,9 @@ constexpr SettingEntryMultiChoiceExtData<int> audioEngineChoices[]={
 };
 #endif
 
+#define SETTING_CHECKBOX(_label,_value) \
+  SettingEntry::Checkbox(_label,#_value,&settings._value)
+
 void FurnaceGUI::initSettings() {
   _C(_N("General"),{},{
     _CC(_N("Program"),{
@@ -282,10 +285,10 @@ void FurnaceGUI::initSettings() {
         SettingRadio,_N("Play after opening song:"),
         "playOnLoad",&settings.playOnLoad,(void*)playOnLoadChoices
       ),
-      SettingEntry::Checkbox(
+      SETTING_CHECKBOX(
         _N("Store instrument name in .fui"),
-        "writeInsNames",&settings.writeInsNames
-      ),
+        writeInsNames
+      ).addTooltip("this is a test"),
     })
   });
   _C(_N("Audio"),{},{
