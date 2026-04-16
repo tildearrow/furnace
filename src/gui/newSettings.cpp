@@ -282,8 +282,8 @@ void FurnaceGUI::initSettings() {
         SettingRadio,_N("Play after opening song:"),
         "playOnLoad",&settings.playOnLoad,(void*)playOnLoadChoices
       ),
-      _S(
-        SettingCheckbox,_N("Store instrument name in .fui"),
+      SettingEntry::Checkbox(
+        _N("Store instrument name in .fui"),
         "writeInsNames",&settings.writeInsNames
       ),
     })

@@ -90,6 +90,10 @@ class SettingEntry {
     SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, const char* d=NULL, entryCallback f=[]{});
     SettingEntry(const char* l, const char* n, entryDrawFunction f);
 
+    static SettingEntry Checkbox(const char* label, const char* confName, void* value) {
+      return SettingEntry(SettingCheckbox,label,confName,value);
+    }
+
     bool draw();
     bool passesFilter(ImGuiTextFilter* filter);
 
