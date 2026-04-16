@@ -36,13 +36,13 @@ typedef std::function<bool(void)> entryDrawFunction;
 enum SettingType {
   SettingNone=0,
   SettingCheckbox,    // basic checkbox. no extData required
-  SettingRadio,       // radio buttons. extData - NULL-terminated array of SettingEntryMultiChoiceExtData<int>
-  SettingComboInt,    // combo, where the setting value is an integer. extData - NULL-terminated array of SettingEntryMultiChoiceExtData<int>
-  SettingComboStr,    // combo, where the setting value is a string. extData - NULL-terminated array of SettingEntryMultiChoiceExtData<String>
+  SettingRadio,       // radio buttons. extData - array of SettingEntryMultiChoiceExtData<int>
+  SettingComboInt,    // combo, where the setting value is an integer. extData - array of SettingEntryMultiChoiceExtData<int>
+  SettingComboStr,    // combo, where the setting value is a string. extData - array of SettingEntryMultiChoiceExtData<String>
   SettingSliderFloat, // float slider. extData - pointer to NumericInputExtData<float>
   SettingSliderInt,   // int slider. extData - pointer to NumericInputExtData<int>
   SettingInputInt,    // int input. extData - pointer to NumericInputExtData<int>
-  SettingInputStr,    // string input. extData - pointer to int containing the max string length. NULL for unlimited
+  SettingInputStr,    // string input. extData - ???
   SettingPath,        // string input with a folder icon button, which opens a file picker. no extData required
   SettingColor,       // color picker. no extData required
   SettingKeybind,     // keybind input. no extData required
@@ -52,7 +52,6 @@ enum SettingType {
 
 // multi-choice setting value definition
 // used by SettingRadio, SettingComboInt, SettingComboStr
-// a choice with a NULL value indicates the end of a definition array
 template <typename T>
 struct SettingEntryMultiChoiceExtData {
   // the text of the choice. if localized, use _N()
@@ -64,7 +63,7 @@ struct SettingEntryMultiChoiceExtData {
 // numeric input definition
 // used by SettingSliderFloat, SettingSliderInt, SettingInputInt
 template <typename T>
-struct NumericInputExtData {
+struct SettingEntryNumericInputExtData {
   // minimum value of the input
   T min;
   // maximum value of the input
@@ -78,7 +77,9 @@ class SettingEntry {
   SettingType type;
   const char* label; const char* tooltip;
   const char* confName;
-  void* value; void* extData;
+  void* value; void* extData; int extDataCount;
+  // when to display a setting
+  bool* settingCondition;
   entryCallback callback;
   // only used for SettingCustom
   entryDrawFunction customDrawFunction;
@@ -87,14 +88,43 @@ class SettingEntry {
   template<typename T> void setValue(T v) {*(T*)value=v;}
   public:
     SettingEntry();
-    SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, const char* d=NULL, entryCallback f=[]{});
-    SettingEntry(const char* l, const char* n, entryDrawFunction f);
+    SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, int xn=0, const char* d=NULL, bool* b=NULL,entryCallback f=[]{});
+    SettingEntry(const char* l, const char* n, entryDrawFunction f, bool* b=NULL);
 
+    // setting definition functions
     static SettingEntry Checkbox(const char* label, const char* confName, void* value) {
       return SettingEntry(SettingCheckbox,label,confName,value);
     }
+    static SettingEntry Radio(const char* label, const char* confName, void* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
+      SettingEntryMultiChoiceExtData<int>* data=new SettingEntryMultiChoiceExtData<int>[entries.size()];
+      SettingEntryMultiChoiceExtData<int>* dataIter=data;
+      for (auto i:entries) {
+        *dataIter++=i;
+      }
+      return SettingEntry(SettingRadio,label,confName,value,data, entries.size());
+    }
+    static SettingEntry ComboInt(const char* label, const char* confName, void* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
+      SettingEntryMultiChoiceExtData<int>* data=new SettingEntryMultiChoiceExtData<int>[entries.size()];
+      SettingEntryMultiChoiceExtData<int>* dataIter=data;
+      for (auto i:entries) {
+        *dataIter++=i;
+      }
+      return SettingEntry(SettingComboInt,label,confName,value,data, entries.size());
+    }
+    static SettingEntry ComboString(const char* label, const char* confName, void* value, std::initializer_list<SettingEntryMultiChoiceExtData<const char*>> entries) {
+      SettingEntryMultiChoiceExtData<const char*>* data=new SettingEntryMultiChoiceExtData<const char*>[entries.size()];
+      SettingEntryMultiChoiceExtData<const char*>* dataIter=data;
+      for (auto i:entries) {
+        *dataIter++=i;
+      }
+      return SettingEntry(SettingComboStr,label,confName,value,data, entries.size());
+    }
     SettingEntry& addTooltip(const char* text) {
       tooltip=text;
+      return *this;
+    }
+    SettingEntry& condition(bool* c) {
+      settingCondition=c;
       return *this;
     }
 
@@ -103,6 +133,8 @@ class SettingEntry {
 
     void loadConf(DivConfig& conf);
     void saveConf(DivConfig& conf);
+
+    void destroy();
 };
 
 class SettingsCategory {

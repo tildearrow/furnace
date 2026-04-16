@@ -18,6 +18,8 @@
  */
 
 #include "newSettings.h"
+#include "misc/cpp/imgui_stdlib.h"
+#include "IconsFontAwesome4.h"
 #include "gui.h"
 
 SettingEntry::SettingEntry():
@@ -27,33 +29,41 @@ SettingEntry::SettingEntry():
   confName(NULL),
   value(NULL),
   extData(NULL),
+  extDataCount(0),
   callback([]{}),
   customDrawFunction([]{return false;}) {}
 
-SettingEntry::SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x, const char* d, entryCallback f) {
+SettingEntry::SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x, int xn, const char* d, bool* b, entryCallback f) {
   type=t,
   label=l;
   confName=n;
   value=v;
   extData=x;
+  extDataCount=xn;
   tooltip=d;
+  settingCondition=b;
   callback=f;
   customDrawFunction=[]{return false;};
 }
 
-SettingEntry::SettingEntry(const char* l, const char* n, entryDrawFunction f) {
+SettingEntry::SettingEntry(const char* l, const char* n, entryDrawFunction f, bool* b) {
   type=SettingCustom;
   label=l;
   confName=n;
   value=NULL;
   extData=NULL;
+  extDataCount=0;
   tooltip=NULL;
+  settingCondition=b;
   callback=[]{};
   customDrawFunction=f;
 }
 
 bool SettingEntry::draw() {
   bool ret=false;
+  if (settingCondition) {
+    if (!*settingCondition) return false;
+  }
   switch (type) {
     case SettingCheckbox: {
       bool valueB=getValue<int>();
@@ -70,7 +80,7 @@ bool SettingEntry::draw() {
       ImGui::BeginGroup();
       ImGui::TextUnformatted(_(label));
       ImGui::Indent();
-      for (size_t i=0; choices[i].choice; i++) {
+      for (int i=0; i<extDataCount; i++) {
         SettingEntryMultiChoiceExtData<int> ch=choices[i];
         if (ImGui::RadioButton(_(ch.choice), getValue<int>()==ch.value)) {
           setValue<int>(ch.value);
@@ -83,7 +93,7 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingComboInt: {
-      if (extData==NULL) assert(0 && "SettingRadio requires extData!");
+      if (extData==NULL) assert(0 && "SettingComboInt requires extData!");
       SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
       const char* preview=choices[0].choice; // fallback?
       for (size_t i=0; choices[i].choice; i++) {
@@ -93,8 +103,8 @@ bool SettingEntry::draw() {
         }
       }
       if (ImGui::BeginCombo(_(label),_(preview))) {
-        for (size_t i=0; choices[i].choice; i++) {
-          if (ImGui::Selectable(choices[i].choice,getValue<int>()==choices[i].value)) {
+        for (int i=0; i<extDataCount; i++) {
+            if (ImGui::Selectable(_(choices[i].choice),getValue<int>()==choices[i].value)) {
             setValue(choices[i].value);
             callback();
             ret=true;
@@ -102,6 +112,88 @@ bool SettingEntry::draw() {
         }
         ImGui::EndCombo();
       }
+      break;
+    }
+    case SettingComboStr: {
+      if (extData==NULL) assert(0 && "SettingComboInt requires extData!");
+      SettingEntryMultiChoiceExtData<String>* choices=(SettingEntryMultiChoiceExtData<String>*)extData;
+      const char* preview=choices[0].choice; // fallback?
+      for (int i=0; extDataCount; i++) {
+        if (choices[i].value==getValue<String>()) {
+          preview=choices[i].choice;
+          break;
+        }
+      }
+      if (ImGui::BeginCombo(_(label),_(preview))) {
+        for (size_t i=0; choices[i].choice; i++) {
+          if (ImGui::Selectable(_(choices[i].choice),getValue<String>()==choices[i].value)) {
+            setValue(choices[i].value);
+            callback();
+            ret=true;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      break;
+    }
+    case SettingSliderFloat: {
+      if (extData==NULL) assert(0 && "SettingSliderFloat requires extData!");
+      SettingEntryNumericInputExtData<float>* data=(SettingEntryNumericInputExtData<float>*)extData;
+      if (ImGui::SliderFloat(_(label),(float*)value,data->min,data->max,data->fmt)) {
+        if (getValue<float>()<data->min) setValue(data->min);
+        if (getValue<float>()>data->max) setValue(data->max);
+        callback();
+        ret=true;
+      }
+      break;
+    }
+    case SettingSliderInt: {
+      if (extData==NULL) assert(0 && "SettingSliderInt requires extData!");
+      SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
+      if (ImGui::SliderInt(_(label),(int*)value,data->min,data->max,data->fmt)) {
+        if (getValue<int>()<data->min) setValue(data->min);
+        if (getValue<int>()>data->max) setValue(data->max);
+        callback();
+        ret=true;
+      }
+      break;
+    }
+    case SettingInputInt: {
+      if (extData==NULL) assert(0 && "SettingInputInt requires extData!");
+      SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
+      if (ImGui::InputInt(_(label),(int*)value)) {
+        if (getValue<int>()<data->min) setValue(data->min);
+        if (getValue<int>()>data->max) setValue(data->max);
+        callback();
+        ret=true;
+      }
+      break;
+    }
+    case SettingInputStr: {
+      if (extData!=NULL) {
+        if (ImGui::InputTextWithHint(_(label),(const char*)extData,(String*)value)) {
+          callback();
+          ret=true;
+        }
+      } else {
+        if (ImGui::InputText(_(label),(String*)value)) {
+          callback();
+          ret=true;
+        }
+      }
+      break;
+    }
+    case SettingPath: {
+      ImGui::PushID(label);
+      if (ImGui::InputText(_(label), (String*)value)) {
+        ret=true;
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_FOLDER "##SettingPathButton")) {
+        callback();
+        ret=true;
+      }
+      ImGui::PopID();
       break;
     }
     case SettingCustom:
@@ -128,6 +220,17 @@ void SettingEntry::loadConf(DivConfig& conf) {
 
 void SettingEntry::saveConf(DivConfig& conf) {
   
+}
+
+void SettingEntry::destroy() {
+  if (extData==NULL) return;
+  switch (type) {
+    case SettingRadio:
+      delete[] (SettingEntryMultiChoiceExtData<int>*)extData;
+      extData=NULL;
+      break;
+    default: break;
+  }
 }
 
 SettingsCategory::SettingsCategory():
@@ -244,36 +347,13 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollP
 }
 
 SettingsCategory::~SettingsCategory() {
-  settings.clear();
-  children.clear();
+  // settings.clear();
+  // children.clear();
 }
 
 #define _S SettingEntry
 #define _C(...) allSettings.push_back(SettingsCategory(__VA_ARGS__))
 #define _CC SettingsCategory
-
-constexpr SettingEntryMultiChoiceExtData<int> playOnLoadChoices[]={
-  {_N("No##pol0"),0},
-  {_N("Only if already playing##pol1"),1},
-  {_N("Yes##pol0"),2},
-  {NULL,0}
-};
-
-#if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
-constexpr SettingEntryMultiChoiceExtData<int> audioEngineChoices[]={
-#ifdef HAVE_JACK
-  {"JACK",DIV_AUDIO_JACK},
-#endif
-  {"SDL",DIV_AUDIO_SDL},
-#ifdef HAVE_PA
-  {"PortAudio",DIV_AUDIO_PORTAUDIO},
-#endif
-#ifdef HAVE_ASIO
-  {"ASIO",DIV_AUDIO_ASIO},
-#endif
-  {NULL,0}
-};
-#endif
 
 #define SETTING_CHECKBOX(_label,_value) \
   SettingEntry::Checkbox(_label,#_value,&settings._value)
@@ -281,10 +361,12 @@ constexpr SettingEntryMultiChoiceExtData<int> audioEngineChoices[]={
 void FurnaceGUI::initSettings() {
   _C(_N("General"),{},{
     _CC(_N("Program"),{
-      _S(
-        SettingRadio,_N("Play after opening song:"),
-        "playOnLoad",&settings.playOnLoad,(void*)playOnLoadChoices
-      ),
+      SettingEntry::Radio(
+        _N("Play after opening song:"),"playOnLoad",&settings.playOnLoad,{
+        {_N("No##pol0"),0},
+        {_N("Only if already playing##pol1"),1},
+        {_N("Yes##pol0"),2},
+      }),
       SETTING_CHECKBOX(
         _N("Store instrument name in .fui"),
         writeInsNames
@@ -294,11 +376,32 @@ void FurnaceGUI::initSettings() {
   _C(_N("Audio"),{},{
     _CC(_N("Output"),{
 #if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
-      _S(
-        SettingComboInt,_N("Backend"),
-        "audioEngine",&settings.audioEngine,(void*)audioEngineChoices
-      ),
+      SettingEntry::ComboInt(
+        _N("Backend"),
+        "audioEngine",&settings.audioEngine,{
+#ifdef HAVE_JACK
+        {"JACK",DIV_AUDIO_JACK},
+#endif
+        {"SDL",DIV_AUDIO_SDL},
+#ifdef HAVE_PA
+        {"PortAudio",DIV_AUDIO_PORTAUDIO},
+#endif
+#ifdef HAVE_ASIO
+        {"ASIO",DIV_AUDIO_ASIO},
+#endif
+      }),
 #endif
     })
+  });
+  _C(_N("Emulation"),{
+    SettingEntry::ComboInt(
+      _N("PC Speacker Strategy"),
+      "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
+        {_N("evdev SND_TONE"),0},
+        {_N("KIOCSOUND on /dev/tty1"),1},
+        {_N("/dev/port"),2},
+        {_N("KIOCSOUND on standard output"),3},
+        {_N("outb()"),4}
+      })
   });
 }
