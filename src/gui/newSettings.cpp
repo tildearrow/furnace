@@ -30,10 +30,11 @@ SettingEntry::SettingEntry():
   value(NULL),
   extData(NULL),
   extDataCount(0),
+  settingCondition(trueLambda),
   callback([]{}),
-  customDrawFunction([]{return false;}) {}
+  customDrawFunction(falseLambda) {}
 
-SettingEntry::SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x, int xn, const char* d, bool* b, entryCallback f) {
+SettingEntry::SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x, int xn, const char* d, boolReturnFunction b, entryCallback f) {
   type=t,
   label=l;
   confName=n;
@@ -43,10 +44,10 @@ SettingEntry::SettingEntry(SettingType t, const char* l, const char* n, void* v,
   tooltip=d;
   settingCondition=b;
   callback=f;
-  customDrawFunction=[]{return false;};
+  customDrawFunction=falseLambda;
 }
 
-SettingEntry::SettingEntry(const char* l, const char* n, entryDrawFunction f, bool* b) {
+SettingEntry::SettingEntry(const char* l, const char* n, boolReturnFunction f, boolReturnFunction b) {
   type=SettingCustom;
   label=l;
   confName=n;
@@ -61,9 +62,7 @@ SettingEntry::SettingEntry(const char* l, const char* n, entryDrawFunction f, bo
 
 bool SettingEntry::draw() {
   bool ret=false;
-  if (settingCondition) {
-    if (!*settingCondition) return false;
-  }
+  if (!settingCondition()) return false;
   switch (type) {
     case SettingCheckbox: {
       bool valueB=getValue<int>();
@@ -403,5 +402,22 @@ void FurnaceGUI::initSettings() {
         {_N("KIOCSOUND on standard output"),3},
         {_N("outb()"),4}
       })
+  });
+  _C(_N("Appearance"),{
+    SettingEntry::Radio(
+      _N("Channel feedback style:"),
+      "channelFeedbackStyle",&settings.channelFeedbackStyle,{
+        {_N("Off##CHF0"),0},
+        {_N("Note##CHF1"),1},
+        {_N("Volume##CHF2"),2},
+        {_N("Active##CHF3"),3},
+        {_N("Volume (Real)##CHF4"),4},
+      }
+    ),
+    SettingEntry::SliderFloat(
+      _N("Gamma##CHF"),
+      "channelFeedbackGamma",&settings.channelFeedbackGamma,
+      {0.0f,2.0f,NULL}
+    ).condition([this]{return settings.channelFeedbackStyle==4;})
   });
 }

@@ -29,7 +29,10 @@
 typedef std::function<void(void)> entryCallback;
 // if none of the below types suit the setting, the draw function may be user-defined.
 // return true on setting change
-typedef std::function<bool(void)> entryDrawFunction;
+typedef std::function<bool(void)> boolReturnFunction;
+
+#define falseLambda []{return false;}
+#define trueLambda []{return true;}
 
 // common setting types.
 // some use external data (extData)
@@ -79,23 +82,23 @@ class SettingEntry {
   const char* confName;
   void* value; void* extData; int extDataCount;
   // when to display a setting
-  bool* settingCondition;
+  boolReturnFunction settingCondition;
   entryCallback callback;
   // only used for SettingCustom
-  entryDrawFunction customDrawFunction;
+  boolReturnFunction customDrawFunction;
 
   template<typename T> T getValue() {return *(T*)value;}
   template<typename T> void setValue(T v) {*(T*)value=v;}
   public:
     SettingEntry();
-    SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, int xn=0, const char* d=NULL, bool* b=NULL,entryCallback f=[]{});
-    SettingEntry(const char* l, const char* n, entryDrawFunction f, bool* b=NULL);
+    SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, int xn=0, const char* d=NULL, boolReturnFunction b=trueLambda, entryCallback f=[]{});
+    SettingEntry(const char* l, const char* n, boolReturnFunction f, boolReturnFunction b=trueLambda);
 
     // setting definition functions
-    static SettingEntry Checkbox(const char* label, const char* confName, void* value) {
+    static SettingEntry Checkbox(const char* label, const char* confName, int* value) {
       return SettingEntry(SettingCheckbox,label,confName,value);
     }
-    static SettingEntry Radio(const char* label, const char* confName, void* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
+    static SettingEntry Radio(const char* label, const char* confName, int* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
       SettingEntryMultiChoiceExtData<int>* data=new SettingEntryMultiChoiceExtData<int>[entries.size()];
       SettingEntryMultiChoiceExtData<int>* dataIter=data;
       for (auto i:entries) {
@@ -103,7 +106,7 @@ class SettingEntry {
       }
       return SettingEntry(SettingRadio,label,confName,value,data, entries.size());
     }
-    static SettingEntry ComboInt(const char* label, const char* confName, void* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
+    static SettingEntry ComboInt(const char* label, const char* confName, int* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
       SettingEntryMultiChoiceExtData<int>* data=new SettingEntryMultiChoiceExtData<int>[entries.size()];
       SettingEntryMultiChoiceExtData<int>* dataIter=data;
       for (auto i:entries) {
@@ -111,7 +114,7 @@ class SettingEntry {
       }
       return SettingEntry(SettingComboInt,label,confName,value,data, entries.size());
     }
-    static SettingEntry ComboString(const char* label, const char* confName, void* value, std::initializer_list<SettingEntryMultiChoiceExtData<const char*>> entries) {
+    static SettingEntry ComboString(const char* label, const char* confName, String* value, std::initializer_list<SettingEntryMultiChoiceExtData<const char*>> entries) {
       SettingEntryMultiChoiceExtData<const char*>* data=new SettingEntryMultiChoiceExtData<const char*>[entries.size()];
       SettingEntryMultiChoiceExtData<const char*>* dataIter=data;
       for (auto i:entries) {
@@ -119,12 +122,17 @@ class SettingEntry {
       }
       return SettingEntry(SettingComboStr,label,confName,value,data, entries.size());
     }
+    static SettingEntry SliderFloat(const char* label, const char* confName, float* value, SettingEntryNumericInputExtData<float> limits) {
+      SettingEntryNumericInputExtData<float>* data=new SettingEntryNumericInputExtData<float>;
+      *data=limits;
+      return SettingEntry(SettingSliderFloat,label,confName,value,data,1);
+    }
     SettingEntry& addTooltip(const char* text) {
       tooltip=text;
       return *this;
     }
-    SettingEntry& condition(bool* c) {
-      settingCondition=c;
+    SettingEntry& condition(boolReturnFunction f) {
+      settingCondition=f;
       return *this;
     }
 
