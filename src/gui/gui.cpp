@@ -8847,6 +8847,9 @@ bool FurnaceGUI::finish(bool saveConfig) {
     }
   }
 
+  for (size_t i=0; i<allSettings.size(); i++)
+    allSettings[i].deleteRecursive();
+
   return true;
 }
 

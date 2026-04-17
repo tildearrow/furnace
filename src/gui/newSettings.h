@@ -184,7 +184,7 @@ class SettingsCategory {
     bool categoryPassFilterRecursive(ImGuiTextFilter* filter);
     bool drawSidebar(ImGuiTextFilter* filter, float* targetScrollPos);
 
-    ~SettingsCategory();
+    void deleteRecursive();
 };
 
 extern const char* locales[][3];

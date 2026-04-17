@@ -80,9 +80,8 @@ bool SettingEntry::draw() {
       ImGui::TextUnformatted(_(label));
       ImGui::Indent();
       for (int i=0; i<extDataCount; i++) {
-        SettingEntryMultiChoiceExtData<int> ch=choices[i];
-        if (ImGui::RadioButton(_(ch.choice),getValue<int>()==ch.value)) {
-          setValue<int>(ch.value);
+        if (ImGui::RadioButton(_(choices[i].choice),getValue<int>()==choices[i].value)) {
+          setValue<int>(choices[i].value);
           callback();
           ret=true;
         }
@@ -143,7 +142,7 @@ bool SettingEntry::draw() {
         if (getValue<float>()>data->max) setValue(data->max);
         callback();
         ret=true;
-      }
+      } rightClickable
       break;
     }
     case SettingSliderInt: {
@@ -154,7 +153,7 @@ bool SettingEntry::draw() {
         if (getValue<int>()>data->max) setValue(data->max);
         callback();
         ret=true;
-      }
+      } rightClickable
       break;
     }
     case SettingInputInt: {
@@ -178,6 +177,7 @@ bool SettingEntry::draw() {
             data->dialogCallback();
             ret=true;
           }
+          ImGui::PopID();
           ImGui::SameLine();
         }
         hint=data->hint;
@@ -218,7 +218,25 @@ void SettingEntry::destroy() {
   if (extData==NULL) return;
   switch (type) {
     case SettingRadio:
+    case SettingComboInt:
       delete[] (SettingEntryMultiChoiceExtData<int>*)extData;
+      extData=NULL;
+      break;
+    case SettingComboStr:
+      delete[] (SettingEntryMultiChoiceExtData<const char*>*)extData;
+      extData=NULL;
+      break;
+    case SettingSliderFloat:
+      delete (SettingEntryNumericInputExtData<float>*)extData;
+      extData=NULL;
+      break;
+    case SettingSliderInt:
+    case SettingInputInt:
+      delete (SettingEntryNumericInputExtData<int>*)extData;
+      extData=NULL;
+      break;
+    case SettingInputStr:
+      delete (SettingEntryTextInputExtData*)extData;
       extData=NULL;
       break;
     default: break;
@@ -338,9 +356,13 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollP
   return ret;
 }
 
-SettingsCategory::~SettingsCategory() {
-  // settings.clear();
-  // children.clear();
+void SettingsCategory::deleteRecursive() {
+  for (size_t i=0; i<settings.size(); i++) {
+    settings[i].destroy();
+  }
+  for (size_t i=0; i<children.size(); i++) {
+    children[i].deleteRecursive();
+  }
 }
 
 #define _S SettingEntry
