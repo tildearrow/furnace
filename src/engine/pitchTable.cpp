@@ -77,17 +77,48 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
 }
 
 int DivPitchTable::getBase(int note) {
+  // non-linear pitch
   if (!linearity) {
-    if (period) {
-      return pitch[note%12]>>(note/12);
+    int index=note%12;
+    int octave=period?
+      ((note/12)-shift):
+      (shift-(note/12));
+
+    int root=pitch[index];
+
+    // shift the root pitch and delta by the "octave" and then round
+    if (octave>0) {
+#if defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__)) && !defined(ANDROID)
+      asm(
+        "movb %[octave], %%cl\n"
+        "movl %[i_root], %%eax\n"
+        "sarl %%cl, %%eax\n"
+        "jnc rootShiftEnd%=\n"
+        "inc %%eax\n"
+        "rootShiftEnd%=:\n"
+        "movl %%eax, %[root]\n"
+      : [root] "+m" (root)
+      : [i_root] "m" (root),
+        [octave] "m" (octave)
+      : "eax", "cl"
+      );
+#else
+      bool carry=root&(1<<(octave-1));
+      root>>=octave;
+      if (carry) root++;
+#endif
     }
-    return pitch[note%12]>>(14-(note/12));
+
+    return root;
   }
-  return get(note<<7,0,0);
+
+  // linear pitch - convert note to fixed point
+  return note<<7;
 }
 
-void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod) {
+void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod, bool isLinear) {
   period=isPeriod;
+  linearity=isLinear;
   shift=period?0:9;
 
   logV("DivPitchTable init(%f,%f,%f,%x,%s)",tuning,clock,divider,maximum,isPeriod?"period":"freq");

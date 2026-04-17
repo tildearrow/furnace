@@ -22,13 +22,13 @@
 // the dummy platform outputs saw waves.
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch;
+  struct Channel: SharedChannel<unsigned char> {
     unsigned short pos;
-    bool active, freqChanged;
-    unsigned char vol;
     signed char amp;
-    Channel(): freq(0), baseFreq(0), pitch(0), pos(0), active(false), freqChanged(false), vol(0), amp(64) {}
+    Channel():
+      SharedChannel(0),
+      pos(0),
+      amp(64) {}
   };
   Channel chan[128];
   DivDispatchOscBuffer* oscBuf[128];

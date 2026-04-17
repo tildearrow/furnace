@@ -334,6 +334,43 @@ enum DivDispatchCmds {
   DIV_CMD_MAX
 };
 
+
+/**
+ * currently we don't use this but eventually we will.
+ */
+struct DivPitchTable {
+  int pitch[12+1];
+  int pitchDiff[12+1];
+  unsigned char linearity, blockBits, shift;
+  bool period;
+
+  // get pitch
+  int get(int base, int pitch1, int pitch2);
+
+  // linear: note
+  // non-linear: get(note,0,0)
+  int getBase(int note);
+
+  /**
+   * calculate pitch table.
+   * @param tuning the A-4 tuning to use.
+   * @param clock the chip's clock.
+   * @param divider the divider or frequency base.
+   * @param maximum the maximum period/frequency value supported by the chip.
+   * @param period whether to use periods instead of accumulator values.
+   * @param linear whether pitch linearity is set to full.
+   */
+  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
+
+  DivPitchTable():
+    linearity(2),
+    blockBits(0),
+    period(false) {
+    memset(pitch,0,sizeof(pitch));
+    memset(pitchDiff,0,sizeof(pitchDiff));
+  }
+};
+
 /**
  * the SharedChannel struct holds common channel state, such as frequency, volume, note activity and so on.
  * this is used by almost every dispatch.
@@ -407,6 +444,9 @@ template<typename T> struct SharedChannel {
   //   - if you don't do this, you'll be referencing a potentially extinct instrument
   //     and prompt Furnace to collapse.
   DivMacroInt std;
+  // this is a pointer to your dispatch's pitch table.
+  // - this should be initialized during reset()!
+  DivPitchTable* pitchTable;
 
   // here are some helper functions.
   /**
@@ -461,6 +501,22 @@ template<typename T> struct SharedChannel {
     fixedArp=false;
   }
   /**
+   * calculates base frequency from the current pitch table. use this when setting baseFreq.
+   * @param note the note.
+   */
+  int calcBaseFreq(int note) {
+    if (pitchTable==NULL) return 0;
+    return pitchTable->getBase(note);
+  }
+  /**
+   * calculates final frequency from current frequency values.
+   * @return the frequency.
+   */
+  int calcFreq() {
+    if (pitchTable==NULL) return 0;
+    return pitchTable->get(baseFreq,pitch,pitch2);
+  }
+  /**
    * call this constructor in your Channel's constructor, which should initialize the channel's state.
    * call your Channel's constructor during reset().
    *
@@ -487,7 +543,8 @@ template<typename T> struct SharedChannel {
     inPorta(false),
     vol(initVol),
     outVol(initVol),
-    std() {} 
+    std(),
+    pitchTable(NULL) {} 
 };
 
 
@@ -528,41 +585,6 @@ struct DivCommand {
     dis(ch),
     value(0),
     value2(0) {}
-};
-
-/**
- * currently we don't use this but eventually we will.
- */
-struct DivPitchTable {
-  int pitch[12+1];
-  int pitchDiff[12+1];
-  unsigned char linearity, blockBits, shift;
-  bool period;
-
-  // get pitch
-  int get(int base, int pitch1, int pitch2);
-
-  // linear: note
-  // non-linear: get(note,0,0)
-  int getBase(int note);
-
-  /**
-   * calculate pitch table.
-   * @param tuning the A-4 tuning to use.
-   * @param clock the chip's clock.
-   * @param divider the divider or frequency base.
-   * @param maximum the maximum period/frequency value supported by the chip.
-   * @param period whether to use periods instead of accumulator values.
-   */
-  void init(float tuning, double clock, double divider, int maximum, bool period);
-
-  DivPitchTable():
-    linearity(2),
-    blockBits(0),
-    period(false) {
-    memset(pitch,0,sizeof(pitch));
-    memset(pitchDiff,0,sizeof(pitchDiff));
-  }
 };
 
 /**
