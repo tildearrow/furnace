@@ -153,6 +153,10 @@ void DivPlatformDummy::reset() {
   }
 }
 
+void DivPlatformDummy::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false);
+}
+
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
@@ -166,7 +170,7 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivCon
   }
   rate=65536;
   chipClock=65536;
-  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false);
+  notifyPitchTable();
   chans=channels;
   reset();
   return channels;

@@ -1373,9 +1373,10 @@ class DivDispatch {
     virtual void renderSamples(int sysID);
 
     /**
-     * tell this DivDispatch that the tuning and/or pitch linearity has changed, and therefore the pitch table must be regenerated.
+     * tell this DivDispatch that the tuning, pitch linearity or rate of a sample has changed, and therefore the pitch table must be regenerated.
+     * @param sample the sample index if it's a rate change. this can be used to regenerate the table of a single sample. set to -1 when the tuning/pitch linearity changes and a full recalculation must take place.
      */
-    virtual void notifyPitchTable();
+    virtual void notifyPitchTable(int sample=-1);
 
     /**
      * initialize this DivDispatch.

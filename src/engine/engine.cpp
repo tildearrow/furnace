@@ -303,6 +303,14 @@ void DivEngine::notifySampleChange(int sample) {
   BUSY_END;
 }
 
+void DivEngine::notifyPitchTable(int sample) {
+  BUSY_BEGIN;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPitchTable(sample);
+  }
+  BUSY_END;
+}
+
 int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
   ret=NULL;
   if (path.empty()) {

@@ -42,6 +42,7 @@ class DivPlatformDummy: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();

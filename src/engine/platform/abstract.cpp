@@ -250,7 +250,7 @@ void DivDispatch::renderSamples(int sysID) {
   
 }
 
-void DivDispatch::notifyPitchTable() {
+void DivDispatch::notifyPitchTable(int sample) {
 }
 
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

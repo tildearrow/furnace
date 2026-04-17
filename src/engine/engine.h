@@ -668,6 +668,8 @@ class DivEngine {
     void notifyWaveChange(int wave);
     // notify sample change
     void notifySampleChange(int sample);
+    // notify a change which requires regenerating the pitch table
+    void notifyPitchTable(int sample=-1);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
