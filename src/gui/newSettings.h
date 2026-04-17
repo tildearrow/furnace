@@ -45,8 +45,7 @@ enum SettingType {
   SettingSliderFloat, // float slider. extData - pointer to NumericInputExtData<float>
   SettingSliderInt,   // int slider. extData - pointer to NumericInputExtData<int>
   SettingInputInt,    // int input. extData - pointer to NumericInputExtData<int>
-  SettingInputStr,    // string input. extData - ???
-  SettingPath,        // string input with a folder icon button, which opens a file picker. no extData required
+  SettingInputStr,    // string input with optional file dialog. extData - pointer to SettingEntryTextInputExtData
   SettingColor,       // color picker. no extData required
   SettingKeybind,     // keybind input. no extData required
 
@@ -74,6 +73,18 @@ struct SettingEntryNumericInputExtData {
   // optional, display format.
   // set to NULL if not used
   const char* fmt;
+};
+
+// text input definition
+// used by SettingInputStr
+struct SettingEntryTextInputExtData {
+  // hint text inside text input
+  // set to NULL if unused
+  const char* hint;
+  // whether the input is for a path. displays a file dialog button if true
+  bool isPathInput;
+  // the callback function of the file dialog. has to de defined if above is true
+  entryCallback dialogCallback;
 };
 
 class SettingEntry {
@@ -126,6 +137,19 @@ class SettingEntry {
       SettingEntryNumericInputExtData<float>* data=new SettingEntryNumericInputExtData<float>;
       *data=limits;
       return SettingEntry(SettingSliderFloat,label,confName,value,data,1);
+    }
+    static SettingEntry InputText(const char* label,const char* confName, String* value, const char* hint=NULL) {
+      SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
+      dataPtr->hint=hint;
+      dataPtr->isPathInput=false;
+      return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
+    }
+    static SettingEntry Path(const char* label,const char* confName, String* value, entryCallback dialogCallback, const char* hint=NULL) {
+      SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
+      dataPtr->hint=hint;
+      dataPtr->isPathInput=true;
+      dataPtr->dialogCallback=dialogCallback;
+      return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
     SettingEntry& addTooltip(const char* text) {
       tooltip=text;

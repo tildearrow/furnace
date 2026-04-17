@@ -66,7 +66,7 @@ bool SettingEntry::draw() {
   switch (type) {
     case SettingCheckbox: {
       bool valueB=getValue<int>();
-      if (ImGui::Checkbox(_(label), &valueB)) {
+      if (ImGui::Checkbox(_(label),&valueB)) {
         setValue<int>(valueB);
         callback();
         ret=true;
@@ -74,14 +74,14 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingRadio: {
-      if (extData==NULL) assert(0 && "SettingRadio requires extData!");
+      assert(extData && "SettingRadio requires extData!");
       SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
       ImGui::BeginGroup();
       ImGui::TextUnformatted(_(label));
       ImGui::Indent();
       for (int i=0; i<extDataCount; i++) {
         SettingEntryMultiChoiceExtData<int> ch=choices[i];
-        if (ImGui::RadioButton(_(ch.choice), getValue<int>()==ch.value)) {
+        if (ImGui::RadioButton(_(ch.choice),getValue<int>()==ch.value)) {
           setValue<int>(ch.value);
           callback();
           ret=true;
@@ -92,7 +92,7 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingComboInt: {
-      if (extData==NULL) assert(0 && "SettingComboInt requires extData!");
+      assert(extData && "SettingComboInt requires extData!");
       SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
       const char* preview=choices[0].choice; // fallback?
       for (size_t i=0; choices[i].choice; i++) {
@@ -114,7 +114,7 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingComboStr: {
-      if (extData==NULL) assert(0 && "SettingComboInt requires extData!");
+      assert(extData && "SettingComboInt requires extData!");
       SettingEntryMultiChoiceExtData<String>* choices=(SettingEntryMultiChoiceExtData<String>*)extData;
       const char* preview=choices[0].choice; // fallback?
       for (int i=0; extDataCount; i++) {
@@ -136,7 +136,7 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingSliderFloat: {
-      if (extData==NULL) assert(0 && "SettingSliderFloat requires extData!");
+      assert(extData && "SettingSliderFloat requires extData!");
       SettingEntryNumericInputExtData<float>* data=(SettingEntryNumericInputExtData<float>*)extData;
       if (ImGui::SliderFloat(_(label),(float*)value,data->min,data->max,data->fmt)) {
         if (getValue<float>()<data->min) setValue(data->min);
@@ -147,7 +147,7 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingSliderInt: {
-      if (extData==NULL) assert(0 && "SettingSliderInt requires extData!");
+      assert(extData && "SettingSliderInt requires extData!");
       SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
       if (ImGui::SliderInt(_(label),(int*)value,data->min,data->max,data->fmt)) {
         if (getValue<int>()<data->min) setValue(data->min);
@@ -158,7 +158,7 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingInputInt: {
-      if (extData==NULL) assert(0 && "SettingInputInt requires extData!");
+      assert(extData && "SettingInputInt requires extData!");
       SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
       if (ImGui::InputInt(_(label),(int*)value)) {
         if (getValue<int>()<data->min) setValue(data->min);
@@ -169,30 +169,23 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingInputStr: {
-      if (extData!=NULL) {
-        if (ImGui::InputTextWithHint(_(label),(const char*)extData,(String*)value)) {
-          callback();
-          ret=true;
+      SettingEntryTextInputExtData* data=(SettingEntryTextInputExtData*)extData;
+      const char* hint=NULL;
+      if (data) {
+        if (data->isPathInput) {
+          ImGui::PushID(label);
+          if (ImGui::Button(ICON_FA_FOLDER "##SettingPathButton")) {
+            data->dialogCallback();
+            ret=true;
+          }
+          ImGui::SameLine();
         }
-      } else {
-        if (ImGui::InputText(_(label),(String*)value)) {
-          callback();
-          ret=true;
-        }
+        hint=data->hint;
       }
-      break;
-    }
-    case SettingPath: {
-      ImGui::PushID(label);
-      if (ImGui::InputText(_(label), (String*)value)) {
-        ret=true;
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_FA_FOLDER "##SettingPathButton")) {
+      if (ImGui::InputTextWithHint(_(label),hint,(String*)value)) {
         callback();
         ret=true;
       }
-      ImGui::PopID();
       break;
     }
     case SettingCustom:
@@ -402,6 +395,14 @@ void FurnaceGUI::initSettings() {
         {_N("KIOCSOUND on standard output"),3},
         {_N("outb()"),4}
       })
+  },{
+    _CC(_N("Sample ROMs"),{
+      SettingEntry::Path(
+        _N("OPL4 YRW801 path"),
+        "yrw801Path",&settings.yrw801Path,
+        [this]{openFileDialog(GUI_FILE_YRW801_ROM_OPEN);}
+      )
+    })
   });
   _C(_N("Appearance"),{
     SettingEntry::Radio(
@@ -419,5 +420,18 @@ void FurnaceGUI::initSettings() {
       "channelFeedbackGamma",&settings.channelFeedbackGamma,
       {0.0f,2.0f,NULL}
     ).condition([this]{return settings.channelFeedbackStyle==4;})
+  },{
+    _CC(_N("Pattern view labels"),{
+      SettingEntry::InputText(
+        _N("Note off (3-char)"),
+        "noteOffLabel",&settings.noteOffLabel,
+        "OFF"
+      ),
+      SettingEntry::InputText(
+        _N("Note release (3-char)"),
+        "macroRelLabel",&settings.macroRelLabel,
+        "==="
+      ),
+    })
   });
 }
