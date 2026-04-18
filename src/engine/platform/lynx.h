@@ -40,7 +40,7 @@ class DivPlatformLynx: public DivDispatch {
     MikeyDuty(int duty);
   };
 
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     MikeyFreqDiv fd;
     MikeyDuty duty;
     int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
@@ -48,7 +48,7 @@ class DivPlatformLynx: public DivDispatch {
     bool pcm, setPos, updateLFSR;
     int macroVolMul;
     Channel():
-      SharedChannel<signed char>(127),
+      SharedChannel(127),
       fd(0),
       duty(0),
       actualNote(0),

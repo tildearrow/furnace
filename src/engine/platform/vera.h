@@ -28,7 +28,7 @@ struct VERA_PCM;
 
 class DivPlatformVERA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char pan;
       unsigned int accum;
       int noiseval;
@@ -42,7 +42,7 @@ class DivPlatformVERA: public DivDispatch {
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false), setPos(false) {}
       } pcm;
       Channel():
-        SharedChannel<int>(0),
+        SharedChannel(0),
         pan(0),
         accum(0),
         noiseval(0),

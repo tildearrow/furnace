@@ -25,7 +25,7 @@
 #include "sound/dave/dave.hpp"
 
 class DivPlatformDave: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
@@ -35,7 +35,7 @@ class DivPlatformDave: public DivDispatch {
     unsigned char wave;
     bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase, setPos;
     Channel():
-      SharedChannel<signed char>(63),
+      SharedChannel(63),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),

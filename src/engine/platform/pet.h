@@ -23,14 +23,14 @@
 #include "../dispatch.h"
 
 class DivPlatformPET: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     bool enable;
     int wave;
     unsigned char sreg;
     int cnt;
     short out;
     Channel():
-      SharedChannel<int>(1),
+      SharedChannel(1),
       enable(false),
       wave(0b00001111),
       sreg(0),

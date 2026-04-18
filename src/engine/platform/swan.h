@@ -27,12 +27,12 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformSwan: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned char pan;
     int wave;
     DivWaveSynth ws;
     Channel():
-      SharedChannel<int>(15),
+      SharedChannel(15),
       pan(255),
       wave(-1) {}
   };

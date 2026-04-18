@@ -25,14 +25,14 @@
 #include "vgsound_emu/src/k053260/k053260.hpp"
 
 class DivPlatformK053260: public DivDispatch, public k053260_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos, reverse;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(127),
+      SharedChannel(127),
       audPos(0),
       sample(-1),
       wave(-1),

@@ -27,12 +27,12 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformNES: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char duty, sweep, envMode, len;
     bool sweepChanged, setPos;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       prevFreq(65535),
       duty(0),
       sweep(8),

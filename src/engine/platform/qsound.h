@@ -24,7 +24,7 @@
 #include "sound/qsound.h"
 
 class DivPlatformQSound: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int resVol;
     int sample, wave;
     int panning;
@@ -32,7 +32,7 @@ class DivPlatformQSound: public DivDispatch {
     int audPos;
     bool useWave, surround, isNewQSound, setPos;
     Channel():
-      SharedChannel<int>(255),
+      SharedChannel(255),
       resVol(4095),
       sample(-1),
       wave(-1),

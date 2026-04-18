@@ -28,11 +28,11 @@ extern "C" {
 #include "../../fixedQueue.h"
 
 class DivPlatformSMS: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int actualNote;
     bool writeVol;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       actualNote(0),
       writeVol(false) {}
   };

@@ -26,7 +26,7 @@
 #include "sound/nes_nsfplay/nes_fds.h"
 
 class DivPlatformFDS: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, modFreq;
     unsigned char duty, sweep, modDepth, modPos;
     unsigned char autoModNum, autoModDen;
@@ -34,7 +34,7 @@ class DivPlatformFDS: public DivDispatch {
     signed short wave;
     signed char modTable[32];
     Channel():
-      SharedChannel<signed char>(32),
+      SharedChannel(32),
       prevFreq(65535),
       modFreq(0),
       duty(0),

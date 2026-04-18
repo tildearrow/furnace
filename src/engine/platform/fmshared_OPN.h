@@ -138,13 +138,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
-    struct OPNOpChannel: public SharedChannel<int> {
+    struct OPNOpChannel: public SharedChannel {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
       bool mask, hardReset;
       OPNOpChannel():
-        SharedChannel<int>(0),
+        SharedChannel(0),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),

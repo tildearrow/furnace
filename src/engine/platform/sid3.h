@@ -26,7 +26,7 @@
 #include "sound/sid3.h"
 
 class DivPlatformSID3: public DivDispatch {
-  struct Channel: public SharedChannel<signed short> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char wave, special_wave, attack, decay, sustain, sr, release;
     int duty;
@@ -162,7 +162,7 @@ class DivPlatformSID3: public DivDispatch {
     }
 
     Channel():
-      SharedChannel<signed short>(SID3_MAX_VOL),
+      SharedChannel(SID3_MAX_VOL),
       prevFreq(0xffffff),
       wave(0),
       special_wave(0),

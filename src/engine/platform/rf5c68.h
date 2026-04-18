@@ -24,14 +24,14 @@
 #include "sound/rf5c68.h"
 
 class DivPlatformRF5C68: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(255),
+      SharedChannel(255),
       audPos(0),
       sample(-1),
       wave(-1),

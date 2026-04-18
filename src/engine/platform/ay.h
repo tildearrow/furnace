@@ -32,7 +32,7 @@ class DivPlatformAY8910: public DivDispatch {
       0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct PSGMode {
         // bit 4: timer FX
         // bit 3: DAC
@@ -95,7 +95,7 @@ class DivPlatformAY8910: public DivDispatch {
       signed char konCycles;
       unsigned short fixedFreq;
       Channel():
-        SharedChannel<int>(15),
+        SharedChannel(15),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),

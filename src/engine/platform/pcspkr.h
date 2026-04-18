@@ -26,9 +26,9 @@
 #include <condition_variable>
 
 class DivPlatformPCSpeaker: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     Channel():
-      SharedChannel<signed char>(15) {}
+      SharedChannel(15) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;

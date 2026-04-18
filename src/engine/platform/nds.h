@@ -30,14 +30,14 @@
 using namespace nds_sound_emu;
 
 class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning, duty;
     bool setPos, pcm, busy;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(127),
+      SharedChannel(127),
       audPos(0),
       sample(-1),
       wave(-1),

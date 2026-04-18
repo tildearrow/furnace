@@ -25,11 +25,11 @@
 #include "sound/upd1771.h"
 
 class DivPlatformSCV: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned int wave;
     int pos, duty, baseFreqNoise;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       wave(0),
       pos(0),
       duty(0),

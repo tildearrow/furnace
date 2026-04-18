@@ -26,7 +26,7 @@
 #include "sound/ga20/iremga20.h"
 
 class DivPlatformGA20: public DivDispatch, public iremga20_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned int audPos;
     int sample;
@@ -34,7 +34,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     int resVol;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(255),
+      SharedChannel(255),
       prevFreq(-1),
       audPos(0),
       sample(-1),

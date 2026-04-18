@@ -55,7 +55,7 @@ class DivYMF278MemoryInterface: public MemoryInterface {
 
 class DivPlatformOPL: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       DivInstrumentFM state;
       unsigned int freqH, freqL;
       int sample, fixedFreq;
@@ -65,7 +65,7 @@ class DivPlatformOPL: public DivDispatch {
       int pan;
       int macroVolMul;
       Channel():
-        SharedChannel<int>(0),
+        SharedChannel(0),
         freqH(0),
         freqL(0),
         sample(-1),

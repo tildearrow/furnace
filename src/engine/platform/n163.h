@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     signed char resVol;
     short wave, wavePos, waveLen;
     short curWavePos, curWaveLen;
@@ -36,7 +36,7 @@ class DivPlatformN163: public DivDispatch {
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;    
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       resVol(15),
       wave(-1),
       wavePos(0),

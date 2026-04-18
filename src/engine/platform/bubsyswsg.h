@@ -25,12 +25,12 @@
 #include "vgsound_emu/src/k005289/k005289.hpp"
 
 class DivPlatformBubSysWSG: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     signed short wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
     DivWaveSynth ws;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       wave(-1) {}
   };
   Channel chan[2];

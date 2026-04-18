@@ -25,7 +25,7 @@
 #include "sound/su.h"
 
 class DivPlatformSoundUnit: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int cutoff, baseCutoff, res, control, hasOffset, sample;
     signed char pan;
     unsigned char duty;
@@ -42,7 +42,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     short pw_slide;
     short virtual_duty;
     Channel():
-      SharedChannel<signed char>(127),
+      SharedChannel(127),
       cutoff(16383),
       baseCutoff(16380),
       res(0),

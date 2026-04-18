@@ -30,13 +30,13 @@ extern "C" {
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int fixedFreq;
       unsigned char pan;
       Channel():
-        SharedChannel<int>(0),
+        SharedChannel(0),
         freqH(0),
         freqL(0),
         fixedFreq(0),

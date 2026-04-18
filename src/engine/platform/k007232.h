@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/k007232/k007232.hpp"
 
 class DivPlatformK007232: public DivDispatch, public k007232_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned int audPos;
     int prevBank;
@@ -36,7 +36,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     int resVol, lvol, rvol;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(15),
+      SharedChannel(15),
       prevFreq(-1),
       audPos(0),
       prevBank(-1),

@@ -24,10 +24,10 @@
 #include "../macroInt.h"
 
 class DivPlatformPokeMini: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char duty;
     Channel():
-      SharedChannel<signed char>(2),
+      SharedChannel(2),
       duty(128) {}
   };
   Channel chan[1];

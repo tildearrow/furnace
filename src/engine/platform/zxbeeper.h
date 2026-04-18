@@ -23,11 +23,11 @@
 #include "../dispatch.h"
 
 class DivPlatformZXBeeper: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned short sPosition;
     unsigned char duty;
     Channel():
-      SharedChannel<signed char>(1),
+      SharedChannel(1),
       sPosition(0),
       duty(64) {}
   };

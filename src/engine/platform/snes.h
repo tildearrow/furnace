@@ -26,7 +26,7 @@
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panL, panR;
@@ -35,7 +35,7 @@ class DivPlatformSNES: public DivDispatch {
     DivInstrumentSNES state;
     DivWaveSynth ws;
     Channel():
-      SharedChannel<int>(127),
+      SharedChannel(127),
       audPos(0),
       sample(-1),
       wave(-1),

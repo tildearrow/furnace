@@ -25,12 +25,12 @@
 
 class DivPlatformTIA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char shape;
       unsigned char curFreq, tuneCtr, tuneFreq;
       int tuneAcc;
       Channel():
-        SharedChannel<int>(15),
+        SharedChannel(15),
         shape(4),
         curFreq(0),
         tuneCtr(0),

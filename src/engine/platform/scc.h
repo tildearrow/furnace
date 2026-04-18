@@ -25,13 +25,13 @@
 #include "vgsound_emu/src/scc/scc.hpp"
 
 class DivPlatformSCC: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool freqInit;
     signed short wave;
     signed char waveROM[32] = {0}; // 8 bit signed waveform
     DivWaveSynth ws;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       freqInit(false),
       wave(-1) {}
   };

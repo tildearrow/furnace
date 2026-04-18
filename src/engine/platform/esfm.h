@@ -27,7 +27,7 @@
 #define ESFM_REG_POOL_SIZE 0x400
 
 class DivPlatformESFM: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     struct {
       DivInstrumentFM fm;
       DivInstrumentESFM esfm;
@@ -99,7 +99,7 @@ class DivPlatformESFM: public DivDispatch {
     }
 
     Channel():
-      SharedChannel<int>(0),
+      SharedChannel(0),
       freqL{0, 0, 0, 0},
       freqH{0, 0, 0, 0},
       hardReset(false),

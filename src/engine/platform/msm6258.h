@@ -26,11 +26,11 @@
 
 class DivPlatformMSM6258: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       int sample;
       unsigned char pan;
       Channel():
-        SharedChannel<int>(8),
+        SharedChannel(8),
         sample(-1),
         pan(3) {}
     };

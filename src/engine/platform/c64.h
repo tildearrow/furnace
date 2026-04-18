@@ -31,7 +31,7 @@
 // - ex4 (test) compatibility
 
 class DivPlatformC64: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, testWhen;
     unsigned int audPos;
     int pcmPos, sample, pcmPeriod, pcmRate, pcmOut;
@@ -41,7 +41,7 @@ class DivPlatformC64: public DivDispatch {
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       prevFreq(65535),
       testWhen(0),
       audPos(0),

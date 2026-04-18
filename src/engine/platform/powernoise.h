@@ -43,7 +43,7 @@ class DivPlatformPowerNoise: public DivDispatch {
       dir(false) {}
   };
   
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int fNum;
     unsigned short initLFSR;
     unsigned char octave, pan, tapA, tapB, octaveOff;
@@ -51,7 +51,7 @@ class DivPlatformPowerNoise: public DivDispatch {
     SlopePortion slopeA, slopeB;
     
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       fNum(0),
       initLFSR(0x5555),
       octave(0),

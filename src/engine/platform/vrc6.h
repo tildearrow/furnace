@@ -26,14 +26,14 @@
 
 
 class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
     unsigned char duty;
     bool pcm, setPos;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),

@@ -26,12 +26,12 @@
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char freqH, freqL;
       unsigned char psgMode;
       unsigned char pan;
       Channel():
-        SharedChannel<int>(15),
+        SharedChannel(15),
         freqH(0),
         freqL(0),
         psgMode(1),

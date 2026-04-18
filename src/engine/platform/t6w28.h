@@ -25,10 +25,10 @@
 #include "sound/t6w28/T6W28_Apu.h"
 
 class DivPlatformT6W28: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char panL, panR, duty;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       panL(15),
       panR(15),
       duty(7) {}

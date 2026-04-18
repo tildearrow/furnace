@@ -25,10 +25,10 @@
 #include "sound/oki/msm5232.h"
 
 class DivPlatformMSM5232: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool noise;
     Channel():
-      SharedChannel<signed char>(127),
+      SharedChannel(127),
       noise(false) {}
   };
   Channel chan[8];

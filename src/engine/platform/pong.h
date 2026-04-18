@@ -23,9 +23,9 @@
 #include "../dispatch.h"
 
 class DivPlatformPong: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     Channel():
-      SharedChannel<signed char>(1) {}
+      SharedChannel(1) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;

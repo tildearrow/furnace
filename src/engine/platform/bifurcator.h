@@ -24,14 +24,14 @@
 #include "../waveSynth.h"
 
 class DivPlatformBifurcator: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int param, curx;
     int audSub;
     bool volChangedL, volChangedR;
     int chPanL, chPanR;
     int chVolL, chVolR;
     Channel():
-      SharedChannel<int>(255),
+      SharedChannel(255),
       param(47360),
       curx(1),
       audSub(0),

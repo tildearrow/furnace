@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/x1_010/x1_010.hpp"
 
 class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     struct Envelope {
       struct EnvFlag {
         unsigned char envEnable : 1;
@@ -89,7 +89,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         waveBank=0;
     }
     Channel():
-      SharedChannel<int>(15),
+      SharedChannel(15),
       fixedFreq(0),
       wave(-1),
       sample(-1),

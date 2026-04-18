@@ -379,11 +379,11 @@ struct DivPitchTable {
  *
  * create a struct inherited from SharedChannel in your dispatch's class definition:
  *
- * struct Channel: public SharedChannel<int> {
+ * struct Channel: public SharedChannel {
  *   // state...
  * };
  */
-template<typename T> struct SharedChannel {
+struct SharedChannel {
   // freq: the output frequency (usually).
   // - this is calculated on frequency changes (freqChanged should be checked during tick()).
   // - the function that calculates frequency is DivEngine::calcFreq(). pass in the rest of variables
@@ -430,8 +430,7 @@ template<typename T> struct SharedChannel {
   // - this is the same as vol when we don't have a volume macro going on.
   // - otherwise it is the result of a calculation with vol and the volume macro's value.
   //   - calculate this value by using VOL_SCALE_LINEAR()/VOL_SCALE_LOG() in tick().
-  // the type of these two is usually int, but some chips use signed char.
-  T vol, outVol;
+  int vol, outVol;
   // std: this is the macro interpreter.
   // - the name comes from DefleMask, where macro-able instruments have "STD" type.
   //   - don't laugh at me.
@@ -530,7 +529,7 @@ template<typename T> struct SharedChannel {
    *
    * @param initVol the initial channel volume.
    */
-  SharedChannel(T initVol):
+  SharedChannel(int initVol):
     freq(0),
     baseFreq(0),
     baseNoteOverride(0),

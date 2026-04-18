@@ -24,11 +24,11 @@
 #include "sound/vic20sound.h"
 
 class DivPlatformVIC20: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int wave, waveWriteCycle;
     bool onOff;
     Channel():
-      SharedChannel<int>(15),
+      SharedChannel(15),
       wave(0),
       waveWriteCycle(-1),
       onOff(true) {}

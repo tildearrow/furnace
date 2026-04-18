@@ -22,7 +22,7 @@
 // the dummy platform outputs saw waves.
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
-  struct Channel: SharedChannel<unsigned char> {
+  struct Channel: SharedChannel {
     unsigned short pos;
     signed char amp;
     Channel():

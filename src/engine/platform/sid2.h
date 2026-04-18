@@ -25,7 +25,7 @@
 #include "sound/sid2/sid.h"
 
 class DivPlatformSID2: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char wave, attack, decay, sustain, release;
     short duty;
@@ -39,7 +39,7 @@ class DivPlatformSID2: public DivDispatch {
     short cutoff_slide;
     short pw_slide;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       prevFreq(0x1ffff),
       wave(0),
       attack(0),

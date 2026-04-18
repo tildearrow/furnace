@@ -25,10 +25,10 @@
 #include "sound/ted-sound.h"
 
 class DivPlatformTED: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool noise, square;
     Channel():
-      SharedChannel<signed char>(8),
+      SharedChannel(8),
       noise(false),
       square(true) {}
   };

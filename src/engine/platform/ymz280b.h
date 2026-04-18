@@ -24,14 +24,14 @@
 #include "sound/ymz280b.h"
 
 class DivPlatformYMZ280B: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos, isNewYMZ;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(255),
+      SharedChannel(255),
       audPos(0),
       sample(-1),
       wave(-1),

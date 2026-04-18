@@ -31,11 +31,11 @@ extern "C" {
 
 
 class DivPlatformPOKEY: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned char wave;
     bool ctlChanged;
     Channel():
-      SharedChannel<int>(15),
+      SharedChannel(15),
       wave(5),
       ctlChanged(true) {}
   };

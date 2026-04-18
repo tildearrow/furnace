@@ -24,9 +24,9 @@
 #include "sound/d65modified.h"
 
 class DivPlatformPV1000: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     Channel():
-      SharedChannel<int>(1) {}
+      SharedChannel(1) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];

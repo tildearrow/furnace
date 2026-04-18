@@ -25,7 +25,7 @@
 
 class DivPlatformAY8930: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct Envelope {
         unsigned char mode;
         unsigned short period;
@@ -80,7 +80,7 @@ class DivPlatformAY8930: public DivDispatch {
       signed char konCycles, autoNoiseOff;
       unsigned short fixedFreq;
       Channel():
-        SharedChannel<int>(31),
+        SharedChannel(31),
         envelope(Envelope()),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),

@@ -26,7 +26,7 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformGB: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char duty, sweep;
     bool sweepChanged, released, softEnv, killIt;
     bool soManyHacksToMakeItDefleCompatible;
@@ -36,7 +36,7 @@ class DivPlatformGB: public DivDispatch {
     unsigned short hwSeqPos;
     short hwSeqDelay;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel(15),
       duty(0),
       sweep(0),
       sweepChanged(false),
