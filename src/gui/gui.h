@@ -2411,7 +2411,7 @@ class FurnaceGUI {
   DivInstrument cachedCurIns;
   DivInstrument* cachedCurInsPtr;
   bool insEditMayBeDirty;
-  int insEditMacroEnvBottom, insEditMacroEnvTop; // TODO: WHAT DO I DO WITH THIS
+  int insEditMacroEnvBottom, insEditMacroEnvTop;
   bool insEditMacroInsChanged;
 
   unsigned char* pendingLayoutImport;
