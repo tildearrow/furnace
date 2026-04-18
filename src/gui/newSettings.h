@@ -60,6 +60,8 @@ struct SettingEntryMultiChoiceExtData {
   const char* choice;
   // the value of the choice
   T value;
+  // tooltip for the choice. set to NULL if unused
+  const char* tooltip;
 };
 
 // numeric input definition
@@ -87,19 +89,33 @@ struct SettingEntryTextInputExtData {
   entryCallback dialogCallback;
 };
 
+// SettingEntry class
+// defines a setting
 class SettingEntry {
+  // setting type, see the SettingType enum for all the available types
   SettingType type;
-  const char* label; const char* tooltip;
+  // the text that will be displayed and searched for
+  const char* label;
+  // the hover tooltip for the setting. set to NULL if unused
+  const char* tooltip;
+  // the setting name in the config file
   const char* confName;
-  void* value; void* extData; int extDataCount;
-  // when to display a setting
+  // pointer to the setting value (a member of FurnaceGUI::settings or FurnaceGUI::uiColors)
+  void* value;
+  // external data for the setting. different type have different data.
+  // these pointers are deleted by destroy()
+  void* extData; int extDataCount;
+  // external condition furnace for when to display the setting
   boolReturnFunction settingCondition;
+  // callback function that runs when the setting is interacted with
   entryCallback callback;
   // only used for SettingCustom
   boolReturnFunction customDrawFunction;
 
+  // helper functions for the setting value
   template<typename T> T getValue() {return *(T*)value;}
   template<typename T> void setValue(T v) {*(T*)value=v;}
+
   public:
     SettingEntry();
     SettingEntry(SettingType t, const char* l, const char* n, void* v, void* x=NULL, int xn=0, const char* d=NULL, boolReturnFunction b=trueLambda, entryCallback f=[]{});
@@ -138,6 +154,16 @@ class SettingEntry {
       *data=limits;
       return SettingEntry(SettingSliderFloat,label,confName,value,data,1);
     }
+    static SettingEntry SliderInt(const char* label, const char* confName, int* value, SettingEntryNumericInputExtData<int> limits) {
+      SettingEntryNumericInputExtData<int>* data=new SettingEntryNumericInputExtData<int>;
+      *data=limits;
+      return SettingEntry(SettingSliderInt,label,confName,value,data,1);
+    }
+    static SettingEntry InputInt(const char* label,const char* confName, int* value, SettingEntryNumericInputExtData<int> limits) {
+      SettingEntryNumericInputExtData<int>* dataPtr=new SettingEntryNumericInputExtData<int>;
+      *dataPtr=limits;
+      return SettingEntry(SettingInputInt,label,confName,value,dataPtr,1);
+    }
     static SettingEntry InputText(const char* label,const char* confName, String* value, const char* hint=NULL) {
       SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
       dataPtr->hint=hint;
@@ -151,12 +177,18 @@ class SettingEntry {
       dataPtr->dialogCallback=dialogCallback;
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
-    SettingEntry& addTooltip(const char* text) {
+
+    // misc. data functions
+    SettingEntry& Tooltip(const char* text) {
       tooltip=text;
       return *this;
     }
-    SettingEntry& condition(boolReturnFunction f) {
+    SettingEntry& Condition(boolReturnFunction f) {
       settingCondition=f;
+      return *this;
+    }
+    SettingEntry& Callback(entryCallback f) {
+      callback=f;
       return *this;
     }
 
@@ -186,34 +218,6 @@ class SettingsCategory {
 
     void deleteRecursive();
 };
-
-extern const char* locales[][3];
-extern const char* fontBackends[];
-extern const char* mainFonts[];
-extern const char* headFonts[];
-extern const char* patFonts[];
-extern const char* audioBackends[];
-extern const char* audioQualities[];
-extern const char* arcadeCores[];
-extern const char* ym2612Cores[];
-extern const char* snCores[];
-extern const char* nesCores[];
-extern const char* c64Cores[];
-extern const char* pokeyCores[];
-extern const char* opnCores[];
-extern const char* opl2Cores[];
-extern const char* opl3Cores[];
-extern const char* opl4Cores[];
-extern const char* esfmCores[];
-extern const char* opllCores[];
-extern const char* ayCores[];
-extern const char* swanCores[];
-extern const char* coreQualities[];
-extern const char* pcSpeakerOutMethods[];
-extern const char* valueInputStyles[];
-extern const char* valueSInputStyles[];
-extern const char* messageTypes[];
-extern const char* specificControls[];
 
 #define SAMPLE_RATE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioRate==x)) { \

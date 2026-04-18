@@ -85,6 +85,9 @@ bool SettingEntry::draw() {
           callback();
           ret=true;
         }
+        if (choices[i].tooltip) if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",_(choices[i].tooltip));
+        }
       }
       ImGui::Unindent();
       ImGui::EndGroup();
@@ -94,7 +97,7 @@ bool SettingEntry::draw() {
       assert(extData && "SettingComboInt requires extData!");
       SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
       const char* preview=choices[0].choice; // fallback?
-      for (size_t i=0; choices[i].choice; i++) {
+      for (int i=0; i<extDataCount; i++) {
         if (choices[i].value==getValue<int>()) {
           preview=choices[i].choice;
           break;
@@ -102,10 +105,13 @@ bool SettingEntry::draw() {
       }
       if (ImGui::BeginCombo(_(label),_(preview))) {
         for (int i=0; i<extDataCount; i++) {
-            if (ImGui::Selectable(_(choices[i].choice),getValue<int>()==choices[i].value)) {
+          if (ImGui::Selectable(_(choices[i].choice),getValue<int>()==choices[i].value)) {
             setValue(choices[i].value);
             callback();
             ret=true;
+          }
+          if (choices[i].tooltip) if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s",_(choices[i].tooltip));
           }
         }
         ImGui::EndCombo();
@@ -113,21 +119,24 @@ bool SettingEntry::draw() {
       break;
     }
     case SettingComboStr: {
-      assert(extData && "SettingComboInt requires extData!");
-      SettingEntryMultiChoiceExtData<String>* choices=(SettingEntryMultiChoiceExtData<String>*)extData;
+      assert(extData && "SettingComboStr requires extData!");
+      SettingEntryMultiChoiceExtData<const char*>* choices=(SettingEntryMultiChoiceExtData<const char*>*)extData;
       const char* preview=choices[0].choice; // fallback?
-      for (int i=0; extDataCount; i++) {
+      for (int i=0; i<extDataCount; i++) {
         if (choices[i].value==getValue<String>()) {
           preview=choices[i].choice;
           break;
         }
       }
       if (ImGui::BeginCombo(_(label),_(preview))) {
-        for (size_t i=0; choices[i].choice; i++) {
+        for (int i=0; i<extDataCount; i++) {
           if (ImGui::Selectable(_(choices[i].choice),getValue<String>()==choices[i].value)) {
-            setValue(choices[i].value);
+            setValue<String>(choices[i].value);
             callback();
             ret=true;
+          }
+          if (choices[i].tooltip) if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s",_(choices[i].tooltip));
           }
         }
         ImGui::EndCombo();
@@ -355,6 +364,21 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollP
   }
   return ret;
 }
+/*bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollPos) {
+  bool ret=false;
+  ImGui::BeginDisabled(filter->IsActive() && !filter->PassFilter(_(name)));
+  if (ImGui::Selectable(_(name))) {
+    *targetScrollPos=scrollPos;
+    ret=true;
+  }
+  ImGui::EndDisabled();
+  ImGui::Indent();
+  for (SettingsCategory& s:children) {
+    ret|=s.drawSidebar(filter,targetScrollPos);
+  }
+  ImGui::Unindent();
+  return ret;
+}*/
 
 void SettingsCategory::deleteRecursive() {
   for (size_t i=0; i<settings.size(); i++) {
@@ -372,14 +396,43 @@ void SettingsCategory::deleteRecursive() {
 #define SETTING_CHECKBOX(_label,_value) \
   SettingEntry::Checkbox(_label,#_value,&settings._value)
 
+#define FILE_DIALOG(d) [this]{openFileDialog(d);}
+
 void FurnaceGUI::initSettings() {
   _C(_N("General"),{},{
     _CC(_N("Program"),{
+#ifdef HAVE_LOCALE
+      SettingEntry::ComboString(
+        _N("Language"),
+        "locale",&settings.locale,{
+          {"<System>","",NULL},
+          {"English", "en", "restart Furnace for this setting to take effect."},
+          {"Bahasa Indonesia (50%?)", "id", "???"},
+          //{"Deutsch (0%)", "de", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
+          {"Español", "es", "reinicia Furnace para que esta opción tenga efecto."},
+          //{"Suomi (0%)", "fi", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
+          {"Français (10%)", "fr", "redémarrer Furnace pour que ce réglage soit effectif."},
+          //{"Հայերեն (1%)", "hy", "???"},
+          //{"日本語 (0%)", "ja", "???"},
+          {"한국어 (25%)", "ko", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
+          //{"Nederlands (4%)", "nl", "start Furnace opnieuw op om deze instelling effectief te maken."},
+          {"Polski (95%)", "pl", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
+          {"Português (Brasil) (70%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
+          {"Русский", "ru", "перезапустите программу, чтобы эта настройка вступила в силу."},
+          {"Slovenčina (15%)", "sk", "???"},
+          {"Svenska", "sv", "starta om programmet för att denna inställning ska träda i kraft."},
+          //{"ไทย (0%)", "th", "???"},
+          //{"Türkçe (0%)", "tr", "bu ayarı etkin hale getirmek için programı yeniden başlatın."},
+          //{"Українська (0%)", "uk", "перезапустіть програму, щоб це налаштування набуло чинності."},
+          {"中文 (15%)", "zh", "???"},
+        }
+      ),
+#endif
       SettingEntry::Radio(
         _N("Play after opening song:"),"playOnLoad",&settings.playOnLoad,{
-        {_N("No##pol0"),0},
-        {_N("Only if already playing##pol1"),1},
-        {_N("Yes##pol0"),2},
+        {_N("No##pol0"),0,NULL},
+        {_N("Only if already playing##pol1"),1,NULL},
+        {_N("Yes##pol0"),2,NULL},
       }),
       SETTING_CHECKBOX(
         _N("Store instrument name in .fui"),
@@ -394,35 +447,47 @@ void FurnaceGUI::initSettings() {
         _N("Backend"),
         "audioEngine",&settings.audioEngine,{
 #ifdef HAVE_JACK
-        {"JACK",DIV_AUDIO_JACK},
+        {"JACK",DIV_AUDIO_JACK,NULL},
 #endif
-        {"SDL",DIV_AUDIO_SDL},
+        {"SDL",DIV_AUDIO_SDL,NULL},
 #ifdef HAVE_PA
-        {"PortAudio",DIV_AUDIO_PORTAUDIO},
+        {"PortAudio",DIV_AUDIO_PORTAUDIO,NULL},
 #endif
 #ifdef HAVE_ASIO
-        {"ASIO",DIV_AUDIO_ASIO},
+        {"ASIO",DIV_AUDIO_ASIO,NULL},
 #endif
       }),
 #endif
+    }),
+    _CC(_N("Volumes"),{
+      SettingEntry::SliderInt(
+        _N("Metronome volume"),
+        "metroVol",&settings.metroVol,
+        {0,200,"%d%%"}
+      ).Callback([this]{e->setMetronomeVol(((float)settings.metroVol)/100.0f);}),
+      SettingEntry::SliderInt(
+        _N("Sample preview volume"),
+        "sampleVol",&settings.sampleVol,
+        {0,100,"%d%%"}
+      ).Callback([this]{e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);})
     })
   });
   _C(_N("Emulation"),{
     SettingEntry::ComboInt(
       _N("PC Speacker Strategy"),
       "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
-        {_N("evdev SND_TONE"),0},
-        {_N("KIOCSOUND on /dev/tty1"),1},
-        {_N("/dev/port"),2},
-        {_N("KIOCSOUND on standard output"),3},
-        {_N("outb()"),4}
+        {_N("evdev SND_TONE"),0,NULL},
+        {_N("KIOCSOUND on /dev/tty1"),1,NULL},
+        {_N("/dev/port"),2,NULL},
+        {_N("KIOCSOUND on standard output"),3,NULL},
+        {_N("outb()"),4,NULL},
       })
   },{
     _CC(_N("Sample ROMs"),{
       SettingEntry::Path(
         _N("OPL4 YRW801 path"),
         "yrw801Path",&settings.yrw801Path,
-        [this]{openFileDialog(GUI_FILE_YRW801_ROM_OPEN);}
+        FILE_DIALOG(GUI_FILE_YRW801_ROM_OPEN)
       )
     })
   });
@@ -430,18 +495,18 @@ void FurnaceGUI::initSettings() {
     SettingEntry::Radio(
       _N("Channel feedback style:"),
       "channelFeedbackStyle",&settings.channelFeedbackStyle,{
-        {_N("Off##CHF0"),0},
-        {_N("Note##CHF1"),1},
-        {_N("Volume##CHF2"),2},
-        {_N("Active##CHF3"),3},
-        {_N("Volume (Real)##CHF4"),4},
+        {_N("Off##CHF0"),0,NULL},
+        {_N("Note##CHF1"),1,NULL},
+        {_N("Volume##CHF2"),2,NULL},
+        {_N("Active##CHF3"),3,NULL},
+        {_N("Volume (Real)##CHF4"),4,NULL},
       }
     ),
     SettingEntry::SliderFloat(
       _N("Gamma##CHF"),
       "channelFeedbackGamma",&settings.channelFeedbackGamma,
       {0.0f,2.0f,NULL}
-    ).condition([this]{return settings.channelFeedbackStyle==4;})
+    ).Condition([this]{return settings.channelFeedbackStyle==4;})
   },{
     _CC(_N("Pattern view labels"),{
       SettingEntry::InputText(
