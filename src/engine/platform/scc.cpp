@@ -302,7 +302,7 @@ void DivPlatformSCC::forceIns() {
   }
 }
 
-void* DivPlatformSCC::getChanState(int ch) {
+SharedChannel* DivPlatformSCC::getChanState(int ch) {
   return &chan[ch];
 }
 

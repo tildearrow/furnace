@@ -759,7 +759,7 @@ void DivPlatformC64::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformC64::getChanState(int ch) {
+SharedChannel* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
 }
 

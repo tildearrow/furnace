@@ -728,7 +728,7 @@ void DivPlatformPCE::forceIns() {
   }
 }
 
-void* DivPlatformPCE::getChanState(int ch) {
+SharedChannel* DivPlatformPCE::getChanState(int ch) {
   // return our Channel struct. used in the debug menu.
   return &chan[ch];
 }

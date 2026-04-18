@@ -1650,7 +1650,7 @@ void DivPlatformGenesis::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformGenesis::getChanState(int ch) {
+SharedChannel* DivPlatformGenesis::getChanState(int ch) {
   return &chan[ch];
 }
 

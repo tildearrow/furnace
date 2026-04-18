@@ -63,7 +63,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual u8 read_sample(u32 address) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;

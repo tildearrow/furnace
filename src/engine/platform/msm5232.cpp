@@ -331,7 +331,7 @@ void DivPlatformMSM5232::forceIns() {
   }
 }
 
-void* DivPlatformMSM5232::getChanState(int ch) {
+SharedChannel* DivPlatformMSM5232::getChanState(int ch) {
   return &chan[ch];
 }
 

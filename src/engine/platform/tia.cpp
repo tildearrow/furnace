@@ -432,7 +432,7 @@ void DivPlatformTIA::forceIns() {
   }
 }
 
-void* DivPlatformTIA::getChanState(int ch) {
+SharedChannel* DivPlatformTIA::getChanState(int ch) {
   return &chan[ch];
 }
 

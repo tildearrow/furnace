@@ -1076,7 +1076,7 @@ void DivPlatformTX81Z::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformTX81Z::getChanState(int ch) {
+SharedChannel* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
 }
 

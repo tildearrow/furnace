@@ -43,7 +43,7 @@ class DivPlatformDummy: public DivDispatch {
     int dispatch(DivCommand c);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void tick(bool sysTick=true);

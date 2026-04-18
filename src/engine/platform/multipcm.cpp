@@ -419,7 +419,7 @@ void DivPlatformMultiPCM::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformMultiPCM::getChanState(int ch) {
+SharedChannel* DivPlatformMultiPCM::getChanState(int ch) {
   return &chan[ch];
 }
 

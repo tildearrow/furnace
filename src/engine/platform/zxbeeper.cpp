@@ -246,7 +246,7 @@ void DivPlatformZXBeeper::forceIns() {
   }
 }
 
-void* DivPlatformZXBeeper::getChanState(int ch) {
+SharedChannel* DivPlatformZXBeeper::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -2672,7 +2672,7 @@ void DivPlatformOPL::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformOPL::getChanState(int ch) {
+SharedChannel* DivPlatformOPL::getChanState(int ch) {
   return &chan[ch];
 }
 

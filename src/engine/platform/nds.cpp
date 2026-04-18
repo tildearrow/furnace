@@ -472,7 +472,7 @@ void DivPlatformNDS::forceIns() {
   }
 }
 
-void* DivPlatformNDS::getChanState(int ch) {
+SharedChannel* DivPlatformNDS::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -276,7 +276,7 @@ void DivPlatformMSM6258::forceIns() {
   rWrite(2,(~chan[0].pan)&3);
 }
 
-void* DivPlatformMSM6258::getChanState(int ch) {
+SharedChannel* DivPlatformMSM6258::getChanState(int ch) {
   return &chan[ch];
 }
 

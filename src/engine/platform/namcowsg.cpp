@@ -475,7 +475,7 @@ void DivPlatformNamcoWSG::forceIns() {
   }
 }
 
-void* DivPlatformNamcoWSG::getChanState(int ch) {
+SharedChannel* DivPlatformNamcoWSG::getChanState(int ch) {
   return &chan[ch];
 }
 

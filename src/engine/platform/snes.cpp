@@ -724,7 +724,7 @@ void DivPlatformSNES::forceIns() {
   initEcho();
 }
 
-void* DivPlatformSNES::getChanState(int ch) {
+SharedChannel* DivPlatformSNES::getChanState(int ch) {
   return &chan[ch];
 }
 

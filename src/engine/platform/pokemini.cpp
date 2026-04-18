@@ -274,7 +274,7 @@ void DivPlatformPokeMini::forceIns() {
   }
 }
 
-void* DivPlatformPokeMini::getChanState(int ch) {
+SharedChannel* DivPlatformPokeMini::getChanState(int ch) {
   return &chan[ch];
 }
 

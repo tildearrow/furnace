@@ -553,7 +553,7 @@ void DivPlatformN163::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformN163::getChanState(int ch) {
+SharedChannel* DivPlatformN163::getChanState(int ch) {
   return &chan[ch];
 }
 

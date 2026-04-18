@@ -497,7 +497,7 @@ void DivPlatformC140::forceIns() {
   }
 }
 
-void* DivPlatformC140::getChanState(int ch) {
+SharedChannel* DivPlatformC140::getChanState(int ch) {
   return &chan[ch];
 }
 

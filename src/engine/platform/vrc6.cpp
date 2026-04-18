@@ -458,7 +458,7 @@ void DivPlatformVRC6::forceIns() {
   }
 }
 
-void* DivPlatformVRC6::getChanState(int ch) {
+SharedChannel* DivPlatformVRC6::getChanState(int ch) {
   return &chan[ch];
 }
 

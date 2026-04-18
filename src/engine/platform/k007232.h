@@ -83,7 +83,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     u8 read_sample(u8 ne, u32 address);
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

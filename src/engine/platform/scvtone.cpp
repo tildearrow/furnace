@@ -303,7 +303,7 @@ void DivPlatformSCV::forceIns() {
   }
 }
 
-void* DivPlatformSCV::getChanState(int ch) {
+SharedChannel* DivPlatformSCV::getChanState(int ch) {
   return &chan[ch];
 }
 

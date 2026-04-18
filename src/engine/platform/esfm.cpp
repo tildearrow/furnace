@@ -1012,7 +1012,7 @@ void DivPlatformESFM::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformESFM::getChanState(int ch) {
+SharedChannel* DivPlatformESFM::getChanState(int ch) {
   return &chan[ch];
 }
 

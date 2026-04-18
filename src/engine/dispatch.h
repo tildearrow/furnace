@@ -1070,7 +1070,7 @@ class DivDispatch {
      * @param chan the channel.
      * @return a pointer, or NULL.
      */
-    virtual void* getChanState(int chan);
+    virtual SharedChannel* getChanState(int chan);
 
     /**
      * get the DivMacroInt of a channel.

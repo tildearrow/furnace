@@ -1044,7 +1044,7 @@ void DivPlatformOPLL::setProperDrums(bool pd) {
 }
 
 
-void* DivPlatformOPLL::getChanState(int ch) {
+SharedChannel* DivPlatformOPLL::getChanState(int ch) {
   return &chan[ch];
 }
 

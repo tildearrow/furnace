@@ -375,7 +375,7 @@ void DivPlatformGA20::forceIns() {
   }
 }
 
-void* DivPlatformGA20::getChanState(int ch) {
+SharedChannel* DivPlatformGA20::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -325,7 +325,7 @@ void DivPlatformRF5C68::forceIns() {
   }
 }
 
-void* DivPlatformRF5C68::getChanState(int ch) {
+SharedChannel* DivPlatformRF5C68::getChanState(int ch) {
   return &chan[ch];
 }
 

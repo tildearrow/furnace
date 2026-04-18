@@ -378,7 +378,7 @@ void DivPlatformK053260::forceIns() {
   }
 }
 
-void* DivPlatformK053260::getChanState(int ch) {
+SharedChannel* DivPlatformK053260::getChanState(int ch) {
   return &chan[ch];
 }
 

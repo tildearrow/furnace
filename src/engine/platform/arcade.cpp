@@ -921,7 +921,7 @@ void DivPlatformArcade::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformArcade::getChanState(int ch) {
+SharedChannel* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }
 

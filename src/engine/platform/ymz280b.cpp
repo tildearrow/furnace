@@ -363,7 +363,7 @@ void DivPlatformYMZ280B::forceIns() {
   }
 }
 
-void* DivPlatformYMZ280B::getChanState(int ch) {
+SharedChannel* DivPlatformYMZ280B::getChanState(int ch) {
   return &chan[ch];
 }
 

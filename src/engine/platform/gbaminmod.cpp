@@ -556,7 +556,7 @@ void DivPlatformGBAMinMod::forceIns() {
   }
 }
 
-void* DivPlatformGBAMinMod::getChanState(int ch) {
+SharedChannel* DivPlatformGBAMinMod::getChanState(int ch) {
   return &chan[ch];
 }
 

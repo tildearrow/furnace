@@ -489,7 +489,7 @@ void DivPlatformSMS::forceIns() {
   updateSNMode=true;
 }
 
-void* DivPlatformSMS::getChanState(int ch) {
+SharedChannel* DivPlatformSMS::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -378,7 +378,7 @@ void DivPlatformSegaPCM::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSegaPCM::getChanState(int ch) {
+SharedChannel* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
 

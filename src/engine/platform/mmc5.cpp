@@ -352,7 +352,7 @@ void DivPlatformMMC5::forceIns() {
   }
 }
 
-void* DivPlatformMMC5::getChanState(int ch) {
+SharedChannel* DivPlatformMMC5::getChanState(int ch) {
   return &chan[ch];
 }
 

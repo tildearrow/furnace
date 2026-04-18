@@ -520,7 +520,7 @@ void DivPlatformPCMDAC::forceIns() {
   }
 }
 
-void* DivPlatformPCMDAC::getChanState(int ch) {
+SharedChannel* DivPlatformPCMDAC::getChanState(int ch) {
   if (ch>=chans) return NULL;
   return &chan[ch];
 }

@@ -306,7 +306,7 @@ void DivPlatformT6W28::forceIns() {
   rWrite(1,0xe0+chan[3].duty);
 }
 
-void* DivPlatformT6W28::getChanState(int ch) {
+SharedChannel* DivPlatformT6W28::getChanState(int ch) {
   return &chan[ch];
 }
 

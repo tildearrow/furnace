@@ -369,8 +369,8 @@ void DivPlatformGBADMA::forceIns() {
   }
 }
 
-void* DivPlatformGBADMA::getChanState(int ch) {
-  return &chan;
+SharedChannel* DivPlatformGBADMA::getChanState(int ch) {
+  return &chan[ch];
 }
 
 DivDispatchOscBuffer* DivPlatformGBADMA::getOscBuffer(int ch) {

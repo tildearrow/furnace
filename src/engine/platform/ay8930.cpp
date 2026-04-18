@@ -802,7 +802,7 @@ void DivPlatformAY8930::forceIns() {
   }
 }
 
-void* DivPlatformAY8930::getChanState(int ch) {
+SharedChannel* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
 }
 

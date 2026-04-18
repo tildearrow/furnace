@@ -201,7 +201,7 @@ void DivPlatformPong::forceIns() {
   }
 }
 
-void* DivPlatformPong::getChanState(int ch) {
+SharedChannel* DivPlatformPong::getChanState(int ch) {
   return &chan[ch];
 }
 

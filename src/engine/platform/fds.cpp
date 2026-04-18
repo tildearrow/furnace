@@ -425,7 +425,7 @@ void DivPlatformFDS::forceIns() {
   updateWave();
 }
 
-void* DivPlatformFDS::getChanState(int ch) {
+SharedChannel* DivPlatformFDS::getChanState(int ch) {
   return &chan[ch];
 }
 

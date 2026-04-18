@@ -1612,7 +1612,7 @@ unsigned short DivEngine::getChanPan(int ch) {
   return disCont[song.dispatchOfChan[ch]].dispatch->getPan(song.dispatchChanOfChan[ch]);
 }
 
-void* DivEngine::getDispatchChanState(int ch) {
+SharedChannel* DivEngine::getDispatchChanState(int ch) {
   if (ch<0 || ch>=song.chans) return NULL;
   if (song.dispatchChanOfChan[ch]<0) return NULL;
   return disCont[song.dispatchOfChan[ch]].dispatch->getChanState(song.dispatchChanOfChan[ch]);

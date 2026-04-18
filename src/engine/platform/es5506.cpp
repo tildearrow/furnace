@@ -1307,7 +1307,7 @@ void DivPlatformES5506::forceIns() {
   }
 }
 
-void* DivPlatformES5506::getChanState(int ch) {
+SharedChannel* DivPlatformES5506::getChanState(int ch) {
   return &chan[ch];
 }
 

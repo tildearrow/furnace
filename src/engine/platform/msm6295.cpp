@@ -263,7 +263,7 @@ void DivPlatformMSM6295::forceIns() {
   rWrite(12,!rateSel);
 }
 
-void* DivPlatformMSM6295::getChanState(int ch) {
+SharedChannel* DivPlatformMSM6295::getChanState(int ch) {
   return &chan[ch];
 }
 

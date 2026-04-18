@@ -334,7 +334,7 @@ void DivPlatformZXBeeperQuadTone::forceIns() {
   }
 }
 
-void* DivPlatformZXBeeperQuadTone::getChanState(int ch) {
+SharedChannel* DivPlatformZXBeeperQuadTone::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -488,7 +488,7 @@ void DivPlatformVB::forceIns() {
   }
 }
 
-void* DivPlatformVB::getChanState(int ch) {
+SharedChannel* DivPlatformVB::getChanState(int ch) {
   return &chan[ch];
 }
 

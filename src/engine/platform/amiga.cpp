@@ -811,7 +811,7 @@ void DivPlatformAmiga::forceIns() {
   }
 }
 
-void* DivPlatformAmiga::getChanState(int ch) {
+SharedChannel* DivPlatformAmiga::getChanState(int ch) {
   return &chan[ch];
 }
 

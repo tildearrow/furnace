@@ -450,7 +450,7 @@ void DivPlatformK007232::forceIns() {
   lastVolume=0;
 }
 
-void* DivPlatformK007232::getChanState(int ch) {
+SharedChannel* DivPlatformK007232::getChanState(int ch) {
   return &chan[ch];
 }
 

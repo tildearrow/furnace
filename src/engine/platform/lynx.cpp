@@ -504,7 +504,7 @@ void DivPlatformLynx::forceIns() {
   }
 }
 
-void* DivPlatformLynx::getChanState(int ch) {
+SharedChannel* DivPlatformLynx::getChanState(int ch) {
   return &chan[ch];
 }
 

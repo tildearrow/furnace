@@ -1249,7 +1249,7 @@ void DivPlatformSID3::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSID3::getChanState(int ch) {
+SharedChannel* DivPlatformSID3::getChanState(int ch) {
   return &chan[ch];
 }
 

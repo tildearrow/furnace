@@ -63,7 +63,7 @@ class DivPlatformPOKEY: public DivDispatch {
     void acquireMZ(short* buf, size_t len);
     void acquireASAP(short* buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivDispatchOscBuffer* getOscBuffer(int chan);

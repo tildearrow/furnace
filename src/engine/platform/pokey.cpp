@@ -421,7 +421,7 @@ void DivPlatformPOKEY::forceIns() {
   skctlChanged=true;
 }
 
-void* DivPlatformPOKEY::getChanState(int ch) {
+SharedChannel* DivPlatformPOKEY::getChanState(int ch) {
   return &chan[ch];
 }
 

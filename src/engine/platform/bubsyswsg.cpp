@@ -279,7 +279,7 @@ void DivPlatformBubSysWSG::forceIns() {
   }
 }
 
-void* DivPlatformBubSysWSG::getChanState(int ch) {
+SharedChannel* DivPlatformBubSysWSG::getChanState(int ch) {
   return &chan[ch];
 }
 

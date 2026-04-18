@@ -101,7 +101,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);

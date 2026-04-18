@@ -1088,7 +1088,7 @@ class DivEngine {
     DivChannelState* getChanState(int chan);
 
     // get dispatch channel state
-    void* getDispatchChanState(int chan);
+    SharedChannel* getDispatchChanState(int chan);
 
     // get channel pairs
     void getChanPaired(int chan, std::vector<DivChannelPair>& ret);

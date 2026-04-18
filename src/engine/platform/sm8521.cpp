@@ -334,7 +334,7 @@ void DivPlatformSM8521::forceIns() {
   }
 }
 
-void* DivPlatformSM8521::getChanState(int ch) {
+SharedChannel* DivPlatformSM8521::getChanState(int ch) {
   return &chan[ch];
 }
 

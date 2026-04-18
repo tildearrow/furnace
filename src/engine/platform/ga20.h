@@ -77,7 +77,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual DivSamplePos getSamplePos(int ch) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;

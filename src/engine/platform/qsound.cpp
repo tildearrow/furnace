@@ -642,7 +642,7 @@ void DivPlatformQSound::forceIns() {
   }
 }
 
-void* DivPlatformQSound::getChanState(int ch) {
+SharedChannel* DivPlatformQSound::getChanState(int ch) {
   return &chan[ch];
 }
 

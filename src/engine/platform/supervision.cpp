@@ -419,7 +419,7 @@ void DivPlatformSupervision::forceIns() {
   }
 }
 
-void* DivPlatformSupervision::getChanState(int ch) {
+SharedChannel* DivPlatformSupervision::getChanState(int ch) {
   return &chan[ch];
 }
 

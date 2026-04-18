@@ -83,7 +83,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
 #endif
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;

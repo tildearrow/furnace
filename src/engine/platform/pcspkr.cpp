@@ -570,7 +570,7 @@ void DivPlatformPCSpeaker::forceIns() {
   }
 }
 
-void* DivPlatformPCSpeaker::getChanState(int ch) {
+SharedChannel* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -425,7 +425,7 @@ void DivPlatformPowerNoise::forceIns() {
   }
 }
 
-void* DivPlatformPowerNoise::getChanState(int ch) {
+SharedChannel* DivPlatformPowerNoise::getChanState(int ch) {
   return &chan[ch];
 }
 

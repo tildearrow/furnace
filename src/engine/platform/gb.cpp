@@ -612,7 +612,7 @@ void DivPlatformGB::forceIns() {
   updateWave();
 }
 
-void* DivPlatformGB::getChanState(int ch) {
+SharedChannel* DivPlatformGB::getChanState(int ch) {
   return &chan[ch];
 }
 

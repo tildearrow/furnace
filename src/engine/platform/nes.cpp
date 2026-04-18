@@ -807,7 +807,7 @@ void DivPlatformNES::forceIns() {
   rWrite(0x4017,countMode?0x80:0);
 }
 
-void* DivPlatformNES::getChanState(int ch) {
+SharedChannel* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
 }
 

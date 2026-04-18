@@ -988,7 +988,7 @@ void DivPlatformAY8910::forceIns() {
   immWrite(0x0d,ayEnvMode);
 }
 
-void* DivPlatformAY8910::getChanState(int ch) {
+SharedChannel* DivPlatformAY8910::getChanState(int ch) {
   return &chan[ch];
 }
 

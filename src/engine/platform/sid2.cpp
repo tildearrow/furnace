@@ -597,7 +597,7 @@ void DivPlatformSID2::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSID2::getChanState(int ch) {
+SharedChannel* DivPlatformSID2::getChanState(int ch) {
   return &chan[ch];
 }
 

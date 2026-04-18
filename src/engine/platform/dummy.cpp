@@ -72,7 +72,7 @@ void DivPlatformDummy::tick(bool sysTick) {
   }
 }
 
-void* DivPlatformDummy::getChanState(int ch) {
+SharedChannel* DivPlatformDummy::getChanState(int ch) {
   return &chan[ch];
 }
 

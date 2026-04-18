@@ -294,7 +294,7 @@ void DivPlatformBifurcator::forceIns() {
   }
 }
 
-void* DivPlatformBifurcator::getChanState(int ch) {
+SharedChannel* DivPlatformBifurcator::getChanState(int ch) {
   return &chan[ch];
 }
 
