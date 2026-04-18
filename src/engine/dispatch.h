@@ -341,6 +341,7 @@ enum DivDispatchCmds {
 struct DivPitchTable {
   int pitch[12+1];
   int pitchDiff[12+1];
+  unsigned int maxFreq;
   unsigned char linearity, blockBits, shift;
   bool period;
 
@@ -363,6 +364,7 @@ struct DivPitchTable {
   void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
 
   DivPitchTable():
+    maxFreq(0xffffffff),
     linearity(2),
     blockBits(0),
     period(false) {

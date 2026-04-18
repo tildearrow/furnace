@@ -994,13 +994,13 @@ void DivPlatformSNES::notifyPitchTable(int sample) {
     for (size_t i=0; i<MIN(parent->song.sample.size(),samplePitchTableLen); i++) {
       DivSample* s=parent->song.sample[i];
       double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      samplePitchTable[i].init(parent->song.tuning,chipClock,CHIP_FREQBASE*off,0xffff,false,parent->song.compatFlags.linearPitch);
+      samplePitchTable[i].init(parent->song.tuning,chipClock,CHIP_FREQBASE*off,0x3fff,false,parent->song.compatFlags.linearPitch);
     }
   } else {
     if (sample>=0 && sample<(int)parent->song.sample.size() && sample<(int)samplePitchTableLen) {
       DivSample* s=parent->song.sample[sample];
       double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      samplePitchTable[sample].init(parent->song.tuning,chipClock,CHIP_FREQBASE*off,0xffff,false,parent->song.compatFlags.linearPitch);
+      samplePitchTable[sample].init(parent->song.tuning,chipClock,CHIP_FREQBASE*off,0x3fff,false,parent->song.compatFlags.linearPitch);
     }
   }
 }

@@ -74,6 +74,9 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
     diff>>=octave;
     if (carry) diff++;
 #endif
+  } else if (octave<0) {
+    // if we're going to perform a negative shift, return the highest frequency/period.
+    return maxFreq;
   }
 
   return root+((diff*fine)>>7);
@@ -82,6 +85,7 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
 int DivPitchTable::getBase(int note) {
   // non-linear pitch
   if (!linearity) {
+    note+=60;
     int index=note%12;
     int octave=period?
       ((note/12)-shift):
@@ -122,7 +126,19 @@ int DivPitchTable::getBase(int note) {
 void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod, bool isLinear) {
   period=isPeriod;
   linearity=isLinear;
+  maxFreq=maximum;
   shift=period?0:14;
+
+  // adjust the shift value so that the highest (or lowest in period mode) note has the highest period/freq
+  while (shift>0) {
+    int nbase=(shift-5)*12;
+    double fbase=(period?(tuning*0.0625):tuning)*pow(2.0,(float)(nbase+3)/(12.0));
+    int bf=period?
+           round((clock/fbase)/divider):
+           round(fbase*(divider/clock));
+    if (bf<=maximum) break;
+    shift--;
+  }
 
   logV("DivPitchTable init(%f,%f,%f,%x,%s)",tuning,clock,divider,maximum,isPeriod?"period":"freq");
   logV("(shift: %d)",shift);
