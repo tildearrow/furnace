@@ -2327,6 +2327,15 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     }
     ImGui::PopStyleVar();
   } else {
+    const auto adjustParam=[](int& value, int oldBot, int oldTop, int newBot, int newTop) {
+      // Warning! It must be true that oldBot<=oldTop and newBot<=newTop.
+      double oldAmp=fabs((double)oldTop-oldBot);
+      double newAmp=fabs((double)newTop-newBot);
+      double normalized=(double)(value-oldBot)/oldAmp;
+      value=(normalized*newAmp)+newBot;
+      value=CLAMP(value,newBot,newTop); // make sure it's in the range
+    };
+
     if (i.macro->open&2) {
       const bool compact=(availableWidth<300.0f*dpiScale);
       bool adsrAdjust=false; // set to true if the range has been changed, so values can be readjusted
@@ -2364,7 +2373,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::InputInt("##MATop",&insEditMacroEnvTop,1,16)) {}
-        if (ImGui::IsItemDeactivated()) {
+        if (ImGui::IsItemDeactivated()) { PARAMETER
           i.macro->val[1]=CLAMP(insEditMacroEnvTop,i.min,i.max);
           insEditMacroEnvTop=i.macro->val[1];
 
@@ -2380,15 +2389,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         const int adsrTop=MAX(i.macro->val[0],i.macro->val[1]);
         const int adsrRange=abs(adsrTop-adsrBottom);
         const int adsrParamMax=(adsrRange<<8)|0xff;
-
-        const auto adjustParam=[](int& value, int oldBot, int oldTop, int newBot, int newTop) {
-          // Warning! It must be true that oldBot<=oldTop and newBot<=newTop.
-          double oldAmp=fabs((double)oldTop-oldBot);
-          double newAmp=fabs((double)newTop-newBot);
-          double normalized=(double)(value-oldBot)/oldAmp;
-          value=(normalized*newAmp)+newBot;
-          value=CLAMP(value,newBot,newTop); // make sure it's in the range
-        };
 
         // if the range has changed, we must adjust all parameters to make sure they're in range.
         if (adsrAdjust) {
@@ -2582,7 +2582,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     }
     if (i.macro->open&4) {
       const bool compact=(availableWidth<300.0f*dpiScale);
-      bool lfoClamp=false;
+      bool lfoAdjust=false; // set to true if the range has been changed, so values can be readjusted
       if (ImGui::BeginTable("MacroLFO",compact?2:4)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
@@ -2591,18 +2591,22 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
         }
 
+        const int oldLfoBottom=i.macro->val[0];
+        const int oldLfoTop=i.macro->val[1];
+        updateRangeInputs();
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Bottom"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MABottom",&i.macro->val[0],1,16)) { PARAMETER
-          if (i.macro->val[0]<i.min) i.macro->val[0]=i.min;
-          if (i.macro->val[0]>i.max) i.macro->val[0]=i.max;
+        if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
+        if (ImGui::IsItemDeactivated()) { PARAMETER
+          i.macro->val[0]=CLAMP(insEditMacroEnvTop,i.min,i.max);
+          insEditMacroEnvTop=i.macro->val[0];
 
-          // clamp parameters to new range
-          lfoClamp=true;
+          lfoAdjust=true;
         }
 
         if (compact) ImGui::TableNextRow();
@@ -2611,26 +2615,29 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MATop",&i.macro->val[1],1,16)) { PARAMETER
-          if (i.macro->val[1]<i.min) i.macro->val[1]=i.min;
-          if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
+        if (ImGui::InputInt("##MATop",&insEditMacroEnvTop,1,16)) {}
+        if (ImGui::IsItemDeactivated()) { PARAMETER
+          i.macro->val[1]=CLAMP(insEditMacroEnvTop,i.min,i.max);
+          insEditMacroEnvTop=i.macro->val[1];
 
-          // clamp parameters to new range
-          lfoClamp=true;
+          lfoAdjust=true;
         }
+
+        const auto calcParamMax=[](int bottom, int top, int shape) {
+          int range=abs(top-bottom);
+          return (shape==2)?65536:((range<<8)|0xff);
+        };
+
+        const int oldLfoShape=i.macro->val[12];
+        const int oldLfoParamMax=calcParamMax(oldLfoBottom,oldLfoTop,oldLfoShape);
 
         const int lfoBottom=i.macro->val[0];
         const int lfoTop=i.macro->val[1];
         const int lfoShape=i.macro->val[12];
-        const int lfoRange=abs(lfoTop-lfoBottom);
-        int lfoParamMax=(lfoShape==2)?65536:((lfoRange<<8)|0xff);
+        int lfoParamMax=calcParamMax(lfoBottom,lfoTop,lfoShape);
 
-        // if the range has changed, we must confine all parameters to make
-        // sure they're in range.
-        if (lfoClamp) {
-          // speed
-          if (i.macro->val[11]<0) i.macro->val[11]=0;
-          if (i.macro->val[11]>(lfoParamMax>>1)) i.macro->val[11]=lfoParamMax>>1;
+        if (lfoAdjust) {
+          adjustParam(i.macro->val[11],0,oldLfoParamMax>>1,0,lfoParamMax>>1); // speed
         }
 
         ImGui::TableNextRow();
@@ -2673,18 +2680,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[12]<0) i.macro->val[12]=0;
           if (i.macro->val[12]>2) i.macro->val[12]=2;
 
-          // we must clamp in case the shape becomes square or not
-          lfoClamp=true;
-          lfoParamMax=(lfoShape==2)?32768:((lfoRange<<8)|0xff);
+          // an adjust is requested here in case the user has changed the LFO shape (square uses an accumulator from 0 to 65535 and disregards the range)
+          lfoAdjust=true;
+          lfoParamMax=calcParamMax(lfoBottom,lfoTop,i.macro->val[12]);
         } rightClickable
 
-        // a second clamp is performed here in case the user has changed the
-        // LFO shape (square uses an accumulator from 0 to 65535 and disregards
-        // the range)
-        if (lfoClamp) {
-          // speed
-          if (i.macro->val[11]<0) i.macro->val[11]=0;
-          if (i.macro->val[11]>(lfoParamMax>>1)) i.macro->val[11]=lfoParamMax>>1;
+        // adjust again with the potential new lfoParamMax
+        if (lfoAdjust) {
+          adjustParam(i.macro->val[11],0,oldLfoParamMax>>1,0,lfoParamMax>>1); // speed
         }
 
         ImGui::EndTable();
