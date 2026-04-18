@@ -39,6 +39,7 @@ static int oscDebugRepeat=1;
 static int numApples=1;
 static int getGainChan=0;
 static int getGainVol=0;
+static int ptDebugChan=0;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -538,6 +539,12 @@ void FurnaceGUI::drawDebug() {
       VerticalText("Test 2");
       ImGui::SameLine();
       VerticalText("Test 3");
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Pitch Table Debug")) {
+      ImGui::InputInt("Channel",&ptDebugChan,1,1);
+      // TODO: this.
+      ImGui::Text("Before you can introduce this little debug section, you must de-template the SharedChannel type.");
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Pitch Table Calculator")) {
