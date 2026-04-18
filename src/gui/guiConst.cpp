@@ -44,6 +44,10 @@ const bool isTopKey[12]={
   false, true, false, true, false, false, true, false, true, false, true, false
 };
 
+const char* baseNoteNames[12]={
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+};
+
 const char* noteNames[180]={
   "c_5", "c+5", "d_5", "d+5", "e_5", "f_5", "f+5", "g_5", "g+5", "a_5", "a+5", "b_5",
   "c_4", "c+4", "d_4", "d+4", "e_4", "f_4", "f+4", "g_4", "g+4", "a_4", "a+4", "b_4",

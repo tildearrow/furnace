@@ -116,7 +116,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
       ImGui::Columns(e->getTotalChannelCount());
       for (int i=0; i<e->getTotalChannelCount(); i++) {
-        void* ch=e->getDispatchChanState(i);
+        SharedChannel* ch=e->getDispatchChanState(i);
         ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
         if (ch==NULL) {
           ImGui::Text("NULL");
@@ -543,8 +543,42 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Pitch Table Debug")) {
       ImGui::InputInt("Channel",&ptDebugChan,1,1);
-      // TODO: this.
-      ImGui::Text("Before you can introduce this little debug section, you must de-template the SharedChannel type.");
+      SharedChannel* ch=e->getDispatchChanState(ptDebugChan);
+      if (ch==NULL) {
+        ImGui::Text("invalid channel or not implemented");
+      } else {
+        DivPitchTable* pt=ch->pitchTable;
+        if (pt==NULL) {
+          ImGui::Text("no pitch table assigned to this channel.");
+        } else {
+          ImGui::Text("%s - %s",pt->period?"period":"frequency",pt->linearity?"linear":"non-linear");
+          ImGui::Text("shift: %d - blockBits: %d",pt->shift,pt->blockBits);
+          ImGui::Text("max: %x",pt->maxFreq);
+
+          if (ImGui::BeginTable("PTable",3)) {
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text("note");
+            ImGui::TableNextColumn();
+            ImGui::Text("value");
+            ImGui::TableNextColumn();
+            ImGui::Text("delta (to next)");
+
+            for (int i=0; i<=12; i++) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",baseNoteNames[i%12]);
+              ImGui::TableNextColumn();
+              ImGui::Text("%x (%d)",pt->pitch[i],pt->pitch[i]);
+              ImGui::TableNextColumn();
+              if (i<12) ImGui::Text("%x (%d)",pt->pitchDiff[i],pt->pitchDiff[i]);
+            }
+
+            ImGui::EndTable();
+          }
+        }
+        ImGui::Text("freq: %x (%x + %x)",ch->freq,ch->baseFreq,ch->pitch);
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Pitch Table Calculator")) {

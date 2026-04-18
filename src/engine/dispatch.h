@@ -342,8 +342,8 @@ struct DivPitchTable {
   int pitch[12+1];
   int pitchDiff[12+1];
   unsigned int maxFreq;
-  unsigned char linearity, blockBits, shift;
-  bool period;
+  unsigned char blockBits, shift;
+  bool period, linearity;
 
   // get pitch
   int get(int base, int pitch1, int pitch2);
@@ -365,9 +365,9 @@ struct DivPitchTable {
 
   DivPitchTable():
     maxFreq(0xffffffff),
-    linearity(2),
     blockBits(0),
-    period(false) {
+    period(false),
+    linearity(true) {
     memset(pitch,0,sizeof(pitch));
     memset(pitchDiff,0,sizeof(pitchDiff));
   }
