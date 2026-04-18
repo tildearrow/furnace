@@ -2636,10 +2636,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         const int lfoShape=i.macro->val[12];
         int lfoParamMax=calcParamMax(lfoBottom,lfoTop,lfoShape);
 
-        if (lfoAdjust) {
-          adjustParam(i.macro->val[11],0,oldLfoParamMax>>1,0,lfoParamMax>>1); // speed
-        }
-
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
