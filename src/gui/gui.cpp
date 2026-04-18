@@ -869,6 +869,7 @@ void FurnaceGUI::autoDetectSystem() {
 }
 
 void FurnaceGUI::setCurIns(int newIns) {
+  insEditMacroInsChanged=true;
   curIns=newIns;
   memset(multiIns,-1,7*sizeof(int));
 }
@@ -9021,6 +9022,9 @@ FurnaceGUI::FurnaceGUI():
   prevInsData(NULL),
   cachedCurInsPtr(NULL),
   insEditMayBeDirty(false),
+  insEditMacroEnvBottom(0),
+  insEditMacroEnvTop(0),
+  insEditMacroInsChanged(false),
   pendingLayoutImport(NULL),
   pendingLayoutImportLen(0),
   pendingLayoutImportStep(0),
