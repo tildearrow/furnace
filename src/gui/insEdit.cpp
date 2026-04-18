@@ -2328,6 +2328,9 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         }
         //ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.4);
 
+        int oldBot=i.macro->val[0];
+        int oldTop=i.macro->val[1];
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
@@ -2356,33 +2359,34 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           adsrClamp=true;
         }
 
+        struct Foo {};
+
+        const int oldAdsrBottom=MIN(oldBot,oldTop);
+        const int oldAdsrTop=MAX(oldBot,oldTop);
+        const int oldAdsrRange=abs(oldAdsrTop-oldAdsrBottom);
+        const int oldAdsrParamMax=(oldAdsrRange<<8)|0xff;
+
         const int adsrBottom=MIN(i.macro->val[0],i.macro->val[1]);
         const int adsrTop=MAX(i.macro->val[0],i.macro->val[1]);
         const int adsrRange=abs(adsrTop-adsrBottom);
         const int adsrParamMax=(adsrRange<<8)|0xff;
 
+        const auto adjustParam=[](int& value, int oldBot, int oldTop, int newBot, int newTop) {
+          // TODO: what happens if bot>top?
+          double oldAmp=fabs((double)oldTop-oldBot);
+          double newAmp=fabs((double)newTop-newBot);
+          double normalized=(double)(value-oldBot)/oldAmp;
+          value=(normalized*newAmp)+newBot;
+        };
+
         // if the range has changed, we must confine all parameters to make
         // sure they're in range.
         if (adsrClamp) {
-          // attack
-          if (i.macro->val[2]<0) i.macro->val[2]=0;
-          if (i.macro->val[2]>adsrParamMax) i.macro->val[2]=adsrParamMax;
-
-          // decay
-          if (i.macro->val[4]<0) i.macro->val[4]=0;
-          if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
-
-          // sustain decay
-          if (i.macro->val[7]<0) i.macro->val[7]=0;
-          if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
-
-          // release
-          if (i.macro->val[8]<0) i.macro->val[8]=0;
-          if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
-
-          // sustain level
-          if (i.macro->val[5]<adsrBottom) i.macro->val[5]=adsrBottom;
-          if (i.macro->val[5]>adsrTop) i.macro->val[5]=adsrTop;
+          adjustParam(i.macro->val[2],0,oldAdsrParamMax,0,adsrParamMax); // attack
+          adjustParam(i.macro->val[4],0,oldAdsrParamMax,0,adsrParamMax); // decay
+          adjustParam(i.macro->val[7],0,oldAdsrParamMax,0,adsrParamMax); // sustain decay
+          adjustParam(i.macro->val[8],0,oldAdsrParamMax,0,adsrParamMax); // release
+          adjustParam(i.macro->val[5],oldBot,oldTop,adsrBottom,adsrTop); // sustain level
         }
 
         ImGui::TableNextRow();
