@@ -514,7 +514,13 @@ template<typename T> struct SharedChannel {
    */
   int calcFreq() {
     if (pitchTable==NULL) return 0;
-    return pitchTable->get(baseFreq,pitch,pitch2);
+    if (!pitchTable->linearity) {
+      return pitchTable->get(baseFreq,pitch,pitch2);
+    }
+    if (fixedArp) {
+      return pitchTable->get(baseNoteOverride<<7,pitch,pitch2);
+    }
+    return pitchTable->get(baseFreq+(arpOff<<7),pitch,pitch2);
   }
   /**
    * call this constructor in your Channel's constructor, which should initialize the channel's state.

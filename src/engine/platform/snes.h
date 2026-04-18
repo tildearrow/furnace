@@ -95,6 +95,9 @@ class DivPlatformSNES: public DivDispatch {
   size_t sampleMemLen;
   unsigned int* sampleOff;
   bool* sampleLoaded;
+  DivPitchTable* samplePitchTable;
+  size_t samplePitchTableLen;
+  DivPitchTable wavePitchTable[16];
   DivMemoryComposition memCompo;
   unsigned char regPool[0x80];
   SPC_DSP dsp;
@@ -122,6 +125,7 @@ class DivPlatformSNES: public DivDispatch {
     void notifyWaveChange(int wave);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
