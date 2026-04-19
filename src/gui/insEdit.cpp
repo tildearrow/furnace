@@ -2623,6 +2623,10 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           lfoAdjust=true;
         }
 
+        if (lfoAdjust) {
+          adjustParam(i.macro->val[11],0,oldLfoParamMax>>1,0,lfoParamMax>>1); // speed
+        }
+
         const auto calcParamMax=[](int bottom, int top, int shape) {
           int range=abs(top-bottom);
           return (shape==2)?65536:((range<<8)|0xff);
