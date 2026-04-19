@@ -3300,6 +3300,9 @@ class FurnaceGUI {
   bool setMultiIns(int newIns);
   bool isMultiInsActive();
 
+  friend class SettingsCategory;
+  friend class SettingEntry;
+
   public:
     void editStr(String* which);
     void showError(String what);

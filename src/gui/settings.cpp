@@ -4812,7 +4812,7 @@ void FurnaceGUI::drawSettings() {
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsEntries",childSize)) {
         for (SettingsCategory& c:allSettings) {
-          if (c.drawSettings(&settingsFilter,settingsShowItemResults))
+          if (c.drawSettings(&settingsFilter,settingsShowItemResults,this))
             settingsChanged=true;
         }
         if (scrollPos!=-1.0f) {

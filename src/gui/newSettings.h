@@ -25,6 +25,8 @@
 #include <functional>
 #include <initializer_list>
 
+class FurnaceGUI;
+
 // user-defined function that gets called when the setting value gets changed
 typedef std::function<void(void)> entryCallback;
 // if none of the below types suit the setting, the draw function may be user-defined.
@@ -50,7 +52,7 @@ enum SettingType {
   SettingInputInt,    // int input. extData - pointer to NumericInputExtData<int>
   SettingInputStr,    // string input with optional file dialog. extData - pointer to SettingEntryTextInputExtData
   SettingColor,       // color picker. no extData required
-  SettingKeybind,     // keybind input. no extData required
+  SettingKeybind,     // keybind input. extData - pointer to the action number (int)
 
   SettingCustom       // user-defined type
 };
@@ -86,10 +88,8 @@ struct SettingEntryTextInputExtData {
   // hint text inside text input
   // set to NULL if unused
   const char* hint;
-  // whether the input is for a path. displays a file dialog button if true
-  bool isPathInput;
-  // the callback function of the file dialog. has to de defined if above is true
-  entryCallback dialogCallback;
+  // which dialog to open. set to -1 if not a file dialog input
+  int dialogNum;
 };
 
 // SettingEntry class
@@ -170,21 +170,22 @@ class SettingEntry {
     static SettingEntry InputText(const char* label, const char* confName, String* value, const char* hint=NULL) {
       SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
       dataPtr->hint=hint;
-      dataPtr->isPathInput=false;
+      dataPtr->dialogNum=-1;
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
-    static SettingEntry Path(const char* label, const char* confName, String* value, entryCallback dialogCallback, const char* hint=NULL) {
+    static SettingEntry Path(const char* label, const char* confName, String* value, int dialog, const char* hint=NULL) {
       SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
       dataPtr->hint=hint;
-      dataPtr->isPathInput=true;
-      dataPtr->dialogCallback=dialogCallback;
+      dataPtr->dialogNum=dialog;
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
     static SettingEntry Color(const char* label, const char* confName, ImVec4* value) {
       return SettingEntry(SettingColor,label,confName,value);
     }
-    static SettingEntry Keybind(const char* label, const char* confName, keybindList* value) {
-      return SettingEntry(SettingKeybind,label,confName,value);
+    static SettingEntry Keybind(const char* label, const char* confName, keybindList* keybind, int actionNum) {
+      int* actionPtr=new int;
+      *actionPtr=actionNum;
+      return SettingEntry(SettingKeybind,label,confName,keybind,actionPtr,1);
     }
 
     // misc. data functions
@@ -201,7 +202,7 @@ class SettingEntry {
       return *this;
     }
 
-    bool draw();
+    bool draw(FurnaceGUI* gui);
     bool passesFilter(ImGuiTextFilter* filter);
 
     void loadConf(DivConfig& conf);
@@ -221,7 +222,7 @@ class SettingsCategory {
     SettingsCategory(const char* n, std::initializer_list<SettingEntry> s, std::initializer_list<SettingsCategory> c);
     SettingsCategory(const SettingsCategory& s);
 
-    bool drawSettings(ImGuiTextFilter* filter, bool doFilter);
+    bool drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui);
     bool categoryPassFilterRecursive(ImGuiTextFilter* filter);
     bool drawSidebar(ImGuiTextFilter* filter, float* targetScrollPos);
 

@@ -22,6 +22,8 @@
 #include "IconsFontAwesome4.h"
 #include "gui.h"
 #include "guiConst.h"
+#include "util.h"
+#include <imgui.h>
 
 SettingEntry::SettingEntry():
   type(SettingNone),
@@ -61,7 +63,7 @@ SettingEntry::SettingEntry(const char* l, const char* n, boolReturnFunction f, b
   customDrawFunction=f;
 }
 
-bool SettingEntry::draw() {
+bool SettingEntry::draw(FurnaceGUI* gui) {
   bool ret=false;
   if (!settingCondition()) return false;
   switch (type) {
@@ -147,7 +149,7 @@ bool SettingEntry::draw() {
     case SettingSliderFloat: {
       assert(extData && "SettingSliderFloat requires extData!");
       SettingEntryNumericInputExtData<float>* data=(SettingEntryNumericInputExtData<float>*)extData;
-      if (ImGui::SliderFloat(_(label),(float*)value,data->min,data->max,data->fmt)) {
+      if (gui->CWSliderFloat(_(label),(float*)value,data->min,data->max,data->fmt)) {
         if (getValue<float>()<data->min) setValue(data->min);
         if (getValue<float>()>data->max) setValue(data->max);
         callback();
@@ -158,7 +160,7 @@ bool SettingEntry::draw() {
     case SettingSliderInt: {
       assert(extData && "SettingSliderInt requires extData!");
       SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
-      if (ImGui::SliderInt(_(label),(int*)value,data->min,data->max,data->fmt)) {
+      if (gui->CWSliderInt(_(label),(int*)value,data->min,data->max,data->fmt)) {
         if (getValue<int>()<data->min) setValue(data->min);
         if (getValue<int>()>data->max) setValue(data->max);
         callback();
@@ -181,10 +183,10 @@ bool SettingEntry::draw() {
       SettingEntryTextInputExtData* data=(SettingEntryTextInputExtData*)extData;
       const char* hint=NULL;
       if (data) {
-        if (data->isPathInput) {
+        if (data->dialogNum!=-1) {
           ImGui::PushID(label);
           if (ImGui::Button(ICON_FA_FOLDER "##SettingPathButton")) {
-            data->dialogCallback();
+            gui->openFileDialog((FurnaceGUIFileDialogs)data->dialogNum);
             ret=true;
           }
           ImGui::PopID();
@@ -206,41 +208,44 @@ bool SettingEntry::draw() {
       }
       ImGui::PopID();
       break;
-    // case SettingKeybind: {
-    //   keybindList* keybinds=(keybindList*)value;
-    //   ImGui::PushID(label);
-    //   for (size_t i=0; i<keybinds->size()+1; i++) {
-    //     ImGui::PushID(i);
-    //     if (i>0) ImGui::SameLine();
-    //     bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
-    //     if (i<keybinds->size()) {
-    //       if (ImGui::Button(isPending?_N("Press key..."):getKeyName(keybinds->at(i)).c_str())) {
-    //         promptKey(actionIdx,i);
-    //         ret=true;
-    //       }
-    //       bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
-    //       if (!rightClicked) {
-    //         ImGui::SameLine(0.0f, 1.0f);
-    //       }
-    //       if (rightClicked || ImGui::Button(ICON_FA_TIMES)) {
-    //         keybinds->erase(keybinds->begin()+i);
-    //         if (isPending) {
-    //           bindSetActive=false;
-    //           bindSetPending=false;
-    //         }
-    //         parseKeybinds();
-    //       }
-    //     } else {
-    //       if (ImGui::Button(isPending?_N("Press key..."):"+")) {
-    //         promptKey(actionIdx,i);
-    //         ret=true;
-    //       }
-    //     }
-    //     ImGui::PopID(); // i
-    //   }
-    //   ImGui::PopID();
-    //   break;
-    // }
+    case SettingKeybind: {
+      keybindList* keybinds=(keybindList*)value;
+      int actionIdx=*(int*)extData;
+      ImGui::TextUnformatted(_(label));
+      ImGui::SameLine();
+      ImGui::PushID(label);
+      for (size_t i=0; i<=keybinds->size(); i++) {
+        ImGui::PushID(i);
+        if (i>0) ImGui::SameLine();
+        bool isPending=gui->bindSetPending && gui->bindSetTarget==actionIdx && gui->bindSetTargetIdx==(int)i;
+        if (i<keybinds->size()) {
+          if (ImGui::Button(isPending?_N("Press key..."):getKeyName(keybinds->at(i)).c_str())) {
+            gui->promptKey(actionIdx,i);
+            ret=true;
+          }
+          bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
+          if (!rightClicked) {
+            ImGui::SameLine(0.0f, 1.0f);
+          }
+          if (rightClicked || ImGui::Button(ICON_FA_TIMES)) {
+            keybinds->erase(keybinds->begin()+i);
+            if (isPending) {
+              gui->bindSetActive=false;
+              gui->bindSetPending=false;
+            }
+            gui->parseKeybinds();
+          }
+        } else {
+          if (ImGui::Button(isPending?_N("Press key..."):ICON_FA_PLUS)) {
+            gui->promptKey(actionIdx,i);
+            ret=true;
+          }
+        }
+        ImGui::PopID(); // i
+      }
+      ImGui::PopID();
+      break;
+    }
     case SettingCustom:
       return customDrawFunction();
     case SettingNone:
@@ -313,6 +318,10 @@ void SettingEntry::destroy() {
       delete (SettingEntryTextInputExtData*)extData;
       extData=NULL;
       break;
+    case SettingKeybind:
+      delete (int*)extData;
+      extData=NULL;
+      break;
     default: break;
   }
 }
@@ -344,7 +353,7 @@ SettingsCategory::SettingsCategory(const SettingsCategory& s) {
   scrollPos=s.scrollPos;
 }
 
-bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter) {
+bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui) {
   // get Y position for scroll
   if (!(filter->IsActive() && doFilter)) scrollPos=ImGui::GetCursorPosY();
   // check whether to draw the name
@@ -372,13 +381,13 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter) {
       if (filter->IsActive() && doFilter) {
         if (!s.passesFilter(filter)) continue;
       }
-      if (s.draw()) ret=true;
+      if (s.draw(gui)) ret=true;
     }
   }
   ImGui::Indent();
-    for (SettingsCategory& c:children) {
-      if (c.drawSettings(filter,doFilter)) ret=true;
-    }
+  for (SettingsCategory& c:children) {
+    if (c.drawSettings(filter,doFilter,gui)) ret=true;
+  }
   ImGui::Unindent();
   return ret;
 }
@@ -464,7 +473,8 @@ void SettingsCategory::deleteRecursive() {
 #define SETTING_COLOR(_which) \
   SettingEntry::Color(guiColors[_which].friendlyName,NULL,&uiColors[_which]).Callback([this]{applyUISettings(false);})
 
-#define FILE_DIALOG(d) [this]{openFileDialog(d);}
+#define SETTING_KEYBIND(_which) \
+  SettingEntry::Keybind(guiActions[_which].friendlyName,NULL,&actionKeys[_which],_which)
 
 void FurnaceGUI::initSettings() {
   _C(_N("General"),{},{
@@ -555,7 +565,7 @@ void FurnaceGUI::initSettings() {
       SettingEntry::Path(
         _N("OPL4 YRW801 path"),
         "yrw801Path",&settings.yrw801Path,
-        FILE_DIALOG(GUI_FILE_YRW801_ROM_OPEN)
+        GUI_FILE_YRW801_ROM_OPEN
       )
     })
   });
@@ -596,5 +606,40 @@ void FurnaceGUI::initSettings() {
     SETTING_COLOR(GUI_COLOR_TAB),
     SETTING_COLOR(GUI_COLOR_TAB_HOVER),
     SETTING_COLOR(GUI_COLOR_TAB_ACTIVE),
+  });
+  _C(_N("Keyboard"),{},{
+    _CC(_N("Globak hotkeys"),{
+      SETTING_KEYBIND(GUI_ACTION_NEW),
+      SETTING_KEYBIND(GUI_ACTION_CLEAR),
+      SETTING_KEYBIND(GUI_ACTION_OPEN),
+      SETTING_KEYBIND(GUI_ACTION_OPEN_BACKUP),
+      SETTING_KEYBIND(GUI_ACTION_SAVE),
+      SETTING_KEYBIND(GUI_ACTION_SAVE_AS),
+      SETTING_KEYBIND(GUI_ACTION_EXPORT),
+      SETTING_KEYBIND(GUI_ACTION_UNDO),
+      SETTING_KEYBIND(GUI_ACTION_REDO),
+      SETTING_KEYBIND(GUI_ACTION_PLAY_TOGGLE),
+      SETTING_KEYBIND(GUI_ACTION_PLAY),
+      SETTING_KEYBIND(GUI_ACTION_STOP),
+      SETTING_KEYBIND(GUI_ACTION_PLAY_START),
+      SETTING_KEYBIND(GUI_ACTION_PLAY_REPEAT),
+      SETTING_KEYBIND(GUI_ACTION_PLAY_CURSOR),
+      SETTING_KEYBIND(GUI_ACTION_STEP_ONE),
+      SETTING_KEYBIND(GUI_ACTION_OCTAVE_UP),
+      SETTING_KEYBIND(GUI_ACTION_OCTAVE_DOWN),
+      SETTING_KEYBIND(GUI_ACTION_INS_UP),
+      SETTING_KEYBIND(GUI_ACTION_INS_DOWN),
+      SETTING_KEYBIND(GUI_ACTION_STEP_UP),
+      SETTING_KEYBIND(GUI_ACTION_STEP_DOWN),
+      SETTING_KEYBIND(GUI_ACTION_TOGGLE_EDIT),
+      SETTING_KEYBIND(GUI_ACTION_METRONOME),
+      SETTING_KEYBIND(GUI_ACTION_ORDER_LOCK),
+      SETTING_KEYBIND(GUI_ACTION_REPEAT_PATTERN),
+      SETTING_KEYBIND(GUI_ACTION_FOLLOW_ORDERS),
+      SETTING_KEYBIND(GUI_ACTION_FOLLOW_PATTERN),
+      SETTING_KEYBIND(GUI_ACTION_FULLSCREEN),
+      SETTING_KEYBIND(GUI_ACTION_TX81Z_REQUEST),
+      SETTING_KEYBIND(GUI_ACTION_PANIC),
+    }),
   });
 }
