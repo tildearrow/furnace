@@ -159,23 +159,26 @@ class SettingEntry {
       *data=limits;
       return SettingEntry(SettingSliderInt,label,confName,value,data,1);
     }
-    static SettingEntry InputInt(const char* label,const char* confName, int* value, SettingEntryNumericInputExtData<int> limits) {
+    static SettingEntry InputInt(const char* label, const char* confName, int* value, SettingEntryNumericInputExtData<int> limits) {
       SettingEntryNumericInputExtData<int>* dataPtr=new SettingEntryNumericInputExtData<int>;
       *dataPtr=limits;
       return SettingEntry(SettingInputInt,label,confName,value,dataPtr,1);
     }
-    static SettingEntry InputText(const char* label,const char* confName, String* value, const char* hint=NULL) {
+    static SettingEntry InputText(const char* label, const char* confName, String* value, const char* hint=NULL) {
       SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
       dataPtr->hint=hint;
       dataPtr->isPathInput=false;
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
-    static SettingEntry Path(const char* label,const char* confName, String* value, entryCallback dialogCallback, const char* hint=NULL) {
+    static SettingEntry Path(const char* label, const char* confName, String* value, entryCallback dialogCallback, const char* hint=NULL) {
       SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
       dataPtr->hint=hint;
       dataPtr->isPathInput=true;
       dataPtr->dialogCallback=dialogCallback;
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
+    }
+    static SettingEntry Color(const char* label, const char* confName, ImVec4* value) {
+      return SettingEntry(SettingColor,label,confName,value);
     }
 
     // misc. data functions
@@ -231,9 +234,9 @@ class SettingsCategory {
     settingsChanged=true; \
   }
 
-#define UI_COLOR_CONFIG(what,label) \
+#define UI_COLOR_CONFIG(what) \
   ImGui::PushID(what); \
-  if (ImGui::ColorEdit4(label,(float*)&uiColors[what])) { \
+  if (ImGui::ColorEdit4(_(guiColors[what].friendlyName),(float*)&uiColors[what])) { \
     applyUISettings(false); \
     settingsChanged=true; \
   } \

@@ -21,6 +21,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "IconsFontAwesome4.h"
 #include "gui.h"
+#include "guiConst.h"
 
 SettingEntry::SettingEntry():
   type(SettingNone),
@@ -197,6 +198,14 @@ bool SettingEntry::draw() {
       }
       break;
     }
+    case SettingColor:
+      ImGui::PushID(label);
+      if (ImGui::ColorEdit4(_(label),(float*)value)) {
+        callback();
+        ret=true;
+      }
+      ImGui::PopID();
+      break;
     case SettingCustom:
       return customDrawFunction();
     case SettingNone:
@@ -396,6 +405,9 @@ void SettingsCategory::deleteRecursive() {
 #define SETTING_CHECKBOX(_label,_value) \
   SettingEntry::Checkbox(_label,#_value,&settings._value)
 
+#define SETTING_COLOR(_which) \
+  SettingEntry::Color(guiColors[_which].friendlyName,NULL,&uiColors[_which]).Callback([this]{applyUISettings(false);})
+
 #define FILE_DIALOG(d) [this]{openFileDialog(d);}
 
 void FurnaceGUI::initSettings() {
@@ -520,5 +532,13 @@ void FurnaceGUI::initSettings() {
         "==="
       ),
     })
+  });
+  _C(_N("Color"),{
+    SETTING_COLOR(GUI_COLOR_BUTTON),
+    SETTING_COLOR(GUI_COLOR_BUTTON_HOVER),
+    SETTING_COLOR(GUI_COLOR_BUTTON_ACTIVE),
+    SETTING_COLOR(GUI_COLOR_TAB),
+    SETTING_COLOR(GUI_COLOR_TAB_HOVER),
+    SETTING_COLOR(GUI_COLOR_TAB_ACTIVE),
   });
 }
