@@ -206,6 +206,41 @@ bool SettingEntry::draw() {
       }
       ImGui::PopID();
       break;
+    // case SettingKeybind: {
+    //   keybindList* keybinds=(keybindList*)value;
+    //   ImGui::PushID(label);
+    //   for (size_t i=0; i<keybinds->size()+1; i++) {
+    //     ImGui::PushID(i);
+    //     if (i>0) ImGui::SameLine();
+    //     bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
+    //     if (i<keybinds->size()) {
+    //       if (ImGui::Button(isPending?_N("Press key..."):getKeyName(keybinds->at(i)).c_str())) {
+    //         promptKey(actionIdx,i);
+    //         ret=true;
+    //       }
+    //       bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
+    //       if (!rightClicked) {
+    //         ImGui::SameLine(0.0f, 1.0f);
+    //       }
+    //       if (rightClicked || ImGui::Button(ICON_FA_TIMES)) {
+    //         keybinds->erase(keybinds->begin()+i);
+    //         if (isPending) {
+    //           bindSetActive=false;
+    //           bindSetPending=false;
+    //         }
+    //         parseKeybinds();
+    //       }
+    //     } else {
+    //       if (ImGui::Button(isPending?_N("Press key..."):"+")) {
+    //         promptKey(actionIdx,i);
+    //         ret=true;
+    //       }
+    //     }
+    //     ImGui::PopID(); // i
+    //   }
+    //   ImGui::PopID();
+    //   break;
+    // }
     case SettingCustom:
       return customDrawFunction();
     case SettingNone:
@@ -221,7 +256,28 @@ bool SettingEntry::draw() {
 }
 
 bool SettingEntry::passesFilter(ImGuiTextFilter* filter) {
-  return filter->PassFilter(_(label));
+  if (filter->PassFilter(_(label))) return true;
+  switch (type) {
+    case SettingRadio:
+    case SettingComboInt: {
+      assert(extData && "SettingComboInt requires extData!");
+      SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
+      for (int i=0; i<extDataCount; i++) {
+        if (filter->PassFilter(_(choices[i].choice))) return true;
+      }
+      break;
+    }
+    case SettingComboStr: {
+      assert(extData && "SettingComboInt requires extData!");
+      SettingEntryMultiChoiceExtData<const char*>* choices=(SettingEntryMultiChoiceExtData<const char*>*)extData;
+      for (int i=0; i<extDataCount; i++) {
+        if (filter->PassFilter(_(choices[i].choice))) return true;
+      }
+      break;
+    }
+    default: break;
+  }
+  return false;
 }
 
 void SettingEntry::loadConf(DivConfig& conf) {

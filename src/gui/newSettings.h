@@ -34,6 +34,9 @@ typedef std::function<bool(void)> boolReturnFunction;
 #define falseLambda []{return false;}
 #define trueLambda []{return true;}
 
+// keybinds vector
+typedef std::vector<int> keybindList;
+
 // common setting types.
 // some use external data (extData)
 enum SettingType {
@@ -179,6 +182,9 @@ class SettingEntry {
     }
     static SettingEntry Color(const char* label, const char* confName, ImVec4* value) {
       return SettingEntry(SettingColor,label,confName,value);
+    }
+    static SettingEntry Keybind(const char* label, const char* confName, keybindList* value) {
+      return SettingEntry(SettingKeybind,label,confName,value);
     }
 
     // misc. data functions
