@@ -40,6 +40,8 @@ static int numApples=1;
 static int getGainChan=0;
 static int getGainVol=0;
 static int ptDebugChan=0;
+static int disDebugChan=0;
+static bool disMultiChannel=false;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -113,21 +115,56 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Dispatch Status")) {
-      ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
-      ImGui::Columns(e->getTotalChannelCount());
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
-        SharedChannel* ch=e->getDispatchChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->song.dispatchOfChan[i],e->song.dispatchChanOfChan[i]);
+      // NEW CODE.
+      ImGui::Checkbox("Multi channel view",&disMultiChannel);
+
+      if (disMultiChannel) {
+        ImGui::Text("Wait for me!");
+      } else {
+        ImGui::InputInt("Channel",&disDebugChan,1,1);
+
+        SharedChannel* ch=e->getDispatchChanState(disDebugChan);
+        if (disDebugChan>=0 && disDebugChan<e->getTotalChannelCount()) {
+          ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"%d: dispatch %d, chan %d",disDebugChan,e->song.dispatchOfChan[disDebugChan],e->song.dispatchChanOfChan[disDebugChan]);
+        } else {
+          ImGui::Text("out of range...");
+        }
+
+        ImGui::Separator();
+
         if (ch==NULL) {
           ImGui::Text("NULL");
-        } else if (e->song.dispatchChanOfChan[i]<0) {
-          ImGui::Text("---");
         } else {
-          putDispatchChan(ch,e->song.dispatchChanOfChan[i],e->song.sysOfChan[i]);
+          ImGui::Text("freq: %x (%d)",ch->freq,ch->freq);
+          ImGui::Indent();
+          ImGui::BeginDisabled(ch->fixedArp);
+          ImGui::Text("base: %x (%d)",ch->baseFreq,ch->baseFreq);
+          ImGui::EndDisabled();
+          ImGui::Text("pitch: %+d",ch->pitch);
+          ImGui::Text("pitch2: %+d",ch->pitch2);
+          ImGui::Unindent();
+
+          ImGui::Text("arp: %s",ch->fixedArp?"FIXED":"RELATIVE");
+          ImGui::Indent();
+          ImGui::BeginDisabled(ch->fixedArp);
+          ImGui::Text("arpOff: %d",ch->arpOff);
+          ImGui::EndDisabled();
+          ImGui::BeginDisabled(!ch->fixedArp);
+          ImGui::Text("baseNoteOverride: %d",ch->baseNoteOverride);
+          ImGui::EndDisabled();
+          ImGui::Unindent();
+
+          ImGui::Text("note: %d",ch->note);
+          ImGui::Indent();
+          ImGui::Text("sampleNote: %d",ch->sampleNote);
+          ImGui::Text("sampleNoteDelta: %d",ch->sampleNoteDelta);
+          ImGui::Unindent();
+
+          ImGui::Text("ins: %d",ch->ins);
+
+          ImGui::Text("vol: %d - %d",ch->vol,ch->outVol);
         }
-        ImGui::NextColumn();
       }
-      ImGui::Columns();
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Channel Status")) {
