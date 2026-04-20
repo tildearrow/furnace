@@ -1459,7 +1459,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
     pat->newData[y][DIV_PAT_NOTE]=DIV_MACRO_REL;
     removeIns=true;
   } else {
-    pat->newData[y][DIV_PAT_NOTE]=num+60;
+    pat->newData[y][DIV_PAT_NOTE]=num;
     if (latchIns==-2) {
       if (curIns>=(int)e->song.ins.size()) curIns=-1;
       if (curIns>=0) {
@@ -1802,10 +1802,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             auto it=noteKeys.find(ev.key.keysym.scancode);
             if (it!=noteKeys.cend()) {
               int key=it->second;
-              int num=12*curOctave+key;
+              int num=12*curOctave+key+60;
 
-              if (num<-60) num=-60; // C-(-5)
-              if (num>119) num=119; // B-9
+              if (num<0) num=0; // C-(-5)
+              if (num>179) num=179; // B-9
 
               if (edit) {
                 noteInput(num,key,-1,chordInputOffset);
@@ -4633,7 +4633,7 @@ bool FurnaceGUI::loop() {
             if (midiMap.valueInputStyle==0 || midiMap.valueInputStyle>3 || cursor.xFine==0) {
               if (midiMap.noteInput && edit && msg.data[1]!=0) {
                 noteInput(
-                  msg.data[0]-12,
+                  msg.data[0]-12+60,
                   0,
                   midiMap.volInput?msg.data[1]:-1,
                   chordInputOffset
