@@ -63,6 +63,22 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
     } \
   }
 
+#define DISPATCH_DEBUG_NULL(_label,_state) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(_label); \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    SharedChannel* ch=e->getDispatchChanState(i); \
+    ImGui::TableNextColumn(); \
+    if (ch!=NULL) { \
+      if ((_state)==DIV_NOTE_NULL) { \
+        ImGui::Text("null"); \
+      } else { \
+        ImGui::Text("%d",_state); \
+      } \
+    } \
+  }
+
 #define DISPATCH_DEBUG_LED(_label,_state) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
@@ -168,8 +184,13 @@ void FurnaceGUI::drawDebug() {
 
       if (disMultiChannel) {
         ImGui::PushFont(patFont);
-        if (ImGui::BeginTable("DisStatus",e->getTotalChannelCount()+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_SizingFixedSame)) {
+        if (ImGui::BeginTable("DisStatus",e->getTotalChannelCount()+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetTextLineHeightWithSpacing()*24.0f))) {
+          ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed);
+          for (int i=0; i<e->getTotalChannelCount(); i++) {
+            ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed,oneChar.x*8.0f);
+          }
           ImGui::TableSetupScrollFreeze(1,1);
+
           ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
           for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -183,8 +204,8 @@ void FurnaceGUI::drawDebug() {
           DISPATCH_DEBUG("pitch2","%+d",ch->pitch2);
           DISPATCH_DEBUG("arpOff","%+d",ch->arpOff);
           DISPATCH_DEBUG("fixed","%d",ch->baseNoteOverride);
-          DISPATCH_DEBUG("note","%d",ch->note);
-          DISPATCH_DEBUG("smpNote","%d",ch->sampleNote);
+          DISPATCH_DEBUG_NULL("note",ch->note);
+          DISPATCH_DEBUG_NULL("smpNote",ch->sampleNote);
           DISPATCH_DEBUG("smpND","%d",ch->sampleNoteDelta);
           DISPATCH_DEBUG("ins","%d",ch->ins);
           DISPATCH_DEBUG("vol","%d",ch->vol);
@@ -299,8 +320,13 @@ void FurnaceGUI::drawDebug() {
     if (ImGui::TreeNode("Channel Status")) {
       // NEW CODE
       ImGui::PushFont(patFont);
-      if (ImGui::BeginTable("ChanStatus",e->getTotalChannelCount()+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_SizingFixedSame)) {
+      if (ImGui::BeginTable("ChanStatus",e->getTotalChannelCount()+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetTextLineHeightWithSpacing()*30.0f))) {
+        ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed);
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed,oneChar.x*8.0f);
+        }
         ImGui::TableSetupScrollFreeze(1,1);
+
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         ImGui::TableNextColumn();
         for (int i=0; i<e->getTotalChannelCount(); i++) {
