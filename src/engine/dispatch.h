@@ -471,7 +471,7 @@ struct SharedChannel {
     if (std.arp.had) {
       if (std.arp.val<0) {
         if (!(std.arp.val&0x40000000)) {
-          baseNoteOverride=(std.arp.val|0x40000000)+offset;
+          baseNoteOverride=(std.arp.val|0x40000000)+offset+60;
           fixedArp=true;
         } else {
           arpOff=std.arp.val;
@@ -479,7 +479,7 @@ struct SharedChannel {
         }
       } else {
         if (std.arp.val&0x40000000) {
-          baseNoteOverride=(std.arp.val&(~0x40000000))+offset;
+          baseNoteOverride=(std.arp.val&(~0x40000000))+offset+60;
           fixedArp=true;
         } else {
           arpOff=std.arp.val;

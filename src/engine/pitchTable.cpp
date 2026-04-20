@@ -26,7 +26,7 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
     return offset;
   }
 
-  int coarse=60+(offset>>7);
+  int coarse=offset>>7;
   if (coarse<0) {
     coarse=0;
   }
@@ -85,7 +85,6 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
 int DivPitchTable::getBase(int note) {
   // non-linear pitch
   if (!linearity) {
-    note+=60;
     int index=note%12;
     int octave=period?
       ((note/12)-shift):

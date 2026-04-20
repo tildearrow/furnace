@@ -420,7 +420,7 @@ bool DivPlatformSAA1099::hasSoftPan(int ch) {
 }
 
 int DivPlatformSAA1099::getPortaFloor(int ch) {
-  return 12;
+  return 72;
 }
 
 bool DivPlatformSAA1099::keyOffAffectsArp(int ch) {

@@ -880,7 +880,7 @@ void DivPlatformGenesisExt::notifyInsDeletion(void* ins) {
 }
 
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
-  return (ch>8)?12:0;
+  return (ch>8)?72:60;
 }
 
 void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {

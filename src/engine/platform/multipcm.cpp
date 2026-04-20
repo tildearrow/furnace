@@ -544,7 +544,7 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformMultiPCM::getPortaFloor(int ch) {
-  return 0;
+  return 60;
 }
 
 void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {

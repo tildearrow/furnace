@@ -361,10 +361,10 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq;
+        int ntPos=chan[i].baseFreq-60;
         if (NEW_ARP_STRAT) {
           if (chan[i].fixedArp) {
-            ntPos=chan[i].baseNoteOverride;
+            ntPos=chan[i].baseNoteOverride-60;
           } else {
             ntPos+=chan[i].arpOff;
           }

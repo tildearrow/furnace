@@ -217,13 +217,13 @@ void DivPlatformTIA::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].fixedArp) {
-        chan[i].freq=chan[i].baseNoteOverride&31;
+        chan[i].freq=(chan[i].baseNoteOverride-60)&31;
         chan[i].tuneFreq=0;
         if (!skipRegisterWrites && dumpWrites) {
           addWrite(0xfffe0000+i,chan[i].freq*256);
         }
       } else if (oldPitch) {
-        int bf=chan[i].baseFreq;
+        int bf=chan[i].baseFreq-0x3c00;
         if (!chan[i].fixedArp) {
           bf+=chan[i].arpOff<<8;
         }
@@ -242,7 +242,7 @@ void DivPlatformTIA::tick(bool sysTick) {
         if (chan[i].freq>31) chan[i].freq=31;
         chan[i].tuneFreq=0;
       } else {
-        int bf=chan[i].baseFreq+(chan[i].arpOff<<8);
+        int bf=chan[i].baseFreq+(chan[i].arpOff<<8)-0x3c00;
         int shape=chan[i].shape;
         if (shape==4 || shape==5) {
           if (bf<40*256) {

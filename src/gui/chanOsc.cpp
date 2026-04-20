@@ -915,7 +915,7 @@ void FurnaceGUI::drawChanOsc() {
                           text+="---";
                         } else {
                           // no more conversion necessary after the note/octave unification :>
-                          text+=fmt::sprintf("%s",noteName(chanState->note+60));
+                          text+=fmt::sprintf("%s",noteName(chanState->note));
                         }
                         break;
                       }

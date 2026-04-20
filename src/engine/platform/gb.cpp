@@ -326,7 +326,7 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq+chan[i].pitch2;
+        int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
@@ -666,7 +666,7 @@ void DivPlatformGB::reset() {
 }
 
 int DivPlatformGB::getPortaFloor(int ch) {
-  return 24;
+  return 84;
 }
 
 int DivPlatformGB::getOutputCount() {

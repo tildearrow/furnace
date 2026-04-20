@@ -1383,10 +1383,10 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
+    if (!e->autoNoteOn(-1,curIns,note+60)) failedNoteOn=true;
     for (int mi=0; mi<7; mi++) {
       if (multiIns[mi]!=-1) {
-        e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
+        e->autoNoteOn(-1,multiIns[mi],note+60,-1,multiInsTranspose[mi]);
       }
     }
   });
@@ -1405,7 +1405,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
     if (key==102) return;
 
     e->synchronized([this,num]() {
-      e->autoNoteOff(-1,num);
+      e->autoNoteOff(-1,num+60);
       failedNoteOn=false;
     });
   }

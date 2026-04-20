@@ -122,7 +122,7 @@ float DivDispatch::getGain(int ch, int vol) {
 }
 
 int DivDispatch::getPortaFloor(int ch) {
-  return 0x00;
+  return 60;
 }
 
 bool DivDispatch::getLegacyAlwaysSetVolume() {

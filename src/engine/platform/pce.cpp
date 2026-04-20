@@ -276,7 +276,7 @@ void DivPlatformPCE::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
-        if (noiseSeek<0) noiseSeek=0;
+        if (noiseSeek<60) noiseSeek=60;
         chan[i].noiseSeek=noiseSeek;
       }
       // prepare for a freq recalculation
@@ -390,6 +390,7 @@ void DivPlatformPCE::tick(bool sysTick) {
         if (!NEW_ARP_STRAT) {
           noiseSeek=chan[i].noiseSeek;
         }
+        noiseSeek-=60;
         // write the noise frequency
         // in compatible noise layout, we read from the table. otherwise just write the note AND 31.
         chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.compatFlags.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);

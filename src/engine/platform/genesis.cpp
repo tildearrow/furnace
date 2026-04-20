@@ -1829,7 +1829,7 @@ void DivPlatformGenesis::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformGenesis::getPortaFloor(int ch) {
-  return 0;
+  return 60;
 }
 
 void DivPlatformGenesis::setYMFM(unsigned char use) {

@@ -194,7 +194,7 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
     return NOTE_PERIODIC(note);
   }
   int easyStartingPeriod=16;
-  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3;
+  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3+60;
   if (note>easyThreshold) {
     return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
@@ -205,7 +205,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
   int easyStartingPeriod=16;
-  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64;
+  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64+60*128;
   int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
   if (chan[ch].fixedArp) {
     curFreq=chan[ch].baseNoteOverride<<7;
@@ -570,7 +570,7 @@ bool DivPlatformSMS::getLegacyAlwaysSetVolume() {
 }
 
 int DivPlatformSMS::getPortaFloor(int ch) {
-  return 12;
+  return 72;
 }
 
 void DivPlatformSMS::notifyInsDeletion(void* ins) {

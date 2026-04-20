@@ -1840,7 +1840,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
-  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
+  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note-60+3)/12.0);
   return period?
          (clock/base)/divider:
          base*(divider/clock);
@@ -1856,7 +1856,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
     boundaryTop>>=1; \
     boundaryBottom>>=1; \
   } \
-  int block=(note)/12; \
+  int block=((note)-60)/12; \
   if (block<0) block=0; \
   if (block>7) block=7; \
   bf>>=block; \
@@ -1910,7 +1910,7 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
         nbase+=arp<<7;
       }
     }
-    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384)/(128.0*12.0));
+    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384-7680)/(128.0*12.0));
     int bf=period?
            round((clock/fbase)/divider):
            round(fbase*(divider/clock));
@@ -1918,6 +1918,7 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
       if (fixedBlock>0) {
         CONVERT_FNUM_FIXEDBLOCK(bf,blockBits,fixedBlock-1);
       } else {
+        logV("CONVERT. %d",nbase>>7);
         CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7);
       }
     } else {
@@ -1932,9 +1933,9 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
 
 int DivEngine::calcArp(int note, int arp, int offset) {
   if (arp<0) {
-    if (!(arp&0x40000000)) return (arp|0x40000000)+offset;
+    if (!(arp&0x40000000)) return (arp|0x40000000)+offset+60;
   } else {
-    if (arp&0x40000000) return (arp&(~0x40000000))+offset;
+    if (arp&0x40000000) return (arp&(~0x40000000))+offset+60;
   }
   return note+arp;
 }

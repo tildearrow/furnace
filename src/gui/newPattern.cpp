@@ -2150,7 +2150,7 @@ void FurnaceGUI::updateKeyHitPre() {
       if (settings.channelFeedbackStyle==1) {
         keyHit[i]=0.2;
         if (!muted) {
-          int note=e->getChanState(i)->note+60;
+          int note=e->getChanState(i)->note;
           if (note>=0 && note<180) {
             pianoKeyHit[note].value=1.0;
             pianoKeyHit[note].chan=i;
@@ -2164,7 +2164,7 @@ void FurnaceGUI::updateKeyHitPre() {
       if (e->getChanState(i)->keyOff) amount=0.0f;
       keyHit[i]=amount*0.2f;
       if (!muted && e->getChanState(i)->keyOn) {
-        int note=e->getChanState(i)->note+60;
+        int note=e->getChanState(i)->note;
         if (note>=0 && note<180) {
           pianoKeyHit[note].value=amount;
           pianoKeyHit[note].chan=i;
@@ -2174,7 +2174,7 @@ void FurnaceGUI::updateKeyHitPre() {
       bool active=e->getChanState(i)->keyOn;
       keyHit[i]=active?0.2f:0.0f;
       if (!muted) {
-        int note=e->getChanState(i)->note+60;
+        int note=e->getChanState(i)->note;
         if (note>=0 && note<180) {
           pianoKeyHit[note].value=active?1.0f:0.0f;
           pianoKeyHit[note].chan=i;
@@ -2186,7 +2186,7 @@ void FurnaceGUI::updateKeyHitPre() {
       if (e->getChanState(i)->keyOff) amount=0.0f;
       keyHit[i]=amount*0.2f;
       if (!muted && e->getChanState(i)->keyOn) {
-        int note=e->getChanState(i)->note+60;
+        int note=e->getChanState(i)->note;
         if (note>=0 && note<180) {
           pianoKeyHit[note].value=amount;
           pianoKeyHit[note].chan=i;

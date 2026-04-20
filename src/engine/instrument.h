@@ -548,9 +548,9 @@ struct DivInstrumentAmiga {
    */
   inline short getSample(int note) {
     if (useNoteMap) {
-      if (note<0) note=0;
-      if (note>119) note=119;
-      return noteMap[note].map;
+      if (note<60) note=60;
+      if (note>179) note=179;
+      return noteMap[note-60].map;
     }
     return initSample;
   }
@@ -561,9 +561,9 @@ struct DivInstrumentAmiga {
    */
   inline int getFreq(int note) {
     if (useNoteMap) {
-      if (note<0) note=0;
-      if (note>119) note=119;
-      return noteMap[note].freq;
+      if (note<60) note=60;
+      if (note>179) note=179;
+      return noteMap[note-60].freq+60;
     }
     return note;
   }
@@ -574,9 +574,9 @@ struct DivInstrumentAmiga {
    */
   inline signed char getDPCMFreq(int note) {
     if (useNoteMap) {
-      if (note<0) note=0;
-      if (note>119) note=119;
-      return noteMap[note].dpcmFreq;
+      if (note<60) note=60;
+      if (note>179) note=179;
+      return noteMap[note-60].dpcmFreq;
     }
     return -1;
   }
@@ -587,9 +587,9 @@ struct DivInstrumentAmiga {
    */
   inline signed char getDPCMDelta(int note) {
     if (useNoteMap) {
-      if (note<0) note=0;
-      if (note>119) note=119;
-      return noteMap[note].dpcmDelta;
+      if (note<60) note=60;
+      if (note>179) note=179;
+      return noteMap[note-60].dpcmDelta;
     }
     return -1;
   }

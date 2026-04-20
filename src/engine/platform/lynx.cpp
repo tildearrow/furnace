@@ -567,7 +567,7 @@ bool DivPlatformLynx::getLegacyAlwaysSetVolume() {
 }
 
 //int DivPlatformLynx::getPortaFloor(int ch) {
-//  return 12;
+//  return 72;
 //}
 
 void DivPlatformLynx::setFlags(const DivConfig& flags) {

@@ -1190,7 +1190,7 @@ void DivPlatformOPLL::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformOPLL::getPortaFloor(int ch) {
-  return (ch>5)?12:0;
+  return (ch>5)?72:60;
 }
 
 void DivPlatformOPLL::setCore(unsigned char which) {
