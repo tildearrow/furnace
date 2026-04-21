@@ -7023,7 +7023,7 @@ bool FurnaceGUI::loop() {
 
               if (makeDrumkitMode) {
                 for (int j=0; j<180; j++) {
-                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=108;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
                   if ((j%12)>=e->song.sampleLen) continue;
@@ -7031,7 +7031,7 @@ bool FurnaceGUI::loop() {
               } else {
                 int index=-(makeDrumkitOctave+5)*12;
                 for (int j=0; j<180; j++) {
-                  e->song.ins[curIns]->amiga.noteMap[j].freq=48;
+                  e->song.ins[curIns]->amiga.noteMap[j].freq=108;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   if (index<0 || index>=e->song.sampleLen) {
                     index++;

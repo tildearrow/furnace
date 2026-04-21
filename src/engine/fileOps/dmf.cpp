@@ -1773,9 +1773,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
               if (convIns>=0 && convIns<song.insLen) {
                 DivInstrument* convInsInst=song.ins[convIns];
                 if (convInsInst->amiga.useNoteMap) {
-                  int mapTarget=pat->newData[k][DIV_PAT_NOTE]-60;
+                  int mapTarget=pat->newData[k][DIV_PAT_NOTE];
                   if (mapTarget<0) mapTarget=0;
-                  if (mapTarget>119) mapTarget=119;
+                  if (mapTarget>179) mapTarget=179;
                   insertEBxx=convInsInst->amiga.noteMap[mapTarget].map/12;
                   pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.noteMap[mapTarget].map%12);
                 } else {

@@ -102,7 +102,7 @@ bool DivEngine::convertLegacySampleMode() {
           ins->name=fmt::sprintf("Legacy Samples (bank %d)",(int)bank);
         }
         for (int i=0; i<180; i++) {
-          ins->amiga.noteMap[i].freq=48; // C-4
+          ins->amiga.noteMap[i].freq=108; // C-4
           ins->amiga.noteMap[i].map=12*bank+(i%12);
         }
 
