@@ -997,12 +997,13 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               }
 
               // should dpcmNotes be 96 always?
+              // TODO: FIX FIX FIX
               for (int j = 0; j < dpcmNotes; j++) {
                 int note = j;
                 if (blockVersion >= 7) {
                   note = reader.readC();
                 }
-                if (note<0 || note>=120) {
+                if (note<0 || note>=180) {
                   logE("DPCM note %d out of range!",note);
                   lastError = "DPCM note out of range";
                   delete[] file;

@@ -1726,7 +1726,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (it!=valueKeys.cend()) {
             int num=it->second;
             if (num<10) {
-              alterSampleMap(0,num);
+              alterSampleMap(0,num+60);
               return;
             }
           }
@@ -1745,7 +1745,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (num<-60) num=-60; // C-(-5)
             if (num>119) num=119; // B-9
 
-            alterSampleMap(1,num);
+            alterSampleMap(1,num+60);
             return;
           }
           break;
@@ -1759,7 +1759,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (it!=valueKeys.cend()) {
             int num=it->second;
             if (num<10) {
-              alterSampleMap(2,num);
+              alterSampleMap(2,num+60);
               return;
             }
           }
@@ -1774,7 +1774,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (it!=valueKeys.cend()) {
             int num=it->second;
             if (num<16) {
-              alterSampleMap(3,num);
+              alterSampleMap(3,num+60);
               return;
             }
           }
@@ -3876,7 +3876,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
                   }
                 }
               }
-              e->previewSample(curSample,num,pStart,pEnd);
+              e->previewSample(curSample,num+60,pStart,pEnd);
               samplePreviewOn=true;
               samplePreviewKey=ev->key.keysym.scancode;
               samplePreviewNote=num;
@@ -3891,7 +3891,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             int key=it->second;
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
-              e->previewWave(curWave,num);
+              e->previewWave(curWave,num+60);
               wavePreviewOn=true;
               wavePreviewKey=ev->key.keysym.scancode;
               wavePreviewNote=num;
@@ -7022,15 +7022,15 @@ bool FurnaceGUI::loop() {
               if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
 
               if (makeDrumkitMode) {
-                for (int j=0; j<120; j++) {
+                for (int j=0; j<180; j++) {
                   e->song.ins[curIns]->amiga.noteMap[j].freq=48;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   e->song.ins[curIns]->amiga.noteMap[j].map=j%12;
                   if ((j%12)>=e->song.sampleLen) continue;
                 }
               } else {
-                int index=-makeDrumkitOctave*12;
-                for (int j=0; j<120; j++) {
+                int index=-(makeDrumkitOctave+5)*12;
+                for (int j=0; j<180; j++) {
                   e->song.ins[curIns]->amiga.noteMap[j].freq=48;
                   e->song.ins[curIns]->amiga.noteMap[j].dpcmFreq=15;
                   if (index<0 || index>=e->song.sampleLen) {
@@ -8265,7 +8265,7 @@ bool FurnaceGUI::init() {
 
     if (curWindowThreadSafe==GUI_WINDOW_WAVE_EDIT || curWindowThreadSafe==GUI_WINDOW_WAVE_LIST) {
       if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
-        e->previewWaveNoLock(curWave,msg.data[0]-12);
+        e->previewWaveNoLock(curWave,msg.data[0]-12+60);
         wavePreviewNote=msg.data[0]-12;
       } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
         if (wavePreviewNote==msg.data[0]-12) {
@@ -8277,7 +8277,7 @@ bool FurnaceGUI::init() {
 
     if (curWindowThreadSafe==GUI_WINDOW_SAMPLE_EDIT || curWindowThreadSafe==GUI_WINDOW_SAMPLE_LIST) {
       if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
-        e->previewSampleNoLock(curSample,msg.data[0]-12);
+        e->previewSampleNoLock(curSample,msg.data[0]-12+60);
         samplePreviewNote=msg.data[0]-12;
       } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
         if (samplePreviewNote==msg.data[0]-12) {

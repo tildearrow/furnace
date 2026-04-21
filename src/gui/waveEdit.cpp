@@ -406,6 +406,7 @@ void FurnaceGUI::drawWaveEdit() {
           if (wave->len>256) wave->len=256;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
+          // TODO: sorry????????
           if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
           MARK_MODIFIED;
         }

@@ -980,7 +980,7 @@ void DivEngine::delUnusedSamples() {
         isUsed[i->amiga.initSample]=true;
       }
       if (i->amiga.useNoteMap) {
-        for (int j=0; j<120; j++) {
+        for (int j=0; j<180; j++) {
           if (i->amiga.noteMap[j].map>=0 && i->amiga.noteMap[j].map<song.sampleLen) {
             isUsed[i->amiga.noteMap[j].map]=true;
           }
@@ -1918,7 +1918,6 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
       if (fixedBlock>0) {
         CONVERT_FNUM_FIXEDBLOCK(bf,blockBits,fixedBlock-1);
       } else {
-        logV("CONVERT. %d",nbase>>7);
         CONVERT_FNUM_BLOCK(bf,blockBits,nbase>>7);
       }
     } else {
@@ -3073,7 +3072,7 @@ void DivEngine::delSampleUnsafe(int index, bool render) {
       } else if (i->amiga.initSample>index) {
         i->amiga.initSample--;
       }
-      for (int j=0; j<120; j++) {
+      for (int j=0; j<180; j++) {
         if (i->amiga.noteMap[j].map==index) {
           i->amiga.noteMap[j].map=-1;
         } else if (i->amiga.noteMap[j].map>index) {
@@ -3310,7 +3309,7 @@ void DivEngine::exchangeSample(int one, int two) {
     } else if (i->amiga.initSample==two) {
       i->amiga.initSample=one;
     }
-    for (int j=0; j<120; j++) {
+    for (int j=0; j<180; j++) {
       if (i->amiga.noteMap[j].map==one) {
         i->amiga.noteMap[j].map=two;
       } else if (i->amiga.noteMap[j].map==two) {
