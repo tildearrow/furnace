@@ -997,9 +997,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
               }
 
               // should dpcmNotes be 96 always?
-              // TODO: FIX FIX FIX
               for (int j = 0; j < dpcmNotes; j++) {
-                int note = j;
+                int note = j + 60;
                 if (blockVersion >= 7) {
                   note = reader.readC();
                 }
@@ -1023,7 +1022,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               bool empty_note_map = true;
 
-              for (int j = 0; j < dpcmNotes; j++) {
+              for (int j = 60; j < dpcmNotes+60; j++) {
                 if (ins->amiga.noteMap[j].map != -1) {
                   empty_note_map = false;
                 }
