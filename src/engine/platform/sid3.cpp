@@ -30,7 +30,7 @@
 
 #define CURRENT_FREQ_IN_HZ() ((double)chipClock / pow(2.0, (double)SID3_ACC_BITS) * (double)chan[i].freq)
 #define c_5_FREQ() (parent->song.tuning / pow(2, (12.0 * 9.0 + 9.0) / 12.0))
-#define FREQ_FOR_NOTE(note) (c_5_FREQ() * pow(2, (double)note / 12.0))
+#define FREQ_FOR_NOTE(note) (c_5_FREQ() * pow(2, (double)((note)-60) / 12.0))
 
 const char* regCheatSheetSID3[]={
   "FreqL0", "00",
