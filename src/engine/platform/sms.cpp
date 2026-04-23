@@ -234,7 +234,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (!easyNoise) while (areYouSerious>0x60) areYouSerious-=12;
+        if (!easyNoise) while (areYouSerious>156) areYouSerious-=12;
         chan[i].baseFreq=NOTE_SN(i,areYouSerious);
         chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;
@@ -282,7 +282,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       } else {
         if (chan[i].freq<0) chan[i].freq=0;
       }
-      //if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
+      //if (chan[i].actualNote>153) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
       rWrite(0,chan[i].freq>>4);
       // what?
@@ -298,7 +298,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     //parent->calcFreq(chan[3].baseFreq,chan[3].pitch,chan[3].fixedArp?chan[3].baseNoteOverride:chan[3].arpOff,chan[3].fixedArp,true,0,chan[3].pitch2,chipClock,noiseDivider);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (parent->song.compatFlags.snNoLowPeriods) {
-      if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
+      if (chan[3].actualNote>153) chan[3].freq=0x01;
     }
     if (chan[3].freq<0) chan[3].freq=0;
     if (snNoiseMode&2) { // take period from channel 3

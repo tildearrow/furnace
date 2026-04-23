@@ -98,15 +98,15 @@ double DivPlatformT6W28::NOTE_SN(int ch, int note) {
   if (parent->song.compatFlags.linearPitch || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
-  if (note>107) {
-    return MAX(0,13-(note-107));
+  if (note>167) {
+    return MAX(0,13-(note-167));
   }
   return NOTE_PERIODIC(note);
 }
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
-  if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(107<<7)) {
-    int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(107<<7)))>>7;
+  if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
+    int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
