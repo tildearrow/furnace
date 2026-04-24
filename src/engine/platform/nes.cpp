@@ -314,8 +314,9 @@ void DivPlatformNES::tick(bool sysTick) {
     } else if (chan[i].std.arp.had) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
+        // this is awkward
+        if (chan[i].baseFreq>255+60) chan[i].baseFreq=255+60;
+        if (chan[i].baseFreq<60) chan[i].baseFreq=60;
       } else {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
