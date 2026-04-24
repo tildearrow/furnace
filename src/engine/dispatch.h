@@ -531,7 +531,7 @@ struct SharedChannel {
    */
   SharedChannel(int initVol):
     freq(0),
-    baseFreq(0),
+    baseFreq(0x1e00),
     baseNoteOverride(0),
     pitch(0),
     pitch2(0),

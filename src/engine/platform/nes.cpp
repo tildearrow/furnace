@@ -524,7 +524,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
             if (c.value==DIV_NOTE_NULL) {
               nextDPCMFreq=lastDPCMFreq;
             } else {
-              nextDPCMFreq=c.value&15;
+              nextDPCMFreq=(c.value-60)&15;
             }
           }
         }
