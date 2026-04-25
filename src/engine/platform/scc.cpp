@@ -326,7 +326,7 @@ void DivPlatformSCC::reset() {
   memset(regPool,0,225);
   scc->reset();
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformSCC::Channel();
+    chan[i]=DivPlatformSCC::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent,128);
     chan[i].ws.init(NULL,32,255,false);

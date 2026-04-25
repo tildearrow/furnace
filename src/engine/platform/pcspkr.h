@@ -27,8 +27,8 @@
 
 class DivPlatformPCSpeaker: public DivDispatch {
   struct Channel: public SharedChannel {
-    Channel():
-      SharedChannel(15) {}
+    Channel(bool linear=true):
+      SharedChannel(15,linear) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;

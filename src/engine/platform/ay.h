@@ -94,8 +94,8 @@ class DivPlatformAY8910: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),

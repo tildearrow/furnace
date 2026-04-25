@@ -27,8 +27,8 @@ class DivPlatformVIC20: public DivDispatch {
   struct Channel: public SharedChannel {
     int wave, waveWriteCycle;
     bool onOff;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       wave(0),
       waveWriteCycle(-1),
       onOff(true) {}

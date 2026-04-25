@@ -2853,7 +2853,7 @@ void DivPlatformOPL::reset() {
   }
 
   for (int i=0; i<totalChans; i++) {
-    chan[i]=DivPlatformOPL::Channel();
+    chan[i]=DivPlatformOPL::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=(PCM_CHECK(i))?0x7f:0x3f;
     chan[i].outVol=(PCM_CHECK(i))?0x7f:0x3f;
@@ -2861,7 +2861,7 @@ void DivPlatformOPL::reset() {
   }
 
   if (adpcmChan>=0) {
-    chan[adpcmChan]=DivPlatformOPL::Channel();
+    chan[adpcmChan]=DivPlatformOPL::Channel(parent->song.compatFlags.linearPitch);
     chan[adpcmChan].std.setEngine(parent);
     chan[adpcmChan].vol=0xff;
     chan[adpcmChan].outVol=0xff;

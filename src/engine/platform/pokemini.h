@@ -26,8 +26,8 @@
 class DivPlatformPokeMini: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned char duty;
-    Channel():
-      SharedChannel(2),
+    Channel(bool linear=true):
+      SharedChannel(2,linear),
       duty(128) {}
   };
   Channel chan[1];

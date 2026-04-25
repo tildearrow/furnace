@@ -1762,7 +1762,7 @@ void DivPlatformGenesis::reset() {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<10; i++) {
-    chan[i]=DivPlatformGenesis::Channel();
+    chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;

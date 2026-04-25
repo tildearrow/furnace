@@ -27,8 +27,8 @@ class DivPlatformZXBeeperQuadTone: public DivDispatch {
     unsigned short sPosition;
     unsigned char duty;
     unsigned char out;
-    Channel():
-      SharedChannel(2),
+    Channel(bool linear=true):
+      SharedChannel(2,linear),
       sPosition(0),
       duty(128),
       out(0) {}

@@ -33,8 +33,8 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     bool volumeChanged, setPos;
     int resVol;
     int macroVolMul;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       prevFreq(-1),
       audPos(0),
       sample(-1),

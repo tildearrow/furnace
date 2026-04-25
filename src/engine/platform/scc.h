@@ -30,8 +30,8 @@ class DivPlatformSCC: public DivDispatch {
     signed short wave;
     signed char waveROM[32] = {0}; // 8 bit signed waveform
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       freqInit(false),
       wave(-1) {}
   };

@@ -31,8 +31,8 @@ class DivPlatformSwan: public DivDispatch {
     unsigned char pan;
     int wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       pan(255),
       wave(-1) {}
   };

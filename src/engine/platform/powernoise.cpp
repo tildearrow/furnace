@@ -462,7 +462,7 @@ int DivPlatformPowerNoise::getRegisterPoolSize() {
 void DivPlatformPowerNoise::reset() {
   memset(regPool,0,32);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformPowerNoise::Channel();
+    chan[i]=DivPlatformPowerNoise::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].slope=(i==3);
   }

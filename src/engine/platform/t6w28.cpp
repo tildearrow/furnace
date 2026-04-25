@@ -338,7 +338,7 @@ void DivPlatformT6W28::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformT6W28::Channel();
+    chan[i]=DivPlatformT6W28::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

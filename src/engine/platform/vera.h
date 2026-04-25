@@ -41,8 +41,8 @@ class DivPlatformVERA: public DivDispatch {
         bool depth16, setPos;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false), setPos(false) {}
       } pcm;
-      Channel():
-        SharedChannel(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         pan(0),
         accum(0),
         noiseval(0),

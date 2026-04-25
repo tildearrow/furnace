@@ -1116,7 +1116,7 @@ void DivPlatformTX81Z::reset() {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformTX81Z::Channel();
+    chan[i]=DivPlatformTX81Z::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;

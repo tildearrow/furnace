@@ -35,8 +35,8 @@ class DivPlatformSM8521: public DivDispatch {
     signed short wave;
     bool volumeChanged;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(31),
+    Channel(bool linear=true):
+      SharedChannel(31,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       wave(-1),

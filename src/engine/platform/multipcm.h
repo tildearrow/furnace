@@ -50,8 +50,8 @@ class DivPlatformMultiPCM: public DivDispatch {
       int lfo, vib, am;
       int pan;
       int macroVolMul;
-      Channel():
-        SharedChannel(0x7f),
+      Channel(bool linear=true):
+        SharedChannel(0x7f,linear),
         freqH(0),
         freqL(0),
         sample(-1),

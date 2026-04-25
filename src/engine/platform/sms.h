@@ -31,8 +31,8 @@ class DivPlatformSMS: public DivDispatch {
   struct Channel: public SharedChannel {
     int actualNote;
     bool writeVol;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       actualNote(0),
       writeVol(false) {}
   };

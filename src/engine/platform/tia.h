@@ -29,8 +29,8 @@ class DivPlatformTIA: public DivDispatch {
       unsigned char shape;
       unsigned char curFreq, tuneCtr, tuneFreq;
       int tuneAcc;
-      Channel():
-        SharedChannel(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         shape(4),
         curFreq(0),
         tuneCtr(0),

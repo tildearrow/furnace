@@ -447,7 +447,7 @@ int DivPlatformFDS::getRegisterPoolSize() {
 
 void DivPlatformFDS::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformFDS::Channel();
+    chan[i]=DivPlatformFDS::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);

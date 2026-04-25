@@ -33,8 +33,8 @@ class DivPlatformC140: public DivDispatch {
     int chVolL, chVolR;
     int macroVolMul;
     int macroPanMul;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),

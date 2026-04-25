@@ -35,8 +35,8 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     bool volumeChanged, setPos;
     int resVol, lvol, rvol;
     int macroVolMul;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(-1),
       audPos(0),
       prevBank(-1),

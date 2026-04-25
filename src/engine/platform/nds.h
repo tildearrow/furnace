@@ -36,8 +36,8 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     int panning, duty;
     bool setPos, pcm, busy;
     int macroVolMul;
-    Channel():
-      SharedChannel(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       audPos(0),
       sample(-1),
       wave(-1),

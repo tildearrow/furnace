@@ -40,8 +40,8 @@ class DivPlatformC64: public DivDispatch {
     bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       testWhen(0),
       audPos(0),

@@ -299,7 +299,7 @@ void DivPlatformMSM6295::reset() {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformMSM6295::Channel();
+    chan[i]=DivPlatformMSM6295::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     msm.voice_mute(i,isMuted[i]);
   }

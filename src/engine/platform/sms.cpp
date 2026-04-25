@@ -529,7 +529,7 @@ void DivPlatformSMS::reset() {
   chanLatch=0;
   while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformSMS::Channel();
+    chan[i]=DivPlatformSMS::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

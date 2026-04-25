@@ -529,9 +529,9 @@ struct SharedChannel {
    *
    * @param initVol the initial channel volume.
    */
-  SharedChannel(int initVol):
+  SharedChannel(int initVol, bool linear):
     freq(0),
-    baseFreq(0x1e00),
+    baseFreq(linear?0x1e00:0),
     baseNoteOverride(0),
     pitch(0),
     pitch2(0),

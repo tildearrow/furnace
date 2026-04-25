@@ -33,8 +33,8 @@ class DivPlatformAmiga: public DivDispatch {
     int sample, wave;
     bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol, updateWave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(64),
+    Channel(bool linear=true):
+      SharedChannel(64,linear),
       audLen(0),
       irLocL(0),
       irLocH(0),

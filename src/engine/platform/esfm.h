@@ -98,8 +98,8 @@ class DivPlatformESFM: public DivDispatch {
       }
     }
 
-    Channel():
-      SharedChannel(0),
+    Channel(bool linear=true):
+      SharedChannel(0,linear),
       freqL{0, 0, 0, 0},
       freqH{0, 0, 0, 0},
       hardReset(false),

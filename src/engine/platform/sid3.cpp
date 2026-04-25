@@ -1292,7 +1292,7 @@ float DivPlatformSID3::getPostAmp() {
 void DivPlatformSID3::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {
-    chan[i]=DivPlatformSID3::Channel();
+    chan[i]=DivPlatformSID3::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol = SID3_MAX_VOL;
 

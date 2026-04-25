@@ -34,8 +34,8 @@ class DivPlatformDave: public DivDispatch {
     unsigned char panR;
     unsigned char wave;
     bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase, setPos;
-    Channel():
-      SharedChannel(63),
+    Channel(bool linear=true):
+      SharedChannel(63,linear),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),

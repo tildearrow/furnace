@@ -34,8 +34,8 @@ class DivPlatformPOKEY: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned char wave;
     bool ctlChanged;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       wave(5),
       ctlChanged(true) {}
   };

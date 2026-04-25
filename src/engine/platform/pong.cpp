@@ -215,7 +215,7 @@ DivDispatchOscBuffer* DivPlatformPong::getOscBuffer(int ch) {
 
 void DivPlatformPong::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformPong::Channel();
+    chan[i]=DivPlatformPong::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

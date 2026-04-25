@@ -46,8 +46,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
       bool dacDirection;
       bool setPos;
       signed char dacOutput;
-      Channel():
-        FMChannelStereo(),
+      Channel(bool linear=true):
+        FMChannelStereo(linear),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),

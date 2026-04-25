@@ -448,7 +448,7 @@ void DivPlatformSupervision::reset() {
   writes.clear();
   memset(regPool,0,64);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformSupervision::Channel();
+    chan[i]=DivPlatformSupervision::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

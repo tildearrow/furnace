@@ -30,8 +30,8 @@ class DivPlatformBifurcator: public DivDispatch {
     bool volChangedL, volChangedR;
     int chPanL, chPanR;
     int chVolL, chVolR;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       param(47360),
       curx(1),
       audSub(0),

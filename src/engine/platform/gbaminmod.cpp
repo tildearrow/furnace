@@ -591,7 +591,7 @@ void DivPlatformGBAMinMod::reset() {
   memset(regPool,0,sizeof(regPool));
   memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformGBAMinMod::Channel();
+    chan[i]=DivPlatformGBAMinMod::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);

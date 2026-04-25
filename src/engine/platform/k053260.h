@@ -31,8 +31,8 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     int panning;
     bool setPos, reverse;
     int macroVolMul;
-    Channel():
-      SharedChannel(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       audPos(0),
       sample(-1),
       wave(-1),

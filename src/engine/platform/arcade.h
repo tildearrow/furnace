@@ -35,8 +35,8 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
-      Channel():
-        FMChannel(),
+      Channel(bool linear=true):
+        FMChannel(linear),
         chVolL(1),
         chVolR(1) {}
     };

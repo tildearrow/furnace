@@ -358,7 +358,7 @@ void DivPlatformZXBeeperQuadTone::reset() {
   memset(regPool,0,17);
   memset(deHisser,0,8);
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformZXBeeperQuadTone::Channel();
+    chan[i]=DivPlatformZXBeeperQuadTone::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     if (i<4) rWrite(2+i*4,128);
   }

@@ -47,8 +47,8 @@ class DivPlatformLynx: public DivDispatch {
     unsigned char pan;
     bool pcm, setPos, updateLFSR;
     int macroVolMul;
-    Channel():
-      SharedChannel(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       fd(0),
       duty(0),
       actualNote(0),

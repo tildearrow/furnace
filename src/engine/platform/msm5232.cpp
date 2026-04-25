@@ -355,7 +355,7 @@ void DivPlatformMSM5232::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformMSM5232::Channel();
+    chan[i]=DivPlatformMSM5232::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

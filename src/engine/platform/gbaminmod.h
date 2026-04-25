@@ -33,8 +33,8 @@ class DivPlatformGBAMinMod: public DivDispatch {
     int macroVolMul;
     int macroPanMul;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       echo(0),
       audPos(0),
       wtLen(1),

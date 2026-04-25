@@ -30,8 +30,8 @@ class DivPlatformYMZ280B: public DivDispatch {
     int panning;
     bool setPos, isNewYMZ;
     int macroVolMul;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),

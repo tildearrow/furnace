@@ -29,8 +29,8 @@ class DivPlatformSupervision: public DivDispatch {
     unsigned int duty, len, pan, pcm; // pcm is channel 3 ONLY
     int sample, hasOffset; // again, for channel 3 ONLY
     bool setPos, kon, initWrite;
-    Channel():
-      SharedChannel(63),
+    Channel(bool linear=true):
+      SharedChannel(63,linear),
       duty(0),
       len(0x1f),
       pan(3),

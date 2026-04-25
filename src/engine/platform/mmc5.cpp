@@ -379,7 +379,7 @@ float DivPlatformMMC5::getPostAmp() {
 void DivPlatformMMC5::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformMMC5::Channel();
+    chan[i]=DivPlatformMMC5::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

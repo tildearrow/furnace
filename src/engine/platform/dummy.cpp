@@ -143,7 +143,7 @@ void DivPlatformDummy::notifyInsDeletion(void* ins) {
 
 void DivPlatformDummy::reset() {
   for (int i=0; i<chans; i++) {
-    chan[i]=DivPlatformDummy::Channel();
+    chan[i]=DivPlatformDummy::Channel(parent->song.compatFlags.linearPitch);
     chan[i].pitchTable=&pitchTable;
     chan[i].vol=0x0f;
   }

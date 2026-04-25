@@ -29,8 +29,8 @@ class DivPlatformMSM6258: public DivDispatch {
     struct Channel: public SharedChannel {
       int sample;
       unsigned char pan;
-      Channel():
-        SharedChannel(8),
+      Channel(bool linear=true):
+        SharedChannel(8,linear),
         sample(-1),
         pan(3) {}
     };

@@ -26,8 +26,8 @@ class DivPlatformZXBeeper: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned short sPosition;
     unsigned char duty;
-    Channel():
-      SharedChannel(1),
+    Channel(bool linear=true):
+      SharedChannel(1,linear),
       sPosition(0),
       duty(64) {}
   };

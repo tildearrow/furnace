@@ -31,8 +31,8 @@ class DivPlatformNamcoWSG: public DivDispatch {
     bool noise;
     signed short wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       pan(255),
       noise(false),
       wave(-1) {}

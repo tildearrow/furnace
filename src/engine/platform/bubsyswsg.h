@@ -29,8 +29,8 @@ class DivPlatformBubSysWSG: public DivDispatch {
     signed short wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       wave(-1) {}
   };
   Channel chan[2];

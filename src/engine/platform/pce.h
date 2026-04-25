@@ -69,8 +69,8 @@ class DivPlatformPCE: public DivDispatch {
     // wave synth - a tiny wave morphing engine for waveform effects.
     DivWaveSynth ws;
     // here's our constructor. notice how we set the default volume to maximum.
-    Channel():
-      SharedChannel(31),
+    Channel(bool linear=true):
+      SharedChannel(31,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       dacPeriod(0),

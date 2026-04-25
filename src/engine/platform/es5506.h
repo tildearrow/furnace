@@ -186,8 +186,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
-    Channel():
-      SharedChannel(0xff),
+    Channel(bool linear=true):
+      SharedChannel(0xff,linear),
       pcm(PCM()),
       nextFreq(0),
       nextNote(0),

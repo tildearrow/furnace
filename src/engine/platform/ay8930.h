@@ -79,8 +79,8 @@ class DivPlatformAY8930: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen, duty, autoNoiseMode;
       signed char konCycles, autoNoiseOff;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel(31),
+      Channel(bool linear=true):
+        SharedChannel(31,linear),
         envelope(Envelope()),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),

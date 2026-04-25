@@ -544,7 +544,7 @@ void DivPlatformLynx::reset() {
   mikey=std::make_unique<Lynx::Mikey>(rate);
 
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformLynx::Channel();
+    chan[i]=DivPlatformLynx::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   writes.clear();

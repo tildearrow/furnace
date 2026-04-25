@@ -29,8 +29,8 @@ class DivPlatformPET: public DivDispatch {
     unsigned char sreg;
     int cnt;
     short out;
-    Channel():
-      SharedChannel(1),
+    Channel(bool linear=true):
+      SharedChannel(1,linear),
       enable(false),
       wave(0b00001111),
       sreg(0),

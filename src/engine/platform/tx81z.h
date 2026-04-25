@@ -91,8 +91,8 @@ class DivPlatformTX81Z: public DivPlatformOPM {
           opsState[o].hasOpPitch=false;
         }
       }
-      Channel():
-        FMChannel(),
+      Channel(bool linear=true):
+        FMChannel(linear),
         chVolL(1),
         chVolR(1) {
         memset(opsState,0,sizeof(opsState));

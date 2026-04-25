@@ -466,7 +466,7 @@ void DivPlatformPOKEY::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformPOKEY::Channel();
+    chan[i]=DivPlatformPOKEY::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

@@ -477,7 +477,7 @@ void DivPlatformK007232::reset() {
   lastOut[0]=0;
   lastOut[1]=0;
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformK007232::Channel();
+    chan[i]=DivPlatformK007232::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     // keyoff all channels
     chWrite(i,0,0);

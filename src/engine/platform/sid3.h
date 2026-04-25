@@ -161,8 +161,8 @@ class DivPlatformSID3: public DivDispatch {
       }
     }
 
-    Channel():
-      SharedChannel(SID3_MAX_VOL),
+    Channel(bool linear=true):
+      SharedChannel(SID3_MAX_VOL,linear),
       prevFreq(0xffffff),
       wave(0),
       special_wave(0),

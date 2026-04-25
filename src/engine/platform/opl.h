@@ -64,8 +64,8 @@ class DivPlatformOPL: public DivDispatch {
       int lfo, vib, am, ar, d1r, d2r, dl, rc, rr;
       int pan;
       int macroVolMul;
-      Channel():
-        SharedChannel(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         sample(-1),

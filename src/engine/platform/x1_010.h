@@ -88,8 +88,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         vol=outVol=lvol=rvol=15;
         waveBank=0;
     }
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       fixedFreq(0),
       wave(-1),
       sample(-1),

@@ -522,7 +522,7 @@ void DivPlatformC140::reset() {
     c140_reset(&c140);
   }
   for (int i=0; i<totalChans; i++) {
-    chan[i]=DivPlatformC140::Channel();
+    chan[i]=DivPlatformC140::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     rWrite(0x05+(i<<4),0);
   }

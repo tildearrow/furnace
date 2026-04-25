@@ -1329,7 +1329,7 @@ void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();
   for (int i=0; i<32; i++) {
-    chan[i]=DivPlatformES5506::Channel();
+    chan[i]=DivPlatformES5506::Channel(parent->song.compatFlags.linearPitch);
     chan[i].vol=amigaVol?64:255;
     chan[i].outVol=amigaVol?64:255;
     chan[i].std.setEngine(parent);

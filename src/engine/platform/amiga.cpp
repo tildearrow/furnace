@@ -823,7 +823,7 @@ void DivPlatformAmiga::reset() {
   writes.clear();
   memset(regPool,0,256*sizeof(unsigned short));
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformAmiga::Channel();
+    chan[i]=DivPlatformAmiga::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);

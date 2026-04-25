@@ -30,8 +30,8 @@ class DivPlatformRF5C68: public DivDispatch {
     int panning;
     bool setPos;
     int macroVolMul;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),

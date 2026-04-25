@@ -33,8 +33,8 @@ class DivPlatformVB: public DivDispatch {
     unsigned char hasEnvWarning;
     signed short wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       pan(255),

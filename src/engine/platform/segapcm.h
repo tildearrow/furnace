@@ -40,8 +40,8 @@ class DivPlatformSegaPCM: public DivDispatch {
         short freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(-1) {}
       } pcm;
-      Channel():
-        SharedChannel(127),
+      Channel(bool linear=true):
+        SharedChannel(127,linear),
         isNewSegaPCM(false),
         setPos(false),
         chVolL(127),

@@ -27,8 +27,8 @@
 class DivPlatformMSM5232: public DivDispatch {
   struct Channel: public SharedChannel {
     bool noise;
-    Channel():
-      SharedChannel(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       noise(false) {}
   };
   Channel chan[8];

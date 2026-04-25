@@ -815,7 +815,7 @@ void DivPlatformPCE::reset() {
   memset(regPool,0,128);
   // initialize channels
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformPCE::Channel();
+    chan[i]=DivPlatformPCE::Channel(parent->song.compatFlags.linearPitch);
     // bind engines for the macro interpreter and wave synth!
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);

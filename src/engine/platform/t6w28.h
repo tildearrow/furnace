@@ -27,8 +27,8 @@
 class DivPlatformT6W28: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned char panL, panR, duty;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       panL(15),
       panR(15),
       duty(7) {}

@@ -28,8 +28,8 @@ class DivPlatformSCV: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned int wave;
     int pos, duty, baseFreqNoise;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       wave(0),
       pos(0),
       duty(0),

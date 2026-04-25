@@ -122,8 +122,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       int sample, macroVolMul;
 
-      OPNChannel():
-        FMChannel(),
+      OPNChannel(bool linear=true):
+        FMChannel(linear),
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
@@ -133,8 +133,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNChannelStereo: public OPNChannel {
       unsigned char pan;
-      OPNChannelStereo():
-        OPNChannel(),
+      OPNChannelStereo(bool linear=true):
+        OPNChannel(linear),
         pan(3) {}
     };
 
@@ -143,8 +143,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       int portaPauseFreq;
       signed char konCycles;
       bool mask, hardReset;
-      OPNOpChannel():
-        SharedChannel(0),
+      OPNOpChannel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
@@ -155,8 +155,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNOpChannelStereo: public OPNOpChannel {
     unsigned char pan;
-      OPNOpChannelStereo():
-        OPNOpChannel(),
+      OPNOpChannelStereo(bool linear=true):
+        OPNOpChannel(linear),
         pan(3) {}
     };
 

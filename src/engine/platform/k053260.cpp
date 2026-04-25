@@ -399,7 +399,7 @@ void DivPlatformK053260::reset() {
   k053260.reset();
   rWrite(0x28,0); // keyoff all channels
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformK053260::Channel();
+    chan[i]=DivPlatformK053260::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   updatePanning(0xf);

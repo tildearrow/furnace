@@ -380,7 +380,7 @@ void DivPlatformSAA1099::reset() {
   memset(regPool,0,32);
   saa_saaSound->Clear();
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformSAA1099::Channel();
+    chan[i]=DivPlatformSAA1099::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }

@@ -32,8 +32,8 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     int dacSample;
     unsigned char duty;
     bool pcm, setPos;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),

@@ -24,8 +24,8 @@
 
 class DivPlatformPong: public DivDispatch {
   struct Channel: public SharedChannel {
-    Channel():
-      SharedChannel(1) {}
+    Channel(bool linear=true):
+      SharedChannel(1,linear) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;

@@ -445,7 +445,7 @@ void DivPlatformSegaPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformSegaPCM::Channel();
+    chan[i]=DivPlatformSegaPCM::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;

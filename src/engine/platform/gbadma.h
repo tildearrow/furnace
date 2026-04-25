@@ -36,8 +36,8 @@ class DivPlatformGBADMA: public DivDispatch {
     bool useWave, setPos;
     int envVol;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(2),
+    Channel(bool linear=true):
+      SharedChannel(2,linear),
       audLoc(0),
       audLen(0),
       audDat(0),

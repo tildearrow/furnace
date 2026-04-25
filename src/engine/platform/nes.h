@@ -31,8 +31,8 @@ class DivPlatformNES: public DivDispatch {
     int prevFreq;
     unsigned char duty, sweep, envMode, len;
     bool sweepChanged, setPos;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       duty(0),
       sweep(8),

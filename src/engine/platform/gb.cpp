@@ -639,7 +639,7 @@ int DivPlatformGB::getRegisterPoolSize() {
 
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformGB::Channel();
+    chan[i]=DivPlatformGB::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);

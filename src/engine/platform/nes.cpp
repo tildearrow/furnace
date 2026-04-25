@@ -835,7 +835,7 @@ float DivPlatformNES::getPostAmp() {
 void DivPlatformNES::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformNES::Channel();
+    chan[i]=DivPlatformNES::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

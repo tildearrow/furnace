@@ -27,8 +27,8 @@ class DivPlatformMMC5: public DivDispatch {
     int prevFreq;
     unsigned char duty, sweep;
     bool sweepChanged, setPos;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       duty(0),
       sweep(8),

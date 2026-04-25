@@ -35,8 +35,8 @@ class DivPlatformN163: public DivDispatch {
     bool volumeChanged;
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;    
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       resVol(15),
       wave(-1),
       wavePos(0),

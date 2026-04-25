@@ -28,8 +28,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
     struct Channel: public SharedChannel {
       int sample;
-      Channel():
-        SharedChannel(8),
+      Channel(bool linear=true):
+        SharedChannel(8,linear),
         sample(-1) {}
     };
     Channel chan[4];

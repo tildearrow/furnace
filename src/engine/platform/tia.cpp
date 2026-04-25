@@ -459,7 +459,7 @@ void DivPlatformTIA::reset() {
   tia.reset(mixingType);
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformTIA::Channel();
+    chan[i]=DivPlatformTIA::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }

@@ -35,8 +35,8 @@ class DivPlatformOPLL: public DivDispatch {
       unsigned char freqH, freqL;
       int fixedFreq;
       unsigned char pan;
-      Channel():
-        SharedChannel(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         fixedFreq(0),

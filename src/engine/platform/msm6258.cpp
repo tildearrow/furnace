@@ -325,7 +325,7 @@ void DivPlatformMSM6258::reset() {
     addWrite(0xffff0001,calcVGMRate());
   }
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformMSM6258::Channel();
+    chan[i]=DivPlatformMSM6258::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<1; i++) {

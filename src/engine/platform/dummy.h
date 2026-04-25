@@ -25,8 +25,8 @@ class DivPlatformDummy: public DivDispatch {
   struct Channel: SharedChannel {
     unsigned short pos;
     signed char amp;
-    Channel():
-      SharedChannel(0),
+    Channel(bool linear=true):
+      SharedChannel(0,linear),
       pos(0),
       amp(64) {}
   };

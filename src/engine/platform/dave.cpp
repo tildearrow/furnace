@@ -574,7 +574,7 @@ void DivPlatformDave::reset() {
   writes.clear();
   memset(regPool,0,32);
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformDave::Channel();
+    chan[i]=DivPlatformDave::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

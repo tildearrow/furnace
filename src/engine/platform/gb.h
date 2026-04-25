@@ -35,8 +35,8 @@ class DivPlatformGB: public DivDispatch {
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
     short hwSeqDelay;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       duty(0),
       sweep(0),
       sweepChanged(false),

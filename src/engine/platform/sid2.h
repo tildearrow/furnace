@@ -38,8 +38,8 @@ class DivPlatformSID2: public DivDispatch {
     int filtCut;
     short cutoff_slide;
     short pw_slide;
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(0x1ffff),
       wave(0),
       attack(0),

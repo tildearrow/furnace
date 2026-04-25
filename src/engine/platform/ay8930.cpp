@@ -845,7 +845,7 @@ void DivPlatformAY8930::reset() {
   ay->device_reset();
   memset(regPool,0,32);
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformAY8930::Channel();
+    chan[i]=DivPlatformAY8930::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=31;
     chan[i].envelope.period=0;

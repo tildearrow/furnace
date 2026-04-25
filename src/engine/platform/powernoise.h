@@ -50,8 +50,8 @@ class DivPlatformPowerNoise: public DivDispatch {
     bool slope, am, tapBEnable, keyOn, keyOff;
     SlopePortion slopeA, slopeB;
     
-    Channel():
-      SharedChannel(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       fNum(0),
       initLFSR(0x5555),
       octave(0),

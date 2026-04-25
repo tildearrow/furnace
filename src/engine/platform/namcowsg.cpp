@@ -504,7 +504,7 @@ void DivPlatformNamcoWSG::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<chans; i++) {
-    chan[i]=DivPlatformNamcoWSG::Channel();
+    chan[i]=DivPlatformNamcoWSG::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);

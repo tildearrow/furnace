@@ -41,8 +41,8 @@ class DivPlatformSoundUnit: public DivDispatch {
     short cutoff_slide;
     short pw_slide;
     short virtual_duty;
-    Channel():
-      SharedChannel(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       cutoff(16383),
       baseCutoff(16380),
       res(0),

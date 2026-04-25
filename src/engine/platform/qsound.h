@@ -31,8 +31,8 @@ class DivPlatformQSound: public DivDispatch {
     int echo;
     int audPos;
     bool useWave, surround, isNewQSound, setPos;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       resVol(4095),
       sample(-1),
       wave(-1),

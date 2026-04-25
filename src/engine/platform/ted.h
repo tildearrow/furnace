@@ -27,8 +27,8 @@
 class DivPlatformTED: public DivDispatch {
   struct Channel: public SharedChannel {
     bool noise, square;
-    Channel():
-      SharedChannel(8),
+    Channel(bool linear=true):
+      SharedChannel(8,linear),
       noise(false),
       square(true) {}
   };

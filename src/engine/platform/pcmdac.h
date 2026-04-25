@@ -36,8 +36,8 @@ class DivPlatformPCMDAC: public DivDispatch {
     bool useWave, setPos;
     int envVol;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audDir(false),
       audLoc(0),
       audLen(0),

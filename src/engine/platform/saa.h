@@ -30,8 +30,8 @@ class DivPlatformSAA1099: public DivDispatch {
       unsigned char freqH, freqL;
       unsigned char psgMode;
       unsigned char pan;
-      Channel():
-        SharedChannel(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         freqH(0),
         freqL(0),
         psgMode(1),

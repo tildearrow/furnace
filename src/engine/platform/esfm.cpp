@@ -1056,7 +1056,7 @@ void DivPlatformESFM::reset() {
   }
 
   for (int i=0; i<18; i++) {
-    chan[i]=DivPlatformESFM::Channel();
+    chan[i]=DivPlatformESFM::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;

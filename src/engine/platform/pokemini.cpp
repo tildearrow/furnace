@@ -296,7 +296,7 @@ int DivPlatformPokeMini::getRegisterPoolSize() {
 
 void DivPlatformPokeMini::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformPokeMini::Channel();
+    chan[i]=DivPlatformPokeMini::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
