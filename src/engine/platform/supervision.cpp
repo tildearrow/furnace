@@ -159,6 +159,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
         ntPos+=chan[i].pitch2;
+        ntPos-=60;
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         rWrite(0x28,r);
@@ -171,6 +172,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
           ntPos+=chan[i].pitch2;
+          ntPos-=60;
           chan[i].freq=3-(ntPos&3);
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
@@ -193,6 +195,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
           ntPos+=chan[i].pitch2;
+          ntPos-=60;
           chan[i].freq=3-(ntPos&3);
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
@@ -222,6 +225,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
         ntPos+=chan[i].pitch2;
+        ntPos-=60;
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         if (noiseReg[0] != r) rWrite(0x28,r);
@@ -234,6 +238,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
           ntPos+=chan[i].pitch2;
+          ntPos-=60;
           chan[i].freq=3-(ntPos&3);
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
