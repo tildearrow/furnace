@@ -23,6 +23,7 @@
 #include "gui.h"
 #include "guiConst.h"
 #include "util.h"
+#include "intConst.h"
 #include <imgui.h>
 
 SettingEntry::SettingEntry():
@@ -1057,5 +1058,104 @@ void FurnaceGUI::initSettings() {
       SETTING_KEYBIND(GUI_ACTION_TX81Z_REQUEST),
       SETTING_KEYBIND(GUI_ACTION_PANIC),
     }),
+    _CC(_N("Note input"),{
+      SettingEntry(_N("Note input"),NULL,[this]{
+        bool ret=false;
+        if (ImGui::BeginTable("keysNoteInput",4)) {
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed);
+          static char id[4096];
+
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Key"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Type"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Value"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Remove"));
+
+          for (size_t _i=0; _i<noteKeysRaw.size(); _i++) {
+            ImGui::PushID(_i);
+            MappedInput& i=noteKeysRaw[_i];
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
+            ImGui::TableNextColumn();
+            if (i.val==102) {
+              if (ImGui::Button(_("Macro release##SNType"))) {
+                i.val=0;
+                ret=true;
+              }
+            } else if (i.val==101) {
+              if (ImGui::Button(_("Note release##SNType"))) {
+                i.val=102;
+                ret=true;
+              }
+            } else if (i.val==100) {
+              if (ImGui::Button(_("Note off##SNType"))) {
+                i.val=101;
+                ret=true;
+              }
+            } else {
+              if (ImGui::Button(_("Note##SNType"))) {
+                i.val=100;
+                ret=true;
+              }
+            }
+            ImGui::TableNextColumn();
+            if (i.val<100) {
+              const char* note=noteName(i.val+60);
+              snprintf(id,4095,_("%2d | %c%c (+%d oct.)"),
+                i.val,note[0],note[1]=='-'?' ':note[1],i.val/12);
+              ImGui::PushFont(patFont);
+              if (ImGui::InputScalar("##SNValue",ImGuiDataType_S32,&i.val,&_ONE,&_TWELVE,id)) {
+                if (i.val<0) i.val=0;
+                if (i.val>96) i.val=96;
+                ret=true;
+              }
+              ImGui::PopFont();
+            }
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_TIMES "##SNRemove")) {
+              noteKeysRaw.erase(noteKeysRaw.begin()+_i);
+              _i--;
+              ret=true;
+            }
+            ImGui::PopID();
+          }
+          ImGui::EndTable();
+
+          if (ImGui::BeginCombo("##SNAddNew",_("Add..."))) {
+            for (int i=0; i<SDL_NUM_SCANCODES; i++) {
+              const char* sName=SDL_GetScancodeName((SDL_Scancode)i);
+              if (sName==NULL) continue;
+              if (sName[0]==0) continue;
+              snprintf(id,4095,"%s##SNNewKey_%d",sName,i);
+              if (ImGui::Selectable(id)) {
+                bool alreadyThere=false;
+                for (MappedInput& j: noteKeysRaw) {
+                  if (j.scan==i) {
+                    alreadyThere=true;
+                    break;
+                  }
+                }
+                if (alreadyThere) {
+                  showError(_("that key is bound already!"));
+                } else {
+                  noteKeysRaw.push_back(MappedInput(i,0));
+                  ret=true;
+                }
+              }
+            }
+            ImGui::EndCombo();
+          }
+        }
+        return ret;
+      }),
+    })
   });
 }
