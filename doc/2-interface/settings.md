@@ -478,11 +478,12 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Stereo**
   - **Real**
   - **Real (stereo)**
-- **Channel feedback style:**
-  - **Off**
-  - **Note**
-  - **Volume**
-  - **Active**
+- **Channel feedback style:** sets how channel headers and piano keys highlight.
+  - **Off**: no indicator.
+  - **Note**: flash at the start of a note, then fades.
+  - **Volume**: change intensity with channel volume.
+  - **Active**: stay fully on while a note is held.
+  - **Volume (real)**: change intensity with output loudness.
 - **Channel font:**
   - **Regular**
   - **Monospace**
