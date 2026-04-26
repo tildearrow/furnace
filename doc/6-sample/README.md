@@ -65,7 +65,7 @@ due to limitations in some of those sound chips, some restrictions exist:
 - Seta/Allumer X1-010: frequency resolution is terrible in the lower end. your sample can't be longer than 131072.
 - C219: sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
 
-furthermore, many of these chips have a limited amount of sample memory. check memory usage in window > statistics.
+furthermore, many of these chips have a limited amount of sample memory. check memory usage in the Memory Composition window (window > debug > memory composition).
 
 ## the sample editor
 
@@ -170,6 +170,7 @@ in the sample viewer:
   - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection.
   - **set loop to selection**: changes loop region to match selection.
   - **create wavetable from selection**: copies the selection into a new wavetable entry.
+  - **copy selection to new sample** copies the selection into a new sample.
 
 in the bottom status bar:
 - **Select**: set selection start and end positions. total selection length will be shown next to them.

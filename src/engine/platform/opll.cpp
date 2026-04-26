@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1044,7 +1044,7 @@ void DivPlatformOPLL::setProperDrums(bool pd) {
 }
 
 
-void* DivPlatformOPLL::getChanState(int ch) {
+SharedChannel* DivPlatformOPLL::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1123,7 +1123,7 @@ void DivPlatformOPLL::reset() {
     );
   }
   for (int i=0; i<11; i++) {
-    chan[i]=DivPlatformOPLL::Channel();
+    chan[i]=DivPlatformOPLL::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=15;
     chan[i].outVol=15;
@@ -1190,7 +1190,7 @@ void DivPlatformOPLL::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformOPLL::getPortaFloor(int ch) {
-  return (ch>5)?12:0;
+  return (ch>5)?72:60;
 }
 
 void DivPlatformOPLL::setCore(unsigned char which) {

@@ -1,15 +1,257 @@
 # ROM export technical details
 
+## instrument data (common)
+
+### wave synth
+
+```
+size | description
+-----|----------------------------------
+  1  | enable synth
+     | - bit 6: global
+     | - bit 0: enable
+  1  | synth effect
+  2  | wave 1
+  2  | wave 2
+  1  | update rate
+  1  | speed
+  1  | amount
+  1  | power
+```
+
+### sample map
+
+```
+size | description
+-----|----------------------------------
+  1  | lower boundary
+  1  | upper boundary
+ 2?? | pointers to byte tables, offset by lower boundary
+     | - the following four tables are present, in this order:
+     |   - sample number (low)
+     |   - sample number (high)
+     |   - note/DPCM freq
+     |   - DPCM delta (NES only)
+     | - I know it's weird, but it paves the way for a 6502 optimization.
+```
+
 ## instrument data
 
-TODO
+### C64
 
-## macro data
+```
+size | description
+-----|----------------------------------
+  1  | waveform/flags
+     | - bit 7: noise
+     | - bit 6: pulse
+     | - bit 5: saw
+     | - bit 4: triangle
+     | - bit 3: test
+     | - bit 2: ring
+     | - bit 1: sync
+     | - bit 0: gate (always on)
+  1  | filter flags
+     | - bit 7: ch3off
+     | - bit 6: high pass
+     | - bit 5: band pass
+     | - bit 4: low pass
+     | - bit 2: don't test before new note
+     | - bit 1: enable filter
+     | - bit 0: init filter
+  1  | other flags
+     | - bit 7: reset duty on new note
+     | - bit 6: absolute cutoff macro
+     | - bit 5: absolute duty macro
+  1  | attack/decay
+     | - bit 4-7: attack
+     | - bit 0-3: decay
+  1  | sustain/release
+     | - bit 4-7: sustain
+     | - bit 0-3: release
+  2  | initial duty
+  2  | initial cutoff/resonance
+     | - first byte:
+     |   - bit 4-7: resonance
+     |   - bit 0-2: cutoff (low 3 bits)
+     | - second byte: cutoff (high 8 bits)
+     | - this is how it is stored in SID registers.
+-----|----------------------------------
+ 2?? | macro pointers... (0 = end of list)
+```
 
-read length, loop and then release (1 byte).
-if it is a 2-byte macro, read a dummy byte.
+### SNES
 
-then read data.
+```
+size | description
+-----|----------------------------------
+  1  | ADSR toggle/decay/attack
+     | - bit 7: ADSR enabled
+     | - bit 4-6: decay
+     | - bit 0-3: attack
+  1  | sustain/release
+     | - bit 5-7: sustain
+     | - bit 0-4: release
+  1  | gain
+     | - bit 7: special modes
+     | - bit 0-6: value
+     | - equivalent to the SNES gain register.
+  1  | decay 2/release mode
+     | - bit 2-6: decay 2
+     | - bit 0-1: mode
+     |   - 0: direct
+     |   - 1: effective linear
+     |   - 2: effective exp
+     |   - 3: delayed
+-----|----------------------------------
+     | **sample data**
+  1  | type
+     | - 0: sample
+     | - 1: sample map
+     | - 2: wavetable
+  2  | value
+     | - sample: sample index
+     | - sample map: pointer to sample map
+     | - wavetable: wave width
+  2  | pointer to wave synth data (0 = disabled)
+-----|----------------------------------
+ 2?? | macro pointers... (0 = end of list)
+```
+
+### Game Boy
+
+```
+size | description
+-----|----------------------------------
+  1  | volume
+  1  | length/dir
+  1  | sound length
+  1  | flags
+     | - bit 7: software env
+     | - bit 6: init env on every note
+     | - bit 5: double wave length
+  2  | pointer to wave synth data (0 = disabled)
+  2  | pointer to hardware sequence (0 = empty)
+-----|----------------------------------
+ 2?? | macro pointers... (0 = end of list)
+```
+
+hardware sequence is copied from the instrument verbatim.
+
+## compiled macro data
+
+```
+size | description
+-----|-------------------------------------------------
+  1  | macro type
+     | - these are the same as the macro on/off/restart effect ones.
+  1  | flags/macro data type
+     | - bit 6: release mode
+     |   - active when enabled; passive otherwise
+     | - bit 0-5: macro data type
+     |   - 0: 8-bit unsigned
+     |   - 1: 8-bit signed
+     |   - 2: 16-bit unsigned
+     |   - 3: 16-bit signed
+     |   - 4: arp macro
+     |   - 5: 4-bit unsigned (top first, bottom second)
+     |   - 6: ADSR macro (16-bit)
+     |   - 7: ADSR macro (8-bit)
+     |   - 8: LFO macro (16-bit)
+     |   - 9: LFO macro (8-bit)
+     |   - 10: ADSR macro (24-bit)
+     |   - 11: LFO macro (24-bit)
+     |     - these two are there just in case. you do not have to implement them.
+  1  | step length
+  1  | delay
+ ??? | macro data...
+```
+
+interpret macro data as follows.
+
+for 4/8/16-bit macros and arp macros:
+
+```
+size | description
+-----|----------------------
+  1  | length
+  1  | loop point
+  1  | release point
+ ??? | values...
+```
+
+arp macros are special:
+- read one byte. this will be the next (signed) value, unless it is $7F or $80.
+- if it is $80, fixed mode is on for this value.
+- if it is $7F, the value is 16-bit. read two bytes and treat that as the (signed) value.
+
+for 16-bit ADSR macros:
+
+```
+size | description
+-----|---------------------
+  2  | minimum value
+  2  | maximum value
+  2  | sustain level
+  1  | hold time
+  1  | sustain time
+  3  | attack rate
+  3  | decay rate
+  3  | sustain decay
+  3  | release rate
+```
+
+for 8-bit ADSR macros:
+
+```
+size | description
+-----|---------------------
+  1  | minimum value
+  1  | maximum value
+  1  | sustain level
+  1  | hold time
+  1  | sustain time
+  2  | attack rate
+  2  | decay rate
+  2  | sustain decay
+  2  | release rate
+```
+
+for 16-bit LFO macros:
+
+```
+size | description
+-----|---------------------
+  2  | minimum value
+  2  | maximum value
+  3  | initial accumulator value
+  3  | speed
+  1  | flags
+     | - bit 2: initial direction (set when down)
+     | - bit 0-1: shape
+     |   - 0: triangle
+     |   - 1: saw (down to up)
+     |   - 2: pulse
+     |   - 3: saw (up to down)
+```
+
+for 8-bit LFO macros:
+
+```
+size | description
+-----|---------------------
+  1  | minimum value
+  1  | maximum value
+  2  | initial accumulator value
+  2  | speed
+  1  | flags
+     | - bit 7: initial direction (set when down)
+     | - bit 0-1: shape
+     |   - 0: triangle
+     |   - 1: saw (down to up)
+     |   - 2: pulse
+     |   - 3: saw (up to down)
+```
 
 ## binary command stream
 
@@ -268,12 +510,12 @@ hex | description
  70 | sweep amount (b)
 ----|------------------------------------
     | **Namco 163 commands**
- 71 | wave position (b)
- 72 | wave length (b)
+ 71 | wave position (bb)
+ 72 | wave length (bb)
  73 | UNUSED (b)
  74 | UNUSED (b)
- 75 | wave load position (b)
- 76 | wave load length (b)
+ 75 | UNUSED (b)
+ 76 | UNUSED (b)
  77 | UNUSED (b)
  78 | channel limit (b)
  79 | global wave load (b)

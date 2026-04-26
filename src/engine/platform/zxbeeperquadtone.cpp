@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -334,7 +334,7 @@ void DivPlatformZXBeeperQuadTone::forceIns() {
   }
 }
 
-void* DivPlatformZXBeeperQuadTone::getChanState(int ch) {
+SharedChannel* DivPlatformZXBeeperQuadTone::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -358,7 +358,7 @@ void DivPlatformZXBeeperQuadTone::reset() {
   memset(regPool,0,17);
   memset(deHisser,0,8);
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformZXBeeperQuadTone::Channel();
+    chan[i]=DivPlatformZXBeeperQuadTone::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     if (i<4) rWrite(2+i*4,128);
   }

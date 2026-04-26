@@ -81,6 +81,8 @@ private:
 	int m_noise_rng;
 	int m_noise_clocks;   /* number of the noise_rng (output) level changes */
 
+  int o2,o4,o8,o16,solo8,solo16;
+
 	unsigned int m_UpdateStep;
 
 	/* rate tables */

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,10 @@ const int bottomKeyNotes[7]={
 
 const bool isTopKey[12]={
   false, true, false, true, false, false, true, false, true, false, true, false
+};
+
+const char* baseNoteNames[12]={
+  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
 const char* noteNames[180]={
@@ -737,6 +741,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_NEXT_ORDER", _N("Go to next order"), 0),
   D("PAT_PREV_ORDER", _N("Go to previous order"), 0),
   D("PAT_COLLAPSE", _N("Collapse channel at cursor"), 0),
+  D("PAT_COLLAPSE_SELECTED", _N("Minimize channels"), 0),
+  D("PAT_EXPAND_SELECTED", _N("Maximize channels"), 0),
   D("PAT_INCREASE_COLUMNS", _N("Increase effect columns"), 0),
   D("PAT_DECREASE_COLUMNS", _N("Decrease effect columns"), 0),
   D("PAT_INTERPOLATE", _N("Interpolate"), 0),
@@ -847,6 +853,9 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_MAKE_INS", _N("Sample editor: Create instrument from sample"), 0),
   D("SAMPLE_SET_LOOP", _N("Sample editor: Set loop to selection"), FURKMOD_CMD|SDLK_l),
   D("SAMPLE_CREATE_WAVE", _N("Sample editor: Create wavetable from selection"), FURKMOD_CMD|SDLK_w),
+  D("SAMPLE_COPY_NEW", _N("Sample editor: Copy selection to new sample"), 0),
+  D("SAMPLE_TRIM_AFTER_LOOP", _N("Sample editor: Trim to the end of the loop"), 0),
+  D("SAMPLE_TRIM_TO_LOOP", _N("Sample editor: Trim around loop points"), 0),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", _N("---Orders"), NOT_AN_ACTION),

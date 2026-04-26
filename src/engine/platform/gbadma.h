@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include "../waveSynth.h"
 
 class DivPlatformGBADMA: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audLoc;
     unsigned short audLen;
     int audDat;
@@ -36,8 +36,8 @@ class DivPlatformGBADMA: public DivDispatch {
     bool useWave, setPos;
     int envVol;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<int>(2),
+    Channel(bool linear=true):
+      SharedChannel(2,linear),
       audLoc(0),
       audLen(0),
       audDat(0),
@@ -71,7 +71,7 @@ class DivPlatformGBADMA: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void forceIns();

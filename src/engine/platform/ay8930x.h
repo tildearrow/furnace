@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 class DivPlatformAY8930X: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct Envelope {
         unsigned char mode;
         unsigned short period;
@@ -87,8 +87,8 @@ class DivPlatformAY8930X: public DivDispatch {
       signed char konCycles, autoNoiseOff;
       unsigned short fixedFreq;
       unsigned char chVolL, chVolR;
-      Channel():
-        SharedChannel<int>(31),
+      Channel(bool linear=true):
+        SharedChannel(31,linear),
         envelope(Envelope()),
         noise(Noise()),
         curPSGMode(PSGMode(0)),
@@ -148,7 +148,7 @@ class DivPlatformAY8930X: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);

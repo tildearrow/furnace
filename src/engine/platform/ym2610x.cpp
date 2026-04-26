@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -376,7 +376,7 @@ void DivPlatformYM2610X::acquire(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC(rate);
+    ay->runDAC(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>31) continue;
@@ -385,8 +385,11 @@ void DivPlatformYM2610X::acquire(short** buf, size_t len) {
     ay->getRegisterWrites().clear();
 
     os[0]=0; os[1]=0;
-    if (!writes.empty()) {
-      if (--delay<1 && !(fm->read(0)&0x80)) {
+    while (!writes.empty()) {
+      if (!(fm->read(0)&0x80)) {
+        delay=0;
+      }
+      if (delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
           delay=w.val*2;
@@ -400,10 +403,11 @@ void DivPlatformYM2610X::acquire(short** buf, size_t len) {
           } else {
             regPool[w.addr&0x1ff]=w.val;
           }
-          delay=1;
+          if (w.addr>15) delay=1;
         }
         writes.pop_front();
       }
+      if (delay>0) break;
     }
     
     fm->generate(&fmout);
@@ -1695,7 +1699,7 @@ void DivPlatformYM2610X::forceIns() {
   ay->getRegisterWrites().clear();
 }
 
-void* DivPlatformYM2610X::getChanState(int ch) {
+SharedChannel* DivPlatformYM2610X::getChanState(int ch) {
   return &chan[ch];
 }
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -295,6 +295,7 @@ class DivPlatformYM2610XBase: public DivPlatformOPN {
       ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
       rate=fm->sample_rate(chipClock);
+      tfxRate=rate*4;
       for (int i=0; i<19; i++) {
         oscBuf[i]->setRate(rate);
       }

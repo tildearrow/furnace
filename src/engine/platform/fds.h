@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,15 +26,15 @@
 #include "sound/nes_nsfplay/nes_fds.h"
 
 class DivPlatformFDS: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, modFreq;
     unsigned char duty, sweep, modDepth, modPos;
     unsigned char autoModNum, autoModDen;
     bool sweepChanged, modOn;
     signed short wave;
     signed char modTable[32];
-    Channel():
-      SharedChannel<signed char>(32),
+    Channel(bool linear=true):
+      SharedChannel(32,linear),
       prevFreq(65535),
       modFreq(0),
       duty(0),
@@ -71,7 +71,7 @@ class DivPlatformFDS: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

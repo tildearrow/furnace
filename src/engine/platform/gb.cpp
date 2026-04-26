@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -326,7 +326,7 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq+chan[i].pitch2;
+        int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
@@ -612,7 +612,7 @@ void DivPlatformGB::forceIns() {
   updateWave();
 }
 
-void* DivPlatformGB::getChanState(int ch) {
+SharedChannel* DivPlatformGB::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -639,7 +639,7 @@ int DivPlatformGB::getRegisterPoolSize() {
 
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformGB::Channel();
+    chan[i]=DivPlatformGB::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);
@@ -666,7 +666,7 @@ void DivPlatformGB::reset() {
 }
 
 int DivPlatformGB::getPortaFloor(int ch) {
-  return 24;
+  return 84;
 }
 
 int DivPlatformGB::getOutputCount() {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -406,7 +406,8 @@ void FurnaceGUI::drawWaveEdit() {
           if (wave->len>256) wave->len=256;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
-          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
+          // if the user is playing this wave while changing the length, retrigger it.
+          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote+60);
           MARK_MODIFIED;
         }
         ImGui::SameLine();

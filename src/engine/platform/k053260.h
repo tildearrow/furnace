@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,14 +25,14 @@
 #include "vgsound_emu/src/k053260/k053260.hpp"
 
 class DivPlatformK053260: public DivDispatch, public k053260_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos, reverse;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -63,7 +63,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual u8 read_sample(u32 address) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
@@ -74,6 +74,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;

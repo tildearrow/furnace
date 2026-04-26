@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ class DivPlatformAY8910: public DivDispatch {
       0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct PSGMode {
         // bit 4: timer FX
         // bit 3: DAC
@@ -94,8 +94,8 @@ class DivPlatformAY8910: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
@@ -127,6 +127,8 @@ class DivPlatformAY8910: public DivDispatch {
 
     int delay;
     int lastOut[2];
+
+    unsigned char atomicTFXDelay;
 
     bool extMode;
     unsigned int extClock;
@@ -162,7 +164,7 @@ class DivPlatformAY8910: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);

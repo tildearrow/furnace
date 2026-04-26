@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -375,7 +375,7 @@ void DivPlatformGA20::forceIns() {
   }
 }
 
-void* DivPlatformGA20::getChanState(int ch) {
+SharedChannel* DivPlatformGA20::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -405,7 +405,7 @@ void DivPlatformGA20::reset() {
   ga20.device_reset();
   oldOut=0;
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformGA20::Channel();
+    chan[i]=DivPlatformGA20::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     // keyoff all channels
     chWrite(i,5,0);

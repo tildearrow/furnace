@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,6 +120,8 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch)-128+(oldSlides?0:chan[i].pitch2);
+      // so much legacy man...
+      chan[i].freq-=60*128;
       if (!parent->song.compatFlags.oldArpStrategy) {
         if (chan[i].fixedArp) {
           chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+(chan[i].pitch2<<(oldSlides?1:0));
@@ -378,7 +380,7 @@ void DivPlatformSegaPCM::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSegaPCM::getChanState(int ch) {
+SharedChannel* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -443,7 +445,7 @@ void DivPlatformSegaPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformSegaPCM::Channel();
+    chan[i]=DivPlatformSegaPCM::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
@@ -531,6 +533,10 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
 
 int DivPlatformSegaPCM::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformSegaPCM::hasSoftPan(int ch) {
+  return true;
 }
 
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

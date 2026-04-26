@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -274,7 +274,7 @@ void DivPlatformPokeMini::forceIns() {
   }
 }
 
-void* DivPlatformPokeMini::getChanState(int ch) {
+SharedChannel* DivPlatformPokeMini::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -296,7 +296,7 @@ int DivPlatformPokeMini::getRegisterPoolSize() {
 
 void DivPlatformPokeMini::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformPokeMini::Channel();
+    chan[i]=DivPlatformPokeMini::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

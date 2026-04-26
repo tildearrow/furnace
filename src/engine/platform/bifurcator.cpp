@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -294,7 +294,7 @@ void DivPlatformBifurcator::forceIns() {
   }
 }
 
-void* DivPlatformBifurcator::getChanState(int ch) {
+SharedChannel* DivPlatformBifurcator::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -313,7 +313,7 @@ int DivPlatformBifurcator::getRegisterPoolSize() {
 void DivPlatformBifurcator::reset() {
   memset(regPool,0,8*4);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformBifurcator::Channel();
+    chan[i]=DivPlatformBifurcator::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     rWrite(i*8,chan[i].curx&0xff);
     rWrite(i*8+1,chan[i].curx>>8);
@@ -324,6 +324,10 @@ void DivPlatformBifurcator::reset() {
 
 int DivPlatformBifurcator::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformBifurcator::hasSoftPan(int ch) {
+  return true;
 }
 
 DivMacroInt* DivPlatformBifurcator::getChanMacroInt(int ch) {

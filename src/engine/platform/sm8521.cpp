@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,13 +30,13 @@ const char* regCheatSheetSM8521[]={
   "SGC", "40",
   "SG0L", "42",
   "SG1L", "44",
-  "SG0TL", "46",
-  "SG0TH", "47",
-  "SG1TL", "48",
-  "SG1TH", "49",
+  "SG0TH", "46",
+  "SG0TL", "47",
+  "SG1TH", "48",
+  "SG1TL", "49",
   "SG2L", "4A",
-  "SG2TL", "4C",
-  "SG2TH", "4D",
+  "SG2TH", "4C",
+  "SG2TL", "4D",
   "SGDA", "4E",
   "SG0Wn", "60+n",
   "SG1Wn", "70+n",
@@ -334,7 +334,7 @@ void DivPlatformSM8521::forceIns() {
   }
 }
 
-void* DivPlatformSM8521::getChanState(int ch) {
+SharedChannel* DivPlatformSM8521::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -358,7 +358,7 @@ void DivPlatformSM8521::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformSM8521::Channel();
+    chan[i]=DivPlatformSM8521::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);

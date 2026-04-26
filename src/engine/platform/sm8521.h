@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,13 +30,13 @@ class DivPlatformSM8521: public DivDispatch {
 
   const unsigned char freqMap[3][2]={{0x46,0x47},{0x48,0x49},{0x4c,0x4d}};
 
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int antiClickPeriodCount, antiClickWavePos;
     signed short wave;
     bool volumeChanged;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(31),
+    Channel(bool linear=true):
+      SharedChannel(31,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       wave(-1),
@@ -63,7 +63,7 @@ class DivPlatformSM8521: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

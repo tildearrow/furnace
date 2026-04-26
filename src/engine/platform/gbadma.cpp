@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -369,8 +369,8 @@ void DivPlatformGBADMA::forceIns() {
   }
 }
 
-void* DivPlatformGBADMA::getChanState(int ch) {
-  return &chan;
+SharedChannel* DivPlatformGBADMA::getChanState(int ch) {
+  return &chan[ch];
 }
 
 DivDispatchOscBuffer* DivPlatformGBADMA::getOscBuffer(int ch) {
@@ -380,7 +380,7 @@ DivDispatchOscBuffer* DivPlatformGBADMA::getOscBuffer(int ch) {
 void DivPlatformGBADMA::reset() {
   memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformGBADMA::Channel();
+    chan[i]=DivPlatformGBADMA::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);

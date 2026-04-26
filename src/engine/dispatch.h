@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// dispatch.h: definition of a DivDispatch and related things.
+
 #ifndef _DISPATCH_H
 #define _DISPATCH_H
 
@@ -25,22 +27,30 @@
 #include "../pch.h"
 #include "blip_buf.h"
 #include "config.h"
-#include "chipUtils.h"
 #include "defines.h"
+#include "macroInt.h"
 
-#define ONE_SEMITONE 2200
+// custom clock limits
+// these values are intentional. they prevent the user from overloading the engine by using extraneous clocks.
+#define MIN_CUSTOM_CLOCK 100000
+#define MAX_CUSTOM_CLOCK 40000000
+
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
-// HOW TO ADD A NEW COMMAND:
-// add it to this enum. then see playback.cpp.
-// there is a const char* cmdName[] array, which contains the command
-// names as strings for the commands (and other debug stuff).
-//
-// if you miss it, the program will crash or misbehave at some point.
-//
-// the comments are: (arg1, arg2) -> val
-// not all commands have a return value
+/**
+ * DivDispatchCmds - the enum containing all engine commands.
+ * these are sent from the engine to dispatches during playback.
+ *
+ * HOW TO ADD A NEW COMMAND:
+ * - append it to this enum.
+ *   - if you place it at the beginning or in the middle of this enum, you'll break the command stream format, so don't.
+ * - in playback.cpp there is a const char* cmdName[] array, which contains the command names as strings for the commands (and other debug stuff).
+ *   - if you miss it, Furnace won't compile.
+ *
+ * the comments are: (arg1, arg2) -> val
+ * not all commands have a return value
+ */
 enum DivDispatchCmds {
   DIV_CMD_NOTE_ON=0, // (note)
   DIV_CMD_NOTE_OFF,
@@ -341,22 +351,261 @@ enum DivDispatchCmds {
   DIV_CMD_MAX
 };
 
+
+/**
+ * currently we don't use this but eventually we will.
+ */
+struct DivPitchTable {
+  int pitch[12+1];
+  int pitchDiff[12+1];
+  unsigned int maxFreq;
+  unsigned char blockBits, shift;
+  bool period, linearity;
+
+  // get pitch
+  int get(int base, int pitch1, int pitch2);
+
+  // linear: note
+  // non-linear: get(note,0,0)
+  int getBase(int note);
+
+  /**
+   * calculate pitch table.
+   * @param tuning the A-4 tuning to use.
+   * @param clock the chip's clock.
+   * @param divider the divider or frequency base.
+   * @param maximum the maximum period/frequency value supported by the chip.
+   * @param period whether to use periods instead of accumulator values.
+   * @param linear whether pitch linearity is set to full.
+   */
+  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
+
+  DivPitchTable():
+    maxFreq(0xffffffff),
+    blockBits(0),
+    period(false),
+    linearity(true) {
+    memset(pitch,0,sizeof(pitch));
+    memset(pitchDiff,0,sizeof(pitchDiff));
+  }
+};
+
+/**
+ * the SharedChannel struct holds common channel state, such as frequency, volume, note activity and so on.
+ * this is used by almost every dispatch.
+ *
+ * create a struct inherited from SharedChannel in your dispatch's class definition:
+ *
+ * struct Channel: public SharedChannel {
+ *   // state...
+ * };
+ */
+struct SharedChannel {
+  // freq: the output frequency (usually).
+  // - this is calculated on frequency changes (freqChanged should be checked during tick()).
+  // - the function that calculates frequency is DivEngine::calcFreq(). pass in the rest of variables
+  //   and you should get a frequency.
+  // - certain chips require conversion of this frequency to some usable value
+  //   (e.g. SAA1099 has 8-bit divider and 3-bit octave selector).
+  // baseFreq: frequency of the current note, including pitch slides.
+  // - linear pitch: 8.7 fixed number. integer part is note and fractional part is pitch (in 128ths).
+  // - non-linear pitch: 
+  // - this value is set during note changes. calculate it by using NOTE_FREQUENCY() or NOTE_PERIODIC().
+  //   - remember to set CHIP_DIVIDER/CHIP_FREQBASE in your dispatch's code!
+  // baseNoteOverride: set when the arp macro's value is fixed. in that case, fixedArp will be true.
+  // pitch: the pitch offset. set on DIV_CMD_PITCH (calculated from current E5xx and vibrato state).
+  // pitch2: pitch macro's output.
+  // arpOff: the arp macro's value (relative), in semitones.
+  int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
+  // ins: current instrument. -1 is none/default.
+  // note: current note, in semitones. 0 is C-(-5) and 60 is C-0.
+  // sampleNote: note in sample map.
+  // sampleNoteDelta: difference between note and sampleNote, used in arp calculation, legato and pitch slides.
+  int ins, note, sampleNote, sampleNoteDelta;
+  // active: whether the note is currently on.
+  // insChanged: whether an instrument change has occurred.
+  // - if this is true, make sure to commit the new instrument during DIV_CMD_NOTE_ON and set this to false.
+  // freqChanged: whether freq needs to be updated.
+  // - should be set during DIV_CMD_NOTE_ON, DIV_CMD_NOTE_PORTA, DIV_CMD_LEGATO, DIV_CMD_PITCH and other
+  //   commands which alter pitch or baseFreq.
+  // - should also be set by the arp macro handler.
+  // - check for this variable on tick().
+  // keyOn: whether there's a pending note on.
+  // - the checks for freqChanged and keyOn are usually fused. see pce.cpp to see what I mean.
+  // - check for this variable on tick().
+  // keyOff: whether there's a pending note off.
+  // - the checks for freqChanged and keyOff are usually fused. see pce.cpp to see what I mean.
+  // - check for this variable on tick().
+  // portaPause: used by the FM chips for compatibility.
+  // - please pretend this variable doesn't exist...
+  // inPorta: whether we currently are in a portamento.
+  // - should be set during DIV_CMD_PRE_PORTA.
+  // - in non-linear pitch, this variable is used to inhibit certain pitch changes during a pitch slide.
+  // rawFreq: whether the baseFreq is raw and overrides frequency calculation.
+  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta, rawFreq;
+  // vol: the current volume, set during DIV_CMD_VOLUME.
+  // outVol: the *output* volume.
+  // - this is the same as vol when we don't have a volume macro going on.
+  // - otherwise it is the result of a calculation with vol and the volume macro's value.
+  //   - calculate this value by using VOL_SCALE_LINEAR()/VOL_SCALE_LOG() in tick().
+  int vol, outVol;
+  // std: this is the macro interpreter.
+  // - the name comes from DefleMask, where macro-able instruments have "STD" type.
+  //   - don't laugh at me.
+  // - initialize it during DIV_CMD_NOTE_ON. use the macroInit() helper.
+  // - de-initialize it (by calling macroInit(NULL)) during DIV_CMD_NOTE_OFF.
+  //   - don't do this if your chip supports hardware envelopes!
+  // - call mask() during DIV_CMD_MACRO_OFF/DIV_CMD_MACRO_ON.
+  // - call restart() during DIV_CMD_MACRO_RESTART.
+  // - call next() during tick().
+  // - make sure to bind the engine during reset()! use setEngine().
+  // - also remember to call notifyInsDeletion() on notifyInsDeletion().
+  //   - if you don't do this, you'll be referencing a potentially extinct instrument
+  //     and prompt Furnace to collapse.
+  DivMacroInt std;
+  // this is a pointer to your dispatch's pitch table.
+  // - this should be initialized during reset()!
+  DivPitchTable* pitchTable;
+
+  // here are some helper functions.
+  /**
+   * handle arpeggio. call during tick() like so:
+   *
+   * if (NEW_ARP_STRAT) {
+   *   chan[i].handleArp();
+   * } else if (chan[i].std.arp.had) {
+   *   if (!chan[i].inPorta) {
+   *     chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+   *   }
+   *   chan[i].freqChanged=true;
+   * }
+   *
+   * the reason why we do it like that is because there are two arp strategies.
+   * one of them allows you to run a pitch slide and arp macro simultaneously. the other one does not...
+   * the latter is used in non-linear pitch or when the old arp strategy compat flag is enabled.
+   * @param offset disregard. I don't remember what's this for.
+   */
+  void handleArp(int offset=0) {
+    if (std.arp.had) {
+      if (std.arp.val<0) {
+        if (!(std.arp.val&0x40000000)) {
+          baseNoteOverride=(std.arp.val|0x40000000)+offset+60;
+          fixedArp=true;
+        } else {
+          arpOff=std.arp.val;
+          fixedArp=false;
+        }
+      } else {
+        if (std.arp.val&0x40000000) {
+          baseNoteOverride=(std.arp.val&(~0x40000000))+offset+60;
+          fixedArp=true;
+        } else {
+          arpOff=std.arp.val;
+          fixedArp=false;
+        }
+      }
+      freqChanged=true;
+    }
+  }
+  /**
+   * initializes the macro interpreter. call during DIV_CMD_NOTE_ON or DIV_CMD_NOTE_OFF (when applicable).
+   * don't call std.init() directly! we need some other variables to be set as well.
+   * @param which the instrument to read. set this to NULL to reset state.
+   */
+  void macroInit(DivInstrument* which) {
+    std.init(which);
+    pitch2=0;
+    arpOff=0;
+    baseNoteOverride=0;
+    fixedArp=false;
+  }
+  /**
+   * calculates base frequency from the current pitch table. use this when setting baseFreq.
+   * @param note the note.
+   */
+  int calcBaseFreq(int note) {
+    if (pitchTable==NULL) return 0;
+    return pitchTable->getBase(note);
+  }
+  /**
+   * calculates final frequency from current frequency values.
+   * @return the frequency.
+   */
+  int calcFreq() {
+    if (rawFreq) return baseFreq;
+    if (pitchTable==NULL) return 0;
+    if (!pitchTable->linearity) {
+      return pitchTable->get(baseFreq,pitch,pitch2);
+    }
+    if (fixedArp) {
+      return pitchTable->get(baseNoteOverride<<7,pitch,pitch2);
+    }
+    return pitchTable->get(baseFreq+(arpOff<<7),pitch,pitch2);
+  }
+  /**
+   * call this constructor in your Channel's constructor, which should initialize the channel's state.
+   * call your Channel's constructor during reset().
+   *
+   * @param initVol the initial channel volume.
+   */
+  SharedChannel(int initVol, bool linear):
+    freq(0),
+    baseFreq(linear?0x1e00:0),
+    baseNoteOverride(0),
+    pitch(0),
+    pitch2(0),
+    arpOff(0),
+    ins(-1),
+    note(0),
+    sampleNote(DIV_NOTE_NULL),
+    sampleNoteDelta(0),
+    active(false),
+    insChanged(true),
+    freqChanged(false),
+    fixedArp(false),
+    keyOn(false),
+    keyOff(false),
+    portaPause(false),
+    inPorta(false),
+    rawFreq(false),
+    vol(initVol),
+    outVol(initVol),
+    std(),
+    pitchTable(NULL) {} 
+};
+
+
+/**
+ * a DivCommand encapsulates an engine command.
+ */
 struct DivCommand {
+  // the command type.
   DivDispatchCmds cmd;
+  // chan: the destination channel.
+  // - when generated in the engine, this is relative to the first channel in the song.
+  // - when sent to the dispatch, the engine will remap it relative to the first channel in that dispatch.
+  // dis: this is the same as chan, but does not become remapped.
+  // - it always is relative to the first channel in the song.
+  // - normally you shouldn't use this. it's only used during remapping.
   unsigned char chan, dis;
+  // the two parameters of a command.
   int value, value2;
+
+  // two-value constructor.
   DivCommand(DivDispatchCmds c, unsigned char ch, int val, int val2):
     cmd(c),
     chan(ch),
     dis(ch),
     value(val),
     value2(val2) {}
+  // single-value constructor.
   DivCommand(DivDispatchCmds c, unsigned char ch, int val):
     cmd(c),
     chan(ch),
     dis(ch),
     value(val),
     value2(0) {}
+  // no-parameter constructor.
   DivCommand(DivDispatchCmds c, unsigned char ch):
     cmd(c),
     chan(ch),
@@ -365,44 +614,31 @@ struct DivCommand {
     value2(0) {}
 };
 
-struct DivPitchTable {
-  int pitch[(12*128)+1];
-  unsigned char linearity, blockBits;
-  bool period;
-
-  // get pitch
-  int get(int base, int pitch, int pitch2);
-
-  // linear: note
-  // non-linear: get(note,0,0)
-  int getBase(int note);
-
-  // calculate pitch table
-  void init(float tuning, double clock, double divider, int octave, unsigned char linear, bool isPeriod, unsigned char block=0);
-
-  DivPitchTable():
-    linearity(2),
-    blockBits(0),
-    period(false) {
-    memset(pitch,0,sizeof(pitch));
-  }
-};
-
+/**
+ * a delayed command, to be executed later.
+ * currently unused.
+ */
 struct DivDelayedCommand {
   int ticks;
   DivCommand cmd;
 };
 
+/**
+ * standard specification for a register write.
+ * used in register dump-based exports (e.g. VGM).
+ */
 struct DivRegWrite {
   /**
+   * the address.
    * an address of 0xffffxx00 indicates a Furnace specific command.
-   * the following addresses are available:
+   * usually, instance refers to chip.
+   * the following commands are available:
    * - 0xffffxx00: start sample playback
    *   - xx is the instance ID
-   *   - data is the sample number
+   *   - value is the sample number
    * - 0xffffxx01: set sample rate
    *   - xx is the instance ID
-   *   - data is the sample rate
+   *   - value is the sample rate
    * - 0xffffxx02: stop sample playback
    *   - xx is the instance ID
    * - 0xffffxx03: set sample playback direction
@@ -411,12 +647,13 @@ struct DivRegWrite {
    *   - for use in VGM export
    * - 0xffffxx05: set sample position
    *   - xx is the instance ID
-   *   - data is the sample position
+   *   - value is the sample position
    * - 0xffffffff: reset
    * - 0xfffffffe: add delay
-   *   - data is the delay
+   *   - value is the delay in cycles
    */
   unsigned int addr;
+  // the value to write.
   unsigned int val;
   DivRegWrite():
     addr(0), val(0) {}
@@ -424,24 +661,38 @@ struct DivRegWrite {
     addr(a), val(v) {}
 };
 
+/**
+ * a delayed register write.
+ */
 struct DivDelayedWrite {
+  // the write's delay.
   int time;
   // this variable is internal.
   // it is used by VGM export to make sure these writes are in order.
   // do not change.
   int order;
+  // the register write.
   DivRegWrite write;
+  // constructor with order.
   DivDelayedWrite(int t, int o, unsigned int a, unsigned int v):
     time(t),
     order(o),
     write(a,v) {}
+  // constructor.
   DivDelayedWrite(int t, unsigned int a, unsigned int v):
     time(t),
     order(0),
     write(a,v) {}
 };
 
+/**
+ * encapsulates a channel's sample position.
+ * this is used by DivDispatch::getSamplePos().
+ */
 struct DivSamplePos {
+  // sample: the sample index.
+  // pos: the current position.
+  // freq: the frequency in Hz.
   int sample, pos, freq;
   DivSamplePos(int s, int p, int f):
     sample(s),
@@ -453,22 +704,49 @@ struct DivSamplePos {
     freq(0) {}
 };
 
+// these are used to determine fractional precision of the chan osc buffer's needle.
+// I was planning to give the needle more precision on 64-bit systems until
+// I ran into all sorts of issues, so I decided to keep it at 16 for everyone.
 constexpr size_t OSCBUF_PREC=(sizeof(size_t)>=8)?16:16;
 constexpr size_t OSCBUF_MASK=(UINTMAX_C(1)<<OSCBUF_PREC)-1;
 
+// don't use this unless you know what you're doing. stick to putSample().
 #define putSampleIKnowWhatIAmDoing(_ob,_pos,_val) \
   _ob->data[_pos]=_val;
 
-// the actual output of all DivDispatchOscBuffer instanced runs at 65536Hz.
+/**
+ * this is a buffer for a channel's output.
+ * it is used for the per-channel oscilloscope.
+ * it should not be used for per-channel audio export as its output is optimized and may have a lower rate/quality.
+ */
 struct DivDispatchOscBuffer {
+  // the input rate of this osc buffer.
+  // the output buffer will be filled at a rate of 65536 samples per second no matter what.
   size_t rate;
+  // used to calculate resampling rate for the output.
   size_t rateMul;
+  // current position in the output buffer, as a fixed point number.
+  // it is 16.16 for performance reasons.
   unsigned int needle;
+  // the read position of the output buffer.
+  // set by the GUI after rendering the per-chan osc.
   unsigned short readNeedle;
+  // this was formerly used but now disabled as part of an optimization...
   //unsigned short lastSample;
+  // follow: serves no purpose. formerly a debug option.
+  // mustNotKillNeedle: set when the needle's fractional part is non-zero. moves start and end positions by one if they differ to prevent glitches.
   bool follow, mustNotKillNeedle;
+  // the output data.
+  // if a sample is -1, it means "hold the previous sample".
+  // if you're wondering why, it's to speed up acquireDirect() by not having to fill in each sample.
+  // actual -1 samples become -2 to avoid conflicts. see what I told you about optimization?
   short data[65536];
 
+  /**
+   * put a sample into the output buffer.
+   * @param pos offset relative to the needle (should be the same as the position in acquire()).
+   * @param val the input sample.
+   */
   inline void putSample(const size_t pos, const short val) {
     unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
     if (val==-1) {
@@ -478,6 +756,8 @@ struct DivDispatchOscBuffer {
     //lastSample=val;
     data[realPos]=val;
   }
+  // this was an inline function, but I decided to turn it into a macro for further optimization.
+  // if you must know what this actually does and how to use it, go to platform/esfm.cpp.
   /*
   inline void putSampleIKnowWhatIAmDoing(const unsigned short pos, const short val) {
     //unsigned short realPos=((needle+pos*rateMul)>>OSCBUF_PREC);
@@ -488,6 +768,11 @@ struct DivDispatchOscBuffer {
     //lastSample=val;
     data[pos]=val;
   }*/
+  /**
+   * begin processing of a new frame.
+   * must be called at the beginning of acquire() before you start feeding samples.
+   * @param len the frame's length (how many input samples to make room for).
+   */
   inline void begin(size_t len) {
     size_t calc=(len*rateMul);
     unsigned short start=needle>>16;
@@ -510,12 +795,20 @@ struct DivDispatchOscBuffer {
     memset(&data[start],-1,(end-start)*sizeof(short));
     //data[needle>>16]=lastSample;
   }
+  /**
+   * finish processing of the current frame and advances the needle.
+   * must be called at the end of acquire().
+   * @param len the frame's length.
+   */
   inline void end(size_t len) {
     size_t calc=len*rateMul;
     needle+=calc;
     mustNotKillNeedle=needle&0xffff;//(data[needle>>16]!=-1);
     //data[needle>>16]=lastSample;
   }
+  /**
+   * reset the buffer and state.
+   */
   void reset() {
     memset(data,-1,65536*sizeof(short));
     needle=0;
@@ -523,6 +816,10 @@ struct DivDispatchOscBuffer {
     mustNotKillNeedle=false;
     //lastSample=0;
   }
+  /**
+   * set the input rate and recalculate internals.
+   * @param r input rate.
+   */
   void setRate(unsigned int r) {
     double rateMulD=65536.0/(double)r;
     rateMulD*=(double)(UINTMAX_C(1)<<OSCBUF_PREC);
@@ -541,24 +838,39 @@ struct DivDispatchOscBuffer {
   }
 };
 
+/**
+ * a channel pair provides a hint to the GUI which informs the user which channels are paired with a channel for modulation
+ * (e.g. ring/freq/phase mod, filtering and register sharing).
+ */
 struct DivChannelPair {
+  // the label.
   const char* label;
-  // -1: none
+  // the paired channels.
+  // -1 means "none".
   signed char pairs[8];
 
+  // constructor to pair up to 8 channels.
   DivChannelPair(const char* l, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7):
     label(l),
     pairs{p0,p1,p2,p3,p4,p5,p6,p7} {}
+  // constructor to pair a single channel.
   DivChannelPair(const char* l, signed char p):
     label(l),
     pairs{p,-1,-1,-1,-1,-1,-1,-1} {}
+  // empty.
   DivChannelPair():
     label(NULL),
     pairs{-1,-1,-1,-1,-1,-1,-1,-1} {}
 };
 
+/**
+ * mode hints provide the GUI with information about a channel's status.
+ * this is presented to the user when the channel status option is enabled in the pattern view.
+ */
 struct DivChannelModeHints {
+  // names of channel mode hints.
   const char* hint[4];
+  // types of modes.
   // valid types:
   // - 0: disabled
   // - 1: volume
@@ -584,7 +896,7 @@ struct DivChannelModeHints {
   // - 21: warning
   // - 22: error
   unsigned char type[4];
-  // up to 4
+  // number of hints. up to 4.
   unsigned char count;
 
   DivChannelModeHints():
@@ -593,6 +905,9 @@ struct DivChannelModeHints {
     count(0) {}
 };
 
+/**
+ * this enum describe possible types for memory entries in a memory composition struct.
+ */
 enum DivMemoryEntryType {
   DIV_MEMORY_FREE=0, // shouldn't be used
   DIV_MEMORY_PADDING,
@@ -616,10 +931,19 @@ enum DivMemoryEntryType {
   DIV_MEMORY_BANK7,
 };
 
+/**
+ * a memory entry describes a region of data within a chip's memory.
+ * this is contained by the memory composition struct.
+ */
 struct DivMemoryEntry {
+  // the type of this entry.
   DivMemoryEntryType type;
+  // name.
   String name;
+  // related asset (usually a sample).
+  // used by the GUI to let the user jump to a sample by clicking on the region.
   int asset;
+  // the region within memory that this entry occupies.
   size_t begin, end;
   DivMemoryEntry(DivMemoryEntryType t, String n, int a, size_t b, size_t e):
     type(t),
@@ -635,6 +959,10 @@ struct DivMemoryEntry {
     end(0) {}
 };
 
+/**
+ * possible waveform view formats.
+ * used by the GUI to display live memory data over the memory composition graph.
+ */
 enum DivMemoryWaveView: unsigned char {
   DIV_MEMORY_WAVE_NONE=0,
   DIV_MEMORY_WAVE_4BIT, // Namco 163
@@ -642,12 +970,22 @@ enum DivMemoryWaveView: unsigned char {
   DIV_MEMORY_WAVE_8BIT_SIGNED, // SCC
 };
 
+/**
+ * used to describe the contents of a chip's memory, such as samples, waveforms and other data.
+ * returned by DivDispatch::getMemCompo().
+ */
 struct DivMemoryComposition {
+  // contains memory entries.
   std::vector<DivMemoryEntry> entries;
+  // name of this memory space.
   String name;
+  // capacity of this memory space, in bytes.
   size_t capacity;
+  // how much memory is in use.
   size_t used;
+  // a pointer to memory contents. used if waveformView is not NONE.
   const unsigned char* memory;
+  // this may be set to allow the GUI to display a visualization of memory data alongside the graph.
   DivMemoryWaveView waveformView;
   DivMemoryComposition():
     name(""),
@@ -657,16 +995,32 @@ struct DivMemoryComposition {
     waveformView(DIV_MEMORY_WAVE_NONE) {}
 };
 
+// forward declarations
 class DivEngine;
 class DivMacroInt;
 
+/**
+ * a "dispatch" performs the following:
+ * - processes engine commands
+ * - runs macros (if necessary)
+ * - performs register writes
+ * - emulates a sound chip, synthesizes sound or otherwise provides an audible output to the engine
+ * it is one of the vital components of Furnace. it is referred to as "chip" in the UI.
+ * it gets its name from the fact this is where commands are dispatched to.
+ * this is not called DivChip because not all dispatches are chips (despite the UI calling them chips). an example is the Generic PCM DAC.
+ *
+ * implementations lie in platform/ and are prefixed with DivPlatform*.
+ * check out platform/pce.cpp and platform/pce.h. these are templates I use frequently when adding new chips.
+ */
 class DivDispatch {
   protected:
+    // the parent engine attached to this dispatch.
     DivEngine* parent;
+    // this contains all register writes made to a chip.
+    // only populate this when dumpWrites is enabled!
     std::vector<DivRegWrite> regWrites;
-    /**
-     * please honor these variables if needed.
-     */
+    // skipRegisterWrites: set while the engine is "seeking" in the song. when set, you shouldn't write to registers.
+    // dumpWrites: set when the engine wants to know what are we writing. used during register dump export (e.g. VGM).
     bool skipRegisterWrites, dumpWrites;
   public:
     /**
@@ -736,7 +1090,7 @@ class DivDispatch {
      * @param chan the channel.
      * @return a pointer, or NULL.
      */
-    virtual void* getChanState(int chan);
+    virtual SharedChannel* getChanState(int chan);
 
     /**
      * get the DivMacroInt of a channel.
@@ -846,6 +1200,12 @@ class DivDispatch {
      * @return whether it is.
      */
     virtual bool isVolGlobal();
+
+    /**
+     * test whether a channel supports soft panning.
+     * @return truth.
+     */
+    virtual bool hasSoftPan(int ch);
 
     /**
      * map MIDI velocity (from 0 to 127) to chip volume.
@@ -1014,7 +1374,7 @@ class DivDispatch {
      * @param index the memory index.
      * @return memory start offset in bytes.
      */
-    virtual size_t getSampleMemOffset(int index = 0);
+    virtual size_t getSampleMemOffset(int index=0);
 
     /**
      * Get sample memory usage.
@@ -1046,15 +1406,26 @@ class DivDispatch {
     virtual const DivMemoryComposition* getMemCompo(int index);
 
     /**
+     * get a "compiled" version of sample memory.
+     * this may be the same as getSampleMem() or not (may include extra data such as sample offsets).
+     * used in ROM export.
+     * @param index the memory index.
+     * @param size the memory size will be stored here.
+     * @return a pointer to compiled sample memory which must be deallocated after use (delete[]), or NULL if not implemented.
+     */
+    virtual const void* compileSampleMem(int index, size_t& size);
+
+    /**
      * Render samples into sample memory.
      * @param sysID the chip's index in the chip list.
      */
     virtual void renderSamples(int sysID);
 
     /**
-     * tell this DivDispatch that the tuning and/or pitch linearity has changed, and therefore the pitch table must be regenerated.
+     * tell this DivDispatch that the tuning, pitch linearity or rate of a sample has changed, and therefore the pitch table must be regenerated.
+     * @param sample the sample index if it's a rate change. this can be used to regenerate the table of a single sample. set to -1 when the tuning/pitch linearity changes and a full recalculation must take place.
      */
-    virtual void notifyPitchTable();
+    virtual void notifyPitchTable(int sample=-1);
 
     /**
      * initialize this DivDispatch.
@@ -1091,6 +1462,7 @@ class DivDispatch {
 //   - freqChanged: whether baseFreq and/or pitch have changed, and a frequency recalculation is required on the next tick.
 // - the following definitions will help you calculate baseFreq.
 // - to use them, define CHIP_DIVIDER and/or CHIP_FREQBASE in your code (not in the header though!).
+//   the value depends on the chip.
 #define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
 #define NOTE_PERIODIC_NOROUND(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
@@ -1111,11 +1483,16 @@ class DivDispatch {
 #define COLOR_NTSC (315000000.0/88.0)
 #define COLOR_PAL (283.75*15625.0+25.0)
 
+// this macro clamps a variable.
 #define CLAMP_VAR(x,xMin,xMax) \
   if ((x)<(xMin)) (x)=(xMin); \
   if ((x)>(xMax)) (x)=(xMax);
 
+// used to determine whether we can use handleArp() to handle the arpeggio macro.
+// otherwise, baseFreq must be altered on each arp macro tick.
 #define NEW_ARP_STRAT (parent->song.compatFlags.linearPitch && !parent->song.compatFlags.oldArpStrategy)
+
+// this is used by DIV_CMD_LEGATO handling code in some dispatches for compatibility.
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif

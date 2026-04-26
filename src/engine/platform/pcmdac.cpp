@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -520,7 +520,7 @@ void DivPlatformPCMDAC::forceIns() {
   }
 }
 
-void* DivPlatformPCMDAC::getChanState(int ch) {
+SharedChannel* DivPlatformPCMDAC::getChanState(int ch) {
   if (ch>=chans) return NULL;
   return &chan[ch];
 }
@@ -532,7 +532,7 @@ DivDispatchOscBuffer* DivPlatformPCMDAC::getOscBuffer(int ch) {
 
 void DivPlatformPCMDAC::reset() {
   for (int i=0; i<chans; i++) {
-    chan[i]=DivPlatformPCMDAC::Channel();
+    chan[i]=DivPlatformPCMDAC::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);
@@ -542,6 +542,10 @@ void DivPlatformPCMDAC::reset() {
 
 int DivPlatformPCMDAC::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformPCMDAC::hasSoftPan(int ch) {
+  return outStereo;
 }
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {

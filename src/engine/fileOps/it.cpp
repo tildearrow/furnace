@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -571,9 +571,9 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
       // note map
       ins->amiga.useNoteMap=true;
       for (int j=0; j<120; j++) {
-        ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
-        ins->amiga.noteMap[j].map=reader.readC()-1;
-        noteMap[i][j]=ins->amiga.noteMap[j].map;
+        ins->amiga.noteMap[j+60].freq=((unsigned char)reader.readC())+60;
+        ins->amiga.noteMap[j+60].map=reader.readC()-1;
+        noteMap[i][j]=ins->amiga.noteMap[j+60].map;
       }
 
       // envelopes...

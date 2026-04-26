@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1414,7 +1414,8 @@ void DivPlatformOPL::tick(bool sysTick) {
       } else {
         chan[adpcmChan].freq=0;
       }
-      if (chan[adpcmChan].fixedFreq>0) chan[adpcmChan].freq=chan[adpcmChan].fixedFreq;
+      // TODO: sorry?
+      if (chan[adpcmChan].fixedFreq>=0) chan[adpcmChan].freq=chan[adpcmChan].fixedFreq;
       if (pretendYMU) { // YMU759 only does 4KHz or 8KHz
         if (chan[adpcmChan].freq>7500) {
           chan[adpcmChan].freq=10922; // 8KHz
@@ -1519,10 +1520,10 @@ void DivPlatformOPL::tick(bool sysTick) {
           mul=octave(chan[i].baseFreq,fixedBlock)*2;
         }
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-        if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>131071) chan[i].freq=131071;
-        int freqt=toFreq(chan[i].freq,fixedBlock);
+        if (chan[i].fixedFreq>=0) chan[i].freq=chan[i].fixedFreq;
+        int freqt=(chan[i].fixedFreq>=0)?chan[i].fixedFreq:toFreq(chan[i].freq,fixedBlock);
         chan[i].freqH=freqt>>8;
         chan[i].freqL=freqt&0xff;
         immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
@@ -1838,7 +1839,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
         if (skipRegisterWrites) break;
         chan[c.chan].macroInit(ins);
-        chan[c.chan].fixedFreq=0;
+        chan[c.chan].fixedFreq=-1;
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
           immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
@@ -1884,8 +1885,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan>melodicChans && ins->type==DIV_INS_OPL_DRUMS && chan[c.chan].state.fixedDrums) {
-          chan[melodicChans+1].fixedFreq=(chan[melodicChans+1].state.snareHatFreq&1023)<<(chan[melodicChans+1].state.snareHatFreq>>10);
-          chan[melodicChans+2].fixedFreq=(chan[melodicChans+2].state.tomTopFreq&1023)<<(chan[melodicChans+2].state.tomTopFreq>>10);
+          chan[melodicChans+1].fixedFreq=chan[melodicChans+1].state.snareHatFreq;
+          chan[melodicChans+2].fixedFreq=chan[melodicChans+2].state.tomTopFreq;
           chan[melodicChans+3].fixedFreq=chan[melodicChans+2].fixedFreq;
           chan[melodicChans+4].fixedFreq=chan[melodicChans+1].fixedFreq;
 
@@ -1896,18 +1897,18 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         } else {
           if (c.chan>=melodicChans && (chan[c.chan].state.opllPreset==16 || ins->type==DIV_INS_OPL_DRUMS) && chan[c.chan].state.fixedDrums) { // drums
             if (c.chan==melodicChans) {
-              chan[c.chan].fixedFreq=(chan[c.chan].state.kickFreq&1023)<<(chan[c.chan].state.kickFreq>>10);
+              chan[c.chan].fixedFreq=chan[c.chan].state.kickFreq;
             } else if (c.chan==melodicChans+1 || c.chan==melodicChans+4) {
-              chan[c.chan].fixedFreq=(chan[c.chan].state.snareHatFreq&1023)<<(chan[c.chan].state.snareHatFreq>>10);
+              chan[c.chan].fixedFreq=chan[c.chan].state.snareHatFreq;
             } else if (c.chan==melodicChans+2 || c.chan==melodicChans+3) {
-              chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&1023)<<(chan[c.chan].state.tomTopFreq>>10);
+              chan[c.chan].fixedFreq=chan[c.chan].state.tomTopFreq;
             } else {
               chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-              chan[c.chan].fixedFreq=0;
+              chan[c.chan].fixedFreq=-1;
             }
           } else {
             chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-            chan[c.chan].fixedFreq=0;
+            chan[c.chan].fixedFreq=-1;
           }
         }
         chan[c.chan].note=c.value;
@@ -2671,7 +2672,7 @@ void DivPlatformOPL::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformOPL::getChanState(int ch) {
+SharedChannel* DivPlatformOPL::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -2852,7 +2853,7 @@ void DivPlatformOPL::reset() {
   }
 
   for (int i=0; i<totalChans; i++) {
-    chan[i]=DivPlatformOPL::Channel();
+    chan[i]=DivPlatformOPL::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=(PCM_CHECK(i))?0x7f:0x3f;
     chan[i].outVol=(PCM_CHECK(i))?0x7f:0x3f;
@@ -2860,7 +2861,7 @@ void DivPlatformOPL::reset() {
   }
 
   if (adpcmChan>=0) {
-    chan[adpcmChan]=DivPlatformOPL::Channel();
+    chan[adpcmChan]=DivPlatformOPL::Channel(parent->song.compatFlags.linearPitch);
     chan[adpcmChan].std.setEngine(parent);
     chan[adpcmChan].vol=0xff;
     chan[adpcmChan].outVol=0xff;
@@ -2903,10 +2904,10 @@ void DivPlatformOPL::reset() {
       // Reset wavetable header
       immWrite(0x202,PCM_IN_RAM?0x10:0x00);
       // initialize mixer volume
-      fmMixL=7;
-      fmMixR=7;
-      pcmMixL=7;
-      pcmMixR=7;
+      fmMixL=fmMixLDef;
+      fmMixR=fmMixRDef;
+      pcmMixL=pcmMixLDef;
+      pcmMixR=pcmMixRDef;
       immWrite(PCM_ADDR_MIX_FM,((7-fmMixR)<<3)|(7-fmMixL));
       immWrite(PCM_ADDR_MIX_PCM,((7-pcmMixR)<<3)|(7-pcmMixL));
     } else {
@@ -2928,6 +2929,10 @@ void DivPlatformOPL::reset() {
 
 int DivPlatformOPL::getOutputCount() {
   return totalOutputs;
+}
+
+bool DivPlatformOPL::hasSoftPan(int ch) {
+  return (chipType==4 && ch>=pcmChanOffs);
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {
@@ -2971,7 +2976,7 @@ void DivPlatformOPL::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformOPL::getPortaFloor(int ch) {
-  return (ch>5)?12:0;
+  return (ch>5)?72:60;
 }
 
 void DivPlatformOPL::setCore(unsigned char which) {
@@ -3185,6 +3190,19 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   }
   compatPan=flags.getBool("compatPan",false);
   compatYPitch=flags.getBool("compatYPitch",false);
+
+  fmMixLDef=flags.getInt("fmMixL",4);
+  fmMixRDef=flags.getInt("fmMixR",4);
+  pcmMixLDef=flags.getInt("pcmMixL",7);
+  pcmMixRDef=flags.getInt("pcmMixR",7);
+  if (fmMixLDef<0) fmMixLDef=0;
+  if (fmMixLDef>7) fmMixLDef=7;
+  if (fmMixRDef<0) fmMixRDef=0;
+  if (fmMixRDef>7) fmMixRDef=7;
+  if (pcmMixLDef<0) pcmMixLDef=0;
+  if (pcmMixLDef>7) pcmMixLDef=7;
+  if (pcmMixRDef<0) pcmMixRDef=0;
+  if (pcmMixRDef>7) pcmMixRDef=7;
 
   for (int i=0; i<44; i++) {
     oscBuf[i]->setRate(rate);

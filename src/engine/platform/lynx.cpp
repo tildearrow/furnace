@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -487,6 +487,10 @@ int DivPlatformLynx::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformLynx::hasSoftPan(int ch) {
+  return true;
+}
+
 void DivPlatformLynx::forceIns() {
   for (int i=0; i<4; i++) {
     if (chan[i].active) {
@@ -500,7 +504,7 @@ void DivPlatformLynx::forceIns() {
   }
 }
 
-void* DivPlatformLynx::getChanState(int ch) {
+SharedChannel* DivPlatformLynx::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -540,7 +544,7 @@ void DivPlatformLynx::reset() {
   mikey=std::make_unique<Lynx::Mikey>(rate);
 
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformLynx::Channel();
+    chan[i]=DivPlatformLynx::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   writes.clear();
@@ -563,7 +567,7 @@ bool DivPlatformLynx::getLegacyAlwaysSetVolume() {
 }
 
 //int DivPlatformLynx::getPortaFloor(int ch) {
-//  return 12;
+//  return 72;
 //}
 
 void DivPlatformLynx::setFlags(const DivConfig& flags) {

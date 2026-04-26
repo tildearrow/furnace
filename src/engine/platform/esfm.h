@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #define ESFM_REG_POOL_SIZE 0x400
 
 class DivPlatformESFM: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     struct {
       DivInstrumentFM fm;
       DivInstrumentESFM esfm;
@@ -98,8 +98,8 @@ class DivPlatformESFM: public DivDispatch {
       }
     }
 
-    Channel():
-      SharedChannel<int>(0),
+    Channel(bool linear=true):
+      SharedChannel(0,linear),
       freqL{0, 0, 0, 0},
       freqH{0, 0, 0, 0},
       hardReset(false),
@@ -183,7 +183,7 @@ class DivPlatformESFM: public DivDispatch {
     void acquire(short** buf, size_t len);
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "../engine/chipUtils.h"
+#include "../engine/dispatch.h"
 #include "../engine/platform/gbaminmod.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -1324,6 +1324,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int channels=flags.getInt("channels",7)+1;
       bool multiplex=flags.getBool("multiplex",false);
       bool lenCompensate=flags.getBool("lenCompensate",false);
+      bool posLatch=flags.getBool("posLatch",true);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -1369,6 +1370,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::Checkbox(_("Scale frequency to wave length"),&lenCompensate)) {
         altered=true;
       }
+      if (ImGui::Checkbox(_("Waveform position latch"),&posLatch)) {
+        altered=true;
+      }
+      ImGui::SetItemTooltip(_("when enabled, a waveform position effect will lock the position, preventing instrument changes from changing it.\nuse a wave position effect with value FE or FF to unlock it."));
 
       if (altered) {
         e->lockSave([&]() {
@@ -1376,6 +1381,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("channels",channels-1);
           flags.set("multiplex",multiplex);
           flags.set("lenCompensate",lenCompensate);
+          flags.set("posLatch",posLatch);
         });
       }
       break;
@@ -2521,8 +2527,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_SM8521:/*  {
-      bool noAntiClick=flags.getBool("noAntiClick",false);
+    case DIV_SYSTEM_SM8521: {
+    /* bool noAntiClick=flags.getBool("noAntiClick",false);
 
       if (ImGui::Checkbox(_("Disable anti-click"),&noAntiClick)) {
         altered=true;
@@ -2532,9 +2538,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("noAntiClick",noAntiClick);
         });
-      }
+      }*/
       break;
-    }*/
+    }
     case DIV_SYSTEM_K053260: {
       int clockSel=flags.getInt("clockSel",0);
 
@@ -2735,6 +2741,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_OPL4_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
       int ramSize=flags.getInt("ramSize",0);
+      int fmMixL=flags.getInt("fmMixL",4);
+      int fmMixR=flags.getInt("fmMixR",4);
+      int pcmMixL=flags.getInt("pcmMixL",7);
+      int pcmMixR=flags.getInt("pcmMixR",7);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -2791,10 +2801,38 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      ImGui::Text("FM volume:");
+      if (CWSliderInt(_("Left##FMMixL"),&fmMixL,0,7)) {
+        if (fmMixL<0) fmMixL=0;
+        if (fmMixL>7) fmMixL=7;
+        altered=true;
+      } rightClickable
+      if (CWSliderInt(_("Right##FMMixR"),&fmMixR,0,7)) {
+        if (fmMixR<0) fmMixR=0;
+        if (fmMixR>7) fmMixR=7;
+        altered=true;
+      } rightClickable
+
+      ImGui::Text("PCM volume:");
+      if (CWSliderInt(_("Left##PCMMixL"),&pcmMixL,0,7)) {
+        if (pcmMixL<0) pcmMixL=0;
+        if (pcmMixL>7) pcmMixL=7;
+        altered=true;
+      } rightClickable
+      if (CWSliderInt(_("Right##PCMMixR"),&pcmMixR,0,7)) {
+        if (pcmMixR<0) pcmMixR=0;
+        if (pcmMixR>7) pcmMixR=7;
+        altered=true;
+      } rightClickable
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("ramSize",ramSize);
+          flags.set("fmMixL",fmMixL);
+          flags.set("fmMixR",fmMixR);
+          flags.set("pcmMixL",pcmMixL);
+          flags.set("pcmMixR",pcmMixR);
         });
       }
       break;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -620,6 +620,13 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
+        // ADPCM-A/B specific warnings
+        if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A || sample->depth==DIV_SAMPLE_DEPTH_ADPCM_B) {
+          if (sample->samples&511) {
+            SAMPLE_WARN(warnLength,_("ADPCM sample is not padded to 256 bytes!"));
+          }
+        }
+
         // chips grid
         if (dispatch==NULL) continue;
 
@@ -783,12 +790,17 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          pushWarningColor(targetRate>384000);
           if (ImGui::InputInt("##SampleRate",&targetRate,10,200)) { MARK_MODIFIED
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
+          if (targetRate>384000) {
+            ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+          }
+          popWarningColor();
           
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Note"));
@@ -825,9 +837,9 @@ void FurnaceGUI::drawSampleEdit() {
 
             targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0));
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
 
           ImGui::AlignTextToFramePadding();
@@ -855,9 +867,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
 
           ImGui::TableNextColumn();
@@ -1140,27 +1152,28 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        pushWarningColor(resampleTarget>384000);
         if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
+        if (resampleTarget>384000) {
+          ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+        }
+        popWarningColor();
         double factor=resampleTarget/(double)targetRate;
         unsigned int targetLength=round(sample->samples*factor);
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
           resampleTarget=(double)targetRate*factor;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
@@ -1170,7 +1183,6 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
@@ -1181,6 +1193,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             e->renderSamples(curSample);
           });
+          e->notifySampleChange(curSample);
           updateSampleTex=true;
           notifySampleChange=true;
           sampleSelStart=-1;
@@ -1195,6 +1208,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::EndDisabled();
       if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
         doUndoSample();
       }
@@ -1211,6 +1225,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Amplify/Offset"));
@@ -1340,6 +1355,88 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Trim"));
       }
+      sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::Button(ICON_FA_MAGIC "##SNoiseGate");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Noise Gate"));
+      }
+      if (openSampleNoiseGateOpt) {
+        openSampleNoiseGateOpt=false;
+        ImGui::OpenPopup("SNoiseGateOpt");
+      }
+      if (ImGui::BeginPopupContextItem("SNoiseGateOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        ImGui::Text(_("Threshold (dB)"));
+        if (ImGui::InputFloat("##SNGThreshold",&noiseGateThreshold,1.0f,5.0f,"%.1f")) {
+          if (noiseGateThreshold<-144.0f) noiseGateThreshold=-144.0f;
+          if (noiseGateThreshold>0.0f) noiseGateThreshold=0.0f;
+        }
+        if (ImGui::Button(_("Apply"))) {
+          sample->prepareUndo(true);
+          e->lockEngine([this,sample]() {
+            if (sample->depth==DIV_SAMPLE_DEPTH_16BIT && sample->data16!=NULL && sample->samples>0) {
+              SAMPLE_OP_BEGIN;
+              float linThreshold=powf(10.0f,noiseGateThreshold/20.0f)*32767.0f;
+              unsigned int newStart=start;
+              unsigned int newEnd=end;
+              unsigned int windowSize=128;
+              if (windowSize>(end-start)) windowSize=end-start;
+              unsigned int minCount=windowSize/4;
+              if (minCount<1) minCount=1;
+
+              for (unsigned int i=start; i+windowSize<=end; i++) {
+                unsigned int count=0;
+                for (unsigned int j=0; j<windowSize; j++) {
+                  if (fabsf((float)sample->data16[i+j])>=linThreshold) {
+                    count++;
+                  }
+                }
+                if (count>=minCount) {
+                  newStart=i;
+                  break;
+                }
+              }
+
+              for (unsigned int i=end; i>=start+windowSize; i--) {
+                unsigned int count=0;
+                for (unsigned int j=0; j<windowSize; j++) {
+                  if (fabsf((float)sample->data16[i-windowSize+j])>=linThreshold) {
+                    count++;
+                  }
+                }
+                if (count>=minCount) {
+                  newEnd=i;
+                  break;
+                }
+              }
+
+              if (newStart<newEnd && (newStart>start || newEnd<end)) {
+                if (start==0 && end==sample->samples) {
+                  sample->trim(newStart,newEnd);
+                } else {
+                  if (newEnd<end) {
+                    sample->strip(newEnd,end);
+                  }
+                  if (newStart>start) {
+                    sample->strip(start,newStart);
+                  }
+                  sampleSelStart=start;
+                  sampleSelEnd=start+(newEnd-newStart);
+                }
+              }
+            }
+
+            updateSampleTex=true;
+            notifySampleChange=true;
+
+            e->renderSamples(curSample);
+          });
+          MARK_MODIFIED;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::EndDisabled();
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
@@ -2030,8 +2127,21 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("set loop to selection"),BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
+          ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
+          if (ImGui::MenuItem(_("trim to the end of the loop"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
+          }
+          ImGui::EndDisabled();
+          ImGui::BeginDisabled(!sample->isLoopable() || (sample->loopStart==0 && (unsigned int)sample->loopEnd>=sample->samples) || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
+          if (ImGui::MenuItem(_("trim around loop points"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_TO_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_TRIM_TO_LOOP);
+          }
+          ImGui::EndDisabled();
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
+          }
+          if (ImGui::MenuItem(_("copy selection to new sample"),BIND_FOR(GUI_ACTION_SAMPLE_COPY_NEW))) {
+            doAction(GUI_ACTION_SAMPLE_COPY_NEW);
           }
           ImGui::EndPopup();
         }

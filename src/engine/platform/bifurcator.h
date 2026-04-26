@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@
 #include "../waveSynth.h"
 
 class DivPlatformBifurcator: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int param, curx;
     int audSub;
     bool volChangedL, volChangedR;
     int chPanL, chPanR;
     int chVolL, chVolR;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       param(47360),
       curx(1),
       audSub(0),
@@ -53,7 +53,7 @@ class DivPlatformBifurcator: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -62,6 +62,7 @@ class DivPlatformBifurcator: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void setFlags(const DivConfig& flags);

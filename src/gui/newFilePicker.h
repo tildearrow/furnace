@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,7 +106,6 @@ class FurnaceFilePicker {
   String failMessage;
   String homeDir;
   String entryName;
-  String entryNameHint;
   ImGuiListClipper listClipper;
   ImVec2 minSize, maxSize;
   bool haveFiles, haveStat, stopReading, isOpen, isMobile;
@@ -159,6 +158,8 @@ class FurnaceFilePicker {
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
   void drawBookmarks(ImVec2& tableSize, String& newDir);
+
+  void acceptAndClose();
 
   public:
     void readDirectorySub();

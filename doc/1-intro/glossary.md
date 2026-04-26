@@ -81,6 +81,8 @@
 
 **macro**: a sequence of values automatically applied while a note plays.
 
+**nibble**: a group of 4 binary digits (bits) or a single hex digit. some effects use each nibble of an effect value independently.
+
 **noise bass**: the technique of using a PSG's periodic noise generator with a very short period to create low-frequency sounds.
 
 **normalize**: to adjust the volume of a sample so it is as loud as possible without adding distortion from clipping.

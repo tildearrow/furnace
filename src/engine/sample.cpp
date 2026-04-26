@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -181,8 +181,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   }
 
   if (version>=58) { // modern sample
-    init(samples);
-    reader.read(getCurBuf(),getCurBufLen());
+    if (init(samples)) {
+      reader.read(getCurBuf(),getCurBufLen());
+    }
 #ifdef TA_BIG_ENDIAN
     // convert 16-bit samples to big-endian
     if (depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -196,7 +197,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     }
 #endif
   } else { // legacy sample
-    int length=samples;
+    unsigned int length=samples;
+    if (length>16777215) {
+      // yeah I know this is a terrible idea...
+      length=16777215;
+    }
     short* data=new short[length];
     reader.read(data,2*length);
 
@@ -217,20 +222,20 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       depth=DIV_SAMPLE_DEPTH_16BIT;
     }
     samples=(double)samples/samplePitchesSD[pitch];
-    init(samples);
-
-    unsigned int k=0;
-    float mult=(float)(vol)/50.0f;
-    for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
-      if (k>=samples) {
-        break;
-      }
-      if (depth==DIV_SAMPLE_DEPTH_8BIT) {
-        float next=(float)(data[(unsigned int)j]-0x80)*mult;
-        data8[k++]=fmin(fmax(next,-128),127);
-      } else {
-        float next=(float)data[(unsigned int)j]*mult;
-        data16[k++]=fmin(fmax(next,-32768),32767);
+    if (init(samples)) {
+      unsigned int k=0;
+      float mult=(float)(vol)/50.0f;
+      for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
+        if (k>=samples) {
+          break;
+        }
+        if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+          float next=(float)(data[(unsigned int)j]-0x80)*mult;
+          data8[k++]=fmin(fmax(next,-128),127);
+        } else {
+          float next=(float)data[(unsigned int)j]*mult;
+          data16[k++]=fmin(fmax(next,-32768),32767);
+        }
       }
     }
 
@@ -579,13 +584,13 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
       if (dataA!=NULL) delete[] dataA;
-      lengthA=(count+1)/2;
+      lengthA=(((count+1)/2)+255)&(~0xff);
       dataA=new unsigned char[(lengthA+255)&(~0xff)];
       memset(dataA,0x80,(lengthA+255)&(~0xff));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
       if (dataB!=NULL) delete[] dataB;
-      lengthB=(count+1)/2;
+      lengthB=(((count+1)/2)+255)&(~0xff);
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
       memset(dataB,0x80,(lengthB+255)&(~0xff));
       break;
@@ -872,10 +877,10 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
       setSampleCount((samples+1)&(~1));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
-      setSampleCount((samples+1)&(~1));
+      setSampleCount((samples+511)&(~511));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
-      setSampleCount((samples+1)&(~1));
+      setSampleCount((samples+511)&(~511));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
       setSampleCount((samples+1)&(~1));

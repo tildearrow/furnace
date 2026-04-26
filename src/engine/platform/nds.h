@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,14 +30,14 @@
 using namespace nds_sound_emu;
 
 class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning, duty;
     bool setPos, pcm, busy;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -83,7 +83,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
 #endif
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
@@ -95,6 +95,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void muteChannel(int ch, bool mute) override;
     virtual float getPostAmp() override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual bool hasAcquireDirect() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;

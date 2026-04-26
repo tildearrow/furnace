@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -352,7 +352,7 @@ void DivPlatformMMC5::forceIns() {
   }
 }
 
-void* DivPlatformMMC5::getChanState(int ch) {
+SharedChannel* DivPlatformMMC5::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -379,7 +379,7 @@ float DivPlatformMMC5::getPostAmp() {
 void DivPlatformMMC5::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformMMC5::Channel();
+    chan[i]=DivPlatformMMC5::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

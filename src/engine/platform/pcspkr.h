@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@
 #include <condition_variable>
 
 class DivPlatformPCSpeaker: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
-    Channel():
-      SharedChannel<signed char>(15) {}
+  struct Channel: public SharedChannel {
+    Channel(bool linear=true):
+      SharedChannel(15,linear) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
@@ -77,7 +77,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "sound/dave/dave.hpp"
 
 class DivPlatformDave: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
@@ -34,8 +34,8 @@ class DivPlatformDave: public DivDispatch {
     unsigned char panR;
     unsigned char wave;
     bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase, setPos;
-    Channel():
-      SharedChannel<signed char>(63),
+    Channel(bool linear=true):
+      SharedChannel(63,linear),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),
@@ -73,7 +73,7 @@ class DivPlatformDave: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
@@ -87,6 +87,7 @@ class DivPlatformDave: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);

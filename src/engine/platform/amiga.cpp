@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -811,7 +811,7 @@ void DivPlatformAmiga::forceIns() {
   }
 }
 
-void* DivPlatformAmiga::getChanState(int ch) {
+SharedChannel* DivPlatformAmiga::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -823,7 +823,7 @@ void DivPlatformAmiga::reset() {
   writes.clear();
   memset(regPool,0,256*sizeof(unsigned short));
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformAmiga::Channel();
+    chan[i]=DivPlatformAmiga::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);

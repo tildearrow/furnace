@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
       bool dacDirection;
       bool setPos;
       signed char dacOutput;
-      Channel():
-        FMChannelStereo(),
+      Channel(bool linear=true):
+        FMChannelStereo(linear),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -101,7 +101,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);

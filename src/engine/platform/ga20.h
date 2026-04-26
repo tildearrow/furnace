@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,15 +26,15 @@
 #include "sound/ga20/iremga20.h"
 
 class DivPlatformGA20: public DivDispatch, public iremga20_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned int audPos;
     int sample;
     bool volumeChanged, setPos;
     int resVol;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       prevFreq(-1),
       audPos(0),
       sample(-1),
@@ -77,7 +77,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual DivSamplePos getSamplePos(int ch) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;

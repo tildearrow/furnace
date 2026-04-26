@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panL, panR;
@@ -34,8 +34,8 @@ class DivPlatformSNES: public DivDispatch {
     int wtLen;
     DivInstrumentSNES state;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<int>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -95,6 +95,9 @@ class DivPlatformSNES: public DivDispatch {
   size_t sampleMemLen;
   unsigned int* sampleOff;
   bool* sampleLoaded;
+  DivPitchTable* samplePitchTable;
+  size_t samplePitchTableLen;
+  DivPitchTable wavePitchTable[16];
   DivMemoryComposition memCompo;
   unsigned char regPool[0x80];
   SPC_DSP dsp;
@@ -103,7 +106,7 @@ class DivPlatformSNES: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
@@ -117,10 +120,12 @@ class DivPlatformSNES: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
@@ -130,6 +135,7 @@ class DivPlatformSNES: public DivDispatch {
     bool hasSamplePtrHeader(int index=0);
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);
+    const void* compileSampleMem(int index, size_t& size);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

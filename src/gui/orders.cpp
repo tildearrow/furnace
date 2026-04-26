@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -152,6 +152,10 @@ void FurnaceGUI::drawOrderButtons() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(_("Duplicate order (right-click to deep clone)"));
   }
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+    NOTIFY_LONG_HOLD;
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
+  }
   NEXT_BUTTON;
 
   if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
@@ -181,6 +185,10 @@ void FurnaceGUI::drawOrderButtons() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(_("Place copy of current order at end of song (right-click to deep clone)"));
+  }
+  if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {
+    NOTIFY_LONG_HOLD;
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
   }
   NEXT_BUTTON;
 
@@ -280,7 +288,7 @@ void FurnaceGUI::drawOrders() {
       ImGui::PushFont(patFont);
       bool tooSmall=((displayChans+1)>((ImGui::GetContentRegionAvail().x)/(ImGui::CalcTextSize("AA").x+2.0*ImGui::GetStyle().ItemInnerSpacing.x)));
       float yHeight=ImGui::GetContentRegionAvail().y;
-      float lineHeight=(ImGui::GetTextLineHeight()+4*dpiScale);
+      float lineHeight=floor(ImGui::GetTextLineHeight()+4*dpiScale);
       if (e->isPlaying() || haveHitBounds) {
         if (followOrders) {
           float nextOrdScroll=(playOrder+1)*lineHeight-((yHeight-(tooSmall?ImGui::GetStyle().ScrollbarSize:0.0f))/2.0f);

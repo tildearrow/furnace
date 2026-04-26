@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -351,7 +351,7 @@ void DivPlatformSAA1099::forceIns() {
   rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
 }
 
-void* DivPlatformSAA1099::getChanState(int ch) {
+SharedChannel* DivPlatformSAA1099::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -380,7 +380,7 @@ void DivPlatformSAA1099::reset() {
   memset(regPool,0,32);
   saa_saaSound->Clear();
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformSAA1099::Channel();
+    chan[i]=DivPlatformSAA1099::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
@@ -415,8 +415,12 @@ int DivPlatformSAA1099::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSAA1099::hasSoftPan(int ch) {
+  return true;
+}
+
 int DivPlatformSAA1099::getPortaFloor(int ch) {
-  return 12;
+  return 72;
 }
 
 bool DivPlatformSAA1099::keyOffAffectsArp(int ch) {

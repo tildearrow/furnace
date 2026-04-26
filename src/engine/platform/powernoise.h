@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,15 +43,15 @@ class DivPlatformPowerNoise: public DivDispatch {
       dir(false) {}
   };
   
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int fNum;
     unsigned short initLFSR;
     unsigned char octave, pan, tapA, tapB, octaveOff;
     bool slope, am, tapBEnable, keyOn, keyOff;
     SlopePortion slopeA, slopeB;
     
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       fNum(0),
       initLFSR(0x5555),
       octave(0),
@@ -81,7 +81,7 @@ class DivPlatformPowerNoise: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);
@@ -94,6 +94,7 @@ class DivPlatformPowerNoise: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);

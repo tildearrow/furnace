@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -849,6 +849,10 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                 if (newVal>0xff) newVal=0xff;
                 pat->newData[k][DIV_PAT_FXVAL(l)]=newVal;
               }
+              // apply TimeBase
+              if ((pat->newData[k][DIV_PAT_FX(l)]==0x09 || pat->newData[k][DIV_PAT_FX(l)]==0x0f) && pat->newData[k][DIV_PAT_FXVAL(l)]!=-1) {
+                pat->newData[k][DIV_PAT_FXVAL(l)]=CLAMP(pat->newData[k][DIV_PAT_FXVAL(l)]*(oldTimeBase+1),1,255);
+              }
             }
             // instrument
             pat->newData[k][DIV_PAT_INS]=reader.readS();
@@ -1412,7 +1416,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     addWarning(".dmf format does not support virtual tempo");
   }
 
-  if (song.tuning<439.99 && song.tuning>440.01) {
+  if (song.tuning<439.99 || song.tuning>440.01) {
     addWarning(".dmf format does not support tuning");
   }
 
@@ -1769,9 +1773,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
               if (convIns>=0 && convIns<song.insLen) {
                 DivInstrument* convInsInst=song.ins[convIns];
                 if (convInsInst->amiga.useNoteMap) {
-                  int mapTarget=pat->newData[k][DIV_PAT_NOTE]-60;
+                  int mapTarget=pat->newData[k][DIV_PAT_NOTE];
                   if (mapTarget<0) mapTarget=0;
-                  if (mapTarget>119) mapTarget=119;
+                  if (mapTarget>179) mapTarget=179;
                   insertEBxx=convInsInst->amiga.noteMap[mapTarget].map/12;
                   pat->newData[k][DIV_PAT_NOTE]=(12*(pat->newData[k][DIV_PAT_NOTE]/12))+(convInsInst->amiga.noteMap[mapTarget].map%12);
                 } else {

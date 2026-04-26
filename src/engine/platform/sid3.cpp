@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #define CURRENT_FREQ_IN_HZ() ((double)chipClock / pow(2.0, (double)SID3_ACC_BITS) * (double)chan[i].freq)
 #define c_5_FREQ() (parent->song.tuning / pow(2, (12.0 * 9.0 + 9.0) / 12.0))
-#define FREQ_FOR_NOTE(note) (c_5_FREQ() * pow(2, (double)note / 12.0))
+#define FREQ_FOR_NOTE(note) (c_5_FREQ() * pow(2, (double)((note)-60) / 12.0))
 
 const char* regCheatSheetSID3[]={
   "FreqL0", "00",
@@ -1249,7 +1249,7 @@ void DivPlatformSID3::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSID3::getChanState(int ch) {
+SharedChannel* DivPlatformSID3::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1292,7 +1292,7 @@ float DivPlatformSID3::getPostAmp() {
 void DivPlatformSID3::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<SID3_NUM_CHANNELS; i++) {
-    chan[i]=DivPlatformSID3::Channel();
+    chan[i]=DivPlatformSID3::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol = SID3_MAX_VOL;
 
@@ -1330,6 +1330,10 @@ void DivPlatformSID3::reset() {
 
 int DivPlatformSID3::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformSID3::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformSID3::getDCOffRequired()

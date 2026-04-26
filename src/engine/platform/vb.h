@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,15 +26,15 @@
 #include "sound/vsu.h"
 
 class DivPlatformVB: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int antiClickPeriodCount, antiClickWavePos;
     unsigned char pan, envLow, envHigh;
     bool noise, deferredWaveUpdate, intWritten;
     unsigned char hasEnvWarning;
     signed short wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       pan(255),
@@ -77,7 +77,7 @@ class DivPlatformVB: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);
@@ -90,6 +90,7 @@ class DivPlatformVB: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     bool hasAcquireDirect();
     float getPostAmp();
