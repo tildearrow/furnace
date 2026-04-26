@@ -424,7 +424,8 @@ struct SharedChannel {
   // inPorta: whether we currently are in a portamento.
   // - should be set during DIV_CMD_PRE_PORTA.
   // - in non-linear pitch, this variable is used to inhibit certain pitch changes during a pitch slide.
-  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta;
+  // rawFreq: whether the baseFreq is raw and overrides frequency calculation.
+  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta, rawFreq;
   // vol: the current volume, set during DIV_CMD_VOLUME.
   // outVol: the *output* volume.
   // - this is the same as vol when we don't have a volume macro going on.
@@ -514,6 +515,7 @@ struct SharedChannel {
    * @return the frequency.
    */
   int calcFreq() {
+    if (rawFreq) return baseFreq;
     if (pitchTable==NULL) return 0;
     if (!pitchTable->linearity) {
       return pitchTable->get(baseFreq,pitch,pitch2);
@@ -548,6 +550,7 @@ struct SharedChannel {
     keyOff(false),
     portaPause(false),
     inPorta(false),
+    rawFreq(false),
     vol(initVol),
     outVol(initVol),
     std(),
