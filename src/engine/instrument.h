@@ -535,7 +535,7 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap noteMap[120];
+  SampleMap noteMap[180];
 
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
@@ -549,7 +549,7 @@ struct DivInstrumentAmiga {
   inline short getSample(int note) {
     if (useNoteMap) {
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].map;
     }
     return initSample;
@@ -562,7 +562,7 @@ struct DivInstrumentAmiga {
   inline int getFreq(int note) {
     if (useNoteMap) {
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].freq;
     }
     return note;
@@ -575,7 +575,7 @@ struct DivInstrumentAmiga {
   inline signed char getDPCMFreq(int note) {
     if (useNoteMap) {
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].dpcmFreq;
     }
     return -1;
@@ -588,7 +588,7 @@ struct DivInstrumentAmiga {
   inline signed char getDPCMDelta(int note) {
     if (useNoteMap) {
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].dpcmDelta;
     }
     return -1;
@@ -600,7 +600,7 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (int i=0; i<120; i++) {
+    for (int i=0; i<180; i++) {
       noteMap[i].map=-1;
       noteMap[i].freq=i;
     }

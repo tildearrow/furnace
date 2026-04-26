@@ -334,7 +334,7 @@ void DivPlatformSM8521::forceIns() {
   }
 }
 
-void* DivPlatformSM8521::getChanState(int ch) {
+SharedChannel* DivPlatformSM8521::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -358,7 +358,7 @@ void DivPlatformSM8521::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformSM8521::Channel();
+    chan[i]=DivPlatformSM8521::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);

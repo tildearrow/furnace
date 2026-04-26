@@ -26,13 +26,13 @@
 #include "sound/namco.h"
 
 class DivPlatformNamcoWSG: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char pan;
     bool noise;
     signed short wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       pan(255),
       noise(false),
       wave(-1) {}
@@ -60,7 +60,7 @@ class DivPlatformNamcoWSG: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

@@ -25,7 +25,7 @@
 
 class DivPlatformAY8930: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct Envelope {
         unsigned char mode;
         unsigned short period;
@@ -79,8 +79,8 @@ class DivPlatformAY8930: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen, duty, autoNoiseMode;
       signed char konCycles, autoNoiseOff;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel<int>(31),
+      Channel(bool linear=true):
+        SharedChannel(31,linear),
         envelope(Envelope()),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
@@ -131,7 +131,7 @@ class DivPlatformAY8930: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);

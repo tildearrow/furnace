@@ -294,7 +294,7 @@ void DivPlatformBifurcator::forceIns() {
   }
 }
 
-void* DivPlatformBifurcator::getChanState(int ch) {
+SharedChannel* DivPlatformBifurcator::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -313,7 +313,7 @@ int DivPlatformBifurcator::getRegisterPoolSize() {
 void DivPlatformBifurcator::reset() {
   memset(regPool,0,8*4);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformBifurcator::Channel();
+    chan[i]=DivPlatformBifurcator::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     rWrite(i*8,chan[i].curx&0xff);
     rWrite(i*8+1,chan[i].curx>>8);

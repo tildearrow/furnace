@@ -553,7 +553,7 @@ void DivPlatformN163::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformN163::getChanState(int ch) {
+SharedChannel* DivPlatformN163::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -590,7 +590,7 @@ int DivPlatformN163::getRegisterPoolSize() {
 void DivPlatformN163::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformN163::Channel();
+    chan[i]=DivPlatformN163::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);

@@ -1250,7 +1250,7 @@ void DivPlatformYM2203::forceIns() {
   ay->getRegisterWrites().clear();
 }
 
-void* DivPlatformYM2203::getChanState(int ch) {
+SharedChannel* DivPlatformYM2203::getChanState(int ch) {
   return &chan[ch];
 }
 

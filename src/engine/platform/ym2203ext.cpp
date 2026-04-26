@@ -726,7 +726,7 @@ void DivPlatformYM2203Ext::forceIns() {
   }
 }
 
-void* DivPlatformYM2203Ext::getChanState(int ch) {
+SharedChannel* DivPlatformYM2203Ext::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];

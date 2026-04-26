@@ -269,7 +269,7 @@ bool DivPlatformTED::isVolGlobal() {
   return true;
 }
 
-void* DivPlatformTED::getChanState(int ch) {
+SharedChannel* DivPlatformTED::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -293,7 +293,7 @@ void DivPlatformTED::reset() {
   writes.clear();
   memset(regPool,0,8);
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformTED::Channel();
+    chan[i]=DivPlatformTED::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

@@ -642,7 +642,7 @@ void DivPlatformQSound::forceIns() {
   }
 }
 
-void* DivPlatformQSound::getChanState(int ch) {
+SharedChannel* DivPlatformQSound::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -660,7 +660,7 @@ DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
 
 void DivPlatformQSound::reset() {
   for (int i=0; i<19; i++) {
-    chan[i]=DivPlatformQSound::Channel();
+    chan[i]=DivPlatformQSound::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   qsound_reset(&chip);

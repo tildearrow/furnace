@@ -276,7 +276,7 @@ void DivPlatformPCE::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
-        if (noiseSeek<0) noiseSeek=0;
+        if (noiseSeek<60) noiseSeek=60;
         chan[i].noiseSeek=noiseSeek;
       }
       // prepare for a freq recalculation
@@ -378,10 +378,10 @@ void DivPlatformPCE::tick(bool sysTick) {
       }
       // clamp the final period...
       if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (chan[i].freq>4096) chan[i].freq=4096;
       // ...and write it
       chWrite(i,0x02,chan[i].freq&0xff);
-      chWrite(i,0x03,chan[i].freq>>8);
+      chWrite(i,0x03,(chan[i].freq>>8)&0xf);
 
       // if we're in noise mode, calculate the noise pitch value.
       if (i>=4) {
@@ -390,6 +390,7 @@ void DivPlatformPCE::tick(bool sysTick) {
         if (!NEW_ARP_STRAT) {
           noiseSeek=chan[i].noiseSeek;
         }
+        noiseSeek-=60;
         // write the noise frequency
         // in compatible noise layout, we read from the table. otherwise just write the note AND 31.
         chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.compatFlags.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
@@ -411,7 +412,7 @@ void DivPlatformPCE::tick(bool sysTick) {
   }
   // if we have a scheduled LFO register update, do it now.
   if (updateLFO) {
-    rWrite(0x08,lfoSpeed);
+    rWrite(0x08,lfoSpeed); // TODO: 0 is treated to 256 in chip
     rWrite(0x09,lfoMode);
     updateLFO=false;
   }
@@ -728,7 +729,7 @@ void DivPlatformPCE::forceIns() {
   }
 }
 
-void* DivPlatformPCE::getChanState(int ch) {
+SharedChannel* DivPlatformPCE::getChanState(int ch) {
   // return our Channel struct. used in the debug menu.
   return &chan[ch];
 }
@@ -814,7 +815,7 @@ void DivPlatformPCE::reset() {
   memset(regPool,0,128);
   // initialize channels
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformPCE::Channel();
+    chan[i]=DivPlatformPCE::Channel(parent->song.compatFlags.linearPitch);
     // bind engines for the macro interpreter and wave synth!
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);

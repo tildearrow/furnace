@@ -222,7 +222,7 @@ void DivPlatformPV1000::forceIns() {
   }
 }
 
-void* DivPlatformPV1000::getChanState(int ch) {
+SharedChannel* DivPlatformPV1000::getChanState(int ch) {
   return &chan[ch];
 }
 

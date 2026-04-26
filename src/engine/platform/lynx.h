@@ -40,15 +40,15 @@ class DivPlatformLynx: public DivDispatch {
     MikeyDuty(int duty);
   };
 
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     MikeyFreqDiv fd;
     MikeyDuty duty;
     int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
     unsigned char pan;
     bool pcm, setPos, updateLFSR;
     int macroVolMul;
-    Channel():
-      SharedChannel<signed char>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       fd(0),
       duty(0),
       actualNote(0),
@@ -84,7 +84,7 @@ class DivPlatformLynx: public DivDispatch {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);

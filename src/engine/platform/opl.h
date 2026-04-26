@@ -55,7 +55,7 @@ class DivYMF278MemoryInterface: public MemoryInterface {
 
 class DivPlatformOPL: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       DivInstrumentFM state;
       unsigned int freqH, freqL;
       int sample, fixedFreq;
@@ -64,8 +64,8 @@ class DivPlatformOPL: public DivDispatch {
       int lfo, vib, am, ar, d1r, d2r, dl, rc, rr;
       int pan;
       int macroVolMul;
-      Channel():
-        SharedChannel<int>(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         sample(-1),
@@ -190,7 +190,7 @@ class DivPlatformOPL: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);

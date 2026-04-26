@@ -488,7 +488,7 @@ void DivPlatformVB::forceIns() {
   }
 }
 
-void* DivPlatformVB::getChanState(int ch) {
+SharedChannel* DivPlatformVB::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -530,7 +530,7 @@ void DivPlatformVB::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,0x600);
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformVB::Channel();
+    chan[i]=DivPlatformVB::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,63,false);

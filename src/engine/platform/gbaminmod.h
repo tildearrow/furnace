@@ -24,7 +24,7 @@
 #include "../waveSynth.h"
 
 class DivPlatformGBAMinMod: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned char echo;
     unsigned int audPos, wtLen;
     int sample, wave;
@@ -33,8 +33,8 @@ class DivPlatformGBAMinMod: public DivDispatch {
     int macroVolMul;
     int macroPanMul;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       echo(0),
       audPos(0),
       wtLen(1),
@@ -93,7 +93,7 @@ class DivPlatformGBAMinMod: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);

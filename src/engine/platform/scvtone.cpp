@@ -303,7 +303,7 @@ void DivPlatformSCV::forceIns() {
   }
 }
 
-void* DivPlatformSCV::getChanState(int ch) {
+SharedChannel* DivPlatformSCV::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -327,7 +327,7 @@ void DivPlatformSCV::reset() {
   writes.clear();
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformSCV::Channel();
+    chan[i]=DivPlatformSCV::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

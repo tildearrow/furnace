@@ -24,11 +24,11 @@
 #include "sound/vic20sound.h"
 
 class DivPlatformVIC20: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int wave, waveWriteCycle;
     bool onOff;
-    Channel():
-      SharedChannel<int>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       wave(0),
       waveWriteCycle(-1),
       onOff(true) {}
@@ -48,7 +48,7 @@ class DivPlatformVIC20: public DivDispatch {
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     bool isVolGlobal();
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

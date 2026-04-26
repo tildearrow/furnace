@@ -156,10 +156,10 @@ void DivPlatformMSM5232::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(12<<7);
+      chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(72<<7);
       if (!parent->song.compatFlags.oldArpStrategy) {
         if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(12<<7);
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(72<<7);
         } else {
           chan[i].freq+=chan[i].arpOff<<7;
         }
@@ -331,7 +331,7 @@ void DivPlatformMSM5232::forceIns() {
   }
 }
 
-void* DivPlatformMSM5232::getChanState(int ch) {
+SharedChannel* DivPlatformMSM5232::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -355,7 +355,7 @@ void DivPlatformMSM5232::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformMSM5232::Channel();
+    chan[i]=DivPlatformMSM5232::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

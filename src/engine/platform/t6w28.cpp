@@ -98,15 +98,15 @@ double DivPlatformT6W28::NOTE_SN(int ch, int note) {
   if (parent->song.compatFlags.linearPitch || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
-  if (note>107) {
-    return MAX(0,13-(note-107));
+  if (note>167) {
+    return MAX(0,13-(note-167));
   }
   return NOTE_PERIODIC(note);
 }
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
-  if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(107<<7)) {
-    int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(107<<7)))>>7;
+  if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
+    int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
@@ -306,7 +306,7 @@ void DivPlatformT6W28::forceIns() {
   rWrite(1,0xe0+chan[3].duty);
 }
 
-void* DivPlatformT6W28::getChanState(int ch) {
+SharedChannel* DivPlatformT6W28::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -338,7 +338,7 @@ void DivPlatformT6W28::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformT6W28::Channel();
+    chan[i]=DivPlatformT6W28::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

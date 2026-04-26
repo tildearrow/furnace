@@ -23,9 +23,9 @@
 #include "../dispatch.h"
 
 class DivPlatformPong: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
-    Channel():
-      SharedChannel<signed char>(1) {}
+  struct Channel: public SharedChannel {
+    Channel(bool linear=true):
+      SharedChannel(1,linear) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
@@ -41,7 +41,7 @@ class DivPlatformPong: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();

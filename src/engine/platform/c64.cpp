@@ -759,7 +759,7 @@ void DivPlatformC64::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformC64::getChanState(int ch) {
+SharedChannel* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -833,7 +833,7 @@ float DivPlatformC64::getPostAmp() {
 void DivPlatformC64::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformC64::Channel();
+    chan[i]=DivPlatformC64::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     fakeLow[i]=0;
     fakeBand[i]=0;

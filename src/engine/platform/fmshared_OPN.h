@@ -25,8 +25,8 @@
 #include "sound/ymfm/ymfm_opn.h"
 
 #define PLEASE_HELP_ME(_targetChan,blk) \
-  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
-  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false); \
+  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,60,false); \
+  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,72,false); \
   int destFreq=NOTE_FNUM_BLOCK(c.value2,11,blk); \
   int newFreq; \
   bool return2=false; \
@@ -122,8 +122,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       int sample, macroVolMul;
 
-      OPNChannel():
-        FMChannel(),
+      OPNChannel(bool linear=true):
+        FMChannel(linear),
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
@@ -133,18 +133,18 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNChannelStereo: public OPNChannel {
       unsigned char pan;
-      OPNChannelStereo():
-        OPNChannel(),
+      OPNChannelStereo(bool linear=true):
+        OPNChannel(linear),
         pan(3) {}
     };
 
-    struct OPNOpChannel: public SharedChannel<int> {
+    struct OPNOpChannel: public SharedChannel {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
       bool mask, hardReset;
-      OPNOpChannel():
-        SharedChannel<int>(0),
+      OPNOpChannel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
@@ -155,8 +155,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNOpChannelStereo: public OPNOpChannel {
     unsigned char pan;
-      OPNOpChannelStereo():
-        OPNOpChannel(),
+      OPNOpChannelStereo(bool linear=true):
+        OPNOpChannel(linear),
         pan(3) {}
     };
 

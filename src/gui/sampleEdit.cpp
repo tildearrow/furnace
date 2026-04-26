@@ -768,6 +768,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
           if (targetRate>384000) {
             ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
@@ -811,6 +812,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
 
           ImGui::AlignTextToFramePadding();
@@ -840,6 +842,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (targetRate<100) targetRate=100;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
 
           ImGui::TableNextColumn();
@@ -1163,6 +1166,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             e->renderSamples(curSample);
           });
+          e->notifySampleChange(curSample);
           updateSampleTex=true;
           notifySampleChange=true;
           sampleSelStart=-1;

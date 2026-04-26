@@ -2250,6 +2250,8 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_RECENT);
             drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_INSTRUMENTS);
             drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_SAMPLES);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_INSTRUMENT_CHANGE);
+            drawKeybindSettingsTableRow(GUI_ACTION_CMDPAL_ADD_CHIP);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2397,6 +2399,8 @@ void FurnaceGUI::drawSettings() {
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_NEXT_ORDER);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_PREV_ORDER);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_COLLAPSE_SELECTED);
+            drawKeybindSettingsTableRow(GUI_ACTION_PAT_EXPAND_SELECTED);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_INCREASE_COLUMNS);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_DECREASE_COLUMNS);
             drawKeybindSettingsTableRow(GUI_ACTION_PAT_INTERPOLATE);

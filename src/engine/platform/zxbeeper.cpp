@@ -246,7 +246,7 @@ void DivPlatformZXBeeper::forceIns() {
   }
 }
 
-void* DivPlatformZXBeeper::getChanState(int ch) {
+SharedChannel* DivPlatformZXBeeper::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -270,7 +270,7 @@ int DivPlatformZXBeeper::getRegisterPoolSize() {
 void DivPlatformZXBeeper::reset() {
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformZXBeeper::Channel();
+    chan[i]=DivPlatformZXBeeper::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

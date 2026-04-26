@@ -25,10 +25,10 @@
 #include "sound/ted-sound.h"
 
 class DivPlatformTED: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool noise, square;
-    Channel():
-      SharedChannel<signed char>(8),
+    Channel(bool linear=true):
+      SharedChannel(8,linear),
       noise(false),
       square(true) {}
   };
@@ -55,7 +55,7 @@ class DivPlatformTED: public DivDispatch {
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     bool isVolGlobal();
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

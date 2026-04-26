@@ -576,7 +576,7 @@ void DivPlatformSwan::forceIns() {
   }
 }
 
-void* DivPlatformSwan::getChanState(int ch) {
+SharedChannel* DivPlatformSwan::getChanState(int ch) {
   return &chan[ch];
 }
 

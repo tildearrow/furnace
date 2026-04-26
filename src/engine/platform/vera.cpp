@@ -472,7 +472,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
   return 1;
 }
 
-void* DivPlatformVERA::getChanState(int ch) {
+SharedChannel* DivPlatformVERA::getChanState(int ch) {
   return &chan[ch];
 }
 

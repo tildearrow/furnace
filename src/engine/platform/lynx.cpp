@@ -504,7 +504,7 @@ void DivPlatformLynx::forceIns() {
   }
 }
 
-void* DivPlatformLynx::getChanState(int ch) {
+SharedChannel* DivPlatformLynx::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -544,7 +544,7 @@ void DivPlatformLynx::reset() {
   mikey=std::make_unique<Lynx::Mikey>(rate);
 
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformLynx::Channel();
+    chan[i]=DivPlatformLynx::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   writes.clear();
@@ -567,7 +567,7 @@ bool DivPlatformLynx::getLegacyAlwaysSetVolume() {
 }
 
 //int DivPlatformLynx::getPortaFloor(int ch) {
-//  return 12;
+//  return 72;
 //}
 
 void DivPlatformLynx::setFlags(const DivConfig& flags) {

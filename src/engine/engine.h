@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev245"
-#define DIV_ENGINE_VERSION 245
+#define DIV_VERSION "dev246"
+#define DIV_ENGINE_VERSION 246
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -246,7 +246,8 @@ struct DivChannelState {
 struct DivNoteEvent {
   signed char channel;
   short ins;
-  signed char note, volume;
+  unsigned char note;
+  signed char volume;
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
     channel(c),
@@ -668,6 +669,8 @@ class DivEngine {
     void notifyWaveChange(int wave);
     // notify sample change
     void notifySampleChange(int sample);
+    // notify a change which requires regenerating the pitch table
+    void notifyPitchTable(int sample=-1);
 
     // dispatch a command
     int dispatchCmd(DivCommand c);
@@ -1086,7 +1089,7 @@ class DivEngine {
     DivChannelState* getChanState(int chan);
 
     // get dispatch channel state
-    void* getDispatchChanState(int chan);
+    SharedChannel* getDispatchChanState(int chan);
 
     // get channel pairs
     void getChanPaired(int chan, std::vector<DivChannelPair>& ret);

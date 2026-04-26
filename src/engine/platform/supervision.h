@@ -25,12 +25,12 @@
 #include "sound/supervision.h"
 
 class DivPlatformSupervision: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned int duty, len, pan, pcm; // pcm is channel 3 ONLY
     int sample, hasOffset; // again, for channel 3 ONLY
     bool setPos, kon, initWrite;
-    Channel():
-      SharedChannel<signed char>(63),
+    Channel(bool linear=true):
+      SharedChannel(63,linear),
       duty(0),
       len(0x1f),
       pan(3),
@@ -73,7 +73,7 @@ class DivPlatformSupervision: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

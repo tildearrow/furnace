@@ -26,10 +26,10 @@
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       int sample;
-      Channel():
-        SharedChannel<int>(8),
+      Channel(bool linear=true):
+        SharedChannel(8,linear),
         sample(-1) {}
     };
     Channel chan[4];
@@ -76,7 +76,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual u8 read_byte(u32 address) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;

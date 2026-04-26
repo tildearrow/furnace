@@ -24,14 +24,14 @@
 #include "sound/ymz280b.h"
 
 class DivPlatformYMZ280B: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos, isNewYMZ;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -58,7 +58,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

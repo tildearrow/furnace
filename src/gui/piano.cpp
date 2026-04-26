@@ -452,7 +452,7 @@ void FurnaceGUI::drawPiano() {
 
         // first check released keys
         for (int i=0; i<180; i++) {
-          int note=i-60;
+          int note=i;
           if (!pianoKeyPressed[i]) {
             if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
               switch (curWindow) {
@@ -476,7 +476,7 @@ void FurnaceGUI::drawPiano() {
         }
         // then pressed ones
         for (int i=0; i<180; i++) {
-          int note=i-60;
+          int note=i;
           if (pianoKeyPressed[i]) {
             if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
               switch (curWindow) {

@@ -25,7 +25,7 @@
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned short audLen, irLocL, irLocH, irLen;
     unsigned int audPos;
     int audSub;
@@ -33,8 +33,8 @@ class DivPlatformAmiga: public DivDispatch {
     int sample, wave;
     bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol, updateWave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(64),
+    Channel(bool linear=true):
+      SharedChannel(64,linear),
       audLen(0),
       irLocL(0),
       irLocH(0),
@@ -142,7 +142,7 @@ class DivPlatformAmiga: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

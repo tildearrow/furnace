@@ -570,7 +570,7 @@ void DivPlatformPCSpeaker::forceIns() {
   }
 }
 
-void* DivPlatformPCSpeaker::getChanState(int ch) {
+SharedChannel* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -599,7 +599,7 @@ int DivPlatformPCSpeaker::getRegisterPoolSize() {
 
 void DivPlatformPCSpeaker::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformPCSpeaker::Channel();
+    chan[i]=DivPlatformPCSpeaker::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

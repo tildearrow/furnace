@@ -25,13 +25,13 @@
 #include "vgsound_emu/src/scc/scc.hpp"
 
 class DivPlatformSCC: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool freqInit;
     signed short wave;
     signed char waveROM[32] = {0}; // 8 bit signed waveform
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       freqInit(false),
       wave(-1) {}
   };
@@ -52,7 +52,7 @@ class DivPlatformSCC: public DivDispatch {
     void acquire(short** buf, size_t len);
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
