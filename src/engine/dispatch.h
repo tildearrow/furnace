@@ -401,7 +401,7 @@ struct SharedChannel {
   // arpOff: the arp macro's value (relative), in semitones.
   int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
   // ins: current instrument. -1 is none/default.
-  // note: current note, in semitones. 0 is C-0.
+  // note: current note, in semitones. 0 is C-(-5) and 60 is C-0.
   // sampleNote: note in sample map.
   // sampleNoteDelta: difference between note and sampleNote, used in arp calculation, legato and pitch slides.
   int ins, note, sampleNote, sampleNoteDelta;
