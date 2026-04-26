@@ -129,14 +129,22 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
   shift=period?0:14;
 
   // adjust the shift value so that the highest (or lowest in period mode) note has the highest period/freq
-  while (shift>0) {
-    int nbase=(shift-5)*12;
-    double fbase=(period?(tuning*0.0625):tuning)*pow(2.0,(float)(nbase+3)/(12.0));
-    int bf=period?
-           round((clock/fbase)/divider):
-           round(fbase*(divider/clock));
-    if (bf<=maximum) break;
-    shift--;
+  if (period) {
+    while (shift<14) {
+      int nbase=(shift-4)*12;
+      double fbase=(tuning*0.0625)*pow(2.0,(float)(nbase+3)/(12.0));
+      int bf=round((clock/fbase)/divider);
+      if (bf<=maximum) break;
+      shift++;
+    }
+  } else {
+    while (shift>0) {
+      int nbase=(shift-5)*12;
+      double fbase=tuning*pow(2.0,(float)(nbase+3)/(12.0));
+      int bf=round(fbase*(divider/clock));
+      if (bf<=maximum) break;
+      shift--;
+    }
   }
 
   logV("DivPitchTable init(%f,%f,%f,%x,%s)",tuning,clock,divider,maximum,isPeriod?"period":"freq");
