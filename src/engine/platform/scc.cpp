@@ -173,7 +173,10 @@ int DivPlatformSCC::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].macroInit(ins);
       if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
-        chan[c.chan].outVol=chan[c.chan].vol;
+        if (chan[c.chan].outVol!=chan[c.chan].vol) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          rWrite(regBase+10+c.chan,chan[c.chan].outVol);
+        }
       }
       if (!isMuted[c.chan]) {
         rWrite(regBase+15,regPool[regBase+15]|(1<<c.chan));
