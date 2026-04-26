@@ -111,6 +111,9 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned int* sampleOff;
   bool* sampleLoaded;
+  DivPitchTable* samplePitchTable;
+  size_t samplePitchTableLen;
+  DivPitchTable wavePitchTable;
 
   unsigned short regPool[256];
 
@@ -160,6 +163,7 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void renderSamples(int chipID);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
