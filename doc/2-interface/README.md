@@ -18,6 +18,8 @@ the default layout of Furnace is depicted below.
 - [play/edit controls](play-edit-controls.md)
 - [instrument/wavetable/sample list](asset-list.md)
 - [song information](song-info.md)
+- [subsongs](subsongs.md)
+- [speed](speed.md)
 - [pattern view](../3-pattern/README.md)
 - [effect list window](effect-list-window.md)
 - [instrument editor](../4-instrument/README.md)

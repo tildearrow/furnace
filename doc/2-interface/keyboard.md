@@ -263,4 +263,9 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Sample editor: Toggle auto-zoom                        | `Ctrl-0`         |
 | Sample editor: Create instrument from sample           | —                |
 | Sample editor: Set loop to selection                   | `Ctrl-L`         |
+| Sample editor: Trim to the end of the loop             | —                |
+| Sample editor: Trim around loop points                 | —                |
+<!--
 | Sample editor: Copy selection to new sample            | —                |
+| Sample editor: Noise gate                              | —                |
+-->

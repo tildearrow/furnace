@@ -85,6 +85,7 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 ### Behavior
 
 - **New instruments are blank**: when enabled, adding FM instruments will make them blank (rather than loading the default one).
+- **Allow note input with open warning**: allows keyboard passthrough while modal warning dialogs are open; the only key intercepted is the `Escape` key to close the dialog.
 
 ### Configuration
 
@@ -477,11 +478,12 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Stereo**
   - **Real**
   - **Real (stereo)**
-- **Channel feedback style:**
-  - **Off**
-  - **Note**
-  - **Volume**
-  - **Active**
+- **Channel feedback style:** sets how channel headers and piano keys highlight.
+  - **Off**: no indicator.
+  - **Note**: flash at the start of a note, then fades.
+  - **Volume**: change intensity with channel volume.
+  - **Active**: stay fully on while a note is held.
+  - **Volume (real)**: change intensity with output loudness.
 - **Channel font:**
   - **Regular**
   - **Monospace**
@@ -520,10 +522,6 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Manual**
   - **Automatic per macro**
   - **Automatic (use longest macro)**
-
-### Wave Editor
-
-- **Use compact wave editor**
 
 ### FM Editor
 

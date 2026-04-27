@@ -30,7 +30,7 @@ let's play a little! notes are arranged on the keyboard rather like a piano. sta
 
 ![keyboard note entry](../3-pattern/keyboard.png)
 
-to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.) as an alternative, there's an octave selector at the top of the interface, a third of the way in from the left.
+to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard documentation](../2-interface/keyboard.md) explains how.) as an alternative, there's an octave selector at the top of the interface, a third of the way in from the left.
 
 now press the space bar to change from play to edit mode. the row the cursor is on will change to dark red – the playhead mentioned earlier. another way to tell what mode we're in is via the play/edit controls just above the pattern view in the center; make sure the "record" button is on.
 
@@ -64,7 +64,7 @@ at the top of the interface, just right of center, is the **instrument** list. t
 
 ![empty instrument list](qs-instlist-empty.png)
 
-click the `+` button to add a new instrument. a list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
+click the `+` button to add a new instrument. a list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
 
 we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` file included with Furnace in its `demos` directory. the instrument list will contain "00: horn"; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
 
@@ -110,7 +110,7 @@ on row 20, add a different note without a volume. play from the start, and you'l
 
 ## how do I make the song longer?
 
-right now, our track is only about six and a half seconds long. this is because we only have one **order**. see, the term "pattern view" is slightly misleading in that a **pattern** is just one channel's worth of data; the pattern view shows all the patterns in an order at once. this can get confusing because sometimes both terms are both used to mean what we call an **order**, sometimes even within Furnace itself.
+right now, our track is only about six and a half seconds long. this is because we only have one **order**. see, the term "pattern view" is slightly misleading in that a **pattern** is just one channel's worth of data; the pattern view shows all the patterns in an order at once. this can get confusing because sometimes "pattern" is used to mean "order", even within Furnace itself.
 
 ![default order view](qs-order-default.png)
 
