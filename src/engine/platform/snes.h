@@ -95,8 +95,7 @@ class DivPlatformSNES: public DivDispatch {
   size_t sampleMemLen;
   unsigned int* sampleOff;
   bool* sampleLoaded;
-  DivPitchTable* samplePitchTable;
-  size_t samplePitchTableLen;
+  DivPitchTableManager samplePitchTable;
   DivPitchTable wavePitchTable[16];
   DivMemoryComposition memCompo;
   unsigned char regPool[0x80];

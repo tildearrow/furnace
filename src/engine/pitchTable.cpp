@@ -23,54 +23,18 @@
 // DivPitchTableManager
 
 DivPitchTable* DivPitchTableManager::get(int sample) {
+  if (e==NULL) return NULL;
   if (!samplePitchTable) return NULL;
   if (sample<0 || sample>=(int)e->song.sample.size()) return NULL;
   return &samplePitchTable[sample];
 }
 
-template<class T> bool DivPitchTableManager::update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample) {
-  bool hasSizeChanged=false;
+size_t DivPitchTableManager::eSongSampleSize() {
+  if (!e) return 0;
+  return e->song.sample.size();
+}
 
-  // first check whether we need to resize our pitch table array
-  if (samplePitchTableLen!=e->song.sample.size()) {
-    if (e->song.sample.size()<1) {
-      // remove all references to the pitch table
-      DivPitchTable* firstEntry=samplePitchTable;
-      DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
-
-      for (size_t i=0; i<numChans; i++) {
-        if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-          chan[i].pitchTable=NULL;
-        }
-      }
-
-      // now deallocate it
-      delete[] samplePitchTable;
-      samplePitchTable=NULL;
-    } else {
-      // recreate the pitch table array
-      DivPitchTable* newArray=new DivPitchTable[e->song.sample.size()];
-      if (samplePitchTable) {
-        memcpy(newArray,samplePitchTable,MIN(e->song.sample.size(),samplePitchTableLen)*sizeof(DivPitchTable));
-
-        // adjust pitch table references
-        DivPitchTable* firstEntry=samplePitchTable;
-        DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
-
-        for (size_t i=0; i<numChans; i++) {
-          if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-            chan[i].pitchTable=newArray+(chan[i].pitchTable-firstEntry);
-          }
-        }
-
-        delete[] samplePitchTable;
-      }
-      samplePitchTable=newArray;
-    }
-    samplePitchTableLen=e->song.sample.size();
-    hasSizeChanged=true;
-  }
-
+void DivPitchTableManager::updateSub(float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample) {
   // should we recalculate the tables for all samples, or only one sample?
   if (sample==-1) {
     for (size_t i=0; i<MIN(e->song.sample.size(),samplePitchTableLen); i++) {
@@ -84,24 +48,6 @@ template<class T> bool DivPitchTableManager::update(T* chan, size_t numChans, fl
       double off=(s->centerRate>=1)?((double)s->centerRate/e->getCenterRate()):1.0;
       samplePitchTable[sample].init(tuning,clock,divider*off,maximum,period,linear);
     }
-  }
-  return hasSizeChanged;
-}
-
-template<class T> void DivPitchTableManager::destroy(T* chan, size_t numChans) {
-  if (samplePitchTable) {
-    DivPitchTable* firstEntry=samplePitchTable;
-    DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
-
-    for (size_t i=0; i<numChans; i++) {
-      if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-        chan[i].pitchTable=NULL;
-      }
-    }
-
-    delete[] samplePitchTable;
-    samplePitchTable=NULL;
-    samplePitchTableLen=0;
   }
 }
 

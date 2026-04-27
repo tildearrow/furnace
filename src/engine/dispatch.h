@@ -570,6 +570,9 @@ class DivPitchTableManager {
   DivPitchTable* samplePitchTable;
   size_t samplePitchTableLen;
 
+  size_t eSongSampleSize();
+  void updateSub(float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample);
+
   public:
     /**
      * get pitch table for a sample.
@@ -584,11 +587,74 @@ class DivPitchTableManager {
      * @param chan an array of SharedChannel... hold on. this is not going to work well.
      * @return whether the number of pitch tables has changed.
      */
-    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample=-1);
+    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample=-1) {
+      if (e==NULL) return false;
+
+      bool hasSizeChanged=false;
+
+      // first check whether we need to resize our pitch table array
+      if (samplePitchTableLen!=eSongSampleSize()) {
+        if (eSongSampleSize()<1) {
+          // remove all references to the pitch table
+          DivPitchTable* firstEntry=samplePitchTable;
+          DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+          for (size_t i=0; i<numChans; i++) {
+            if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+              chan[i].pitchTable=NULL;
+            }
+          }
+
+          // now deallocate it
+          delete[] samplePitchTable;
+          samplePitchTable=NULL;
+        } else {
+          // recreate the pitch table array
+          DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
+          if (samplePitchTable) {
+            memcpy(newArray,samplePitchTable,MIN(eSongSampleSize(),samplePitchTableLen)*sizeof(DivPitchTable));
+
+            // adjust pitch table references
+            DivPitchTable* firstEntry=samplePitchTable;
+            DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+            for (size_t i=0; i<numChans; i++) {
+              if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+                chan[i].pitchTable=newArray+(chan[i].pitchTable-firstEntry);
+              }
+            }
+
+            delete[] samplePitchTable;
+          }
+          samplePitchTable=newArray;
+        }
+        samplePitchTableLen=eSongSampleSize();
+        hasSizeChanged=true;
+      }
+
+      updateSub(tuning,clock,divider,maximum,period,linear,sample);
+      return hasSizeChanged;
+    }
     /**
      * delete the pitch tables.
      */
-    template<class T> void destroy(T* chan, size_t numChans);
+    template<class T> void destroy(T* chan, size_t numChans) {
+      if (e==NULL) return;
+      if (samplePitchTable) {
+        DivPitchTable* firstEntry=samplePitchTable;
+        DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+        for (size_t i=0; i<numChans; i++) {
+          if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+            chan[i].pitchTable=NULL;
+          }
+        }
+
+        delete[] samplePitchTable;
+        samplePitchTable=NULL;
+        samplePitchTableLen=0;
+      }
+    }
     /**
      * initialize this pitch table manager.
      */
