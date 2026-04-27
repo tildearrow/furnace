@@ -124,7 +124,7 @@ void FurnaceGUI::drawSampleEdit() {
     ImGui::SetNextWindowSize(patWindowSize);
   }
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Sample Editor"))) {
-    if (curSample<0 || curSample>=(int)e->song.sample.size()) {
+    if (curSample<0||curSample>=(int)e->song.sample.size()) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
       CENTER_TEXT(_("no sample selected"));
       ImGui::Text(_("no sample selected"));
@@ -181,7 +181,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SetNextItemWidth(72.0f*dpiScale);
       if (ImGui::BeginCombo("##SampleSelect",sampleIndex.c_str())) {
         String name;
-        for (size_t i=0; i<e->song.sample.size(); i++) {
+        for (size_t i=0;i<e->song.sample.size();i++) {
           name=fmt::sprintf("%d: %s##_SMPS%d",i,e->song.sample[i]->name,i);
           if (ImGui::Selectable(name.c_str(),curSample==(int)i)) {
             curSample=i;
