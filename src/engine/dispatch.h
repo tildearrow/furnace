@@ -557,6 +557,13 @@ struct SharedChannel {
     pitchTable(NULL) {} 
 };
 
+/**
+ * DivPitchTableManager is a helper class that manages pitch tables for each sample.
+ */
+class DivPitchTableManager {
+  public:
+    void update();
+};
 
 /**
  * a DivCommand encapsulates an engine command.
