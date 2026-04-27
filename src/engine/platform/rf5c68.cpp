@@ -424,7 +424,7 @@ size_t DivPlatformRF5C68::getSampleMemUsage(int index) {
 
 bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

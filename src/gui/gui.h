@@ -3100,6 +3100,7 @@ class FurnaceGUI {
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);
   void drawSampleEdit();
+  void drawSampleWarning(DivSample* sample, int index, String &warnLoop, String &warnLoopMode, String &warnLoopPos, String &warnLoopStart, String &warnLoopEnd, String &warnLength, String &warnRate);
   void drawMixer();
   void drawOsc();
   void drawChanOsc();

@@ -518,7 +518,7 @@ size_t DivPlatformSupervision::getSampleMemUsage(int index) {
 
 bool DivPlatformSupervision::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

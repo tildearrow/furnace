@@ -947,6 +947,10 @@ void DivPlatformX1_010::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+int DivPlatformX1_010::getSampleGroup(int chan) {
+  return isBanked?1:0;
+}
+
 const void* DivPlatformX1_010::getSampleMem(int index) {
   return index >= 0 ? sampleMem : 0;
 }
@@ -961,7 +965,7 @@ size_t DivPlatformX1_010::getSampleMemUsage(int index) {
 
 bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

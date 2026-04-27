@@ -1031,7 +1031,7 @@ bool DivPlatformSNES::hasSamplePtrHeader(int index) {
 
 bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

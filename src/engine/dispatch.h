@@ -1339,6 +1339,20 @@ class DivDispatch {
     virtual const char** getRegisterSheet();
 
     /**
+     * get the sample group of specific channel.
+     * @param chan the channel.
+     * @return the sample group of channel. Default value is 0
+     */
+    virtual int getSampleGroup(int chan=0);
+
+    /**
+     * get a maximum allowed number of samples.
+     * @param index the memory index.
+     * @return a maximum allowed number of samples, or 0 if memory doesn't exist.
+     */
+    virtual int getMaxSamples(int index=0);
+
+    /**
      * Get sample memory buffer.
      * @param index the memory index.
      * @return a pointer to sample memory, or NULL.
