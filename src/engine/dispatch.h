@@ -38,6 +38,11 @@
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
+// forward declarations
+class DivEngine;
+class DivMacroInt;
+struct DivSample;
+
 /**
  * DivDispatchCmds - the enum containing all engine commands.
  * these are sent from the engine to dispatches during playback.
@@ -561,8 +566,38 @@ struct SharedChannel {
  * DivPitchTableManager is a helper class that manages pitch tables for each sample.
  */
 class DivPitchTableManager {
+  DivEngine* e;
+  DivPitchTable* samplePitchTable;
+  size_t samplePitchTableLen;
+
   public:
-    void update();
+    /**
+     * get pitch table for a sample.
+     * @param sample the sample number.
+     * @return a DivPitchTable for that sample, or NULL if it doesn't exist.
+     */
+    DivPitchTable* get(int sample);
+    /**
+     * update the pitch tables.
+     * this function also updates references to the pitch tables in case the
+     * pitch table array must be recreated.
+     * @param chan an array of SharedChannel... hold on. this is not going to work well.
+     * @return whether the number of pitch tables has changed.
+     */
+    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample=-1);
+    /**
+     * delete the pitch tables.
+     */
+    template<class T> void destroy(T* chan, size_t numChans);
+    /**
+     * initialize this pitch table manager.
+     */
+    void init(DivEngine* eng);
+    DivPitchTableManager():
+      e(NULL),
+      samplePitchTable(NULL),
+      samplePitchTableLen(0) {}
+    ~DivPitchTableManager();
 };
 
 /**
@@ -984,10 +1019,6 @@ struct DivMemoryComposition {
     memory(NULL),
     waveformView(DIV_MEMORY_WAVE_NONE) {}
 };
-
-// forward declarations
-class DivEngine;
-class DivMacroInt;
 
 /**
  * a "dispatch" performs the following:

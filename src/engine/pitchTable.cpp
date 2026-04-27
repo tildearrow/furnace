@@ -18,6 +18,106 @@
  */
 
 #include "dispatch.h"
+#include "engine.h"
+
+// DivPitchTableManager
+
+DivPitchTable* DivPitchTableManager::get(int sample) {
+  if (!samplePitchTable) return NULL;
+  if (sample<0 || sample>=(int)e->song.sample.size()) return NULL;
+  return &samplePitchTable[sample];
+}
+
+template<class T> bool DivPitchTableManager::update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample) {
+  bool hasSizeChanged=false;
+
+  // first check whether we need to resize our pitch table array
+  if (samplePitchTableLen!=e->song.sample.size()) {
+    if (e->song.sample.size()<1) {
+      // remove all references to the pitch table
+      DivPitchTable* firstEntry=samplePitchTable;
+      DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+      for (size_t i=0; i<numChans; i++) {
+        if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+          chan[i].pitchTable=NULL;
+        }
+      }
+
+      // now deallocate it
+      delete[] samplePitchTable;
+      samplePitchTable=NULL;
+    } else {
+      // recreate the pitch table array
+      DivPitchTable* newArray=new DivPitchTable[e->song.sample.size()];
+      if (samplePitchTable) {
+        memcpy(newArray,samplePitchTable,MIN(e->song.sample.size(),samplePitchTableLen)*sizeof(DivPitchTable));
+
+        // adjust pitch table references
+        DivPitchTable* firstEntry=samplePitchTable;
+        DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+        for (size_t i=0; i<numChans; i++) {
+          if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+            chan[i].pitchTable=newArray+(chan[i].pitchTable-firstEntry);
+          }
+        }
+
+        delete[] samplePitchTable;
+      }
+      samplePitchTable=newArray;
+    }
+    samplePitchTableLen=e->song.sample.size();
+    hasSizeChanged=true;
+  }
+
+  // should we recalculate the tables for all samples, or only one sample?
+  if (sample==-1) {
+    for (size_t i=0; i<MIN(e->song.sample.size(),samplePitchTableLen); i++) {
+      DivSample* s=e->song.sample[i];
+      double off=(s->centerRate>=1)?((double)s->centerRate/e->getCenterRate()):1.0;
+      samplePitchTable[i].init(tuning,clock,divider*off,maximum,period,linear);
+    }
+  } else {
+    if (sample>=0 && sample<(int)e->song.sample.size() && sample<(int)samplePitchTableLen) {
+      DivSample* s=e->song.sample[sample];
+      double off=(s->centerRate>=1)?((double)s->centerRate/e->getCenterRate()):1.0;
+      samplePitchTable[sample].init(tuning,clock,divider*off,maximum,period,linear);
+    }
+  }
+  return hasSizeChanged;
+}
+
+template<class T> void DivPitchTableManager::destroy(T* chan, size_t numChans) {
+  if (samplePitchTable) {
+    DivPitchTable* firstEntry=samplePitchTable;
+    DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+    for (size_t i=0; i<numChans; i++) {
+      if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+        chan[i].pitchTable=NULL;
+      }
+    }
+
+    delete[] samplePitchTable;
+    samplePitchTable=NULL;
+    samplePitchTableLen=0;
+  }
+}
+
+void DivPitchTableManager::init(DivEngine* eng) {
+  e=eng;
+}
+
+DivPitchTableManager::~DivPitchTableManager() {
+  if (samplePitchTable) {
+    delete[] samplePitchTable;
+    samplePitchTable=NULL;
+    samplePitchTableLen=0;
+  }
+}
+
+// DivPitchTable
 
 int DivPitchTable::get(int base, int pitch1, int pitch2) {
   int offset=base+pitch1+pitch2;
