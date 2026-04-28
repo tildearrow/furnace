@@ -117,6 +117,8 @@ class DivPlatformAY8910: public DivDispatch {
     FixedQueue<QueuedWrite,128> writes;
     ay8910_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     unsigned char regPool[16];
     unsigned char lastBusy;
   
@@ -185,6 +187,7 @@ class DivPlatformAY8910: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
