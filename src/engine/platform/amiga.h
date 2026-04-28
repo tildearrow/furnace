@@ -111,8 +111,7 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned int* sampleOff;
   bool* sampleLoaded;
-  DivPitchTable* samplePitchTable;
-  size_t samplePitchTableLen;
+  DivPitchTableManager samplePitchTable;
   DivPitchTable wavePitchTable;
 
   unsigned short regPool[256];
