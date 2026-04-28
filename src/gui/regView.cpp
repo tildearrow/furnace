@@ -17,17 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "../engine/bsr.h"
 #include "gui.h"
+#include "IconsFontAwesome4.h"
 #include <imgui.h>
 
 void FurnaceGUI::drawRegView() {
   if (nextWindow==GUI_WINDOW_REGISTER_VIEW) {
-    channelsOpen=true;
+    regViewOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!regViewOpen) return;
   if (ImGui::Begin("Register View",&regViewOpen,globalWinFlags,_("Register View"))) {
+    if (ImGui::IsWindowHovered()) {
+      ImGui::TextUnformatted(ICON_FA_BARS "##regViewSettings");
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::SetTooltip(_("Register View settings"));
+      }
+    }
+    if (ImGui::BeginPopupContextItem("regViewSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
+      if (ImGui::InputInt(_("Bytes per columns##RegViewColumns"),&regViewColumns,1,4)) {
+        if (regViewColumns<1) regViewColumns=1;
+        if (regViewColumns>64) regViewColumns=64;
+      }
+      ImGui::EndPopup();
+    }
     for (int i=0; i<e->song.systemLen; i++) {
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       int size=0;
@@ -38,35 +53,31 @@ void FurnaceGUI::drawRegView() {
         ImGui::Text(_("- no register pool available"));
       } else {
         ImGui::PushFont(patFont);
-        if (ImGui::BeginTable("Memory",17)) {
+        int rows=MAX(1,regViewColumns/MAX(1,(1<<(bsr(depth)-4))));
+        if (ImGui::BeginTable("Memory",1+rows)) {
+          int calcSize=size/rows;
+          int calcSizeMul=(bsr32(calcSize)+3)>>2;
           float widthOne=ImGui::CalcTextSize("0").x;
-          if (size>0xfff) { // no im got gonna put some clamped log formula instead
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*4.0f);
-          } else if (size>0xff) {
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*3.0f);
-          } else {
-            ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*2.0f);
-          }
-          
+          float widthMul=1.0f+((float)calcSizeMul);
+          ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed, widthOne*widthMul);
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          for (int i=0; i<16; i++) {
+          for (int i=0; i<rows; i++) {
             ImGui::TableNextColumn();
             ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX]," %X",i);
           }
-          for (int i=0; i<=((size-1)>>4); i++) {
+          for (int i=0; i<size; i+=rows) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%.2X",i*16);
-            for (int j=0; j<16; j++) {
+            ImGui::TextColored(uiColors[GUI_COLOR_PATTERN_ROW_INDEX],"%.2X",i);
+            for (int j=0; j<rows; j++) {
               ImGui::TableNextColumn();
-              if (i*16+j>=size) continue;
-              if (depth == 8) {
-                ImGui::Text("%.2x",regPool[i*16+j]);
-              } else if (depth == 16) {
-                ImGui::Text("%.4x",regPoolW[i*16+j]);
-              } else {
-                ImGui::Text("??");
+              if (i+j>=size) continue;
+              switch (depth) {
+                case 8: ImGui::Text("%.2x",regPool[i+j]); break;
+                case 16: ImGui::Text("%.4x",regPoolW[i+j]); break;
+                default: ImGui::Text("??"); break;
               }
             }
           }
