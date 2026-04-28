@@ -2784,7 +2784,6 @@ class FurnaceGUI {
 
   // register view
   int regViewColumns;
-  bool regViewOptions;
 
   // spectrum and tuner
   double* tunerFFTInBuf;
