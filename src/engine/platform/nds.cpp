@@ -573,7 +573,7 @@ size_t DivPlatformNDS::getSampleMemUsage(int index) {
 
 bool DivPlatformNDS::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

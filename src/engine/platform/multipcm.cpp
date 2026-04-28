@@ -558,6 +558,10 @@ void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {
   }
 }
 
+int DivPlatformMultiPCM::getMaxSamples(int index) {
+  return (index==0)?512:0;
+}
+
 const void* DivPlatformMultiPCM::getSampleMem(int index) {
   return (index==0)?pcmMem:NULL;
 }
@@ -576,7 +580,7 @@ bool DivPlatformMultiPCM::hasSamplePtrHeader(int index) {
 
 bool DivPlatformMultiPCM::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 
@@ -664,12 +668,12 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
 
   size_t memPos=0x1800;
   int sampleCount=parent->song.sampleLen;
-  if (sampleCount>512) {
+  if (sampleCount>getMaxSamples(0)) {
     // mark the rest as unavailable
-    for (int i=512; i<sampleCount; i++) {
+    for (int i=getMaxSamples(0); i<sampleCount; i++) {
       sampleLoaded[i]=false;
     }
-    sampleCount=512;
+    sampleCount=getMaxSamples(0);
   }
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];

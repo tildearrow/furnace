@@ -209,6 +209,14 @@ const char** DivDispatch::getRegisterSheet() {
   return NULL;
 }
 
+int DivDispatch::getSampleGroup(int chan) {
+  return 0;
+}
+
+int DivDispatch::getMaxSamples(int index) {
+  return 32768;
+}
+
 const void* DivDispatch::getSampleMem(int index) {
   return NULL;
 }

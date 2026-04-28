@@ -81,6 +81,7 @@ class DivPlatformMSM6258: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     void setFlags(const DivConfig& flags);
     const char** getRegisterSheet();
+    int getSampleGroup(int chan=0);
 
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

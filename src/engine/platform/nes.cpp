@@ -971,6 +971,10 @@ unsigned char DivPlatformNES::readDMC(unsigned short addr) {
   return dpcmMem[(addr&0x3fff)|((dpcmBank&15)<<14)];
 }
 
+int DivPlatformNES::getSampleGroup(int chan) {
+  return dpcmMode?((apuType==1)?1:0):2;
+}
+
 const void* DivPlatformNES::getSampleMem(int index) {
   return index==0?dpcmMem:NULL;
 }
@@ -985,7 +989,7 @@ size_t DivPlatformNES::getSampleMemUsage(int index) {
 
 bool DivPlatformNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

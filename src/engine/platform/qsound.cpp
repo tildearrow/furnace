@@ -742,6 +742,10 @@ int DivPlatformQSound::getRegisterPoolDepth() {
   return 16;
 }
 
+int DivPlatformQSound::getSampleGroup(int chan) {
+  return (chan<16)?1:0;
+}
+
 const void* DivPlatformQSound::getSampleMem(int index) {
   return (index == 0 || index == 1) ? sampleMem : NULL;
 }
@@ -756,7 +760,7 @@ size_t DivPlatformQSound::getSampleMemUsage(int index) {
 
 bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
   if (index<0 || index>1) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   if (index==1) return sampleLoadedBS[sample];
   return sampleLoaded[sample];
 }
