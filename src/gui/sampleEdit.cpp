@@ -146,24 +146,30 @@ void FurnaceGUI::drawSampleWarning(DivSample* sample, int index, String &warnLoo
       }
       break;
     case DIV_SYSTEM_NES: {
-      if (sample->loop) {
-        if (sample->loopStart&511) {
-          int tryWith=(sample->loopStart)&(~511);
-          if (tryWith>(int)sample->samples) tryWith-=512;
-          String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
-          SAMPLE_WARN(warnLoopStart,alignHint);
+      if (sampleGroup!=2) {
+        if (sample->loop) {
+          if (sample->loopStart&511) {
+            int tryWith=(sample->loopStart)&(~511);
+            if (tryWith>(int)sample->samples) tryWith-=512;
+            String alignHint=fmt::sprintf(_("NES: loop start must be a multiple of 512 (try with %d)"),tryWith);
+            SAMPLE_WARN(warnLoopStart,alignHint);
+          }
+          if ((sample->loopEnd-8)&127) {
+            int tryWith=(sample->loopEnd-8)&(~127);
+            if (tryWith>(int)sample->samples) tryWith-=128;
+            tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
+            if (tryWith<8) tryWith=8;
+            String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
+            SAMPLE_WARN(warnLoopEnd,alignHint);
+          }
         }
-        if ((sample->loopEnd-8)&127) {
-          int tryWith=(sample->loopEnd-8)&(~127);
-          if (tryWith>(int)sample->samples) tryWith-=128;
-          tryWith+=8; // +1 bc of how sample length is treated: https://www.nesdev.org/wiki/APU_DMC
-          if (tryWith<8) tryWith=8;
-          String alignHint=fmt::sprintf(_("NES: loop end must be a multiple of 128 + 8 (try with %d)"),tryWith);
-          SAMPLE_WARN(warnLoopEnd,alignHint);
+        if (sample->samples>32648) {
+          SAMPLE_WARN(warnLength,_("NES: maximum DPCM sample length is 32648"));
         }
-      }
-      if (sample->samples>32648) {
-        SAMPLE_WARN(warnLength,_("NES: maximum DPCM sample length is 32648"));
+        if (dispatch!=NULL) {
+          MIN_RATE("NES (DPCM)",dispatch->chipClock/(sampleGroup==1?0x18e:0x1ac));
+          MAX_RATE("NES (DPCM)",dispatch->chipClock/(sampleGroup==1?0x032:0x036));
+        }
       }
       break;
     }
