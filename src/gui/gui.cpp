@@ -6897,6 +6897,7 @@ bool FurnaceGUI::loop() {
               });
               curSample=0;
               MARK_MODIFIED;
+              e->notifyPitchTable();
               ImGui::CloseCurrentPopup();
             }
 
