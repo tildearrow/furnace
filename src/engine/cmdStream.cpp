@@ -115,8 +115,8 @@ bool DivCSPlayer::tick() {
       bool mustTell=true;
 
       if (next<0xb3) { // note
-        e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
-        chan[i].note=(int)next-60;
+        e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next));
+        chan[i].note=(int)next;
         chan[i].vibratoPos=0;
       } else if (next>=0xf0) { // preset delay
         chan[i].waitTicks=fastDelays[next&15];
@@ -175,15 +175,13 @@ bool DivCSPlayer::tick() {
           chan[i].tremoloDepth=0;
           break;
         case 0xc9: // porta
-          chan[i].portaTarget=(int)((unsigned char)stream.readC())-60;
+          chan[i].portaTarget=(int)((unsigned char)stream.readC());
           chan[i].portaSpeed=(unsigned char)stream.readC();
           break;
         case 0xca: { // legato
           int arg0=(unsigned char)stream.readC();
           if (arg0==0xff) {
             arg0=DIV_NOTE_NULL;
-          } else {
-            arg0-=60;
           }
           chan[i].note=arg0;
           e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));

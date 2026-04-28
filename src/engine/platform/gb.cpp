@@ -214,7 +214,7 @@ void DivPlatformGB::tick(bool sysTick) {
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+          chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
         }
       }
       chan[i].freqChanged=true;
@@ -326,12 +326,12 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq+chan[i].pitch2;
+        int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        chan[i].freq=chan[i].calcFreq();
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<1) chan[i].freq=1;
       }
@@ -403,7 +403,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         if (c.chan==3) { // noise
           chan[c.chan].baseFreq=c.value;
         } else {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         }
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -520,7 +520,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -561,7 +561,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -569,7 +569,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
@@ -612,7 +612,7 @@ void DivPlatformGB::forceIns() {
   updateWave();
 }
 
-void* DivPlatformGB::getChanState(int ch) {
+SharedChannel* DivPlatformGB::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -639,7 +639,8 @@ int DivPlatformGB::getRegisterPoolSize() {
 
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformGB::Channel();
+    chan[i]=DivPlatformGB::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);
@@ -666,7 +667,7 @@ void DivPlatformGB::reset() {
 }
 
 int DivPlatformGB::getPortaFloor(int ch) {
-  return 24;
+  return 84;
 }
 
 int DivPlatformGB::getOutputCount() {
@@ -697,6 +698,10 @@ void DivPlatformGB::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformGB::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
 }
 
 void DivPlatformGB::poke(unsigned int addr, unsigned short val) {
@@ -732,6 +737,8 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformGB::setCoreQuality(unsigned char q) {

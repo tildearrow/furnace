@@ -314,8 +314,9 @@ void DivPlatformNES::tick(bool sysTick) {
     } else if (chan[i].std.arp.had) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
+        // this is awkward
+        if (chan[i].baseFreq>255+60) chan[i].baseFreq=255+60;
+        if (chan[i].baseFreq<60) chan[i].baseFreq=60;
       } else {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
@@ -361,10 +362,10 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq;
+        int ntPos=chan[i].baseFreq-60;
         if (NEW_ARP_STRAT) {
           if (chan[i].fixedArp) {
-            ntPos=chan[i].baseNoteOverride;
+            ntPos=chan[i].baseNoteOverride-60;
           } else {
             ntPos+=chan[i].arpOff;
           }
@@ -524,7 +525,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
             if (c.value==DIV_NOTE_NULL) {
               nextDPCMFreq=lastDPCMFreq;
             } else {
-              nextDPCMFreq=c.value&15;
+              nextDPCMFreq=(c.value-60)&15;
             }
           }
         }
@@ -807,7 +808,7 @@ void DivPlatformNES::forceIns() {
   rWrite(0x4017,countMode?0x80:0);
 }
 
-void* DivPlatformNES::getChanState(int ch) {
+SharedChannel* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -834,7 +835,7 @@ float DivPlatformNES::getPostAmp() {
 void DivPlatformNES::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformNES::Channel();
+    chan[i]=DivPlatformNES::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {

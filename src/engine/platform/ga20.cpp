@@ -375,7 +375,7 @@ void DivPlatformGA20::forceIns() {
   }
 }
 
-void* DivPlatformGA20::getChanState(int ch) {
+SharedChannel* DivPlatformGA20::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -405,7 +405,7 @@ void DivPlatformGA20::reset() {
   ga20.device_reset();
   oldOut=0;
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformGA20::Channel();
+    chan[i]=DivPlatformGA20::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     // keyoff all channels
     chWrite(i,5,0);

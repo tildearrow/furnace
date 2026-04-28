@@ -30,13 +30,13 @@ extern "C" {
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int fixedFreq;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         fixedFreq(0),
@@ -93,7 +93,7 @@ class DivPlatformOPLL: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);

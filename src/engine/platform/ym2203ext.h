@@ -31,7 +31,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
   inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);

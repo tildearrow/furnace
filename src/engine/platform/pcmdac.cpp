@@ -520,7 +520,7 @@ void DivPlatformPCMDAC::forceIns() {
   }
 }
 
-void* DivPlatformPCMDAC::getChanState(int ch) {
+SharedChannel* DivPlatformPCMDAC::getChanState(int ch) {
   if (ch>=chans) return NULL;
   return &chan[ch];
 }
@@ -532,7 +532,7 @@ DivDispatchOscBuffer* DivPlatformPCMDAC::getOscBuffer(int ch) {
 
 void DivPlatformPCMDAC::reset() {
   for (int i=0; i<chans; i++) {
-    chan[i]=DivPlatformPCMDAC::Channel();
+    chan[i]=DivPlatformPCMDAC::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);

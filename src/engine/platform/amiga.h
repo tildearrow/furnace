@@ -25,7 +25,7 @@
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned short audLen, irLocL, irLocH, irLen;
     unsigned int audPos;
     int audSub;
@@ -33,8 +33,8 @@ class DivPlatformAmiga: public DivDispatch {
     int sample, wave;
     bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol, updateWave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(64),
+    Channel(bool linear=true):
+      SharedChannel(64,linear),
       audLen(0),
       irLocL(0),
       irLocH(0),
@@ -111,6 +111,8 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned int* sampleOff;
   bool* sampleLoaded;
+  DivPitchTableManager samplePitchTable;
+  DivPitchTable wavePitchTable;
 
   unsigned short regPool[256];
 
@@ -142,7 +144,7 @@ class DivPlatformAmiga: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -160,6 +162,7 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void renderSamples(int chipID);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

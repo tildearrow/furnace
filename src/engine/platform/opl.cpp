@@ -1414,7 +1414,8 @@ void DivPlatformOPL::tick(bool sysTick) {
       } else {
         chan[adpcmChan].freq=0;
       }
-      if (chan[adpcmChan].fixedFreq>0) chan[adpcmChan].freq=chan[adpcmChan].fixedFreq;
+      // TODO: sorry?
+      if (chan[adpcmChan].fixedFreq>=0) chan[adpcmChan].freq=chan[adpcmChan].fixedFreq;
       if (pretendYMU) { // YMU759 only does 4KHz or 8KHz
         if (chan[adpcmChan].freq>7500) {
           chan[adpcmChan].freq=10922; // 8KHz
@@ -1519,10 +1520,10 @@ void DivPlatformOPL::tick(bool sysTick) {
           mul=octave(chan[i].baseFreq,fixedBlock)*2;
         }
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-        if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>131071) chan[i].freq=131071;
-        int freqt=toFreq(chan[i].freq,fixedBlock);
+        if (chan[i].fixedFreq>=0) chan[i].freq=chan[i].fixedFreq;
+        int freqt=(chan[i].fixedFreq>=0)?chan[i].fixedFreq:toFreq(chan[i].freq,fixedBlock);
         chan[i].freqH=freqt>>8;
         chan[i].freqL=freqt&0xff;
         immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
@@ -1838,7 +1839,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
         if (skipRegisterWrites) break;
         chan[c.chan].macroInit(ins);
-        chan[c.chan].fixedFreq=0;
+        chan[c.chan].fixedFreq=-1;
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
           immWrite(18,(isMuted[adpcmChan]?0:chan[adpcmChan].outVol));
@@ -1884,8 +1885,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan>melodicChans && ins->type==DIV_INS_OPL_DRUMS && chan[c.chan].state.fixedDrums) {
-          chan[melodicChans+1].fixedFreq=(chan[melodicChans+1].state.snareHatFreq&1023)<<(chan[melodicChans+1].state.snareHatFreq>>10);
-          chan[melodicChans+2].fixedFreq=(chan[melodicChans+2].state.tomTopFreq&1023)<<(chan[melodicChans+2].state.tomTopFreq>>10);
+          chan[melodicChans+1].fixedFreq=chan[melodicChans+1].state.snareHatFreq;
+          chan[melodicChans+2].fixedFreq=chan[melodicChans+2].state.tomTopFreq;
           chan[melodicChans+3].fixedFreq=chan[melodicChans+2].fixedFreq;
           chan[melodicChans+4].fixedFreq=chan[melodicChans+1].fixedFreq;
 
@@ -1896,18 +1897,18 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         } else {
           if (c.chan>=melodicChans && (chan[c.chan].state.opllPreset==16 || ins->type==DIV_INS_OPL_DRUMS) && chan[c.chan].state.fixedDrums) { // drums
             if (c.chan==melodicChans) {
-              chan[c.chan].fixedFreq=(chan[c.chan].state.kickFreq&1023)<<(chan[c.chan].state.kickFreq>>10);
+              chan[c.chan].fixedFreq=chan[c.chan].state.kickFreq;
             } else if (c.chan==melodicChans+1 || c.chan==melodicChans+4) {
-              chan[c.chan].fixedFreq=(chan[c.chan].state.snareHatFreq&1023)<<(chan[c.chan].state.snareHatFreq>>10);
+              chan[c.chan].fixedFreq=chan[c.chan].state.snareHatFreq;
             } else if (c.chan==melodicChans+2 || c.chan==melodicChans+3) {
-              chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&1023)<<(chan[c.chan].state.tomTopFreq>>10);
+              chan[c.chan].fixedFreq=chan[c.chan].state.tomTopFreq;
             } else {
               chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-              chan[c.chan].fixedFreq=0;
+              chan[c.chan].fixedFreq=-1;
             }
           } else {
             chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-            chan[c.chan].fixedFreq=0;
+            chan[c.chan].fixedFreq=-1;
           }
         }
         chan[c.chan].note=c.value;
@@ -2671,7 +2672,7 @@ void DivPlatformOPL::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformOPL::getChanState(int ch) {
+SharedChannel* DivPlatformOPL::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -2852,7 +2853,7 @@ void DivPlatformOPL::reset() {
   }
 
   for (int i=0; i<totalChans; i++) {
-    chan[i]=DivPlatformOPL::Channel();
+    chan[i]=DivPlatformOPL::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=(PCM_CHECK(i))?0x7f:0x3f;
     chan[i].outVol=(PCM_CHECK(i))?0x7f:0x3f;
@@ -2860,7 +2861,7 @@ void DivPlatformOPL::reset() {
   }
 
   if (adpcmChan>=0) {
-    chan[adpcmChan]=DivPlatformOPL::Channel();
+    chan[adpcmChan]=DivPlatformOPL::Channel(parent->song.compatFlags.linearPitch);
     chan[adpcmChan].std.setEngine(parent);
     chan[adpcmChan].vol=0xff;
     chan[adpcmChan].outVol=0xff;
@@ -2975,7 +2976,7 @@ void DivPlatformOPL::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformOPL::getPortaFloor(int ch) {
-  return (ch>5)?12:0;
+  return (ch>5)?72:60;
 }
 
 void DivPlatformOPL::setCore(unsigned char which) {

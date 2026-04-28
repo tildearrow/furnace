@@ -307,7 +307,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformPCE* ch=(DivPlatformPCE*)data;
       ImGui::Text("> PCEngine");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- lastPan: %d",ch->lastPan);
       ImGui::Text("- curChan: %d",ch->curChan);
       ImGui::Text("- lfoMode: %d",ch->lfoMode);
       ImGui::Text("- lfoSpeed: %d",ch->lfoSpeed);

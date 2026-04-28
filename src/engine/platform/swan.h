@@ -27,12 +27,12 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformSwan: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned char pan;
     int wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<int>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       pan(255),
       wave(-1) {}
   };
@@ -67,7 +67,7 @@ class DivPlatformSwan: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);

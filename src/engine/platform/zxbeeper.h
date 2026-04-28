@@ -23,11 +23,11 @@
 #include "../dispatch.h"
 
 class DivPlatformZXBeeper: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned short sPosition;
     unsigned char duty;
-    Channel():
-      SharedChannel<signed char>(1),
+    Channel(bool linear=true):
+      SharedChannel(1,linear),
       sPosition(0),
       duty(64) {}
   };
@@ -47,7 +47,7 @@ class DivPlatformZXBeeper: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

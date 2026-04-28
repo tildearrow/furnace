@@ -1650,7 +1650,7 @@ void DivPlatformGenesis::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformGenesis::getChanState(int ch) {
+SharedChannel* DivPlatformGenesis::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1762,7 +1762,7 @@ void DivPlatformGenesis::reset() {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<10; i++) {
-    chan[i]=DivPlatformGenesis::Channel();
+    chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
@@ -1829,7 +1829,7 @@ void DivPlatformGenesis::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformGenesis::getPortaFloor(int ch) {
-  return 0;
+  return 60;
 }
 
 void DivPlatformGenesis::setYMFM(unsigned char use) {

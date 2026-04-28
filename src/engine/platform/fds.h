@@ -26,15 +26,15 @@
 #include "sound/nes_nsfplay/nes_fds.h"
 
 class DivPlatformFDS: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, modFreq;
     unsigned char duty, sweep, modDepth, modPos;
     unsigned char autoModNum, autoModDen;
     bool sweepChanged, modOn;
     signed short wave;
     signed char modTable[32];
-    Channel():
-      SharedChannel<signed char>(32),
+    Channel(bool linear=true):
+      SharedChannel(32,linear),
       prevFreq(65535),
       modFreq(0),
       duty(0),
@@ -58,6 +58,7 @@ class DivPlatformFDS: public DivDispatch {
   struct _fds* fds;
   xgm::NES_FDS* fds_NP;
   unsigned char regPool[128];
+  DivPitchTable pitchTable;
 
   void updateWave();
   
@@ -71,7 +72,7 @@ class DivPlatformFDS: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -84,6 +85,7 @@ class DivPlatformFDS: public DivDispatch {
     void setNSFPlay(bool use);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     float getPostAmp();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

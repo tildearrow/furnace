@@ -363,7 +363,7 @@ void DivPlatformYMZ280B::forceIns() {
   }
 }
 
-void* DivPlatformYMZ280B::getChanState(int ch) {
+SharedChannel* DivPlatformYMZ280B::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -384,7 +384,7 @@ void DivPlatformYMZ280B::reset() {
   ymz280b.device_reset();
   rWrite(0xff,0x80); // enable keyon
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformYMZ280B::Channel();
+    chan[i]=DivPlatformYMZ280B::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     rWrite(0x02+i*4,255);
     rWrite(0x03+i*4,8);

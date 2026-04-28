@@ -342,13 +342,14 @@ void DivPlatformES5506::updatePCMChanges(int i) {
   if (chan[i].pcmChanged.changed) {
     DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     if (chan[i].pcmChanged.index) {
+      // TODO: this is a mess. it needs to be cleaned up.
       const int next=chan[i].pcm.next;
       bool sampleValid=false;
-      if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
+      if (((ins->amiga.useNoteMap) && (next>=0 && next<180)) ||
           ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
-        DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
         int sample=next;
         if (ins->amiga.useNoteMap) {
+          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
           sample=noteMapind.map;
         }
         if (sample>=0 && sample<parent->song.sampleLen) {
@@ -755,7 +756,8 @@ void DivPlatformES5506::tick(bool sysTick) {
         chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
-        chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs);
+        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       }
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
@@ -1307,7 +1309,7 @@ void DivPlatformES5506::forceIns() {
   }
 }
 
-void* DivPlatformES5506::getChanState(int ch) {
+SharedChannel* DivPlatformES5506::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1327,7 +1329,7 @@ void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();
   for (int i=0; i<32; i++) {
-    chan[i]=DivPlatformES5506::Channel();
+    chan[i]=DivPlatformES5506::Channel(parent->song.compatFlags.linearPitch);
     chan[i].vol=amigaVol?64:255;
     chan[i].outVol=amigaVol?64:255;
     chan[i].std.setEngine(parent);

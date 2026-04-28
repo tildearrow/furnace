@@ -26,15 +26,15 @@
 #include "sound/vsu.h"
 
 class DivPlatformVB: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int antiClickPeriodCount, antiClickWavePos;
     unsigned char pan, envLow, envHigh;
     bool noise, deferredWaveUpdate, intWritten;
     unsigned char hasEnvWarning;
     signed short wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       pan(255),
@@ -50,6 +50,7 @@ class DivPlatformVB: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
   bool antiClickEnabled, screwThis;
+  DivPitchTable pitchTable;
   struct QueuedWrite {
     unsigned short addr;
     unsigned char val;
@@ -77,7 +78,7 @@ class DivPlatformVB: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);
@@ -97,6 +98,7 @@ class DivPlatformVB: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

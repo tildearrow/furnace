@@ -28,7 +28,7 @@ struct VERA_PCM;
 
 class DivPlatformVERA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char pan;
       unsigned int accum;
       int noiseval;
@@ -41,8 +41,8 @@ class DivPlatformVERA: public DivDispatch {
         bool depth16, setPos;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false), setPos(false) {}
       } pcm;
-      Channel():
-        SharedChannel<int>(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         pan(0),
         accum(0),
         noiseval(0),
@@ -63,7 +63,7 @@ class DivPlatformVERA: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

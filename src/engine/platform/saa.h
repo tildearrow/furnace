@@ -26,12 +26,12 @@
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char freqH, freqL;
       unsigned char psgMode;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         freqH(0),
         freqL(0),
         psgMode(1),
@@ -71,7 +71,7 @@ class DivPlatformSAA1099: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

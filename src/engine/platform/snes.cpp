@@ -119,7 +119,7 @@ void DivPlatformSNES::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -214,9 +214,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      if (chan[i].useWave) off=(double)chan[i].wtLen/32.0;
-      chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].freq>16383) chan[i].freq=16383;
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
@@ -355,6 +353,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].wtLen=ins->amiga.waveLen+1;
+        chan[c.chan].pitchTable=&wavePitchTable[((chan[c.chan].wtLen>>4)-1)&15];
         if (chan[c.chan].insChanged) {
           if (chan[c.chan].wave<0) {
             chan[c.chan].wave=0;
@@ -366,6 +365,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
@@ -383,7 +383,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         chan[c.chan].shallWriteEnv=true;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value));
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -452,7 +452,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta));
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -475,7 +475,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -722,7 +722,7 @@ void DivPlatformSNES::forceIns() {
   initEcho();
 }
 
-void* DivPlatformSNES::getChanState(int ch) {
+SharedChannel* DivPlatformSNES::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -870,13 +870,15 @@ void DivPlatformSNES::reset() {
   // this can't be 0 or channel 1 won't play
   // this can't be 0x100 either as that's used by SPC700 page 1 and the stack
   // this may not even be 0x200 as some space will be taken by the playback routine and variables
-  sampleTableBase=0x200;
+  // I hope 0x400 is good enough...
+  sampleTableBase=0x400;
   rWrite(0x5d,sampleTableBase>>8);
   rWrite(0x0c,127); // global volume left
   rWrite(0x1c,127); // global volume right
   rWrite(0x6c,0); // get DSP out of reset
   for (int i=0; i<8; i++) {
     chan[i]=Channel();
+    chan[i].pitchTable=&wavePitchTable[1]; // default
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15);
@@ -948,6 +950,16 @@ void DivPlatformSNES::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformSNES::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_FREQBASE,0x3fff,false,parent->song.compatFlags.linearPitch,sample);
+  // check whether we should recalculate the wave pitch tables
+  if (sample==-1) {
+    for (int i=0; i<16; i++) {
+      wavePitchTable[i].init(parent->song.tuning,chipClock,CHIP_FREQBASE*(1+i)/2.0,0x3fff,false,parent->song.compatFlags.linearPitch);
+    }
+  }
+}
+
 void DivPlatformSNES::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
@@ -983,6 +995,14 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
   return &memCompo;
 }
 
+const void* DivPlatformSNES::compileSampleMem(int index, size_t& size) {
+  size=MIN(sampleMemLen,65536)-sampleTableBase;
+  unsigned char* ret=new unsigned char[size];
+  memcpy(ret,&copyOfSampleMem[sampleTableBase],size);
+
+  return ret;
+}
+
 void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,32768*sizeof(unsigned int));
@@ -992,11 +1012,26 @@ void DivPlatformSNES::renderSamples(int sysID) {
   memCompo.name="SPC/DSP Memory";
 
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"State",-1,0,sampleTableBase));
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,sampleTableBase,sampleTableBase+8*4));
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Channel Sample Pointers",-1,sampleTableBase,sampleTableBase+8*4));
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,sampleTableBase+8*4,sampleTableBase+8*4+8*9*16));
 
   // skip past sample table and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
+  size_t sampleTablePos=memPos;
+  
+  // allocate sample table
+  int maxSample=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      continue;
+    }
+    maxSample=i;
+  }
+  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,memPos,memPos+(maxSample+1)*4));
+  memPos+=(maxSample+1)*4;
+
+  // write samples
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1028,6 +1063,32 @@ void DivPlatformSNES::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
+
+  // finish sample table
+  for (int i=0; i<=maxSample; i++) {
+    if (i>=parent->song.sampleLen) break;
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      // unavailable
+      copyOfSampleMem[sampleTablePos+i*4]=0;
+      copyOfSampleMem[sampleTablePos+i*4+1]=0;
+      copyOfSampleMem[sampleTablePos+i*4+2]=0;
+      copyOfSampleMem[sampleTablePos+i*4+3]=0;
+      continue;
+    }
+
+    int start=sampleOff[i];
+    int end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
+    int loop=MAX(start,end-1);
+    if (s->isLoopable()) {
+      loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
+    }
+
+    copyOfSampleMem[sampleTablePos+i*4]=start&0xff;
+    copyOfSampleMem[sampleTablePos+i*4+1]=start>>8;
+    copyOfSampleMem[sampleTablePos+i*4+2]=loop&0xff;
+    copyOfSampleMem[sampleTablePos+i*4+3]=loop>>8;
+  }
 
   // even if the delay is 0, the DSP will still operate the first buffer sample
   // so the ARAM buffer size becomes 4 bytes when the delay is 0
@@ -1061,10 +1122,13 @@ void DivPlatformSNES::setFlags(const DivConfig& flags) {
 
   interpolationOff=flags.getBool("interpolationOff",false);
   antiClick=flags.getBool("antiClick",true);
+
+  notifyPitchTable();
 }
 
 int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   sampleMemLen=0;
@@ -1095,4 +1159,5 @@ DivPlatformSNES::DivPlatformSNES() {
 DivPlatformSNES::~DivPlatformSNES() {
   delete[] sampleOff;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,8);
 }

@@ -472,7 +472,7 @@ void DivPlatformNDS::forceIns() {
   }
 }
 
-void* DivPlatformNDS::getChanState(int ch) {
+SharedChannel* DivPlatformNDS::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -498,7 +498,7 @@ void DivPlatformNDS::reset() {
   rWrite32(0x100,0x8000|globalVolume); // enable keyon
   rWrite32(0x104,0x200); // initialize bias
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformNDS::Channel();
+    chan[i]=DivPlatformNDS::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     rWrite32(0x00+i*16,isMuted[i]?0x400000:0x40007f);
   }

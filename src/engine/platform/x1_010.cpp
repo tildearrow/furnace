@@ -838,7 +838,7 @@ void DivPlatformX1_010::forceIns() {
   }
 }
 
-void* DivPlatformX1_010::getChanState(int ch) {
+SharedChannel* DivPlatformX1_010::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -869,7 +869,7 @@ int DivPlatformX1_010::getRegisterPoolSize() {
 void DivPlatformX1_010::reset() {
   memset(regPool,0,0x2000);
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformX1_010::Channel();
+    chan[i]=DivPlatformX1_010::Channel(parent->song.compatFlags.linearPitch);
     chan[i].reset();
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);

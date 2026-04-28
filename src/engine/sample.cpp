@@ -181,8 +181,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   }
 
   if (version>=58) { // modern sample
-    init(samples);
-    reader.read(getCurBuf(),getCurBufLen());
+    if (init(samples)) {
+      reader.read(getCurBuf(),getCurBufLen());
+    }
 #ifdef TA_BIG_ENDIAN
     // convert 16-bit samples to big-endian
     if (depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -196,7 +197,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     }
 #endif
   } else { // legacy sample
-    int length=samples;
+    unsigned int length=samples;
+    if (length>16777215) {
+      // yeah I know this is a terrible idea...
+      length=16777215;
+    }
     short* data=new short[length];
     reader.read(data,2*length);
 
@@ -217,20 +222,20 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       depth=DIV_SAMPLE_DEPTH_16BIT;
     }
     samples=(double)samples/samplePitchesSD[pitch];
-    init(samples);
-
-    unsigned int k=0;
-    float mult=(float)(vol)/50.0f;
-    for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
-      if (k>=samples) {
-        break;
-      }
-      if (depth==DIV_SAMPLE_DEPTH_8BIT) {
-        float next=(float)(data[(unsigned int)j]-0x80)*mult;
-        data8[k++]=fmin(fmax(next,-128),127);
-      } else {
-        float next=(float)data[(unsigned int)j]*mult;
-        data16[k++]=fmin(fmax(next,-32768),32767);
+    if (init(samples)) {
+      unsigned int k=0;
+      float mult=(float)(vol)/50.0f;
+      for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
+        if (k>=samples) {
+          break;
+        }
+        if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+          float next=(float)(data[(unsigned int)j]-0x80)*mult;
+          data8[k++]=fmin(fmax(next,-128),127);
+        } else {
+          float next=(float)data[(unsigned int)j]*mult;
+          data16[k++]=fmin(fmax(next,-32768),32767);
+        }
       }
     }
 

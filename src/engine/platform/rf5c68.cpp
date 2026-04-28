@@ -325,7 +325,7 @@ void DivPlatformRF5C68::forceIns() {
   }
 }
 
-void* DivPlatformRF5C68::getChanState(int ch) {
+SharedChannel* DivPlatformRF5C68::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -346,7 +346,7 @@ void DivPlatformRF5C68::reset() {
   rf5c68.device_reset();
   rWrite(0x08,0xff); // keyoff all channels
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformRF5C68::Channel();
+    chan[i]=DivPlatformRF5C68::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chWrite(i,0,255);
     chWrite(i,1,isMuted[i]?0:255);

@@ -26,8 +26,15 @@
 #include "safeReader.h"
 #include "safeWriter.h"
 
+/**
+ * an asset directory is called a "folder" in the GUI.
+ * it allows the user to group several assets and give that group a name.
+ * the list of folders is contained in an std::vector within DivSong.
+ */
 struct DivAssetDir {
+  // the directory's name.
   String name;
+  // entry asset IDs.
   std::vector<int> entries;
 
   DivAssetDir():
@@ -36,17 +43,41 @@ struct DivAssetDir {
     name(n) {}
 };
 
-// check whether an asset directory is complete (UNSAFE)
+/**
+ * check whether an asset directory is complete (UNSAFE).
+ * @param dir a set of asset directories.
+ * @param entries the number of assets. not the number of entries in the asset dir!
+ */
 void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
-// move an asset
+/**
+ * move an asset.
+ * @param dir a set of asset directories.
+ * @param before asset ID which has moved.
+ * @param after asset ID's new ID.
+ */
 void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
 
-// remove an asset
+/**
+ * remove an asset.
+ * @param dir a set of asset directories.
+ * @param entry the asset ID.
+ */
 void removeAsset(std::vector<DivAssetDir>& dir, int entry);
 
-// read/write asset dir
+/**
+ * write asset directory.
+ * @param w a SafeWriter.
+ * @param dir the asset directory.
+ */
 void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir);
+
+/**
+ * read asset directory.
+ * @param reader a SafeReader.
+ * @param dir the asset directory.
+ * @return whether an error occurred.
+ */
 DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir);
 
 #endif

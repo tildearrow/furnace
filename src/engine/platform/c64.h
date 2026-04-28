@@ -31,7 +31,7 @@
 // - ex4 (test) compatibility
 
 class DivPlatformC64: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, testWhen;
     unsigned int audPos;
     int pcmPos, sample, pcmPeriod, pcmRate, pcmOut;
@@ -40,8 +40,8 @@ class DivPlatformC64: public DivDispatch {
     bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       testWhen(0),
       audPos(0),
@@ -115,7 +115,7 @@ class DivPlatformC64: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

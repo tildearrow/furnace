@@ -261,8 +261,8 @@ void DivPlatformPET::forceIns() {
   writeOutVol();
 }
 
-void* DivPlatformPET::getChanState(int ch) {
-  return &chan;
+SharedChannel* DivPlatformPET::getChanState(int ch) {
+  return &chan[0];
 }
 
 DivMacroInt* DivPlatformPET::getChanMacroInt(int ch) {

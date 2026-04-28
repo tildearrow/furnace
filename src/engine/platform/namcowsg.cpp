@@ -218,7 +218,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -253,7 +253,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1048575) chan[i].freq=1048575;
       if (chan[i].keyOn) {
@@ -346,7 +346,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -403,7 +403,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value*((parent->song.compatFlags.linearPitch)?1:8);
@@ -434,7 +434,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -442,7 +442,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -475,7 +475,7 @@ void DivPlatformNamcoWSG::forceIns() {
   }
 }
 
-void* DivPlatformNamcoWSG::getChanState(int ch) {
+SharedChannel* DivPlatformNamcoWSG::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -504,7 +504,8 @@ void DivPlatformNamcoWSG::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<chans; i++) {
-    chan[i]=DivPlatformNamcoWSG::Channel();
+    chan[i]=DivPlatformNamcoWSG::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
@@ -568,6 +569,10 @@ void DivPlatformNamcoWSG::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformNamcoWSG::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xfffff,false,parent->song.compatFlags.linearPitch);
+}
+
 void DivPlatformNamcoWSG::setDeviceType(int type) {
   devType=type;
   switch (type) {
@@ -597,6 +602,8 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   newNoise=flags.getBool("newNoise",true);
   romMode=flags.getBool("romMode",false);
   if (devType==30) romMode=false;
+
+  notifyPitchTable();
 }
 
 void DivPlatformNamcoWSG::poke(unsigned int addr, unsigned short val) {

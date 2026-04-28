@@ -597,7 +597,7 @@ void DivPlatformSID2::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSID2::getChanState(int ch) {
+SharedChannel* DivPlatformSID2::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -667,7 +667,7 @@ float DivPlatformSID2::getPostAmp() {
 void DivPlatformSID2::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformSID2::Channel();
+    chan[i]=DivPlatformSID2::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     fakeLow[i]=0;
     fakeBand[i]=0;

@@ -566,7 +566,7 @@ void DivPlatformSoundUnit::forceIns() {
   }
 }
 
-void* DivPlatformSoundUnit::getChanState(int ch) {
+SharedChannel* DivPlatformSoundUnit::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -594,7 +594,7 @@ void DivPlatformSoundUnit::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformSoundUnit::Channel();
+    chan[i]=DivPlatformSoundUnit::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
 
     chan[i].cutoff_slide=0;

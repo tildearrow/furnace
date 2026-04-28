@@ -24,10 +24,10 @@
 #include "../macroInt.h"
 
 class DivPlatformPokeMini: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char duty;
-    Channel():
-      SharedChannel<signed char>(2),
+    Channel(bool linear=true):
+      SharedChannel(2,linear),
       duty(128) {}
   };
   Channel chan[1];
@@ -48,7 +48,7 @@ class DivPlatformPokeMini: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

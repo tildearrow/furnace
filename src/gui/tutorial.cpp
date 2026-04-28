@@ -1337,7 +1337,7 @@ template<typename T> T* FurnaceCV::createObjectNoPos() {
 }
 
 void FurnaceCV::soundEffect(int ins, int chan, int note) {
-  e->noteOn(chan+fxChanBase,ins+fxInsBase,note);
+  e->noteOn(chan+fxChanBase,ins+fxInsBase,note+60);
   /*
   e->dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,chan,ins,1));
   e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,chan,note));

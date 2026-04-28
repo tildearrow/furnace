@@ -93,7 +93,7 @@ void DivPlatformBifurcator::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -130,7 +130,7 @@ void DivPlatformBifurcator::tick(bool sysTick) {
       rWrite(i*8+1,chan[i].std.ex1.val>>8);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].freq>65535) chan[i].freq=65535;
       rWrite(i*8+4,chan[i].freq&0xff);
       rWrite(i*8+5,chan[i].freq>>8);
@@ -169,7 +169,7 @@ int DivPlatformBifurcator::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_BIFURCATOR);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value));
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -220,7 +220,7 @@ int DivPlatformBifurcator::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -243,7 +243,7 @@ int DivPlatformBifurcator::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -252,7 +252,7 @@ int DivPlatformBifurcator::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_BIFURCATOR_STATE_LOAD:
@@ -294,7 +294,7 @@ void DivPlatformBifurcator::forceIns() {
   }
 }
 
-void* DivPlatformBifurcator::getChanState(int ch) {
+SharedChannel* DivPlatformBifurcator::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -313,7 +313,8 @@ int DivPlatformBifurcator::getRegisterPoolSize() {
 void DivPlatformBifurcator::reset() {
   memset(regPool,0,8*4);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformBifurcator::Channel();
+    chan[i]=DivPlatformBifurcator::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     rWrite(i*8,chan[i].curx&0xff);
     rWrite(i*8+1,chan[i].curx>>8);
@@ -352,6 +353,10 @@ void DivPlatformBifurcator::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformBifurcator::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+}
+
 void DivPlatformBifurcator::setFlags(const DivConfig& flags) {
   chipClock=1000000;
   CHECK_CUSTOM_CLOCK;
@@ -359,6 +364,8 @@ void DivPlatformBifurcator::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformBifurcator::poke(unsigned int addr, unsigned short val) {

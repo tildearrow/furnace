@@ -1,5 +1,40 @@
 # ROM export technical details
 
+## instrument data (common)
+
+### wave synth
+
+```
+size | description
+-----|----------------------------------
+  1  | enable synth
+     | - bit 6: global
+     | - bit 0: enable
+  1  | synth effect
+  2  | wave 1
+  2  | wave 2
+  1  | update rate
+  1  | speed
+  1  | amount
+  1  | power
+```
+
+### sample map
+
+```
+size | description
+-----|----------------------------------
+  1  | lower boundary
+  1  | upper boundary
+ 2?? | pointers to byte tables, offset by lower boundary
+     | - the following four tables are present, in this order:
+     |   - sample number (low)
+     |   - sample number (high)
+     |   - note/DPCM freq
+     |   - DPCM delta (NES only)
+     | - I know it's weird, but it paves the way for a 6502 optimization.
+```
+
 ## instrument data
 
 ### C64
@@ -50,10 +85,20 @@ size | description
 ```
 size | description
 -----|----------------------------------
-  1  | ADSR/gain
+  1  | ADSR toggle/decay/attack
+     | - bit 7: ADSR enabled
+     | - bit 4-6: decay
+     | - bit 0-3: attack
+  1  | sustain/release
+     | - bit 5-7: sustain
+     | - bit 0-4: release
+  1  | gain
+     | - bit 7: special modes
+     | - bit 0-6: value
+     | - equivalent to the SNES gain register.
   1  | decay 2/release mode
-     | - bit 3-7: decay 2
-     | - bit 0-2: mode
+     | - bit 2-6: decay 2
+     | - bit 0-1: mode
      |   - 0: direct
      |   - 1: effective linear
      |   - 2: effective exp
@@ -71,18 +116,6 @@ size | description
   2  | pointer to wave synth data (0 = disabled)
 -----|----------------------------------
  2?? | macro pointers... (0 = end of list)
------|----------------------------------
-     | **wave synth data (only in wavetable mode)**
-  1  | enable synth
-     | - bit 6: global
-     | - bit 0: enable
-  1  | synth effect
-  2  | wave 1
-  2  | wave 2
-  1  | update rate
-  1  | speed
-  1  | amount
-  1  | power
 ```
 
 ### Game Boy
@@ -101,22 +134,9 @@ size | description
   2  | pointer to hardware sequence (0 = empty)
 -----|----------------------------------
  2?? | macro pointers... (0 = end of list)
------|----------------------------------
-     | **wave synth data**
-  1  | enable synth
-     | - bit 6: global
-     | - bit 0: enable
-  1  | synth effect
-  2  | wave 1
-  2  | wave 2
-  1  | update rate
-  1  | speed
-  1  | amount
-  1  | power
------|----------------------------------
-     | **hardware sequence**
- ??? | data...
 ```
+
+hardware sequence is copied from the instrument verbatim.
 
 ## compiled macro data
 

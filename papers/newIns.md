@@ -470,7 +470,7 @@ size | description
      | - bit 1: use sample
      | - bit 0: use sample map
   1  | waveform length
- 4?? | sample map... (120 entries)
+ 4?? | sample map... (120 entries (<246) or 180 entries (>=246))
      | - only read if sample map is enabled
 ```
 
@@ -480,6 +480,8 @@ the sample map format:
 size | description
 -----|------------------------------------
   2  | note to play (>=152) or reserved
+     | - (<246) 0 is C-0 and 119 is B-9
+     | - (>=246) 0 is C-(-5), 60 is C-0 and 179 is B-9
   2  | sample to play
 ```
 
@@ -729,7 +731,7 @@ size | description
 size | description
 -----|------------------------------------
   1  | use sample map
- 2?? | DPCM sample map... (120 entries)
+ 2?? | DPCM sample map... (120 entries (<246) or 180 entries (>=246))
      | - only read if sample map is enabled
 ```
 

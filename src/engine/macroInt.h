@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// macroInt.h: the macro interpreter.
+
 #ifndef _MACROINT_H
 #define _MACROINT_H
 
@@ -24,13 +26,55 @@
 
 class DivEngine;
 
+/**
+ * DivMacroStruct holds the state for a macro in a DivMacroInt.
+ */ 
 struct DivMacroStruct {
+  // pos:
+  // - current macro position (for sequences)
+  // - current envelope/LFO state (for ADSR/LFO macros)
+  // lastPos: the previous value of pos.
+  // delay:
+  // - the number of ticks to wait before the next step.
+  // - set to Delay when initialized and then set to Step Length on each step.
   int pos, lastPos, delay;
+  // current output value.
   int val;
+  // has: whether there is a value on this tick.
+  // had: whether there was a value on the previous tick, I think
+  // actualHad: internally used to determine whether the macro is over.
+  // finished: set to true when the macro has ended.
+  // will: whether this macro is going to run. set on init.
+  // linger: whether the macro will finish or linger on the last value. set to true for the volume macro.
+  // began: whether this is the macro's first tick.
+  // masked: disables this macro entirely. set by the disable/enable macro effects.
+  // activeRelease: whether release should skip to the release point.
+  // lfoDir: sets the direction of the LFO. used in LFO with triangle wave.
   bool has, had, actualHad, finished, will, linger, began, masked, activeRelease, lfoDir;
+  // mode: a copy of the macro's mode. mostly unused.
+  // type: the macro type. valid values are:
+  // - 0: sequence
+  // - 1: ADSR
+  // - 2: LFO
   unsigned int mode, type;
+  // the parameter that this macro will control.
   unsigned char macroType;
+
+  /**
+   * update this macro. executed on each tick.
+   * @param source the source macro.
+   * @param released whether the note has been released.
+   * @param tick this is a bit complicated but I'll explain.
+   * this tells the macro whether a song tick has occurred.
+   * in low-latency mode, the engine ticks at the closest multiple of the tick rate to match 1000Hz.
+   * several "sub-ticks" are created, allowing you to play notes in the middle of a song tick.
+   * this determines whether enough ticks have passed to run macros at the correct tick rate.
+   */
   void doMacro(DivInstrumentMacro& source, bool released, bool tick);
+  /**
+   * reset state.
+   * called once we don't need this state anymore.
+   */
   void init() {
     pos=lastPos=mode=type=delay=0;
     has=had=actualHad=will=false;
@@ -40,6 +84,10 @@ struct DivMacroStruct {
     // TODO: test whether this breaks anything?
     val=0;
   }
+  /**
+   * initialize state.
+   * called on macro restart.
+   */
   void prepare(DivInstrumentMacro& source, DivEngine* e);
   DivMacroStruct(unsigned char mType):
     pos(0),
@@ -61,16 +109,29 @@ struct DivMacroStruct {
     macroType(mType) {}
 };
 
+/**
+ * this is the macro interpreter. it runs macros.
+ * normally there's one per dispatch channel.
+ */
 class DivMacroInt {
+  // the DivEngine associated with this macro interpreter.
   DivEngine* e;
+  // the related instrument.
   DivInstrument* ins;
+  // list of macros to run. populated during note on.
   DivMacroStruct* macroList[128];
+  // sources of macros to run.
   DivInstrumentMacro* macroSource[128];
+  // number of macros to process.
   size_t macroListLen;
+  // the current "sub-tick". in low-latency mode, this counts how many engine ticks remain until the next song tick.
   int subTick;
+  // whether note/macro release occurred.
   bool released;
   public:
-    // common macro
+    // each DivMacroInt defines macro states for all macros.
+    // this is done for convenience. not all macros may be running.
+    // common macros
     DivMacroStruct vol;
     DivMacroStruct arp;
     DivMacroStruct duty, wave, pitch, ex1, ex2, ex3;
@@ -112,7 +173,9 @@ class DivMacroInt {
     bool hasRelease;
 
     /**
-     * set mask on macro.
+     * set mask on macro. used by the macro enable/disable effect.
+     * @param id the macro to alter.
+     * @param enable whether the mask is enabled (macro is disabled).
      */
     void mask(unsigned char id, bool enabled);
 
@@ -123,23 +186,24 @@ class DivMacroInt {
 
     /**
      * restart macro.
+     * @param id the macro to restart.
      */
     void restart(unsigned char id);
 
     /**
-     * trigger next macro tick.
+     * trigger next macro tick. called on each engine tick.
      */
     void next();
 
     /**
      * set the engine.
-     * @param the engine
+     * @param eng the engine.
      */
     void setEngine(DivEngine* eng);
 
     /**
      * initialize the macro interpreter.
-     * @param which an instrument, or NULL.
+     * @param which an instrument, or NULL (no instrument).
      */
     void init(DivInstrument* which);
 

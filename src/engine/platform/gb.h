@@ -26,7 +26,7 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformGB: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char duty, sweep;
     bool sweepChanged, released, softEnv, killIt;
     bool soManyHacksToMakeItDefleCompatible;
@@ -35,8 +35,8 @@ class DivPlatformGB: public DivDispatch {
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
     short hwSeqDelay;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       duty(0),
       sweep(0),
       sweepChanged(false),
@@ -70,6 +70,7 @@ class DivPlatformGB: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,256> writes;
+  DivPitchTable pitchTable;
 
   int antiClickPeriodCount, antiClickWavePos;
 
@@ -85,7 +86,7 @@ class DivPlatformGB: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -101,6 +102,7 @@ class DivPlatformGB: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

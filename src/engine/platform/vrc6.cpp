@@ -458,7 +458,7 @@ void DivPlatformVRC6::forceIns() {
   }
 }
 
-void* DivPlatformVRC6::getChanState(int ch) {
+SharedChannel* DivPlatformVRC6::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -490,7 +490,7 @@ int DivPlatformVRC6::getRegisterPoolSize() {
 
 void DivPlatformVRC6::reset() {
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformVRC6::Channel();
+    chan[i]=DivPlatformVRC6::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   // HELP

@@ -191,21 +191,21 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
   if (parent->song.compatFlags.linearPitch || !easyNoise) {
-    return NOTE_PERIODIC(note);
+    return chan[ch].calcBaseFreq(note);
   }
   int easyStartingPeriod=16;
-  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3;
+  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3+60;
   if (note>easyThreshold) {
     return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
-  return NOTE_PERIODIC(note);
+  return chan[ch].calcBaseFreq(note);
 }
 
 int DivPlatformSMS::snCalcFreq(int ch) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
   int easyStartingPeriod=16;
-  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64;
+  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64+60*128;
   int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
   if (chan[ch].fixedArp) {
     curFreq=chan[ch].baseNoteOverride<<7;
@@ -215,7 +215,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
     if (ret<0) ret=0;
     return ret;
   }
-  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,chan[ch].fixedArp?chan[ch].baseNoteOverride:chan[ch].arpOff,chan[ch].fixedArp,true,0,chan[ch].pitch2,chipClock,CHIP_DIVIDER);
+  return chan[ch].calcFreq();
 }
 
 void DivPlatformSMS::tick(bool sysTick) {
@@ -234,7 +234,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (!easyNoise) while (areYouSerious>0x60) areYouSerious-=12;
+        if (!easyNoise) while (areYouSerious>156) areYouSerious-=12;
         chan[i].baseFreq=NOTE_SN(i,areYouSerious);
         chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;
@@ -282,7 +282,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       } else {
         if (chan[i].freq<0) chan[i].freq=0;
       }
-      //if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
+      //if (chan[i].actualNote>153) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
       rWrite(0,chan[i].freq>>4);
       // what?
@@ -295,10 +295,9 @@ void DivPlatformSMS::tick(bool sysTick) {
   }
   if (chan[3].freqChanged || updateSNMode) {
     chan[3].freq=snCalcFreq(3);
-    //parent->calcFreq(chan[3].baseFreq,chan[3].pitch,chan[3].fixedArp?chan[3].baseNoteOverride:chan[3].arpOff,chan[3].fixedArp,true,0,chan[3].pitch2,chipClock,noiseDivider);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (parent->song.compatFlags.snNoLowPeriods) {
-      if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
+      if (chan[3].actualNote>153) chan[3].freq=0x01;
     }
     if (chan[3].freq<0) chan[3].freq=0;
     if (snNoiseMode&2) { // take period from channel 3
@@ -489,7 +488,7 @@ void DivPlatformSMS::forceIns() {
   updateSNMode=true;
 }
 
-void* DivPlatformSMS::getChanState(int ch) {
+SharedChannel* DivPlatformSMS::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -529,7 +528,8 @@ void DivPlatformSMS::reset() {
   chanLatch=0;
   while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformSMS::Channel();
+    chan[i]=DivPlatformSMS::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=(i==3)?(&noisePitchTable):(&tonePitchTable);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -570,13 +570,18 @@ bool DivPlatformSMS::getLegacyAlwaysSetVolume() {
 }
 
 int DivPlatformSMS::getPortaFloor(int ch) {
-  return 12;
+  return 72;
 }
 
 void DivPlatformSMS::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformSMS::notifyPitchTable(int sample) {
+  tonePitchTable.init(parent->song.tuning,chipClock,toneDivider,0x3ff,true,parent->song.compatFlags.linearPitch);
+  noisePitchTable.init(parent->song.tuning,chipClock,noiseDivider,0x3ff,true,parent->song.compatFlags.linearPitch);
 }
 
 void DivPlatformSMS::poke(unsigned int addr, unsigned short val) {
@@ -687,6 +692,8 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformSMS::setNuked(bool value) {

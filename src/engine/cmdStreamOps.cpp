@@ -289,7 +289,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xb4);
       } else {
-        w->writeC(CLAMP(c.value+60,0,0xb3));
+        w->writeC(CLAMP(c.value,0,0xb3));
       }
       break;
     case DIV_CMD_NOTE_OFF:
@@ -362,7 +362,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xff);
       } else {
-        w->writeC(c.value+60);
+        w->writeC(c.value);
       }
       break;
     case DIV_CMD_NOTE_ON:
@@ -388,7 +388,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(c.value2);
       break;
     case DIV_CMD_HINT_PORTA: {
-      unsigned char val=CLAMP(c.value+60,0,255);
+      unsigned char val=CLAMP(c.value,0,255);
       w->writeC(val);
       w->writeC(c.value2);
       break;

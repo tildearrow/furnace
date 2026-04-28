@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     signed char resVol;
     short wave, wavePos, waveLen;
     short curWavePos, curWaveLen;
@@ -35,8 +35,8 @@ class DivPlatformN163: public DivDispatch {
     bool volumeChanged;
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;    
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       resVol(15),
       wave(-1),
       wavePos(0),
@@ -76,7 +76,7 @@ class DivPlatformN163: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
