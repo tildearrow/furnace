@@ -1000,6 +1000,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1058,6 +1059,7 @@ void FurnaceGUI::doAction(int what) {
         showError(_("too many samples!"));
       } else {
         wantScrollListSample=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       updateSampleTex=true;
@@ -1092,6 +1094,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1122,6 +1125,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1131,6 +1135,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1143,6 +1148,7 @@ void FurnaceGUI::doAction(int what) {
       }
       updateSampleTex=true;
       notifySampleChange=true;
+      e->notifyPitchTable();
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -1875,6 +1881,7 @@ void FurnaceGUI::doAction(int what) {
       curSample=prevSampleNum;
 
       // TODO: confirm these
+      e->notifyPitchTable();
       wantScrollListSample=true;
       MARK_MODIFIED;
       updateSampleTex=true;
