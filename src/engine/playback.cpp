@@ -2872,7 +2872,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
           } else {
             // find a suitable channel and add this event to the queue
-            autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
+            autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
           }
           // start the engine if necessary
           if (!playing) {
@@ -2891,16 +2891,16 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
             } else {
               // find a suitable channel and add this event to the queue
-              autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
+              autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=song.chans) break;
-              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true,false,true));
+              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12+60,msg.data[1],true,false,true));
             } else {
               // find a suitable channel and add this event to the queue
-              autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
+              autoNoteOn(msg.type&15,ins,msg.data[0]-12+60,msg.data[1]);
             }
           }
           break;
