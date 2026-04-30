@@ -25,6 +25,7 @@
 #include "../../extern/ESFMu/esfm.h"
 extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
+#include "../engine/platform/sound/sgu.h"
 }
 #include "../engine/platform/sound/ymfm/ymfm_opz.h"
 #include "../engine/bsr.h"
@@ -421,6 +422,135 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
   }
 }
 
+#define SGU_WRITE(addr,val) \
+  SGU_Write((SGU*)fmPreviewSGU,(addr),(val))
+
+void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, const DivInstrumentSGU& sguParams, int sampleIdx, int pos) {
+  if (fmPreviewSGU==NULL) {
+    fmPreviewSGU=new SGU;
+    SGU_Init((SGU*)fmPreviewSGU,SGU_PCM_RAM_SIZE);
+    pos=0;
+  }
+  int32_t outL=0;
+  int32_t outR=0;
+  bool mult0=false;
+
+  if (pos==0) {
+    SGU* sgu=(SGU*)fmPreviewSGU;
+    SGU_Reset(sgu);
+
+    for (int i=0; i<SGU_OP_PER_CH; i++) {
+      if ((params.op[i].mult&15)==0) {
+        mult0=true;
+        break;
+      }
+    }
+
+    const unsigned short chBase=0;
+    const unsigned short opBase=chBase;
+    const unsigned short chRegBase=chBase+(SGU_OP_PER_CH*SGU_OP_REGS);
+
+    bool hasSampleWave=false;
+    for (int i=0; i<SGU_OP_PER_CH; i++) {
+      const DivInstrumentFM::Operator& op=params.op[i];
+      const DivInstrumentESFM::Operator& opE=esfmParams.op[i];
+      const DivInstrumentSGU::Operator& opS=sguParams.op[i];
+      const unsigned short baseAddr=opBase+(i*SGU_OP_REGS);
+
+      if ((op.ws&7)==SGU_WAVE_SAMPLE) hasSampleWave=true;
+
+      const unsigned char am=op.am&0x01;
+      const unsigned char fm=op.vib&0x01;
+      const unsigned char fix=opE.fixed&0x01;
+      const unsigned char mult=op.mult&0x0f;
+      const unsigned char ksl=op.ksl&0x03;
+      const unsigned char tl=op.tl&0x7f;
+      const unsigned char ar=op.ar&0x1f;
+      const unsigned char dr=op.dr&0x1f;
+      const unsigned char sl=op.sl&0x0f;
+      const unsigned char rr=op.rr&0x0f;
+      const unsigned char dt=op.dt&0x07;
+      const unsigned char sr=op.d2r&0x1f;
+      const unsigned char delay=opE.delay&0x07;
+      const unsigned char ksr=op.ksr&0x03;
+      const unsigned char wpar=opS.wpar&0x0f;
+      const unsigned char dam=op.dam&0x01;
+      const unsigned char dvb=op.dvb&0x01;
+      const unsigned char sync=opS.sync?1:0;
+      const unsigned char ring=opS.ring?1:0;
+      const unsigned char modIn=opE.modIn&0x07;
+      const unsigned char outLvl=opE.outLvl&0x07;
+      const unsigned char wave=op.ws&0x07;
+
+      const unsigned char reg0=(am?SGU_OP0_TRM_BIT:0)
+        | (fm?SGU_OP0_VIB_BIT:0)
+        | ((ksr<<SGU_OP0_KSR_SHIFT)&SGU_OP0_KSR_MASK)
+        | (mult&SGU_OP0_MUL_MASK);
+      const unsigned char reg1=((ksl<<SGU_OP1_KSL_SHIFT)&SGU_OP1_KSL_MASK)
+        | (tl&SGU_OP1_TL_MASK);
+      const unsigned char reg2=((ar<<SGU_OP2_AR_SHIFT)&SGU_OP2_AR_MASK)
+        | (dr&SGU_OP2_DR_MASK);
+      const unsigned char reg3=((sl<<SGU_OP3_SL_SHIFT)&SGU_OP3_SL_MASK)
+        | (rr&SGU_OP3_RR_MASK);
+      const unsigned char reg4=((dt<<SGU_OP4_DT_SHIFT)&SGU_OP4_DT_MASK)
+        | (sr&SGU_OP4_SR_MASK);
+      const unsigned char reg5=((delay<<SGU_OP5_DELAY_SHIFT)&SGU_OP5_DELAY_MASK)
+        | (fix?SGU_OP5_FIX_BIT:0)
+        | (wpar&SGU_OP5_WPAR_MASK);
+      const unsigned char reg6=(dam?SGU_OP6_TRMD_BIT:0)
+        | (dvb?SGU_OP6_VIBD_BIT:0)
+        | (sync?SGU_OP6_SYNC_BIT:0)
+        | (ring?SGU_OP6_RING_BIT:0)
+        | ((modIn<<SGU_OP6_MOD_SHIFT)&SGU_OP6_MOD_MASK)
+        | ((tl>>SGU_OP1_TL_OFFSET)&SGU_OP6_TL_MSB_BIT);
+      const unsigned char reg7=((((op.enable?outLvl:0)<<SGU_OP7_OUT_SHIFT)&SGU_OP7_OUT_MASK))
+        | ((ar>>SGU_OP2_AR_OFFSET)?SGU_OP7_AR_MSB_BIT:0)
+        | ((dr>>SGU_OP2_DR_OFFSET)?SGU_OP7_DR_MSB_BIT:0)
+        | (wave&SGU_OP7_WAVE_MASK);
+
+      SGU_WRITE(baseAddr+0,reg0);
+      SGU_WRITE(baseAddr+1,reg1);
+      SGU_WRITE(baseAddr+2,reg2);
+      SGU_WRITE(baseAddr+3,reg3);
+      SGU_WRITE(baseAddr+4,reg4);
+      SGU_WRITE(baseAddr+5,reg5);
+      SGU_WRITE(baseAddr+6,reg6);
+      SGU_WRITE(baseAddr+7,reg7);
+    }
+
+    if (hasSampleWave) {
+      memset(sgu->pcm,0,SGU_PCM_RAM_SIZE);
+      if (sampleIdx>=0 && sampleIdx<e->song.sampleLen) {
+        DivSample* s=e->song.sample[sampleIdx];
+        if (s!=NULL && s->data8!=NULL && s->length8>0) {
+          size_t copyLen=s->length8;
+          if (copyLen>(size_t)SGU_PCM_RAM_SIZE) {
+            copyLen=SGU_PCM_RAM_SIZE;
+          }
+          memcpy(sgu->pcm,s->data8,copyLen);
+        }
+      }
+      SGU_WRITE(chRegBase+SGU1_CHN_PCM_RST_L,0);
+      SGU_WRITE(chRegBase+SGU1_CHN_PCM_RST_H,0);
+    }
+
+    const unsigned short freq=mult0?0x39ac:0x1cd6;
+    SGU_WRITE(chRegBase+SGU1_CHN_FREQ_L,freq&0xff);
+    SGU_WRITE(chRegBase+SGU1_CHN_FREQ_H,freq>>8);
+    SGU_WRITE(chRegBase+SGU1_CHN_VOL,127);
+    SGU_WRITE(chRegBase+SGU1_CHN_PAN,0);
+    SGU_WRITE(chRegBase+SGU1_CHN_DUTY,63);
+    SGU_WRITE(chRegBase+SGU1_CHN_FLAGS1,0);
+    SGU_WRITE(chRegBase+SGU1_CHN_FLAGS0,SGU1_FLAGS0_CTL_GATE);
+  }
+
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    SGU_NextSample((SGU*)fmPreviewSGU,&outL,&outR);
+    SGU_NextSample((SGU*)fmPreviewSGU,&outL,&outR);
+    fmPreview[i]=CLAMP(SGU_GetSample((SGU*)fmPreviewSGU,0),-32768,32767);
+  }
+}
+
 void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {
   switch (ins->type) {
     case DIV_INS_FM:
@@ -440,6 +570,10 @@ void FurnaceGUI::renderFMPreview(const DivInstrument* ins, int pos) {
       break;
     case DIV_INS_ESFM:
       renderFMPreviewESFM(ins->fm,ins->esfm,pos);
+      break;
+    case DIV_INS_SGU:
+      renderFMPreviewSGU(ins->fm,ins->esfm,ins->sgu,ins->amiga.initSample,pos);
+      break;
     default:
       break;
   }

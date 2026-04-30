@@ -103,6 +103,7 @@ this is the full list of chips that Furnace supports.
 - [RF5C68/RF5C164](ricoh.md)
 - [SAA1099](saa1099.md)
 - [SegaPCM](segapcm.md)
+- [SGU-1](sgu.md)
 - [SID2](sid2.md)
 - [SID3](sid3.md)
 - [SM8521](sm8521.md)

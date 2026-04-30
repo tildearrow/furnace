@@ -55,6 +55,7 @@
 #include "platform/vera.h"
 #include "platform/x1_010.h"
 #include "platform/su.h"
+#include "platform/sgu.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
 #include "platform/pokey.h"
@@ -660,6 +661,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       dispatch=new DivPlatformSoundUnit;
+      break;
+    case DIV_SYSTEM_SGU:
+      dispatch=new DivPlatformSGU;
       break;
     case DIV_SYSTEM_MSM6258:
       dispatch=new DivPlatformMSM6258;

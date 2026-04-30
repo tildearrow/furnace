@@ -67,6 +67,7 @@ the following instrument types are available:
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
 - [SegaPCM](segapcm.md) - for use with SegaPCM sample chip.
 - [Seta/Allumer X1-010](x1_010.md) - for use with Wavetable portion in Seta/Allumer X1-010.
+- [SGU-1](sgu.md) - for use with SGU-1 chip.
 - [SID2](sid2.md) - for use with SID2 fantasy chip.
 - [SID3](sid3.md) - for use with SID3 fantasy chip.
 - [SM8521](sm8521.md) - for use with SM8521 chip, used in Tiger Game.com.
