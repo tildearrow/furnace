@@ -593,6 +593,11 @@ extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/x1_010/x1_010.cpp
 
+extern/scsp/scsp.c
+extern/scsp/scspdsp.c
+extern/scsp/scsp_waveforms.c
+extern/scsp/scsp_bridge.c
+
 extern/adpcm/bs_codec.c
 extern/adpcm/oki_codec.c
 extern/adpcm/yma_codec.c
