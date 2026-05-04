@@ -336,6 +336,15 @@ enum DivDispatchCmds {
   DIV_CMD_FM_FMS2,
   DIV_CMD_FM_AMS2,
 
+  DIV_CMD_SCSP_LFO_FREQ,        // (value 0..31)
+  DIV_CMD_SCSP_PLFO_DEPTH,      // (value 0..7) lower 3 bits PLFOS, upper bits PLFOWS
+  DIV_CMD_SCSP_ALFO_DEPTH,      // (value 0..7) lower 3 bits ALFOS, upper bits ALFOWS
+  DIV_CMD_SCSP_KRS,             // (value 0..15)
+  DIV_CMD_SCSP_DSP_SEND,        // (value 0..7)
+  DIV_CMD_SCSP_DSP_PAN,         // (value 0..31)
+  DIV_CMD_SCSP_DIRECT_SEND,     // (value 0..7)
+  DIV_CMD_SCSP_DIRECT_PAN,      // (value 0..31)
+
   DIV_CMD_MAX
 };
 

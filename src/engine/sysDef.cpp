@@ -2743,11 +2743,23 @@ void DivEngine::registerSystems() {
     DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_STD>)
   );
 
+  EffectHandlerMap scspEffectHandlerMap={
+    {0x11, {DIV_CMD_SCSP_LFO_FREQ,    _("11xx: Set LFO frequency (00 to 1F)"),    effectValAnd<0x1f>}},
+    {0x12, {DIV_CMD_SCSP_PLFO_DEPTH,  _("12xx: Set pitch LFO depth (00 to 07)"),  effectValAnd<0x07>}},
+    {0x13, {DIV_CMD_SCSP_ALFO_DEPTH,  _("13xx: Set amp LFO depth (00 to 07)"),    effectValAnd<0x07>}},
+    {0x14, {DIV_CMD_SCSP_KRS,         _("14xx: Set key-rate scaling (00 to 0F)"), effectValAnd<0x0f>}},
+    {0x16, {DIV_CMD_SCSP_DSP_SEND,    _("16xx: Set DSP send level (00 to 07)"),   effectValAnd<0x07>}},
+    {0x17, {DIV_CMD_SCSP_DSP_PAN,     _("17xx: Set DSP pan (00 to 1F)"),          effectValAnd<0x1f>}},
+    {0x18, {DIV_CMD_SCSP_DIRECT_SEND, _("18xx: Set direct send level (00 to 07)"),effectValAnd<0x07>}},
+    {0x19, {DIV_CMD_SCSP_DIRECT_PAN,  _("19xx: Set direct pan (00 to 1F)"),       effectValAnd<0x1f>}},
+  };
+
   sysDefs[DIV_SYSTEM_SCSP]=new DivSysDef(
     _("Yamaha YMF292 (SCSP)"), NULL, 0xda, 0, 8, 1, 8,
     false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_16BIT)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
     _("the Saturn Custom Sound Processor. 32 slots, sample-based with FM synthesis via wavetable RAM and an on-chip programmable DSP. used in the Sega Saturn."),
-    DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_YMF292,DIV_INS_AMIGA>)
+    DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_YMF292,DIV_INS_AMIGA>),
+    scspEffectHandlerMap
   );
 
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {

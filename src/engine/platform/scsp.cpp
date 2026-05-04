@@ -108,9 +108,10 @@ void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
     return;
   }
   DivSample* s=parent->song.sample[c.sample];
+  DivInstrument* ins=parent->getIns(c.ins,DIV_INS_YMF292);
+  bool isScspIns=(ins->type==DIV_INS_YMF292);
 
   unsigned int sampleByte=USER_SAMPLE_BASE+sampleOff[c.sample];
-  unsigned int sampleWord=sampleByte; // SA register addresses bytes for 16-bit samples
 
   unsigned int loopStart=s->isLoopable()?(unsigned int)s->loopStart:0;
   unsigned int loopEnd=s->isLoopable()?(unsigned int)s->loopEnd:(unsigned int)s->samples;
@@ -118,44 +119,98 @@ void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
   if (loopEnd>0xFFFF) loopEnd=0xFFFF;
   if (loopStart>=loopEnd) loopStart=0;
 
-  // reg 0x0: KEYONEX[12] | KEYONB[11] | SBCTL[10:9] | SSCTL[8:7] | LPCTL[6:5] | PCM8B[4] | SA_high[3:0]
-  // for 16-bit samples PCM8B=0; LPCTL: 0=off,1=fwd,2=rev,3=alt
   unsigned char lpctl=0;
   if (s->isLoopable()) {
     switch (s->loopMode) {
-      case DIV_SAMPLE_LOOP_FORWARD: lpctl=1; break;
+      case DIV_SAMPLE_LOOP_FORWARD:  lpctl=1; break;
       case DIV_SAMPLE_LOOP_BACKWARD: lpctl=2; break;
       case DIV_SAMPLE_LOOP_PINGPONG: lpctl=3; break;
       default: lpctl=1; break;
     }
   }
-  unsigned short r0=((lpctl&0x3)<<5)|((sampleWord>>16)&0xF);
+  // Instrument can override loop control
+  if (isScspIns && ins->scsp.lpctl!=0) lpctl=ins->scsp.lpctl&0x3;
+
+  unsigned char eghold=0, lpslnk=0, sdir=0, stwinh=0;
+  if (isScspIns) {
+    eghold=ins->scsp.eghold?1:0;
+    lpslnk=ins->scsp.lpslnk?1:0;
+    sdir  =ins->scsp.sdir?1:0;
+    stwinh=ins->scsp.stwinh?1:0;
+  }
+
+  // reg 0x0: bits 5..6 LPCTL, bit 4 PCM8B (we always use 16-bit), bits 0..3 SA hi
+  unsigned short r0=((lpctl&0x3)<<5)|((sampleByte>>16)&0xF);
   scsp_write_slot(slot,0x0,r0);
 
-  // reg 0x1: SA_low[15:0]
-  scsp_write_slot(slot,0x1,(unsigned short)(sampleWord&0xFFFF));
+  // reg 0x1: SA low 16 bits
+  scsp_write_slot(slot,0x1,(unsigned short)(sampleByte&0xFFFF));
   // reg 0x2: LSA — loop start in samples
   scsp_write_slot(slot,0x2,(unsigned short)(loopStart&0xFFFF));
   // reg 0x3: LEA — loop end in samples
   scsp_write_slot(slot,0x3,(unsigned short)(loopEnd&0xFFFF));
 
-  // Default envelope: instant attack, no decay, instant release on key-off.
-  // (PCM-mode SCSP instrument fields will override these in a later pass.)
-  writeSlotEnvelope(slot, 31, 0, 0, 31, 0, 0xF);
+  // Envelope from instrument, fall back to instant attack
+  unsigned char ar  = isScspIns? ins->scsp.ar  : 31;
+  unsigned char d1r = isScspIns? ins->scsp.d1r : 0;
+  unsigned char d2r = isScspIns? ins->scsp.d2r : 0;
+  unsigned char rr  = isScspIns? ins->scsp.rr  : 31;
+  unsigned char dl  = isScspIns? ins->scsp.dl  : 0;
+  unsigned char krs = isScspIns? ins->scsp.krs : 0xF;
 
-  // Total level from channel volume (0..127): SCSP TL is attenuation in
-  // 0.375 dB per LSB, so volume 127 -> TL 0 (full), volume 0 -> TL ~127.
+  // reg 0x4: D2R[15:11] | D1R[10:6] | EGHOLD[5] | AR[4:0]
+  unsigned short r4=(((unsigned short)(d2r&0x1F))<<11)
+                  | (((unsigned short)(d1r&0x1F))<<6)
+                  | ((eghold&1)<<5)
+                  |  ((unsigned short)(ar &0x1F));
+  scsp_write_slot(slot,0x4,r4);
+
+  // reg 0x5: LPSLNK[14] | KRS[13:10] | DL[9:5] | RR[4:0]
+  unsigned short r5=((lpslnk&1)<<14)
+                  | (((unsigned short)(krs&0xF))<<10)
+                  | (((unsigned short)(dl &0x1F))<<5)
+                  |  ((unsigned short)(rr &0x1F));
+  scsp_write_slot(slot,0x5,r5);
+
+  // reg 0x6: STWINH[9] | SDIR[8] | TL[7:0] — TL from channel volume
   unsigned char tl=(unsigned char)(127-(c.outVol&0x7F));
-  writeSlotTotalLevel(slot,tl);
+  if (isScspIns && ins->scsp.tl>tl) tl=ins->scsp.tl;
+  unsigned short r6=((stwinh&1)<<9)|((sdir&1)<<8)|(tl&0xFF);
+  scsp_write_slot(slot,0x6,r6);
 
-  // Direct send: full level, pan from channel state (0..30; 15 = center).
-  unsigned char disdl=7;
+  // reg 0x7: MDL[15:12] | MDXSL[11:6] | MDYSL[5:0] — FM only, zero for PCM
+  scsp_write_slot(slot,0x7,0);
+
+  // reg 0x9: LFOF[14:10] | PLFOWS[9:8] | PLFOS[7:5] | ALFOWS[4:3] | ALFOS[2:0]
+  unsigned short r9=0;
+  if (isScspIns) {
+    r9=(((unsigned short)(ins->scsp.lfof   &0x1F))<<10)
+     | (((unsigned short)(ins->scsp.plfows&0x3))<<8)
+     | (((unsigned short)(ins->scsp.plfos &0x7))<<5)
+     | (((unsigned short)(ins->scsp.alfows&0x3))<<3)
+     |  ((unsigned short)(ins->scsp.alfos &0x7));
+    if (ins->scsp.lforeset) r9|=0x8000;
+  }
+  scsp_write_slot(slot,0x9,r9);
+
+  // DSP send (reg 0xA): ISEL[6:3] | IMXL[2:0]
+  if (isScspIns) {
+    scsp_slot_set_effect_send(slot,ins->scsp.isel,ins->scsp.imxl);
+  } else {
+    scsp_slot_set_effect_send(slot,0,0);
+  }
+
+  // EFSDL/EFPAN (lower byte of reg 0xB)
+  if (isScspIns) {
+    scsp_slot_set_effect_output(slot,ins->scsp.efsdl,ins->scsp.efpan);
+  } else {
+    scsp_slot_set_effect_output(slot,0,0);
+  }
+
+  // DISDL/DIPAN (upper byte of reg 0xB) — direct mix output
+  unsigned char disdl=isMuted[chanIdx]?0:(isScspIns?(ins->scsp.disdl&0x7):7);
   unsigned char dipan=(unsigned char)(c.pan&0x1F);
   writeSlotPan(slot,disdl,dipan);
-
-  // No DSP send by default
-  scsp_slot_set_effect_send(slot,0,0);
-  scsp_slot_set_effect_output(slot,0,0);
 
   c.sampleSet=true;
 }
@@ -396,6 +451,67 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
+    case DIV_CMD_SCSP_LFO_FREQ:
+    case DIV_CMD_SCSP_PLFO_DEPTH:
+    case DIV_CMD_SCSP_ALFO_DEPTH: {
+      if (chan[c.chan].slot<0) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      bool isScspIns=(ins->type==DIV_INS_YMF292);
+      unsigned char lfof  =isScspIns?ins->scsp.lfof  :0;
+      unsigned char plfows=isScspIns?ins->scsp.plfows:0;
+      unsigned char plfos =isScspIns?ins->scsp.plfos :0;
+      unsigned char alfows=isScspIns?ins->scsp.alfows:0;
+      unsigned char alfos =isScspIns?ins->scsp.alfos :0;
+      if (c.cmd==DIV_CMD_SCSP_LFO_FREQ)   lfof =c.value&0x1F;
+      if (c.cmd==DIV_CMD_SCSP_PLFO_DEPTH) plfos=c.value&0x07;
+      if (c.cmd==DIV_CMD_SCSP_ALFO_DEPTH) alfos=c.value&0x07;
+      unsigned short r9=(((unsigned short)(lfof  &0x1F))<<10)
+                      | (((unsigned short)(plfows&0x3))<<8)
+                      | (((unsigned short)(plfos &0x7))<<5)
+                      | (((unsigned short)(alfows&0x3))<<3)
+                      |  ((unsigned short)(alfos &0x7));
+      scsp_write_slot(chan[c.chan].slot,0x9,r9);
+      break;
+    }
+    case DIV_CMD_SCSP_KRS: {
+      if (chan[c.chan].slot<0) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      bool isScspIns=(ins->type==DIV_INS_YMF292);
+      unsigned char dl =isScspIns?ins->scsp.dl :0;
+      unsigned char rr =isScspIns?ins->scsp.rr :31;
+      unsigned char krs=c.value&0xF;
+      writeSlotEnvelope(chan[c.chan].slot,
+                        isScspIns?ins->scsp.ar :31,
+                        isScspIns?ins->scsp.d1r:0,
+                        isScspIns?ins->scsp.d2r:0,
+                        rr, dl, krs);
+      break;
+    }
+    case DIV_CMD_SCSP_DSP_SEND: {
+      if (chan[c.chan].slot<0) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      unsigned char efpan=(ins->type==DIV_INS_YMF292)?ins->scsp.efpan:0;
+      scsp_slot_set_effect_output(chan[c.chan].slot,c.value&0x7,efpan);
+      break;
+    }
+    case DIV_CMD_SCSP_DSP_PAN: {
+      if (chan[c.chan].slot<0) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      unsigned char efsdl=(ins->type==DIV_INS_YMF292)?ins->scsp.efsdl:0;
+      scsp_slot_set_effect_output(chan[c.chan].slot,efsdl,c.value&0x1F);
+      break;
+    }
+    case DIV_CMD_SCSP_DIRECT_SEND: {
+      if (chan[c.chan].slot<0) break;
+      writeSlotPan(chan[c.chan].slot,c.value&0x7,(unsigned char)(chan[c.chan].pan&0x1F));
+      break;
+    }
+    case DIV_CMD_SCSP_DIRECT_PAN: {
+      if (chan[c.chan].slot<0) break;
+      chan[c.chan].pan=c.value&0x1F;
+      writeSlotPan(chan[c.chan].slot,isMuted[c.chan]?0:7,(unsigned char)(chan[c.chan].pan&0x1F));
+      break;
+    }
     default:
       break;
   }
