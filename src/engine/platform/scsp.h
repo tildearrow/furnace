@@ -27,12 +27,25 @@ class DivPlatformSCSP: public DivDispatch {
     struct Channel: public SharedChannel {
       int slot;
       int sample;
+      int sampleNote;
+      int sampleNoteDelta;
       int pan;
+      int outVol;
+      bool keyOn, keyOff, sampleSet, audPosOverride;
+      unsigned int audPos;
       Channel(bool linear=true):
         SharedChannel(127,linear),
         slot(-1),
         sample(-1),
-        pan(0) {}
+        sampleNote(0),
+        sampleNoteDelta(0),
+        pan(15),
+        outVol(127),
+        keyOn(false),
+        keyOff(false),
+        sampleSet(false),
+        audPosOverride(false),
+        audPos(0) {}
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
@@ -40,22 +53,57 @@ class DivPlatformSCSP: public DivDispatch {
     DivPitchTable pitchTable;
 
     bool slotInUse[32];
+    unsigned int* sampleOff;
+    bool* sampleLoaded;
+    unsigned char* sampleMem;
+    size_t sampleMemLen;
+    DivMemoryComposition memCompo;
+
+    static const unsigned int RAM_SIZE = 512*1024;
+    static const unsigned int USER_SAMPLE_BASE = 0x5400;
+
+    unsigned char regPool[1024+48];
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
+
+    void programSlot(int slot, int chanIdx);
+    void writeSlotPitch(int slot, int midiNote, int baseMidiNote);
+    void writeSlotEnvelope(int slot, unsigned char ar, unsigned char d1r,
+                           unsigned char d2r, unsigned char rr,
+                           unsigned char dl, unsigned char krs);
+    void writeSlotTotalLevel(int slot, unsigned char tl);
+    void writeSlotPan(int slot, unsigned char disdl, unsigned char dipan);
+    int  midiNoteAtNativeRate(int sampleRate);
 
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
+    void notifySampleChange(int sample);
+    void notifyInsAddition(int sysID);
     void notifyPitchTable(int sample=-1);
     SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
+    void forceIns();
     void tick(bool sysTick=true);
     int getOutputCount();
     bool hasSoftPan(int ch);
+    bool keyOffAffectsArp(int ch);
+    bool keyOffAffectsPorta(int ch);
+    void setFlags(const DivConfig& flags);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
+    const void* getSampleMem(int index=0);
+    size_t getSampleMemCapacity(int index=0);
+    size_t getSampleMemUsage(int index=0);
+    bool isSampleLoaded(int index, int sample);
+    const DivMemoryComposition* getMemCompo(int index);
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSCSP();

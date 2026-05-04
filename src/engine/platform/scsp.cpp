@@ -19,20 +19,173 @@
 
 #include "scsp.h"
 #include "../engine.h"
+#include <math.h>
+
+extern "C" {
+#include "../../../extern/scsp/scsp_bridge.h"
+}
 
 #define CHIP_FREQBASE 4096
+
+// SCSP samples are stored as little-endian 16-bit signed PCM in sound RAM.
+// On x86/ARM (LE hosts) we can write through reinterpret_cast<short*>;
+// on BE hosts we'd need byte-swap. Furnace's primary targets are LE so
+// we assume that here.
+
+// Bebhionn-style: compute the OCT/FNS register pair for a given MIDI note,
+// where baseMidiNote is the note that plays the sample at its native rate
+// (i.e. SCSP runs at 44100 Hz, sample stored at its own sample rate, base
+// note is the MIDI note that triggers playback at exactly that rate).
+//
+// OCT is a signed 4-bit value sign-extended from 0xF = -1 octave; the
+// chip wraps via two's complement so we store it as raw 4 bits and let
+// the chip sign-extend.
+static void computeOctFns(int midiNote, int baseMidiNote, int* outOct, int* outFns) {
+  int semitones=midiNote-baseMidiNote;
+  // floor toward -infinity for negative semitones
+  int octaves=(semitones>=0)?(semitones/12):((semitones-11)/12);
+  int semInOct=semitones-octaves*12;
+  double fnsExact=(pow(2.0,(double)semInOct/12.0)-1.0)*1024.0;
+  int fnsValue=(int)(fnsExact+0.5);
+  if (fnsValue>=1024) {
+    fnsValue-=1024;
+    octaves+=1;
+  }
+  if (fnsValue<0) fnsValue=0;
+  // SCSP OCT is 4-bit field at bits 11..14 of register 0x8.
+  // valid range -8..+7; we clamp.
+  if (octaves<-8) { octaves=-8; fnsValue=0; }
+  if (octaves>7)  { octaves=7;  fnsValue=0x3FF; }
+  *outOct=octaves & 0xF;
+  *outFns=fnsValue & 0x3FF;
+}
+
+int DivPlatformSCSP::midiNoteAtNativeRate(int sampleRate) {
+  // SCSP plays back at 44100 Hz when OCT=0,FNS=0 means "sample's native
+  // rate equals SCSP's output rate." We map this to MIDI 60 (C-5) if the
+  // sample's centerRate is 44100. For other rates, shift by log2(rate/44100)
+  // octaves.
+  if (sampleRate<=0) return 60;
+  double octaves=log2((double)sampleRate/44100.0);
+  return 60+(int)(octaves*12.0+0.5);
+}
+
+void DivPlatformSCSP::writeSlotPitch(int slot, int midiNote, int baseMidiNote) {
+  int oct, fns;
+  computeOctFns(midiNote,baseMidiNote,&oct,&fns);
+  unsigned short val=((oct&0xF)<<11)|(fns&0x3FF);
+  scsp_write_slot(slot,0x8,val);
+}
+
+void DivPlatformSCSP::writeSlotEnvelope(int slot, unsigned char ar, unsigned char d1r,
+                                       unsigned char d2r, unsigned char rr,
+                                       unsigned char dl, unsigned char krs) {
+  // reg 0x4: D2R[15:11] | D1R[10:6] | EGHOLD[5] | AR[4:0]
+  unsigned short r4=(((unsigned short)(d2r&0x1F))<<11)
+                  | (((unsigned short)(d1r&0x1F))<<6)
+                  |  ((unsigned short)(ar &0x1F));
+  scsp_write_slot(slot,0x4,r4);
+  // reg 0x5: LPSLNK[14] | KRS[13:10] | DL[9:5] | RR[4:0]
+  unsigned short r5=(((unsigned short)(krs&0xF))<<10)
+                  | (((unsigned short)(dl &0x1F))<<5)
+                  |  ((unsigned short)(rr &0x1F));
+  scsp_write_slot(slot,0x5,r5);
+}
+
+void DivPlatformSCSP::writeSlotTotalLevel(int slot, unsigned char tl) {
+  // reg 0x6: STWINH[9] | SDIR[8] | TL[7:0]
+  scsp_write_slot(slot,0x6,(unsigned short)(tl&0xFF));
+}
+
+void DivPlatformSCSP::writeSlotPan(int slot, unsigned char disdl, unsigned char dipan) {
+  // reg 0xB upper byte: DISDL[15:13] | DIPAN[12:8]; lower byte (EFSDL/EFPAN) preserved by helper
+  scsp_slot_set_direct_output(slot,disdl,dipan);
+}
+
+void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
+  Channel& c=chan[chanIdx];
+  if (c.sample<0 || c.sample>=parent->song.sampleLen || !sampleLoaded[c.sample]) {
+    return;
+  }
+  DivSample* s=parent->song.sample[c.sample];
+
+  unsigned int sampleByte=USER_SAMPLE_BASE+sampleOff[c.sample];
+  unsigned int sampleWord=sampleByte; // SA register addresses bytes for 16-bit samples
+
+  unsigned int loopStart=s->isLoopable()?(unsigned int)s->loopStart:0;
+  unsigned int loopEnd=s->isLoopable()?(unsigned int)s->loopEnd:(unsigned int)s->samples;
+  if (loopEnd<1) loopEnd=1;
+  if (loopEnd>0xFFFF) loopEnd=0xFFFF;
+  if (loopStart>=loopEnd) loopStart=0;
+
+  // reg 0x0: KEYONEX[12] | KEYONB[11] | SBCTL[10:9] | SSCTL[8:7] | LPCTL[6:5] | PCM8B[4] | SA_high[3:0]
+  // for 16-bit samples PCM8B=0; LPCTL: 0=off,1=fwd,2=rev,3=alt
+  unsigned char lpctl=0;
+  if (s->isLoopable()) {
+    switch (s->loopMode) {
+      case DIV_SAMPLE_LOOP_FORWARD: lpctl=1; break;
+      case DIV_SAMPLE_LOOP_BACKWARD: lpctl=2; break;
+      case DIV_SAMPLE_LOOP_PINGPONG: lpctl=3; break;
+      default: lpctl=1; break;
+    }
+  }
+  unsigned short r0=((lpctl&0x3)<<5)|((sampleWord>>16)&0xF);
+  scsp_write_slot(slot,0x0,r0);
+
+  // reg 0x1: SA_low[15:0]
+  scsp_write_slot(slot,0x1,(unsigned short)(sampleWord&0xFFFF));
+  // reg 0x2: LSA — loop start in samples
+  scsp_write_slot(slot,0x2,(unsigned short)(loopStart&0xFFFF));
+  // reg 0x3: LEA — loop end in samples
+  scsp_write_slot(slot,0x3,(unsigned short)(loopEnd&0xFFFF));
+
+  // Default envelope: instant attack, no decay, instant release on key-off.
+  // (PCM-mode SCSP instrument fields will override these in a later pass.)
+  writeSlotEnvelope(slot, 31, 0, 0, 31, 0, 0xF);
+
+  // Total level from channel volume (0..127): SCSP TL is attenuation in
+  // 0.375 dB per LSB, so volume 127 -> TL 0 (full), volume 0 -> TL ~127.
+  unsigned char tl=(unsigned char)(127-(c.outVol&0x7F));
+  writeSlotTotalLevel(slot,tl);
+
+  // Direct send: full level, pan from channel state (0..30; 15 = center).
+  unsigned char disdl=7;
+  unsigned char dipan=(unsigned char)(c.pan&0x1F);
+  writeSlotPan(slot,disdl,dipan);
+
+  // No DSP send by default
+  scsp_slot_set_effect_send(slot,0,0);
+  scsp_slot_set_effect_output(slot,0,0);
+
+  c.sampleSet=true;
+}
 
 void DivPlatformSCSP::acquire(short** buf, size_t len) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->begin(len);
   }
+
+  // Render in chunks bounded by the bridge buffer (8192 stereo pairs).
+  size_t off=0;
+  while (off<len) {
+    size_t chunk=len-off;
+    if (chunk>4096) chunk=4096;
+    int16_t* rendered=scsp_render((int)chunk);
+    for (size_t i=0; i<chunk; i++) {
+      buf[0][off+i]=rendered[i*2+0];
+      buf[1][off+i]=rendered[i*2+1];
+    }
+    off+=chunk;
+  }
+
+  // No per-slot oscilloscope yet — emit zeros for now. Phase A2+ will
+  // tap individual slot output via SCSP_DoMasterSample's slot accumulator.
   for (size_t i=0; i<len; i++) {
-    buf[0][i]=0;
-    buf[1][i]=0;
     for (int j=0; j<8; j++) {
       oscBuf[j]->putSample(i,0);
     }
   }
+
   for (int i=0; i<8; i++) {
     oscBuf[i]->end(len);
   }
@@ -40,13 +193,85 @@ void DivPlatformSCSP::acquire(short** buf, size_t len) {
 
 void DivPlatformSCSP::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  // Re-program direct-output level: mute forces DISDL=0
+  if (chan[ch].slot>=0) {
+    unsigned char disdl=mute?0:7;
+    unsigned char dipan=(unsigned char)(chan[ch].pan&0x1F);
+    writeSlotPan(chan[ch].slot,disdl,dipan);
+  }
 }
 
 void DivPlatformSCSP::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
-    if (chan[i].freqChanged) {
-      chan[i].freqChanged=false;
-      chan[i].freq=chan[i].calcFreq();
+    chan[i].std.next();
+
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=VOL_SCALE_LOG((chan[i].vol&0x7F),(0x7F*chan[i].std.vol.val)/0x7F,0x7F);
+      if (chan[i].slot>=0) {
+        unsigned char tl=(unsigned char)(127-(chan[i].outVol&0x7F));
+        writeSlotTotalLevel(chan[i].slot,tl);
+      }
+    }
+
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
+      if (!chan[i].inPorta) {
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+      }
+      chan[i].freqChanged=true;
+    }
+
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-131071,131071);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+
+    if (chan[i].std.panL.had) {
+      chan[i].pan=chan[i].std.panL.val&0x1F;
+      if (chan[i].slot>=0) {
+        unsigned char disdl=isMuted[i]?0:7;
+        writeSlotPan(chan[i].slot,disdl,(unsigned char)(chan[i].pan&0x1F));
+      }
+    }
+  }
+
+  for (int i=0; i<8; i++) {
+    if (chan[i].keyOn || chan[i].keyOff || chan[i].freqChanged) {
+      if (chan[i].keyOn) {
+        // assign hardware slot (1:1 with channel index for PCM mode)
+        chan[i].slot=i;
+        slotInUse[i]=true;
+        programSlot(chan[i].slot,i);
+      }
+      if (chan[i].sample>=0 && chan[i].slot>=0 && sampleLoaded[chan[i].sample]) {
+        DivSample* s=parent->song.sample[chan[i].sample];
+        int baseNote=midiNoteAtNativeRate((int)s->centerRate);
+        int displayedNote=chan[i].note;
+        // include pitch/portamento via baseFreq scaled. for MVP just use the
+        // semitone-quantized note + a coarse pitch offset.
+        int semOff=chan[i].pitch>>7;
+        int adjusted=displayedNote+semOff;
+        writeSlotPitch(chan[i].slot,adjusted,baseNote);
+        chan[i].freqChanged=false;
+      }
+      if (chan[i].keyOn) {
+        scsp_key_on(chan[i].slot);
+        chan[i].keyOn=false;
+      }
+      if (chan[i].keyOff) {
+        if (chan[i].slot>=0) {
+          scsp_key_off(chan[i].slot);
+          slotInUse[chan[i].slot]=false;
+          chan[i].slot=-1;
+        }
+        chan[i].keyOff=false;
+      }
     }
   }
 }
@@ -59,35 +284,118 @@ DivDispatchOscBuffer* DivPlatformSCSP::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+unsigned char* DivPlatformSCSP::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformSCSP::getRegisterPoolSize() {
+  return 1024+48;
+}
+
 int DivPlatformSCSP::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
+        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].sampleNote=ins->amiga.getFreq(c.value);
+        chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].active=true;
+      chan[c.chan].keyOn=true;
+      chan[c.chan].keyOff=false;
+      chan[c.chan].macroInit(ins);
+      if (!chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
+    }
     case DIV_CMD_NOTE_OFF:
+      chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
+      chan[c.chan].macroInit(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+      chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
+      chan[c.chan].active=false;
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
       break;
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
-      if (chan[c.chan].vol>127) chan[c.chan].vol=127;
+      if (!chan[c.chan].std.vol.has) {
+        chan[c.chan].outVol=c.value;
+      }
+      if (chan[c.chan].slot>=0) {
+        unsigned char tl=(unsigned char)(127-(chan[c.chan].outVol&0x7F));
+        writeSlotTotalLevel(chan[c.chan].slot,tl);
+      }
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
+    case DIV_CMD_INSTRUMENT:
+      if (chan[c.chan].ins!=c.value || c.value2==1) {
+        chan[c.chan].insChanged=true;
+      }
+      chan[c.chan].ins=c.value;
+      break;
+    case DIV_CMD_PANNING:
+      chan[c.chan].pan=parent->convertPanSplitToLinearLR(c.value,c.value2,30);
+      if (chan[c.chan].slot>=0) {
+        unsigned char disdl=isMuted[c.chan]?0:7;
+        writeSlotPan(chan[c.chan].slot,disdl,(unsigned char)(chan[c.chan].pan&0x1F));
+      }
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
-    case DIV_CMD_PANNING:
-      chan[c.chan].pan=c.value;
+    case DIV_CMD_NOTE_PORTA: {
+      int destFreq=NOTE_FREQUENCY(c.value2);
+      bool return2=false;
+      if (destFreq>chan[c.chan].baseFreq) {
+        chan[c.chan].baseFreq+=c.value;
+        if (chan[c.chan].baseFreq>=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      } else {
+        chan[c.chan].baseFreq-=c.value;
+        if (chan[c.chan].baseFreq<=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      }
+      chan[c.chan].freqChanged=true;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
+      break;
+    }
+    case DIV_CMD_LEGATO:
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+      chan[c.chan].note=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
+    case DIV_CMD_MACRO_RESTART:
+      chan[c.chan].std.restart(c.value);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
-      break;
     default:
       break;
   }
@@ -95,6 +403,18 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
 }
 
 void DivPlatformSCSP::notifyInsDeletion(void* ins) {
+  for (int i=0; i<8; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
+void DivPlatformSCSP::notifySampleChange(int sample) {
+  // Engine calls renderSamples on sample edits; this is just a hook for
+  // chips that maintain per-sample state outside of RAM. We have none.
+}
+
+void DivPlatformSCSP::notifyInsAddition(int sysID) {
+  // No persistent instrument table; nothing to do.
 }
 
 void DivPlatformSCSP::notifyPitchTable(int sample) {
@@ -102,13 +422,31 @@ void DivPlatformSCSP::notifyPitchTable(int sample) {
 }
 
 void DivPlatformSCSP::reset() {
+  scsp_init();
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformSCSP::Channel(parent->song.compatFlags.linearPitch);
     chan[i].pitchTable=&pitchTable;
-    chan[i].vol=0x7f;
+    chan[i].vol=0x7F;
+    chan[i].outVol=0x7F;
   }
   for (int i=0; i<32; i++) {
     slotInUse[i]=false;
+  }
+  memset(regPool,0,sizeof(regPool));
+
+  // Re-upload sample memory: scsp_init zeroed RAM, so we need to refill it.
+  if (sampleMem!=NULL) {
+    uint8_t* ram=scsp_get_ram_ptr();
+    if (ram!=NULL) {
+      memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
+    }
+  }
+}
+
+void DivPlatformSCSP::forceIns() {
+  for (int i=0; i<8; i++) {
+    chan[i].insChanged=true;
+    chan[i].freqChanged=true;
   }
 }
 
@@ -120,17 +458,120 @@ bool DivPlatformSCSP::hasSoftPan(int ch) {
   return true;
 }
 
+bool DivPlatformSCSP::keyOffAffectsArp(int ch) {
+  return false;
+}
+
+bool DivPlatformSCSP::keyOffAffectsPorta(int ch) {
+  return false;
+}
+
+void DivPlatformSCSP::setFlags(const DivConfig& flags) {
+  // SCSP master clock is 22.5792 MHz on Saturn; output rate is 44100 Hz.
+  chipClock=22579200;
+  rate=44100;
+  for (int i=0; i<8; i++) {
+    if (oscBuf[i]) oscBuf[i]->setRate(rate);
+  }
+}
+
+void DivPlatformSCSP::poke(unsigned int addr, unsigned short val) {
+  scsp_write_reg(addr,val);
+}
+
+void DivPlatformSCSP::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& w: wlist) {
+    scsp_write_reg(w.addr,w.val);
+  }
+}
+
+const void* DivPlatformSCSP::getSampleMem(int index) {
+  return (index==0)?sampleMem:NULL;
+}
+
+size_t DivPlatformSCSP::getSampleMemCapacity(int index) {
+  return (index==0)?(RAM_SIZE-USER_SAMPLE_BASE):0;
+}
+
+size_t DivPlatformSCSP::getSampleMemUsage(int index) {
+  return (index==0)?(sampleMemLen>USER_SAMPLE_BASE?sampleMemLen-USER_SAMPLE_BASE:0):0;
+}
+
+bool DivPlatformSCSP::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>=65536) return false;
+  return sampleLoaded[sample];
+}
+
+const DivMemoryComposition* DivPlatformSCSP::getMemCompo(int index) {
+  return (index==0)?&memCompo:NULL;
+}
+
+void DivPlatformSCSP::renderSamples(int sysID) {
+  if (sampleMem==NULL) return;
+  memset(sampleMem,0,RAM_SIZE);
+  memset(sampleOff,0,65536*sizeof(unsigned int));
+  memset(sampleLoaded,0,65536*sizeof(bool));
+  sampleMemLen=USER_SAMPLE_BASE;
+
+  memCompo=DivMemoryComposition();
+  memCompo.name="Sound RAM";
+
+  size_t memPos=USER_SAMPLE_BASE;
+  int sampleCount=parent->song.sampleLen;
+  for (int i=0; i<sampleCount; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOff[i]=0;
+      continue;
+    }
+    // store as 16-bit signed PCM (SCSP native format)
+    int sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
+    int byteLength=sampleLength*2;
+    if (byteLength<2) continue;
+    if (memPos+byteLength>RAM_SIZE) {
+      logW("out of SCSP sound RAM for sample %d!",i);
+      break;
+    }
+    short* src=s->data16;
+    if (src==NULL) continue;
+    memcpy(sampleMem+memPos,src,byteLength);
+    sampleOff[i]=(unsigned int)(memPos-USER_SAMPLE_BASE);
+    sampleLoaded[i]=true;
+    memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+byteLength));
+    memPos+=byteLength;
+  }
+  sampleMemLen=memPos;
+  memCompo.used=memPos;
+  memCompo.capacity=RAM_SIZE;
+
+  // Push to live SCSP RAM
+  uint8_t* ram=scsp_get_ram_ptr();
+  if (ram!=NULL) {
+    memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
+  }
+}
+
 int DivPlatformSCSP::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
-    oscBuf[i]->setRate(44100);
   }
-  chipClock=22579200;
-  rate=44100;
+
+  setFlags(flags);
+
+  sampleMem=new unsigned char[RAM_SIZE];
+  sampleMemLen=USER_SAMPLE_BASE;
+  memset(sampleMem,0,RAM_SIZE);
+  sampleOff=new unsigned int[65536];
+  memset(sampleOff,0,65536*sizeof(unsigned int));
+  sampleLoaded=new bool[65536];
+  memset(sampleLoaded,0,65536*sizeof(bool));
+
   notifyPitchTable();
   reset();
   return 8;
@@ -140,6 +581,12 @@ void DivPlatformSCSP::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
+  delete[] sampleMem;
+  delete[] sampleOff;
+  delete[] sampleLoaded;
+  sampleMem=NULL;
+  sampleOff=NULL;
+  sampleLoaded=NULL;
 }
 
 DivPlatformSCSP::~DivPlatformSCSP() {
