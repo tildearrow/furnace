@@ -84,7 +84,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SM8521=48,
   DIV_INS_PV1000=49,
   DIV_INS_K053260=50,
-  // DIV_INS_YMF292=51,
+  DIV_INS_YMF292=51,
   DIV_INS_TED=52,
   DIV_INS_C140=53,
   DIV_INS_C219=54,
@@ -812,6 +812,86 @@ struct DivInstrumentES5506 {
     envelope(Envelope()) {}
 };
 
+struct DivInstrumentSCSP {
+  enum SynthMode: unsigned char {
+    SCSP_MODE_PCM=0,
+    SCSP_MODE_FM=1,
+  };
+  SynthMode mode;
+
+  unsigned char tl;
+  unsigned char dl;
+  unsigned char ar, d1r, d2r, rr;
+  unsigned char krs;
+  unsigned char lpctl;
+  bool eghold, lpslnk, sdir, stwinh;
+
+  unsigned char lfof;
+  unsigned char plfows, plfos;
+  unsigned char alfows, alfos;
+  bool lforeset;
+
+  unsigned char isel;
+  unsigned char imxl;
+  unsigned char efsdl;
+  unsigned char efpan;
+  unsigned char disdl;
+  unsigned char dipan;
+
+  unsigned char opCount;
+  struct Op {
+    unsigned short freqRatio;
+    unsigned short freqFixed;
+    unsigned char level;
+    unsigned char ar, d1r, dl, d2r, rr;
+    unsigned char mdl;
+    signed char modSource;
+    unsigned char feedback;
+    bool isCarrier;
+    unsigned char waveform;
+    unsigned short loopStart, loopEnd;
+    unsigned char lpctlOp;
+    Op():
+      freqRatio(256),
+      freqFixed(0),
+      level(96),
+      ar(31), d1r(0), dl(0), d2r(0), rr(15),
+      mdl(0),
+      modSource(-1),
+      feedback(0),
+      isCarrier(true),
+      waveform(0),
+      loopStart(0),
+      loopEnd(1023),
+      lpctlOp(1) {}
+    bool operator==(const Op& other);
+    bool operator!=(const Op& other) {
+      return !(*this==other);
+    }
+  } ops[6];
+
+  bool operator==(const DivInstrumentSCSP& other);
+  bool operator!=(const DivInstrumentSCSP& other) {
+    return !(*this==other);
+  }
+
+  DivInstrumentSCSP():
+    mode(SCSP_MODE_PCM),
+    tl(0), dl(0),
+    ar(31), d1r(0), d2r(0), rr(15),
+    krs(15),
+    lpctl(0),
+    eghold(false), lpslnk(false), sdir(false), stwinh(false),
+    lfof(0),
+    plfows(0), plfos(0),
+    alfows(0), alfos(0),
+    lforeset(false),
+    isel(0), imxl(0),
+    efsdl(0), efpan(0),
+    disdl(7), dipan(0),
+    opCount(1) {}
+};
+
 struct DivInstrumentSNES {
   enum GainMode: unsigned char {
     GAIN_MODE_DIRECT=0,
@@ -1042,6 +1122,7 @@ struct DivInstrumentPOD {
   DivInstrumentWaveSynth ws;
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
+  DivInstrumentSCSP scsp;
   DivInstrumentSNES snes;
   DivInstrumentESFM esfm;
   DivInstrumentPowerNoise powernoise;

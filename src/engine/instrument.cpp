@@ -769,6 +769,34 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
   );
 }
 
+bool DivInstrumentSCSP::Op::operator==(const DivInstrumentSCSP::Op& other) {
+  return (
+    _C(freqRatio) &&
+    _C(freqFixed) &&
+    _C(level) &&
+    _C(ar) && _C(d1r) && _C(dl) && _C(d2r) && _C(rr) &&
+    _C(mdl) &&
+    _C(modSource) &&
+    _C(feedback) &&
+    _C(isCarrier) &&
+    _C(waveform) &&
+    _C(loopStart) && _C(loopEnd) &&
+    _C(lpctlOp)
+  );
+}
+
+bool DivInstrumentSCSP::operator==(const DivInstrumentSCSP& other) {
+  if (!(_C(mode) && _C(tl) && _C(dl) && _C(ar) && _C(d1r) && _C(d2r) && _C(rr) &&
+        _C(krs) && _C(lpctl) && _C(eghold) && _C(lpslnk) && _C(sdir) && _C(stwinh) &&
+        _C(lfof) && _C(plfows) && _C(plfos) && _C(alfows) && _C(alfos) && _C(lforeset) &&
+        _C(isel) && _C(imxl) && _C(efsdl) && _C(efpan) && _C(disdl) && _C(dipan) &&
+        _C(opCount))) return false;
+  for (int i=0; i<6; i++) {
+    if (!(ops[i]==other.ops[i])) return false;
+  }
+  return true;
+}
+
 bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   return (
     _C(useEnv) &&
@@ -1960,6 +1988,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
       case DIV_INS_PV1000:
         break;
       case DIV_INS_K053260:
+        featureSM=true;
+        featureSL=true;
+        break;
+      case DIV_INS_YMF292:
         featureSM=true;
         featureSL=true;
         break;

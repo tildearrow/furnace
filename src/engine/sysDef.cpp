@@ -2743,6 +2743,13 @@ void DivEngine::registerSystems() {
     DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_STD>)
   );
 
+  sysDefs[DIV_SYSTEM_SCSP]=new DivSysDef(
+    _("Yamaha YMF292 (SCSP)"), NULL, 0xda, 0, 8, 1, 8,
+    false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_16BIT)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    _("the Saturn Custom Sound Processor. 32 slots, sample-based with FM synthesis via wavetable RAM and an on-chip programmable DSP. used in the Sega Saturn."),
+    DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_YMF292,DIV_INS_AMIGA>)
+  );
+
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {
