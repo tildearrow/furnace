@@ -7972,6 +7972,127 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_YMF292) if (ImGui::BeginTabItem("SCSP")) {
+          if (ImGui::BeginTable("SCSPParams",2,ImGuiTableFlags_SizingStretchSame)) {
+            static const char* scspModes[]={ "PCM (sample)", "FM (operator graph)" };
+            static const char* scspLpctlNames[]={ "off", "forward", "reverse", "ping-pong" };
+            static const char* scspLfoWS[]={ "saw", "square", "tri", "noise" };
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+
+            // Synthesis mode
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            int modeIdx=ins->scsp.mode;
+            if (ImGui::Combo(_("Synthesis Mode"),&modeIdx,scspModes,2)) {
+              ins->scsp.mode=(DivInstrumentSCSP::SynthMode)modeIdx;
+              MARK_MODIFIED;
+            }
+            ImGui::TableNextColumn();
+            int lpctlIdx=ins->scsp.lpctl&3;
+            if (ImGui::Combo(_("Loop Control"),&lpctlIdx,scspLpctlNames,4)) {
+              ins->scsp.lpctl=(unsigned char)lpctlIdx;
+              MARK_MODIFIED;
+            }
+
+            // Envelope (header)
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::SeparatorText(_("Envelope"));
+            ImGui::TableNextColumn();
+            ImGui::SeparatorText(_("LFO"));
+
+            // Envelope rates / level
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Attack Rate (AR)"),ImGuiDataType_U8,&ins->scsp.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("LFO Frequency"),ImGuiDataType_U8,&ins->scsp.lfof,&_ZERO,&_THIRTY_ONE)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Decay 1 Rate (D1R)"),ImGuiDataType_U8,&ins->scsp.d1r,&_ZERO,&_THIRTY_ONE)); rightClickable
+            ImGui::TableNextColumn();
+            int plfowsIdx=ins->scsp.plfows&3;
+            if (ImGui::Combo(_("Pitch LFO Wave"),&plfowsIdx,scspLfoWS,4)) {
+              ins->scsp.plfows=(unsigned char)plfowsIdx; MARK_MODIFIED;
+            }
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Decay Level (DL)"),ImGuiDataType_U8,&ins->scsp.dl,&_ZERO,&_THIRTY_ONE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Pitch LFO Depth"),ImGuiDataType_U8,&ins->scsp.plfos,&_ZERO,&_SEVEN)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Decay 2 Rate (D2R)"),ImGuiDataType_U8,&ins->scsp.d2r,&_ZERO,&_THIRTY_ONE)); rightClickable
+            ImGui::TableNextColumn();
+            int alfowsIdx=ins->scsp.alfows&3;
+            if (ImGui::Combo(_("Amp LFO Wave"),&alfowsIdx,scspLfoWS,4)) {
+              ins->scsp.alfows=(unsigned char)alfowsIdx; MARK_MODIFIED;
+            }
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Release Rate (RR)"),ImGuiDataType_U8,&ins->scsp.rr,&_ZERO,&_THIRTY_ONE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Amp LFO Depth"),ImGuiDataType_U8,&ins->scsp.alfos,&_ZERO,&_SEVEN)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Total Level (TL)"),ImGuiDataType_U8,&ins->scsp.tl,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+            ImGui::TableNextColumn();
+            ImGui::Checkbox(_("Reset LFO on note"),&ins->scsp.lforeset);
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Key Rate Scaling (KRS)"),ImGuiDataType_U8,&ins->scsp.krs,&_ZERO,&_FIFTEEN)); rightClickable
+            ImGui::TableNextColumn();
+            ImGui::Checkbox(_("Envelope Hold (EGHOLD)"),&ins->scsp.eghold);
+
+            // Routing header
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::SeparatorText(_("Direct Output"));
+            ImGui::TableNextColumn();
+            ImGui::SeparatorText(_("DSP Send"));
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Direct Send Level (DISDL)"),ImGuiDataType_U8,&ins->scsp.disdl,&_ZERO,&_SEVEN)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("DSP Input Select (ISEL)"),ImGuiDataType_U8,&ins->scsp.isel,&_ZERO,&_FIFTEEN)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("Direct Pan (DIPAN)"),ImGuiDataType_U8,&ins->scsp.dipan,&_ZERO,&_THIRTY_ONE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("DSP Input Mix Level (IMXL)"),ImGuiDataType_U8,&ins->scsp.imxl,&_ZERO,&_SEVEN)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox(_("Sound Direct (SDIR)"),&ins->scsp.sdir);
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("DSP Effect Send (EFSDL)"),ImGuiDataType_U8,&ins->scsp.efsdl,&_ZERO,&_SEVEN)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox(_("Sample Loop Sync to Note (LPSLNK)"),&ins->scsp.lpslnk);
+            ImGui::TableNextColumn();
+            P(CWSliderScalar(_("DSP Effect Pan (EFPAN)"),ImGuiDataType_U8,&ins->scsp.efpan,&_ZERO,&_THIRTY_ONE)); rightClickable
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox(_("Stop on End (STWINH)"),&ins->scsp.stwinh);
+
+            ImGui::EndTable();
+          }
+          if (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM) {
+            ImGui::TextDisabled(_("FM operator graph editor is not yet implemented (Phase B)."));
+          }
+          ImGui::EndTabItem();
+        }
         if (ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("ES5506")) {
           if (ImGui::BeginTable("ESParams",2,ImGuiTableFlags_SizingStretchSame)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
