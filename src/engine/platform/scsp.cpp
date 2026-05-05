@@ -32,47 +32,40 @@ extern "C" {
 // on BE hosts we'd need byte-swap. Furnace's primary targets are LE so
 // we assume that here.
 
-// Bebhionn-style: compute the OCT/FNS register pair for a given MIDI note,
-// where baseMidiNote is the note that plays the sample at its native rate
-// (i.e. SCSP runs at 44100 Hz, sample stored at its own sample rate, base
-// note is the MIDI note that triggers playback at exactly that rate).
-//
-// OCT is a signed 4-bit value sign-extended from 0xF = -1 octave; the
-// chip wraps via two's complement so we store it as raw 4 bits and let
-// the chip sign-extend.
-static void computeOctFns(int midiNote, int baseMidiNote, int* outOct, int* outFns) {
-  int semitones=midiNote-baseMidiNote;
-  // floor toward -infinity for negative semitones
-  int octaves=(semitones>=0)?(semitones/12):((semitones-11)/12);
-  int semInOct=semitones-octaves*12;
-  double fnsExact=(pow(2.0,(double)semInOct/12.0)-1.0)*1024.0;
-  int fnsValue=(int)(fnsExact+0.5);
-  if (fnsValue>=1024) {
-    fnsValue-=1024;
-    octaves+=1;
-  }
-  if (fnsValue<0) fnsValue=0;
-  // SCSP OCT is 4-bit field at bits 11..14 of register 0x8.
-  // valid range -8..+7; we clamp.
-  if (octaves<-8) { octaves=-8; fnsValue=0; }
-  if (octaves>7)  { octaves=7;  fnsValue=0x3FF; }
-  *outOct=octaves & 0xF;
-  *outFns=fnsValue & 0x3FF;
+// SCSP playback rate is determined by OCT (signed 4-bit) and FNS (unsigned
+// 10-bit) packed into register 0x8. From scsp.c SCSP_Step():
+//   step = FNS_Table[FNS] << OCT  (OCT positive)  / 44100
+//   step = FNS_Table[FNS] >> -OCT (OCT negative)  / 44100
+// where FNS_Table[i] = (1<<SHIFT) * 44100 * (1024+i)/1024.
+// Therefore native-rate playback (step = 1<<SHIFT) corresponds to OCT=0, FNS=0;
+// each integer increase in OCT doubles the rate; FNS interpolates linearly
+// from 1.0× to ~2.0× within the octave.
+static void computeOctFnsFromHz(double targetHz, int* outOct, int* outFns) {
+  if (targetHz<=0.0) targetHz=1.0;
+  double octaves=log2(targetHz/44100.0);
+  int oct=(int)floor(octaves);
+  double frac=octaves-oct;
+  int fns=(int)((pow(2.0,frac)-1.0)*1024.0+0.5);
+  if (fns>=1024) { fns-=1024; oct+=1; }
+  if (fns<0) fns=0;
+  if (oct<-8) { oct=-8; fns=0; }
+  if (oct>7)  { oct=7;  fns=0x3FF; }
+  *outOct=oct & 0xF;
+  *outFns=fns & 0x3FF;
 }
 
 int DivPlatformSCSP::midiNoteAtNativeRate(int sampleRate) {
-  // SCSP plays back at 44100 Hz when OCT=0,FNS=0 means "sample's native
-  // rate equals SCSP's output rate." We map this to MIDI 60 (C-5) if the
-  // sample's centerRate is 44100. For other rates, shift by log2(rate/44100)
-  // octaves.
   if (sampleRate<=0) return 60;
   double octaves=log2((double)sampleRate/44100.0);
   return 60+(int)(octaves*12.0+0.5);
 }
 
 void DivPlatformSCSP::writeSlotPitch(int slot, int midiNote, int baseMidiNote) {
+  // Legacy entry point kept for source compatibility; converts MIDI note
+  // delta to a Hz target then defers to computeOctFnsFromHz.
+  double targetHz=44100.0*pow(2.0,(double)(midiNote-baseMidiNote)/12.0);
   int oct, fns;
-  computeOctFns(midiNote,baseMidiNote,&oct,&fns);
+  computeOctFnsFromHz(targetHz,&oct,&fns);
   unsigned short val=((oct&0xF)<<11)|(fns&0x3FF);
   scsp_write_slot(slot,0x8,val);
 }
@@ -306,13 +299,25 @@ void DivPlatformSCSP::tick(bool sysTick) {
       }
       if (chan[i].sample>=0 && chan[i].slot>=0 && sampleLoaded[chan[i].sample]) {
         DivSample* s=parent->song.sample[chan[i].sample];
-        int baseNote=midiNoteAtNativeRate((int)s->centerRate);
-        int displayedNote=chan[i].note;
-        // include pitch/portamento via baseFreq scaled. for MVP just use the
-        // semitone-quantized note + a coarse pitch offset.
-        int semOff=chan[i].pitch>>7;
-        int adjusted=displayedNote+semOff;
-        writeSlotPitch(chan[i].slot,adjusted,baseNote);
+        // Use Furnace's pitch model end-to-end (handles arp, portamento,
+        // pitch macros, fine pitch, linear-vs-period mode).
+        double freqUnits=(double)parent->calcFreq(
+          chan[i].baseFreq,chan[i].pitch,
+          chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,
+          chan[i].fixedArp,false,2,chan[i].pitch2,
+          chipClock,CHIP_FREQBASE);
+        // calcFreq returns: tuning * 2^((note-60+3)/12) * CHIP_FREQBASE / chipClock
+        // Convert to Hz at the note: noteHz = freqUnits * chipClock / CHIP_FREQBASE
+        double noteHz=freqUnits*(double)chipClock/(double)CHIP_FREQBASE;
+        // Apply the sample's centerRate offset (Furnace convention: a
+        // centerRate equal to parent->getCenterRate() means "play at note's
+        // tuning frequency"; higher means upshift).
+        double off=(s->centerRate>=1.0)?((double)s->centerRate/parent->getCenterRate()):1.0;
+        double targetHz=noteHz*off;
+        int oct, fns;
+        computeOctFnsFromHz(targetHz,&oct,&fns);
+        unsigned short val=((oct&0xF)<<11)|(fns&0x3FF);
+        scsp_write_slot(chan[i].slot,0x8,val);
         chan[i].freqChanged=false;
       }
       if (chan[i].keyOn) {
