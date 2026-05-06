@@ -96,6 +96,96 @@ void DivPlatformSCSP::writeSlotPan(int slot, unsigned char disdl, unsigned char 
   scsp_slot_set_direct_output(slot,disdl,dipan);
 }
 
+int DivPlatformSCSP::findFreeRun(int numSlots) {
+  if (numSlots<1 || numSlots>32) return -1;
+  for (int s=0; s<=32-numSlots; s++) {
+    bool ok=true;
+    for (int j=0; j<numSlots; j++) {
+      if (slotInUse[s+j]) { ok=false; break; }
+    }
+    if (ok) return s;
+  }
+  return -1;
+}
+
+int DivPlatformSCSP::findLruVoice() {
+  int best=-1;
+  unsigned long long bestAge=~(unsigned long long)0;
+  for (int i=0; i<8; i++) {
+    if (voices[i].active && voices[i].age<=bestAge) {
+      bestAge=voices[i].age;
+      best=i;
+    }
+  }
+  return best;
+}
+
+void DivPlatformSCSP::releaseVoice(int chanIdx) {
+  for (int i=0; i<8; i++) {
+    if (voices[i].active && voices[i].chan==chanIdx) {
+      for (int s=0; s<voices[i].slotCount; s++) {
+        int slot=voices[i].firstSlot+s;
+        scsp_key_off(slot);
+        slotInUse[slot]=false;
+      }
+      voices[i].active=false;
+      return;
+    }
+  }
+}
+
+void DivPlatformSCSP::releaseAllVoices() {
+  for (int i=0; i<8; i++) {
+    if (voices[i].active) {
+      for (int s=0; s<voices[i].slotCount; s++) {
+        scsp_key_off(voices[i].firstSlot+s);
+      }
+      voices[i].active=false;
+    }
+  }
+  for (int s=0; s<32; s++) slotInUse[s]=false;
+}
+
+// Allocate `numSlots` contiguous hardware slots for a tracker channel.
+// First-fit (matches bebhionn — keeps allocations packed at low indices,
+// improving FM ring-buffer locality). On full, steal LRU voices and retry.
+// Returns first-slot index or -1 if allocation failed.
+int DivPlatformSCSP::allocateVoice(int chanIdx, int note, int numSlots) {
+  releaseVoice(chanIdx);
+
+  int start=findFreeRun(numSlots);
+
+  for (int attempt=0; attempt<8 && start<0; attempt++) {
+    int lru=findLruVoice();
+    if (lru<0) break;
+    for (int s=0; s<voices[lru].slotCount; s++) {
+      int slot=voices[lru].firstSlot+s;
+      scsp_key_off(slot);
+      slotInUse[slot]=false;
+    }
+    voices[lru].active=false;
+    start=findFreeRun(numSlots);
+  }
+
+  if (start<0) return -1;
+
+  int rec=-1;
+  for (int i=0; i<8; i++) {
+    if (!voices[i].active) { rec=i; break; }
+  }
+  if (rec<0) return -1;
+
+  voices[rec].chan=chanIdx;
+  voices[rec].note=note;
+  voices[rec].firstSlot=start;
+  voices[rec].slotCount=numSlots;
+  voices[rec].age=allocCounter++;
+  voices[rec].active=true;
+
+  for (int s=0; s<numSlots; s++) slotInUse[start+s]=true;
+  return start;
+}
+
 void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
   Channel& c=chan[chanIdx];
   if (c.sample<0 || c.sample>=parent->song.sampleLen || !sampleLoaded[c.sample]) {
@@ -293,10 +383,12 @@ void DivPlatformSCSP::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].keyOn || chan[i].keyOff || chan[i].freqChanged) {
       if (chan[i].keyOn) {
-        // assign hardware slot (1:1 with channel index for PCM mode)
-        chan[i].slot=i;
-        slotInUse[i]=true;
-        programSlot(chan[i].slot,i);
+        // PCM mode = 1 slot. FM mode (Phase B) will pass opCount here.
+        int firstSlot=allocateVoice(i,chan[i].note,1);
+        chan[i].slot=firstSlot;
+        if (firstSlot>=0) {
+          programSlot(firstSlot,i);
+        }
       }
       if (chan[i].sample>=0 && chan[i].slot>=0 && sampleLoaded[chan[i].sample]) {
         DivSample* s=parent->song.sample[chan[i].sample];
@@ -326,11 +418,8 @@ void DivPlatformSCSP::tick(bool sysTick) {
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
-        if (chan[i].slot>=0) {
-          scsp_key_off(chan[i].slot);
-          slotInUse[chan[i].slot]=false;
-          chan[i].slot=-1;
-        }
+        releaseVoice(i);
+        chan[i].slot=-1;
         chan[i].keyOff=false;
       }
     }
@@ -554,6 +643,10 @@ void DivPlatformSCSP::reset() {
   for (int i=0; i<32; i++) {
     slotInUse[i]=false;
   }
+  for (int i=0; i<8; i++) {
+    voices[i]=Voice();
+  }
+  allocCounter=0;
   memset(regPool,0,sizeof(regPool));
 
   // Re-upload sample memory: scsp_init zeroed RAM, so we need to refill it.

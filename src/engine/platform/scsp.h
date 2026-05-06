@@ -53,6 +53,29 @@ class DivPlatformSCSP: public DivDispatch {
     DivPitchTable pitchTable;
 
     bool slotInUse[32];
+
+    // Voice allocator — maps tracker channels (1 note each) onto contiguous
+    // runs of hardware slots. PCM voices use 1 slot; FM voices use opCount
+    // slots (1..6). At most one active voice per channel, so 8 records suffice.
+    struct Voice {
+      int chan;
+      int note;
+      int firstSlot;
+      int slotCount;
+      unsigned long long age;
+      bool active;
+      Voice():
+        chan(-1), note(0), firstSlot(-1), slotCount(0), age(0), active(false) {}
+    };
+    Voice voices[8];
+    unsigned long long allocCounter;
+
+    int  allocateVoice(int chanIdx, int note, int numSlots);
+    void releaseVoice(int chanIdx);
+    void releaseAllVoices();
+    int  findFreeRun(int numSlots);
+    int  findLruVoice();
+
     unsigned int* sampleOff;
     bool* sampleLoaded;
     unsigned char* sampleMem;
