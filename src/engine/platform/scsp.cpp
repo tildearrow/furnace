@@ -621,18 +621,29 @@ void DivPlatformSCSP::tick(bool sysTick) {
       }
 
       if (chan[i].slot>=0) {
-        // Use Furnace's pitch model end-to-end (arp, portamento, pitch
-        // macros, fine pitch, linear-vs-period mode).
-        double freqUnits=(double)parent->calcFreq(
-          chan[i].baseFreq,chan[i].pitch,
-          chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,
-          chan[i].fixedArp,false,2,chan[i].pitch2,
-          chipClock,CHIP_FREQBASE);
-        double noteHz=freqUnits*(double)chipClock/(double)CHIP_FREQBASE;
-
         if (isFMIns) {
-          if (noteHz<=0.0) noteHz=1.0;
-          double midiNote=69.0+12.0*log2(noteHz/440.0);
+          // Bypass parent->calcFreq: with SCSP's chipClock=22.58 MHz and
+          // CHIP_FREQBASE=4096, the divider/clock ratio (~0.000181) makes
+          // round(fbase * divider/clock) always truncate to 0. Compute the
+          // target MIDI note directly from chan[i].note + arp + fine pitch.
+          //
+          // Furnace's tracker labels (noteNames[60]="C-0", noteNames[96]="C-3"
+          // etc.) align with standard MIDI octaves, but the internal note
+          // number has 60 entries of "negative" octaves below: internal
+          // note = 60 + 12*octave, while standard MIDI = 12 + 12*octave.
+          // So MIDI = internal - 48. (Verified against Genesis playback:
+          // tracker "C-3" / internal 96 / MIDI 48 = ~130 Hz.)
+          double midiNoteFurnace=(double)chan[i].note;
+          if (!parent->song.compatFlags.oldArpStrategy) {
+            if (chan[i].fixedArp) {
+              midiNoteFurnace=(double)chan[i].baseNoteOverride;
+            } else {
+              midiNoteFurnace+=(double)chan[i].arpOff;
+            }
+          }
+          midiNoteFurnace+=(double)(chan[i].pitch+chan[i].pitch2)/128.0;
+          double midiNote=midiNoteFurnace-48.0;
+
           const Voice* v=findVoiceByChan(i);
           if (v!=NULL) {
             for (int op=0; op<v->slotCount; op++) {
@@ -642,6 +653,14 @@ void DivPlatformSCSP::tick(bool sysTick) {
           }
           chan[i].freqChanged=false;
         } else if (chan[i].sample>=0 && sampleLoaded[chan[i].sample]) {
+          // Use Furnace's pitch model for PCM (existing path, sample-rate
+          // aware via centerRate offset).
+          double freqUnits=(double)parent->calcFreq(
+            chan[i].baseFreq,chan[i].pitch,
+            chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,
+            chan[i].fixedArp,false,2,chan[i].pitch2,
+            chipClock,CHIP_FREQBASE);
+          double noteHz=freqUnits*(double)chipClock/(double)CHIP_FREQBASE;
           DivSample* s=parent->song.sample[chan[i].sample];
           // Apply the sample's centerRate offset (Furnace convention: a
           // centerRate equal to parent->getCenterRate() means "play at the
