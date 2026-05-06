@@ -164,6 +164,7 @@ the following feature codes are recognized:
 - `PN`: PowerNoise ins data
 - `S2`: SID2 ins data
 - `S3`: SID3 ins data
+- `SC`: SCSP ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there are sample/wave lists.
