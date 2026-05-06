@@ -55,6 +55,121 @@ static void computeOctFnsFromHz(double targetHz, int* outOct, int* outFns) {
   *outFns=fns & 0x3FF;
 }
 
+// ── FM helpers ────────────────────────────────────────────────────────────
+//
+// Ported from bebhionn's scsp_engine.js (lines ~250-310). Used by the FM
+// dispatch path to translate high-level op parameters into SCSP register
+// words. Static file-scope so they don't leak into the class ABI.
+
+// Pack OCT/FNS register bits from a desired MIDI note and the base note
+// at which the underlying sample plays unshifted.
+static unsigned short computeOctFnsBits(double midiNote, double opBaseNote) {
+  double semi=midiNote-opBaseNote;
+  int octave=(int)floor(semi/12.0);
+  if (octave<-8) octave=-8;
+  if (octave>7)  octave=7;
+  double frac=semi-(double)octave*12.0;
+  int fns=(int)floor(1024.0*(pow(2.0,frac/12.0)-1.0)+0.5);
+  if (fns<0) fns=0;
+  if (fns>1023) fns=1023;
+  return (unsigned short)(((octave&0xF)<<11)|(fns&0x3FF));
+}
+
+// Natural base MIDI note of a 1024-sample waveform at 44100 Hz: the note
+// at which its natural period plays back at OCT=0 FNS=0.
+static double wavBaseNoteFor(int wavLen) {
+  if (wavLen<=0) wavLen=1024;
+  return 69.0+12.0*log2(44100.0/(double)wavLen/440.0);
+}
+
+// Convert a packed TL byte to its linear gain (matches scsp_voice.c).
+static double tlToLinear(unsigned char tl) {
+  double db=0.0;
+  if (tl & 1)   db -= 0.4;
+  if (tl & 2)   db -= 0.8;
+  if (tl & 4)   db -= 1.5;
+  if (tl & 8)   db -= 3.0;
+  if (tl & 16)  db -= 6.0;
+  if (tl & 32)  db -= 12.0;
+  if (tl & 64)  db -= 24.0;
+  if (tl & 128) db -= 48.0;
+  return pow(10.0, db/20.0);
+}
+
+// Derive a feedback-path MDL nibble from a target beta and the carrier TL.
+// Mirrors scsp_voice.c:compute_mdl, including the max_safe clamp that
+// prevents runaway feedback when the modulator is near full scale.
+// `feedback` is 0..127 (mapped to beta 0..π).
+static unsigned char computeFeedbackMdl(unsigned char tl, unsigned char feedback) {
+  if (feedback==0) return 0;
+  double tlLin=tlToLinear(tl);
+  double ringPeak=32767.0*4.0*tlLin*0.5;
+  if (ringPeak<1.0) return 0;
+  double targetBeta=((double)feedback/127.0)*M_PI;
+  double needed=targetBeta*1024.0/(ringPeak*2.0*M_PI);
+  if (needed<1e-10) needed=1e-10;
+  int mdl=(int)floor(16.0+log2(needed)+0.5);
+  if (mdl<0) mdl=0;
+  if (mdl>15) mdl=15;
+  double maxSafe=1024.0/(ringPeak*2.0);
+  if (maxSafe<1e-10) maxSafe=1e-10;
+  int maxMdl=(int)floor(15.0+log2(maxSafe));
+  if (mdl>maxMdl) mdl=maxMdl;
+  if (mdl<0) mdl=0;
+  return (unsigned char)(mdl&0xF);
+}
+
+// Compute d7 (MDL|MDXSL|MDYSL) from a high-level op, resolving modSource
+// to an absolute slot via slotBase.
+//
+// Critical (vs JS): explicit (unsigned) cast on slot subtraction before
+// & 63. JS bitwise ops are 32-bit; in C, signed-shift on a negative value
+// is implementation-defined and at least one path here computes a
+// negative distance (when modSource < this op's index, which is normal
+// for upward FM cascades and for the -32 self-feedback offset).
+static unsigned short computeD7FromOp(unsigned char mdl, signed char modSource,
+                                      unsigned char feedback, unsigned char tl,
+                                      int slot, int slotBase) {
+  unsigned int regMdl=0, mdxsl=0, mdysl=0;
+  if (modSource>=0 && mdl>0) {
+    regMdl=(unsigned int)mdl & 0xF;
+    int modSlot=slotBase+(int)modSource;
+    unsigned int dist=(unsigned int)(modSlot-slot) & 63u;
+    mdxsl=dist;
+    mdysl=dist;
+  }
+  if (feedback>0) {
+    unsigned int fbDist=(unsigned int)(-32) & 63u;
+    unsigned char fbMdl=computeFeedbackMdl(tl, feedback);
+    if (regMdl>0) {
+      mdysl=fbDist;
+      if ((unsigned int)fbMdl>regMdl) regMdl=(unsigned int)fbMdl;
+    } else {
+      regMdl=(unsigned int)fbMdl;
+      mdxsl=fbDist;
+      mdysl=fbDist;
+    }
+  }
+  return (unsigned short)(((regMdl&0xF)<<12)|((mdxsl&0x3F)<<6)|(mdysl&0x3F));
+}
+
+// Compute OCT/FNS bits for one FM op given a desired MIDI note. The op's
+// effective base note is derived from its freqRatio (Q8.8) or freqFixed.
+static unsigned short computeFMOctBitsForOp(const DivInstrumentSCSP::Op& op, double midiNote) {
+  int wavLen=SCSP_WAVE_LEN;
+  double wavBaseFreq=44100.0/(double)wavLen;
+  double wavBaseNote=wavBaseNoteFor(wavLen);
+  double opBaseNote;
+  if (op.freqFixed>0) {
+    opBaseNote=wavBaseNote+12.0*log2((double)op.freqFixed/wavBaseFreq);
+  } else {
+    double ratio=(double)op.freqRatio/256.0;
+    if (ratio<=0.0) ratio=1.0;
+    opBaseNote=wavBaseNote-12.0*log2(ratio);
+  }
+  return computeOctFnsBits(midiNote, opBaseNote);
+}
+
 int DivPlatformSCSP::midiNoteAtNativeRate(int sampleRate) {
   if (sampleRate<=0) return 60;
   double octaves=log2((double)sampleRate/44100.0);
@@ -184,6 +299,117 @@ int DivPlatformSCSP::allocateVoice(int chanIdx, int note, int numSlots) {
 
   for (int s=0; s<numSlots; s++) slotInUse[start+s]=true;
   return start;
+}
+
+const DivPlatformSCSP::Voice* DivPlatformSCSP::findVoiceByChan(int chanIdx) const {
+  for (int i=0; i<8; i++) {
+    if (voices[i].active && voices[i].chan==chanIdx) return &voices[i];
+  }
+  return NULL;
+}
+
+// Apply DISDL/DIPAN across every slot of `chanIdx`'s active voice. Mute
+// forces DISDL=0; FM voices force modulator slots to 0 regardless.
+void DivPlatformSCSP::updateChanDirectOutput(int chanIdx) {
+  const Voice* v=findVoiceByChan(chanIdx);
+  if (v==NULL) return;
+  DivInstrument* ins=parent->getIns(chan[chanIdx].ins,DIV_INS_YMF292);
+  bool isScspIns=(ins->type==DIV_INS_YMF292);
+  bool isFMIns=isScspIns && (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM);
+  unsigned char dipan=(unsigned char)(chan[chanIdx].pan&0x1F);
+  for (int s=0; s<v->slotCount; s++) {
+    int slot=v->firstSlot+s;
+    unsigned char disdl;
+    if (isMuted[chanIdx]) {
+      disdl=0;
+    } else if (isFMIns) {
+      disdl=ins->scsp.ops[s].isCarrier?7:0;
+    } else {
+      disdl=isScspIns?(ins->scsp.disdl&0x7):7;
+    }
+    scsp_slot_set_direct_output(slot,disdl,dipan);
+  }
+}
+
+// Apply current channel TL across the voice's slots. For FM voices, only
+// carriers receive the volume — modulators keep the TL set by programSlotFM.
+void DivPlatformSCSP::updateChanVolume(int chanIdx) {
+  const Voice* v=findVoiceByChan(chanIdx);
+  if (v==NULL) return;
+  DivInstrument* ins=parent->getIns(chan[chanIdx].ins,DIV_INS_YMF292);
+  bool isFMIns=(ins->type==DIV_INS_YMF292) && (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM);
+  unsigned char chanTl=(unsigned char)(127-(chan[chanIdx].outVol&0x7F));
+  for (int s=0; s<v->slotCount; s++) {
+    int slot=v->firstSlot+s;
+    if (isFMIns && !ins->scsp.ops[s].isCarrier) continue;
+    writeSlotTotalLevel(slot,chanTl);
+  }
+}
+
+// Program one slot of an FM voice from a high-level op definition.
+void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBase, double midiNote) {
+  Channel& c=chan[chanIdx];
+  DivInstrument* ins=parent->getIns(c.ins,DIV_INS_YMF292);
+  if (ins->type!=DIV_INS_YMF292) return;
+  const DivInstrumentSCSP::Op& op=ins->scsp.ops[opIdx];
+
+  int wid=op.waveform;
+  if (wid<0 || wid>=10) wid=0;
+  unsigned int sa=(unsigned int)builtinOffsets[wid];
+
+  // Loop points. Modulators and feedback ops MUST loop the full 1024-sample
+  // cycle — the SCSP's FM math computes phase modulo 1024 around the slot's
+  // current sample address.
+  unsigned int lsa=op.loopStart;
+  unsigned int lea=op.loopEnd>0?op.loopEnd:(unsigned int)SCSP_WAVE_LEN;
+  unsigned char lpctl=op.lpctlOp&0x3;
+  if (lpctl==0) lpctl=1;
+  bool usesFM=(op.modSource>=0 && op.mdl>=5) || op.feedback>0;
+  bool isMod=!op.isCarrier;
+  if (usesFM || isMod) {
+    lsa=0;
+    lea=(unsigned int)SCSP_WAVE_LEN;
+    lpctl=1;
+  }
+  if (lea>0xFFFF) lea=0xFFFF;
+  if (lsa>=lea) lsa=0;
+
+  unsigned short octBits=computeFMOctBitsForOp(op, midiNote);
+
+  // TL: linear-in-level (matches bebhionn TON persistence).
+  int tlInt=(int)floor((1.0-(double)op.level/127.0)*128.0+0.5);
+  if (tlInt<0) tlInt=0;
+  if (tlInt>255) tlInt=255;
+  unsigned char tl=(unsigned char)tlInt;
+
+  unsigned short d4=(((unsigned short)(op.d2r&0x1F))<<11)
+                  | (((unsigned short)(op.d1r&0x1F))<<6)
+                  |  ((unsigned short)(op.ar &0x1F));
+  // Force KRS=0xF (key-rate scaling disabled). Without this, the DR_TIMES
+  // tables (which assume KRS=0xF) disagree with the hardware envelope and
+  // the high-level rate→time mapping is wrong away from ~A3.
+  unsigned short d5=((unsigned short)0xF<<10)
+                  | (((unsigned short)(op.dl&0x1F))<<5)
+                  |  ((unsigned short)(op.rr&0x1F));
+  unsigned short d7=computeD7FromOp(op.mdl, op.modSource, op.feedback, tl, slot, slotBase);
+
+  unsigned char disdl=isMuted[chanIdx]?0:(op.isCarrier?7:0);
+  unsigned char dipan=(unsigned char)(c.pan&0x1F);
+
+  unsigned short r0=((lpctl&0x3)<<5)|((sa>>16)&0xF);
+  scsp_write_slot(slot,0x0,r0);
+  scsp_write_slot(slot,0x1,(unsigned short)(sa&0xFFFF));
+  scsp_write_slot(slot,0x2,(unsigned short)(lsa&0xFFFF));
+  scsp_write_slot(slot,0x3,(unsigned short)(lea&0xFFFF));
+  scsp_write_slot(slot,0x4,d4);
+  scsp_write_slot(slot,0x5,d5);
+  scsp_write_slot(slot,0x6,(unsigned short)(tl&0xFF));
+  scsp_write_slot(slot,0x7,d7);
+  scsp_write_slot(slot,0x8,octBits);
+  scsp_write_slot(slot,0x9,0);
+  scsp_slot_set_effect_send(slot,0,0);
+  scsp_slot_set_effect_output(slot,0,0);
+  scsp_slot_set_direct_output(slot,disdl,dipan);
 }
 
 void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
@@ -332,12 +558,7 @@ void DivPlatformSCSP::acquire(short** buf, size_t len) {
 
 void DivPlatformSCSP::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  // Re-program direct-output level: mute forces DISDL=0
-  if (chan[ch].slot>=0) {
-    unsigned char disdl=mute?0:7;
-    unsigned char dipan=(unsigned char)(chan[ch].pan&0x1F);
-    writeSlotPan(chan[ch].slot,disdl,dipan);
-  }
+  updateChanDirectOutput(ch);
 }
 
 void DivPlatformSCSP::tick(bool sysTick) {
@@ -346,10 +567,7 @@ void DivPlatformSCSP::tick(bool sysTick) {
 
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG((chan[i].vol&0x7F),(0x7F*chan[i].std.vol.val)/0x7F,0x7F);
-      if (chan[i].slot>=0) {
-        unsigned char tl=(unsigned char)(127-(chan[i].outVol&0x7F));
-        writeSlotTotalLevel(chan[i].slot,tl);
-      }
+      updateChanVolume(i);
     }
 
     if (NEW_ARP_STRAT) {
@@ -373,48 +591,78 @@ void DivPlatformSCSP::tick(bool sysTick) {
 
     if (chan[i].std.panL.had) {
       chan[i].pan=chan[i].std.panL.val&0x1F;
-      if (chan[i].slot>=0) {
-        unsigned char disdl=isMuted[i]?0:7;
-        writeSlotPan(chan[i].slot,disdl,(unsigned char)(chan[i].pan&0x1F));
-      }
+      updateChanDirectOutput(i);
     }
   }
 
   for (int i=0; i<8; i++) {
     if (chan[i].keyOn || chan[i].keyOff || chan[i].freqChanged) {
+      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_YMF292);
+      bool isFMIns=(ins->type==DIV_INS_YMF292) && (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM);
+
       if (chan[i].keyOn) {
-        // PCM mode = 1 slot. FM mode (Phase B) will pass opCount here.
-        int firstSlot=allocateVoice(i,chan[i].note,1);
+        int numSlots=1;
+        if (isFMIns) {
+          numSlots=ins->scsp.opCount;
+          if (numSlots<1) numSlots=1;
+          if (numSlots>6) numSlots=6;
+        }
+        int firstSlot=allocateVoice(i,chan[i].note,numSlots);
         chan[i].slot=firstSlot;
         if (firstSlot>=0) {
-          programSlot(firstSlot,i);
+          if (isFMIns) {
+            for (int op=0; op<numSlots; op++) {
+              programSlotFM(firstSlot+op, i, op, firstSlot, (double)chan[i].note);
+            }
+          } else {
+            programSlot(firstSlot,i);
+          }
         }
       }
-      if (chan[i].sample>=0 && chan[i].slot>=0 && sampleLoaded[chan[i].sample]) {
-        DivSample* s=parent->song.sample[chan[i].sample];
-        // Use Furnace's pitch model end-to-end (handles arp, portamento,
-        // pitch macros, fine pitch, linear-vs-period mode).
+
+      if (chan[i].slot>=0) {
+        // Use Furnace's pitch model end-to-end (arp, portamento, pitch
+        // macros, fine pitch, linear-vs-period mode).
         double freqUnits=(double)parent->calcFreq(
           chan[i].baseFreq,chan[i].pitch,
           chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,
           chan[i].fixedArp,false,2,chan[i].pitch2,
           chipClock,CHIP_FREQBASE);
-        // calcFreq returns: tuning * 2^((note-60+3)/12) * CHIP_FREQBASE / chipClock
-        // Convert to Hz at the note: noteHz = freqUnits * chipClock / CHIP_FREQBASE
         double noteHz=freqUnits*(double)chipClock/(double)CHIP_FREQBASE;
-        // Apply the sample's centerRate offset (Furnace convention: a
-        // centerRate equal to parent->getCenterRate() means "play at note's
-        // tuning frequency"; higher means upshift).
-        double off=(s->centerRate>=1.0)?((double)s->centerRate/parent->getCenterRate()):1.0;
-        double targetHz=noteHz*off;
-        int oct, fns;
-        computeOctFnsFromHz(targetHz,&oct,&fns);
-        unsigned short val=((oct&0xF)<<11)|(fns&0x3FF);
-        scsp_write_slot(chan[i].slot,0x8,val);
-        chan[i].freqChanged=false;
+
+        if (isFMIns) {
+          if (noteHz<=0.0) noteHz=1.0;
+          double midiNote=69.0+12.0*log2(noteHz/440.0);
+          const Voice* v=findVoiceByChan(i);
+          if (v!=NULL) {
+            for (int op=0; op<v->slotCount; op++) {
+              unsigned short octBits=computeFMOctBitsForOp(ins->scsp.ops[op], midiNote);
+              scsp_write_slot(v->firstSlot+op, 0x8, octBits);
+            }
+          }
+          chan[i].freqChanged=false;
+        } else if (chan[i].sample>=0 && sampleLoaded[chan[i].sample]) {
+          DivSample* s=parent->song.sample[chan[i].sample];
+          // Apply the sample's centerRate offset (Furnace convention: a
+          // centerRate equal to parent->getCenterRate() means "play at the
+          // note's tuning frequency"; higher means upshift).
+          double off=(s->centerRate>=1.0)?((double)s->centerRate/parent->getCenterRate()):1.0;
+          double targetHz=noteHz*off;
+          int oct, fns;
+          computeOctFnsFromHz(targetHz,&oct,&fns);
+          unsigned short val=((oct&0xF)<<11)|(fns&0x3FF);
+          scsp_write_slot(chan[i].slot,0x8,val);
+          chan[i].freqChanged=false;
+        }
       }
+
       if (chan[i].keyOn) {
-        scsp_key_on(chan[i].slot);
+        const Voice* v=findVoiceByChan(i);
+        if (v!=NULL) {
+          for (int s=0; s<v->slotCount; s++) {
+            scsp_key_on(v->firstSlot+s);
+          }
+        }
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
@@ -483,10 +731,7 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (chan[c.chan].slot>=0) {
-        unsigned char tl=(unsigned char)(127-(chan[c.chan].outVol&0x7F));
-        writeSlotTotalLevel(chan[c.chan].slot,tl);
-      }
+      updateChanVolume(c.chan);
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
@@ -498,10 +743,7 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PANNING:
       chan[c.chan].pan=parent->convertPanSplitToLinearLR(c.value,c.value2,30);
-      if (chan[c.chan].slot>=0) {
-        unsigned char disdl=isMuted[c.chan]?0:7;
-        writeSlotPan(chan[c.chan].slot,disdl,(unsigned char)(chan[c.chan].pan&0x1F));
-      }
+      updateChanDirectOutput(c.chan);
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;

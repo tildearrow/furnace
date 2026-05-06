@@ -95,6 +95,10 @@ class DivPlatformSCSP: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
 
     void programSlot(int slot, int chanIdx);
+    void programSlotFM(int slot, int chanIdx, int opIdx, int slotBase, double midiNote);
+    const Voice* findVoiceByChan(int chanIdx) const;
+    void updateChanDirectOutput(int chanIdx);
+    void updateChanVolume(int chanIdx);
     void writeSlotPitch(int slot, int midiNote, int baseMidiNote);
     void writeSlotEnvelope(int slot, unsigned char ar, unsigned char d1r,
                            unsigned char d2r, unsigned char rr,
