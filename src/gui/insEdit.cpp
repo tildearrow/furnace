@@ -8089,7 +8089,121 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
           if (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM) {
-            ImGui::TextDisabled(_("FM operator graph editor is not yet implemented (Phase B)."));
+            static const char* scspWaveNames[]={ "Sine","Saw","Square","Tri","Organ","Brass","Strings","Piano","Flute","Bass" };
+            static const char* scspModSourceOptions[]={ "None","Op 1","Op 2","Op 3","Op 4","Op 5","Op 6" };
+
+            ImGui::SeparatorText(_("FM Operators"));
+            int opCountInt=ins->scsp.opCount;
+            if (opCountInt<1) opCountInt=1;
+            if (opCountInt>6) opCountInt=6;
+            if (ImGui::SliderInt(_("Operator Count"),&opCountInt,1,6)) {
+              ins->scsp.opCount=(unsigned char)opCountInt;
+              MARK_MODIFIED;
+            }
+
+            if (ImGui::BeginTabBar("scspOpTabs")) {
+              for (int oi=0; oi<ins->scsp.opCount; oi++) {
+                char tabLabel[16];
+                snprintf(tabLabel,sizeof(tabLabel),"Op %d",oi+1);
+                if (ImGui::BeginTabItem(tabLabel)) {
+                  DivInstrumentSCSP::Op& op=ins->scsp.ops[oi];
+                  if (ImGui::BeginTable("scspOpTable",2,ImGuiTableFlags_SizingStretchSame)) {
+                    ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+                    ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+
+                    // Carrier / Waveform
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    if (ImGui::Checkbox(_("Carrier"),&op.isCarrier)) MARK_MODIFIED;
+                    ImGui::TableNextColumn();
+                    int waveIdx=op.waveform;
+                    if (waveIdx<0 || waveIdx>9) waveIdx=0;
+                    if (ImGui::Combo(_("Waveform"),&waveIdx,scspWaveNames,10)) {
+                      op.waveform=(unsigned char)waveIdx;
+                      MARK_MODIFIED;
+                    }
+
+                    // Frequency: ratio (Q8.8) or fixed Hz
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    bool fixedFreq=(op.freqFixed>0);
+                    if (ImGui::Checkbox(_("Fixed Hz"),&fixedFreq)) {
+                      if (fixedFreq) {
+                        if (op.freqFixed==0) op.freqFixed=440;
+                      } else {
+                        op.freqFixed=0;
+                      }
+                      MARK_MODIFIED;
+                    }
+                    ImGui::TableNextColumn();
+                    if (fixedFreq) {
+                      int hz=op.freqFixed;
+                      if (ImGui::DragInt(_("Frequency (Hz)"),&hz,1.0f,1,20000)) {
+                        if (hz<1) hz=1;
+                        if (hz>65535) hz=65535;
+                        op.freqFixed=(unsigned short)hz;
+                        MARK_MODIFIED;
+                      }
+                    } else {
+                      float ratio=(float)op.freqRatio/256.0f;
+                      if (ImGui::DragFloat(_("Ratio"),&ratio,0.01f,0.0f,16.0f,"%.3f")) {
+                        int rq=(int)(ratio*256.0f+0.5f);
+                        if (rq<0) rq=0;
+                        if (rq>65535) rq=65535;
+                        op.freqRatio=(unsigned short)rq;
+                        MARK_MODIFIED;
+                      }
+                    }
+
+                    // Level / Feedback
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("Level"),ImGuiDataType_U8,&op.level,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&op.feedback,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+
+                    // Mod source / Mod depth
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    int modSrcIdx=(op.modSource<0)?0:(op.modSource+1);
+                    if (modSrcIdx>ins->scsp.opCount) modSrcIdx=0;
+                    if (ImGui::Combo(_("Mod Source"),&modSrcIdx,scspModSourceOptions,ins->scsp.opCount+1)) {
+                      op.modSource=(signed char)(modSrcIdx-1);
+                      MARK_MODIFIED;
+                    }
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("Mod Depth (MDL)"),ImGuiDataType_U8,&op.mdl,&_ZERO,&_FIFTEEN)); rightClickable
+
+                    // Per-op envelope
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::SeparatorText(_("Envelope (per op)"));
+                    ImGui::TableNextColumn();
+                    ImGui::TextDisabled(_("KRS forced to 0xF (disabled)"));
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("AR"),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("D1R"),ImGuiDataType_U8,&op.d1r,&_ZERO,&_THIRTY_ONE)); rightClickable
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("DL"),ImGuiDataType_U8,&op.dl,&_ZERO,&_THIRTY_ONE)); rightClickable
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("D2R"),ImGuiDataType_U8,&op.d2r,&_ZERO,&_THIRTY_ONE)); rightClickable
+
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    P(CWSliderScalar(_("RR"),ImGuiDataType_U8,&op.rr,&_ZERO,&_THIRTY_ONE)); rightClickable
+
+                    ImGui::EndTable();
+                  }
+                  ImGui::EndTabItem();
+                }
+              }
+              ImGui::EndTabBar();
+            }
           }
           ImGui::EndTabItem();
         }
