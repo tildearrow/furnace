@@ -334,7 +334,13 @@ const char* cmdName[]={
   "SCSP_DSP_SEND",
   "SCSP_DSP_PAN",
   "SCSP_DIRECT_SEND",
-  "SCSP_DIRECT_PAN"
+  "SCSP_DIRECT_PAN",
+
+  "SCSP_OP_TL",
+  "SCSP_OP_MDL",
+  "SCSP_CARRIER_WAVE",
+  "SCSP_MOD_WAVE",
+  "SCSP_FEEDBACK"
 };
 
 // fail build if you forgot to update the array

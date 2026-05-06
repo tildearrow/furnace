@@ -868,6 +868,81 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
       writeSlotPan(chan[c.chan].slot,isMuted[c.chan]?0:7,(unsigned char)(chan[c.chan].pan&0x1F));
       break;
     }
+    // ── FM-mode performance effects (20xx-43xx). Patch the affected slot
+    // registers in-flight without re-running programSlotFM, so a row that
+    // carries multiple effects accumulates correctly. State is reset on the
+    // next note-on. Not preserved by Saturn SEQ export — Furnace-only.
+    case DIV_CMD_SCSP_OP_TL: {
+      const Voice* v=findVoiceByChan(c.chan);
+      if (v==NULL) break;
+      int opIdx=c.value;
+      if (opIdx<0 || opIdx>=v->slotCount) break;
+      scsp_write_slot(v->firstSlot+opIdx,0x6,(unsigned short)(c.value2&0xFF));
+      break;
+    }
+    case DIV_CMD_SCSP_OP_MDL: {
+      const Voice* v=findVoiceByChan(c.chan);
+      if (v==NULL) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      if (ins->type!=DIV_INS_YMF292 || ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) break;
+      int opIdx=c.value;
+      if (opIdx<0 || opIdx>=v->slotCount) break;
+      const DivInstrumentSCSP::Op& op=ins->scsp.ops[opIdx];
+      unsigned char newMdl=c.value2&0xF;
+      // Recompute TL like programSlotFM (needed for feedback ringPeak math).
+      int tlInt=(int)floor((1.0-(double)op.level/127.0)*128.0+0.5);
+      if (tlInt<0) tlInt=0;
+      if (tlInt>255) tlInt=255;
+      int slot=v->firstSlot+opIdx;
+      unsigned short d7=computeD7FromOp(newMdl, op.modSource, op.feedback,
+                                         (unsigned char)tlInt, slot, v->firstSlot);
+      scsp_write_slot(slot,0x7,d7);
+      break;
+    }
+    case DIV_CMD_SCSP_CARRIER_WAVE:
+    case DIV_CMD_SCSP_MOD_WAVE: {
+      const Voice* v=findVoiceByChan(c.chan);
+      if (v==NULL) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      if (ins->type!=DIV_INS_YMF292 || ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) break;
+      bool wantCarrier=(c.cmd==DIV_CMD_SCSP_CARRIER_WAVE);
+      int newWaveIdx=c.value&0xF;
+      if (newWaveIdx<0 || newWaveIdx>=10) newWaveIdx=0;
+      unsigned int sa=(unsigned int)builtinOffsets[newWaveIdx];
+      for (int op=0; op<v->slotCount; op++) {
+        const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
+        if (opdef.isCarrier!=wantCarrier) continue;
+        // Recompute LPCTL from op state (programSlotFM's logic).
+        unsigned char lpctl=opdef.lpctlOp&0x3;
+        if (lpctl==0) lpctl=1;
+        bool usesFM=(opdef.modSource>=0 && opdef.mdl>=5) || opdef.feedback>0;
+        bool isMod=!opdef.isCarrier;
+        if (usesFM || isMod) lpctl=1;
+        int slot=v->firstSlot+op;
+        unsigned short r0=((lpctl&0x3)<<5)|((sa>>16)&0xF);
+        scsp_write_slot(slot,0x0,r0);
+        scsp_write_slot(slot,0x1,(unsigned short)(sa&0xFFFF));
+      }
+      break;
+    }
+    case DIV_CMD_SCSP_FEEDBACK: {
+      const Voice* v=findVoiceByChan(c.chan);
+      if (v==NULL) break;
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
+      if (ins->type!=DIV_INS_YMF292 || ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) break;
+      unsigned char newFb=c.value&0x7F;
+      for (int op=0; op<v->slotCount; op++) {
+        const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
+        int tlInt=(int)floor((1.0-(double)opdef.level/127.0)*128.0+0.5);
+        if (tlInt<0) tlInt=0;
+        if (tlInt>255) tlInt=255;
+        int slot=v->firstSlot+op;
+        unsigned short d7=computeD7FromOp(opdef.mdl, opdef.modSource, newFb,
+                                           (unsigned char)tlInt, slot, v->firstSlot);
+        scsp_write_slot(slot,0x7,d7);
+      }
+      break;
+    }
     default:
       break;
   }

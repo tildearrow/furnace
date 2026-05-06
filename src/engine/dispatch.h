@@ -345,6 +345,12 @@ enum DivDispatchCmds {
   DIV_CMD_SCSP_DIRECT_SEND,     // (value 0..7)
   DIV_CMD_SCSP_DIRECT_PAN,      // (value 0..31)
 
+  DIV_CMD_SCSP_OP_TL,           // (op 0..5, value 0..255 raw TL — 0=loudest)
+  DIV_CMD_SCSP_OP_MDL,          // (op 0..5, value 0..15 MDL)
+  DIV_CMD_SCSP_CARRIER_WAVE,    // (value 0..9 builtin index, applies to all carrier ops)
+  DIV_CMD_SCSP_MOD_WAVE,        // (value 0..9 builtin index, applies to all non-carrier ops)
+  DIV_CMD_SCSP_FEEDBACK,        // (value 0..127, applies to ops with non-zero modSource or existing feedback)
+
   DIV_CMD_MAX
 };
 
