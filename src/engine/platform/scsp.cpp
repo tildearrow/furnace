@@ -23,6 +23,7 @@
 
 extern "C" {
 #include "../../../extern/scsp/scsp_bridge.h"
+#include "../../../extern/scsp/scsp_waveforms.h"
 }
 
 #define CHIP_FREQBASE 4096
@@ -556,11 +557,17 @@ void DivPlatformSCSP::reset() {
   memset(regPool,0,sizeof(regPool));
 
   // Re-upload sample memory: scsp_init zeroed RAM, so we need to refill it.
-  if (sampleMem!=NULL) {
-    uint8_t* ram=scsp_get_ram_ptr();
-    if (ram!=NULL) {
-      memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
-    }
+  uint8_t* ram=scsp_get_ram_ptr();
+  if (sampleMem!=NULL && ram!=NULL) {
+    memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
+  }
+
+  // Load the 10 built-in FM waveforms into RAM[0x0000..0x4FFF].
+  // Done after the user-sample memcpy (which writes zeros over this region
+  // from the always-zero head of sampleMem) so the builtins win.
+  for (int i=0; i<10; i++) builtinOffsets[i]=0;
+  if (ram!=NULL) {
+    scsp_load_builtins(ram,builtinOffsets);
   }
 }
 

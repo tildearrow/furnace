@@ -62,6 +62,10 @@ class DivPlatformSCSP: public DivDispatch {
     static const unsigned int RAM_SIZE = 512*1024;
     static const unsigned int USER_SAMPLE_BASE = 0x5400;
 
+    // Byte offsets in SCSP RAM of the 10 built-in FM waveforms,
+    // populated during reset() by scsp_load_builtins().
+    int builtinOffsets[10];
+
     unsigned char regPool[1024+48];
 
     friend void putDispatchChip(void*,int);
