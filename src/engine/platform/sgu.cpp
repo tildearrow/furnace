@@ -382,11 +382,14 @@ void DivPlatformSGU::tick(bool sysTick) {
       if (chan[i].pcm) {
         DivSample* sample=parent->getSample(chan[i].sample);
         if (sample!=NULL) {
+          // pcmFactor = rate * CHIP_FREQBASE / (chipClock * 32768)
+          // (matches SU's hardcoded 4.0 with SU's 309000/1236000 clocks)
+          const double pcmFactor=(double)rate*(double)CHIP_FREQBASE/((double)chipClock*32768.0);
           double off=0.25;
           if (sample->centerRate<1) {
             off=0.25;
           } else {
-            off=(double)sample->centerRate/(parent->getCenterRate()*(4.0/6.0));
+            off=(double)sample->centerRate/(parent->getCenterRate()*pcmFactor);
           }
           chan[i].freq=(double)chan[i].freq*off;
         }
