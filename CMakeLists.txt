@@ -799,6 +799,7 @@ src/engine/export.cpp
 src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
+src/engine/fileOpsTON.cpp
 src/engine/filePlayer.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp

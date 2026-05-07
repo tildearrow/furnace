@@ -640,6 +640,9 @@ class DivEngine {
     // save as .fur.
     // if notPrimary is true then the song will not be altered
     SafeWriter* saveFur(bool notPrimary=false);
+    // save SCSP FM instruments as a Saturn .TON bank (compatible with
+    // mid2seq/saturn_kit and the SGL sound driver).
+    SafeWriter* saveSCSPTON();
     // return a ROM exporter.
     DivROMExport* buildROM(DivROMExportOptions sys);
     // compile instruments.

@@ -2206,6 +2206,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+    case GUI_FILE_EXPORT_TON:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export Saturn TON Bank"),
+        {_("TON bank"), "*.ton"},
+        workingDirROMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -5668,6 +5678,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_VGM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_TON:
+          workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
@@ -6250,6 +6263,24 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf(_("could not write VGM! (%s)"),e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_TON: {
+              SafeWriter* w=e->saveSCSPTON();
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+              } else {
+                showError(fmt::sprintf(_("could not write TON! (%s)"),e->getLastError()));
               }
               break;
             }

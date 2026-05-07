@@ -667,6 +667,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_MU5_ROM_OPEN,
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
+  GUI_FILE_EXPORT_TON,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -702,7 +703,8 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
-  GUI_EXPORT_DMF
+  GUI_EXPORT_DMF,
+  GUI_EXPORT_TON
 };
 
 enum FurnaceGUIFMAlgs {
@@ -2975,6 +2977,7 @@ class FurnaceGUI {
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
+  void drawExportTON(bool onWindow=false);
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
