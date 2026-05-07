@@ -435,6 +435,10 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
   int32_t outR=0;
   bool mult0=false;
 
+  const unsigned short chBase=0;
+  const unsigned short opBase=chBase;
+  const unsigned short chRegBase=chBase+(SGU_OP_PER_CH*SGU_OP_REGS);
+
   if (pos==0) {
     SGU* sgu=(SGU*)fmPreviewSGU;
     SGU_Reset(sgu);
@@ -445,10 +449,6 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
         break;
       }
     }
-
-    const unsigned short chBase=0;
-    const unsigned short opBase=chBase;
-    const unsigned short chRegBase=chBase+(SGU_OP_PER_CH*SGU_OP_REGS);
 
     bool hasSampleWave=false;
     for (int i=0; i<SGU_OP_PER_CH; i++) {
@@ -543,6 +543,9 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
     SGU_WRITE(chRegBase+SGU1_CHN_FLAGS1,0);
     SGU_WRITE(chRegBase+SGU1_CHN_FLAGS0,SGU1_FLAGS0_CTL_GATE);
   }
+
+  // reset operator phases each frame so the visible window is static
+  SGU_WRITE(chRegBase+SGU1_CHN_FLAGS1,SGU1_FLAGS1_PHASE_RESET);
 
   for (int i=0; i<FM_PREVIEW_SIZE; i++) {
     SGU_NextSample((SGU*)fmPreviewSGU,&outL,&outR);
