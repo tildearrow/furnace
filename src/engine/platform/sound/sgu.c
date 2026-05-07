@@ -693,35 +693,42 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
 
         if (ch_flags0 & SGU1_FLAGS0_PCM_MASK) // PCM mode
         {
-            // Signed 8-bit PCM sample scaled to match FM operator output (~14-bit range).
-            ch_sample = (int16_t)sgu->pcm[ch_reg->pcmpos] << 6;
-
-            // PCM phase accumulator. When it crosses 0x8000, advance sample position by 1.
-            sgu->pcm_phase_accum[ch] += minval(ch_reg->freq, 0x8000);
-
-            if (sgu->pcm_phase_accum[ch] >= 0x8000)
+            // Mirror SU's `vol==0 -> continue` behavior for PCM: when GATE is
+            // clear, freeze the sample read and the phase accumulator advance.
+            // ch_sample stays 0 (initialized above), pcmpos and pcm_phase_accum
+            // are preserved untouched until GATE comes back on.
+            if (key_live)
             {
-                sgu->pcm_phase_accum[ch] -= 0x8000;
+                // Signed 8-bit PCM sample scaled to match FM operator output (~14-bit range).
+                ch_sample = (int16_t)sgu->pcm[ch_reg->pcmpos] << 6;
 
-                // Advance sample pointer with boundary and optional looping.
-                if (ch_reg->pcmpos < ch_reg->pcmbnd)
+                // PCM phase accumulator. When it crosses 0x8000, advance sample position by 1.
+                sgu->pcm_phase_accum[ch] += minval(ch_reg->freq, 0x8000);
+
+                if (sgu->pcm_phase_accum[ch] >= 0x8000)
                 {
-                    ch_reg->pcmpos++;
+                    sgu->pcm_phase_accum[ch] -= 0x8000;
 
-                    // If we hit the boundary exactly, loop if enabled.
-                    if (ch_reg->pcmpos == ch_reg->pcmbnd)
+                    // Advance sample pointer with boundary and optional looping.
+                    if (ch_reg->pcmpos < ch_reg->pcmbnd)
                     {
-                        if (ch_reg->flags1 & SGU1_FLAGS1_PCM_LOOP)
-                            ch_reg->pcmpos = ch_reg->pcmrst;
-                    }
+                        ch_reg->pcmpos++;
 
-                    // Wrap to PCM RAM size (power-of-2 ring buffer).
-                    ch_reg->pcmpos &= (SGU_PCM_RAM_SIZE - 1);
-                }
-                else if (ch_reg->flags1 & SGU1_FLAGS1_PCM_LOOP)
-                {
-                    // If already at/over boundary and looping, force restart.
-                    ch_reg->pcmpos = ch_reg->pcmrst;
+                        // If we hit the boundary exactly, loop if enabled.
+                        if (ch_reg->pcmpos == ch_reg->pcmbnd)
+                        {
+                            if (ch_reg->flags1 & SGU1_FLAGS1_PCM_LOOP)
+                                ch_reg->pcmpos = ch_reg->pcmrst;
+                        }
+
+                        // Wrap to PCM RAM size (power-of-2 ring buffer).
+                        ch_reg->pcmpos &= (SGU_PCM_RAM_SIZE - 1);
+                    }
+                    else if (ch_reg->flags1 & SGU1_FLAGS1_PCM_LOOP)
+                    {
+                        // If already at/over boundary and looping, force restart.
+                        ch_reg->pcmpos = ch_reg->pcmrst;
+                    }
                 }
             }
         }
@@ -1116,7 +1123,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
         //   bits0..4: step size
         //   bit6 (0x40): "wrap/loop" behavior
         //   bit7 (0x80): "bounce/alternate" behavior
-        if ((ch_reg->flags1 & SGU1_FLAGS1_VOL_SWEEP) && ch_reg->swvol.speed)
+        if (key_live && (ch_reg->flags1 & SGU1_FLAGS1_VOL_SWEEP) && ch_reg->swvol.speed)
         {
             if (--sgu->vol_sweep_countdown[ch] <= 0)
             {
@@ -1182,7 +1189,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
             }
         }
 
-        if ((ch_reg->flags1 & SGU1_FLAGS1_FREQ_SWEEP) && ch_reg->swfreq.speed)
+        if (key_live && (ch_reg->flags1 & SGU1_FLAGS1_FREQ_SWEEP) && ch_reg->swfreq.speed)
         {
             if (--sgu->freq_sweep_countdown[ch] <= 0)
             {
@@ -1217,7 +1224,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
             }
         }
 
-        if ((ch_reg->flags1 & SGU1_FLAGS1_CUT_SWEEP) && ch_reg->swcut.speed)
+        if (key_live && (ch_reg->flags1 & SGU1_FLAGS1_CUT_SWEEP) && ch_reg->swcut.speed)
         {
             if (--sgu->cut_sweep_countdown[ch] <= 0)
             {
