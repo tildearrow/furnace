@@ -29,6 +29,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
 #include "intConst.h"
+#include <algorithm>
 #include <fmt/printf.h>
 #include <imgui.h>
 #include "plot_nolerp.h"
@@ -219,6 +220,33 @@ const char* sguWaveforms[8]={
   _N("Reserved"),
   _N("Sample")
 };
+
+// SGU-1 fixed-frequency mode: freq16 = base[MUL] << DT
+// Helps "Fixed Freq" slider walk frequency monotonically.
+struct SGUFixedFreqSlot { unsigned char mul, dt; unsigned short freq16; };
+
+struct SGUFixedFreqTable {
+  SGUFixedFreqSlot slots[128];
+  unsigned char reverse[8][16];
+
+  SGUFixedFreqTable() {
+    static const unsigned short base[16]={
+      8,24,41,57,74,90,107,123,140,156,173,189,206,222,239,255};
+    int n=0;
+    for (int dt=0;dt<8;dt++) for (int mul=0;mul<16;mul++) {
+      slots[n].mul=(unsigned char)mul;
+      slots[n].dt=(unsigned char)dt;
+      slots[n].freq16=(unsigned short)(base[mul]<<dt);
+      n++;
+    }
+    std::sort(slots,slots+128,
+      [](const SGUFixedFreqSlot& a,const SGUFixedFreqSlot& b){
+        return a.freq16<b.freq16;
+      });
+    for (int i=0;i<128;i++) reverse[slots[i].dt][slots[i].mul]=(unsigned char)i;
+  }
+};
+static const SGUFixedFreqTable sguFixedFreq;
 
 const char* oplDrumNames[4]={
   _N("Snare"),
@@ -5169,12 +5197,15 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
               }
               if (ins->type==DIV_INS_SGU) {
-                int fixedFreqVal=(((op.dt&7)<<4)|(op.mult&0xf))+1;
-                if (CWSliderInt(_("Fixed Freq"),&fixedFreqVal,1,128)) { PARAMETER
-                  if (fixedFreqVal<1) fixedFreqVal=1;
-                  if (fixedFreqVal>128) fixedFreqVal=128;
-                  op.mult=(fixedFreqVal-1)&0x0f;
-                  op.dt=((fixedFreqVal-1)>>4)&0x07;
+                int slot=sguFixedFreq.reverse[op.dt&7][op.mult&0xf];
+                char fixedFreqLabel[64];
+                snprintf(fixedFreqLabel,64,_("Freq: %d"),sguFixedFreq.slots[slot].freq16);
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (CWSliderInt("##SGUFixedFreq",&slot,0,127,fixedFreqLabel)) { PARAMETER
+                  if (slot<0) slot=0;
+                  if (slot>127) slot=127;
+                  op.mult=sguFixedFreq.slots[slot].mul;
+                  op.dt=sguFixedFreq.slots[slot].dt;
                 }
               }
             }
@@ -5835,14 +5866,14 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                       opE.ct=(opE.ct&(~3))|(freqNum>>8);
                     }
                   } else {
-                    int fixedFreqVal=(((op.dt&7)<<4)|(op.mult&0xf))+1;
+                    int slot=sguFixedFreq.reverse[op.dt&7][op.mult&0xf];
                     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                    snprintf(tempID,1024,"%s: %%d",_("Fixed Freq"));
-                    if (CWSliderInt("##FIXFREQ",&fixedFreqVal,1,128,tempID)) { PARAMETER
-                      if (fixedFreqVal<1) fixedFreqVal=1;
-                      if (fixedFreqVal>128) fixedFreqVal=128;
-                      op.mult=(fixedFreqVal-1)&0x0f;
-                      op.dt=((fixedFreqVal-1)>>4)&0x07;
+                    snprintf(tempID,1024,_("Freq: %d"),sguFixedFreq.slots[slot].freq16);
+                    if (CWSliderInt("##FIXFREQ",&slot,0,127,tempID)) { PARAMETER
+                      if (slot<0) slot=0;
+                      if (slot>127) slot=127;
+                      op.mult=sguFixedFreq.slots[slot].mul;
+                      op.dt=sguFixedFreq.slots[slot].dt;
                     }
                   }
                 } else {
@@ -6429,15 +6460,17 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
             } else {
               if (ins->type==DIV_INS_SGU && opE.fixed) {
-                int fixedFreqVal=(((op.dt&7)<<4)|(op.mult&0xf))+1;
+                int slot=sguFixedFreq.reverse[op.dt&7][op.mult&0xf];
+                char fixedFreqLabel[64];
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (CWSliderInt(_("Fixed Freq"),&fixedFreqVal,1,128)) { PARAMETER
-                  if (fixedFreqVal<1) fixedFreqVal=1;
-                  if (fixedFreqVal>128) fixedFreqVal=128;
-                  op.mult=(fixedFreqVal-1)&0x0f;
-                  op.dt=((fixedFreqVal-1)>>4)&0x07;
+                snprintf(fixedFreqLabel,64,_("Freq: %d"),sguFixedFreq.slots[slot].freq16);
+                if (CWSliderInt("##SGUFixedFreq2",&slot,0,127,fixedFreqLabel)) { PARAMETER
+                  if (slot<0) slot=0;
+                  if (slot>127) slot=127;
+                  op.mult=sguFixedFreq.slots[slot].mul;
+                  op.dt=sguFixedFreq.slots[slot].dt;
                 }
                 ImGui::TableNextColumn();
                 ImGui::Text("%s",_("Fixed Freq"));
