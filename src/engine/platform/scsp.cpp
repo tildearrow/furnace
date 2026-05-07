@@ -653,14 +653,36 @@ void DivPlatformSCSP::tick(bool sysTick) {
           }
           chan[i].freqChanged=false;
         } else if (chan[i].sample>=0 && sampleLoaded[chan[i].sample]) {
-          // Use Furnace's pitch model for PCM (existing path, sample-rate
-          // aware via centerRate offset).
-          double freqUnits=(double)parent->calcFreq(
-            chan[i].baseFreq,chan[i].pitch,
-            chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,
-            chan[i].fixedArp,false,2,chan[i].pitch2,
-            chipClock,CHIP_FREQBASE);
-          double noteHz=freqUnits*(double)chipClock/(double)CHIP_FREQBASE;
+          // Bypass parent->calcFreq for the same reason as the FM path:
+          // with SCSP's CHIP_FREQBASE=4096 / chipClock=22.58 MHz ratio,
+          // round(fbase * divider/clock) truncates to 0. Recompute fbase
+          // in double precision matching calcFreq's linear-pitch math
+          // (calcBaseFreq + nbase + 2^((nbase-7296)/1536) * tuning).
+          double semitone;
+          if (parent->song.compatFlags.linearPitch) {
+            int nbase=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2;
+            if (!parent->song.compatFlags.oldArpStrategy) {
+              if (chan[i].fixedArp) {
+                nbase=(chan[i].baseNoteOverride<<7)+chan[i].pitch+chan[i].pitch2;
+              } else {
+                nbase+=chan[i].arpOff<<7;
+              }
+            }
+            semitone=(double)nbase/128.0;
+          } else {
+            // Non-linear pitch has no chip-native freq unit on SCSP, so
+            // pitch deltas are best-effort: integer note + arp + (pitch in
+            // 128ths) treated as semitone offsets.
+            semitone=(double)chan[i].note;
+            if (!parent->song.compatFlags.oldArpStrategy) {
+              if (chan[i].fixedArp) semitone=(double)chan[i].baseNoteOverride;
+              else semitone+=(double)chan[i].arpOff;
+            }
+            semitone+=(double)(chan[i].pitch+chan[i].pitch2)/128.0;
+          }
+          double noteHz=(double)parent->song.tuning*
+                        pow(2.0,(semitone-60.0+3.0)/12.0);
+
           DivSample* s=parent->song.sample[chan[i].sample];
           // Apply the sample's centerRate offset (Furnace convention: a
           // centerRate equal to parent->getCenterRate() means "play at the
