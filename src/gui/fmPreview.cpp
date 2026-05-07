@@ -534,7 +534,7 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
       SGU_WRITE(chRegBase+SGU1_CHN_PCM_RST_H,0);
     }
 
-    const unsigned short freq=mult0?0x39ac:0x1cd6;
+    const unsigned short freq=mult0?0x624:0x312;
     SGU_WRITE(chRegBase+SGU1_CHN_FREQ_L,freq&0xff);
     SGU_WRITE(chRegBase+SGU1_CHN_FREQ_H,freq>>8);
     SGU_WRITE(chRegBase+SGU1_CHN_VOL,127);
