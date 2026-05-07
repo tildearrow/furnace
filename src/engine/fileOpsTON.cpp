@@ -49,6 +49,7 @@ extern "C" {
 
 #include <math.h>
 #include <vector>
+#include <map>
 #include <stdint.h>
 
 #define TON_WAVE_LEN 1024
@@ -56,9 +57,12 @@ extern "C" {
 // Pack a Furnace SCSP op + waveform into a 32-byte TON layer at `out`.
 // `saOffset` is the byte offset of this op's waveform within the TON file's
 // PCM section (caller adds the file-level pcm_base before writing).
+// `leaSamples` is the loop-end sample count to use; for built-ins the
+// caller passes 1024, for user samples the sample's length.
 static void buildLayer(unsigned char* out,
                        const DivInstrumentSCSP::Op& op,
-                       unsigned int saOffset) {
+                       unsigned int saOffset,
+                       unsigned int leaSamples) {
   memset(out,0,0x20);
   out[0x00]=0;    // start_note
   out[0x01]=127;  // end_note
@@ -68,7 +72,8 @@ static void buildLayer(unsigned char* out,
   if (op.isCarrier) out[0x02]|=(1<<5);
 
   // byte 0x03: LPCTL[6:5] | PCM8B[4]=0 | SA[19:16]
-  // FM modulators always loop the full waveform.
+  // Loop is on by default; the Saturn driver may key-off naturally on
+  // a long sample's end, but FM modulators need a continuous loop.
   unsigned char lpctl=1;
   out[0x03]=((lpctl&3)<<5)|((saOffset>>16)&0xF);
 
@@ -76,9 +81,12 @@ static void buildLayer(unsigned char* out,
   out[0x04]=(saOffset>>8)&0xFF;
   out[0x05]=saOffset&0xFF;
 
-  // bytes 0x06-0x07: LSA (BE) — modulators wrap entire 1024-sample wave
+  // bytes 0x06-0x07: LSA (BE), 0x08-0x09: LEA (BE).
+  // For built-ins LEA=1024 (the whole 1024-sample wave); for user samples
+  // LEA is the sample's actual length so the loop covers the recording.
   unsigned int lsa=0;
-  unsigned int lea=TON_WAVE_LEN;
+  unsigned int lea=leaSamples;
+  if (lea>0xFFFF) lea=0xFFFF;
   out[0x06]=(lsa>>8)&0xFF; out[0x07]=lsa&0xFF;
   out[0x08]=(lea>>8)&0xFF; out[0x09]=lea&0xFF;
 
@@ -146,25 +154,37 @@ SafeWriter* DivEngine::saveSCSPTON() {
     return NULL;
   }
 
-  // Generate the 10 built-in waveforms once and pack each as 16-bit BE PCM.
-  // Op waveform indices reference these directly; deduplication means a
-  // patch with all-sine ops only contributes one waveform's worth of bytes.
+  // Walk every op once to figure out which waveforms (built-ins) and which
+  // user samples are referenced. Each unique resource gets emitted once and
+  // its byte offset within the PCM section is recorded for SA patch-up.
   unsigned int waveOffset[SCSP_NUM_BUILTINS];
   bool waveUsed[SCSP_NUM_BUILTINS];
-  std::vector<unsigned char> pcmData;
   for (int i=0; i<SCSP_NUM_BUILTINS; i++) { waveOffset[i]=0; waveUsed[i]=false; }
 
-  // First pass: figure out which waveforms are referenced.
+  // sampleIdToOffset: map<original sample index, byte offset in pcmData>.
+  // For each op with sampleId>=0 we'll embed the sample's 16-bit BE PCM.
+  std::map<int,unsigned int> sampleOffset;  // index -> pcm offset
+  std::map<int,unsigned int> sampleLength;  // index -> length in samples
+
+  // First pass: collect references.
   for (int idx: insIndices) {
     DivInstrument* ins=song.ins[idx];
     int n=ins->scsp.opCount;
     if (n>6) n=6;
     for (int op=0; op<n; op++) {
-      int w=ins->scsp.ops[op].waveform;
-      if (w>=0 && w<SCSP_NUM_BUILTINS) waveUsed[w]=true;
+      const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
+      if (opdef.sampleId>=0 && opdef.sampleId<song.sampleLen) {
+        sampleOffset[opdef.sampleId]=0;  // placeholder, filled below
+      } else {
+        int w=opdef.waveform;
+        if (w>=0 && w<SCSP_NUM_BUILTINS) waveUsed[w]=true;
+      }
     }
   }
-  // Second pass: append the used waveforms to pcmData and record offsets.
+
+  std::vector<unsigned char> pcmData;
+
+  // Emit built-ins first.
   for (int w=0; w<SCSP_NUM_BUILTINS; w++) {
     if (!waveUsed[w]) continue;
     waveOffset[w]=(unsigned int)pcmData.size();
@@ -175,6 +195,22 @@ SafeWriter* DivEngine::saveSCSPTON() {
       if (v<-32768.0) v=-32768.0;
       if (v>32767.0) v=32767.0;
       int16_t iv=(int16_t)floor(v+0.5);
+      pcmData.push_back((unsigned char)((iv>>8)&0xFF));
+      pcmData.push_back((unsigned char)(iv&0xFF));
+    }
+  }
+  // Then user samples: 16-bit BE PCM. data16 is signed 16-bit native LE
+  // in Furnace; we byte-swap into the TON's BE layout as we go.
+  for (auto& kv: sampleOffset) {
+    int idx=kv.first;
+    DivSample* s=song.sample[idx];
+    int n=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
+    if (n<1) n=1;
+    sampleOffset[idx]=(unsigned int)pcmData.size();
+    sampleLength[idx]=(unsigned int)n;
+    short* src=s->data16;
+    for (int si=0; si<n; si++) {
+      int16_t iv=src?src[si]:0;
       pcmData.push_back((unsigned char)((iv>>8)&0xFF));
       pcmData.push_back((unsigned char)(iv&0xFF));
     }
@@ -193,9 +229,20 @@ SafeWriter* DivEngine::saveSCSPTON() {
     v[0]=2;        // bend_range
     v[2]=(unsigned char)(n-1);  // num_layers - 1
     for (int op=0; op<n; op++) {
-      int w=ins->scsp.ops[op].waveform;
-      if (w<0 || w>=SCSP_NUM_BUILTINS) w=0;
-      buildLayer(&v[4+op*0x20], ins->scsp.ops[op], waveOffset[w]);
+      const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
+      unsigned int sa;
+      unsigned int lea;
+      if (opdef.sampleId>=0 && sampleOffset.count(opdef.sampleId)) {
+        sa=sampleOffset[opdef.sampleId];
+        lea=sampleLength[opdef.sampleId];
+        if (lea>0xFFFF) lea=0xFFFF;
+      } else {
+        int w=opdef.waveform;
+        if (w<0 || w>=SCSP_NUM_BUILTINS) w=0;
+        sa=waveOffset[w];
+        lea=TON_WAVE_LEN;
+      }
+      buildLayer(&v[4+op*0x20], opdef, sa, lea);
     }
     voices.push_back(v);
   }

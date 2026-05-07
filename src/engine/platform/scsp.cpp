@@ -353,23 +353,52 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
   if (ins->type!=DIV_INS_YMF292) return;
   const DivInstrumentSCSP::Op& op=ins->scsp.ops[opIdx];
 
-  int wid=op.waveform;
-  if (wid<0 || wid>=10) wid=0;
-  unsigned int sa=(unsigned int)builtinOffsets[wid];
-
-  // Loop points. Modulators and feedback ops MUST loop the full 1024-sample
-  // cycle — the SCSP's FM math computes phase modulo 1024 around the slot's
-  // current sample address.
-  unsigned int lsa=op.loopStart;
-  unsigned int lea=op.loopEnd>0?op.loopEnd:(unsigned int)SCSP_WAVE_LEN;
-  unsigned char lpctl=op.lpctlOp&0x3;
-  if (lpctl==0) lpctl=1;
-  bool usesFM=(op.modSource>=0 && op.mdl>=5) || op.feedback>0;
-  bool isMod=!op.isCarrier;
-  if (usesFM || isMod) {
-    lsa=0;
-    lea=(unsigned int)SCSP_WAVE_LEN;
-    lpctl=1;
+  // Resolve the op's waveform source. sampleId>=0 picks a user sample
+  // (any length, any loop config); otherwise fall back to the 1024-sample
+  // built-in indexed by `waveform`. Pure FM math assumes a 1024-sample
+  // modulator, so a long sample as a modulator will alias — that's a
+  // documented experimentation hazard, not enforced here.
+  unsigned int sa;
+  unsigned int lsa, lea;
+  unsigned char lpctl;
+  bool useSample=(op.sampleId>=0 &&
+                  op.sampleId<parent->song.sampleLen &&
+                  sampleLoaded[op.sampleId]);
+  if (useSample) {
+    DivSample* s=parent->song.sample[op.sampleId];
+    sa=USER_SAMPLE_BASE+sampleOff[op.sampleId];
+    if (s->isLoopable()) {
+      lsa=(unsigned int)s->loopStart;
+      lea=(unsigned int)s->loopEnd;
+      switch (s->loopMode) {
+        case DIV_SAMPLE_LOOP_FORWARD:  lpctl=1; break;
+        case DIV_SAMPLE_LOOP_BACKWARD: lpctl=2; break;
+        case DIV_SAMPLE_LOOP_PINGPONG: lpctl=3; break;
+        default: lpctl=1; break;
+      }
+    } else {
+      lsa=0;
+      lea=(unsigned int)s->samples;
+      lpctl=0;
+    }
+  } else {
+    int wid=op.waveform;
+    if (wid<0 || wid>=10) wid=0;
+    sa=(unsigned int)builtinOffsets[wid];
+    // Built-in modulators and feedback ops MUST loop the full 1024-sample
+    // cycle — the SCSP's FM math computes phase modulo 1024 around the
+    // slot's current sample address.
+    lsa=op.loopStart;
+    lea=op.loopEnd>0?op.loopEnd:(unsigned int)SCSP_WAVE_LEN;
+    lpctl=op.lpctlOp&0x3;
+    if (lpctl==0) lpctl=1;
+    bool usesFM=(op.modSource>=0 && op.mdl>=5) || op.feedback>0;
+    bool isMod=!op.isCarrier;
+    if (usesFM || isMod) {
+      lsa=0;
+      lea=(unsigned int)SCSP_WAVE_LEN;
+      lpctl=1;
+    }
   }
   if (lea>0xFFFF) lea=0xFFFF;
   if (lsa>=lea) lsa=0;

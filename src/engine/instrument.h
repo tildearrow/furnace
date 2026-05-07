@@ -851,6 +851,11 @@ struct DivInstrumentSCSP {
     unsigned char waveform;
     unsigned short loopStart, loopEnd;
     unsigned char lpctlOp;
+    // sampleId >= 0 selects a user sample as the op's waveform source
+    // (the SCSP doesn't distinguish FM/PCM at the slot level — any RAM
+    // contents can drive a slot, and any slot can be modulated by another).
+    // -1 falls back to the built-in indexed by `waveform`.
+    signed short sampleId;
     Op():
       freqRatio(256),
       freqFixed(0),
@@ -863,7 +868,8 @@ struct DivInstrumentSCSP {
       waveform(0),
       loopStart(0),
       loopEnd(1023),
-      lpctlOp(1) {}
+      lpctlOp(1),
+      sampleId(-1) {}
     bool operator==(const Op& other);
     bool operator!=(const Op& other) {
       return !(*this==other);

@@ -781,7 +781,8 @@ bool DivInstrumentSCSP::Op::operator==(const DivInstrumentSCSP::Op& other) {
     _C(isCarrier) &&
     _C(waveform) &&
     _C(loopStart) && _C(loopEnd) &&
-    _C(lpctlOp)
+    _C(lpctlOp) &&
+    _C(sampleId)
   );
 }
 
@@ -1792,6 +1793,7 @@ void DivInstrument::writeFeatureSC(SafeWriter* w) {
     w->writeS(op.loopStart);
     w->writeS(op.loopEnd);
     w->writeC(op.lpctlOp);
+    w->writeS((unsigned short)op.sampleId);
   }
 
   FEATURE_END;
@@ -3325,6 +3327,14 @@ void DivInstrument::readFeatureSC(SafeReader& reader, short version) {
     op.loopStart=reader.readS();
     op.loopEnd=reader.readS();
     op.lpctlOp=reader.readC();
+  }
+
+  // Optional per-op sampleId trailer. Pre-extension SC blocks don't have
+  // it; ops keep sampleId=-1 (built-in waveform) from the constructor.
+  if (reader.tell()+12<=endOfFeat) {
+    for (int i=0; i<6; i++) {
+      scsp.ops[i].sampleId=(signed short)reader.readS();
+    }
   }
 
   READ_FEAT_END;

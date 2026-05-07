@@ -8111,17 +8111,50 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
                     ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
 
-                    // Carrier / Waveform
+                    // Carrier / Source
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     if (ImGui::Checkbox(_("Carrier"),&op.isCarrier)) MARK_MODIFIED;
                     ImGui::TableNextColumn();
-                    int waveIdx=op.waveform;
-                    if (waveIdx<0 || waveIdx>9) waveIdx=0;
-                    if (ImGui::Combo(_("Waveform"),&waveIdx,scspWaveNames,10)) {
-                      op.waveform=(unsigned char)waveIdx;
+                    bool useSample=(op.sampleId>=0);
+                    if (ImGui::Checkbox(_("Use sample"),&useSample)) {
+                      if (useSample) {
+                        // Default to sample 0 if any exist; otherwise stay built-in.
+                        op.sampleId=(e->song.sampleLen>0)?0:-1;
+                      } else {
+                        op.sampleId=-1;
+                      }
                       MARK_MODIFIED;
                     }
+                    // Waveform / sample picker
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    if (op.sampleId<0) {
+                      int waveIdx=op.waveform;
+                      if (waveIdx<0 || waveIdx>9) waveIdx=0;
+                      if (ImGui::Combo(_("Waveform"),&waveIdx,scspWaveNames,10)) {
+                        op.waveform=(unsigned char)waveIdx;
+                        MARK_MODIFIED;
+                      }
+                    } else {
+                      const char* curName=(op.sampleId<e->song.sampleLen)?
+                                          e->song.sample[op.sampleId]->name.c_str():
+                                          "<invalid>";
+                      if (ImGui::BeginCombo(_("Sample"),curName)) {
+                        for (int si=0; si<e->song.sampleLen; si++) {
+                          char tmp[256];
+                          snprintf(tmp,sizeof(tmp),"%d: %s##scsp_op_sample_%d",
+                                   si,e->song.sample[si]->name.c_str(),si);
+                          if (ImGui::Selectable(tmp,si==op.sampleId)) {
+                            op.sampleId=(signed short)si;
+                            MARK_MODIFIED;
+                          }
+                        }
+                        ImGui::EndCombo();
+                      }
+                    }
+                    ImGui::TableNextColumn();
+                    // (column 2 left empty in this row to keep two-column layout)
 
                     // Frequency: ratio (Q8.8) or fixed Hz
                     ImGui::TableNextRow();
