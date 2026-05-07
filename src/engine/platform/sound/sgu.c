@@ -1458,6 +1458,10 @@ static_assert(SGU_REGS_PER_CH == (SGU_OP_PER_CH * SGU_OP_REGS + SGU_CH_REGS), "S
 
 int32_t SGU_GetSample(struct SGU *sgu, uint8_t ch)
 {
-    // Return the post-processed mono sample (after volume/filter, before pan)
-    return sgu->post[ch];
+    // Return the post-pan stereo pair downmixed to mono, clamped to int16 range,
+    // honoring sgu->muted[ch].
+    int64_t ret = ((int64_t)sgu->outL[ch] + (int64_t)sgu->outR[ch]) >> 1;
+    if (ret < INT16_MIN) ret = INT16_MIN;
+    if (ret > INT16_MAX) ret = INT16_MAX;
+    return (int32_t)ret;
 }
