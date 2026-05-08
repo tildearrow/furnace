@@ -3309,6 +3309,10 @@ void DivInstrument::readFeatureSC(SafeReader& reader, short version) {
   scsp.dipan=reader.readC();
 
   scsp.opCount=reader.readC();
+  // Each op's payload is followed (since the per-op-sample extension) by
+  // a trailing sampleId short. Detect using the remaining feature length:
+  // 22 bytes/op × 6 = 132 → has sampleId; 120 = old layout.
+  bool hasOpSampleId=((endOfFeat-reader.tell())>=132);
   for (int i=0; i<6; i++) {
     DivInstrumentSCSP::Op& op=scsp.ops[i];
     op.freqRatio=reader.readS();
@@ -3327,13 +3331,8 @@ void DivInstrument::readFeatureSC(SafeReader& reader, short version) {
     op.loopStart=reader.readS();
     op.loopEnd=reader.readS();
     op.lpctlOp=reader.readC();
-  }
-
-  // Optional per-op sampleId trailer. Pre-extension SC blocks don't have
-  // it; ops keep sampleId=-1 (built-in waveform) from the constructor.
-  if (reader.tell()+12<=endOfFeat) {
-    for (int i=0; i<6; i++) {
-      scsp.ops[i].sampleId=(signed short)reader.readS();
+    if (hasOpSampleId) {
+      op.sampleId=(signed short)reader.readS();
     }
   }
 

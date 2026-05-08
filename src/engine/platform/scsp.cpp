@@ -367,7 +367,15 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
   if (useSample) {
     DivSample* s=parent->song.sample[op.sampleId];
     sa=USER_SAMPLE_BASE+sampleOff[op.sampleId];
-    if (s->isLoopable()) {
+    // sampleStored may be smaller than s->samples if SCSP RAM ran out
+    // and renderSamples truncated the upload. Use the stored count so
+    // the slot doesn't read past the last uploaded frame into another
+    // sample's bytes (or zeroed RAM).
+    unsigned int storedFrames=sampleStored[op.sampleId];
+    if (storedFrames<1) storedFrames=1;
+    bool needsLoop=(!op.isCarrier) || op.feedback>0 ||
+                   (op.modSource>=0 && op.mdl>=5);
+    if (s->isLoopable() && (unsigned int)s->loopEnd<=storedFrames) {
       lsa=(unsigned int)s->loopStart;
       lea=(unsigned int)s->loopEnd;
       switch (s->loopMode) {
@@ -376,9 +384,16 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
         case DIV_SAMPLE_LOOP_PINGPONG: lpctl=3; break;
         default: lpctl=1; break;
       }
+    } else if (needsLoop) {
+      // Modulator/feedback ops MUST keep producing output continuously,
+      // even if the user picked a non-looping sample — otherwise the
+      // slot reaches end-of-sample and stops, killing the FM modulation.
+      lsa=0;
+      lea=storedFrames;
+      lpctl=1;
     } else {
       lsa=0;
-      lea=(unsigned int)s->samples;
+      lea=storedFrames;
       lpctl=0;
     }
   } else {
@@ -1119,6 +1134,7 @@ void DivPlatformSCSP::renderSamples(int sysID) {
   if (sampleMem==NULL) return;
   memset(sampleMem,0,RAM_SIZE);
   memset(sampleOff,0,65536*sizeof(unsigned int));
+  memset(sampleStored,0,65536*sizeof(unsigned int));
   memset(sampleLoaded,0,65536*sizeof(bool));
   sampleMemLen=USER_SAMPLE_BASE;
 
@@ -1137,14 +1153,26 @@ void DivPlatformSCSP::renderSamples(int sysID) {
     int sampleLength=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
     int byteLength=sampleLength*2;
     if (byteLength<2) continue;
-    if (memPos+byteLength>RAM_SIZE) {
-      logW("out of SCSP sound RAM for sample %d!",i);
-      break;
-    }
     short* src=s->data16;
     if (src==NULL) continue;
+    int avail=(int)RAM_SIZE-(int)memPos;
+    if (avail<2) {
+      logW("SCSP RAM full, sample %d (%s) skipped",
+           i,s->name.c_str());
+      continue;
+    }
+    if (byteLength>avail) {
+      // Truncate to fit. The Saturn has the same 512KB limit on real
+      // hardware, so a sample too large for SCSP RAM was never going
+      // to play back in full anyway. Loud warning so the user knows.
+      logW("SCSP RAM nearly full: truncating sample %d (%s) from %d to %d frames",
+           i,s->name.c_str(),sampleLength,(avail&~1)/2);
+      byteLength=avail&~1;  // even byte count
+      sampleLength=byteLength/2;
+    }
     memcpy(sampleMem+memPos,src,byteLength);
     sampleOff[i]=(unsigned int)(memPos-USER_SAMPLE_BASE);
+    sampleStored[i]=(unsigned int)sampleLength;
     sampleLoaded[i]=true;
     memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+byteLength));
     memPos+=byteLength;
@@ -1177,6 +1205,8 @@ int DivPlatformSCSP::init(DivEngine* p, int channels, int sugRate, const DivConf
   memset(sampleMem,0,RAM_SIZE);
   sampleOff=new unsigned int[65536];
   memset(sampleOff,0,65536*sizeof(unsigned int));
+  sampleStored=new unsigned int[65536];
+  memset(sampleStored,0,65536*sizeof(unsigned int));
   sampleLoaded=new bool[65536];
   memset(sampleLoaded,0,65536*sizeof(bool));
 
@@ -1191,9 +1221,11 @@ void DivPlatformSCSP::quit() {
   }
   delete[] sampleMem;
   delete[] sampleOff;
+  delete[] sampleStored;
   delete[] sampleLoaded;
   sampleMem=NULL;
   sampleOff=NULL;
+  sampleStored=NULL;
   sampleLoaded=NULL;
 }
 

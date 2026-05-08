@@ -77,6 +77,7 @@ class DivPlatformSCSP: public DivDispatch {
     int  findLruVoice();
 
     unsigned int* sampleOff;
+    unsigned int* sampleStored;  // frames actually uploaded (≤ sample->samples; clipped to RAM)
     bool* sampleLoaded;
     unsigned char* sampleMem;
     size_t sampleMemLen;
