@@ -25,6 +25,18 @@ set(WITH_OGG_DEFAULT ON)
 set(WITH_MPEG_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
+# SCSP emulator backend selection.
+#   aosdk - vendored aosdk SCSP (extern/scsp/), pre-2016 MAME license, NON-COMMERCIAL.
+#           Default while the relicense work is in progress.
+#   mame  - extracted modern MAME SCSP (extern/scsp_mame/), BSD-3-Clause, GPL-compatible.
+#           In-progress freestanding extraction; not yet buildable.
+set(SCSP_BACKEND "aosdk" CACHE STRING "SCSP emulator backend: aosdk or mame")
+set_property(CACHE SCSP_BACKEND PROPERTY STRINGS aosdk mame)
+if (NOT SCSP_BACKEND STREQUAL "aosdk" AND NOT SCSP_BACKEND STREQUAL "mame")
+  message(FATAL_ERROR "SCSP_BACKEND must be 'aosdk' or 'mame' (got '${SCSP_BACKEND}')")
+endif()
+message(STATUS "SCSP backend: ${SCSP_BACKEND}")
+
 include(CheckIncludeFile)
 include(TestBigEndian)
 
@@ -593,10 +605,7 @@ extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/x1_010/x1_010.cpp
 
-extern/scsp/scsp.c
-extern/scsp/scspdsp.c
 extern/scsp/scsp_waveforms.c
-extern/scsp/scsp_bridge.c
 
 extern/adpcm/bs_codec.c
 extern/adpcm/oki_codec.c
@@ -1214,6 +1223,20 @@ if (WITH_LOCALE)
       message(STATUS "Using libintl (system)")
     endif()
   endif()
+endif()
+
+if (SCSP_BACKEND STREQUAL "aosdk")
+  list(APPEND ENGINE_SOURCES
+    extern/scsp/scsp.c
+    extern/scsp/scspdsp.c
+    extern/scsp/scsp_bridge.c
+  )
+elseif (SCSP_BACKEND STREQUAL "mame")
+  list(APPEND ENGINE_SOURCES
+    extern/scsp_mame/scsp.cpp
+    extern/scsp_mame/scspdsp.cpp
+    extern/scsp_mame/scsp_bridge.cpp
+  )
 endif()
 
 set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
