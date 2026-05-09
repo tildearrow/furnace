@@ -43,10 +43,21 @@ Both backends implement the C API in `extern/scsp/scsp_bridge.h`, so
       `RAMMask`; `BIT()` and `util::sext()` reimplemented locally; MAME
       integer aliases swapped for `<cstdint>` types; `std::clamp` (C++17)
       replaced with a local helper since Furnace builds as C++14.
-- [ ] Phase 3 — strip MAME framework from `scsp.{h,cpp}` (drop `device_t`
-      bases, sound_stream, emu_timer, save_item, devcb callbacks; expose
-      a freestanding `scsp_device` class with a `render(int16_t*, int)`
-      method and host-supplied RAM pointer).
+- [x] Phase 3 — `scsp.{h,cpp}` rewritten as a freestanding class. Drops
+      `device_t`/`device_sound_interface`/`device_rom_interface` bases;
+      replaces `sound_stream` with `render(int16_t*, int n_frames)`;
+      replaces `emu_timer` with sample-counted countdown timers ticked in
+      `render()`; replaces `devcb_write*` with plain function-pointer
+      callbacks (`set_irq_cb`, `set_main_irq_cb`); replaces
+      `device_rom_interface::read_byte/read_word` with inline BE
+      accessors off the host-supplied `m_RAM[]`; replaces
+      `machine().rand()` with a local LCG; drops all ~70 `save_item()`
+      calls and the `device_post_load`/`device_clock_changed`/
+      `rom_bank_pre_change`/`sound_stream_update` overrides;
+      `set_output_gain()` becomes a per-channel `m_output_gain[]`
+      multiplier applied in `render()`. MAME integer aliases are kept
+      via local `using` declarations so the algorithmic code matches
+      upstream line-for-line.
 - [ ] Phase 4 — implement `scsp_bridge.cpp` for this backend, wrapping a
       single static `scsp_device` instance.
 - [ ] Phase 5 — build, smoke test, A/B against aosdk.
