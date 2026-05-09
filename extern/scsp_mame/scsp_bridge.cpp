@@ -28,6 +28,15 @@ extern "C" {
 static scsp_device SCSP;
 static uint8_t sat_ram[SCSP_RAM_SIZE];
 
+// Tracks whether dsp_setup_ringbuf() has placed a ring buffer in sat_ram.
+// scsp_dsp_clear() consults this before zeroing memory — the chip's reset
+// state has RBL=8192/RBP=0 (real hardware behavior), but that doesn't mean
+// the host has actually allocated a ring buffer there. Without this guard,
+// scsp_dsp_clear() would wipe the first 16 KB of sound RAM, which on
+// Furnace's wrapper holds the built-in FM waveforms loaded by
+// scsp_load_builtins() right before reloadDSP() runs.
+static bool dsp_ringbuf_configured = false;
+
 #define MAX_RENDER_SAMPLES 8192
 static int16_t render_buf[MAX_RENDER_SAMPLES * 2]; // stereo interleaved
 
@@ -58,6 +67,7 @@ extern "C" void scsp_init(void)
 	SCSP.~scsp_device();
 	new (&SCSP) scsp_device();
 	memset(sat_ram, 0, sizeof(sat_ram));
+	dsp_ringbuf_configured = false;
 	SCSP.init(sat_ram, sizeof(sat_ram));
 	SCSP.write(0, 0x0000, 0xFFFF);
 }
@@ -139,6 +149,7 @@ static void dsp_setup_ringbuf(int rbl)
 	SCSP.m_DSP.RBL = rb_words;
 
 	memset(sat_ram + rb_byte_offset, 0, rb_words * 2);
+	dsp_ringbuf_configured = true;
 }
 
 static void dsp_finalize_program(void)
@@ -225,10 +236,16 @@ extern "C" void scsp_dsp_clear(void)
 	memset(SCSP.m_DSP.EFREG, 0, sizeof(SCSP.m_DSP.EFREG));
 	SCSP.m_DSP.DEC = 0;
 
-	uint32_t rb_bytes  = SCSP.m_DSP.RBL * 2;
-	uint32_t rb_offset = SCSP.m_DSP.RBP * 4096 * 2;
-	if (rb_offset + rb_bytes <= sizeof(sat_ram))
-		memset(sat_ram + rb_offset, 0, rb_bytes);
+	// Only zero the ring buffer if a previous DSP program actually placed
+	// one (via dsp_setup_ringbuf). Otherwise RBL/RBP reflect the chip's
+	// reset state (RBL=8192, RBP=0), which would alias the built-in FM
+	// waveform region at the start of sound RAM and silently zero it.
+	if (dsp_ringbuf_configured) {
+		uint32_t rb_bytes  = SCSP.m_DSP.RBL * 2;
+		uint32_t rb_offset = SCSP.m_DSP.RBP * 4096 * 2;
+		if (rb_offset + rb_bytes <= sizeof(sat_ram))
+			memset(sat_ram + rb_offset, 0, rb_bytes);
+	}
 }
 
 

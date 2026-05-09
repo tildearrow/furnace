@@ -102,15 +102,13 @@ static int32_t UNPACK(uint16_t val)
 void SCSPDSP::Init()
 {
 	std::memset(this, 0, sizeof(*this));
-	// NOTE: upstream MAME has `RBL = (8*1024); // Initial RBL is 0` — the
-	// comment and code disagree. aosdk leaves RBL=0 (it never calls
-	// SCSPDSP_Init from SCSP_Init); the host programs RBL via register
-	// 0x2/0x3. We match aosdk's behavior because the bridge's
-	// scsp_dsp_clear() zeros `RBL*2` bytes of sound RAM starting at
-	// `RBP*4096*2`. With RBL=8192 and RBP=0 (the unconfigured state),
-	// scsp_dsp_clear would wipe the first 16 KB of sound RAM — which is
-	// exactly where Furnace's wrapper places its built-in FM waveforms.
-	// Leaving RBL=0 makes the unconfigured-clear a safe no-op.
+	// Reset value of common register 0x2 is 0, which through UpdateReg()
+	// resolves to RBL=8192 words at RBP=0. We mirror that here so the chip
+	// matches real-hardware reset state. The "no ring buffer placed yet"
+	// concern that previously motivated leaving RBL=0 is handled in the
+	// bridge (scsp_dsp_clear gates its memset on whether dsp_setup_ringbuf
+	// has actually run).
+	RBL = (8 * 1024);
 	Stopped = true;
 }
 
