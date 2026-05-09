@@ -64,6 +64,7 @@ for other operating systems, you may [build the source](#developer-info).
     - Ensoniq ES5506
     - Namco C140
     - Namco C219
+    - Yamaha YMF292 (SCSP) used in Sega Saturn — PCM and FM modes, with on-chip DSP programming
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
