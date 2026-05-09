@@ -38,8 +38,11 @@ Both backends implement the C API in `extern/scsp/scsp_bridge.h`, so
 ## Extraction status
 
 - [x] Phase 1 — sources vendored unmodified, build-flag scaffolding added.
-- [ ] Phase 2 — strip MAME framework from `scspdsp.cpp` (drop `emu.h`,
-      replace `address_space *space` with `uint8_t *RAM`).
+- [x] Phase 2 — `scspdsp.{h,cpp}` stripped of MAME framework. `emu.h` gone;
+      `address_space *space` replaced with host-supplied `uint8_t *RAM` +
+      `RAMMask`; `BIT()` and `util::sext()` reimplemented locally; MAME
+      integer aliases swapped for `<cstdint>` types; `std::clamp` (C++17)
+      replaced with a local helper since Furnace builds as C++14.
 - [ ] Phase 3 — strip MAME framework from `scsp.{h,cpp}` (drop `device_t`
       bases, sound_stream, emu_timer, save_item, devcb callbacks; expose
       a freestanding `scsp_device` class with a `render(int16_t*, int)`
