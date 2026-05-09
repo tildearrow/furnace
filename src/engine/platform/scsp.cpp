@@ -777,12 +777,36 @@ DivDispatchOscBuffer* DivPlatformSCSP::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformSCSP::refreshRegPool() {
+  // Big-endian halfword pack helper — matches Saturn-driver register
+  // dumps and tonview's display order.
+  auto putBE = [&](int off, unsigned short v) {
+    regPool[off  ] = (unsigned char)((v >> 8) & 0xFF);
+    regPool[off+1] = (unsigned char)( v       & 0xFF);
+  };
+  // Slot register space: 32 slots × 16 regs.
+  for (int s=0; s<32; s++) {
+    for (int r=0; r<16; r++) {
+      putBE(s*32 + r*2, scsp_read_slot_reg(s,r));
+    }
+  }
+  // Common register space (24 words → 48 bytes).
+  for (int r=0; r<24; r++) {
+    putBE(0x400 + r*2, scsp_read_common_reg(r));
+  }
+  // DSP MPRO / COEF / MADRS.
+  for (int i=0; i<512; i++) putBE(0x430 + i*2, scsp_dsp_get_mpro(i));
+  for (int i=0; i<64;  i++) putBE(0x830 + i*2, (unsigned short)scsp_dsp_get_coef(i));
+  for (int i=0; i<32;  i++) putBE(0x8B0 + i*2, scsp_dsp_get_madrs(i));
+}
+
 unsigned char* DivPlatformSCSP::getRegisterPool() {
+  refreshRegPool();
   return regPool;
 }
 
 int DivPlatformSCSP::getRegisterPoolSize() {
-  return 1024+48;
+  return REG_POOL_SIZE;
 }
 
 int DivPlatformSCSP::dispatch(DivCommand c) {

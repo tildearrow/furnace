@@ -92,7 +92,16 @@ class DivPlatformSCSP: public DivDispatch {
     // populated during reset() by scsp_load_builtins().
     int builtinOffsets[10];
 
-    unsigned char regPool[1024+48];
+    // regPool layout (snapshot, refreshed lazily on getRegisterPool):
+    //   0x000..0x3FF (1024)   32 slots × 16 regs × 2 bytes (BE)
+    //   0x400..0x42F (  48)   24 common regs × 2 bytes (BE)
+    //   0x430..0x82F (1024)   DSP MPRO: 128 steps × 4 words × 2 bytes (BE)
+    //   0x830..0x8AF ( 128)   DSP COEF: 64 × 2 bytes (BE)
+    //   0x8B0..0x8EF (  64)   DSP MADRS: 32 × 2 bytes (BE)
+    // Total: 0x8F0 = 2288 bytes. Padded to 0x900 for alignment.
+    static const int REG_POOL_SIZE = 0x900;
+    unsigned char regPool[REG_POOL_SIZE];
+    void refreshRegPool();
 
     // Last DSP-assembly result. Populated by reset() so the GUI editor can
     // surface errors/warnings without re-running the assembler. `dspStepsLoaded`

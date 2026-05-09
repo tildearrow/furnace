@@ -70,6 +70,12 @@ void scsp_slot_set_effect_send(int slot, int isel, int imxl);
 void scsp_slot_set_effect_output(int slot, int efsdl, int efpan);
 void scsp_slot_set_direct_output(int slot, int disdl, int dipan);
 
+/* Read accessors for the register debugger. Read-only snapshots of the
+ * current chip state — no side effects. Out-of-range indices return 0. */
+uint16_t scsp_read_slot_reg(int slot, int reg);    /* slot 0..31, reg 0..15 */
+uint16_t scsp_read_common_reg(int reg);             /* reg 0..23 (word index) */
+uint16_t scsp_dsp_get_mpro(int index);              /* index 0..511 */
+
 #ifdef __cplusplus
 }
 #endif

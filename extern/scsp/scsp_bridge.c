@@ -410,6 +410,22 @@ uint16_t scsp_dsp_get_madrs(int index) {
     return SCSP.DSP.MADRS[index];
 }
 
+uint16_t scsp_read_slot_reg(int slot, int reg) {
+    if (slot < 0 || slot > 31) return 0;
+    if (reg < 0 || reg > 15) return 0;
+    return SCSP.Slots[slot].udata.data[reg];
+}
+
+uint16_t scsp_read_common_reg(int reg) {
+    if (reg < 0 || reg > 23) return 0;
+    return SCSP.udata.data[reg];
+}
+
+uint16_t scsp_dsp_get_mpro(int index) {
+    if (index < 0 || index > 511) return 0;
+    return SCSP.DSP.MPRO[index];
+}
+
 /*
  * Write DISDL/DIPAN (direct output level and pan) to a slot WITHOUT
  * touching EFSDL/EFPAN in the lower byte of register 0xB.
