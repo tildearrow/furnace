@@ -58,9 +58,14 @@ Both backends implement the C API in `extern/scsp/scsp_bridge.h`, so
       multiplier applied in `render()`. MAME integer aliases are kept
       via local `using` declarations so the algorithmic code matches
       upstream line-for-line.
-- [ ] Phase 4 — implement `scsp_bridge.cpp` for this backend, wrapping a
-      single static `scsp_device` instance.
-- [ ] Phase 5 — build, smoke test, A/B against aosdk.
+- [x] Phase 4 — `scsp_bridge.cpp` implements the same C API as the
+      aosdk bridge on top of a single static `scsp_device` instance plus
+      a host-owned `sat_ram[SCSP_RAM_SIZE]`. DSP poke functions write
+      directly to `m_DSP.{COEF,MADRS,MPRO,RBL,RBP}` (same layout as the
+      aosdk DSP struct, so the byte-order/field-mapping logic from the
+      aosdk bridge transfers verbatim). Furnace links cleanly with
+      `cmake -DSCSP_BACKEND=mame ..`.
+- [ ] Phase 5 — runtime smoke test, A/B against aosdk.
 - [ ] Phase 6 — once parity is verified, delete `extern/scsp/` and flip the
       default to `mame`.
 
