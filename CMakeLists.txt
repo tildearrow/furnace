@@ -800,6 +800,7 @@ src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
 src/engine/fileOpsTON.cpp
+src/engine/scspdspasm.cpp
 src/engine/filePlayer.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
@@ -1324,6 +1325,14 @@ elseif(WIN32 AND NOT CONSOLE_SUBSYSTEM)
 else()
   add_executable(${FURNACE} ${USED_SOURCES})
 endif()
+
+# Standalone unit-test runner for the SCSP DSP assembler. Pure-function
+# port; no DivEngine dep, so it links against just the assembler TU.
+add_executable(scspdspasm_test
+  tools/scspdspasm_test.cpp
+  src/engine/scspdspasm.cpp
+)
+target_compile_features(scspdspasm_test PRIVATE cxx_std_17)
 
 if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
   set_target_properties(${FURNACE} PROPERTIES
