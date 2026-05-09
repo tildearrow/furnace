@@ -41,7 +41,10 @@
 
 #include "engine.h"
 #include "instrument.h"
+#include "safeReader.h"
 #include "safeWriter.h"
+#include "sample.h"
+#include <fmt/printf.h>
 
 extern "C" {
 #include "../../extern/scsp/scsp_waveforms.h"
@@ -51,8 +54,43 @@ extern "C" {
 #include <vector>
 #include <map>
 #include <stdint.h>
+#include <string.h>
 
 #define TON_WAVE_LEN 1024
+
+// Convert a packed TL byte to its linear gain (matches scsp_voice.c).
+static double tonTlToLinear(unsigned char tl) {
+  double db=0.0;
+  if (tl & 1)   db -= 0.4;
+  if (tl & 2)   db -= 0.8;
+  if (tl & 4)   db -= 1.5;
+  if (tl & 8)   db -= 3.0;
+  if (tl & 16)  db -= 6.0;
+  if (tl & 32)  db -= 12.0;
+  if (tl & 64)  db -= 24.0;
+  if (tl & 128) db -= 48.0;
+  return pow(10.0, db/20.0);
+}
+
+// Mirrors scsp.cpp:computeFeedbackMdl / scsp_engine.js:computeFeedbackMdl.
+static unsigned char tonComputeFeedbackMdl(unsigned char tl, unsigned char feedback) {
+  if (feedback==0) return 0;
+  double tlLin=tonTlToLinear(tl);
+  double ringPeak=32767.0*4.0*tlLin*0.5;
+  if (ringPeak<1.0) return 0;
+  double targetBeta=((double)feedback/127.0)*M_PI;
+  double needed=targetBeta*1024.0/(ringPeak*2.0*M_PI);
+  if (needed<1e-10) needed=1e-10;
+  int mdl=(int)floor(16.0+log2(needed)+0.5);
+  if (mdl<0) mdl=0;
+  if (mdl>15) mdl=15;
+  double maxSafe=1024.0/(ringPeak*2.0);
+  if (maxSafe<1e-10) maxSafe=1e-10;
+  int maxMdl=(int)floor(15.0+log2(maxSafe));
+  if (mdl>maxMdl) mdl=maxMdl;
+  if (mdl<0) mdl=0;
+  return (unsigned char)(mdl&0xF);
+}
 
 // Pack a Furnace SCSP op + waveform into a 32-byte TON layer at `out`.
 // `saOffset` is the byte offset of this op's waveform within the TON file's
@@ -96,8 +134,15 @@ static void buildLayer(unsigned char* out,
   out[0x0B]=((op.d1r&0x3)<<6)|(op.ar&0x1F);
 
   // bytes 0x0C-0x0D: LPSLNK | KRS[13:10] | DL[9:5] | RR[4:0]
-  // KRS=0 (Saturn driver default), matches saturn_kit/bebhionn.
-  out[0x0C]=((op.dl>>3)&0x3);
+  // KRS=0xF disables key-rate scaling so envelope rates depend only on
+  // R, matching scsp_engine.js:programSlot and scsp.cpp:writeSlotEnvelope.
+  // The reference TON exports (ton_io.js, saturn_kit.py) both write KRS=0
+  // by default — but that's a known bug there: when re-imported through
+  // programSlotRaw the envelopes time differently than the same patch
+  // played through programSlot, which makes round-tripped TONs sound
+  // wrong. We diverge from the buggy reference deliberately so our TONs
+  // play back correctly in bebhionn.
+  out[0x0C]=(0xF<<2)|((op.dl>>3)&0x3);
   out[0x0D]=((op.dl&0x7)<<5)|(op.rr&0x1F);
 
   // byte 0x0F: TL — derived from level the same way programSlotFM does
@@ -107,9 +152,38 @@ static void buildLayer(unsigned char* out,
   if (tlInt>255) tlInt=255;
   out[0x0F]=(unsigned char)tlInt;
 
-  // byte 0x10: MDL high nibble; MDXSL/MDYSL stay 0 — the Saturn driver
-  // computes (modSlot - slot) at runtime from the FM layer link below.
-  out[0x10]=(op.mdl&0xF)<<4;
+  // bytes 0x10-0x11: MDL[15:12] | MDXSL[11:6] | MDYSL[5:0].
+  // The driver-side remapD7Raw recomputes MDXSL/MDYSL based on the FM-layer
+  // link in byte 0x1B (so for FM cascades the values we put here are
+  // overwritten). For self-feedback ops (no FM link) the driver keeps MDL
+  // as-is and applies its own −32 distance, so we must encode an effective
+  // MDL here — `op.mdl` is 0 in feedback-only presets, so we derive it from
+  // `op.feedback` the same way scsp.cpp:computeD7FromOp does at runtime.
+  // We also fill MDXSL/MDYSL with sensible defaults (mod-source distance
+  // for FM, 32 for feedback) so importers that don't recompute see the
+  // right shape.
+  unsigned int regMdl=0, mdxsl=0, mdysl=0;
+  if (op.modSource>=0 && op.mdl>0) {
+    regMdl=(unsigned int)op.mdl & 0xF;
+    int dist=(int)op.modSource - 0;
+    unsigned int distMasked=(unsigned int)dist & 63u;
+    mdxsl=distMasked;
+    mdysl=distMasked;
+  }
+  if (op.feedback>0) {
+    unsigned int fbDist=(unsigned int)(-32) & 63u;
+    unsigned char fbMdl=tonComputeFeedbackMdl((unsigned char)tlInt,op.feedback);
+    if (regMdl>0) {
+      mdysl=fbDist;
+      if ((unsigned int)fbMdl>regMdl) regMdl=(unsigned int)fbMdl;
+    } else {
+      regMdl=(unsigned int)fbMdl;
+      mdxsl=fbDist;
+      mdysl=fbDist;
+    }
+  }
+  out[0x10]=(unsigned char)(((regMdl&0xF)<<4) | ((mdxsl>>2)&0xF));
+  out[0x11]=(unsigned char)(((mdxsl&0x3)<<6) | (mdysl&0x3F));
 
   // byte 0x17: ISEL=0, IMXL=7 (DSP effect input enabled at full mix).
   out[0x17]=7;
@@ -307,4 +381,242 @@ SafeWriter* DivEngine::saveSCSPTON() {
   }
   if (!pcmData.empty()) w->write(pcmData.data(),pcmData.size());
   return w;
+}
+
+// ─── TON import ───────────────────────────────────────────────────────────────
+//
+// Inverse of saveSCSPTON. Each voice → one DivInstrumentSCSP (FM mode); each
+// 32-byte layer → one Op. Built-in waveform PCM is detected by content match
+// against `scsp_gen_waveform`, and any non-matching PCM is added as a new
+// DivSample so the op can reference it via `sampleId`. Per the plan we go
+// straight to high-level fields — no rawRegs passthrough.
+
+#define TON_BUILTIN_MATCH_TOL 64  // max abs sample diff for builtin recognition
+
+// Inverse of tonComputeFeedbackMdl: given the 4-bit MDL nibble we read from
+// the file plus the carrier TL, recover the original feedback level. Lossy
+// because MDL is quantized to 4 bits and can be capped by the maxMdl clamp,
+// but recovers the rough magnitude (e.g. distinguishes a low kick feedback
+// from an industrial-hit max feedback) much better than a fixed 0.3 default.
+static unsigned char tonRecoverFeedback(unsigned char tl, unsigned char mdl) {
+  if (mdl==0) return 0;
+  double tlLin=tonTlToLinear(tl);
+  double ringPeak=32767.0*4.0*tlLin*0.5;
+  if (ringPeak<1.0) return 0;
+  double needed=pow(2.0,(double)mdl-16.0);
+  double targetBeta=needed*ringPeak*2.0*M_PI/1024.0;
+  double feedback=(targetBeta/M_PI)*127.0;
+  if (feedback<0) feedback=0;
+  if (feedback>127) feedback=127;
+  return (unsigned char)floor(feedback+0.5);
+}
+
+static int tonRecognizeBuiltin(const short* pcm, unsigned int n) {
+  if (n!=TON_WAVE_LEN) return -1;
+  float fbuf[TON_WAVE_LEN];
+  short ref[TON_WAVE_LEN];
+  for (int w=0; w<SCSP_NUM_BUILTINS; w++) {
+    scsp_gen_waveform(w,fbuf,TON_WAVE_LEN);
+    for (int s=0; s<TON_WAVE_LEN; s++) {
+      double v=fbuf[s]*0.9*32767.0;
+      if (v<-32768.0) v=-32768.0;
+      if (v>32767.0) v=32767.0;
+      ref[s]=(short)floor(v+0.5);
+    }
+    int worst=0;
+    for (int s=0; s<TON_WAVE_LEN; s++) {
+      int d=(int)pcm[s]-(int)ref[s];
+      if (d<0) d=-d;
+      if (d>worst) worst=d;
+      if (worst>TON_BUILTIN_MATCH_TOL) break;
+    }
+    if (worst<=TON_BUILTIN_MATCH_TOL) return w;
+  }
+  return -1;
+}
+
+void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
+  size_t fileLen=reader.size();
+  if (fileLen<10) {
+    lastError=_("TON file too small");
+    return;
+  }
+  // SafeReader doesn't expose its buffer; copy the whole file into a local
+  // vector so we can do byte-offset random access (TON's natural layout).
+  reader.seek(0,SEEK_SET);
+  std::vector<unsigned char> buf(fileLen);
+  reader.read(buf.data(),fileLen);
+  const unsigned char* data=buf.data();
+
+  unsigned int mixerOff=((unsigned int)data[0]<<8)|data[1];
+  if (mixerOff<10 || mixerOff>fileLen) {
+    lastError=_("TON header invalid (mixer offset out of range)");
+    return;
+  }
+  unsigned int nVoices=(mixerOff-8)/2;
+  if (nVoices==0 || nVoices>256) {
+    lastError=_("TON file has no voices or too many");
+    return;
+  }
+
+  std::vector<unsigned int> voiceOff(nVoices);
+  for (unsigned int i=0; i<nVoices; i++) {
+    voiceOff[i]=((unsigned int)data[8+i*2]<<8)|data[9+i*2];
+    if (voiceOff[i]+4>fileLen) {
+      lastError=_("TON voice offset out of range");
+      return;
+    }
+  }
+
+  // Cache per-SA imported samples so two ops referencing the same PCM block
+  // share one DivSample (avoids exploding song.sample on TON banks where
+  // every op embeds an identical waveform).
+  std::map<unsigned int,int> saToSampleId;  // SA -> song.sample index, or -1 for builtin
+  std::map<unsigned int,int> saToBuiltin;   // SA -> builtin waveform index
+
+  for (unsigned int vi=0; vi<nVoices; vi++) {
+    unsigned int vo=voiceOff[vi];
+    int nLayers=(int)data[vo+2]+1;
+    if (nLayers<1) nLayers=1;
+    if (nLayers>6) nLayers=6;  // DivInstrumentSCSP::Op[6]
+    if (vo+4+nLayers*0x20>fileLen) {
+      lastError=_("TON layer data out of range");
+      return;
+    }
+
+    DivInstrument* ins=new DivInstrument;
+    ins->type=DIV_INS_YMF292;
+    ins->name=fmt::sprintf("%s:%d",stripPath,vi+1);
+    ins->scsp.mode=DivInstrumentSCSP::SCSP_MODE_FM;
+    ins->scsp.opCount=nLayers;
+
+    for (int li=0; li<nLayers; li++) {
+      const unsigned char* l=data+vo+4+li*0x20;
+      DivInstrumentSCSP::Op& op=ins->scsp.ops[li];
+
+      unsigned int sa=((unsigned int)(l[0x03]&0xF)<<16)|((unsigned int)l[0x04]<<8)|l[0x05];
+      unsigned int lea=((unsigned int)l[0x08]<<8)|l[0x09];
+      unsigned int lsa=((unsigned int)l[0x06]<<8)|l[0x07];
+
+      unsigned char d2r=(l[0x0A]>>3)&0x1F;
+      unsigned char d1r=((l[0x0A]&0x7)<<2)|((l[0x0B]>>6)&0x3);
+      unsigned char ar=l[0x0B]&0x1F;
+      unsigned char dl=((l[0x0C]&0x3)<<3)|((l[0x0D]>>5)&0x7);
+      unsigned char rr=l[0x0D]&0x1F;
+      unsigned char tl=l[0x0F];
+      unsigned char mdl=(l[0x10]>>4)&0xF;
+      unsigned int mdxsl=((unsigned int)(l[0x10]&0xF)<<2)|((l[0x11]>>6)&0x3);
+      unsigned int mdysl=l[0x11]&0x3F;
+      unsigned char disdl=(l[0x18]>>5)&0x7;
+      unsigned char baseNote=l[0x19]&0x7F;
+      unsigned char fmByte=l[0x1B];
+
+      op.ar=ar; op.d1r=d1r; op.d2r=d2r; op.dl=dl; op.rr=rr;
+      op.mdl=mdl;
+      op.isCarrier=(disdl>0);
+
+      // level = round((1 - tl/128) * 127), clamped
+      int levelInt=(int)floor((1.0-(double)tl/128.0)*127.0+0.5);
+      if (levelInt<0) levelInt=0;
+      if (levelInt>127) levelInt=127;
+      op.level=(unsigned char)levelInt;
+
+      // freqRatio (Q8.8): ratio = 2^((69-baseNote)/12)
+      double ratio=pow(2.0,((double)69-(double)baseNote)/12.0);
+      int rq88=(int)floor(ratio*256.0+0.5);
+      if (rq88<1) rq88=1;
+      if (rq88>0xFFFF) rq88=0xFFFF;
+      op.freqRatio=(unsigned short)rq88;
+
+      // mod_source: high bit of byte 0x1B = "is modulated"; low 7 bits = layer.
+      // The layer index is within this voice and matches the Op array index.
+      if (fmByte&0x80) {
+        op.modSource=(signed char)(fmByte&0x7F);
+      } else {
+        op.modSource=-1;
+      }
+
+      // Feedback detection. Three cases (matches scsp.cpp:computeD7FromOp's
+      // packing rules):
+      //   - mdxsl==32 && mdysl==32: pure self-feedback (no FM mod). The MDL
+      //     in the file is exactly what computeFeedbackMdl produced, so we
+      //     can invert it to get the original feedback magnitude.
+      //   - mdxsl!=32 && mdysl==32: FM cascade combined with feedback. The
+      //     stored MDL is `max(modulator_mdl, fbMdl)` so we can't separate
+      //     them — fall back to a moderate default (~0.3, matches bebhionn
+      //     importTon).
+      //   - otherwise: no feedback.
+      if (mdxsl==32 && mdysl==32) {
+        op.feedback=tonRecoverFeedback(tl,mdl);
+      } else if (mdysl==32) {
+        op.feedback=38;
+      } else {
+        op.feedback=0;
+      }
+
+      // Resolve the waveform: try builtin match first, then add a sample.
+      int builtin=-1;
+      int sampleId=-1;
+      auto itB=saToBuiltin.find(sa);
+      auto itS=saToSampleId.find(sa);
+      if (itB!=saToBuiltin.end()) {
+        builtin=itB->second;
+      } else if (itS!=saToSampleId.end()) {
+        sampleId=itS->second;
+      } else {
+        // Verify SA + lea*2 fits in the file
+        unsigned int byteEnd=sa+lea*2;
+        if (lea>0 && byteEnd<=fileLen) {
+          // Read 16-bit BE PCM into a short[] buffer.
+          std::vector<short> pcm(lea);
+          for (unsigned int s=0; s<lea; s++) {
+            int hi=data[sa+s*2];
+            int lo=data[sa+s*2+1];
+            int v=(hi<<8)|lo;
+            if (v>=0x8000) v-=0x10000;
+            pcm[s]=(short)v;
+          }
+          builtin=tonRecognizeBuiltin(pcm.data(),lea);
+          if (builtin>=0) {
+            saToBuiltin[sa]=builtin;
+          } else {
+            DivSample* samp=new DivSample;
+            samp->name=fmt::sprintf("%s_w%04X",stripPath,sa);
+            samp->depth=DIV_SAMPLE_DEPTH_16BIT;
+            samp->init(lea);
+            samp->centerRate=44100;
+            samp->loopStart=(int)lsa;
+            samp->loopEnd=(int)lea;
+            for (unsigned int s=0; s<lea; s++) samp->data16[s]=pcm[s];
+            sampleId=(int)song.sample.size();
+            song.sample.push_back(samp);
+            song.sampleLen=(int)song.sample.size();
+            saToSampleId[sa]=sampleId;
+          }
+        }
+      }
+
+      if (builtin>=0) {
+        op.waveform=(unsigned char)builtin;
+        op.sampleId=-1;
+      } else if (sampleId>=0) {
+        op.sampleId=(signed short)sampleId;
+        op.waveform=0;
+      } else {
+        op.waveform=0;
+        op.sampleId=-1;
+      }
+      op.lpctlOp=1;
+      op.loopStart=(unsigned short)((lsa<=0xFFFF)?lsa:0);
+      op.loopEnd=(unsigned short)((lea<=0xFFFF)?lea:0xFFFF);
+    }
+
+    ret.push_back(ins);
+  }
+
+  // Make sure newly-added samples get rendered into chip RAM the next time
+  // the dispatcher runs.
+  if (!saToSampleId.empty()) {
+    renderSamples();
+  }
 }

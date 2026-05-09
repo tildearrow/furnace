@@ -1992,7 +1992,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
-        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn *.ton",
          _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
@@ -2009,6 +2009,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          _("VOPM preset bank"), "*.opm",
          _("Wohlstand WOPL bank"), "*.wopl",
          _("Wohlstand WOPN bank"), "*.wopn",
+         _("Saturn TON bank"), "*.ton",
          _("all files"), "*"},
         workingDirIns,
         dpiScale,
