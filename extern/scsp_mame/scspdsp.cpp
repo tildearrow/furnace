@@ -32,17 +32,21 @@ template <typename T> constexpr T clamp(T v, T lo, T hi)
 	return (v < lo) ? lo : ((v > hi) ? hi : v);
 }
 
-// SCSP sound RAM is big-endian word-addressed. ADDR here is a byte offset
-// (post-shift in Step()); RAM/Mask are supplied by the host via SCSPDSP.
-inline uint16_t ram_read_word_be(const uint8_t *RAM, uint32_t addr)
+// SCSP sound RAM byte order — see scsp.h for the rationale. We mirror
+// aosdk's host-LE storage convention (LSB at [addr], MSB at [addr+1]) so
+// that DSP MRT/MWT reads/writes line up with samples written via
+// scsp_write_waveform.
+inline uint16_t ram_read_word(const uint8_t *RAM, uint32_t addr)
 {
-	return uint16_t((uint16_t(RAM[addr]) << 8) | RAM[addr + 1]);
+	addr &= ~1u;
+	return uint16_t((uint16_t(RAM[addr + 1]) << 8) | RAM[addr]);
 }
 
-inline void ram_write_word_be(uint8_t *RAM, uint32_t addr, uint16_t val)
+inline void ram_write_word(uint8_t *RAM, uint32_t addr, uint16_t val)
 {
-	RAM[addr]     = uint8_t(val >> 8);
-	RAM[addr + 1] = uint8_t(val & 0xFF);
+	addr &= ~1u;
+	RAM[addr]     = uint8_t(val & 0xFF);
+	RAM[addr + 1] = uint8_t(val >> 8);
 }
 
 uint16_t PACK(int32_t val)
@@ -98,7 +102,15 @@ static int32_t UNPACK(uint16_t val)
 void SCSPDSP::Init()
 {
 	std::memset(this, 0, sizeof(*this));
-	RBL = (8*1024); // Initial RBL is 0
+	// NOTE: upstream MAME has `RBL = (8*1024); // Initial RBL is 0` — the
+	// comment and code disagree. aosdk leaves RBL=0 (it never calls
+	// SCSPDSP_Init from SCSP_Init); the host programs RBL via register
+	// 0x2/0x3. We match aosdk's behavior because the bridge's
+	// scsp_dsp_clear() zeros `RBL*2` bytes of sound RAM starting at
+	// `RBP*4096*2`. With RBL=8192 and RBP=0 (the unconfigured state),
+	// scsp_dsp_clear would wipe the first 16 KB of sound RAM — which is
+	// exactly where Furnace's wrapper places its built-in FM waveforms.
+	// Leaving RBL=0 makes the unconfigured-clear a safe no-op.
 	Stopped = true;
 }
 
@@ -291,16 +303,16 @@ void SCSPDSP::Step()
 			if (MRD && (step & 1)) //memory only allowed on odd? DoA inserts NOPs on even
 			{
 				if (NOFL)
-					MEMVAL = ram_read_word_be(RAM, ADDR) << 8;
+					MEMVAL = ram_read_word(RAM, ADDR) << 8;
 				else
-					MEMVAL = UNPACK(ram_read_word_be(RAM, ADDR));
+					MEMVAL = UNPACK(ram_read_word(RAM, ADDR));
 			}
 			if (MWT && (step & 1))
 			{
 				if (NOFL)
-					ram_write_word_be(RAM, ADDR, uint16_t(SHIFTED >> 8));
+					ram_write_word(RAM, ADDR, uint16_t(SHIFTED >> 8));
 				else
-					ram_write_word_be(RAM, ADDR, PACK(SHIFTED));
+					ram_write_word(RAM, ADDR, PACK(SHIFTED));
 			}
 		}
 

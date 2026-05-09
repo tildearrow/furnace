@@ -236,18 +236,31 @@ private:
 	inline int32_t UpdateSlot(SCSP_SLOT *slot);
 	void DoMasterSamples(int16_t *out, int n_frames);
 
-	// Inline RAM accessors (host-supplied buffer; SCSP RAM is BE word-addressed).
-	inline uint8_t  ram_read_byte(uint32_t addr) const { return m_RAM[addr & m_RAMMask]; }
+	// Inline RAM accessors. Saturn sound RAM is physically big-endian, but
+	// aosdk-derived hosts (including Furnace's wrapper, which writes
+	// samples via scsp_write_waveform with LSB at [addr], MSB at [addr+1])
+	// store sample words as host-native little-endian to make pointer-cast
+	// reads cheap on LE platforms. Upstream MAME's
+	// device_rom_interface<...,ENDIANNESS_BIG> reads BE, but for
+	// drop-in compatibility with the existing aosdk-shaped wrapper we
+	// match aosdk's storage convention here:
+	//   - 16-bit reads/writes: low byte at [addr], high byte at [addr+1]
+	//   - 8-bit reads:         (addr ^ 1) — picks the byte that holds the
+	//                          MSB in the LE-stored 16-bit pair, which is
+	//                          where the SCSP's BE-hardware view places
+	//                          the 8-bit PCM sample.
+	// Future Saturn-accurate hosts that store RAM BE can override these.
+	inline uint8_t  ram_read_byte(uint32_t addr) const { return m_RAM[(addr ^ 1) & m_RAMMask]; }
 	inline uint16_t ram_read_word(uint32_t addr) const
 	{
-		uint32_t a = addr & m_RAMMask;
-		return uint16_t((uint16_t(m_RAM[a]) << 8) | m_RAM[(a + 1) & m_RAMMask]);
+		uint32_t a = addr & m_RAMMask & ~1u;
+		return uint16_t((uint16_t(m_RAM[a + 1]) << 8) | m_RAM[a]);
 	}
 	inline void ram_write_word(uint32_t addr, uint16_t val)
 	{
-		uint32_t a = addr & m_RAMMask;
-		m_RAM[a]                    = uint8_t(val >> 8);
-		m_RAM[(a + 1) & m_RAMMask]  = uint8_t(val & 0xFF);
+		uint32_t a = addr & m_RAMMask & ~1u;
+		m_RAM[a]     = uint8_t(val & 0xFF);
+		m_RAM[a + 1] = uint8_t(val >> 8);
 	}
 
 	// Schedule timer `idx` to expire after (TimPris[idx] * (255 - tval))

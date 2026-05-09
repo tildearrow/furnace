@@ -55,17 +55,10 @@ static inline void slot_data_set(int slot, int word, uint16_t value)
 
 extern "C" void scsp_init(void)
 {
-	// Reconstruct the static SCSP via placement-new so a second call (e.g.
-	// platform reset) starts from a clean slate. Then re-init with our
-	// host-owned RAM buffer.
 	SCSP.~scsp_device();
 	new (&SCSP) scsp_device();
-
 	memset(sat_ram, 0, sizeof(sat_ram));
 	SCSP.init(sat_ram, sizeof(sat_ram));
-
-	// Mirrors the aosdk bridge's "write to slot 0 reg 0" — exercises
-	// UpdateSlotReg paths that some downstream code expects to have run.
 	SCSP.write(0, 0x0000, 0xFFFF);
 }
 
