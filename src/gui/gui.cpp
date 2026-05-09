@@ -4261,6 +4261,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(patManager)
   DECLARE_METRIC(sysManager)
   DECLARE_METRIC(clock)
+  DECLARE_METRIC(scspDsp)
   DECLARE_METRIC(regView)
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
@@ -4914,6 +4915,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(patManagerOpen);
         IMPORT_CLOSE(sysManagerOpen);
         IMPORT_CLOSE(clockOpen);
+        IMPORT_CLOSE(scspDspOpen);
         IMPORT_CLOSE(speedOpen);
         IMPORT_CLOSE(groovesOpen);
         IMPORT_CLOSE(xyOscOpen);
@@ -5302,6 +5304,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
+        if (ImGui::MenuItem(_("SCSP DSP"),NULL,scspDspOpen)) scspDspOpen=!scspDspOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
 
         ImGui::EndMenu();
@@ -5561,6 +5564,7 @@ bool FurnaceGUI::loop() {
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
       MEASURE(clock,drawClock());
+      MEASURE(scspDsp,drawSCSPDSP());
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
@@ -8509,6 +8513,7 @@ void FurnaceGUI::syncState() {
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   clockOpen=e->getConfBool("clockOpen",false);
+  scspDspOpen=e->getConfBool("scspDspOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
@@ -8692,6 +8697,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("patManagerOpen",patManagerOpen);
   conf.set("sysManagerOpen",sysManagerOpen);
   conf.set("clockOpen",clockOpen);
+  conf.set("scspDspOpen",scspDspOpen);
   conf.set("speedOpen",speedOpen);
   conf.set("groovesOpen",groovesOpen);
   conf.set("regViewOpen",regViewOpen);
@@ -9148,6 +9154,7 @@ FurnaceGUI::FurnaceGUI():
   patManagerOpen(false),
   sysManagerOpen(false),
   clockOpen(false),
+  scspDspOpen(false),
   speedOpen(true),
   groovesOpen(false),
   xyOscOpen(false),

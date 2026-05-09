@@ -24,6 +24,7 @@
 #include "instrument.h"
 #include "safeReader.h"
 #include "workPool.h"
+#include "platform/scsp.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #ifdef HAVE_SDL2
@@ -1597,6 +1598,19 @@ DivSample* DivEngine::getSample(int index) {
 DivDispatch* DivEngine::getDispatch(int index) {
   if (index<0 || index>=song.systemLen) return NULL;
   return disCont[index].dispatch;
+}
+
+bool DivEngine::reloadSCSPDSP() {
+  bool allOk=true;
+  bool any=false;
+  for (int i=0; i<song.systemLen; i++) {
+    if (song.system[i]!=DIV_SYSTEM_SCSP) continue;
+    DivPlatformSCSP* p=(DivPlatformSCSP*)disCont[i].dispatch;
+    if (p==NULL) continue;
+    any=true;
+    if (!p->reloadDSP()) allOk=false;
+  }
+  return any && allOk;
 }
 
 void DivEngine::setLoops(int loops) {

@@ -313,6 +313,12 @@ struct DivSong {
   bool autoSystem;
   bool patchbayAuto;
 
+  // SCSP on-chip DSP program. USC source text (assembled by scspdspasm.cpp
+  // and pushed to scsp_dsp_load_arrays on chip reset). One per song since
+  // SCSP is single-instance.
+  String scspDspSource;
+  unsigned char scspDspRBL;  // 0..3 ring-buffer length
+
   // compatibility flags
   DivCompatFlags compatFlags;
 
@@ -422,7 +428,9 @@ struct DivSong {
     masterVol(1.0f),
     tuning(440.0f),
     autoSystem(true),
-    patchbayAuto(true) {
+    patchbayAuto(true),
+    scspDspSource(""),
+    scspDspRBL(2) {
     memset(dispatchFirstChan,0,DIV_MAX_CHANS*sizeof(int));
     memset(dispatchChanOfChan,0,DIV_MAX_CHANS*sizeof(int));
     memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));

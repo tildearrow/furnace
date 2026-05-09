@@ -19,6 +19,7 @@
 
 #include "scsp.h"
 #include "../engine.h"
+#include "../scspdspasm.h"
 #include <math.h>
 
 extern "C" {
@@ -451,7 +452,16 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
   scsp_write_slot(slot,0x7,d7);
   scsp_write_slot(slot,0x8,octBits);
   scsp_write_slot(slot,0x9,0);
-  scsp_slot_set_effect_send(slot,0,0);
+  // DSP send (reg 0xA): only carriers contribute to the FX bus. The
+  // modulator's raw output is internal to the FM ring buffer — routing it
+  // to MIXS via IMXL would dump an unenveloped/distorted signal alongside
+  // the carrier and produce clicks at note-on (sharp AR=31 step) plus a
+  // generally wrong wet signal.
+  if (op.isCarrier) {
+    scsp_slot_set_effect_send(slot,ins->scsp.isel,ins->scsp.imxl);
+  } else {
+    scsp_slot_set_effect_send(slot,0,0);
+  }
   scsp_slot_set_effect_output(slot,0,0);
   scsp_slot_set_direct_output(slot,disdl,dipan);
 }
@@ -1064,6 +1074,47 @@ void DivPlatformSCSP::reset() {
   if (ram!=NULL) {
     scsp_load_builtins(ram,builtinOffsets);
   }
+
+  // Push the song's on-chip DSP program (also reserves slots 0/1 as the
+  // DSP output bus when a program is active).
+  reloadDSP();
+}
+
+bool DivPlatformSCSP::reloadDSP() {
+  dspLastErrors.clear();
+  dspLastWarnings.clear();
+  dspStepsLoaded=0;
+  if (parent->song.scspDspSource.empty()) {
+    scsp_dsp_clear();
+    // Release the DSP output reservation: clear EFSDL on slots 0/1 and
+    // free them in the allocator. While DSP was active no voice could
+    // land on them (we kept slotInUse pinned), so we can clear unconditionally.
+    scsp_slot_set_effect_output(0,0,0);
+    scsp_slot_set_effect_output(1,0,0);
+    slotInUse[0]=false;
+    slotInUse[1]=false;
+    return true;
+  }
+  SCSPDSPAssembly asm_out;
+  bool ok=scspdspAssemble(parent->song.scspDspSource,parent->song.scspDspRBL,asm_out);
+  if (ok) {
+    scsp_dsp_load_arrays(asm_out.mpro,512,asm_out.coef,64,asm_out.madrs,32,asm_out.rbl);
+    scsp_dsp_start();
+    dspStepsLoaded=asm_out.steps;
+    // Reserve slots 0 and 1 as the DSP output bus and mark them slotInUse
+    // so the allocator never lands a voice there (a voice would call
+    // programSlotFM, overwriting EFSDL and silently killing the effect).
+    // EFPAN=0x10 (bit4=1, atten=0) sends to both L+R equally, so any DSP
+    // that writes to EFREG00/EFREG01 is audible without depending on the
+    // assumed pan-bit semantics in scsp_bridge's comment.
+    scsp_slot_set_effect_output(0,7,0x10);
+    scsp_slot_set_effect_output(1,7,0x10);
+    slotInUse[0]=true;
+    slotInUse[1]=true;
+  }
+  dspLastErrors=asm_out.errors;
+  dspLastWarnings=asm_out.warnings;
+  return ok;
 }
 
 void DivPlatformSCSP::forceIns() {

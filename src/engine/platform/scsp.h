@@ -21,6 +21,8 @@
 #define _SCSP_H
 
 #include "../dispatch.h"
+#include <string>
+#include <vector>
 
 class DivPlatformSCSP: public DivDispatch {
   protected:
@@ -92,6 +94,13 @@ class DivPlatformSCSP: public DivDispatch {
 
     unsigned char regPool[1024+48];
 
+    // Last DSP-assembly result. Populated by reset() so the GUI editor can
+    // surface errors/warnings without re-running the assembler. `dspStepsLoaded`
+    // is 0 when no DSP program is active (empty source or assemble failed).
+    std::vector<std::string> dspLastErrors;
+    std::vector<std::string> dspLastWarnings;
+    int dspStepsLoaded;
+
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
@@ -130,6 +139,13 @@ class DivPlatformSCSP: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    // Re-assemble the song's DSP source and push to the chip without
+    // touching voice/RAM state. Returns true if the program loaded; on
+    // failure dspLastErrors holds the assembler diagnostics.
+    bool reloadDSP();
+    const std::vector<std::string>& getDSPErrors() const { return dspLastErrors; }
+    const std::vector<std::string>& getDSPWarnings() const { return dspLastWarnings; }
+    int getDSPStepsLoaded() const { return dspStepsLoaded; }
     const void* getSampleMem(int index=0);
     size_t getSampleMemCapacity(int index=0);
     size_t getSampleMemUsage(int index=0);

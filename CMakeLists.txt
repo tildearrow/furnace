@@ -980,6 +980,7 @@ src/gui/about.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
+src/gui/dspEdit.cpp
 src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
 src/gui/csPlayer.cpp

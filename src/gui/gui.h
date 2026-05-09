@@ -583,7 +583,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
-  GUI_WINDOW_SPOILER
+  GUI_WINDOW_SPOILER,
+  GUI_WINDOW_SCSP_DSP
 };
 
 enum FurnaceGUIMobileScenes {
@@ -2445,6 +2446,7 @@ class FurnaceGUI {
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
   bool multiInsSetupOpen;
+  bool scspDspOpen;
 
   bool cvNotSerious;
 
@@ -3135,6 +3137,7 @@ class FurnaceGUI {
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
+  void drawSCSPDSP();
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();
