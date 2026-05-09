@@ -24,8 +24,12 @@
 
 extern "C" {
 #include "../../../extern/scsp/scsp_bridge.h"
-#include "../../../extern/scsp/scsp_waveforms.h"
 }
+
+// Default waveform period assumed by the FM operator math when no sample-
+// specific length is available. Matches the SCSP_WAVE_LEN constant the
+// (now-removed) built-in waveform generator used.
+static const int SCSP_WAVE_LEN = 1024;
 
 #define CHIP_FREQBASE 4096
 
@@ -366,7 +370,7 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
                   sampleLoaded[op.sampleId]);
   if (useSample) {
     DivSample* s=parent->song.sample[op.sampleId];
-    sa=USER_SAMPLE_BASE+sampleOff[op.sampleId];
+    sa=sampleOff[op.sampleId];
     // sampleStored may be smaller than s->samples if SCSP RAM ran out
     // and renderSamples truncated the upload. Use the stored count so
     // the slot doesn't read past the last uploaded frame into another
@@ -397,23 +401,9 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
       lpctl=0;
     }
   } else {
-    int wid=op.waveform;
-    if (wid<0 || wid>=10) wid=0;
-    sa=(unsigned int)builtinOffsets[wid];
-    // Built-in modulators and feedback ops MUST loop the full 1024-sample
-    // cycle — the SCSP's FM math computes phase modulo 1024 around the
-    // slot's current sample address.
-    lsa=op.loopStart;
-    lea=op.loopEnd>0?op.loopEnd:(unsigned int)SCSP_WAVE_LEN;
-    lpctl=op.lpctlOp&0x3;
-    if (lpctl==0) lpctl=1;
-    bool usesFM=(op.modSource>=0 && op.mdl>=5) || op.feedback>0;
-    bool isMod=!op.isCarrier;
-    if (usesFM || isMod) {
-      lsa=0;
-      lea=(unsigned int)SCSP_WAVE_LEN;
-      lpctl=1;
-    }
+    // No sample assigned — leave the slot unprogrammed (and the caller
+    // skips key-on for this op so it stays silent).
+    return;
   }
   if (lea>0xFFFF) lea=0xFFFF;
   if (lsa>=lea) lsa=0;
@@ -474,7 +464,7 @@ void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
   DivInstrument* ins=parent->getIns(c.ins,DIV_INS_YMF292);
   bool isScspIns=(ins->type==DIV_INS_YMF292);
 
-  unsigned int sampleByte=USER_SAMPLE_BASE+sampleOff[c.sample];
+  unsigned int sampleByte=sampleOff[c.sample];
 
   unsigned int loopStart=s->isLoopable()?(unsigned int)s->loopStart:0;
   unsigned int loopEnd=s->isLoopable()?(unsigned int)s->loopEnd:(unsigned int)s->samples;
@@ -998,32 +988,6 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
       scsp_write_slot(slot,0x7,d7);
       break;
     }
-    case DIV_CMD_SCSP_CARRIER_WAVE:
-    case DIV_CMD_SCSP_MOD_WAVE: {
-      const Voice* v=findVoiceByChan(c.chan);
-      if (v==NULL) break;
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
-      if (ins->type!=DIV_INS_YMF292 || ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) break;
-      bool wantCarrier=(c.cmd==DIV_CMD_SCSP_CARRIER_WAVE);
-      int newWaveIdx=c.value&0xF;
-      if (newWaveIdx<0 || newWaveIdx>=10) newWaveIdx=0;
-      unsigned int sa=(unsigned int)builtinOffsets[newWaveIdx];
-      for (int op=0; op<v->slotCount; op++) {
-        const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
-        if (opdef.isCarrier!=wantCarrier) continue;
-        // Recompute LPCTL from op state (programSlotFM's logic).
-        unsigned char lpctl=opdef.lpctlOp&0x3;
-        if (lpctl==0) lpctl=1;
-        bool usesFM=(opdef.modSource>=0 && opdef.mdl>=5) || opdef.feedback>0;
-        bool isMod=!opdef.isCarrier;
-        if (usesFM || isMod) lpctl=1;
-        int slot=v->firstSlot+op;
-        unsigned short r0=((lpctl&0x3)<<5)|((sa>>16)&0xF);
-        scsp_write_slot(slot,0x0,r0);
-        scsp_write_slot(slot,0x1,(unsigned short)(sa&0xFFFF));
-      }
-      break;
-    }
     case DIV_CMD_SCSP_FEEDBACK: {
       const Voice* v=findVoiceByChan(c.chan);
       if (v==NULL) break;
@@ -1088,14 +1052,6 @@ void DivPlatformSCSP::reset() {
   unsigned char* ram=scsp_get_ram_ptr();
   if (sampleMem!=NULL && ram!=NULL) {
     memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
-  }
-
-  // Load the 10 built-in FM waveforms into RAM[0x0000..0x4FFF].
-  // Done after the user-sample memcpy (which writes zeros over this region
-  // from the always-zero head of sampleMem) so the builtins win.
-  for (int i=0; i<10; i++) builtinOffsets[i]=0;
-  if (ram!=NULL) {
-    scsp_load_builtins(ram,builtinOffsets);
   }
 
   // Push the song's on-chip DSP program (also reserves slots 0/1 as the
@@ -1187,11 +1143,11 @@ const void* DivPlatformSCSP::getSampleMem(int index) {
 }
 
 size_t DivPlatformSCSP::getSampleMemCapacity(int index) {
-  return (index==0)?(RAM_SIZE-USER_SAMPLE_BASE):0;
+  return (index==0)?RAM_SIZE:0;
 }
 
 size_t DivPlatformSCSP::getSampleMemUsage(int index) {
-  return (index==0)?(sampleMemLen>USER_SAMPLE_BASE?sampleMemLen-USER_SAMPLE_BASE:0):0;
+  return (index==0)?sampleMemLen:0;
 }
 
 bool DivPlatformSCSP::isSampleLoaded(int index, int sample) {
@@ -1210,12 +1166,12 @@ void DivPlatformSCSP::renderSamples(int sysID) {
   memset(sampleOff,0,65536*sizeof(unsigned int));
   memset(sampleStored,0,65536*sizeof(unsigned int));
   memset(sampleLoaded,0,65536*sizeof(bool));
-  sampleMemLen=USER_SAMPLE_BASE;
+  sampleMemLen=0;
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sound RAM";
 
-  size_t memPos=USER_SAMPLE_BASE;
+  size_t memPos=0;
   int sampleCount=parent->song.sampleLen;
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
@@ -1245,7 +1201,7 @@ void DivPlatformSCSP::renderSamples(int sysID) {
       sampleLength=byteLength/2;
     }
     memcpy(sampleMem+memPos,src,byteLength);
-    sampleOff[i]=(unsigned int)(memPos-USER_SAMPLE_BASE);
+    sampleOff[i]=(unsigned int)memPos;
     sampleStored[i]=(unsigned int)sampleLength;
     sampleLoaded[i]=true;
     memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+byteLength));
@@ -1275,7 +1231,7 @@ int DivPlatformSCSP::init(DivEngine* p, int channels, int sugRate, const DivConf
   setFlags(flags);
 
   sampleMem=new unsigned char[RAM_SIZE];
-  sampleMemLen=USER_SAMPLE_BASE;
+  sampleMemLen=0;
   memset(sampleMem,0,RAM_SIZE);
   sampleOff=new unsigned int[65536];
   memset(sampleOff,0,65536*sizeof(unsigned int));

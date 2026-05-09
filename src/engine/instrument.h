@@ -848,13 +848,12 @@ struct DivInstrumentSCSP {
     signed char modSource;
     unsigned char feedback;
     bool isCarrier;
-    unsigned char waveform;
     unsigned short loopStart, loopEnd;
     unsigned char lpctlOp;
-    // sampleId >= 0 selects a user sample as the op's waveform source
-    // (the SCSP doesn't distinguish FM/PCM at the slot level — any RAM
-    // contents can drive a slot, and any slot can be modulated by another).
-    // -1 falls back to the built-in indexed by `waveform`.
+    // The SCSP doesn't distinguish FM from PCM at the slot level — any RAM
+    // contents can drive a slot, and any slot can be modulated by another.
+    // FM operators reference a regular DivSample by id; sampleId<0 means
+    // the operator has no source and the slot stays silent.
     signed short sampleId;
     Op():
       freqRatio(256),
@@ -865,7 +864,6 @@ struct DivInstrumentSCSP {
       modSource(-1),
       feedback(0),
       isCarrier(true),
-      waveform(0),
       loopStart(0),
       loopEnd(1023),
       lpctlOp(1),

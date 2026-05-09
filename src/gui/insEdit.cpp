@@ -8089,7 +8089,6 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
           if (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM) {
-            static const char* scspWaveNames[]={ "Sine","Saw","Square","Tri","Organ","Brass","Strings","Piano","Flute","Bass" };
             static const char* scspModSourceOptions[]={ "None","Op 1","Op 2","Op 3","Op 4","Op 5","Op 6" };
 
             ImGui::SeparatorText(_("FM Operators"));
@@ -8111,36 +8110,23 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
                     ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
 
-                    // Carrier / Source
+                    // Carrier flag + sample source. The SCSP doesn't have
+                    // built-in operator waveforms — every slot reads from
+                    // sound RAM, whether it's a PCM voice or an FM op. So
+                    // FM ops just point at a regular sample like PCM does.
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     if (ImGui::Checkbox(_("Carrier"),&op.isCarrier)) MARK_MODIFIED;
                     ImGui::TableNextColumn();
-                    bool useSample=(op.sampleId>=0);
-                    if (ImGui::Checkbox(_("Use sample"),&useSample)) {
-                      if (useSample) {
-                        // Default to sample 0 if any exist; otherwise stay built-in.
-                        op.sampleId=(e->song.sampleLen>0)?0:-1;
-                      } else {
-                        op.sampleId=-1;
-                      }
-                      MARK_MODIFIED;
-                    }
-                    // Waveform / sample picker
-                    ImGui::TableNextRow();
-                    ImGui::TableNextColumn();
-                    if (op.sampleId<0) {
-                      int waveIdx=op.waveform;
-                      if (waveIdx<0 || waveIdx>9) waveIdx=0;
-                      if (ImGui::Combo(_("Waveform"),&waveIdx,scspWaveNames,10)) {
-                        op.waveform=(unsigned char)waveIdx;
-                        MARK_MODIFIED;
-                      }
-                    } else {
-                      const char* curName=(op.sampleId<e->song.sampleLen)?
+                    {
+                      const char* curName=(op.sampleId>=0 && op.sampleId<e->song.sampleLen)?
                                           e->song.sample[op.sampleId]->name.c_str():
-                                          "<invalid>";
+                                          "<none>";
                       if (ImGui::BeginCombo(_("Sample"),curName)) {
+                        if (ImGui::Selectable("<none>", op.sampleId<0)) {
+                          op.sampleId=-1;
+                          MARK_MODIFIED;
+                        }
                         for (int si=0; si<e->song.sampleLen; si++) {
                           char tmp[256];
                           snprintf(tmp,sizeof(tmp),"%d: %s##scsp_op_sample_%d",
@@ -8153,8 +8139,6 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::EndCombo();
                       }
                     }
-                    ImGui::TableNextColumn();
-                    // (column 2 left empty in this row to keep two-column layout)
 
                     // Frequency: ratio (Q8.8) or fixed Hz
                     ImGui::TableNextRow();

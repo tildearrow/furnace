@@ -338,8 +338,6 @@ const char* cmdName[]={
 
   "SCSP_OP_TL",
   "SCSP_OP_MDL",
-  "SCSP_CARRIER_WAVE",
-  "SCSP_MOD_WAVE",
   "SCSP_FEEDBACK"
 };
 

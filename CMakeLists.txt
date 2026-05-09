@@ -605,7 +605,6 @@ extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/x1_010/x1_010.cpp
 
-extern/scsp/scsp_waveforms.c
 
 extern/adpcm/bs_codec.c
 extern/adpcm/oki_codec.c

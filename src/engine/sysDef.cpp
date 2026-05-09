@@ -2765,8 +2765,6 @@ void DivEngine::registerSystems() {
     {0x33, {DIV_CMD_SCSP_OP_MDL,      _("33xx: Set op 4 mod depth"), constVal<3>, effectValAnd<0x0f>}},
     {0x34, {DIV_CMD_SCSP_OP_MDL,      _("34xx: Set op 5 mod depth"), constVal<4>, effectValAnd<0x0f>}},
     {0x35, {DIV_CMD_SCSP_OP_MDL,      _("35xx: Set op 6 mod depth"), constVal<5>, effectValAnd<0x0f>}},
-    {0x40, {DIV_CMD_SCSP_CARRIER_WAVE, _("40xx: Set carrier waveform (0 sine, 1 saw, 2 sq, 3 tri, 4-9 organ/brass/strings/piano/flute/bass)"), effectValAnd<0x0f>}},
-    {0x41, {DIV_CMD_SCSP_MOD_WAVE,    _("41xx: Set modulator waveform (same indices as 40xx)"), effectValAnd<0x0f>}},
     {0x43, {DIV_CMD_SCSP_FEEDBACK,    _("43xx: Set self-feedback amount (00 to 7F)"), effectValAnd<0x7f>}},
   };
 

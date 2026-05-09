@@ -86,11 +86,6 @@ class DivPlatformSCSP: public DivDispatch {
     DivMemoryComposition memCompo;
 
     static const unsigned int RAM_SIZE = 512*1024;
-    static const unsigned int USER_SAMPLE_BASE = 0x5400;
-
-    // Byte offsets in SCSP RAM of the 10 built-in FM waveforms,
-    // populated during reset() by scsp_load_builtins().
-    int builtinOffsets[10];
 
     // regPool layout (snapshot, refreshed lazily on getRegisterPool):
     //   0x000..0x3FF (1024)   32 slots × 16 regs × 2 bytes (BE)

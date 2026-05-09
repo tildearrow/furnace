@@ -46,10 +46,6 @@
 #include "sample.h"
 #include <fmt/printf.h>
 
-extern "C" {
-#include "../../extern/scsp/scsp_waveforms.h"
-}
-
 #include <math.h>
 #include <vector>
 #include <map>
@@ -227,16 +223,12 @@ SafeWriter* DivEngine::saveSCSPTON() {
   // Walk every op once to figure out which waveforms (built-ins) and which
   // user samples are referenced. Each unique resource gets emitted once and
   // its byte offset within the PCM section is recorded for SA patch-up.
-  unsigned int waveOffset[SCSP_NUM_BUILTINS];
-  bool waveUsed[SCSP_NUM_BUILTINS];
-  for (int i=0; i<SCSP_NUM_BUILTINS; i++) { waveOffset[i]=0; waveUsed[i]=false; }
-
   // sampleIdToOffset: map<original sample index, byte offset in pcmData>.
   // For each op with sampleId>=0 we'll embed the sample's 16-bit BE PCM.
   std::map<int,unsigned int> sampleOffset;  // index -> pcm offset
   std::map<int,unsigned int> sampleLength;  // index -> length in samples
 
-  // First pass: collect references.
+  // First pass: collect referenced samples.
   for (int idx: insIndices) {
     DivInstrument* ins=song.ins[idx];
     int n=ins->scsp.opCount;
@@ -245,31 +237,13 @@ SafeWriter* DivEngine::saveSCSPTON() {
       const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
       if (opdef.sampleId>=0 && opdef.sampleId<song.sampleLen) {
         sampleOffset[opdef.sampleId]=0;  // placeholder, filled below
-      } else {
-        int w=opdef.waveform;
-        if (w>=0 && w<SCSP_NUM_BUILTINS) waveUsed[w]=true;
       }
     }
   }
 
   std::vector<unsigned char> pcmData;
 
-  // Emit built-ins first.
-  for (int w=0; w<SCSP_NUM_BUILTINS; w++) {
-    if (!waveUsed[w]) continue;
-    waveOffset[w]=(unsigned int)pcmData.size();
-    float fbuf[TON_WAVE_LEN];
-    scsp_gen_waveform(w,fbuf,TON_WAVE_LEN);
-    for (int s=0; s<TON_WAVE_LEN; s++) {
-      double v=fbuf[s]*0.9*32767.0;
-      if (v<-32768.0) v=-32768.0;
-      if (v>32767.0) v=32767.0;
-      short iv=(short)floor(v+0.5);
-      pcmData.push_back((unsigned char)((iv>>8)&0xFF));
-      pcmData.push_back((unsigned char)(iv&0xFF));
-    }
-  }
-  // Then user samples: 16-bit BE PCM. data16 is signed 16-bit native LE
+  // Emit user samples: 16-bit BE PCM. data16 is signed 16-bit native LE
   // in Furnace; we byte-swap into the TON's BE layout as we go.
   for (std::pair<const int,unsigned int>& kv: sampleOffset) {
     int idx=kv.first;
@@ -300,18 +274,15 @@ SafeWriter* DivEngine::saveSCSPTON() {
     v[2]=(unsigned char)(n-1);  // num_layers - 1
     for (int op=0; op<n; op++) {
       const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
-      unsigned int sa;
-      unsigned int lea;
+      unsigned int sa=0, lea=0;
       if (opdef.sampleId>=0 && sampleOffset.count(opdef.sampleId)) {
         sa=sampleOffset[opdef.sampleId];
         lea=sampleLength[opdef.sampleId];
         if (lea>0xFFFF) lea=0xFFFF;
-      } else {
-        int w=opdef.waveform;
-        if (w<0 || w>=SCSP_NUM_BUILTINS) w=0;
-        sa=waveOffset[w];
-        lea=TON_WAVE_LEN;
       }
+      // sa=0,lea=0 if op has no sample assigned; the layer's SA/LEA point
+      // at the start of pcmData with zero length, which the Saturn driver
+      // treats as silence.
       buildLayer(&v[4+op*0x20], opdef, sa, lea);
     }
     voices.push_back(v);
@@ -407,30 +378,6 @@ static unsigned char tonRecoverFeedback(unsigned char tl, unsigned char mdl) {
   return (unsigned char)floor(feedback+0.5);
 }
 
-static int tonRecognizeBuiltin(const short* pcm, unsigned int n) {
-  if (n!=TON_WAVE_LEN) return -1;
-  float fbuf[TON_WAVE_LEN];
-  short ref[TON_WAVE_LEN];
-  for (int w=0; w<SCSP_NUM_BUILTINS; w++) {
-    scsp_gen_waveform(w,fbuf,TON_WAVE_LEN);
-    for (int s=0; s<TON_WAVE_LEN; s++) {
-      double v=fbuf[s]*0.9*32767.0;
-      if (v<-32768.0) v=-32768.0;
-      if (v>32767.0) v=32767.0;
-      ref[s]=(short)floor(v+0.5);
-    }
-    int worst=0;
-    for (int s=0; s<TON_WAVE_LEN; s++) {
-      int d=(int)pcm[s]-(int)ref[s];
-      if (d<0) d=-d;
-      if (d>worst) worst=d;
-      if (worst>TON_BUILTIN_MATCH_TOL) break;
-    }
-    if (worst<=TON_BUILTIN_MATCH_TOL) return w;
-  }
-  return -1;
-}
-
 void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
   size_t fileLen=reader.size();
   if (fileLen<10) {
@@ -464,11 +411,14 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     }
   }
 
-  // Cache per-SA imported samples so two ops referencing the same PCM block
-  // share one DivSample (avoids exploding song.sample on TON banks where
-  // every op embeds an identical waveform).
-  std::map<unsigned int,int> saToSampleId;  // SA -> song.sample index, or -1 for builtin
-  std::map<unsigned int,int> saToBuiltin;   // SA -> builtin waveform index
+  // Cache imported samples to avoid duplicates:
+  //   - saToSampleId folds ops that reference the same TON memory offset.
+  //   - contentToSampleId folds ops whose PCM bytes happen to match an
+  //     already-imported sample (Bebhionn frequently emits the same
+  //     waveform under two different SAs across instruments).
+  std::map<unsigned int,int> saToSampleId;
+  std::map<std::vector<short>,int> contentToSampleId;
+  int tonSampleSeq=0;
 
   for (unsigned int vi=0; vi<nVoices; vi++) {
     unsigned int vo=voiceOff[vi];
@@ -549,20 +499,18 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         op.feedback=0;
       }
 
-      // Resolve the waveform: try builtin match first, then add a sample.
-      int builtin=-1;
+      // Resolve the waveform: import the PCM block as a DivSample, with
+      // dedup first by SA (cheap), then by exact PCM content (catches the
+      // common case of Bebhionn emitting the same waveform under multiple
+      // SAs across different instruments).
       int sampleId=-1;
-      std::map<unsigned int,int>::iterator itB=saToBuiltin.find(sa);
       std::map<unsigned int,int>::iterator itS=saToSampleId.find(sa);
-      if (itB!=saToBuiltin.end()) {
-        builtin=itB->second;
-      } else if (itS!=saToSampleId.end()) {
+      if (itS!=saToSampleId.end()) {
         sampleId=itS->second;
       } else {
-        // Verify SA + lea*2 fits in the file
         unsigned int byteEnd=sa+lea*2;
         if (lea>0 && byteEnd<=fileLen) {
-          // Read 16-bit BE PCM into a short[] buffer.
+          // Decode 16-bit BE PCM into a content key for dedup lookup.
           std::vector<short> pcm(lea);
           for (unsigned int s=0; s<lea; s++) {
             int hi=data[sa+s*2];
@@ -571,36 +519,33 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
             if (v>=0x8000) v-=0x10000;
             pcm[s]=(short)v;
           }
-          builtin=tonRecognizeBuiltin(pcm.data(),lea);
-          if (builtin>=0) {
-            saToBuiltin[sa]=builtin;
+          std::map<std::vector<short>,int>::iterator itC=contentToSampleId.find(pcm);
+          if (itC!=contentToSampleId.end()) {
+            sampleId=itC->second;
           } else {
             DivSample* samp=new DivSample;
-            samp->name=fmt::sprintf("%s_w%04X",stripPath,sa);
+            samp->name=fmt::sprintf("%s_%02d",stripPath,++tonSampleSeq);
             samp->depth=DIV_SAMPLE_DEPTH_16BIT;
             samp->init(lea);
             samp->centerRate=44100;
             samp->loopStart=(int)lsa;
             samp->loopEnd=(int)lea;
+            // TON layers are typically full-period FM waveforms that need
+            // to loop continuously when used as an FM carrier or modulator.
+            if (lsa<lea) {
+              samp->loop=true;
+              samp->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+            }
             for (unsigned int s=0; s<lea; s++) samp->data16[s]=pcm[s];
             sampleId=(int)song.sample.size();
             song.sample.push_back(samp);
             song.sampleLen=(int)song.sample.size();
-            saToSampleId[sa]=sampleId;
+            contentToSampleId[pcm]=sampleId;
           }
+          saToSampleId[sa]=sampleId;
         }
       }
-
-      if (builtin>=0) {
-        op.waveform=(unsigned char)builtin;
-        op.sampleId=-1;
-      } else if (sampleId>=0) {
-        op.sampleId=(signed short)sampleId;
-        op.waveform=0;
-      } else {
-        op.waveform=0;
-        op.sampleId=-1;
-      }
+      op.sampleId=(signed short)sampleId;
       op.lpctlOp=1;
       op.loopStart=(unsigned short)((lsa<=0xFFFF)?lsa:0);
       op.loopEnd=(unsigned short)((lea<=0xFFFF)?lea:0xFFFF);
