@@ -5,9 +5,8 @@
  * for hosts that do not want to deal with the original MAME-style
  * SCSP_0_w/SCSP_Update interface directly.
  *
- * Originally written as a WASM wrapper for bebhionn; the EMSCRIPTEN_KEEPALIVE
- * marker is a no-op outside of Emscripten so the same source compiles for
- * native hosts (Furnace) without modification.
+ * The EMSCRIPTEN_KEEPALIVE marker is a no-op outside of Emscripten, so the
+ * same source compiles for native hosts without modification.
  */
 
 #ifdef __EMSCRIPTEN__

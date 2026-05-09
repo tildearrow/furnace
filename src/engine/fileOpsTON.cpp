@@ -18,8 +18,8 @@
  */
 
 // Saturn .TON (tone bank) export for SCSP FM instruments. Output is byte-
-// compatible with mid2seq's saturn_kit.py and bebhionn's ton_io.js, both of
-// which produce TON files that the SGL sound driver loads via slInitSound.
+// compatible with mid2seq's saturn_kit.py, which produces TON files that the
+// SGL sound driver loads via slInitSound.
 //
 // File layout (all multi-byte fields big-endian):
 //   uint16   mixer_offset
@@ -53,7 +53,6 @@ extern "C" {
 #include <math.h>
 #include <vector>
 #include <map>
-#include <stdint.h>
 #include <string.h>
 
 #define TON_WAVE_LEN 1024
@@ -135,18 +134,15 @@ static void buildLayer(unsigned char* out,
 
   // bytes 0x0C-0x0D: LPSLNK | KRS[13:10] | DL[9:5] | RR[4:0]
   // KRS=0xF disables key-rate scaling so envelope rates depend only on
-  // R, matching scsp_engine.js:programSlot and scsp.cpp:writeSlotEnvelope.
-  // The reference TON exports (ton_io.js, saturn_kit.py) both write KRS=0
-  // by default — but that's a known bug there: when re-imported through
-  // programSlotRaw the envelopes time differently than the same patch
-  // played through programSlot, which makes round-tripped TONs sound
-  // wrong. We diverge from the buggy reference deliberately so our TONs
-  // play back correctly in bebhionn.
+  // R, matching writeSlotEnvelope. saturn_kit.py writes KRS=0 by default,
+  // but that's a known bug: re-imported envelopes time differently than the
+  // same patch played live, which makes round-tripped TONs sound wrong.
+  // We deliberately diverge so our TONs play back correctly.
   out[0x0C]=(0xF<<2)|((op.dl>>3)&0x3);
   out[0x0D]=((op.dl&0x7)<<5)|(op.rr&0x1F);
 
   // byte 0x0F: TL — derived from level the same way programSlotFM does
-  // (linear-in-level mapping that matches bebhionn TON persistence).
+  // (linear-in-level mapping).
   int tlInt=(int)floor((1.0-(double)op.level/127.0)*128.0+0.5);
   if (tlInt<0) tlInt=0;
   if (tlInt>255) tlInt=255;
@@ -268,14 +264,14 @@ SafeWriter* DivEngine::saveSCSPTON() {
       double v=fbuf[s]*0.9*32767.0;
       if (v<-32768.0) v=-32768.0;
       if (v>32767.0) v=32767.0;
-      int16_t iv=(int16_t)floor(v+0.5);
+      short iv=(short)floor(v+0.5);
       pcmData.push_back((unsigned char)((iv>>8)&0xFF));
       pcmData.push_back((unsigned char)(iv&0xFF));
     }
   }
   // Then user samples: 16-bit BE PCM. data16 is signed 16-bit native LE
   // in Furnace; we byte-swap into the TON's BE layout as we go.
-  for (auto& kv: sampleOffset) {
+  for (std::pair<const int,unsigned int>& kv: sampleOffset) {
     int idx=kv.first;
     DivSample* s=song.sample[idx];
     int n=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_16BIT);
@@ -284,7 +280,7 @@ SafeWriter* DivEngine::saveSCSPTON() {
     sampleLength[idx]=(unsigned int)n;
     short* src=s->data16;
     for (int si=0; si<n; si++) {
-      int16_t iv=src?src[si]:0;
+      short iv=src?src[si]:0;
       pcmData.push_back((unsigned char)((iv>>8)&0xFF));
       pcmData.push_back((unsigned char)(iv&0xFF));
     }
@@ -543,8 +539,7 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       //     can invert it to get the original feedback magnitude.
       //   - mdxsl!=32 && mdysl==32: FM cascade combined with feedback. The
       //     stored MDL is `max(modulator_mdl, fbMdl)` so we can't separate
-      //     them — fall back to a moderate default (~0.3, matches bebhionn
-      //     importTon).
+      //     them — fall back to a moderate default (~0.3).
       //   - otherwise: no feedback.
       if (mdxsl==32 && mdysl==32) {
         op.feedback=tonRecoverFeedback(tl,mdl);
@@ -557,8 +552,8 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // Resolve the waveform: try builtin match first, then add a sample.
       int builtin=-1;
       int sampleId=-1;
-      auto itB=saToBuiltin.find(sa);
-      auto itS=saToSampleId.find(sa);
+      std::map<unsigned int,int>::iterator itB=saToBuiltin.find(sa);
+      std::map<unsigned int,int>::iterator itS=saToSampleId.find(sa);
       if (itB!=saToBuiltin.end()) {
         builtin=itB->second;
       } else if (itS!=saToSampleId.end()) {

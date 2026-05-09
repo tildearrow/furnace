@@ -10,7 +10,7 @@
 
 static int g_passed = 0;
 static int g_failed = 0;
-static const char* g_currentTest = nullptr;
+static const char* g_currentTest = NULL;
 
 #define CHECK(cond) do { \
     if (!(cond)) { \
@@ -49,7 +49,7 @@ static SCSPDSPAssembly assembleOk(const char* src, int rbl = 0) {
   SCSPDSPAssembly a{};
   bool ok = scspdspAssemble(src, rbl, a);
   if (!ok) {
-    for (auto& e : a.errors) std::fprintf(stderr, "  err: %s\n", e.c_str());
+    for (const std::string& e : a.errors) std::fprintf(stderr, "  err: %s\n", e.c_str());
   }
   return a;
 }
@@ -58,7 +58,7 @@ static SCSPDSPAssembly assembleOk(const char* src, int rbl = 0) {
 
 // 1. Empty source assembles successfully with zero steps.
 static void test_empty() {
-  auto a = assembleOk("");
+  SCSPDSPAssembly a = assembleOk("");
   CHECK_EQ(a.errors.size(), 0u);
   CHECK_EQ(a.steps, 0);
   CHECK_EQ(a.coef[0], 0);  // ZERO is always present at index 0
@@ -67,7 +67,7 @@ static void test_empty() {
 // 2. NOP encodes as BSEL=1, YSEL=1 → w1 should have BSEL bit 0 set,
 //    w2 should have YSEL bit set in YSEL[14:13]=01.
 static void test_nop() {
-  auto a = assembleOk("#PROG\nNOP\n");
+  SCSPDSPAssembly a = assembleOk("#PROG\nNOP\n");
   CHECK_EQ(a.errors.size(), 0u);
   CHECK_EQ(a.steps, 1);
   // word 1 is mpro[2]; BSEL is bit 0
@@ -80,7 +80,7 @@ static void test_nop() {
 
 // 3. COEF section: shift-left-by-3 packing, ZERO is always index 0.
 static void test_coef_section() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#COEF\n"
     "VOL = 1.0\n"      // 4096 → twosComp13 → 4095 (clamp would be 4096 OOR; actual: 4096 throws)
     "HALF = 0.5\n"     // 2048
@@ -92,7 +92,7 @@ static void test_coef_section() {
   // Adjust: use 0.999 to test pre-shift.
   CHECK(!a.errors.empty());
 
-  auto b = assembleOk(
+  SCSPDSPAssembly b = assembleOk(
     "#COEF\n"
     "HALF = 0.5\n"      // raw 2048; <<3 = 16384 = 0x4000
     "QUARTER = 0.25\n"  // raw 1024; <<3 = 8192 = 0x2000
@@ -105,14 +105,14 @@ static void test_coef_section() {
   CHECK_EQ(b.coef[0], 0);                // ZERO
   CHECK_EQ((int)b.coef[1], 0x4000);      // HALF
   CHECK_EQ((int)b.coef[2], 0x2000);      // QUARTER
-  CHECK_EQ((int)b.coef[3], (int16_t)0xC000);  // NEG
+  CHECK_EQ((int)b.coef[3], (short)0xC000);  // NEG
   CHECK_EQ((int)b.coef[4], 0x0800);      // HEX
   CHECK_EQ((int)b.coef[5], 0x2000);      // PCT
 }
 
 // 4. ADRS section: literal int, hex, ms-time conversion.
 static void test_adrs_section() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#ADRS\n"
     "BUF1 = 1024\n"
     "BUF2 = &H400\n"
@@ -127,7 +127,7 @@ static void test_adrs_section() {
 
 // 5. Single-product '@' chain → first step has ZERO=1, accumulators after.
 static void test_at_chain_single() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#COEF\n"
     "VOL = 0.5\n"
     "#PROG\n"
@@ -147,7 +147,7 @@ static void test_at_chain_single() {
 
 // 6. Multi-product '@' chain accumulates (BSEL=1 on subsequent steps).
 static void test_at_chain_multi() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#COEF\n"
     "A = 0.5\n"
     "B = 0.25\n"
@@ -166,7 +166,7 @@ static void test_at_chain_multi() {
 
 // 7. Inline @ ... > ... emits two micro-instructions (multiply, store).
 static void test_at_with_inline_store() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#COEF\n"
     "VOL = 0.5\n"
     "#PROG\n"
@@ -183,7 +183,7 @@ static void test_at_with_inline_store() {
 // 8. Memory access alignment: a single MR[...] read on an even step
 //    should get a NOP inserted before it so it lands on an odd step.
 static void test_mem_alignment() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#ADRS\n"
     "BUF = 1024\n"
     "#PROG\n"
@@ -201,7 +201,7 @@ static void test_mem_alignment() {
 
 // 9. Mem access already on odd step: no NOP inserted.
 static void test_mem_no_realignment() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#ADRS\n"
     "BUF = 0\n"
     "#PROG\n"
@@ -217,7 +217,7 @@ static void test_mem_no_realignment() {
 // 10. Address-expression flags: DEC clears TABLE, ADREG sets ADREB,
 //     +1 sets NXADR, /NF sets NOFL.
 static void test_addr_flags() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#ADRS\n"
     "DLY = 1024\n"
     "#PROG\n"
@@ -226,8 +226,8 @@ static void test_addr_flags() {
   );
   CHECK_EQ(a.errors.size(), 0u);
   CHECK_EQ(a.steps, 2);
-  uint16_t w1 = a.mpro[1*4 + 2];
-  uint16_t w0 = a.mpro[1*4 + 3];
+  unsigned short w1 = a.mpro[1*4 + 2];
+  unsigned short w0 = a.mpro[1*4 + 3];
   // TABLE=0 (cleared by DEC) at w1 bit 15
   CHECK((w1 & 0x8000) == 0x0000);
   // ADREB at w0 bit 1
@@ -240,7 +240,7 @@ static void test_addr_flags() {
 
 // 11. Undefined coefficient symbol → error.
 static void test_undefined_coef() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#PROG\n"
     "@ INPUT * NOSUCH\n"
   );
@@ -250,7 +250,7 @@ static void test_undefined_coef() {
 
 // 12. Bad PROG line → error.
 static void test_bad_prog_line() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#PROG\n"
     "GARBAGE FOO\n"
   );
@@ -259,7 +259,7 @@ static void test_bad_prog_line() {
 
 // 13. Comments (lines starting with ' or trailing ') are ignored.
 static void test_comments() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "' top-level comment\n"
     "#COEF\n"
     "VOL = 0.5  ' inline comment\n"
@@ -273,15 +273,15 @@ static void test_comments() {
 
 // 14. RBL is clamped to 0..3.
 static void test_rbl_clamp() {
-  auto a = assembleOk("", 7);
+  SCSPDSPAssembly a = assembleOk("", 7);
   CHECK_EQ(a.rbl, 3);
-  auto b = assembleOk("", 2);
+  SCSPDSPAssembly b = assembleOk("", 2);
   CHECK_EQ(b.rbl, 2);
 }
 
 // 15. LDI MEMSx, MR[...] sets both MRD and IWT.
 static void test_ldi() {
-  auto a = assembleOk(
+  SCSPDSPAssembly a = assembleOk(
     "#ADRS\n"
     "BUF = 0\n"
     "#PROG\n"
@@ -292,8 +292,8 @@ static void test_ldi() {
   CHECK(a.steps >= 1);
   // The LDI step has IWT and MRD set
   int idx = a.steps - 1;
-  uint16_t w1 = a.mpro[idx*4 + 2];
-  uint16_t w2 = a.mpro[idx*4 + 1];
+  unsigned short w1 = a.mpro[idx*4 + 2];
+  unsigned short w2 = a.mpro[idx*4 + 1];
   CHECK((w1 & 0x2000) == 0x2000);  // MRD
   CHECK((w2 & 0x0020) == 0x0020);  // IWT bit 5 of w2
   // IWA=5 in low 5 bits of w2

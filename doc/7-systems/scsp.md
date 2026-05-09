@@ -62,7 +62,7 @@ no chip-specific options. the SCSP runs at its fixed Saturn clock (22.5792 MHz) 
 
 ## DSP
 
-open the `Window → SCSP DSP` panel to edit the on-chip DSP program. the source is bebhionn-style USC text; click **Apply** to assemble and push it to the chip without resetting voices. the program is saved with the song.
+open the `Window → SCSP DSP` panel to edit the on-chip DSP program. the source is USC (micro-source) text; click **Apply** to assemble and push it to the chip without resetting voices. the program is saved with the song.
 
 - writes to `EFREG00` and `EFREG01` are routed to the L/R output mixer automatically.
 - inputs to the DSP come from any voice with `IMXL > 0` (set via the instrument's `IMXL` field, or per-row with the `16xx` effect). `ISEL` selects which `MIXSxx` bus the voice writes to.

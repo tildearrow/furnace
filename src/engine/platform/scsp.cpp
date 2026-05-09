@@ -58,9 +58,8 @@ static void computeOctFnsFromHz(double targetHz, int* outOct, int* outFns) {
 
 // ── FM helpers ────────────────────────────────────────────────────────────
 //
-// Ported from bebhionn's scsp_engine.js (lines ~250-310). Used by the FM
-// dispatch path to translate high-level op parameters into SCSP register
-// words. Static file-scope so they don't leak into the class ABI.
+// Used by the FM dispatch path to translate high-level op parameters into
+// SCSP register words. Static file-scope so they don't leak into the class ABI.
 
 // Pack OCT/FNS register bits from a desired MIDI note and the base note
 // at which the underlying sample plays unshifted.
@@ -263,8 +262,8 @@ void DivPlatformSCSP::releaseAllVoices() {
 }
 
 // Allocate `numSlots` contiguous hardware slots for a tracker channel.
-// First-fit (matches bebhionn — keeps allocations packed at low indices,
-// improving FM ring-buffer locality). On full, steal LRU voices and retry.
+// First-fit keeps allocations packed at low indices, improving FM ring-buffer
+// locality. On full, steal LRU voices and retry.
 // Returns first-slot index or -1 if allocation failed.
 int DivPlatformSCSP::allocateVoice(int chanIdx, int note, int numSlots) {
   releaseVoice(chanIdx);
@@ -421,7 +420,7 @@ void DivPlatformSCSP::programSlotFM(int slot, int chanIdx, int opIdx, int slotBa
 
   unsigned short octBits=computeFMOctBitsForOp(op, midiNote);
 
-  // TL: linear-in-level (matches bebhionn TON persistence).
+  // TL: linear-in-level.
   int tlInt=(int)floor((1.0-(double)op.level/127.0)*128.0+0.5);
   if (tlInt<0) tlInt=0;
   if (tlInt>255) tlInt=255;
@@ -589,7 +588,7 @@ void DivPlatformSCSP::acquire(short** buf, size_t len) {
   while (off<len) {
     size_t chunk=len-off;
     if (chunk>4096) chunk=4096;
-    int16_t* rendered=scsp_render((int)chunk);
+    short* rendered=scsp_render((int)chunk);
     for (size_t i=0; i<chunk; i++) {
       buf[0][off+i]=rendered[i*2+0];
       buf[1][off+i]=rendered[i*2+1];
@@ -1086,7 +1085,7 @@ void DivPlatformSCSP::reset() {
   memset(regPool,0,sizeof(regPool));
 
   // Re-upload sample memory: scsp_init zeroed RAM, so we need to refill it.
-  uint8_t* ram=scsp_get_ram_ptr();
+  unsigned char* ram=scsp_get_ram_ptr();
   if (sampleMem!=NULL && ram!=NULL) {
     memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
   }
@@ -1257,7 +1256,7 @@ void DivPlatformSCSP::renderSamples(int sysID) {
   memCompo.capacity=RAM_SIZE;
 
   // Push to live SCSP RAM
-  uint8_t* ram=scsp_get_ram_ptr();
+  unsigned char* ram=scsp_get_ram_ptr();
   if (ram!=NULL) {
     memcpy(ram,sampleMem,(sampleMemLen<RAM_SIZE)?sampleMemLen:RAM_SIZE);
   }

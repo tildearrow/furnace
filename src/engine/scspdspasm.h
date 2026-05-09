@@ -20,20 +20,17 @@
 #ifndef _SCSPDSPASM_H
 #define _SCSPDSPASM_H
 
-// USC (micro-source) assembler for the SCSP/Saturn on-chip DSP. Port of
-// bebhionn's scspdspasm.js (which itself ports an older Python version).
-// Output is the same shape the SCSP emulator's scsp_dsp_load_arrays()
-// expects — 128-step MPRO, 64 COEF, 32 MADRS, plus an RBL ring-buffer
-// length selector.
+// USC (micro-source) assembler for the SCSP/Saturn on-chip DSP. Output is
+// the same shape the SCSP emulator's scsp_dsp_load_arrays() expects — 128-step
+// MPRO, 64 COEF, 32 MADRS, plus an RBL ring-buffer length selector.
 
-#include <cstdint>
 #include <string>
 #include <vector>
 
 struct SCSPDSPAssembly {
-  uint16_t mpro[512];   // 128 steps × 4 16-bit words (zero-padded after `steps`)
-  int16_t  coef[64];    // SCSP reads bits [15:3] as signed-13; values are pre-shifted
-  uint16_t madrs[32];
+  unsigned short mpro[512];   // 128 steps × 4 16-bit words (zero-padded after `steps`)
+  short          coef[64];    // SCSP reads bits [15:3] as signed-13; values are pre-shifted
+  unsigned short madrs[32];
   int rbl;              // 0..3 ring-buffer length selector
   int steps;            // active MPRO steps after alignment
   std::vector<std::string> errors;    // empty on success

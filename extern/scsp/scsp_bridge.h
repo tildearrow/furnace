@@ -1,10 +1,9 @@
 /*
  * scsp_bridge.h — Public C API for the aosdk SCSP (YMF292-F) emulator.
  *
- * Use this header when integrating the SCSP core into a host application
- * (Furnace, bebhionn, etc.). The implementation in scsp_bridge.c wraps
- * the lower-level SCSP_0_w / SCSP_Update / SCSP.Slots[] surface from
- * scsp.c and scsp.h.
+ * Use this header when integrating the SCSP core into a host application.
+ * The implementation in scsp_bridge.c wraps the lower-level SCSP_0_w /
+ * SCSP_Update / SCSP.Slots[] surface from scsp.c and scsp.h.
  *
  * Single-instance only: aosdk's SCSP uses a global `struct _SCSP SCSP`,
  * so only one chip can be active per process.

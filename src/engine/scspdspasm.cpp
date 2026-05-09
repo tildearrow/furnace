@@ -17,10 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// Faithful port of bebhionn's scspdspasm.js. The JS uses regex-driven
-// line parsing and a simple symbol table; we do the same with std::regex
-// and std::map. No DivEngine dep — pure text → arrays so we can unit-test
-// it standalone.
+// Regex-driven line parser with a simple symbol table (std::regex + std::map).
+// No DivEngine dep — pure text → arrays, so we can unit-test it standalone.
 
 #include "scspdspasm.h"
 
@@ -54,7 +52,7 @@ static std::string trim(const std::string& s) {
 
 static std::string toUpper(const std::string& s) {
   std::string r = s;
-  for (auto& c : r) c = (char)std::toupper((unsigned char)c);
+  for (char& c : r) c = (char)std::toupper((unsigned char)c);
   return r;
 }
 
@@ -69,7 +67,7 @@ static bool startsWithI(const std::string& s, const std::string& pre) {
 static int parseCoefRhs(const std::string& sIn) {
   std::string s = trim(sIn);
   if (startsWithI(s, "&H"))
-    return (int)std::strtol(s.c_str() + 2, nullptr, 16) & 0x1FFF;
+    return (int)std::strtol(s.c_str() + 2, NULL, 16) & 0x1FFF;
   if (!s.empty() && s[0] == '%') {
     double pct = std::atof(s.c_str() + 1);
     int v = (int)std::lround(4095.0 * (pct / 100.0));
@@ -87,7 +85,7 @@ static int parseCoefRhs(const std::string& sIn) {
 static int parseAdrsRhs(const std::string& sIn) {
   std::string s = trim(sIn);
   if (startsWithI(s, "&H"))
-    return (int)std::strtol(s.c_str() + 2, nullptr, 16) & 0xFFFF;
+    return (int)std::strtol(s.c_str() + 2, NULL, 16) & 0xFFFF;
   if (s.size() >= 2 && (s[0] == 'm' || s[0] == 'M') && (s[1] == 's' || s[1] == 'S')) {
     double ms = std::atof(s.c_str() + 2);
     return (int)std::lround(44100.0 * (ms / 1000.0)) & 0xFFFF;
@@ -140,7 +138,7 @@ struct InstrFields {
   int YRL=0, NEGB=0, ZERO=0, BSEL=0, CRA=0, NOFL=0, MASA=0, ADREB=0, NXADR=0;
 };
 
-struct MproWords { uint16_t w[4]; };
+struct MproWords { unsigned short w[4]; };
 
 static MproWords packMpro(const InstrFields& f) {
   int TRA   = f.TRA   & 0x7F;
@@ -170,16 +168,16 @@ static MproWords packMpro(const InstrFields& f) {
   int NXADR = f.NXADR & 1;
 
   // word 3 (bits 63:48): TRA<<8 | TWT<<7 | TWA
-  uint16_t w3 = (uint16_t)((TRA << 8) | (TWT << 7) | TWA);
+  unsigned short w3 = (unsigned short)((TRA << 8) | (TWT << 7) | TWA);
   // word 2 (bits 47:32): XSEL<<15 | YSEL<<13 | IRA<<6 | IWT<<5 | IWA
-  uint16_t w2 = (uint16_t)((XSEL << 15) | (YSEL << 13) | (IRA << 6) | (IWT << 5) | IWA);
+  unsigned short w2 = (unsigned short)((XSEL << 15) | (YSEL << 13) | (IRA << 6) | (IWT << 5) | IWA);
   // word 1 (bits 31:16): TABLE<<15 | MWT<<14 | MRD<<13 | EWT<<12 | EWA<<8 |
   //                       ADRL<<7 | FRCL<<6 | SHFT<<4 | YRL<<3 | NEGB<<2 | ZERO<<1 | BSEL
-  uint16_t w1 = (uint16_t)((TABLE << 15) | (MWT << 14) | (MRD << 13) | (EWT << 12) |
+  unsigned short w1 = (unsigned short)((TABLE << 15) | (MWT << 14) | (MRD << 13) | (EWT << 12) |
                             (EWA << 8) | (ADRL << 7) | (FRCL << 6) | (SHFT << 4) |
                             (YRL << 3) | (NEGB << 2) | (ZRO << 1) | BSEL);
   // word 0 (bits 15:0): CRA<<9 | NOFL<<8 | MASA<<2 | ADREB<<1 | NXADR
-  uint16_t w0 = (uint16_t)((CRA << 9) | (NOFL << 8) | (MASA << 2) | (ADREB << 1) | NXADR);
+  unsigned short w0 = (unsigned short)((CRA << 9) | (NOFL << 8) | (MASA << 2) | (ADREB << 1) | NXADR);
   return MproWords{ {w3, w2, w1, w0} };
 }
 
@@ -309,9 +307,9 @@ static std::vector<ProdPair> expandProducts(const std::string& expr, const Symbo
     R"(\b(INPUT|TEMP\d{1,2}|MEMS\d{1,2}|MIXS\d{1,2}|EXTS\d)\b\s*\*\s*(COEF\[[^\]]+\]|YREGH|YREGL|[A-Za-z][A-Za-z0-9]{0,14}))",
     std::regex::icase);
   std::vector<ProdPair> out;
-  auto begin = std::sregex_iterator(expr.begin(), expr.end(), prodRe);
-  auto end = std::sregex_iterator();
-  for (auto it = begin; it != end; ++it) {
+  std::sregex_iterator begin(expr.begin(), expr.end(), prodRe);
+  std::sregex_iterator end;
+  for (std::sregex_iterator it = begin; it != end; ++it) {
     ProdPair p;
     applyMultiplicandToFields((*it)[1].str(), p.pmf);
     applyCoefRefToFields((*it)[2].str(), syms, p.yf);
@@ -493,7 +491,7 @@ void Assembler::emitAtChain(const std::string& lineIn) {
   std::smatch m;
   if (!std::regex_match(lineIn, m, atRe))
     throw std::runtime_error("Bad '@' line: " + lineIn);
-  auto prods = expandProducts(m[1].str(), syms);
+  std::vector<ProdPair> prods = expandProducts(m[1].str(), syms);
 
   // First product: ZERO=1 (no augend)
   {
@@ -593,10 +591,10 @@ void Assembler::getArrays(int rbl, SCSPDSPAssembly& out) const {
     int raw = (i == 0) ? 0 : syms.coef.at(syms.coefOrder[i]);
     int shifted = (raw << 3) & 0xFFFF;
     if (shifted & 0x8000) shifted |= ~0xFFFF;  // sign-extend to int
-    out.coef[i] = (int16_t)shifted;
+    out.coef[i] = (short)shifted;
   }
   for (size_t i = 0; i < syms.adrsOrder.size() && i < 32; i++)
-    out.madrs[i] = (uint16_t)syms.adrs.at(syms.adrsOrder[i]);
+    out.madrs[i] = (unsigned short)syms.adrs.at(syms.adrsOrder[i]);
 
   size_t n = progWords.size(); if (n > 128) n = 128;
   for (size_t i = 0; i < n; i++) {
@@ -621,7 +619,7 @@ bool scspdspAssemble(const std::string& src, int rbl, SCSPDSPAssembly& out) {
     out.errors.push_back(e.what());
   }
   if (out.errors.empty()) {
-    auto w = asmblr.alignMemoryOps();
+    std::vector<std::string> w = asmblr.alignMemoryOps();
     out.warnings.insert(out.warnings.end(), w.begin(), w.end());
   }
   asmblr.getArrays(rbl, out);
