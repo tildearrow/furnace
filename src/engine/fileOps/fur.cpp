@@ -1742,6 +1742,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // SCSP DSP source — restore from systemFlags into the DivSong cache
+    // fields the editor binds to. Source of truth is systemFlags; this is
+    // just a working copy for the GUI to bind InputTextMultiline to.
+    for (int i=0; i<ds.systemLen; i++) {
+      if (ds.system[i]!=DIV_SYSTEM_SCSP) continue;
+      ds.scspDspSource=ds.systemFlags[i].getString("dspSource","");
+      ds.scspDspRBL=(unsigned char)(ds.systemFlags[i].getInt("dspRBL",2)&0x3);
+      break;  // SCSP is single-instance
+    }
+
     // read asset directories
     if (ds.version>=156) {
       logD("reading asset directories...");
@@ -2654,7 +2664,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeI(0);
     }
   }
-  
+
   w->writeC(0);
 
   blockEndSeek=w->tell();
@@ -2670,6 +2680,19 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   /// CHIP FLAGS
+  // Sync SCSP DSP source into the SCSP chip's systemFlags so it gets
+  // serialized as part of the existing per-chip flags block — no song
+  // format change needed.
+  for (int i=0; i<song.systemLen; i++) {
+    if (song.system[i]!=DIV_SYSTEM_SCSP) continue;
+    if (song.scspDspSource.empty()) {
+      song.systemFlags[i].remove("dspSource");
+      song.systemFlags[i].remove("dspRBL");
+    } else {
+      song.systemFlags[i].set("dspSource",song.scspDspSource);
+      song.systemFlags[i].set("dspRBL",(int)(song.scspDspRBL&0x3));
+    }
+  }
   sysFlagsPtr.reserve(song.systemLen);
   for (int i=0; i<song.systemLen; i++) {
     String data=song.systemFlags[i].toString();
@@ -2711,6 +2734,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(blockEndSeek-blockStartSeek-4);
     w->seek(0,SEEK_END);
   }
+
 
   /// ASSET DIRECTORIES
   assetDirPtr[0]=w->tell();
