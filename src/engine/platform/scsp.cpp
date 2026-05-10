@@ -20,6 +20,7 @@
 #include "scsp.h"
 #include "../engine.h"
 #include "../scspdspasm.h"
+#include "IconsFontAwesome4.h"
 #include <math.h>
 
 extern "C" {
@@ -228,114 +229,56 @@ void DivPlatformSCSP::writeSlotPan(int slot, unsigned char disdl, unsigned char 
   scsp_slot_set_direct_output(slot,disdl,dipan);
 }
 
-int DivPlatformSCSP::findFreeRun(int numSlots) {
-  if (numSlots<1 || numSlots>32) return -1;
-  for (int s=0; s<=32-numSlots; s++) {
-    bool ok=true;
-    for (int j=0; j<numSlots; j++) {
-      if (slotInUse[s+j]) { ok=false; break; }
-    }
-    if (ok) return s;
+// Release chanIdx's currently-owned slot run (key-off the hardware slots
+// and clear the per-channel ownership state). Safe to call when the chan
+// is already idle.
+void DivPlatformSCSP::releaseChan(int chanIdx) {
+  int n=activeOpCount[chanIdx];
+  if (n<=0) return;
+  for (int s=0; s<n; s++) {
+    int slot=chanIdx+s;
+    if (slot<0 || slot>=32) continue;
+    scsp_key_off(slot);
   }
-  return -1;
+  activeOpCount[chanIdx]=0;
+  chan[chanIdx].slot=-1;
 }
 
-int DivPlatformSCSP::findLruVoice() {
-  int best=-1;
-  unsigned long long bestAge=~(unsigned long long)0;
-  for (int i=0; i<8; i++) {
-    if (voices[i].active && voices[i].age<=bestAge) {
-      bestAge=voices[i].age;
-      best=i;
-    }
-  }
-  return best;
-}
-
-void DivPlatformSCSP::releaseVoice(int chanIdx) {
-  for (int i=0; i<8; i++) {
-    if (voices[i].active && voices[i].chan==chanIdx) {
-      for (int s=0; s<voices[i].slotCount; s++) {
-        int slot=voices[i].firstSlot+s;
-        scsp_key_off(slot);
-        slotInUse[slot]=false;
-      }
-      voices[i].active=false;
-      return;
-    }
+// Steal-on-overlap: any other chan whose owned [c', c'+activeOpCount[c']-1]
+// intersects [anchorChan, anchorChan+numSlots-1] gets released. The new
+// note about to be keyed at anchorChan is the winner.
+void DivPlatformSCSP::stealOverlapping(int anchorChan, int numSlots) {
+  int aLo=anchorChan;
+  int aHi=anchorChan+numSlots-1;
+  for (int c=0; c<32; c++) {
+    if (c==anchorChan) continue;
+    int n=activeOpCount[c];
+    if (n<=0) continue;
+    int oLo=c;
+    int oHi=c+n-1;
+    if (oHi<aLo || oLo>aHi) continue;
+    // Stolen — silence its slots and clear all pending state so the
+    // tick loop doesn't try to act on a corpse.
+    releaseChan(c);
+    chan[c].keyOn=false;
+    chan[c].keyOff=false;
+    chan[c].active=false;
+    chan[c].freqChanged=false;
   }
 }
 
-void DivPlatformSCSP::releaseAllVoices() {
-  for (int i=0; i<8; i++) {
-    if (voices[i].active) {
-      for (int s=0; s<voices[i].slotCount; s++) {
-        scsp_key_off(voices[i].firstSlot+s);
-      }
-      voices[i].active=false;
-    }
-  }
-  for (int s=0; s<32; s++) slotInUse[s]=false;
-}
-
-// Allocate `numSlots` contiguous hardware slots for a tracker channel.
-// First-fit keeps allocations packed at low indices, improving FM ring-buffer
-// locality. On full, steal LRU voices and retry.
-// Returns first-slot index or -1 if allocation failed.
-int DivPlatformSCSP::allocateVoice(int chanIdx, int note, int numSlots) {
-  releaseVoice(chanIdx);
-
-  int start=findFreeRun(numSlots);
-
-  for (int attempt=0; attempt<8 && start<0; attempt++) {
-    int lru=findLruVoice();
-    if (lru<0) break;
-    for (int s=0; s<voices[lru].slotCount; s++) {
-      int slot=voices[lru].firstSlot+s;
-      scsp_key_off(slot);
-      slotInUse[slot]=false;
-    }
-    voices[lru].active=false;
-    start=findFreeRun(numSlots);
-  }
-
-  if (start<0) return -1;
-
-  int rec=-1;
-  for (int i=0; i<8; i++) {
-    if (!voices[i].active) { rec=i; break; }
-  }
-  if (rec<0) return -1;
-
-  voices[rec].chan=chanIdx;
-  voices[rec].note=note;
-  voices[rec].firstSlot=start;
-  voices[rec].slotCount=numSlots;
-  voices[rec].age=allocCounter++;
-  voices[rec].active=true;
-
-  for (int s=0; s<numSlots; s++) slotInUse[start+s]=true;
-  return start;
-}
-
-const DivPlatformSCSP::Voice* DivPlatformSCSP::findVoiceByChan(int chanIdx) const {
-  for (int i=0; i<8; i++) {
-    if (voices[i].active && voices[i].chan==chanIdx) return &voices[i];
-  }
-  return NULL;
-}
-
-// Apply DISDL/DIPAN across every slot of `chanIdx`'s active voice. Mute
-// forces DISDL=0; FM voices force modulator slots to 0 regardless.
+// Apply DISDL/DIPAN across every owned slot of chanIdx. Mute forces DISDL=0;
+// FM modulator ops force DISDL=0 regardless so they stay internal to the
+// FM ring.
 void DivPlatformSCSP::updateChanDirectOutput(int chanIdx) {
-  const Voice* v=findVoiceByChan(chanIdx);
-  if (v==NULL) return;
+  int n=activeOpCount[chanIdx];
+  if (n<=0) return;
   DivInstrument* ins=parent->getIns(chan[chanIdx].ins,DIV_INS_YMF292);
   bool isScspIns=(ins->type==DIV_INS_YMF292);
   bool isFMIns=isScspIns && (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM);
   unsigned char dipan=(unsigned char)(chan[chanIdx].pan&0x1F);
-  for (int s=0; s<v->slotCount; s++) {
-    int slot=v->firstSlot+s;
+  for (int s=0; s<n; s++) {
+    int slot=chanIdx+s;
     unsigned char disdl;
     if (isMuted[chanIdx]) {
       disdl=0;
@@ -348,16 +291,17 @@ void DivPlatformSCSP::updateChanDirectOutput(int chanIdx) {
   }
 }
 
-// Apply current channel TL across the voice's slots. For FM voices, only
-// carriers receive the volume — modulators keep the TL set by programSlotFM.
+// Apply current channel TL across the chan's owned slots. For FM voices,
+// only carriers receive the volume — modulators keep the TL set by
+// programSlotFM so their FM index is preserved.
 void DivPlatformSCSP::updateChanVolume(int chanIdx) {
-  const Voice* v=findVoiceByChan(chanIdx);
-  if (v==NULL) return;
+  int n=activeOpCount[chanIdx];
+  if (n<=0) return;
   DivInstrument* ins=parent->getIns(chan[chanIdx].ins,DIV_INS_YMF292);
   bool isFMIns=(ins->type==DIV_INS_YMF292) && (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM);
   unsigned char chanTl=(unsigned char)(127-(chan[chanIdx].outVol&0x7F));
-  for (int s=0; s<v->slotCount; s++) {
-    int slot=v->firstSlot+s;
+  for (int s=0; s<n; s++) {
+    int slot=chanIdx+s;
     if (isFMIns && !ins->scsp.ops[s].isCarrier) continue;
     writeSlotTotalLevel(slot,chanTl);
   }
@@ -582,32 +526,58 @@ void DivPlatformSCSP::programSlot(int slot, int chanIdx) {
 }
 
 void DivPlatformSCSP::acquire(short** buf, size_t len) {
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     oscBuf[i]->begin(len);
   }
 
   // Render in chunks bounded by the bridge buffer (8192 stereo pairs).
   size_t off=0;
+  // Per-frame, per-slot post-EG/pan-L capture. The MAME backend writes
+  // each slot's audible left-bus contribution here; the aosdk backend's
+  // bridge stub leaves the buffer untouched (osc shows zeros). Modulator
+  // slots have DISDL=0 so their LPANTABLE entry is zero and they emit
+  // nothing through this path — matching what the listener hears for an
+  // FM voice (only the carrier is audible).
+  static int16_t slotCap[4096*32];
+  scsp_set_slot_capture(slotCap);
+
   while (off<len) {
     size_t chunk=len-off;
     if (chunk>4096) chunk=4096;
+    memset(slotCap,0,chunk*32*sizeof(int16_t));
     short* rendered=scsp_render((int)chunk);
     for (size_t i=0; i<chunk; i++) {
       buf[0][off+i]=rendered[i*2+0];
       buf[1][off+i]=rendered[i*2+1];
     }
+    // Per-channel oscilloscope. With the 1:1 chan→slot anchor model, an
+    // idle chan owns no slots (capture row stays zero from the memset).
+    // An active chan owns slots [chIdx, chIdx+activeOpCount-1] — sum them
+    // to get the audible output: PCM is one slot direct; FM modulators
+    // contribute zero (DISDL=0), so the sum reduces to just the carrier.
+    for (int chIdx=0; chIdx<32; chIdx++) {
+      int n=activeOpCount[chIdx];
+      if (n<=0) {
+        for (size_t i=0; i<chunk; i++) oscBuf[chIdx]->putSample(off+i,0);
+        continue;
+      }
+      int slotCount=n;
+      if (chIdx+slotCount>32) slotCount=32-chIdx;
+      for (size_t i=0; i<chunk; i++) {
+        int s=0;
+        const int16_t* row=slotCap+i*32+chIdx;
+        for (int sl=0; sl<slotCount; sl++) s+=row[sl];
+        if (s>32767) s=32767;
+        if (s<-32768) s=-32768;
+        oscBuf[chIdx]->putSample(off+i,(short)s);
+      }
+    }
     off+=chunk;
   }
 
-  // No per-slot oscilloscope yet — emit zeros for now. Phase A2+ will
-  // tap individual slot output via SCSP_DoMasterSample's slot accumulator.
-  for (size_t i=0; i<len; i++) {
-    for (int j=0; j<8; j++) {
-      oscBuf[j]->putSample(i,0);
-    }
-  }
+  scsp_set_slot_capture(NULL);
 
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -618,7 +588,7 @@ void DivPlatformSCSP::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformSCSP::tick(bool sysTick) {
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     chan[i].std.next();
 
     if (chan[i].std.vol.had) {
@@ -651,27 +621,47 @@ void DivPlatformSCSP::tick(bool sysTick) {
     }
   }
 
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     if (chan[i].keyOn || chan[i].keyOff || chan[i].freqChanged) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_YMF292);
       bool isFMIns=(ins->type==DIV_INS_YMF292) && (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM);
 
       if (chan[i].keyOn) {
+        // Determine slot run: PCM=1, FM=opCount (clamped to fit in 32 slots
+        // from the chan anchor). With 1:1 chan→slot mapping, op k of an
+        // FM voice on chan i lands on slot i+k.
         int numSlots=1;
         if (isFMIns) {
           numSlots=ins->scsp.opCount;
           if (numSlots<1) numSlots=1;
-          if (numSlots>6) numSlots=6;
+          if (numSlots>32) numSlots=32;
         }
-        int firstSlot=allocateVoice(i,chan[i].note,numSlots);
-        chan[i].slot=firstSlot;
-        if (firstSlot>=0) {
+        if (i+numSlots>32) numSlots=32-i;
+
+        // FLEXIBILITY ROADMAP — DSP-pinned slots. If the chan's required
+        // slot run hits a DSP-pinned slot (slots 0/1 when a DSP program is
+        // loaded), suppress the note rather than stomping the DSP routing.
+        // Future: let the user pick the DSP-out slots, removing this gate.
+        bool blocked=false;
+        for (int k=0; k<numSlots; k++) {
+          if (slotInUse[i+k]) { blocked=true; break; }
+        }
+
+        if (blocked) {
+          chan[i].keyOn=false;
+          chan[i].slot=-1;
+          chan[i].active=false;
+        } else {
+          stealOverlapping(i,numSlots);
+          releaseChan(i);
+          activeOpCount[i]=numSlots;
+          chan[i].slot=i;
           if (isFMIns) {
             for (int op=0; op<numSlots; op++) {
-              programSlotFM(firstSlot+op, i, op, firstSlot, (double)chan[i].note);
+              programSlotFM(i+op, i, op, i, (double)chan[i].note);
             }
           } else {
-            programSlot(firstSlot,i);
+            programSlot(i,i);
           }
         }
       }
@@ -700,12 +690,10 @@ void DivPlatformSCSP::tick(bool sysTick) {
           midiNoteFurnace+=(double)(chan[i].pitch+chan[i].pitch2)/128.0;
           double midiNote=midiNoteFurnace-48.0;
 
-          const Voice* v=findVoiceByChan(i);
-          if (v!=NULL) {
-            for (int op=0; op<v->slotCount; op++) {
-              unsigned short octBits=computeFMOctBitsForOp(ins->scsp.ops[op], midiNote);
-              scsp_write_slot(v->firstSlot+op, 0x8, octBits);
-            }
+          int n=activeOpCount[i];
+          for (int op=0; op<n; op++) {
+            unsigned short octBits=computeFMOctBitsForOp(ins->scsp.ops[op], midiNote);
+            scsp_write_slot(i+op, 0x8, octBits);
           }
           chan[i].freqChanged=false;
         } else if (chan[i].sample>=0 && sampleLoaded[chan[i].sample]) {
@@ -754,17 +742,14 @@ void DivPlatformSCSP::tick(bool sysTick) {
       }
 
       if (chan[i].keyOn) {
-        const Voice* v=findVoiceByChan(i);
-        if (v!=NULL) {
-          for (int s=0; s<v->slotCount; s++) {
-            scsp_key_on(v->firstSlot+s);
-          }
+        int n=activeOpCount[i];
+        for (int s=0; s<n; s++) {
+          scsp_key_on(i+s);
         }
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
-        releaseVoice(i);
-        chan[i].slot=-1;
+        releaseChan(i);
         chan[i].keyOff=false;
       }
     }
@@ -777,6 +762,86 @@ SharedChannel* DivPlatformSCSP::getChanState(int ch) {
 
 DivDispatchOscBuffer* DivPlatformSCSP::getOscBuffer(int ch) {
   return oscBuf[ch];
+}
+
+// Surface multi-op FM patches in the channel-pair UI hint so users can see
+// which slots are occupied by which patch's ops *right now*. Driven off
+// runtime activeOpCount[] (not the loaded instrument), matching Furnace's
+// convention that pair hints are runtime indicators (the consumer in
+// pattern.cpp gates on e->isRunning() anyway). When a note ends and the
+// chan releases its slots, activeOpCount→0 and the indicators clear.
+// Conflicts between overlapping anchors don't pile up because the
+// runtime steal-on-overlap leaves only one active anchor per slot range.
+//
+// For a currently-active N-op FM voice anchored at slot A (activeOpCount[A]=N):
+//  - the anchor's pair list points forward to A+1..A+N-1 ("op 2".."op N")
+//  - each consumed slot's pair list points back to A ("from S<A+1>")
+//
+// Labels must outlive the call (DivChannelPair stores const char*), so
+// they're indexed into static tables instead of formatted per-call.
+void DivPlatformSCSP::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  static const char* const opLabels[33]={
+    "op 0","op 1","op 2","op 3","op 4","op 5","op 6","op 7",
+    "op 8","op 9","op 10","op 11","op 12","op 13","op 14","op 15",
+    "op 16","op 17","op 18","op 19","op 20","op 21","op 22","op 23",
+    "op 24","op 25","op 26","op 27","op 28","op 29","op 30","op 31",
+    "op 32",
+  };
+  static const char* const fromLabels[32]={
+    "from S1","from S2","from S3","from S4","from S5","from S6","from S7","from S8",
+    "from S9","from S10","from S11","from S12","from S13","from S14","from S15","from S16",
+    "from S17","from S18","from S19","from S20","from S21","from S22","from S23","from S24",
+    "from S25","from S26","from S27","from S28","from S29","from S30","from S31","from S32",
+  };
+
+  // Forward: ch is currently an anchor of a multi-op voice.
+  int n=activeOpCount[ch];
+  if (n>1) {
+    for (int k=1; k<n && (ch+k)<32; k++) {
+      ret.push_back(DivChannelPair(opLabels[k+1],(signed char)(ch+k)));
+    }
+  }
+
+  // Reverse: find any earlier chan whose active range covers ch.
+  for (int a=ch-1; a>=0; a--) {
+    int an=activeOpCount[a];
+    if (an>1 && a+an-1>=ch) {
+      ret.push_back(DivChannelPair(fromLabels[a],(signed char)a));
+      break;
+    }
+  }
+}
+
+// Per-slot mode hints: link icon on anchors of currently-active multi-op
+// voices, ban icon on slots being consumed by another anchor's active range.
+// Driven off runtime activeOpCount[] (clears as soon as the note ends),
+// matching pair-arrow semantics. Requires "Pattern channel status" enabled
+// in Furnace settings to be visible.
+DivChannelModeHints DivPlatformSCSP::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  if (ch<0 || ch>=32) return ret;
+
+  // Anchor of a currently-active multi-op voice.
+  int n=activeOpCount[ch];
+  if (n>1) {
+    ret.count=1;
+    ret.hint[0]=ICON_FA_LINK;
+    ret.type[0]=4;  // chip primary
+    return ret;
+  }
+
+  // Consumed by an earlier anchor's active range.
+  for (int a=ch-1; a>=0; a--) {
+    int an=activeOpCount[a];
+    if (an>1 && a+an-1>=ch) {
+      ret.count=1;
+      ret.hint[0]=ICON_FA_BAN;
+      ret.type[0]=5;  // chip secondary
+      return ret;
+    }
+  }
+
+  return ret;
 }
 
 void DivPlatformSCSP::refreshRegPool() {
@@ -975,46 +1040,46 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
     // carries multiple effects accumulates correctly. State is reset on the
     // next note-on. Not preserved by Saturn SEQ export — Furnace-only.
     case DIV_CMD_SCSP_OP_TL: {
-      const Voice* v=findVoiceByChan(c.chan);
-      if (v==NULL) break;
+      int n=activeOpCount[c.chan];
+      if (n<=0) break;
       int opIdx=c.value;
-      if (opIdx<0 || opIdx>=v->slotCount) break;
-      scsp_write_slot(v->firstSlot+opIdx,0x6,(unsigned short)(c.value2&0xFF));
+      if (opIdx<0 || opIdx>=n) break;
+      scsp_write_slot(c.chan+opIdx,0x6,(unsigned short)(c.value2&0xFF));
       break;
     }
     case DIV_CMD_SCSP_OP_MDL: {
-      const Voice* v=findVoiceByChan(c.chan);
-      if (v==NULL) break;
+      int n=activeOpCount[c.chan];
+      if (n<=0) break;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
       if (ins->type!=DIV_INS_YMF292 || ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) break;
       int opIdx=c.value;
-      if (opIdx<0 || opIdx>=v->slotCount) break;
+      if (opIdx<0 || opIdx>=n) break;
       const DivInstrumentSCSP::Op& op=ins->scsp.ops[opIdx];
       unsigned char newMdl=c.value2&0xF;
       // Recompute TL like programSlotFM (needed for feedback ringPeak math).
       int tlInt=(int)floor((1.0-(double)op.level/127.0)*128.0+0.5);
       if (tlInt<0) tlInt=0;
       if (tlInt>255) tlInt=255;
-      int slot=v->firstSlot+opIdx;
+      int slot=c.chan+opIdx;
       unsigned short d7=computeD7FromOp(newMdl, op.modSource, op.feedback,
-                                         (unsigned char)tlInt, slot, v->firstSlot);
+                                         (unsigned char)tlInt, slot, c.chan);
       scsp_write_slot(slot,0x7,d7);
       break;
     }
     case DIV_CMD_SCSP_FEEDBACK: {
-      const Voice* v=findVoiceByChan(c.chan);
-      if (v==NULL) break;
+      int n=activeOpCount[c.chan];
+      if (n<=0) break;
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_YMF292);
       if (ins->type!=DIV_INS_YMF292 || ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) break;
       unsigned char newFb=c.value&0x7F;
-      for (int op=0; op<v->slotCount; op++) {
+      for (int op=0; op<n; op++) {
         const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
         int tlInt=(int)floor((1.0-(double)opdef.level/127.0)*128.0+0.5);
         if (tlInt<0) tlInt=0;
         if (tlInt>255) tlInt=255;
-        int slot=v->firstSlot+op;
+        int slot=c.chan+op;
         unsigned short d7=computeD7FromOp(opdef.mdl, opdef.modSource, newFb,
-                                           (unsigned char)tlInt, slot, v->firstSlot);
+                                           (unsigned char)tlInt, slot, c.chan);
         scsp_write_slot(slot,0x7,d7);
       }
       break;
@@ -1026,7 +1091,7 @@ int DivPlatformSCSP::dispatch(DivCommand c) {
 }
 
 void DivPlatformSCSP::notifyInsDeletion(void* ins) {
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -1046,19 +1111,14 @@ void DivPlatformSCSP::notifyPitchTable(int sample) {
 
 void DivPlatformSCSP::reset() {
   scsp_init();
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     chan[i]=DivPlatformSCSP::Channel(parent->song.compatFlags.linearPitch);
     chan[i].pitchTable=&pitchTable;
     chan[i].vol=0x7F;
     chan[i].outVol=0x7F;
-  }
-  for (int i=0; i<32; i++) {
+    activeOpCount[i]=0;
     slotInUse[i]=false;
   }
-  for (int i=0; i<8; i++) {
-    voices[i]=Voice();
-  }
-  allocCounter=0;
   memset(regPool,0,sizeof(regPool));
 
   // Re-upload sample memory: scsp_init zeroed RAM, so we need to refill it.
@@ -1133,7 +1193,7 @@ bool DivPlatformSCSP::reloadDSP() {
 }
 
 void DivPlatformSCSP::forceIns() {
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
@@ -1159,7 +1219,7 @@ void DivPlatformSCSP::setFlags(const DivConfig& flags) {
   // SCSP master clock is 22.5792 MHz on Saturn; output rate is 44100 Hz.
   chipClock=22579200;
   rate=44100;
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     if (oscBuf[i]) oscBuf[i]->setRate(rate);
   }
 }
@@ -1259,8 +1319,9 @@ int DivPlatformSCSP::init(DivEngine* p, int channels, int sugRate, const DivConf
   dumpWrites=false;
   skipRegisterWrites=false;
 
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     isMuted[i]=false;
+    activeOpCount[i]=0;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
 
@@ -1278,11 +1339,11 @@ int DivPlatformSCSP::init(DivEngine* p, int channels, int sugRate, const DivConf
 
   notifyPitchTable();
   reset();
-  return 8;
+  return 32;
 }
 
 void DivPlatformSCSP::quit() {
-  for (int i=0; i<8; i++) {
+  for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
   delete[] sampleMem;

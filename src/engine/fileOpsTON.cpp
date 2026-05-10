@@ -229,10 +229,23 @@ SafeWriter* DivEngine::saveSCSPTON() {
   std::map<int,unsigned int> sampleLength;  // index -> length in samples
 
   // First pass: collect referenced samples.
+  // Per the TON format spec (Sega Tone Editor Manual Appendix 3), the
+  // "Number of layers" field is a single byte stored as count-1, so any
+  // count from 1..256 is encodable; functionally the hardware caps at 32
+  // slots. We export all ops but warn when exceeding the historical 6-op
+  // convention since most distributed SGL drivers were authored with that
+  // assumption and untested at higher op counts.
+  bool warnedOverSix=false;
   for (int idx: insIndices) {
     DivInstrument* ins=song.ins[idx];
     int n=ins->scsp.opCount;
-    if (n>6) n=6;
+    if (n>32) n=32;
+    if (n>6 && !warnedOverSix) {
+      logW("TON export: instrument %d has %d ops (>6). The format supports "
+           "up to 32 layers per voice, but most SGL setups were authored "
+           "for ≤6 ops — verify on target hardware.", idx, n);
+      warnedOverSix=true;
+    }
     for (int op=0; op<n; op++) {
       const DivInstrumentSCSP::Op& opdef=ins->scsp.ops[op];
       if (opdef.sampleId>=0 && opdef.sampleId<song.sampleLen) {
@@ -268,7 +281,7 @@ SafeWriter* DivEngine::saveSCSPTON() {
     DivInstrument* ins=song.ins[idx];
     int n=ins->scsp.opCount;
     if (n<1) n=1;
-    if (n>6) n=6;
+    if (n>32) n=32;
     std::vector<unsigned char> v(4+n*0x20,0);
     v[0]=2;        // bend_range
     v[2]=(unsigned char)(n-1);  // num_layers - 1
@@ -424,7 +437,7 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     unsigned int vo=voiceOff[vi];
     int nLayers=(int)data[vo+2]+1;
     if (nLayers<1) nLayers=1;
-    if (nLayers>6) nLayers=6;  // DivInstrumentSCSP::Op[6]
+    if (nLayers>32) nLayers=32;  // SCSP hardware slot count = DivInstrumentSCSP::Op[32]
     if (vo+4+nLayers*0x20>fileLen) {
       lastError=_("TON layer data out of range");
       return;

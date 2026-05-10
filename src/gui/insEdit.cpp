@@ -8089,13 +8089,19 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTable();
           }
           if (ins->scsp.mode==DivInstrumentSCSP::SCSP_MODE_FM) {
-            static const char* scspModSourceOptions[]={ "None","Op 1","Op 2","Op 3","Op 4","Op 5","Op 6" };
+            static const char* scspModSourceOptions[]={
+              "None",
+              "Op 1","Op 2","Op 3","Op 4","Op 5","Op 6","Op 7","Op 8",
+              "Op 9","Op 10","Op 11","Op 12","Op 13","Op 14","Op 15","Op 16",
+              "Op 17","Op 18","Op 19","Op 20","Op 21","Op 22","Op 23","Op 24",
+              "Op 25","Op 26","Op 27","Op 28","Op 29","Op 30","Op 31","Op 32"
+            };
 
             ImGui::SeparatorText(_("FM Operators"));
             int opCountInt=ins->scsp.opCount;
             if (opCountInt<1) opCountInt=1;
-            if (opCountInt>6) opCountInt=6;
-            if (ImGui::SliderInt(_("Operator Count"),&opCountInt,1,6)) {
+            if (opCountInt>32) opCountInt=32;
+            if (ImGui::SliderInt(_("Operator Count"),&opCountInt,1,32)) {
               ins->scsp.opCount=(unsigned char)opCountInt;
               MARK_MODIFIED;
             }

@@ -49,34 +49,27 @@ class DivPlatformSCSP: public DivDispatch {
         audPosOverride(false),
         audPos(0) {}
     };
-    Channel chan[8];
-    DivDispatchOscBuffer* oscBuf[8];
-    bool isMuted[8];
+    Channel chan[32];
+    DivDispatchOscBuffer* oscBuf[32];
+    bool isMuted[32];
     DivPitchTable pitchTable;
 
+    // Per-channel slot ownership under the 1:1 chan→slot anchor model.
+    // activeOpCount[c] == 0 means chan c is idle. n>0 means chan c owns
+    // slots [c, c+n-1]: PCM voices use n=1, FM voices use n=opCount (clamped
+    // to 32-c so the run stays within the slot pool, and further trimmed if
+    // any slot in the range is DSP-pinned).
+    int activeOpCount[32];
+
+    // DSP output bus reservation. slotInUse[k]==true means slot k is pinned
+    // by the on-chip DSP's stereo wet bus; channels whose anchor range hits
+    // a pinned slot suppress note-on rather than stomping the DSP routing.
+    // See the FLEXIBILITY ROADMAP comment in scsp.cpp::reloadDSP() for the
+    // longer term plan to lift this constraint.
     bool slotInUse[32];
 
-    // Voice allocator — maps tracker channels (1 note each) onto contiguous
-    // runs of hardware slots. PCM voices use 1 slot; FM voices use opCount
-    // slots (1..6). At most one active voice per channel, so 8 records suffice.
-    struct Voice {
-      int chan;
-      int note;
-      int firstSlot;
-      int slotCount;
-      unsigned long long age;
-      bool active;
-      Voice():
-        chan(-1), note(0), firstSlot(-1), slotCount(0), age(0), active(false) {}
-    };
-    Voice voices[8];
-    unsigned long long allocCounter;
-
-    int  allocateVoice(int chanIdx, int note, int numSlots);
-    void releaseVoice(int chanIdx);
-    void releaseAllVoices();
-    int  findFreeRun(int numSlots);
-    int  findLruVoice();
+    void stealOverlapping(int anchorChan, int numSlots);
+    void releaseChan(int chanIdx);
 
     unsigned int* sampleOff;
     unsigned int* sampleStored;  // frames actually uploaded (≤ sample->samples; clipped to RAM)
@@ -110,7 +103,6 @@ class DivPlatformSCSP: public DivDispatch {
 
     void programSlot(int slot, int chanIdx);
     void programSlotFM(int slot, int chanIdx, int opIdx, int slotBase, double midiNote);
-    const Voice* findVoiceByChan(int chanIdx) const;
     void updateChanDirectOutput(int chanIdx);
     void updateChanVolume(int chanIdx);
     void writeSlotPitch(int slot, int midiNote, int baseMidiNote);
@@ -131,6 +123,8 @@ class DivPlatformSCSP: public DivDispatch {
     void notifyPitchTable(int sample=-1);
     SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
+    DivChannelModeHints getModeHints(int ch);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     void reset();

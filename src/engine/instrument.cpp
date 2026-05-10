@@ -791,7 +791,7 @@ bool DivInstrumentSCSP::operator==(const DivInstrumentSCSP& other) {
         _C(lfof) && _C(plfows) && _C(plfos) && _C(alfows) && _C(alfos) && _C(lforeset) &&
         _C(isel) && _C(imxl) && _C(efsdl) && _C(efpan) && _C(disdl) && _C(dipan) &&
         _C(opCount))) return false;
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<32; i++) {
     if (!(ops[i]==other.ops[i])) return false;
   }
   return true;
@@ -1480,7 +1480,7 @@ size_t DivInstrument::writeFeatureLS(SafeWriter* w, std::vector<int>& list, cons
   // sound RAM regardless of synthesis mode). Collect those too so a
   // self-contained FM instrument carries its own waveform PCM.
   if (type==DIV_INS_YMF292) {
-    for (int i=0; i<scsp.opCount && i<6; i++) {
+    for (int i=0; i<scsp.opCount && i<32; i++) {
       int sid=scsp.ops[i].sampleId;
       if (sid>=0 && sid<(int)song->sample.size()) {
         sampleUsed[sid]=true;
@@ -1784,9 +1784,10 @@ void DivInstrument::writeFeatureSC(SafeWriter* w) {
   w->writeC(scsp.disdl);
   w->writeC(scsp.dipan);
 
-  // FM operator data
+  // FM operator data — always written for all 32 ops so the format is
+  // self-describing and the reader can derive op count from feature size.
   w->writeC(scsp.opCount);
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<32; i++) {
     DivInstrumentSCSP::Op& op=scsp.ops[i];
     w->writeS(op.freqRatio);
     w->writeS(op.freqFixed);
@@ -3153,7 +3154,7 @@ void DivInstrument::readFeatureLS(SafeReader& reader, DivSong* song, short versi
 
   // SCSP per-op sample references.
   if (type==DIV_INS_YMF292) {
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<32; i++) {
       if (scsp.ops[i].sampleId>=0) {
         scsp.ops[i].sampleId=(signed short)sampleRemap[scsp.ops[i].sampleId];
       }
@@ -3328,11 +3329,15 @@ void DivInstrument::readFeatureSC(SafeReader& reader, short version) {
   scsp.dipan=reader.readC();
 
   scsp.opCount=reader.readC();
-  // Per-op layout is 21 bytes (incl. trailing sampleId). 21 × 6 = 126.
+  // Per-op layout is 21 bytes (incl. trailing sampleId). The original
+  // 6-op format was 21×6=126 bytes; the 32-op format is 21×32=672 bytes.
   // The earlier per-op-sample extension was 22 bytes (with a `waveform`
   // byte that's been removed); both encodings include sampleId.
   bool hasOpSampleId=((endOfFeat-reader.tell())>=126);
-  for (int i=0; i<6; i++) {
+  int opsAvailable=(int)((endOfFeat-reader.tell())/(hasOpSampleId?21:20));
+  if (opsAvailable<0) opsAvailable=0;
+  if (opsAvailable>32) opsAvailable=32;
+  for (int i=0; i<opsAvailable; i++) {
     DivInstrumentSCSP::Op& op=scsp.ops[i];
     op.freqRatio=reader.readS();
     op.freqFixed=reader.readS();

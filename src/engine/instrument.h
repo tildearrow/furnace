@@ -872,7 +872,7 @@ struct DivInstrumentSCSP {
     bool operator!=(const Op& other) {
       return !(*this==other);
     }
-  } ops[6];
+  } ops[32];
 
   bool operator==(const DivInstrumentSCSP& other);
   bool operator!=(const DivInstrumentSCSP& other) {
