@@ -4,10 +4,10 @@ the Yamaha YMF292 (Saturn Custom Sound Processor — SCSP) is the sound chip in 
 
 this chip features:
 
-- 32 voice slots — each slot reads a sample from RAM and applies an envelope, LFO, and amplitude control. Furnace exposes 8 logical channels and allocates slots dynamically.
+- 32 voice slots — each slot reads a sample from RAM and applies an envelope, LFO, and amplitude control. Furnace exposes all 32 slots as tracker channels (Slot 1 .. Slot 32) with a 1:1 chan→slot anchor mapping.
 - two synthesis modes per instrument:
-  - **PCM**: a single slot plays a sample from RAM (built-in or user). this is what most Saturn games use.
-  - **FM**: 1–6 operators are mapped to slots and modulated via the SCSP's slot-to-slot ring buffer. any RAM contents — built-in waveform or user sample — can be used as a carrier or modulator.
+  - **PCM**: a single slot plays a sample from RAM. this is what most Saturn games use.
+  - **FM**: 1–32 operators are mapped to consecutive slots starting at the channel's anchor (op N lands on anchor+N) and modulated via the SCSP's slot-to-slot ring buffer. any user sample can be used as a carrier or modulator.
 - a programmable on-chip DSP with up to 128 micro-instructions, 64 coefficients, 32 address constants, and a 8K–64K-word delay-line ring buffer. used for reverb, delay, chorus, filtering, etc.
 - 16-bit signed PCM samples in RAM (no 8-bit / no compression in Furnace's emulation).
 
@@ -28,27 +28,26 @@ this chip features:
 
 these are not preserved by Saturn SEQ / TON export. they exist to let you sequence FM patches inside Furnace.
 
-- `20xx`–`25xx`: set TL (output level) of operator 1 through 6. `00` = loudest, `FF` = silent.
-- `30xx`–`35xx`: set modulation depth (MDL) of operator 1 through 6. `00`–`0F`.
-- `40xx`: set carrier waveform — `0` sine, `1` saw, `2` square, `3` triangle, `4` organ, `5` brass, `6` strings, `7` piano, `8` flute, `9` bass.
-- `41xx`: set modulator waveform (same indices as `40xx`).
+- `20xx`–`3Fxx`: set TL (output level) of operator 1 through 32. `00` = loudest, `FF` = silent.
+- `40xy`: set modulation depth (MDL) of operator x (1–16) to y (`0`–`F`).
+- `41xy`: set MDL of operator x+16 (so x=1 → op 17, x=16 → op 32) to y.
 - `43xx`: set self-feedback amount (`00`–`7F`).
 
 ## info
 
 uses the [SCSP](../4-instrument/scsp.md) instrument editor.
 
-- 8 logical channels (one note each), backed by up to 8 hardware slots in PCM mode or `8 × opCount` slots in FM mode.
+- 32 tracker channels, one per hardware slot. a note on Slot N keys hardware slot N; an N-op FM patch on Slot N occupies slots N .. N+opCount-1.
 - 512 KB shared sample RAM. user samples are 16-bit signed PCM. samples that don't fit are truncated at upload time.
-- when an on-chip DSP program is loaded, slots 0 and 1 are reserved as the stereo wet bus, so the simultaneous-voice limit drops to 6.
+- when an on-chip DSP program is loaded, slots 0 and 1 are reserved as the stereo wet bus and notes on Slot 1 / Slot 2 are suppressed for the duration.
 
-### why 8 channels and not 32?
+### channel ↔ slot mapping
 
-the SCSP has 32 hardware slots, and there's no distinct "operator" register — an FM operator *is* a slot whose phase output is routed to another slot via the slot-to-slot ring buffer. so "32 slots" and "up to 32 operators" are the same resource. a single PCM voice uses 1 slot; a 4-op FM voice uses 4. the chip is one shared pool of 32 resources, mixed across PCM and FM however you like.
+each tracker channel maps directly to one hardware slot — Slot 1 is hardware slot 0, Slot 2 is slot 1, …, Slot 32 is slot 31. for PCM and 1-op FM, only the anchor slot is used. for multi-op FM, op 0 lands on the anchor and ops 1..N-1 land on the following slots.
 
-exposing all 32 as fixed tracker channels would be misleading: a row that columns "channel 5" would mean different things depending on what instrument was loaded — sometimes it's a free voice, sometimes it's the third operator of a 4-op patch you placed two columns to the left. that breaks pattern preview, rendering, and the tracker's mental model.
+if you key a multi-op FM patch on Slot N and any other channel currently owns one of slots N .. N+opCount-1, that other channel's note is silently stolen (key-off + slot release). this lets you mix any combination of PCM and FM patches across the 32 slots — e.g. eight 4-op voices fill the slot pool exactly, but you can also run 16 PCM + four 4-op voices, or 32 PCM voices, or one 32-op FM patch on Slot 1.
 
-instead, Furnace exposes 8 logical channels (one note each). a runtime allocator reserves contiguous slot runs per note: 1 slot for PCM, `opCount` slots for FM, with LRU stealing on overflow. eight 4-op voices would technically fit (8 × 4 = 32 slots, the chip's exact capacity), but the FM ring-buffer math requires each voice's operators to occupy adjacent slot indices, so the slots are split into "FM voices" of one fixed size at allocation time. eight channels covers a typical Saturn-game arrangement (lead + bass + 2 accompaniment + 4 drum/SFX). real Saturn games drive voice allocation from SEQ events at a finer granularity than the tracker model — Furnace's 8-channel grid is a deliberate simplification for editing.
+ops past the end of the slot pool (e.g. a 4-op patch keyed on Slot 30) are silently truncated to fit. similarly, ops landing on a DSP-pinned slot suppress the entire note while the DSP is active.
 
 ## chip config
 
@@ -56,7 +55,7 @@ no chip-specific options. the SCSP runs at its fixed Saturn clock (22.5792 MHz) 
 
 ## TON / SEQ export
 
-`File → Export → Saturn TON Bank` produces a `.ton` instrument bank compatible with the [mid2seq](https://github.com/jfsantos/mid2seq) / saturn_kit toolchain and the SGL sound driver. one voice per FM-mode SCSP instrument; PCM-mode instruments and Furnace-specific FM effect codes (20xx–43xx) are not exported.
+`File → Export → Saturn TON Bank` produces a `.ton` instrument bank compatible with the [mid2seq](https://github.com/jfsantos/mid2seq) / saturn_kit toolchain and the SGL sound driver. one voice per FM-mode SCSP instrument; PCM-mode instruments and Furnace-specific FM effect codes (20xx–43xx) are not exported. the TON format itself supports up to 32 layers per voice (one per hardware slot), but most distributed SGL setups were authored with the 6-op convention — a warning is logged when exporting voices with more than 6 ops.
 
 `.ton` files can also be loaded via `File → Open Instrument` — each voice becomes one Furnace SCSP instrument, with built-in waveforms recognized by content match and non-matching PCM imported as new samples.
 
