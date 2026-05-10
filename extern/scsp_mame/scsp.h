@@ -71,6 +71,14 @@ public:
 	// interleaved L/R int16_t. Internal timers are advanced per frame.
 	void render(int16_t *out, int n_frames);
 
+	// Optional per-slot output capture. When `buf` is non-NULL, render()
+	// writes each slot's per-frame contribution to the LEFT direct-mix
+	// bus (post-EG, post-DISDL/DIPAN) into buf, with layout:
+	//     buf[frame * 32 + slot]   for frame in 0..n_frames-1
+	// Modulator slots (DISDL=0) naturally emit zero through this path.
+	// Pass NULL to disable; the setting persists across render() calls.
+	void set_slot_capture_buffer(int16_t *buf) { m_slotCapBuf = buf; }
+
 	// SCSP register access. offset is a 16-bit-word index into the SCSP
 	// register space (i.e. byte address >> 1), 0x000..0x7FF.
 	uint16_t read(uint32_t offset);
@@ -150,6 +158,9 @@ private:
 	// IRQ callbacks (nullptr until set).
 	void (*m_irq_cb)(int line, int state)  = nullptr;
 	void (*m_main_irq_cb)(int state)       = nullptr;
+
+	// Per-slot output-capture buffer (see set_slot_capture_buffer).
+	int16_t *m_slotCapBuf = nullptr;
 
 	// Master output gain (defaults set in ctor).
 	float m_output_gain[2];

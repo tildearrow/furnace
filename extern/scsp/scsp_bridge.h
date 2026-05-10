@@ -75,6 +75,18 @@ uint16_t scsp_read_slot_reg(int slot, int reg);    /* slot 0..31, reg 0..15 */
 uint16_t scsp_read_common_reg(int reg);             /* reg 0..23 (word index) */
 uint16_t scsp_dsp_get_mpro(int index);              /* index 0..511 */
 
+/* Optional per-slot output capture for host-side oscilloscope feeds.
+ * When buf is non-NULL, the next scsp_render(N) writes each slot's
+ * per-frame contribution to the LEFT direct-mix bus (post-EG, post-pan)
+ * into buf with layout:  buf[frame * 32 + slot]  for frame in 0..N-1.
+ * The buffer must hold at least N*32 int16_t entries. Modulator slots
+ * (DISDL=0) emit zero through this path. Pass NULL to disable.
+ * The setting persists across scsp_render() calls.
+ *
+ * Implemented only by the MAME backend. The aosdk backend's stub does
+ * nothing (per-channel oscilloscope was a known TODO there). */
+void scsp_set_slot_capture(int16_t *buf);
+
 #ifdef __cplusplus
 }
 #endif

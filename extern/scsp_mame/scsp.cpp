@@ -1227,6 +1227,13 @@ void scsp_device::DoMasterSamples(int16_t *out, int n_frames)
 
 		s32 smpl = 0, smpr = 0;
 
+		// Reset this frame's slot-capture row up-front so inactive slots
+		// emit zero (the per-slot mix below only writes for active slots).
+		if (m_slotCapBuf) {
+			int16_t *row = m_slotCapBuf + s * 32;
+			for (int i = 0; i < 32; i++) row[i] = 0;
+		}
+
 		for (int sl = 0; sl < 32; ++sl)
 		{
 #if SCSP_FM_DELAY
@@ -1244,9 +1251,16 @@ void scsp_device::DoMasterSamples(int16_t *out, int n_frames)
 				Enc = ((TL(slot)) << 0x0) | ((IMXL(slot)) << 0xd);
 				m_DSP.SetSample((sample*m_LPANTABLE[Enc]) >> (SHIFT-2), ISEL(slot), IMXL(slot));
 				Enc = ((TL(slot)) << 0x0) | ((DIPAN(slot)) << 0x8) | ((DISDL(slot)) << 0xd);
-				{
-					smpl += (sample * m_LPANTABLE[Enc]) >> SHIFT;
-					smpr += (sample * m_RPANTABLE[Enc]) >> SHIFT;
+				s32 slot_l = (sample * m_LPANTABLE[Enc]) >> SHIFT;
+				s32 slot_r = (sample * m_RPANTABLE[Enc]) >> SHIFT;
+				smpl += slot_l;
+				smpr += slot_r;
+				// Capture this slot's left contribution for the host's
+				// per-channel oscilloscope. Modulators (DISDL=0) emit
+				// zero through this path, which is what the listener
+				// hears anyway, so the oscilloscope reflects audibility.
+				if (m_slotCapBuf) {
+					m_slotCapBuf[s * 32 + sl] = int16_t(clamp<s32>(slot_l, -32768, 32767));
 				}
 			}
 

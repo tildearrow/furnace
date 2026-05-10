@@ -299,3 +299,8 @@ extern "C" uint16_t scsp_read_common_reg(int reg)
 	if (reg < 0 || reg > 23) return 0;
 	return SCSP.m_udata.data[reg];
 }
+
+extern "C" void scsp_set_slot_capture(int16_t *buf)
+{
+	SCSP.set_slot_capture_buffer(buf);
+}

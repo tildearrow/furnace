@@ -425,6 +425,13 @@ uint16_t scsp_dsp_get_mpro(int index) {
     return SCSP.DSP.MPRO[index];
 }
 
+/* Per-slot output capture is a MAME-backend feature; aosdk's render path
+ * doesn't expose per-slot intermediates, so this stub just discards the
+ * buffer pointer. The host-side oscilloscope shows silence per channel. */
+void scsp_set_slot_capture(int16_t *buf) {
+    (void)buf;
+}
+
 /*
  * Write DISDL/DIPAN (direct output level and pan) to a slot WITHOUT
  * touching EFSDL/EFPAN in the lower byte of register 0xB.
