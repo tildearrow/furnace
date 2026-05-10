@@ -2,7 +2,7 @@
 
 a family of wavetable synth sound chips used by Namco in their arcade machines (Pac-Man and later). waveforms are 4-bit, with 32-byte sample length.
 
-everything starts with Namco WSG, which is a simple 3-channel wavetable with no extra frills. Pole position WSG extends to 8 channels and quadraphonic output, C15 is a much more advanced sound source with 8 channels, and C30 adds stereo output and noise mode.
+everything starts with Namco WSG, which is a simple 3-channel wavetable with no extra frills. Pole Position WSG extends to 8 channels and quadraphonic output, C15 also features 8 channels but mono, and C30 adds stereo output and noise mode.
 
 ## effects
 

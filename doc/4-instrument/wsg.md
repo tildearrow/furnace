@@ -19,6 +19,6 @@ this allows you to enable and configure the Furnace wavetable synthesizer. see [
   - Namco C30/Pole Position WSG only.
 - **Panning (rear left)**: output level of rear left channel.
   - Namco Pole Position WSG only.
-- **Panning (rearright)**: output level of rear right channel.
+- **Panning (rear right)**: output level of rear right channel.
   - Namco Pole Position WSG only.
 - **Pitch**: fine pitch.
