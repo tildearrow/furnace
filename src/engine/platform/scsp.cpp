@@ -126,14 +126,26 @@ static unsigned char computeFeedbackMdl(unsigned char tl, unsigned char feedback
 // Compute d7 (MDL|MDXSL|MDYSL) from a high-level op, resolving modSource
 // to an absolute slot via slotBase.
 //
-// Critical (vs JS): explicit (unsigned) cast on slot subtraction before
-// & 63. JS bitwise ops are 32-bit; in C, signed-shift on a negative value
-// is implementation-defined and at least one path here computes a
-// negative distance (when modSource < this op's index, which is normal
-// for upward FM cascades and for the -32 self-feedback offset).
+// Sound-stack indexing (Sega SCSP doc 4.2/4.3, MAME RINGBUF impl): the chip
+// reads two 6-bit indices into a 64-entry ring updated 32×/Fs. For a slot's
+// own past output the ring offsets are 0x20 ("1 Fs ago" — the doc's
+// "latest" sample) and 0x00 ("2 Fs ago" — "past"). For an external
+// modulator at slot M reading from carrier C, J=M-C; (M-C)&63 reads the
+// modulator's previous-Fs write (doc's "past sample"), which is the
+// standard 1-Fs-latency FM convention.
+//
+// Self-feedback caveat (p04_fm3): the doc explicitly warns that feeding
+// the same self-output sample to BOTH X and Y inputs of the averager can
+// oscillate. Self-FB must use one latest (0x20) and one past (0x00).
+//
+// Critical (vs the JS reference): explicit (unsigned) cast on slot
+// subtraction before & 63. JS bitwise ops are 32-bit; in C, signed shift
+// on a negative value is implementation-defined.
 static unsigned short computeD7FromOp(unsigned char mdl, signed char modSource,
                                       unsigned char feedback, unsigned char tl,
                                       int slot, int slotBase) {
+  static const unsigned int SELF_LATEST=0x20u; // ring offset 32 = 1 Fs ago
+  static const unsigned int SELF_PAST  =0x00u; // ring offset  0 = 2 Fs ago
   unsigned int regMdl=0, mdxsl=0, mdysl=0;
   if (modSource>=0 && mdl>0) {
     regMdl=(unsigned int)mdl & 0xF;
@@ -143,15 +155,16 @@ static unsigned short computeD7FromOp(unsigned char mdl, signed char modSource,
     mdysl=dist;
   }
   if (feedback>0) {
-    unsigned int fbDist=(unsigned int)(-32) & 63u;
     unsigned char fbMdl=computeFeedbackMdl(tl, feedback);
     if (regMdl>0) {
-      mdysl=fbDist;
+      // External mod already on X (latest of another slot); route self-FB
+      // to Y as the past self-sample to avoid same-cycle self-coupling.
+      mdysl=SELF_PAST;
       if ((unsigned int)fbMdl>regMdl) regMdl=(unsigned int)fbMdl;
     } else {
       regMdl=(unsigned int)fbMdl;
-      mdxsl=fbDist;
-      mdysl=fbDist;
+      mdxsl=SELF_LATEST;
+      mdysl=SELF_PAST;
     }
   }
   return (unsigned short)(((regMdl&0xF)<<12)|((mdxsl&0x3F)<<6)|(mdysl&0x3F));
@@ -1059,6 +1072,29 @@ void DivPlatformSCSP::reset() {
   reloadDSP();
 }
 
+// FLEXIBILITY ROADMAP — DSP output bus.
+//
+// Hardware: per Sega doc 4.2/4.1, *any* slot can be the DSP effect-out tap
+// by setting EFSDL>0 on it; the slot's PG/EG output is replaced by the
+// DSP's EFREGxx contribution and routed to the direct mixer via DISDL/DIPAN.
+// There is no architectural reason to limit the DSP to two slots, two
+// EFREG taps, or fixed slot indices — multiple slots can each pick a
+// different EFREGxx and be mixed/panned independently.
+//
+// Wrapper today: pins slots 0 and 1 as a stereo wet bus (EFSDL=7,
+// EFPAN=0x10) when a DSP program is loaded, mirroring the JS reference and
+// keeping the voice allocator simple. The cost is a hard "max 6 voices
+// while DSP is active" limit and zero user control over which EFREGxx
+// taps reach the mixer.
+//
+// Future: expose DSP routing as per-instrument or per-channel config —
+// "tap N from EFREGxx, pan P, send level S" — and let the user choose
+// which slots host the taps. The cleanest design is probably a
+// song-level table of (slot, EFREGxx, pan, send) entries that the wrapper
+// applies during reset/reload, with the rest of the slot pool unaffected.
+// Multiple-tap mono mixes (e.g. 4 taps panned across the field) and
+// dry-only DSP (taps with EFSDL=0 used purely for sample-modify chains)
+// both fall out of the same table.
 bool DivPlatformSCSP::reloadDSP() {
   dspLastErrors.clear();
   dspLastWarnings.clear();
