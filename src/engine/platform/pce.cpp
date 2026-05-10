@@ -749,7 +749,7 @@ unsigned short DivPlatformPCE::getPan(int ch) {
 void DivPlatformPCE::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   // return a DivChannelPair for the channel that supports LFO (it pairs with the first channel).
   if (ch==1 && lfoMode>0) {
-    ret.push_back(DivChannelPair(_("mod"),PAIR_ARROW_NONE,0));
+    ret.push_back(DivChannelPair(_N("mod"),PAIR_ARROW_NONE,0));
   }
 }
 

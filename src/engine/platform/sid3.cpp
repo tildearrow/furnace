@@ -1371,7 +1371,7 @@ void DivPlatformSID3::getPaired(int ch, std::vector<DivChannelPair>& ret)
 {
   if (chan[ch].phase) {
     ret.push_back(DivChannelPair(
-      _("phase"),
+      _N("phase"),
       PAIR_ARROW_CENTERED|(ch>chan[ch].phaseSrc?PAIR_ARROW_RIGHT:PAIR_ARROW_LEFT),
       chan[ch].phaseSrc
     ));
@@ -1379,13 +1379,13 @@ void DivPlatformSID3::getPaired(int ch, std::vector<DivChannelPair>& ret)
   if (chan[ch].ring) {
     if(chan[ch].ringSrc == SID3_NUM_CHANNELS) {
       ret.push_back(DivChannelPair(
-        _("ring"),
+        _N("ring"),
         PAIR_ARROW_CENTERED|PAIR_ARROW_LEFT,
         ch
       ));
     } else {
       ret.push_back(DivChannelPair(
-        _("ring"),
+        _N("ring"),
         PAIR_ARROW_CENTERED|((ch>chan[ch].ringSrc)?PAIR_ARROW_RIGHT:PAIR_ARROW_LEFT),
         chan[ch].ringSrc
       ));
@@ -1393,7 +1393,7 @@ void DivPlatformSID3::getPaired(int ch, std::vector<DivChannelPair>& ret)
   }
   if(chan[ch].sync) {
     ret.push_back(DivChannelPair(
-      _("sync"),
+      _N("sync"),
       PAIR_ARROW_CENTERED|((ch>chan[ch].syncSrc)?PAIR_ARROW_RIGHT:PAIR_ARROW_LEFT),
       chan[ch].syncSrc
     ));

@@ -575,7 +575,7 @@ int DivPlatformSMS::getPortaFloor(int ch) {
 
 void DivPlatformSMS::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (snNoiseMode&2 && ch==2) {
-    ret.push_back(DivChannelPair(_("pitch"),PAIR_ARROW_NONE,3));
+    ret.push_back(DivChannelPair(_N("pitch"),PAIR_ARROW_NONE,3));
   }
 }
 

@@ -736,7 +736,7 @@ unsigned short DivPlatformSNES::getPan(int ch) {
 
 void DivPlatformSNES::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].pitchMod) {
-    ret.push_back(DivChannelPair(_("mod"),(ch==0)?PAIR_ARROW_LEFT:PAIR_ARROW_RIGHT|PAIR_ARROW_CENTERED,(ch-1)&7));
+    ret.push_back(DivChannelPair(_N("mod"),(ch==0)?PAIR_ARROW_LEFT:PAIR_ARROW_RIGHT|PAIR_ARROW_CENTERED,(ch-1)&7));
   }
 }
 

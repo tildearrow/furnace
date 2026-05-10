@@ -1659,22 +1659,24 @@ void FurnaceGUI::drawPattern() {
         }
       }
 
-      if (!delayedLabels.empty()) for (DelayedLabel& i: delayedLabels) {
-        ImU32 frameColor=ImGui::ColorConvertFloat4ToU32(ImVec4(i.color.x/2.0f,i.color.y/2.0f,i.color.z/2.0f,i.color.w));
-        ImGui::RenderFrameDrawList(
-          tdl,
-          ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
-          ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
-          frameColor,
-          true,
-          ImGui::GetStyle().FrameRounding
-        );
+      if (!delayedLabels.empty()) {
+        for (DelayedLabel& i: delayedLabels) {
+          ImU32 frameColor=ImGui::ColorConvertFloat4ToU32(ImVec4(i.color.x/2.0f,i.color.y/2.0f,i.color.z/2.0f,i.color.w));
+          ImGui::RenderFrameDrawList(
+            tdl,
+            ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
+            ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
+            frameColor,
+            true,
+            ImGui::GetStyle().FrameRounding
+          );
 
-        tdl->AddText(
-          ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
-          (ImGui::GetColorU32(ImGuiCol_Text)&~IM_COL32_A_MASK)|(frameColor&IM_COL32_A_MASK),
-          i.label
-        );
+          tdl->AddText(
+            ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
+            (ImGui::GetColorU32(ImGuiCol_Text)&~IM_COL32_A_MASK)|(frameColor&IM_COL32_A_MASK),
+            _(i.label)
+          );
+        }
       }
     }
 

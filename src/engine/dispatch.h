@@ -945,30 +945,24 @@ enum DivChannelPairArrows {
 struct DivChannelPair {
   // the label.
   const char* label;
+  // bitfiled of the arrows to show
+  // see DivChannelPairArrows
   unsigned char arrows;
   // the paired channels.
   // -1 means "none".
   signed char pairs[8];
+  // the color of the pair
+  // up to 4 colors (0-3)
   unsigned char color;
 
   // constructor to pair up to 8 channels.
-  DivChannelPair(const char* l, unsigned char a, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7):
-    label(l),
-    arrows(a),
-    pairs{p0,p1,p2,p3,p4,p5,p6,p7},
-    color(0) {}
-  // constructor to pair a single channel.
-  DivChannelPair(const char* l, unsigned char a, signed char p):
-    label(l),
-    arrows(a),
-    pairs{p,-1,-1,-1,-1,-1,-1,-1},
-    color(0) {}
-  DivChannelPair(const char* l, unsigned char a, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7, unsigned char col):
+  DivChannelPair(const char* l, unsigned char a, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7, unsigned char col=0):
     label(l),
     arrows(a),
     pairs{p0,p1,p2,p3,p4,p5,p6,p7},
     color(col) {}
-  DivChannelPair(const char* l, unsigned char a, signed char p, unsigned char col):
+  // constructor to pair a single channel.
+  DivChannelPair(const char* l, unsigned char a, signed char p, unsigned char col=0):
     label(l),
     arrows(a),
     pairs{p,-1,-1,-1,-1,-1,-1,-1},
