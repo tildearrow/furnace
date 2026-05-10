@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,6 +67,7 @@ bool Gradient2D::fromString(String val) {
 
   bgColor=ImGui::ColorConvertU32ToFloat4(bgColorH);
 
+  points.clear();
   for (size_t i=2; i<split.size(); i++) {
     Gradient2DPoint point;
     ImU32 colorH=0;

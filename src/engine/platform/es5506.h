@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
-  struct Channel : public SharedChannel<int> {
+  struct Channel : public SharedChannel {
     struct PCM {
       bool isNoteMap;
       int index, next;
@@ -186,8 +186,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
-    Channel():
-      SharedChannel<int>(0xff),
+    Channel(bool linear=true):
+      SharedChannel(0xff,linear),
       pcm(PCM()),
       nextFreq(0),
       nextNote(0),
@@ -281,6 +281,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   DivMemoryComposition memCompo;
   unsigned char regPool[4*16*128]; // 7 bit page x 16 registers per page x 32 bit per registers
 
+  void updatePCMChanges(int ch);
   void updateNoteChangesAsNeeded(int ch);
 
   friend void putDispatchChip(void*,int);
@@ -296,7 +297,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
 
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
@@ -307,6 +308,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual bool keyOffAffectsArp(int ch) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void notifyInsChange(int ins) override;

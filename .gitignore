@@ -44,3 +44,6 @@ src/asm/6502/*.bin
 src/asm/6502/nes/test.nes
 src/asm/6502/nes/test.o
 src/asm/6502/nes/test.sym
+src/asm/spc700/*.o
+src/asm/spc700/furnace.spc
+src/asm/spc700/furnace.sym

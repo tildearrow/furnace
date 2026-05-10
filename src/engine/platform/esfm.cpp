@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -287,7 +287,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqChanged=true;
         }
       } else {
-        chan[i].handleArpFmOp(0, o);
+        chan[i].handleArpFmOp(60, o);
         chan[i].handlePitchFmOp(o);
       }
 
@@ -1012,7 +1012,7 @@ void DivPlatformESFM::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformESFM::getChanState(int ch) {
+SharedChannel* DivPlatformESFM::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1056,7 +1056,7 @@ void DivPlatformESFM::reset() {
   }
 
   for (int i=0; i<18; i++) {
-    chan[i]=DivPlatformESFM::Channel();
+    chan[i]=DivPlatformESFM::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;

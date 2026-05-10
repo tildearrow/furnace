@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,12 +67,12 @@ void DivPlatformDummy::tick(bool sysTick) {
 
     if (chan[i].freqChanged) {
       chan[i].freqChanged=false;
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,0,false,false,0,0,chipClock,CHIP_FREQBASE);
+      chan[i].freq=chan[i].calcFreq();
     }
   }
 }
 
-void* DivPlatformDummy::getChanState(int ch) {
+SharedChannel* DivPlatformDummy::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -84,7 +84,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].active=true;
@@ -105,7 +105,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -125,7 +125,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -143,9 +143,14 @@ void DivPlatformDummy::notifyInsDeletion(void* ins) {
 
 void DivPlatformDummy::reset() {
   for (int i=0; i<chans; i++) {
-    chan[i]=DivPlatformDummy::Channel();
+    chan[i]=DivPlatformDummy::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].vol=0x0f;
   }
+}
+
+void DivPlatformDummy::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -161,6 +166,7 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivCon
   }
   rate=65536;
   chipClock=65536;
+  notifyPitchTable();
   chans=channels;
   reset();
   return channels;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -556,7 +556,7 @@ void DivPlatformGBAMinMod::forceIns() {
   }
 }
 
-void* DivPlatformGBAMinMod::getChanState(int ch) {
+SharedChannel* DivPlatformGBAMinMod::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -591,7 +591,7 @@ void DivPlatformGBAMinMod::reset() {
   memset(regPool,0,sizeof(regPool));
   memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformGBAMinMod::Channel();
+    chan[i]=DivPlatformGBAMinMod::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);
@@ -615,6 +615,10 @@ void DivPlatformGBAMinMod::resetMixer() {
 
 int DivPlatformGBAMinMod::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformGBAMinMod::hasSoftPan(int ch) {
+  return true;
 }
 
 void DivPlatformGBAMinMod::notifyInsChange(int ins) {
