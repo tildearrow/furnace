@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "../discord/discordRPC.h"
 #include "imgui_internal.h"
 #include "fonts.h"
 #include "../ta-log.h"
@@ -1210,6 +1211,27 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("allows passthrough for notes while warnings are open; only ESC will be used for warnings"));
         }
+        // SUBSECTION DISCORD RICH PRESENCE
+        CONFIG_SUBSECTION(_("Discord Rich Presence"));
+        {
+          static const char* const drpcLabels[3]={
+            _("Off"),
+            _("Minimal (just \"Furnace\")"),
+            _("Full (song name and chip)")
+          };
+          int level=(int)discordRPCLevel;
+          if (level<0 || level>2) level=2;
+          if (ImGui::Combo(_("Activity broadcast"),&level,drpcLabels,3)) {
+            discordRPCLevel=(unsigned char)level;
+            if (discordRPC) discordRPC->setLevel((FurnaceDiscordRPC::Level)level);
+            e->setConf("discordRPCLevel",level);
+            settingsChanged=true;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("controls what Furnace tells Discord you're doing.\nFull = song name + chip + elapsed time.\nMinimal = just \"Furnace\" with no song details.\nOff = no Discord IPC connection."));
+          }
+        }
+
         // SUBSECTION CONFIGURATION
         CONFIG_SUBSECTION(_("Configuration"));
         if (ImGui::Button(_("Import"))) {

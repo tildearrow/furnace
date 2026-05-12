@@ -25,6 +25,7 @@
 
 #include "gui.h"
 #include "util.h"
+#include "../discord/discordRPC.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "imgui.h"
@@ -7818,12 +7819,20 @@ bool FurnaceGUI::loop() {
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
       SDL_Delay(100);
     }
+
+    updateDiscordRPC();
   }
   return false;
 }
 
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
+
+  // Discord Rich Presence — read level from config (default Full)
+  discordRPCLevel=(unsigned char)e->getConfInt("discordRPCLevel",(int)FurnaceDiscordRPC::LEVEL_FULL);
+  if (discordRPCLevel>FurnaceDiscordRPC::LEVEL_FULL) discordRPCLevel=FurnaceDiscordRPC::LEVEL_FULL;
+  discordRPC.reset(new FurnaceDiscordRPC());
+  discordRPC->start((FurnaceDiscordRPC::Level)discordRPCLevel);
 
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setConfigPrefix("fp_");
@@ -8796,6 +8805,11 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {
+  if (discordRPC) {
+    e->setConf("discordRPCLevel",(int)discordRPCLevel);
+    discordRPC->stop();
+    discordRPC.reset();
+  }
   if (!quitNoSave) {
     commitState(e->getConfObject());
     if (userPresetsOpen) {
@@ -8879,6 +8893,26 @@ bool FurnaceGUI::requestQuit() {
     quit=true;
   }
   return quit;
+}
+
+FurnaceGUI::~FurnaceGUI() {}
+
+void FurnaceGUI::updateDiscordRPC() {
+  if (!discordRPC || !discordRPC->isActive()) return;
+  // Build the song-scope subtitle: "N orders • M rows • C channels".
+  DivSubSong* sub=e->curSubSong;
+  int orders=sub?sub->ordersLen:0;
+  int patLen=sub?sub->patLen:0;
+  int chans=e->song.chans;
+  char buf[96];
+  // The bullet (•) is UTF-8 \xe2\x80\xa2; Discord renders UTF-8 directly.
+  snprintf(buf,sizeof(buf),
+    "%d order%s \xe2\x80\xa2 %d row%s \xe2\x80\xa2 %d channel%s",
+    orders, orders==1?"":"s",
+    patLen, patLen==1?"":"s",
+    chans,  chans==1?"":"s");
+  discordRPC->setActivity(e->song.name,e->song.systemName,buf);
+  discordRPC->tick();
 }
 
 FurnaceGUI::FurnaceGUI():
@@ -9128,6 +9162,7 @@ FurnaceGUI::FurnaceGUI():
   userPresetsOpen(false),
   refPlayerOpen(false),
   multiInsSetupOpen(false),
+  discordRPCLevel(2),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),
