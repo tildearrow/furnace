@@ -8899,19 +8899,7 @@ FurnaceGUI::~FurnaceGUI() {}
 
 void FurnaceGUI::updateDiscordRPC() {
   if (!discordRPC || !discordRPC->isActive()) return;
-  // Build the song-scope subtitle: "N orders • M rows • C channels".
-  DivSubSong* sub=e->curSubSong;
-  int orders=sub?sub->ordersLen:0;
-  int patLen=sub?sub->patLen:0;
-  int chans=e->song.chans;
-  char buf[96];
-  // The bullet (•) is UTF-8 \xe2\x80\xa2; Discord renders UTF-8 directly.
-  snprintf(buf,sizeof(buf),
-    "%d order%s \xe2\x80\xa2 %d row%s \xe2\x80\xa2 %d channel%s",
-    orders, orders==1?"":"s",
-    patLen, patLen==1?"":"s",
-    chans,  chans==1?"":"s");
-  discordRPC->setActivity(e->song.name,e->song.systemName,buf);
+  discordRPC->setActivity(e);
   discordRPC->tick();
 }
 

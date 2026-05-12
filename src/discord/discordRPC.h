@@ -2,14 +2,12 @@
  * Furnace Tracker - multi-system chiptune tracker
  * Discord Rich Presence integration.
  *
- * Presence layout:
+ * Presence layout (LEVEL_FULL):
  *   large image:  furnace_logo
- *   small image:  chip_<system>  (e.g. chip_genesis), or chip_custom as fallback
- *   details:      'Editing "<song name>"'  or  'Editing untitled'
- *   state:        chip / system name
- *   elapsed:      time since current edit session began (sticky — does not
- *                 reset when playback or export starts; only resets when a
- *                 different song is loaded)
+ *   small image:  chip-specific badge, derived from song.system[]
+ *   details:      "<Editing|Playing|Idling> [\"<song name>\"]"
+ *   state:        "<orders> orders • <rows> rows • <channels> channels"
+ *   elapsed:      sticky edit-session timer; only resets on song change
  */
 #ifndef _FURNACE_DISCORD_RPC_H
 #define _FURNACE_DISCORD_RPC_H
@@ -17,13 +15,14 @@
 #include <cstdint>
 #include <string>
 
+class DivEngine;
+
 class FurnaceDiscordRPC {
   public:
-    /** Privacy levels. */
     enum Level: unsigned char {
       LEVEL_OFF=0,      ///< RPC disconnected, no IPC opened.
-      LEVEL_MINIMAL=1,  ///< Shows only "Furnace" — no song name or chip.
-      LEVEL_FULL=2      ///< Shows song name + chip + elapsed time.
+      LEVEL_MINIMAL=1,  ///< Shows only "Furnace" — no song details.
+      LEVEL_FULL=2      ///< Shows song + chip + scope + elapsed.
     };
 
     FurnaceDiscordRPC();
@@ -36,16 +35,13 @@ class FurnaceDiscordRPC {
     bool isActive() const { return active; }
 
     /**
-     * Record what's playing. Cheap: only writes internal state and marks dirty.
-     * The actual IPC call happens in tick() so we can throttle.
-     *
-     * @param songName   shown in details line as `Editing "<name>"`
-     * @param systemName drives chip-icon lookup + small-image hover text
-     * @param subtitle   state line (e.g. "24 orders • 64 rows • 6 channels")
+     * Sample the engine's current state and update the pending presence.
+     * Cheap: only writes internal state and flags dirty. The IPC call
+     * happens in tick() so we can throttle.
      */
-    void setActivity(const std::string& songName, const std::string& systemName, const std::string& subtitle);
+    void setActivity(DivEngine* e);
 
-    /** Per-frame poll; flushes pending presence subject to rate-limit. */
+    /** Per-frame poll. Drives discord-rpc callbacks and rate-limited flush. */
     void tick();
 
   private:
@@ -54,11 +50,14 @@ class FurnaceDiscordRPC {
     bool dirty;
     int64_t lastFlushMs;
 
-    // current presence content
-    std::string songName, systemName, subtitle;
+    // last computed presence content (used both for diffing and for the flush)
+    std::string details;
+    std::string state;
+    std::string smallText;
+    const char* smallIconKey;
 
     // edit-session timer. set once at app start, re-stamped only when the
-    // song identity (name + system) changes.
+    // song's identity (name + chip combo) changes.
     int64_t editStartTime;
     std::string lastSongIdentity;
 
