@@ -9162,7 +9162,6 @@ FurnaceGUI::FurnaceGUI():
   userPresetsOpen(false),
   refPlayerOpen(false),
   multiInsSetupOpen(false),
-  discordRPCLevel(2),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),
@@ -9526,7 +9525,8 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileDispatch(0),
   sampleCompileIndex(0),
   sampleCompileSize(0),
-  warnIsOpen(false) {
+  warnIsOpen(false),
+  discordRPCLevel(2) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
