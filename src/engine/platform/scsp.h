@@ -33,6 +33,13 @@ class DivPlatformSCSP: public DivDispatch {
       int sampleNoteDelta;
       int pan;
       int outVol;
+      // Per-channel mutable copy of the instrument's SCSP block. Effects
+      // (43xx feedback, 20xx-3Fxx per-op TL, etc.) mutate this and write
+      // the chip register; programSlotFM reads exclusively from here.
+      // commitState() reseeds it from ins->scsp on note-on, but only when
+      // insChanged is set — so a same-instrument effect-then-note row
+      // keeps the effect's value. Mirrors the Genesis/OPN/OPM idiom.
+      DivInstrumentSCSP scspState;
       bool keyOn, keyOff, sampleSet, audPosOverride;
       unsigned int audPos;
       Channel(bool linear=true):
@@ -101,6 +108,7 @@ class DivPlatformSCSP: public DivDispatch {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
+    void commitState(int chanIdx, DivInstrument* ins);
     void programSlot(int slot, int chanIdx);
     void programSlotFM(int slot, int chanIdx, int opIdx, int slotBase, double midiNote);
     void updateChanDirectOutput(int chanIdx);

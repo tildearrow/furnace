@@ -1255,12 +1255,15 @@ void scsp_device::DoMasterSamples(int16_t *out, int n_frames)
 				s32 slot_r = (sample * m_RPANTABLE[Enc]) >> SHIFT;
 				smpl += slot_l;
 				smpr += slot_r;
-				// Capture this slot's left contribution for the host's
-				// per-channel oscilloscope. Modulators (DISDL=0) emit
-				// zero through this path, which is what the listener
-				// hears anyway, so the oscilloscope reflects audibility.
+				// Capture this slot's audible contribution for the host's
+				// per-channel oscilloscope. Sum L+R so a hard-panned slot
+				// still produces a visible trace (slot_l alone would be 0
+				// for a full-right slot). Modulators with DISDL=0 produce
+				// slot_l=slot_r=0, so the oscilloscope still reflects
+				// audibility (modulators contribute nothing).
 				if (m_slotCapBuf) {
-					m_slotCapBuf[s * 32 + sl] = int16_t(clamp<s32>(slot_l, -32768, 32767));
+					s32 mono = slot_l + slot_r;
+					m_slotCapBuf[s * 32 + sl] = int16_t(clamp<s32>(mono, -32768, 32767));
 				}
 			}
 

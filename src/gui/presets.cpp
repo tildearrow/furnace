@@ -136,6 +136,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    _("Sega Saturn"), {
+      CH(DIV_SYSTEM_SCSP, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     _("Game Boy"), {
       CH(DIV_SYSTEM_GB, 1.0f, 0, "")
     }
@@ -3720,6 +3725,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Yamaha YMW258-F (MultiPCM)", {
       CH(DIV_SYSTEM_MULTIPCM, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF292 (SCSP)", {
+      CH(DIV_SYSTEM_SCSP, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

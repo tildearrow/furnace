@@ -7776,7 +7776,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_NDS ||
             ins->type==DIV_INS_GBA_DMA ||
             ins->type==DIV_INS_GBA_MINMOD ||
-            ins->type==DIV_INS_SUPERVISION) {
+            ins->type==DIV_INS_SUPERVISION ||
+            ins->type==DIV_INS_YMF292) {
           insTabSample(ins);
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
@@ -8183,7 +8184,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     P(CWSliderScalar(_("Level"),ImGuiDataType_U8,&op.level,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
                     ImGui::TableNextColumn();
-                    P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&op.feedback,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+                    P(CWSliderScalar(_("Feedback"),ImGuiDataType_U8,&op.feedback,&_ZERO,&_FIFTEEN)); rightClickable
 
                     // Mod source / Mod depth
                     ImGui::TableNextRow();

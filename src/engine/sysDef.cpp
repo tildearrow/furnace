@@ -2757,7 +2757,7 @@ void DivEngine::registerSystems() {
     // per-op MDL uses two xy-packed codes 0x40 (ops 1..16) / 0x41 (ops
     // 17..32) — both are inserted below since the op-index in the
     // constVal<> binding has to be patched in via a lambda capture.
-    {0x43, {DIV_CMD_SCSP_FEEDBACK,    _("43xx: Set self-feedback amount (00 to 7F)"), effectValAnd<0x7f>}},
+    {0x43, {DIV_CMD_SCSP_FEEDBACK,    _("43xx: Set self-feedback amount (00 to 0F)"), effectValAnd<0x0f>}},
   };
   // Per-op TL: 0x20..0x3F → ops 1..32. EffectHandler stores plain function
   // pointers, so we materialize 32 distinct constVal<> instantiations into

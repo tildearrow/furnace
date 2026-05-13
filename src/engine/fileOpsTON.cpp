@@ -53,39 +53,8 @@
 
 #define TON_WAVE_LEN 1024
 
-// Convert a packed TL byte to its linear gain (matches scsp_voice.c).
-static double tonTlToLinear(unsigned char tl) {
-  double db=0.0;
-  if (tl & 1)   db -= 0.4;
-  if (tl & 2)   db -= 0.8;
-  if (tl & 4)   db -= 1.5;
-  if (tl & 8)   db -= 3.0;
-  if (tl & 16)  db -= 6.0;
-  if (tl & 32)  db -= 12.0;
-  if (tl & 64)  db -= 24.0;
-  if (tl & 128) db -= 48.0;
-  return pow(10.0, db/20.0);
-}
-
-// Mirrors scsp.cpp:computeFeedbackMdl / scsp_engine.js:computeFeedbackMdl.
-static unsigned char tonComputeFeedbackMdl(unsigned char tl, unsigned char feedback) {
-  if (feedback==0) return 0;
-  double tlLin=tonTlToLinear(tl);
-  double ringPeak=32767.0*4.0*tlLin*0.5;
-  if (ringPeak<1.0) return 0;
-  double targetBeta=((double)feedback/127.0)*M_PI;
-  double needed=targetBeta*1024.0/(ringPeak*2.0*M_PI);
-  if (needed<1e-10) needed=1e-10;
-  int mdl=(int)floor(16.0+log2(needed)+0.5);
-  if (mdl<0) mdl=0;
-  if (mdl>15) mdl=15;
-  double maxSafe=1024.0/(ringPeak*2.0);
-  if (maxSafe<1e-10) maxSafe=1e-10;
-  int maxMdl=(int)floor(15.0+log2(maxSafe));
-  if (mdl>maxMdl) mdl=maxMdl;
-  if (mdl<0) mdl=0;
-  return (unsigned char)(mdl&0xF);
-}
+// `op.feedback` is the raw MDL nibble for the self-feedback path (0..15),
+// matching scsp.cpp's runtime mapping.
 
 // Pack a Furnace SCSP op + waveform into a 32-byte TON layer at `out`.
 // `saOffset` is the byte offset of this op's waveform within the TON file's
@@ -148,12 +117,9 @@ static void buildLayer(unsigned char* out,
   // The driver-side remapD7Raw recomputes MDXSL/MDYSL based on the FM-layer
   // link in byte 0x1B (so for FM cascades the values we put here are
   // overwritten). For self-feedback ops (no FM link) the driver keeps MDL
-  // as-is and applies its own −32 distance, so we must encode an effective
-  // MDL here — `op.mdl` is 0 in feedback-only presets, so we derive it from
-  // `op.feedback` the same way scsp.cpp:computeD7FromOp does at runtime.
-  // We also fill MDXSL/MDYSL with sensible defaults (mod-source distance
-  // for FM, 32 for feedback) so importers that don't recompute see the
-  // right shape.
+  // as-is and applies its own −32 distance. `op.feedback` is already the
+  // raw MDL nibble; we just OR it into the encoded MDL when there's no FM
+  // mod-source overriding it.
   unsigned int regMdl=0, mdxsl=0, mdysl=0;
   if (op.modSource>=0 && op.mdl>0) {
     regMdl=(unsigned int)op.mdl & 0xF;
@@ -164,12 +130,12 @@ static void buildLayer(unsigned char* out,
   }
   if (op.feedback>0) {
     unsigned int fbDist=(unsigned int)(-32) & 63u;
-    unsigned char fbMdl=tonComputeFeedbackMdl((unsigned char)tlInt,op.feedback);
+    unsigned int fbMdl=(unsigned int)op.feedback & 0xF;
     if (regMdl>0) {
       mdysl=fbDist;
-      if ((unsigned int)fbMdl>regMdl) regMdl=(unsigned int)fbMdl;
+      if (fbMdl>regMdl) regMdl=fbMdl;
     } else {
-      regMdl=(unsigned int)fbMdl;
+      regMdl=fbMdl;
       mdxsl=fbDist;
       mdysl=fbDist;
     }
@@ -373,22 +339,11 @@ SafeWriter* DivEngine::saveSCSPTON() {
 
 #define TON_BUILTIN_MATCH_TOL 64  // max abs sample diff for builtin recognition
 
-// Inverse of tonComputeFeedbackMdl: given the 4-bit MDL nibble we read from
-// the file plus the carrier TL, recover the original feedback level. Lossy
-// because MDL is quantized to 4 bits and can be capped by the maxMdl clamp,
-// but recovers the rough magnitude (e.g. distinguishes a low kick feedback
-// from an industrial-hit max feedback) much better than a fixed 0.3 default.
-static unsigned char tonRecoverFeedback(unsigned char tl, unsigned char mdl) {
-  if (mdl==0) return 0;
-  double tlLin=tonTlToLinear(tl);
-  double ringPeak=32767.0*4.0*tlLin*0.5;
-  if (ringPeak<1.0) return 0;
-  double needed=pow(2.0,(double)mdl-16.0);
-  double targetBeta=needed*ringPeak*2.0*M_PI/1024.0;
-  double feedback=(targetBeta/M_PI)*127.0;
-  if (feedback<0) feedback=0;
-  if (feedback>127) feedback=127;
-  return (unsigned char)floor(feedback+0.5);
+// op.feedback IS the raw MDL nibble (matches scsp.cpp:computeD7FromOp).
+// `tl` is unused but kept in the signature for symmetry with the importer
+// callsites.
+static unsigned char tonRecoverFeedback(unsigned char /*tl*/, unsigned char mdl) {
+  return mdl&0xF;
 }
 
 void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath) {
@@ -497,17 +452,16 @@ void DivEngine::loadTON(SafeReader& reader, std::vector<DivInstrument*>& ret, St
 
       // Feedback detection. Three cases (matches scsp.cpp:computeD7FromOp's
       // packing rules):
-      //   - mdxsl==32 && mdysl==32: pure self-feedback (no FM mod). The MDL
-      //     in the file is exactly what computeFeedbackMdl produced, so we
-      //     can invert it to get the original feedback magnitude.
+      //   - mdxsl==32 && mdysl==32: pure self-feedback (no FM mod). MDL is
+      //     the feedback value itself (the runtime mapping is 1:1).
       //   - mdxsl!=32 && mdysl==32: FM cascade combined with feedback. The
       //     stored MDL is `max(modulator_mdl, fbMdl)` so we can't separate
-      //     them — fall back to a moderate default (~0.3).
+      //     them — fall back to a moderate default (5 ≈ mid-range nibble).
       //   - otherwise: no feedback.
       if (mdxsl==32 && mdysl==32) {
         op.feedback=tonRecoverFeedback(tl,mdl);
       } else if (mdysl==32) {
-        op.feedback=38;
+        op.feedback=5;
       } else {
         op.feedback=0;
       }
