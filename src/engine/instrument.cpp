@@ -769,6 +769,34 @@ bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
   );
 }
 
+bool DivInstrumentSCSP::Op::operator==(const DivInstrumentSCSP::Op& other) {
+  return (
+    _C(freqRatio) &&
+    _C(freqFixed) &&
+    _C(level) &&
+    _C(ar) && _C(d1r) && _C(dl) && _C(d2r) && _C(rr) &&
+    _C(mdl) &&
+    _C(modSource) &&
+    _C(feedback) &&
+    _C(isCarrier) &&
+    _C(loopStart) && _C(loopEnd) &&
+    _C(lpctlOp) &&
+    _C(sampleId)
+  );
+}
+
+bool DivInstrumentSCSP::operator==(const DivInstrumentSCSP& other) {
+  if (!(_C(mode) && _C(tl) && _C(dl) && _C(ar) && _C(d1r) && _C(d2r) && _C(rr) &&
+        _C(krs) && _C(lpctl) && _C(eghold) && _C(lpslnk) && _C(sdir) && _C(stwinh) &&
+        _C(lfof) && _C(plfows) && _C(plfos) && _C(alfows) && _C(alfos) && _C(lforeset) &&
+        _C(isel) && _C(imxl) && _C(efsdl) && _C(efpan) && _C(disdl) && _C(dipan) &&
+        _C(opCount))) return false;
+  for (int i=0; i<32; i++) {
+    if (!(ops[i]==other.ops[i])) return false;
+  }
+  return true;
+}
+
 bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   return (
     _C(useEnv) &&
@@ -1448,6 +1476,18 @@ size_t DivInstrument::writeFeatureLS(SafeWriter* w, std::vector<int>& list, cons
     }
   }
 
+  // SCSP FM operators reference samples per-op (any slot can read from
+  // sound RAM regardless of synthesis mode). Collect those too so a
+  // self-contained FM instrument carries its own waveform PCM.
+  if (type==DIV_INS_YMF292) {
+    for (int i=0; i<scsp.opCount && i<32; i++) {
+      int sid=scsp.ops[i].sampleId;
+      if (sid>=0 && sid<(int)song->sample.size()) {
+        sampleUsed[sid]=true;
+      }
+    }
+  }
+
   for (size_t i=0; i<song->sample.size(); i++) {
     if (sampleUsed[i]) {
       list.push_back(i);
@@ -1713,6 +1753,63 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureSC(SafeWriter* w) {
+  FEATURE_BEGIN("SC");
+
+  w->writeC(scsp.mode);
+  w->writeC(scsp.tl);
+  w->writeC(scsp.dl);
+  w->writeC(scsp.ar);
+  w->writeC(scsp.d1r);
+  w->writeC(scsp.d2r);
+  w->writeC(scsp.rr);
+  w->writeC(scsp.krs);
+  w->writeC(scsp.lpctl);
+  w->writeC(
+    (scsp.eghold?1:0)|
+    (scsp.lpslnk?2:0)|
+    (scsp.sdir?4:0)|
+    (scsp.stwinh?8:0)|
+    (scsp.lforeset?16:0)
+  );
+  w->writeC(scsp.lfof);
+  w->writeC(scsp.plfows);
+  w->writeC(scsp.plfos);
+  w->writeC(scsp.alfows);
+  w->writeC(scsp.alfos);
+  w->writeC(scsp.isel);
+  w->writeC(scsp.imxl);
+  w->writeC(scsp.efsdl);
+  w->writeC(scsp.efpan);
+  w->writeC(scsp.disdl);
+  w->writeC(scsp.dipan);
+
+  // FM operator data — always written for all 32 ops so the format is
+  // self-describing and the reader can derive op count from feature size.
+  w->writeC(scsp.opCount);
+  for (int i=0; i<32; i++) {
+    DivInstrumentSCSP::Op& op=scsp.ops[i];
+    w->writeS(op.freqRatio);
+    w->writeS(op.freqFixed);
+    w->writeC(op.level);
+    w->writeC(op.ar);
+    w->writeC(op.d1r);
+    w->writeC(op.dl);
+    w->writeC(op.d2r);
+    w->writeC(op.rr);
+    w->writeC(op.mdl);
+    w->writeC((unsigned char)op.modSource);
+    w->writeC(op.feedback);
+    w->writeC(op.isCarrier?1:0);
+    w->writeS(op.loopStart);
+    w->writeS(op.loopEnd);
+    w->writeC(op.lpctlOp);
+    w->writeS((unsigned short)op.sampleId);
+  }
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1760,6 +1857,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featurePN=false;
   bool featureS2=false;
   bool featureS3=false;
+  bool featureSC=false;
 
   bool checkForWL=false;
 
@@ -1963,6 +2061,11 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         featureSM=true;
         featureSL=true;
         break;
+      case DIV_INS_YMF292:
+        featureSM=true;
+        featureSL=true;
+        featureSC=true;
+        break;
       case DIV_INS_TED:
         break;
       case DIV_INS_C140:
@@ -2074,6 +2177,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (sid3!=defaultIns.sid3) {
       featureS3=true;
+    }
+    if (scsp!=defaultIns.scsp) {
+      featureSC=true;
     }
   }
 
@@ -2230,6 +2336,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureS3) {
     writeFeatureS3(w);
+  }
+  if (featureSC) {
+    writeFeatureSC(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -3043,6 +3152,15 @@ void DivInstrument::readFeatureLS(SafeReader& reader, DivSong* song, short versi
     }
   }
 
+  // SCSP per-op sample references.
+  if (type==DIV_INS_YMF292) {
+    for (int i=0; i<32; i++) {
+      if (scsp.ops[i].sampleId>=0) {
+        scsp.ops[i].sampleId=(signed short)sampleRemap[scsp.ops[i].sampleId];
+      }
+    }
+  }
+
   delete[] samplePtr;
   delete[] sampleIndex;
   delete[] sampleRemap;
@@ -3176,6 +3294,70 @@ void DivInstrument::readFeatureES(SafeReader& reader, short version) {
   es5506.envelope.k2Ramp=reader.readC();
   es5506.envelope.k1Slow=reader.readC();
   es5506.envelope.k2Slow=reader.readC();
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureSC(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  scsp.mode=(DivInstrumentSCSP::SynthMode)reader.readC();
+  scsp.tl=reader.readC();
+  scsp.dl=reader.readC();
+  scsp.ar=reader.readC();
+  scsp.d1r=reader.readC();
+  scsp.d2r=reader.readC();
+  scsp.rr=reader.readC();
+  scsp.krs=reader.readC();
+  scsp.lpctl=reader.readC();
+  unsigned char bits=reader.readC();
+  scsp.eghold  =bits&1;
+  scsp.lpslnk  =bits&2;
+  scsp.sdir    =bits&4;
+  scsp.stwinh  =bits&8;
+  scsp.lforeset=bits&16;
+  scsp.lfof=reader.readC();
+  scsp.plfows=reader.readC();
+  scsp.plfos=reader.readC();
+  scsp.alfows=reader.readC();
+  scsp.alfos=reader.readC();
+  scsp.isel=reader.readC();
+  scsp.imxl=reader.readC();
+  scsp.efsdl=reader.readC();
+  scsp.efpan=reader.readC();
+  scsp.disdl=reader.readC();
+  scsp.dipan=reader.readC();
+
+  scsp.opCount=reader.readC();
+  // Per-op layout is 21 bytes (incl. trailing sampleId). The original
+  // 6-op format was 21×6=126 bytes; the 32-op format is 21×32=672 bytes.
+  // The earlier per-op-sample extension was 22 bytes (with a `waveform`
+  // byte that's been removed); both encodings include sampleId.
+  bool hasOpSampleId=((endOfFeat-reader.tell())>=126);
+  int opsAvailable=(int)((endOfFeat-reader.tell())/(hasOpSampleId?21:20));
+  if (opsAvailable<0) opsAvailable=0;
+  if (opsAvailable>32) opsAvailable=32;
+  for (int i=0; i<opsAvailable; i++) {
+    DivInstrumentSCSP::Op& op=scsp.ops[i];
+    op.freqRatio=reader.readS();
+    op.freqFixed=reader.readS();
+    op.level=reader.readC();
+    op.ar=reader.readC();
+    op.d1r=reader.readC();
+    op.dl=reader.readC();
+    op.d2r=reader.readC();
+    op.rr=reader.readC();
+    op.mdl=reader.readC();
+    op.modSource=(signed char)reader.readC();
+    op.feedback=reader.readC();
+    op.isCarrier=reader.readC();
+    op.loopStart=reader.readS();
+    op.loopEnd=reader.readS();
+    op.lpctlOp=reader.readC();
+    if (hasOpSampleId) {
+      op.sampleId=(signed short)reader.readS();
+    }
+  }
 
   READ_FEAT_END;
 }
@@ -3406,6 +3588,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureS2(reader,version);
     } else if (memcmp(featCode,"S3",2)==0) { // SID3
       readFeatureS3(reader,version);
+    } else if (memcmp(featCode,"SC",2)==0) { // SCSP
+      readFeatureSC(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0) || (memcmp(featCode,"LS",2)==0) || (memcmp(featCode,"LW",2)==0))) {
         // nothing

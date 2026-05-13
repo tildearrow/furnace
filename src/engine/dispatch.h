@@ -336,6 +336,19 @@ enum DivDispatchCmds {
   DIV_CMD_FM_FMS2,
   DIV_CMD_FM_AMS2,
 
+  DIV_CMD_SCSP_LFO_FREQ,        // (value 0..31)
+  DIV_CMD_SCSP_PLFO_DEPTH,      // (value 0..7) lower 3 bits PLFOS, upper bits PLFOWS
+  DIV_CMD_SCSP_ALFO_DEPTH,      // (value 0..7) lower 3 bits ALFOS, upper bits ALFOWS
+  DIV_CMD_SCSP_KRS,             // (value 0..15)
+  DIV_CMD_SCSP_DSP_SEND,        // (value 0..7)
+  DIV_CMD_SCSP_DSP_PAN,         // (value 0..31)
+  DIV_CMD_SCSP_DIRECT_SEND,     // (value 0..7)
+  DIV_CMD_SCSP_DIRECT_PAN,      // (value 0..31)
+
+  DIV_CMD_SCSP_OP_TL,           // (op 0..5, value 0..255 raw TL — 0=loudest)
+  DIV_CMD_SCSP_OP_MDL,          // (op 0..5, value 0..15 MDL)
+  DIV_CMD_SCSP_FEEDBACK,        // (value 0..127, applies to ops with non-zero modSource or existing feedback)
+
   DIV_CMD_MAX
 };
 

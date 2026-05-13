@@ -2743,6 +2743,88 @@ void DivEngine::registerSystems() {
     DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_STD>)
   );
 
+  EffectHandlerMap scspEffectHandlerMap={
+    {0x11, {DIV_CMD_SCSP_LFO_FREQ,    _("11xx: Set LFO frequency (00 to 1F)"),    effectValAnd<0x1f>}},
+    {0x12, {DIV_CMD_SCSP_PLFO_DEPTH,  _("12xx: Set pitch LFO depth (00 to 07)"),  effectValAnd<0x07>}},
+    {0x13, {DIV_CMD_SCSP_ALFO_DEPTH,  _("13xx: Set amp LFO depth (00 to 07)"),    effectValAnd<0x07>}},
+    {0x14, {DIV_CMD_SCSP_KRS,         _("14xx: Set key-rate scaling (00 to 0F)"), effectValAnd<0x0f>}},
+    {0x16, {DIV_CMD_SCSP_DSP_SEND,    _("16xx: Set DSP send level (00 to 07)"),   effectValAnd<0x07>}},
+    {0x17, {DIV_CMD_SCSP_DSP_PAN,     _("17xx: Set DSP pan (00 to 1F)"),          effectValAnd<0x1f>}},
+    {0x18, {DIV_CMD_SCSP_DIRECT_SEND, _("18xx: Set direct send level (00 to 07)"),effectValAnd<0x07>}},
+    {0x19, {DIV_CMD_SCSP_DIRECT_PAN,  _("19xx: Set direct pan (00 to 1F)"),       effectValAnd<0x1f>}},
+    // FM-mode performance tweaks (Furnace-only — not preserved by SEQ export).
+    // Per-op TL fills 0x20..0x3F (one code per op, full 8-bit value), and
+    // per-op MDL uses two xy-packed codes 0x40 (ops 1..16) / 0x41 (ops
+    // 17..32) — both are inserted below since the op-index in the
+    // constVal<> binding has to be patched in via a lambda capture.
+    {0x43, {DIV_CMD_SCSP_FEEDBACK,    _("43xx: Set self-feedback amount (00 to 0F)"), effectValAnd<0x0f>}},
+  };
+  // Per-op TL: 0x20..0x3F → ops 1..32. EffectHandler stores plain function
+  // pointers, so we materialize 32 distinct constVal<> instantiations into
+  // a table and reuse them. Descriptions are static-storage strings since
+  // EffectHandler::description is `const char*`.
+  static EffectValConversion* const scspOpIdxTable[32]={
+    constVal<0>,  constVal<1>,  constVal<2>,  constVal<3>,
+    constVal<4>,  constVal<5>,  constVal<6>,  constVal<7>,
+    constVal<8>,  constVal<9>,  constVal<10>, constVal<11>,
+    constVal<12>, constVal<13>, constVal<14>, constVal<15>,
+    constVal<16>, constVal<17>, constVal<18>, constVal<19>,
+    constVal<20>, constVal<21>, constVal<22>, constVal<23>,
+    constVal<24>, constVal<25>, constVal<26>, constVal<27>,
+    constVal<28>, constVal<29>, constVal<30>, constVal<31>,
+  };
+  static const char* const scspOpTLDesc[32]={
+    _("20xx: Set op 1 TL (00=loudest, FF=silent)"),
+    _("21xx: Set op 2 TL"),  _("22xx: Set op 3 TL"),  _("23xx: Set op 4 TL"),
+    _("24xx: Set op 5 TL"),  _("25xx: Set op 6 TL"),  _("26xx: Set op 7 TL"),
+    _("27xx: Set op 8 TL"),  _("28xx: Set op 9 TL"),  _("29xx: Set op 10 TL"),
+    _("2Axx: Set op 11 TL"), _("2Bxx: Set op 12 TL"), _("2Cxx: Set op 13 TL"),
+    _("2Dxx: Set op 14 TL"), _("2Exx: Set op 15 TL"), _("2Fxx: Set op 16 TL"),
+    _("30xx: Set op 17 TL"), _("31xx: Set op 18 TL"), _("32xx: Set op 19 TL"),
+    _("33xx: Set op 20 TL"), _("34xx: Set op 21 TL"), _("35xx: Set op 22 TL"),
+    _("36xx: Set op 23 TL"), _("37xx: Set op 24 TL"), _("38xx: Set op 25 TL"),
+    _("39xx: Set op 26 TL"), _("3Axx: Set op 27 TL"), _("3Bxx: Set op 28 TL"),
+    _("3Cxx: Set op 29 TL"), _("3Dxx: Set op 30 TL"), _("3Exx: Set op 31 TL"),
+    _("3Fxx: Set op 32 TL"),
+  };
+  for (int i=0; i<32; i++) {
+    scspEffectHandlerMap.emplace(0x20+i, EffectHandler(
+      DIV_CMD_SCSP_OP_TL, scspOpTLDesc[i], scspOpIdxTable[i], effectVal));
+  }
+  // Per-op MDL: 0x40 covers ops 1..16, 0x41 covers ops 17..32. Format xy:
+  // x = op within the half (1..16), y = mdl 0..F. So 4017 = op 1 MDL 7;
+  // 4117 = op 17 (op 1 of high half) MDL 7. x=0 is rejected (no all-ops
+  // support yet — reuse a future code if/when needed).
+  scspEffectHandlerMap.emplace(0x40, EffectHandler(
+    DIV_CMD_SCSP_OP_MDL,
+    _("40xy: Set MDL of op x (1-16) to y (0-F)"),
+    effectOpValNoZero<16>, effectValAnd<0x0f>));
+  scspEffectHandlerMap.emplace(0x41, EffectHandler(
+    DIV_CMD_SCSP_OP_MDL,
+    _("41xy: Set MDL of op x+16 (1-16, ie ops 17-32) to y (0-F)"),
+    [](unsigned char,unsigned char val) -> int {
+      int x=(val>>4)&0xF;
+      if (x<1 || x>16) throw DivDoNotHandleEffect();
+      return x-1+16;
+    },
+    effectValAnd<0x0f>));
+
+  sysDefs[DIV_SYSTEM_SCSP]=new DivSysDef(
+    _("Yamaha YMF292 (SCSP)"), NULL, 0xda, 0, 32, 32, 32,
+    false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_16BIT)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    _("the Saturn Custom Sound Processor. 32 monophonic slots, sample-based with FM synthesis via wavetable RAM and an on-chip programmable DSP. used in the Sega Saturn."),
+    DivChanDefFunc([](unsigned short ch) -> DivChanDef {
+      return DivChanDef(
+        fmt::sprintf(_("Slot %d"),ch+1),
+        fmt::sprintf("S%d",ch+1),
+        DIV_CH_FM,
+        DIV_INS_YMF292,
+        DIV_INS_AMIGA
+      );
+    }),
+    scspEffectHandlerMap
+  );
+
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {

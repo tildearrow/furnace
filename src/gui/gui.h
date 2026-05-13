@@ -583,7 +583,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
-  GUI_WINDOW_SPOILER
+  GUI_WINDOW_SPOILER,
+  GUI_WINDOW_SCSP_DSP
 };
 
 enum FurnaceGUIMobileScenes {
@@ -667,6 +668,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_MU5_ROM_OPEN,
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
+  GUI_FILE_EXPORT_TON,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -702,7 +704,8 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
-  GUI_EXPORT_DMF
+  GUI_EXPORT_DMF,
+  GUI_EXPORT_TON
 };
 
 enum FurnaceGUIFMAlgs {
@@ -2444,6 +2447,7 @@ class FurnaceGUI {
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
   bool multiInsSetupOpen;
+  bool scspDspOpen;
 
   bool cvNotSerious;
 
@@ -2976,6 +2980,7 @@ class FurnaceGUI {
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
+  void drawExportTON(bool onWindow=false);
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -3133,6 +3138,7 @@ class FurnaceGUI {
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
+  void drawSCSPDSP();
   void drawTutorial();
   void drawXYOsc();
   void drawUserPresets();

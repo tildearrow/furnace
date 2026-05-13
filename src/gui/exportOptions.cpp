@@ -589,6 +589,41 @@ void FurnaceGUI::drawExportDMF(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportTON(bool onWindow) {
+  exitDisabledTimer=1;
+
+  // Count FM-mode SCSP instruments — only those export.
+  int fmCount=0;
+  for (DivInstrument* ins: e->song.ins) {
+    if (ins->type!=DIV_INS_YMF292) continue;
+    if (ins->scsp.mode!=DivInstrumentSCSP::SCSP_MODE_FM) continue;
+    fmCount++;
+  }
+
+  ImGui::TextWrapped("%s", _(
+    "export FM-mode SCSP instruments as a Saturn .TON tone bank, compatible "
+    "with mid2seq and the SGL sound driver. Drop the resulting .ton next to "
+    "your .seq file when shipping a Saturn build."
+  ));
+  ImGui::Separator();
+  ImGui::Text("%s: %d", _("FM patches in song"), fmCount);
+  if (fmCount==0) {
+    ImGui::TextDisabled("%s", _("add at least one SCSP instrument with Synthesis Mode = FM."));
+  }
+
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  ImGui::BeginDisabled(fmCount==0);
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_TON);
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::EndDisabled();
+}
+
 void FurnaceGUI::drawExport() {
   if (settings.exportOptionsLayout==1 || curExportType==GUI_EXPORT_NONE) {
     if (ImGui::BeginTabBar("ExportTypes")) {
@@ -618,6 +653,10 @@ void FurnaceGUI::drawExport() {
         drawExportDMF(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("TON"))) {
+        drawExportTON(true);
+        ImGui::EndTabItem();
+      }
       ImGui::EndTabBar();
     }
   } else switch (curExportType) {
@@ -638,6 +677,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_DMF:
       drawExportDMF(true);
+      break;
+    case GUI_EXPORT_TON:
+      drawExportTON(true);
       break;
     default:
       ImGui::Text(_("congratulations! you've unlocked a secret panel."));

@@ -1992,7 +1992,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
-        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+        {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn *.ton",
          _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
@@ -2009,6 +2009,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          _("VOPM preset bank"), "*.opm",
          _("Wohlstand WOPL bank"), "*.wopl",
          _("Wohlstand WOPN bank"), "*.wopn",
+         _("Saturn TON bank"), "*.ton",
          _("all files"), "*"},
         workingDirIns,
         dpiScale,
@@ -2202,6 +2203,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         _("Export VGM"),
         {_("VGM file"), "*.vgm"},
         workingDirVGMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
+    case GUI_FILE_EXPORT_TON:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export Saturn TON Bank"),
+        {_("TON bank"), "*.ton"},
+        workingDirROMExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -4250,6 +4261,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(patManager)
   DECLARE_METRIC(sysManager)
   DECLARE_METRIC(clock)
+  DECLARE_METRIC(scspDsp)
   DECLARE_METRIC(regView)
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
@@ -4905,6 +4917,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(patManagerOpen);
         IMPORT_CLOSE(sysManagerOpen);
         IMPORT_CLOSE(clockOpen);
+        IMPORT_CLOSE(scspDspOpen);
         IMPORT_CLOSE(speedOpen);
         IMPORT_CLOSE(groovesOpen);
         IMPORT_CLOSE(xyOscOpen);
@@ -5293,6 +5306,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
+        if (ImGui::MenuItem(_("SCSP DSP"),NULL,scspDspOpen)) scspDspOpen=!scspDspOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
 
         ImGui::EndMenu();
@@ -5552,6 +5566,7 @@ bool FurnaceGUI::loop() {
       MEASURE(patManager,drawPatManager());
       MEASURE(sysManager,drawSysManager());
       MEASURE(clock,drawClock());
+      MEASURE(scspDsp,drawSCSPDSP());
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
@@ -5669,6 +5684,9 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_VGM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_EXPORT_TON:
+          workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
@@ -6252,6 +6270,24 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf(_("could not write VGM! (%s)"),e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_TON: {
+              SafeWriter* w=e->saveSCSPTON();
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+              } else {
+                showError(fmt::sprintf(_("could not write TON! (%s)"),e->getLastError()));
               }
               break;
             }
@@ -8479,6 +8515,7 @@ void FurnaceGUI::syncState() {
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   clockOpen=e->getConfBool("clockOpen",false);
+  scspDspOpen=e->getConfBool("scspDspOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
@@ -8662,6 +8699,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("patManagerOpen",patManagerOpen);
   conf.set("sysManagerOpen",sysManagerOpen);
   conf.set("clockOpen",clockOpen);
+  conf.set("scspDspOpen",scspDspOpen);
   conf.set("speedOpen",speedOpen);
   conf.set("groovesOpen",groovesOpen);
   conf.set("regViewOpen",regViewOpen);
@@ -9128,6 +9166,7 @@ FurnaceGUI::FurnaceGUI():
   userPresetsOpen(false),
   refPlayerOpen(false),
   multiInsSetupOpen(false),
+  scspDspOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),

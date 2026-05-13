@@ -325,7 +325,20 @@ const char* cmdName[]={
   "FM_FMS",
   "FM_AMS",
   "FM_FMS2",
-  "FM_AMS2"
+  "FM_AMS2",
+
+  "SCSP_LFO_FREQ",
+  "SCSP_PLFO_DEPTH",
+  "SCSP_ALFO_DEPTH",
+  "SCSP_KRS",
+  "SCSP_DSP_SEND",
+  "SCSP_DSP_PAN",
+  "SCSP_DIRECT_SEND",
+  "SCSP_DIRECT_PAN",
+
+  "SCSP_OP_TL",
+  "SCSP_OP_MDL",
+  "SCSP_FEEDBACK"
 };
 
 // fail build if you forgot to update the array

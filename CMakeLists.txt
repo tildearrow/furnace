@@ -25,6 +25,18 @@ set(WITH_OGG_DEFAULT ON)
 set(WITH_MPEG_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
+# SCSP emulator backend selection.
+#   aosdk - vendored aosdk SCSP (extern/scsp/), pre-2016 MAME license, NON-COMMERCIAL.
+#           Default while the relicense work is in progress.
+#   mame  - extracted modern MAME SCSP (extern/scsp_mame/), BSD-3-Clause, GPL-compatible.
+#           In-progress freestanding extraction; not yet buildable.
+set(SCSP_BACKEND "aosdk" CACHE STRING "SCSP emulator backend: aosdk or mame")
+set_property(CACHE SCSP_BACKEND PROPERTY STRINGS aosdk mame)
+if (NOT SCSP_BACKEND STREQUAL "aosdk" AND NOT SCSP_BACKEND STREQUAL "mame")
+  message(FATAL_ERROR "SCSP_BACKEND must be 'aosdk' or 'mame' (got '${SCSP_BACKEND}')")
+endif()
+message(STATUS "SCSP backend: ${SCSP_BACKEND}")
+
 include(CheckIncludeFile)
 include(TestBigEndian)
 
@@ -148,6 +160,7 @@ option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 option(NO_INTRO "Disable intro animation entirely" OFF)
 option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
+option(BUILD_TESTS "Build standalone unit-test executables (e.g. scspdspasm_test)" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -593,6 +606,7 @@ extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/x1_010/x1_010.cpp
 
+
 extern/adpcm/bs_codec.c
 extern/adpcm/oki_codec.c
 extern/adpcm/yma_codec.c
@@ -794,6 +808,8 @@ src/engine/export.cpp
 src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
+src/engine/fileOpsTON.cpp
+src/engine/scspdspasm.cpp
 src/engine/filePlayer.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
@@ -886,6 +902,7 @@ src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
 src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
+src/engine/platform/scsp.cpp
 src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
@@ -972,6 +989,7 @@ src/gui/about.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
+src/gui/dspEdit.cpp
 src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
 src/gui/csPlayer.cpp
@@ -1207,6 +1225,20 @@ if (WITH_LOCALE)
   endif()
 endif()
 
+if (SCSP_BACKEND STREQUAL "aosdk")
+  list(APPEND ENGINE_SOURCES
+    extern/scsp/scsp.c
+    extern/scsp/scspdsp.c
+    extern/scsp/scsp_bridge.c
+  )
+elseif (SCSP_BACKEND STREQUAL "mame")
+  list(APPEND ENGINE_SOURCES
+    extern/scsp_mame/scsp.cpp
+    extern/scsp_mame/scspdsp.cpp
+    extern/scsp_mame/scsp_bridge.cpp
+  )
+endif()
+
 set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
 
 if (USE_BACKWARD)
@@ -1316,6 +1348,17 @@ elseif(WIN32 AND NOT CONSOLE_SUBSYSTEM)
   add_executable(${FURNACE} WIN32 ${USED_SOURCES})
 else()
   add_executable(${FURNACE} ${USED_SOURCES})
+endif()
+
+# Standalone unit-test runner for the SCSP DSP assembler. Pure-function
+# port; no DivEngine dep, so it links against just the assembler TU.
+# Opt-in via -DBUILD_TESTS=ON.
+if (BUILD_TESTS)
+  add_executable(scspdspasm_test
+    test/scspdspasm_test.cpp
+    src/engine/scspdspasm.cpp
+  )
+  target_compile_features(scspdspasm_test PRIVATE cxx_std_17)
 endif()
 
 if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
