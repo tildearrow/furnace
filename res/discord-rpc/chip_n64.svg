@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<circle cx="256" cy="256" r="256" fill="#2864af"/>
+<rect x="111" y="111" width="290" height="290" rx="22" fill="#0e1115"/>
+<circle cx="141" cy="141" r="11" fill="#cfd2d8"/>
+<circle cx="159.33333333333334" cy="159.33333333333334" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="159.33333333333334" cy="207.66666666666669" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="159.33333333333334" cy="256.0" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="159.33333333333334" cy="304.33333333333337" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="159.33333333333334" cy="352.6666666666667" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="207.66666666666669" cy="159.33333333333334" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="207.66666666666669" cy="207.66666666666669" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="207.66666666666669" cy="256.0" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="207.66666666666669" cy="304.33333333333337" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="207.66666666666669" cy="352.6666666666667" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="256.0" cy="159.33333333333334" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="256.0" cy="207.66666666666669" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="256.0" cy="256.0" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="256.0" cy="304.33333333333337" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="256.0" cy="352.6666666666667" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="304.33333333333337" cy="159.33333333333334" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="304.33333333333337" cy="207.66666666666669" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="304.33333333333337" cy="256.0" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="304.33333333333337" cy="304.33333333333337" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="304.33333333333337" cy="352.6666666666667" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="352.6666666666667" cy="159.33333333333334" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="352.6666666666667" cy="207.66666666666669" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="352.6666666666667" cy="256.0" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="352.6666666666667" cy="304.33333333333337" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<circle cx="352.6666666666667" cy="352.6666666666667" r="5" fill="#1a1f25" fill-opacity="0.55"/>
+<text x="256" y="234" font-family="Arial Black, Segoe UI Bold, DejaVu Sans Bold, sans-serif" font-weight="900" font-size="72" fill="white" text-anchor="middle" dominant-baseline="central">RCP</text>
+<text x="256" y="292" font-family="Arial Black, Segoe UI Bold, DejaVu Sans Bold, sans-serif" font-weight="700" font-size="28" fill="#cbd3df" text-anchor="middle" dominant-baseline="central">Nintendo 64</text>
+</svg>
