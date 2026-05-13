@@ -160,6 +160,7 @@ option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 option(NO_INTRO "Disable intro animation entirely" OFF)
 option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
+option(BUILD_TESTS "Build standalone unit-test executables (e.g. scspdspasm_test)" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -1351,11 +1352,14 @@ endif()
 
 # Standalone unit-test runner for the SCSP DSP assembler. Pure-function
 # port; no DivEngine dep, so it links against just the assembler TU.
-add_executable(scspdspasm_test
-  tools/scspdspasm_test.cpp
-  src/engine/scspdspasm.cpp
-)
-target_compile_features(scspdspasm_test PRIVATE cxx_std_17)
+# Opt-in via -DBUILD_TESTS=ON.
+if (BUILD_TESTS)
+  add_executable(scspdspasm_test
+    test/scspdspasm_test.cpp
+    src/engine/scspdspasm.cpp
+  )
+  target_compile_features(scspdspasm_test PRIVATE cxx_std_17)
+endif()
 
 if (MAKE_BUNDLE AND NOT FORCE_APPLE_BIN)
   set_target_properties(${FURNACE} PROPERTIES

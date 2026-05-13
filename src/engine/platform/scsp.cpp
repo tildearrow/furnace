@@ -151,7 +151,7 @@ static unsigned short computeD7FromOp(unsigned char mdl, signed char modSource,
   if (modSource>=0 && mdl>0) {
     regMdl=(unsigned int)mdl & 0xF;
     int modSlot=slotBase+(int)modSource;
-    unsigned int dist=(unsigned int)(modSlot-slot) & 63u;
+    unsigned int dist=(unsigned int)(modSlot-slot) & 0x3F;
     mdxsl=dist;
     mdysl=dist;
   }

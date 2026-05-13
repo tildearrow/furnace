@@ -258,7 +258,7 @@ the channel count is stored in the file in order to allow Furnace to load files 
 - 0xd7: Game Boy Advance (direct) - 2 channels
 - 0xd8: Game Boy Advance (MinMod) - 16 channels
 - 0xd9: Bifurcator - 4 channels
-- 0xda: SCSP - 8 channels
+- 0xda: SCSP - 32 channels
 - 0xdb: YMF271 (OPX) - 48 channels (UNAVAILABLE)
 - 0xdc: RF5C400 - 32 channels (UNAVAILABLE)
 - 0xdd: YM2612 XGM - 9 channels (UNAVAILABLE)

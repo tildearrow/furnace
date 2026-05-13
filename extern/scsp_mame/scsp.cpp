@@ -35,7 +35,7 @@
 // Freestanding port of MAME's SCSP. The original MAME framework hooks
 // (device_t, sound_stream, emu_timer, devcb, device_rom_interface) are
 // stripped; the core DSP/EG/LFO algorithms are unchanged. See scsp.h
-// for the public API and PORTING_NOTES.md for the strip-out checklist.
+// for the public API.
 #include "scsp.h"
 
 #include <algorithm>
