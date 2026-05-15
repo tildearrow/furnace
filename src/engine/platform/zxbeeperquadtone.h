@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,18 +23,20 @@
 #include "../dispatch.h"
 
 class DivPlatformZXBeeperQuadTone: public DivDispatch {
-  struct Channel: public SharedChannel<unsigned char> {
+  struct Channel: public SharedChannel {
     unsigned short sPosition;
     unsigned char duty;
     unsigned char out;
-    Channel():
-      SharedChannel<unsigned char>(2),
+    Channel(bool linear=true):
+      SharedChannel(2,linear),
       sPosition(0),
       duty(128),
       out(0) {}
   };
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[5];
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   bool isMuted[5];
   bool noHiss;
   bool deHisser[8];
@@ -48,7 +50,7 @@ class DivPlatformZXBeeperQuadTone: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();

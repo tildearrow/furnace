@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1061,6 +1061,7 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
       }
     );
+    // note: PC-9801-86 has no ADPCM-B RAM
     SUB_ENTRY(
       _("NEC PC-98 (with PC-9801-86)"), { // -73 also has OPNA
         CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1\nssgVol=64"),
@@ -1145,6 +1146,7 @@ void FurnaceGUI::initSystemPresets() {
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "clockSel=1")
       }
     );
+    // note: PC-9801-73 has ADPCM-B RAM, PCM DAC AND DSP
     SUB_ENTRY(
       _("NEC PC-98 (with PC-9801-73)"), {
         CH(DIV_SYSTEM_YM2608, 1.0f, 0, "clockSel=1\nssgVol=64"),
@@ -2272,6 +2274,11 @@ void FurnaceGUI::initSystemPresets() {
     SUB_ENTRY(
       _("Namco (3-channel WSG)"), { // Pac-Man, Galaga, Xevious, etc
         CH(DIV_SYSTEM_NAMCO, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
+      _("Namco Pole Position"), { // Pole position/2
+        CH(DIV_SYSTEM_NAMCO_POLEPOS, 1.0f, 0, "")
       }
     );
     SUB_ENTRY(
@@ -3760,6 +3767,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    _("Namco Pole Position WSG (8-channel quadraphonic)"), {
+      CH(DIV_SYSTEM_NAMCO_POLEPOS, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     _("Namco C15 (8-channel mono)"), {
       CH(DIV_SYSTEM_NAMCO_15XX, 1.0f, 0, "")
     }
@@ -4036,6 +4048,9 @@ void FurnaceGUISysDef::bake() {
       index,
       taEncodeBase64(i.flags)
     );
+    if (i.chans>0) {
+      definition+=fmt::sprintf("chans%d=%d\n",index,i.chans);
+    }
     index++;
   }
   if (!extra.empty()) {
@@ -4074,8 +4089,11 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, const char* def, DivEngine* e)
     nextStr=fmt::sprintf("flags%d",i);
     String flags=taDecodeBase64(conf.getString(nextStr.c_str(),"").c_str());
     conf.remove(nextStr.c_str());
+    nextStr=fmt::sprintf("chans%d",i);
+    int chans=conf.getInt(nextStr.c_str(),0);
+    conf.remove(nextStr.c_str());
 
-    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR));
+    orig.push_back(FurnaceGUISysDefChip(e->systemFromFileFur(id),vol,pan,flags.c_str(),panFR,chans));
   }
   // extract extra
   extra=conf.toString();

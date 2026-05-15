@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,6 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 #include <imgui_internal.h>
-
-const char* sampleNote[12]={
-  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-};
 
 #define DIR_DRAG_SOURCE(_d,_a,_c) \
   if (ImGui::BeginDragDropSource()) { \
@@ -88,7 +84,7 @@ const char* sampleNote[12]={
         int target=i; \
         bool markModified=false; \
         if (_toMoveVar!=target) { \
-          if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
+          if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) { \
             markModified=_swapFn(_toMoveVar,target); \
           } else { \
             while (_toMoveVar>target) { \

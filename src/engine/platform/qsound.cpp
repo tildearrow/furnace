@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -642,7 +642,7 @@ void DivPlatformQSound::forceIns() {
   }
 }
 
-void* DivPlatformQSound::getChanState(int ch) {
+SharedChannel* DivPlatformQSound::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -660,7 +660,7 @@ DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
 
 void DivPlatformQSound::reset() {
   for (int i=0; i<19; i++) {
-    chan[i]=DivPlatformQSound::Channel();
+    chan[i]=DivPlatformQSound::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   qsound_reset(&chip);
@@ -674,6 +674,10 @@ void DivPlatformQSound::reset() {
 
 int DivPlatformQSound::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformQSound::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformQSound::keyOffAffectsArp(int ch) {
@@ -764,6 +768,19 @@ const char* DivPlatformQSound::getSampleMemName(int index) {
 const DivMemoryComposition* DivPlatformQSound::getMemCompo(int index) {
   if (index!=0) return NULL;
   return &memCompo;
+}
+
+DivSamplePos DivPlatformQSound::getSamplePos(int ch) {
+  if (ch>=16) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  int f=chan[ch].freq;
+  unsigned int pos=((qsound_read_data(&chip,(((ch-1)&15)<<3)|0)<<16)&0x7fff0000)|((qsound_read_data(&chip,(ch<<3)|1)^0x8000));
+  if (ch==7) logV("%d pos: %x",ch,pos);
+  return DivSamplePos(
+    chan[ch].sample,
+    pos-(offPCM[chan[ch].sample]^0x8000),
+    f
+  );
 }
 
 void DivPlatformQSound::renderSamples(int sysID) {

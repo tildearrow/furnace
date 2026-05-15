@@ -5,7 +5,7 @@ a **groove** is the equivalent of repeating `0Fxx` effects on each row to get a 
 ![groove](groove.png)
 
 to set the song's groove:
-- open the "Speed" window.
+- go to the [Speed](../2-interface/song-info.md#speed) window (window > tempo > speed).
 - click the "Speed" button so it becomes "Speeds" (effectively a groove of two speeds).
 - click again so it becomes "Groove".
 - enter a sequence of up to 16 speeds.

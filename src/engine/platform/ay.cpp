@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -179,6 +179,7 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
       chan[i].tfx.counter += counterRatio;
       if (chan[i].tfx.counter >= chan[i].tfx.period) {
         chan[i].tfx.counter -= chan[i].tfx.period;
+        //assert(chan[i].tfx.counter < chan[i].tfx.period);
         switch (chan[i].tfx.mode) {
           case 0:
             // pwm
@@ -234,7 +235,7 @@ void DivPlatformAY8910::runTFX(int runRate, int advance) {
     // YM2149 half-clock and Sunsoft 5B: timers run an octave too high
     // on AtomicSSG core timers run 2 octaves too high
     if (clockSel || sunsoft) chan[i].tfx.period = chan[i].tfx.period * 2;
-    if (selCore && !intellivision) chan[i].tfx.period = chan[i].tfx.period * 4;
+    //if (selCore && !intellivision) chan[i].tfx.period = chan[i].tfx.period * 4;
   }
 }
 
@@ -379,8 +380,11 @@ void DivPlatformAY8910::acquire_atomic(short** buf, size_t len) {
     oscBuf[i]->begin(len);
   }
   for (size_t i=0; i<len; i++) {
-    runDAC(0,1);
-    runTFX(0,1);
+    if (++atomicTFXDelay>=8) {
+      atomicTFXDelay=0;
+      runDAC(0,8);
+      runTFX(0,(clockSel || sunsoft)?4:2);
+    }
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -431,6 +435,7 @@ void DivPlatformAY8910::fillStream(std::vector<DivDelayedWrite>& stream, int sRa
       writes.pop_front();
     }
   }
+  regWrites.clear();
 }
 
 void DivPlatformAY8910::updateOutSel(bool immediate) {
@@ -478,7 +483,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -597,7 +602,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
       chan[i].tfx.lowBound=chan[i].std.ams.val;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].curPSGMode.val&8) {
         double off=1.0;
         if (chan[i].dac.sample>=0 && chan[i].dac.sample<parent->song.sampleLen) {
@@ -710,7 +715,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
         }
         chan[c.chan].dac.period=0;
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -727,7 +732,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -797,7 +802,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -820,7 +825,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -944,7 +949,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -983,7 +988,7 @@ void DivPlatformAY8910::forceIns() {
   immWrite(0x0d,ayEnvMode);
 }
 
-void* DivPlatformAY8910::getChanState(int ch) {
+SharedChannel* DivPlatformAY8910::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1034,7 +1039,8 @@ void DivPlatformAY8910::reset() {
   ay->device_reset();
   memset(regPool,0,16);
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformAY8910::Channel();
+    chan[i]=DivPlatformAY8910::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
@@ -1066,6 +1072,8 @@ void DivPlatformAY8910::reset() {
   ioPortB=false;
   portAVal=0;
   portBVal=0;
+
+  atomicTFXDelay=0;
 }
 
 int DivPlatformAY8910::getOutputCount() {
@@ -1087,6 +1095,13 @@ bool DivPlatformAY8910::getLegacyAlwaysSetVolume() {
 void DivPlatformAY8910::notifyInsDeletion(void* ins) {
   for (int i=0; i<3; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
+void DivPlatformAY8910::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,3,parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch,sample);
+  if (sample==-1) {
+    pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
   }
 }
 
@@ -1221,10 +1236,13 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
 
   stereo=flags.getBool("stereo",false);
   stereoSep=flags.getInt("stereoSep",0)&255;
+
+  notifyPitchTable();
 }
 
 int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
@@ -1242,4 +1260,5 @@ void DivPlatformAY8910::quit() {
     delete oscBuf[i];
   }
   if (ay!=NULL) delete ay;
+  samplePitchTable.destroy<Channel>(chan,3);
 }

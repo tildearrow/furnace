@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -351,6 +351,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
   // MAKE IT WORK
   while (!endOfSong) {
+    // if the virtual tempo nominator is zero, the song will go on forever.
+    if (curVirtualTempoN<1) {
+      ts.totalTime.seconds=INT_MAX;
+      break;
+    }
+
     // heuristic
     int advance=(curVirtualTempoD*ticks)/curVirtualTempoN;
     for (int i=0; i<chans; i++) {
@@ -376,13 +382,13 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     // run virtual tempo
     tempoAccum+=curVirtualTempoN*advance;
     while (tempoAccum>=curVirtualTempoD) {
-      int ticksToRun=tempoAccum/curVirtualTempoD;
-      tempoAccum%=curVirtualTempoD;
+      int ticksToRun=tempoAccum/MAX(1,curVirtualTempoD);
+      tempoAccum%=MAX(1,curVirtualTempoD);
       // tick counter
       ticks-=ticksToRun;
       if (ticks<0) {
         // if ticks is negative, we must call ticks back
-        tempoAccum+=-ticks*curVirtualTempoD;
+        tempoAccum+=-ticks*MAX(1,curVirtualTempoD);
       }
       if (ticks<=0) {
         if (shallStopSched) {
@@ -470,16 +476,29 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     patLen=reader.readS();
     ordersLen=reader.readS();
 
+    if (patLen<1 || patLen>DIV_MAX_ROWS) {
+      logE("invalid pattern length!");
+      return false;
+    }
+    if (ordersLen<1 || ordersLen>256) {
+      logE("invalid orders count!");
+      return false;
+    }
+
     hilightA=reader.readC();
     hilightB=reader.readC();
 
     virtualTempoN=reader.readS();
     virtualTempoD=reader.readS();
 
+    if (virtualTempoN<1) virtualTempoN=1;
+    if (virtualTempoD<1) virtualTempoD=1;
+
     speeds.len=reader.readC();
     for (int i=0; i<16; i++) {
       speeds.val[i]=reader.readS();
     }
+    speeds.checkBounds();
 
     name=reader.readString();
     notes=reader.readString();
@@ -493,6 +512,10 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     for (int i=0; i<chans; i++) {
       pat[i].effectCols=reader.readC();
+      if (pat[i].effectCols<1 || pat[i].effectCols>8) {
+        logE("invalid effect column count!");
+        return false;
+      }
     }
 
     for (int i=0; i<chans; i++) {
@@ -533,12 +556,24 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     patLen=reader.readS();
     ordersLen=reader.readS();
 
+    if (patLen<1 || patLen>DIV_MAX_ROWS) {
+      logE("invalid pattern length!");
+      return false;
+    }
+    if (ordersLen<1 || ordersLen>256) {
+      logE("invalid orders count!");
+      return false;
+    }
+
     hilightA=reader.readC();
     hilightB=reader.readC();
 
     if (version>=96) {
       virtualTempoN=reader.readS();
       virtualTempoD=reader.readS();
+
+      if (virtualTempoN<1) virtualTempoN=1;
+      if (virtualTempoD<1) virtualTempoD=1;
     } else {
       reader.readI();
     }
@@ -555,6 +590,11 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     for (int i=0; i<chans; i++) {
       pat[i].effectCols=reader.readC();
+
+      if (pat[i].effectCols<1 || pat[i].effectCols>8) {
+        logE("invalid effect column count!");
+        return false;
+      }
     }
 
     for (int i=0; i<chans; i++) {
@@ -585,6 +625,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
       for (int i=0; i<16; i++) {
         speeds.val[i]=(unsigned char)reader.readC();
       }
+      speeds.checkBounds();
     }
 
     for (int i=0; i<16; i++) {
@@ -1025,6 +1066,11 @@ void DivSong::unload() {
   subsong.clear();
 }
 
+void DivGroovePattern::checkBounds() {
+  if (len<1) len=1;
+  if (len>16) len=16;
+}
+
 bool DivGroovePattern::readData(SafeReader& reader) {
   unsigned char magic[4];
 
@@ -1036,7 +1082,11 @@ bool DivGroovePattern::readData(SafeReader& reader) {
   }
   reader.readI();
 
-  
+  len=reader.readC();
+  for (int i=0; i<16; i++) {
+    val[i]=reader.readS();
+  }
+  checkBounds();
 
   return true;
 }
@@ -1115,11 +1165,22 @@ void DivCompatFlags::setDefaults() {
   oldAlwaysSetVolume=false;
   oldSampleOffset=false;
   oldCenterRate=true;
+  noVolSlideReset=false;
 }
 
 bool DivCompatFlags::areDefaults() {
   return (*this==defaultFlags);
 }
+
+#define CHECK_AND_LOAD_BOOL(_x) \
+  if (c.has(#_x)) { \
+    _x=c.getBool(#_x,false); \
+  }
+
+#define CHECK_AND_LOAD_UNSIGNED_CHAR(_x) \
+  if (c.has(#_x)) { \
+    _x=(unsigned char)c.getInt(#_x,0); \
+  }
 
 bool DivCompatFlags::readData(SafeReader& reader) {
   DivConfig c;
@@ -1134,7 +1195,64 @@ bool DivCompatFlags::readData(SafeReader& reader) {
   String data=reader.readString();
   c.loadFromMemory(data.c_str());
 
-  // TODO: this
+  CHECK_AND_LOAD_BOOL(limitSlides);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(linearPitch);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(pitchSlideSpeed);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(loopModality);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(delayBehavior);
+  CHECK_AND_LOAD_UNSIGNED_CHAR(jumpTreatment);
+  CHECK_AND_LOAD_BOOL(properNoiseLayout);
+  CHECK_AND_LOAD_BOOL(waveDutyIsVol);
+  CHECK_AND_LOAD_BOOL(resetMacroOnPorta);
+  CHECK_AND_LOAD_BOOL(legacyVolumeSlides);
+  CHECK_AND_LOAD_BOOL(compatibleArpeggio);
+  CHECK_AND_LOAD_BOOL(noteOffResetsSlides);
+  CHECK_AND_LOAD_BOOL(targetResetsSlides);
+  CHECK_AND_LOAD_BOOL(arpNonPorta);
+  CHECK_AND_LOAD_BOOL(algMacroBehavior);
+  CHECK_AND_LOAD_BOOL(brokenShortcutSlides);
+  CHECK_AND_LOAD_BOOL(ignoreDuplicateSlides);
+  CHECK_AND_LOAD_BOOL(stopPortaOnNoteOff);
+  CHECK_AND_LOAD_BOOL(continuousVibrato);
+  CHECK_AND_LOAD_BOOL(brokenDACMode);
+  CHECK_AND_LOAD_BOOL(oneTickCut);
+  CHECK_AND_LOAD_BOOL(newInsTriggersInPorta);
+  CHECK_AND_LOAD_BOOL(arp0Reset);
+  CHECK_AND_LOAD_BOOL(brokenSpeedSel);
+  CHECK_AND_LOAD_BOOL(noSlidesOnFirstTick);
+  CHECK_AND_LOAD_BOOL(rowResetsArpPos);
+  CHECK_AND_LOAD_BOOL(ignoreJumpAtEnd);
+  CHECK_AND_LOAD_BOOL(buggyPortaAfterSlide);
+  CHECK_AND_LOAD_BOOL(gbInsAffectsEnvelope);
+  CHECK_AND_LOAD_BOOL(sharedExtStat);
+  CHECK_AND_LOAD_BOOL(ignoreDACModeOutsideIntendedChannel);
+  CHECK_AND_LOAD_BOOL(e1e2AlsoTakePriority);
+  CHECK_AND_LOAD_BOOL(newSegaPCM);
+  CHECK_AND_LOAD_BOOL(fbPortaPause);
+  CHECK_AND_LOAD_BOOL(snDutyReset);
+  CHECK_AND_LOAD_BOOL(pitchMacroIsLinear);
+  CHECK_AND_LOAD_BOOL(oldOctaveBoundary);
+  CHECK_AND_LOAD_BOOL(noOPN2Vol);
+  CHECK_AND_LOAD_BOOL(newVolumeScaling);
+  CHECK_AND_LOAD_BOOL(volMacroLinger);
+  CHECK_AND_LOAD_BOOL(brokenOutVol);
+  CHECK_AND_LOAD_BOOL(brokenOutVol2);
+  CHECK_AND_LOAD_BOOL(e1e2StopOnSameNote);
+  CHECK_AND_LOAD_BOOL(brokenPortaArp);
+  CHECK_AND_LOAD_BOOL(snNoLowPeriods);
+  CHECK_AND_LOAD_BOOL(disableSampleMacro);
+  CHECK_AND_LOAD_BOOL(oldArpStrategy);
+  CHECK_AND_LOAD_BOOL(brokenPortaLegato);
+  CHECK_AND_LOAD_BOOL(brokenFMOff);
+  CHECK_AND_LOAD_BOOL(preNoteNoEffect);
+  CHECK_AND_LOAD_BOOL(oldDPCM);
+  CHECK_AND_LOAD_BOOL(resetArpPhaseOnNewNote);
+  CHECK_AND_LOAD_BOOL(ceilVolumeScaling);
+  CHECK_AND_LOAD_BOOL(oldAlwaysSetVolume);
+  CHECK_AND_LOAD_BOOL(oldSampleOffset);
+  CHECK_AND_LOAD_BOOL(oldCenterRate);
+  CHECK_AND_LOAD_BOOL(noVolSlideReset);
+
   return true;
 }
 
@@ -1208,6 +1326,7 @@ void DivCompatFlags::putData(SafeWriter* w) {
   CHECK_AND_STORE_BOOL(oldAlwaysSetVolume);
   CHECK_AND_STORE_BOOL(oldSampleOffset);
   CHECK_AND_STORE_BOOL(oldCenterRate);
+  CHECK_AND_STORE_BOOL(noVolSlideReset);
 
   String data=c.toString();
   w->write("CFLG",4);

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ void DivDispatch::postProcess(short* buf, int outIndex, size_t len, int sampleRa
 void DivDispatch::tick(bool sysTick) {
 }
 
-void* DivDispatch::getChanState(int chan) {
+SharedChannel* DivDispatch::getChanState(int chan) {
   return NULL;
 }
 
@@ -107,6 +107,10 @@ bool DivDispatch::isVolGlobal() {
   return false;
 }
 
+bool DivDispatch::hasSoftPan(int ch) {
+  return false;
+}
+
 int DivDispatch::mapVelocity(int ch, float vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
   return round(vel*volMax);
@@ -118,7 +122,7 @@ float DivDispatch::getGain(int ch, int vol) {
 }
 
 int DivDispatch::getPortaFloor(int ch) {
-  return 0x00;
+  return 60;
 }
 
 bool DivDispatch::getLegacyAlwaysSetVolume() {
@@ -233,6 +237,10 @@ const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
   return NULL;
 }
 
+const void* DivDispatch::compileSampleMem(int index, size_t& size) {
+  return NULL;
+}
+
 bool DivDispatch::isSampleLoaded(int index, int sample) {
   printf("you are calling.\n");
   return false;
@@ -242,7 +250,7 @@ void DivDispatch::renderSamples(int sysID) {
   
 }
 
-void DivDispatch::notifyPitchTable() {
+void DivDispatch::notifyPitchTable(int sample) {
 }
 
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

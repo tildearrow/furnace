@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -329,7 +329,7 @@ void FurnaceGUI::drawMixer() {
         hoveredPortSet=0x1fff;
         hoveredSubPort=-1;
 
-        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),ImGuiChildFlags_Border)) {
+        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),ImGuiChildFlags_Borders)) {
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 topPos=ImGui::GetCursorPos();
           ImVec2 sysSize=calcPortSetSize(_("System"),displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);

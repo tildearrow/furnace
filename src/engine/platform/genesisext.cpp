@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -801,7 +801,7 @@ void DivPlatformGenesisExt::forceIns() {
   }
 }
 
-void* DivPlatformGenesisExt::getChanState(int ch) {
+SharedChannel* DivPlatformGenesisExt::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
@@ -880,7 +880,7 @@ void DivPlatformGenesisExt::notifyInsDeletion(void* ins) {
 }
 
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
-  return (ch>8)?12:0;
+  return (ch>8)?72:60;
 }
 
 void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {

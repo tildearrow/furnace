@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -609,6 +609,7 @@ void FurnaceGUI::drawChanOsc() {
         if (chanOscAutoCols) {
           chanOscCols=sqrt(oscData.size());
           if (chanOscCols>64) chanOscCols=64;
+          if (chanOscCols<1) chanOscCols=1;
         }
         int rows=(oscData.size()+(chanOscCols-1))/chanOscCols;
 
@@ -831,28 +832,8 @@ void FurnaceGUI::drawChanOsc() {
                 //   ), 2, 0xffff0000);
               }
 
-              if (rend->supportsDrawOsc() && settings.shaderOsc) {
-                fft->drawOp.gui=this;
-                fft->drawOp.data=fft->oscTex;
-                fft->drawOp.len=precision;
-                fft->drawOp.pos0=inRect.Min;
-                fft->drawOp.pos1=inRect.Max;
-                fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
-                fft->drawOp.lineSize=dpiScale*chanOscLineSize;
-
-                dl->AddCallback(_drawOsc,&fft->drawOp);
-                dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
-              } else {
-                //ImGui::PushClipRect(inRect.Min,inRect.Max,false);
-                //ImDrawListFlags prevFlags=dl->Flags;
-                //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-                dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
-                //dl->Flags=prevFlags;
-                //ImGui::PopClipRect();
-              }
-
-              //ImGui::PushClipRect(inRect.Min,inRect.Max,false);
               if (!chanOscTextFormat.empty()) {
+                ImGui::PushClipRect(inRect.Min,inRect.Max,false);
                 String text;
                 bool inFormat=false;
 
@@ -928,15 +909,13 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
-                        // ik its pretty hacky but it works
-                        // the templated stuff is after the member we need to access so it shouldnt matter
-                        // and no segfaults should occur
-                        SharedChannel<char>* chan=(SharedChannel<char>*)e->getDispatchChanState(ch);
-                        if (chanState==NULL || chan==NULL || !chan->active) {
+                        if (chanState==NULL) {
+                          text+="---";
+                        } else if (!chanState->keyOn) {
                           text+="---";
                         } else {
                           // no more conversion necessary after the note/octave unification :>
-                          text+=fmt::sprintf("%s",noteName(chanState->note+60));
+                          text+=fmt::sprintf("%s",noteName(chanState->note));
                         }
                         break;
                       }
@@ -961,9 +940,28 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
                 dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
+                ImGui::PopClipRect();
               }
 
-              //ImGui::PopClipRect();
+              if (rend->supportsDrawOsc() && settings.shaderOsc) {
+                fft->drawOp.gui=this;
+                fft->drawOp.data=fft->oscTex;
+                fft->drawOp.len=precision;
+                fft->drawOp.pos0=inRect.Min;
+                fft->drawOp.pos1=inRect.Max;
+                fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
+                fft->drawOp.lineSize=dpiScale*chanOscLineSize;
+
+                dl->AddCallback(_drawOsc,&fft->drawOp);
+                dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
+              } else {
+                // ImGui::PushClipRect(inRect.Min,inRect.Max,false);
+                //ImDrawListFlags prevFlags=dl->Flags;
+                //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
+                dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
+                //dl->Flags=prevFlags;
+                // ImGui::PopClipRect();
+              }
             }
           }
         }

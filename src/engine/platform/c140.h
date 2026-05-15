@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformC140: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     bool setPos, invert, surround, noise, volChangedL, volChangedR, writeCtrl;
@@ -33,8 +33,8 @@ class DivPlatformC140: public DivDispatch {
     int chVolL, chVolR;
     int macroVolMul;
     int macroPanMul;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -57,6 +57,7 @@ class DivPlatformC140: public DivDispatch {
   bool isMuted[24];
   unsigned int* sampleOff;
   bool* sampleLoaded;
+  DivPitchTableManager samplePitchTable;
   bool is219;
   int totalChans;
   unsigned char groupBank[4];
@@ -86,7 +87,7 @@ class DivPlatformC140: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
@@ -99,9 +100,11 @@ class DivPlatformC140: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

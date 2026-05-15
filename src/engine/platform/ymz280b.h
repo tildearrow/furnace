@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@
 #include "sound/ymz280b.h"
 
 class DivPlatformYMZ280B: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos, isNewYMZ;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -43,6 +43,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
+  DivPitchTableManager samplePitchTable;
   int chipType;
   unsigned int* sampleOff;
   bool* sampleLoaded;
@@ -58,7 +59,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -70,6 +71,7 @@ class DivPlatformYMZ280B: public DivDispatch {
     void muteChannel(int ch, bool mute);
     float getPostAmp();
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

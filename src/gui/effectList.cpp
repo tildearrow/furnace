@@ -61,6 +61,11 @@ void FurnaceGUI::drawEffectList() {
             if (outputs<2) {
               continue;
             }
+            if (!dispatch->hasSoftPan(e->song.dispatchChanOfChan[cursor.xCoarse])) {
+              if (i==0x80) continue;
+              if (i==0x83) continue;
+              if (i==0x84) continue;
+            }
             if (outputs<3) {
               if (i>=0x88 && i<=0x8f) {
                 continue;

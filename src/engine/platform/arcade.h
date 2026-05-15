@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
-      Channel():
-        FMChannel(),
+      Channel(bool linear=true):
+        FMChannel(linear),
         chVolL(1),
         chVolR(1) {}
     };
@@ -66,7 +66,7 @@ class DivPlatformArcade: public DivPlatformOPM {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

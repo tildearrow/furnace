@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,15 +40,15 @@ class DivPlatformLynx: public DivDispatch {
     MikeyDuty(int duty);
   };
 
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     MikeyFreqDiv fd;
     MikeyDuty duty;
     int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
     unsigned char pan;
     bool pcm, setPos, updateLFSR;
     int macroVolMul;
-    Channel():
-      SharedChannel<signed char>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       fd(0),
       duty(0),
       actualNote(0),
@@ -76,6 +76,8 @@ class DivPlatformLynx: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
@@ -84,7 +86,7 @@ class DivPlatformLynx: public DivDispatch {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -96,6 +98,7 @@ class DivPlatformLynx: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     bool getLegacyAlwaysSetVolume();

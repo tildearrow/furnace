@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -303,6 +303,14 @@ void DivEngine::notifySampleChange(int sample) {
   BUSY_END;
 }
 
+void DivEngine::notifyPitchTable(int sample) {
+  BUSY_BEGIN;
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPitchTable(sample);
+  }
+  BUSY_END;
+}
+
 int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret) {
   ret=NULL;
   if (path.empty()) {
@@ -516,9 +524,11 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
     if (song.system[index]==DIV_SYSTEM_NULL) {
       break;
     }
-    chanCount+=getChannelCount(song.system[index]);
-    if (chanCount>=DIV_MAX_CHANS) {
+    song.systemChans[index]=c.getInt(fmt::sprintf("chans%d",index),getChannelCount(song.system[index]));
+    chanCount+=song.systemChans[index];
+    if (chanCount>DIV_MAX_CHANS) {
       song.system[index]=DIV_SYSTEM_NULL;
+      song.systemChans[index]=1;
       break;
     }
     song.systemVol[index]=c.getFloat(fmt::sprintf("vol%d",index),1.0f);
@@ -535,7 +545,6 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
     song.systemFlags[index].loadFromBase64(flags.c_str());
   }
   song.systemLen=index;
-  song.initDefaultSystemChans();
   
   // extra attributes
   song.subsong[0]->hz=c.getDouble("tickRate",60.0);
@@ -543,7 +552,7 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   if (song.subsong[0]->hz>999.0) song.subsong[0]->hz=999.0;
 
   curChanMask=c.getIntList("chanMask",{});
-  for (unsigned char i:curChanMask) {
+  for (unsigned char i: curChanMask) {
     int j=i-1;
     if (j<0) j=0;
     if (j>DIV_MAX_CHANS) j=DIV_MAX_CHANS-1;
@@ -971,7 +980,7 @@ void DivEngine::delUnusedSamples() {
         isUsed[i->amiga.initSample]=true;
       }
       if (i->amiga.useNoteMap) {
-        for (int j=0; j<120; j++) {
+        for (int j=0; j<180; j++) {
           if (i->amiga.noteMap[j].map>=0 && i->amiga.noteMap[j].map<song.sampleLen) {
             isUsed[i->amiga.noteMap[j].map]=true;
           }
@@ -1000,6 +1009,8 @@ void DivEngine::delUnusedSamples() {
 
   saveLock.unlock();
   BUSY_END;
+
+  notifyPitchTable();
 }
 
 bool DivEngine::sysChanCountChange(int firstChan, int before, int after) {
@@ -1603,7 +1614,7 @@ unsigned short DivEngine::getChanPan(int ch) {
   return disCont[song.dispatchOfChan[ch]].dispatch->getPan(song.dispatchChanOfChan[ch]);
 }
 
-void* DivEngine::getDispatchChanState(int ch) {
+SharedChannel* DivEngine::getDispatchChanState(int ch) {
   if (ch<0 || ch>=song.chans) return NULL;
   if (song.dispatchChanOfChan[ch]<0) return NULL;
   return disCont[song.dispatchOfChan[ch]].dispatch->getChanState(song.dispatchChanOfChan[ch]);
@@ -1831,7 +1842,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   if (song.compatFlags.linearPitch) { // linear
     return (note<<7);
   }
-  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note+3)/12.0);
+  double base=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(note-60+3)/12.0);
   return period?
          (clock/base)/divider:
          base*(divider/clock);
@@ -1847,7 +1858,7 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
     boundaryTop>>=1; \
     boundaryBottom>>=1; \
   } \
-  int block=(note)/12; \
+  int block=((note)-60)/12; \
   if (block<0) block=0; \
   if (block>7) block=7; \
   bf>>=block; \
@@ -1901,7 +1912,7 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
         nbase+=arp<<7;
       }
     }
-    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384)/(128.0*12.0));
+    double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384-7680)/(128.0*12.0));
     int bf=period?
            round((clock/fbase)/divider):
            round(fbase*(divider/clock));
@@ -1923,9 +1934,9 @@ int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period
 
 int DivEngine::calcArp(int note, int arp, int offset) {
   if (arp<0) {
-    if (!(arp&0x40000000)) return (arp|0x40000000)+offset;
+    if (!(arp&0x40000000)) return (arp|0x40000000)+offset+60;
   } else {
-    if (arp&0x40000000) return (arp&(~0x40000000))+offset;
+    if (arp&0x40000000) return (arp&(~0x40000000))+offset+60;
   }
   return note+arp;
 }
@@ -2375,7 +2386,7 @@ void DivEngine::previewSampleNoLock(int sample, int note, int pStart, int pEnd) 
   blip_clear(samp_bb);
   double rate=song.sample[sample]->centerRate;
   if (note>=0) {
-    rate=(pow(2.0,(double)(note)/12.0)*((double)song.sample[sample]->centerRate)*0.0625);
+    rate=(pow(2.0,(double)(note-60)/12.0)*((double)song.sample[sample]->centerRate)*0.0625);
     if (rate<=0) rate=song.sample[sample]->centerRate;
   }
   if (rate<100) rate=100;
@@ -2412,7 +2423,7 @@ void DivEngine::previewWaveNoLock(int wave, int note) {
     return;
   }
   blip_clear(samp_bb);
-  double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3)/12.0));
+  double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3-60)/12.0));
   if (rate<100) rate=100;
   double rateOrig=rate;
   sPreview.rateMul=1;
@@ -3065,7 +3076,7 @@ void DivEngine::delSampleUnsafe(int index, bool render) {
       } else if (i->amiga.initSample>index) {
         i->amiga.initSample--;
       }
-      for (int j=0; j<120; j++) {
+      for (int j=0; j<180; j++) {
         if (i->amiga.noteMap[j].map==index) {
           i->amiga.noteMap[j].map=-1;
         } else if (i->amiga.noteMap[j].map>index) {
@@ -3302,7 +3313,7 @@ void DivEngine::exchangeSample(int one, int two) {
     } else if (i->amiga.initSample==two) {
       i->amiga.initSample=one;
     }
-    for (int j=0; j<120; j++) {
+    for (int j=0; j<180; j++) {
       if (i->amiga.noteMap[j].map==one) {
         i->amiga.noteMap[j].map=two;
       } else if (i->amiga.noteMap[j].map==two) {

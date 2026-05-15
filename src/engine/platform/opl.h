@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ class DivYMF278MemoryInterface: public MemoryInterface {
 
 class DivPlatformOPL: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       DivInstrumentFM state;
       unsigned int freqH, freqL;
       int sample, fixedFreq;
@@ -64,12 +64,12 @@ class DivPlatformOPL: public DivDispatch {
       int lfo, vib, am, ar, d1r, d2r, dl, rc, rr;
       int pan;
       int macroVolMul;
-      Channel():
-        SharedChannel<int>(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         sample(-1),
-        fixedFreq(0),
+        fixedFreq(-1),
         fourOp(false),
         hardReset(false),
         writeCtrl(false),
@@ -133,7 +133,8 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
     int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan=-1, pcmChanOffs=-1, totalOutputs, ramSize;
-    int fmMixL=7, fmMixR=7, pcmMixL=7, pcmMixR=7;
+    int fmMixL, fmMixR, pcmMixL, pcmMixR;
+    int fmMixLDef, fmMixRDef, pcmMixLDef, pcmMixRDef;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -189,7 +190,7 @@ class DivPlatformOPL: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
@@ -203,6 +204,7 @@ class DivPlatformOPL: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void setCore(unsigned char which);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);
