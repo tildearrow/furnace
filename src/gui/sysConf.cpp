@@ -280,10 +280,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton(_("8K (rev A/B/E)"),sampleMemSize==0)) {
         sampleMemSize=0;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("64K (rev D/F)"),sampleMemSize==1)) {
         sampleMemSize=1;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
       ImGui::Text(_("DAC resolution:"));
@@ -2427,7 +2429,72 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_SEGAPCM: {
+      int clockSel=flags.getInt("clockSel",0);
+      int memSize=flags.getInt("memSize",0);
+      bool isDiscrete=flags.getBool("isDiscrete",false);
       bool oldSlides=flags.getBool("oldSlides",false);
+
+      ImGui::Text(_("Clock rate:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("4MHz (Super Hang On/Out Run/X Board)"),clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("4.027MHz (Y Board)"),clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::BeginDisabled(isDiscrete);
+      ImGui::Text(_("Memory size:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("2MB (Y Board)"),memSize==0)) {
+        memSize=0;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("512KB (Super Hang On/Out Run/X Board)"),memSize==1)) {
+        memSize=1;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
+      ImGui::EndDisabled();
+
+      int chipClock=flags.getInt("customClock",0);
+      if (!chipClock) {
+        switch (clockSel) {
+          case 0:
+            chipClock=4000000;
+            break;
+          case 1:
+            chipClock=32215900.0/8.0;
+            break;
+        }
+      }
+      String outRateASICLabel=fmt::sprintf("Output rate: Clock/128 (%dHz)",chipClock/128);
+      String outRateDiscreteLabel=fmt::sprintf("Output rate: Clock/64 (%dHz)",chipClock/64);
+
+      ImGui::Text(_("Model:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("ASIC (16 channels, Support bankswitch)"),!isDiscrete)) {
+        isDiscrete=false;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_(outRateASICLabel.c_str()));
+      }
+      if (ImGui::RadioButton(_("Discrete logic (8 channels, No bankswitch)"),isDiscrete)) {
+        isDiscrete=true;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_(outRateDiscreteLabel.c_str()));
+      }
+      ImGui::Unindent();
 
       if (ImGui::Checkbox(_("Legacy slides and pitch (compatibility)"),&oldSlides)) {
         altered=true;
@@ -2435,6 +2502,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       if (altered) {
         e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("memSize",memSize);
+          flags.set("isDiscrete",isDiscrete);
           flags.set("oldSlides",oldSlides);
         });
       }
@@ -2629,10 +2699,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton(_("DS (4MB RAM)"),chipType==0)) {
         chipType=0;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("DSi (16MB RAM)"),chipType==1)) {
         chipType=1;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
 
