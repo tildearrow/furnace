@@ -2473,8 +2473,8 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
             break;
         }
       }
-      String outRateASICLabel=fmt::sprintf("Output rate: Clock/128 (%dHz)",chipClock/128);
-      String outRateDiscreteLabel=fmt::sprintf("Output rate: Clock/64 (%dHz)",chipClock/64);
+      const char* outRateASICLabel=fmt::sprintf("Output rate: Clock/128 (%dHz)",chipClock/128).c_str();
+      const char* outRateDiscreteLabel=fmt::sprintf("Output rate: Clock/64 (%dHz)",chipClock/64).c_str();
 
       ImGui::Text(_("Model:"));
       ImGui::Indent();
@@ -2484,7 +2484,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         mustRender=true;
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_(outRateASICLabel.c_str()));
+        ImGui::SetTooltip(outRateASICLabel);
       }
       if (ImGui::RadioButton(_("Discrete logic (8 channels, No bankswitch)"),isDiscrete)) {
         isDiscrete=true;
@@ -2492,7 +2492,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         mustRender=true;
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(_(outRateDiscreteLabel.c_str()));
+        ImGui::SetTooltip(outRateDiscreteLabel);
       }
       ImGui::Unindent();
 
