@@ -2473,8 +2473,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
             break;
         }
       }
-      const char* outRateASICLabel=fmt::sprintf("Output rate: Clock/128 (%dHz)",chipClock/128).c_str();
-      const char* outRateDiscreteLabel=fmt::sprintf("Output rate: Clock/64 (%dHz)",chipClock/64).c_str();
 
       ImGui::Text(_("Model:"));
       ImGui::Indent();
@@ -2483,21 +2481,40 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
         mustRender=true;
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(outRateASICLabel);
-      }
       if (ImGui::RadioButton(_("Discrete logic (8 channels, No bankswitch)"),isDiscrete)) {
         isDiscrete=true;
         altered=true;
         mustRender=true;
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(outRateDiscreteLabel);
-      }
       ImGui::Unindent();
 
       if (ImGui::Checkbox(_("Legacy slides and pitch (compatibility)"),&oldSlides)) {
         altered=true;
+      }
+
+      ImGui::Text(_("Output rate table:"));
+      if (ImGui::BeginTable("segaPCMRate",2)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text(_("model"));
+        ImGui::TableNextColumn();
+        ImGui::Text(_("rate"));
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("ASIC");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/128);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("Discrete logic");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/64);
+
+        ImGui::EndTable();
       }
 
       if (altered) {
