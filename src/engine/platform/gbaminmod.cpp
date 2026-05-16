@@ -647,7 +647,7 @@ void DivPlatformGBAMinMod::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformGBAMinMod::notifyPitchTable(int sample) {
-  samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_FREQBASE,0x3fffffff,false,parent->song.compatFlags.linearPitch,sample);
+  samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_FREQBASE,0xfffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 void DivPlatformGBAMinMod::poke(unsigned int addr, unsigned short val) {
