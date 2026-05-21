@@ -949,7 +949,7 @@ void DivPlatformNES::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformNES::notifyPitchTable(int sample) {
-  pitchTable.init(parent->song.tuning,chipClock,1,0x800,true,parent->song.compatFlags.linearPitch);
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x800,true,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,5,parent->song.tuning,1,1,32000,false,parent->song.compatFlags.linearPitch,sample);
 }
 
