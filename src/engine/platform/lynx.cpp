@@ -210,8 +210,7 @@ void DivPlatformLynx::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        chan[i].baseFreq=chan[i].calcBaseFreq(chan[i].actualNote);
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
         chan[i].freqChanged=true;
       }
     }
@@ -587,7 +586,7 @@ void DivPlatformLynx::notifyInsDeletion(void* ins) {
 void DivPlatformLynx::notifyPitchTable(int sample) {
   // divided later in tuned mode
   pitchTable.init(parent->song.tuning,chipClock,tuned?8:64,0x3ffffff,true,parent->song.compatFlags.linearPitch);
-  samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_FREQBASE,0x7fff,false,parent->song.compatFlags.linearPitch,sample);
+  samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 void DivPlatformLynx::poke(unsigned int addr, unsigned short val) {
