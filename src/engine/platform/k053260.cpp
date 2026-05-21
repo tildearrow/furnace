@@ -439,6 +439,8 @@ void DivPlatformK053260::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformK053260::poke(unsigned int addr, unsigned short val) {
