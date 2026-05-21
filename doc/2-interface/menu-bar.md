@@ -67,15 +67,17 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
   - **Set effect:**: only appears when the selection includes an effect column. if enabled, an input box will appear. instead of being randomized, all effect types in the selection will be changed to the value entered.
 - **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
 - **flip selection**: flips the selection so it is backwards.
-- **collapse/expand amount**: allows you to specify how much to collapse/expand in the next two menu items.
-- **collapse**: shrinks the selected contents.
-- **expand**: expands the selected contents.
+- **collapse/expand amount**: allows you to specify how much to collapse/expand in the following menu items.
+- **collapse rows**: shrinks the selected contents by deleting rows.
+- **expand rows**: expands the selected contents by inserting empty rows.
 - **collapse pattern**: same as collapse, but affects the entire pattern.
 - **expand pattern**: same as expand, but affects the entire pattern.
 - **collapse song**: same as collapse, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
 - **expand song**: same as expand, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
+- **minimize channels**: sets all selected channels to their narrowest width in the pattern view.
+- **maximize channels**: sets all selected channels to their normal width in the pattern view.
 - **find/replace**: shows [the Find/Replace window](../8-advanced/find-replace.md).
 - **clear...**: opens a window that allows you to mass-delete things like songs, unused instruments, and the like.
 

@@ -144,6 +144,8 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Go to next order                                       | —                |
 | Go to previous order                                   | —                |
 | Collapse channel at cursor                             | —                |
+| Minimize channels                                      | —                |
+| Maximize channels                                      | —                |
 | Increase effect columns                                | —                |
 | Decrease effect columns                                | —                |
 | Interpolate                                            | —                |
