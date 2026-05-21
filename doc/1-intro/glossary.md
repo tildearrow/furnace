@@ -34,7 +34,7 @@
 
 **CSM**: Composite Sinusoidal Modeling. a feature of all Yamaha OPN-series FM sound chips that uses a timer to restart a note's envelope. this can be used to create vocal formants (speech synthesis!) or other complex effects. elsewhere, the technique is known as "oscillator sync". more information can be found in the documentation for each chip that has it.
 
-**cursor** (1): the marker of input focus. anything typed will happen at the cursor's location.
+**cursor** (1): the marker of input focus. anything typed will happen at the cursor's location. in a text box, this is what some software calls the "caret". in the pattern view, this is what some audio software calls the "transport".
 
 **cursor** (2): the pointer controlled by a mouse or similar input. clicking when the cursor(2) is in a valid area will place the cursor(1) there.
 
