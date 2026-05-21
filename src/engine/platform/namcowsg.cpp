@@ -49,6 +49,66 @@ const char* regCheatSheetNamcoWSG[]={
   NULL
 };
 
+const char* regCheatSheetNamcoPolePos[]={
+  "FreqL0", "00",
+  "FreqH0", "01",
+  "VolumeRR0", "02",
+  "VolumeF0", "03",
+
+  "FreqL1", "04",
+  "FreqH1", "05",
+  "VolumeRR1", "06",
+  "VolumeF1", "07",
+
+  "FreqL2", "08",
+  "FreqH2", "09",
+  "VolumeRR2", "0A",
+  "VolumeF2", "0B",
+
+  "FreqL3", "0C",
+  "FreqH3", "0D",
+  "VolumeRR3", "0E",
+  "VolumeF3", "0F",
+
+  "FreqL4", "10",
+  "FreqH4", "11",
+  "VolumeRR4", "12",
+  "VolumeF4", "13",
+
+  "FreqL5", "14",
+  "FreqH5", "15",
+  "VolumeRR5", "16",
+  "VolumeF5", "17",
+
+  "FreqL6", "18",
+  "FreqH6", "19",
+  "VolumeRR6", "1A",
+  "VolumeF6", "1B",
+
+  "FreqL7", "1C",
+  "FreqH7", "1D",
+  "VolumeRR7", "1E",
+  "VolumeF7", "1F",
+
+  "VolRL_Wav0", "23",
+
+  "VolRL_Wav1", "27",
+
+  "VolRL_Wav2", "2B",
+
+  "VolRL_Wav3", "2F",
+
+  "VolRL_Wav4", "33",
+
+  "VolRL_Wav5", "37",
+
+  "VolRL_Wav6", "3B",
+
+  "VolRL_Wav7", "3F",
+
+  NULL
+};
+
 const char* regCheatSheetNamco15XX[]={
   "Volume0", "03",
   "FreqL0", "04",
@@ -177,8 +237,8 @@ void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
-    short* bufC[2]={
-      buf[0]+h, buf[1]+h
+    short* bufC[4]={
+      buf[0]+h, buf[1]+h, buf[2]+h, buf[3]+h
     };
     namco->sound_stream_update(bufC,1);
     for (int i=0; i<chans; i++) {
@@ -237,10 +297,20 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       chan[i].pan&=0xf0;
       chan[i].pan|=chan[i].std.panR.val&15;
     }
+    if (devType==2) {
+      if (chan[i].std.ex1.had) {
+        chan[i].rearPan&=0x0f;
+        chan[i].rearPan|=(chan[i].std.ex1.val&15)<<4;
+      }
+      if (chan[i].std.ex2.had) {
+        chan[i].rearPan&=0xf0;
+        chan[i].rearPan|=chan[i].std.ex2.val&15;
+      }
+    }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-1048575,1048575);
+        CLAMP_VAR(chan[i].pitch2,((devType==2)?(-65535):(-1048575)),((devType==2)?65535:1048575));
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -254,8 +324,13 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>1048575) chan[i].freq=1048575;
+      if (devType==2) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      } else {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>1048575) chan[i].freq=1048575;
+      }
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff) {
@@ -304,6 +379,21 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       rWrite(0x05,romMode?(chan[0].wave&7):0);
       rWrite(0x0a,romMode?(chan[1].wave&7):1);
       rWrite(0x0f,romMode?(chan[2].wave&7):2);
+      break;
+    case 2:
+      for (int i=0; i<8; i++) {
+        if (chan[i].active && !isMuted[i]) {
+          rWrite((i<<2)+0x03,(((chan[i].outVol*((chan[i].pan>>4)&15))/15)<<4)|((chan[i].outVol*(chan[i].pan&15))/15));
+          rWrite((i<<2)+0x23,((((chan[i].outVol*((chan[i].rearPan>>4)&15))/15))<<4)|(romMode?(chan[i].wave&7):i));
+          rWrite((i<<2)+0x02,((((chan[i].outVol*(chan[i].rearPan&15))/15))<<4));
+        } else {
+          rWrite((i<<2)+0x02,0);
+          rWrite((i<<2)+0x03,0);
+          rWrite((i<<2)+0x23,(romMode?(chan[i].wave&7):i));
+        }
+        rWrite((i<<2)+0x00,chan[i].freq&0xff);
+        rWrite((i<<2)+0x01,(chan[i].freq>>8)&0xff);
+      }
       break;
     case 15:
       for (int i=0; i<8; i++) {
@@ -433,6 +523,16 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       break;
     }
+    case DIV_CMD_SURROUND_PANNING: {
+      if (devType!=2)
+        break;
+      if (c.value==2) {
+        chan[c.chan].rearPan=(chan[c.chan].rearPan&15)|((c.value2&15)<<4);
+      } else if (c.value==3) {
+        chan[c.chan].rearPan=(chan[c.chan].rearPan&0xf0)|(c.value2&15);
+      }
+      break;
+    }
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
@@ -484,8 +584,17 @@ DivMacroInt* DivPlatformNamcoWSG::getChanMacroInt(int ch) {
 }
 
 unsigned short DivPlatformNamcoWSG::getPan(int ch) {
-  if (devType!=30) return 0;
-  return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+  switch (devType) {
+    case 2: {
+      int lpan=(((chan[ch].pan>>4)&15)+((chan[ch].rearPan>>4)&15))>>1;
+      int rpan=((chan[ch].pan&15)+(chan[ch].rearPan&15))>>1;
+      return (lpan<<8)|(rpan);
+    }
+    case 30:
+      return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+    default:
+      return 0;
+  }
 }
 
 DivDispatchOscBuffer* DivPlatformNamcoWSG::getOscBuffer(int ch) {
@@ -514,18 +623,19 @@ void DivPlatformNamcoWSG::reset() {
     addWrite(0xffffffff,0);
   }
   namco->set_voices(chans);
-  namco->set_stereo((devType==2 || devType==30));
+  namco->set_stereo(devType==30);
+  namco->set_quadraphonic(devType==2);
   namco->device_start(NULL);
 
   updateROMWaves();
 }
 
 int DivPlatformNamcoWSG::getOutputCount() {
-  return (devType==30)?2:1;
+  return (devType==2)?4:((devType==30)?2:1);
 }
 
 bool DivPlatformNamcoWSG::hasSoftPan(int ch) {
-  return (devType==30);
+  return ((devType==2) || (devType==30));
 }
 
 bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {
@@ -570,7 +680,7 @@ void DivPlatformNamcoWSG::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformNamcoWSG::notifyPitchTable(int sample) {
-  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xfffff,false,parent->song.compatFlags.linearPitch);
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,((devType==2)?0xffff:0xfffff),false,parent->song.compatFlags.linearPitch);
 }
 
 void DivPlatformNamcoWSG::setDeviceType(int type) {

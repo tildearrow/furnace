@@ -28,12 +28,14 @@
 class DivPlatformNamcoWSG: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned char pan;
+    unsigned char rearPan;
     bool noise;
     signed short wave;
     DivWaveSynth ws;
     Channel(bool linear=true):
       SharedChannel(15,linear),
       pan(255),
+      rearPan(0),
       noise(false),
       wave(-1) {}
   };
