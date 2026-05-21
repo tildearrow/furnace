@@ -72,6 +72,15 @@ static void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
+static inline ImU32 dimColor(ImU32 color, float amount=0.5f) {
+  return IM_COL32(
+    ((color>>IM_COL32_R_SHIFT)&0xff)*(1.0f-amount),
+    ((color>>IM_COL32_G_SHIFT)&0xff)*(1.0f-amount),
+    ((color>>IM_COL32_B_SHIFT)&0xff)*(1.0f-amount),
+    0
+  ) | (color&IM_COL32_A_MASK);
+}
+
 
 void FurnaceGUI::drawPatternNew() {
   if (nextWindow==GUI_WINDOW_PATTERN) {
@@ -1254,6 +1263,7 @@ void FurnaceGUI::drawPatternNew() {
       ImU32 inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
       for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
+        bool muted=e->isChannelMuted(i);
 
         ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
         pos=thisTop;
@@ -1291,6 +1301,10 @@ void FurnaceGUI::drawPatternNew() {
             activeColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_ACTIVE]);
             inactiveColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INACTIVE]);
           }
+          if (muted) {
+            activeColor=dimColor(activeColor);
+            inactiveColor=dimColor(inactiveColor);
+          }
 
           if (isFirstChan) {
             // set the top-most and bottom-most Y positions
@@ -1320,16 +1334,19 @@ void FurnaceGUI::drawPatternNew() {
               dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
             } else {
               snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_INS]);
+              ImU32 color;
               if (pat->newData[row][DIV_PAT_INS]<0 || pat->newData[row][DIV_PAT_INS]>=e->song.insLen) {
-                dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]),id,id+2);
+                color=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_ERROR]);
               } else {
                 DivInstrumentType t=e->song.ins[pat->newData[row][DIV_PAT_INS]]->type;
                 if (t!=DIV_INS_AMIGA && t!=e->getPreferInsType(i)) {
-                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]),id,id+2);
+                  color=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS_WARN]);
                 } else {
-                  dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]),id,id+2);
+                  color=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_INS]);
                 }
               }
+              if (muted) color=dimColor(color);
+              dl->AddText(pos,color,id,id+2);
             }
           }
 
@@ -1343,7 +1360,11 @@ void FurnaceGUI::drawPatternNew() {
               if (volColor>127) volColor=127;
               if (volColor<0) volColor=0;
               snprintf(id,63,"%.2X",pat->newData[row][DIV_PAT_VOL]);
-              dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id,id+2);
+              if (muted) {
+                dl->AddText(pos,dimColor(ImGui::GetColorU32(volColors[volColor])),id,id+2);
+              } else {
+                dl->AddText(pos,ImGui::GetColorU32(volColors[volColor]),id,id+2);
+              }
             }
           }
 
@@ -1371,6 +1392,7 @@ void FurnaceGUI::drawPatternNew() {
                     snprintf(id,63," %.1X",data);
                   }
                 }
+                if (muted) effectColor=dimColor(effectColor);
                 dl->AddText(pos,effectColor,id,id+2);
               }
 
