@@ -42,13 +42,6 @@ const char* chanOscRefs[]={
   _N("Note Trigger")
 };
 
-const char* autoColsTypes[]={
-  _N("Off"),
-  _N("Mode 1"),
-  _N("Mode 2"),
-  _N("Mode 3")
-};
-
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
@@ -556,30 +549,9 @@ void FurnaceGUI::drawChanOsc() {
               //   ), 2, 0xffff0000);
             }
 
-            if (rend->supportsDrawOsc() && settings.shaderOsc) {
-              fft->drawOp.gui=this;
-              fft->drawOp.data=fft->oscTex;
-              fft->drawOp.len=precision;
-              fft->drawOp.pos0=inRect.Min;
-              fft->drawOp.pos1=inRect.Max;
-              fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
-              fft->drawOp.lineSize=dpiScale*chanOscLineSize;
-
-              dl->AddCallback(_drawOsc,&fft->drawOp);
-              dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
-            } else {
-              //ImGui::PushClipRect(inRect.Min,inRect.Max,false);
-              //ImDrawListFlags prevFlags=dl->Flags;
-              //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-              dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
-              //dl->Flags=prevFlags;
-              //ImGui::PopClipRect();
-            }
-
-            ImGui::PushClipRect(inRect.Min,inRect.Max,false);
             if (inRect.Contains(ImGui::GetMousePos())) {
               ImGui::SetCursorPos(inRect.Min-ImGui::GetWindowPos()+ImGui::GetStyle().FramePadding);
-              ImGui::TextUnformatted(ICON_FA_BELL "##chanOscMute");
+              ImGui::Text("%s##chanOscMute", e->isChannelMuted(oscData[i].chan)?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
               if (ImGui::IsItemClicked()) {
                 e->toggleMute(oscData[i].chan);
               }
@@ -718,9 +690,30 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               }
+              ImGui::PushClipRect(inRect.Min,inRect.Max,false);
               dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
+              ImGui::PopClipRect();
             }
-            ImGui::PopClipRect();
+
+            if (rend->supportsDrawOsc() && settings.shaderOsc) {
+              fft->drawOp.gui=this;
+              fft->drawOp.data=fft->oscTex;
+              fft->drawOp.len=precision;
+              fft->drawOp.pos0=inRect.Min;
+              fft->drawOp.pos1=inRect.Max;
+              fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
+              fft->drawOp.lineSize=dpiScale*chanOscLineSize;
+
+              dl->AddCallback(_drawOsc,&fft->drawOp);
+              dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
+            } else {
+              // ImGui::PushClipRect(inRect.Min,inRect.Max,false);
+              //ImDrawListFlags prevFlags=dl->Flags;
+              //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
+              dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
+              //dl->Flags=prevFlags;
+              // ImGui::PopClipRect();
+            }
           }
         }
       }
@@ -794,7 +787,7 @@ void FurnaceGUI::drawChanOsc() {
         if (CWSliderFloat("##COSAmp",&chanOscAmplify,0.0f,2.0f)) {
           if (chanOscAmplify<0.0f) chanOscAmplify=0.0f;
           if (chanOscAmplify>2.0f) chanOscAmplify=2.0f;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
@@ -804,7 +797,7 @@ void FurnaceGUI::drawChanOsc() {
         if (CWSliderFloat("##COSLine",&chanOscLineSize,0.25f,16.0f)) {
           if (chanOscLineSize<0.25f) chanOscLineSize=0.26f;
           if (chanOscLineSize>16.0f) chanOscLineSize=16.0f;
-        }
+        } rightClickable
 
         ImGui::EndTable();
       }
