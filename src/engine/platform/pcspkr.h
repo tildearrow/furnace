@@ -91,6 +91,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void notifyPlaybackStop();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
