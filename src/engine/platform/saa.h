@@ -89,6 +89,7 @@ class DivPlatformSAA1099: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

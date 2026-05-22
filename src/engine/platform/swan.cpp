@@ -240,7 +240,7 @@ void DivPlatformSwan::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -277,7 +277,7 @@ void DivPlatformSwan::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=chan[i].calcFreq();
       if (i==1 && pcm) {
         double off=1.0;
         if (dacSample>=0 && dacSample<parent->song.sampleLen) {
@@ -387,7 +387,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             }
           }
           if (c.value!=DIV_NOTE_NULL) {
-            chan[1].baseFreq=NOTE_PERIODIC(c.value);
+            chan[1].baseFreq=chan[1].calcBaseFreq(c.value);
             chan[1].freqChanged=true;
             chan[1].note=c.value;
           }
@@ -398,7 +398,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -485,7 +485,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -532,7 +532,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -540,7 +540,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SWAN));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -633,6 +633,7 @@ void DivPlatformSwan::reset() {
   memset(regPool,0,sizeof(regPool));
   for (int i=0; i<4; i++) {
     chan[i]=Channel();
+    chan[i].pitchTable=&pitchTable;
     chan[i].vol=15;
     chan[i].pan=0xff;
     chan[i].std.setEngine(parent);
@@ -688,6 +689,11 @@ void DivPlatformSwan::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformSwan::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x800,true,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,4,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
 void DivPlatformSwan::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
@@ -708,10 +714,13 @@ void DivPlatformSwan::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   stereo=false;
@@ -736,4 +745,5 @@ void DivPlatformSwan::quit() {
 }
 
 DivPlatformSwan::~DivPlatformSwan() {
+  samplePitchTable.destroy<Channel>(chan,4);
 }

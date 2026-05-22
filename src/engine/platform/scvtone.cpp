@@ -61,7 +61,6 @@ void DivPlatformSCV::acquire(short** buf, size_t len) {
 
 void DivPlatformSCV::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    int CHIP_DIVIDER=(i<3)?512:64;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
@@ -71,7 +70,7 @@ void DivPlatformSCV::tick(bool sysTick) {
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        chan[i].baseFreq=NOTE_PERIODIC(f);
+        chan[i].baseFreq=chan[i].calcBaseFreq(f);
       }
       chan[i].freqChanged=true;
     }
@@ -96,7 +95,7 @@ void DivPlatformSCV::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) {
         if (waveMode) {
-          chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+          chan[i].freq=chan[i].calcFreq();
         } else {
           chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
         }
@@ -108,7 +107,7 @@ void DivPlatformSCV::tick(bool sysTick) {
           }
         }
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        chan[i].freq=chan[i].calcFreq();
       }
       if (i==3) {
         if (waveMode) {
@@ -173,12 +172,11 @@ void DivPlatformSCV::tick(bool sysTick) {
 }
 
 int DivPlatformSCV::dispatch(DivCommand c) {
-  int CHIP_DIVIDER=(c.chan<3)?512:64;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -229,7 +227,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -260,7 +258,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO: {
       int newNote=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
-      chan[c.chan].baseFreq=NOTE_PERIODIC(newNote);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(newNote);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -270,7 +268,7 @@ int DivPlatformSCV::dispatch(DivCommand c) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_UPD1771C));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -328,6 +326,11 @@ void DivPlatformSCV::reset() {
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSCV::Channel(parent->song.compatFlags.linearPitch);
+    if (i<3) {
+      chan[i].pitchTable=&pitchTable;
+    } else {
+      chan[i].pitchTable=&wavePitchTable;
+    }
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -357,6 +360,11 @@ void DivPlatformSCV::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformSCV::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,512,0xff,true,parent->song.compatFlags.linearPitch);
+  wavePitchTable.init(parent->song.tuning,chipClock,64,0xff,true,parent->song.compatFlags.linearPitch);
+}
+
 void DivPlatformSCV::setFlags(const DivConfig& flags) {
   chipClock=6000000;
   CHECK_CUSTOM_CLOCK;
@@ -365,6 +373,8 @@ void DivPlatformSCV::setFlags(const DivConfig& flags) {
     oscBuf[i]->setRate(rate);
   }
   //upd1771c_sound_set_clock(&scv,(unsigned int)chipClock,8);
+
+  notifyPitchTable();
 }
 
 void DivPlatformSCV::poke(unsigned int addr, unsigned short val) {

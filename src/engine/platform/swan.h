@@ -83,6 +83,7 @@ class DivPlatformSwan: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     int getOutputCount();
     bool hasSoftPan(int ch);
     bool hasAcquireDirect();
