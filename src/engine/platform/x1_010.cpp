@@ -248,24 +248,6 @@ u8 DivPlatformX1_010::read_byte(u32 address) {
   return 0;
 }
 
-double DivPlatformX1_010::NoteX1_010(int ch, int note) {
-  if (chan[ch].pcm) { // PCM note
-    double off=8192.0;
-    int sample=chan[ch].sample;
-    if (sample>=0 && sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(sample);
-      if (s->centerRate<1) {
-        off=8192.0;
-      } else {
-        off=8192.0*(s->centerRate/parent->getCenterRate());
-      }
-    }
-    return parent->calcBaseFreq(chipClock,off,note,false);
-  }
-  // Wavetable note
-  return NOTE_FREQUENCY(note);
-}
-
 void DivPlatformX1_010::updateWave(int ch) {
   if (chan[ch].active) {
     chan[ch].waveBank^=1;
@@ -343,7 +325,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -472,19 +454,8 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].envChanged=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      double off=8192.0;
-      if (chan[i].pcm) {
-        int sample=chan[i].sample;
-        if (sample>=0 && sample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(sample);
-          if (s->centerRate<1) {
-            off=8192.0;
-          } else {
-            off=8192.0*(s->centerRate/parent->getCenterRate());
-          }
-        }
-      }
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm?off:CHIP_FREQBASE);
+      chan[i].freq=chan[i].calcFreq();
+      // TODO: deprecate once we have raw frequency input set up.
       if (chan[i].fixedFreq) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
@@ -559,6 +530,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         chan[c.chan].macroInit(ins);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
@@ -579,7 +551,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           }
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
-            chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+            chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
             chan[c.chan].fixedFreq=0;
             chan[c.chan].freqChanged=true;
           }
@@ -594,10 +566,11 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           chWrite(c.chan,5,0);
         }
       } else if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].pitchTable=&pitchTable;
         chan[c.chan].note=c.value;
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
-        chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
         chan[c.chan].fixedFreq=0;
         chan[c.chan].freqChanged=true;
       }
@@ -673,7 +646,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NoteX1_010(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -715,14 +688,14 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       chan[c.chan].note=c.value;
-      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_FREQ:
@@ -871,6 +844,7 @@ void DivPlatformX1_010::reset() {
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformX1_010::Channel(parent->song.compatFlags.linearPitch);
     chan[i].reset();
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,128,255,false);
@@ -917,6 +891,11 @@ void DivPlatformX1_010::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformX1_010::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,8192,0xff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
 void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: // 16.67MHz (later hardwares)
@@ -937,6 +916,8 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   for (int i=0; i<16; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformX1_010::poke(unsigned int addr, unsigned short val) {
@@ -1019,6 +1000,7 @@ void DivPlatformX1_010::renderSamples(int sysID) {
 
 int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   stereo=false;
@@ -1053,4 +1035,5 @@ DivPlatformX1_010::DivPlatformX1_010():
 DivPlatformX1_010::~DivPlatformX1_010() {
   delete[] sampleOffX1;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,16);
 }

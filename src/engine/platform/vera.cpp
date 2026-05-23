@@ -499,7 +499,7 @@ void DivPlatformVERA::notifyInsDeletion(void* ins) {
 
 void DivPlatformVERA::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,2097152,0xffff,false,parent->song.compatFlags.linearPitch);
-  samplePitchTable.update<Channel>(chan,17,chipClock,65536,0x80,false,parent->song.compatFlags.linearPitch,sample);
+  samplePitchTable.update<Channel>(chan,17,parent->song.tuning,chipClock,65536,0x80,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 void DivPlatformVERA::poke(unsigned int addr, unsigned short val) {

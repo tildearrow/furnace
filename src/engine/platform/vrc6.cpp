@@ -548,7 +548,7 @@ void DivPlatformVRC6::notifyInsDeletion(void* ins) {
 void DivPlatformVRC6::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,16,0x1000,true,parent->song.compatFlags.linearPitch);
   sawPitchTable.init(parent->song.tuning,chipClock,14,0x1000,true,parent->song.compatFlags.linearPitch);
-  samplePitchTable.update<Channel>(chan,3,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+  samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 void DivPlatformVRC6::poke(unsigned int addr, unsigned short val) {

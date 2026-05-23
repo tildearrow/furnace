@@ -691,7 +691,7 @@ void DivPlatformSwan::notifyInsDeletion(void* ins) {
 
 void DivPlatformSwan::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x800,true,parent->song.compatFlags.linearPitch);
-  samplePitchTable.update<Channel>(chan,4,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+  samplePitchTable.update<Channel>(chan,4,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 void DivPlatformSwan::poke(unsigned int addr, unsigned short val) {

@@ -588,7 +588,7 @@ class DivPitchTableManager {
      * @param chan an array of SharedChannel... hold on. this is not going to work well.
      * @return whether the number of pitch tables has changed.
      */
-    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample=-1) {
+    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample) {
       if (e==NULL) return false;
 
       bool hasSizeChanged=false;
