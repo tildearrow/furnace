@@ -535,6 +535,8 @@ void DivPlatformVRC6::setFlags(const DivConfig& flags) {
   for (int i=0; i<3; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformVRC6::notifyInsDeletion(void* ins) {
