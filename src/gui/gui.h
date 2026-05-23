@@ -2950,6 +2950,9 @@ class FurnaceGUI {
   int sampleCompileIndex;
   size_t sampleCompileSize;
 
+  // text export specific
+  bool ignoreOrderStructure;
+
   // user presets window
   std::vector<int> selectedUserPreset;
 

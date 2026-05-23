@@ -6342,7 +6342,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_TEXT: {
-              SafeWriter* w=e->saveText(false);
+              SafeWriter* w=e->saveText(false,ignoreOrderStructure);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -9491,6 +9491,7 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileDispatch(0),
   sampleCompileIndex(0),
   sampleCompileSize(0),
+  ignoreOrderStructure(false),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

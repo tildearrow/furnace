@@ -518,6 +518,7 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   ImGui::Text(
     _("this option exports the song to a text file.\n")
   );
+  ImGui::Checkbox(_("Ignore order structure"), &ignoreOrderStructure);
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();

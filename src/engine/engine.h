@@ -654,7 +654,7 @@ class DivEngine {
     // dump command stream.
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
-    SafeWriter* saveText(bool separatePatterns=true);
+    SafeWriter* saveText(bool separatePatterns=true, bool ignoreOrderStructure=false);
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish

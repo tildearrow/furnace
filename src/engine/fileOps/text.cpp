@@ -78,7 +78,7 @@ void writeTextMacro(SafeWriter* w, DivInstrumentMacro& m, const char* name, bool
   w->writeText("\n");
 }
 
-SafeWriter* DivEngine::saveText(bool separatePatterns) {
+SafeWriter* DivEngine::saveText(bool separatePatterns, bool ignoreOrderStructure) {
   saveLock.lock();
 
   SafeWriter* w=new SafeWriter;
@@ -318,7 +318,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
           w->writeText(fmt::sprintf("%.2X ",k));
 
           for (int l=0; l<song.chans; l++) {
-            DivPattern* p=s->pat[l].getPattern(s->orders.ord[l][j],false);
+            DivPattern* p=s->pat[l].getPattern(ignoreOrderStructure?j:s->orders.ord[l][j],false);
             short note, octave;
             noteToSplitNote(p->newData[k][DIV_PAT_NOTE],note,octave);
 
