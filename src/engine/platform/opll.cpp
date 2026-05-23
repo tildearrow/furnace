@@ -339,12 +339,12 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
   for (int i=0; i<11; i++) {
     if (chan[i].freqChanged) {
-      //int mul=2;
+      int mul=2;
       int fixedBlock=chan[i].state.block;
-      //if (!parent->song.compatFlags.linearPitch) {
-        //mul=octave(chan[i].baseFreq,fixedBlock)*2;
-      //}
-      chan[i].freq=chan[i].calcFreq();
+      if (!parent->song.compatFlags.linearPitch) {
+        mul=octave(chan[i].baseFreq,fixedBlock)*2;
+      }
+      chan[i].freq=chan[i].calcFreq(mul);
       if (chan[i].fixedFreq>0 && properDrums) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;

@@ -1500,13 +1500,12 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
     } else {
       if (chan[i].freqChanged) {
-        // what is mul used for?
-        //int mul=2;
+        int mul=2;
         int fixedBlock=chan[i].state.block;
-        //if (!parent->song.compatFlags.linearPitch) {
-          //mul=octave(chan[i].baseFreq,fixedBlock)*2;
-        //}
-        chan[i].freq=chan[i].calcFreq();
+        if (!parent->song.compatFlags.linearPitch) {
+          mul=octave(chan[i].baseFreq,fixedBlock)*2;
+        }
+        chan[i].freq=chan[i].calcFreq(mul);
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>131071) chan[i].freq=131071;
         if (chan[i].fixedFreq>=0) chan[i].freq=chan[i].fixedFreq;

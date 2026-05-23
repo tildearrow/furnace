@@ -517,13 +517,17 @@ struct SharedChannel {
   }
   /**
    * calculates final frequency from current frequency values.
+   * @param pitchMult this may be used to multiply pitch in non-linear mode.
+   * it is used by OPL and some other chips to ensure that one pitch unit
+   * equals one chip frequency unit when the frequency must be converted to
+   * an f-num/block.
    * @return the frequency.
    */
-  int calcFreq() {
+  int calcFreq(int pitchMult=1) {
     if (rawFreq) return baseFreq;
     if (pitchTable==NULL) return 0;
     if (!pitchTable->linearity) {
-      return pitchTable->get(baseFreq,pitch,pitch2);
+      return pitchTable->get(baseFreq,pitch*pitchMult,pitch2);
     }
     if (fixedArp) {
       return pitchTable->get(baseNoteOverride<<7,pitch,pitch2);
