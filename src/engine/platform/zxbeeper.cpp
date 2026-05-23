@@ -271,6 +271,7 @@ void DivPlatformZXBeeper::reset() {
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformZXBeeper::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -302,6 +303,10 @@ void DivPlatformZXBeeper::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformZXBeeper::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+}
+
 void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   // TODO: where's ZX Spectrum 48K?!
   if (flags.getInt("clockSel",0)) {
@@ -314,6 +319,8 @@ void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformZXBeeper::poke(unsigned int addr, unsigned short val) {
