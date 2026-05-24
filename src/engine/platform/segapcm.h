@@ -64,6 +64,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     };
     FixedQueue<QueuedWrite,1024> writes;
     segapcm_device pcm;
+    DivPitchTableManager samplePitchTable;
     int delay;
     int pcmL, pcmR, pcmCycles;
     bool oldSlides;
@@ -101,6 +102,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
