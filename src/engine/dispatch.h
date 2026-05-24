@@ -645,7 +645,7 @@ class DivPitchTableManager {
      */
     template<class T> void destroy(T* chan, size_t numChans) {
       if (e==NULL) return;
-      if (samplePitchTable) {
+      if (samplePitchTable && chan) {
         DivPitchTable* firstEntry=samplePitchTable;
         DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
 
