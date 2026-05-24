@@ -2015,15 +2015,18 @@ void FurnaceGUI::drawPatternNew() {
             off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight()))
           );
 
+          bool portaDirection=(ch->portaNote<=ch->note);
+          if (ch->inPorta) portaDirection=(ch->note<=ch->oldNote);
+
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
             if (particles.size()>MAX_PARTICLES) particles.erase(particles.begin());
             particles.push_back(Particle(
               pitchGrad,
-              (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
+              portaDirection?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
               partPos.x,
               partPos.y,
               0.0f,
-              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
+              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*(portaDirection?1:-1),
               0.0f,
               1.0f,
               255.0f,
@@ -2034,7 +2037,7 @@ void FurnaceGUI::drawPatternNew() {
           if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowPos().y+ImGui::GetWindowHeight(); j+=width*0.7) {
             ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
             ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
-            if (ch->portaNote<=ch->note) {
+            if (portaDirection) {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));
               arrowPoints[2]=ImLerp(tMin,tMax,ImVec2(0.9,1.0-0.8));
@@ -2054,7 +2057,7 @@ void FurnaceGUI::drawPatternNew() {
               dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
             }
           }
-          patChanSlideY[i]+=((ch->portaNote<=ch->note)?-8:8)*dpiScale*frameTime;
+          patChanSlideY[i]+=((portaDirection)?-8:8)*dpiScale*frameTime;
           if (width>0) {
             if (patChanSlideY[i]<0) {
               patChanSlideY[i]=-fmod(-patChanSlideY[i],width*0.7);
