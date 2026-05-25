@@ -171,10 +171,11 @@ int DivPitchTable::getBase(int note) {
   return note<<7;
 }
 
-void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod, bool isLinear) {
+void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod, bool isLinear, unsigned char block) {
   period=isPeriod;
   linearity=isLinear;
   maxFreq=maximum;
+  blockBits=block;
   shift=period?0:14;
 
   // adjust the shift value so that the highest (or lowest in period mode) note has the highest period/freq

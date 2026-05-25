@@ -33,13 +33,6 @@ const char** DivPlatformSoundUnit::getRegisterSheet() {
   return NULL;
 }
 
-double DivPlatformSoundUnit::NOTE_SU(int ch, int note) {
-  if (chan[ch].switchRoles) {
-    return NOTE_PERIODIC(note);
-  }
-  return NOTE_FREQUENCY(note);
-}
-
 void DivPlatformSoundUnit::acquire(short** buf, size_t len) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->begin(len);

@@ -365,8 +365,9 @@ struct DivPitchTable {
    * @param maximum the maximum period/frequency value supported by the chip.
    * @param period whether to use periods instead of accumulator values.
    * @param linear whether pitch linearity is set to full.
+   * @param block in an f-num/block table, sets the number of bits that the f-num has. set to 0 if this is not an f-num/block table.
    */
-  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
+  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear, unsigned char block=0);
 
   DivPitchTable():
     maxFreq(0xffffffff),
