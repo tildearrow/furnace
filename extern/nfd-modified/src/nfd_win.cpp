@@ -194,7 +194,13 @@ static void CopyNFDCharToWChar( const nfdchar_t *inStr, wchar_t **outStr )
     int inStrByteCount = static_cast<int>(strlen(inStr));
     int charsNeeded = MultiByteToWideChar(CP_UTF8, 0,
                                           inStr, inStrByteCount,
-                                          NULL, 0 );    
+                                          NULL, 0 );
+    if (!charsNeeded) {
+      logE("CopyNFDCharToWChar: charsNeeded failure!");
+      logE("inStr: %p",(void*)inStr);
+      logE("inStrByteCount: %d",inStrByteCount);
+      logE("error: %x",GetLastError());
+    }
     assert( charsNeeded );
     assert( !*outStr );
     charsNeeded += 1; // terminator
