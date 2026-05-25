@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <math.h>
 
+// please disregard the insults. these are to myself. signed, tildearrow
+
 #define CHIP_FREQBASE (32768*288)
 
 #define ADDR_AM_VIB_SUS_KSR_MULT 0x00
@@ -1057,6 +1059,9 @@ void DivPlatformESFM::reset() {
 
   for (int i=0; i<18; i++) {
     chan[i]=DivPlatformESFM::Channel(parent->song.compatFlags.linearPitch);
+    // ASSHOLE
+    // YOU DIDN'T EVEN BIND THE FUCKING TABLE
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
@@ -1125,6 +1130,11 @@ void DivPlatformESFM::setFlags(const DivConfig& flags) {
   for (int i=0; i<18; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  // are you stupid or what? why the hell have you forgotten to initialize the pitch table?!?!
+  notifyPitchTable();
+
+  // guess what. that didn't fix it.
 }
 
 void DivPlatformESFM::setFast(bool fast) {

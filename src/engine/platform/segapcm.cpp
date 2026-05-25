@@ -26,7 +26,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(((c)<<3)+(a),v)
 
-#define CHIP_FREQBASE 128
+#define CHIP_FREQBASE 65536
 
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   thread_local int os[2];
