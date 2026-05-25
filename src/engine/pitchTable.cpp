@@ -72,6 +72,9 @@ int DivPitchTable::get(int base, int pitch1, int pitch2) {
   int offset=base+pitch1+pitch2;
 
   if (!linearity) {
+    if (period) {
+      return base-pitch1-pitch2;
+    }
     return offset;
   }
 
