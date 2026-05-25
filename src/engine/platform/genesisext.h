@@ -46,6 +46,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     void setCSMChannel(unsigned char ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

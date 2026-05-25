@@ -1379,24 +1379,34 @@ void DivPlatformSID3::setFlags(const DivConfig& flags) {
 
 void DivPlatformSID3::getPaired(int ch, std::vector<DivChannelPair>& ret)
 {
-  if(chan[ch].phase)
-  {
-    ret.push_back(DivChannelPair(_("phase"), chan[ch].phaseSrc));
+  if (chan[ch].phase) {
+    ret.push_back(DivChannelPair(
+      _N("phase"),
+      PAIR_ARROW_CENTERED|(ch>chan[ch].phaseSrc?PAIR_ARROW_RIGHT:PAIR_ARROW_LEFT),
+      chan[ch].phaseSrc
+    ));
   }
-  if(chan[ch].ring)
-  {
-    if(chan[ch].ringSrc == SID3_NUM_CHANNELS)
-    {
-      ret.push_back(DivChannelPair(_("ring"), ch));
-    }
-    else
-    {
-      ret.push_back(DivChannelPair(_("ring"), chan[ch].ringSrc));
+  if (chan[ch].ring) {
+    if(chan[ch].ringSrc == SID3_NUM_CHANNELS) {
+      ret.push_back(DivChannelPair(
+        _N("ring"),
+        PAIR_ARROW_CENTERED|PAIR_ARROW_LEFT,
+        ch
+      ));
+    } else {
+      ret.push_back(DivChannelPair(
+        _N("ring"),
+        PAIR_ARROW_CENTERED|((ch>chan[ch].ringSrc)?PAIR_ARROW_RIGHT:PAIR_ARROW_LEFT),
+        chan[ch].ringSrc
+      ));
     }
   }
-  if(chan[ch].sync)
-  {
-    ret.push_back(DivChannelPair(_("sync"), chan[ch].syncSrc));
+  if(chan[ch].sync) {
+    ret.push_back(DivChannelPair(
+      _N("sync"),
+      PAIR_ARROW_CENTERED|((ch>chan[ch].syncSrc)?PAIR_ARROW_RIGHT:PAIR_ARROW_LEFT),
+      chan[ch].syncSrc
+    ));
   }
 }
 

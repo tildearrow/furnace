@@ -35,11 +35,13 @@ struct DelayedLabel {
   float posCenter, posY;
   ImVec2 textSize;
   const char* label;
-  DelayedLabel(float pc, float py, ImVec2 ts, const char* l):
+  ImVec4 color;
+  DelayedLabel(float pc, float py, ImVec2 ts, const char* l, ImVec4 c):
     posCenter(pc),
     posY(py),
     textSize(ts),
-    label(l) {}
+    label(l),
+    color(c) {}
 };
 
 static inline float randRange(float min, float max) {
@@ -1459,10 +1461,10 @@ void FurnaceGUI::drawPattern() {
       float posMin=FLT_MAX;
       float posMax=-FLT_MAX;
       ImVec2 textSize;
-      unsigned int floors[4][4]; // bit array
+      unsigned int floors[6][4]; // bit array
       std::vector<DelayedLabel> delayedLabels;
 
-      memset(floors,0,4*4*sizeof(unsigned int));
+      memset(floors,0,6*4*sizeof(unsigned int));
 
       for (int i=0; i<chans; i++) {
         std::vector<DivChannelPair> pairs;
@@ -1474,6 +1476,7 @@ void FurnaceGUI::drawPattern() {
           unsigned int pairMin=i;
           unsigned int pairMax=i;
           unsigned char curFloor=0;
+          ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR+(pair.color&3)]);
           if (!e->curSubSong->chanShow[i]) {
             continue;
           }
@@ -1494,7 +1497,7 @@ void FurnaceGUI::drawPattern() {
           float posY=chanHeadBottom;
 
           // find a free floor
-          while (curFloor<4) {
+          while (curFloor<6) {
             bool free=true;
             for (unsigned int j=pairMin; j<=pairMax; j++) {
               const unsigned int j0=j>>5;
@@ -1507,7 +1510,7 @@ void FurnaceGUI::drawPattern() {
             if (free) break;
             curFloor++;
           }
-          if (curFloor<4) {
+          if (curFloor<6) {
             // occupy floor
             floors[curFloor][pairMin>>5]|=1U<<(pairMin&31);
             floors[curFloor][pairMax>>5]|=1U<<(pairMax&31);
@@ -1530,9 +1533,28 @@ void FurnaceGUI::drawPattern() {
           tdl->AddLine(
             ImVec2(pos,chanHeadBottom),
             ImVec2(pos,posY+textSize.y),
-            ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+            color,
             2.0f*dpiScale
           );
+
+          float arrowPos=pos;
+          if ((pair.arrows&PAIR_ARROW_VERTICAL) && (pair.arrows&PAIR_ARROW_LEFT)) { // point down
+            arrowPos=pos;
+            float yLineCenter=posY+textSize.y-5.0f;
+            if (pair.arrows&PAIR_ARROW_CENTERED) yLineCenter=(posY+textSize.y+chanHeadBottom)/2.0f-2.5f;
+              tdl->AddLine(
+                ImVec2(arrowPos,yLineCenter),
+                ImVec2(arrowPos-5.0f*dpiScale,yLineCenter-5.0f*dpiScale),
+                color,
+                2.0f*dpiScale
+              );
+              tdl->AddLine(
+                ImVec2(arrowPos,yLineCenter),
+                ImVec2(arrowPos+5.0f*dpiScale,yLineCenter-5.0f*dpiScale),
+                color,
+                2.0f*dpiScale
+              );
+          }
 
           for (int j=0; j<8; j++) {
             if (pair.pairs[j]==-1) continue;
@@ -1549,54 +1571,112 @@ void FurnaceGUI::drawPattern() {
             tdl->AddLine(
               ImVec2(pos,chanHeadBottom),
               ImVec2(pos,posY+textSize.y),
-              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
+              color,
               2.0f*dpiScale
             );
+
+            if ((pair.arrows&PAIR_ARROW_VERTICAL) && (pair.arrows&PAIR_ARROW_RIGHT)) { // point up
+              arrowPos=pos;
+              float yLineCenter=(posY+textSize.y+chanHeadBottom)/2.0f-2.5f;
+              tdl->AddLine(
+                ImVec2(arrowPos,yLineCenter),
+                ImVec2(arrowPos-5.0f*dpiScale,yLineCenter+5.0f*dpiScale),
+                color,
+                2.0f*dpiScale
+              );
+              tdl->AddLine(
+                ImVec2(arrowPos,yLineCenter),
+                ImVec2(arrowPos+5.0f*dpiScale,yLineCenter+5.0f*dpiScale),
+                color,
+                2.0f*dpiScale
+              );
+            }
           }
 
           posCenter/=numPairs;
 
           if (pair.label==NULL) {
-            tdl->AddLine(
-              ImVec2(posMin,posY+textSize.y),
-              ImVec2(posMax,posY+textSize.y),
-              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-              2.0f*dpiScale
-            );
+            if (textSize.x<posMax-posMin) {
+              tdl->AddLine(
+                ImVec2(posMin,posY+textSize.y),
+                ImVec2(posMax,posY+textSize.y),
+                color,
+                2.0f*dpiScale
+              );
+            }
           } else {
-            tdl->AddLine(
-              ImVec2(posMin,posY+textSize.y),
-              ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
-              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-              2.0f*dpiScale
-            );
-            tdl->AddLine(
-              ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
-              ImVec2(posMax,posY+textSize.y),
-              ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_PAIR]),
-              2.0f*dpiScale
-            );
+            if (textSize.x<posMax-posMin) {
+              tdl->AddLine(
+                ImVec2(posMin,posY+textSize.y),
+                ImVec2(posCenter-textSize.x*0.5-6.0f*dpiScale,posY+textSize.y),
+                color,
+                2.0f*dpiScale
+              );
+              tdl->AddLine(
+                ImVec2(posCenter+textSize.x*0.5+6.0f*dpiScale,posY+textSize.y),
+                ImVec2(posMax,posY+textSize.y),
+                color,
+                2.0f*dpiScale
+              );
 
-            delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pair.label));
+              if (!(pair.arrows&PAIR_ARROW_VERTICAL)) {
+                if (pair.arrows&PAIR_ARROW_LEFT) {
+                  float arrowPos=posMin+5.0f;
+                  if (pair.arrows&PAIR_ARROW_CENTERED) arrowPos=(posCenter-textSize.x*0.5-6.0f*dpiScale*0.5+posMin)/2.0f;
+                  tdl->AddLine(
+                    ImVec2(arrowPos-2.5f,posY+textSize.y),
+                    ImVec2(arrowPos+2.5f*dpiScale,posY+textSize.y+5.0f*dpiScale),
+                    color,
+                    2.0f*dpiScale
+                  );
+                  tdl->AddLine(
+                    ImVec2(arrowPos-2.5f,posY+textSize.y),
+                    ImVec2(arrowPos+2.5f*dpiScale,posY+textSize.y-5.0f*dpiScale),
+                    color,
+                    2.0f*dpiScale
+                  );
+                }
+                if (pair.arrows&PAIR_ARROW_RIGHT) {
+                  float arrowPos=posCenter+textSize.x*0.5+11.0f;
+                  if (pair.arrows&PAIR_ARROW_CENTERED) arrowPos=(posCenter+textSize.x*0.5+6.0f+posMax)/2.0f;
+                  tdl->AddLine(
+                    ImVec2(arrowPos+2.5f,posY+textSize.y),
+                    ImVec2(arrowPos-2.5f*dpiScale,posY+textSize.y+5.0f*dpiScale),
+                    color,
+                    2.0f*dpiScale
+                  );
+                  tdl->AddLine(
+                    ImVec2(arrowPos+2.5f,posY+textSize.y),
+                    ImVec2(arrowPos-2.5f*dpiScale,posY+textSize.y-5.0f*dpiScale),
+                    color,
+                    2.0f*dpiScale
+                  );
+                }
+              }
+            }
+            delayedLabels.push_back(DelayedLabel(posCenter,posY,textSize,pair.label,uiColors[GUI_COLOR_PATTERN_PAIR+(pair.color&3)]));
           }
         }
       }
 
-      for (DelayedLabel& i: delayedLabels) {
-        ImGui::RenderFrameDrawList(
-          tdl,
-          ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
-          ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
-          ImGui::GetColorU32(ImGuiCol_FrameBg),
-          true,
-          ImGui::GetStyle().FrameRounding
-        );
+      if (!delayedLabels.empty()) {
+        for (DelayedLabel& i: delayedLabels) {
+          ImU32 frameColor=ImGui::ColorConvertFloat4ToU32(ImVec4(i.color.x/2.0f,i.color.y/2.0f,i.color.z/2.0f,i.color.w));
+          ImGui::RenderFrameDrawList(
+            tdl,
+            ImVec2(i.posCenter-i.textSize.x*0.5-6.0f*dpiScale,i.posY+i.textSize.y*0.5-3.0f*dpiScale),
+            ImVec2(i.posCenter+i.textSize.x*0.5+6.0f*dpiScale,i.posY+i.textSize.y*1.5+3.0f*dpiScale),
+            frameColor,
+            true,
+            ImGui::GetStyle().FrameRounding
+          );
 
-        tdl->AddText(
-          ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
-          ImGui::GetColorU32(ImGuiCol_Text),
-          i.label
-        );
+          tdl->AddText(
+            ImVec2(i.posCenter-i.textSize.x*0.5,i.posY+i.textSize.y*0.5),
+            (ImGui::GetColorU32(ImGuiCol_Text)&~IM_COL32_A_MASK)|(frameColor&IM_COL32_A_MASK),
+            _(i.label)
+          );
+        }
       }
     }
 
@@ -1891,7 +1971,7 @@ void FurnaceGUI::drawPattern() {
           float width=patChanX[i+1]-patChanX[i];
 
           ImVec2 partPos=ImVec2(
-            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
+            off.x+patChanX[i]+(width*0.5+0.5*sin(2*M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
             off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,PAT_FONT_SIZE)
           );
 

@@ -4355,6 +4355,10 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_DIRECT,_("Status: direct"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_WARNING,_("Status: warning"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_STATUS_ERROR,_("Status: error"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PAIR, _("Group hint color 1"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PAIR_2, _("Group hint color 2"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PAIR_3, _("Group hint color 3"));
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PAIR_4, _("Group hint color 4"));
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Sample Editor"))) {

@@ -97,6 +97,7 @@ class DivPlatformSMS: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     float getPostAmp();
     int getPortaFloor(int ch);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);

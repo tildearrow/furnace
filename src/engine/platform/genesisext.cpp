@@ -883,6 +883,70 @@ int DivPlatformGenesisExt::getPortaFloor(int ch) {
   return (ch>8)?72:60;
 }
 
+void DivPlatformGenesisExt::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (!extMode) return;
+  switch (chan[2].state.alg) {
+    case 0:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 3,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 4,1)); break;
+        case 4: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,2)); break;
+        default: break;
+      }
+      break;
+    case 1:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 4,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 4,1)); break;
+        case 4: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,2)); break;
+        default: break;
+      }
+      break;
+    case 2:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 4,1)); break;
+        case 4: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,2)); break;
+        default: break;
+      }
+      break;
+    case 3:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 3,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,1)); break;
+        case 4: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,2)); break;
+        default: break;
+      }
+      break;
+    case 4:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 3,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("mix"),PAIR_ARROW_NONE, 5,1)); break;
+        case 4: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 5,2)); break;
+        default: break;
+      }
+      break;
+    case 5:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 3,4,5,-1,-1,-1,-1,-1,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("mix"),PAIR_ARROW_NONE, 4,5,-1,-1,-1,-1,-1,-1,1)); break;
+        default: break;
+      }
+      break;
+    case 6:
+      switch (ch) {
+        case 2: ret.push_back(DivChannelPair(_N("fm"),PAIR_ARROW_RIGHT|PAIR_ARROW_VERTICAL|PAIR_ARROW_CENTERED, 3,0)); break;
+        case 3: ret.push_back(DivChannelPair(_N("mix"),PAIR_ARROW_NONE, 4,5,-1,-1,-1,-1,-1,-1,1)); break;
+        default: break;
+      }
+      break;
+    case 7:
+      if (ch==2) ret.push_back(DivChannelPair(_N("mix"),PAIR_ARROW_NONE, 3,4,5,-1,-1,-1,-1,-1,0));
+      break;
+    default: return;
+  }
+}
+
 void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {
   csmChan=ch;
 }

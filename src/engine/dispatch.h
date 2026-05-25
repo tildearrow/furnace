@@ -936,6 +936,14 @@ struct DivDispatchOscBuffer {
   }
 };
 
+enum DivChannelPairArrows {
+  PAIR_ARROW_NONE=0,
+  PAIR_ARROW_LEFT=1,
+  PAIR_ARROW_RIGHT=2,
+  PAIR_ARROW_VERTICAL=4,
+  PAIR_ARROW_CENTERED=8,
+};
+
 /**
  * a channel pair provides a hint to the GUI which informs the user which channels are paired with a channel for modulation
  * (e.g. ring/freq/phase mod, filtering and register sharing).
@@ -943,22 +951,34 @@ struct DivDispatchOscBuffer {
 struct DivChannelPair {
   // the label.
   const char* label;
+  // bitfiled of the arrows to show
+  // see DivChannelPairArrows
+  unsigned char arrows;
   // the paired channels.
   // -1 means "none".
   signed char pairs[8];
+  // the color of the pair
+  // up to 4 colors (0-3)
+  unsigned char color;
 
   // constructor to pair up to 8 channels.
-  DivChannelPair(const char* l, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7):
+  DivChannelPair(const char* l, unsigned char a, signed char p0, signed char p1, signed char p2, signed char p3, signed char p4, signed char p5, signed char p6, signed char p7, unsigned char col=0):
     label(l),
-    pairs{p0,p1,p2,p3,p4,p5,p6,p7} {}
+    arrows(a),
+    pairs{p0,p1,p2,p3,p4,p5,p6,p7},
+    color(col) {}
   // constructor to pair a single channel.
-  DivChannelPair(const char* l, signed char p):
+  DivChannelPair(const char* l, unsigned char a, signed char p, unsigned char col=0):
     label(l),
-    pairs{p,-1,-1,-1,-1,-1,-1,-1} {}
+    arrows(a),
+    pairs{p,-1,-1,-1,-1,-1,-1,-1},
+    color(col) {}
   // empty.
   DivChannelPair():
     label(NULL),
-    pairs{-1,-1,-1,-1,-1,-1,-1,-1} {}
+    arrows(0),
+    pairs{-1,-1,-1,-1,-1,-1,-1,-1},
+    color(0) {}
 };
 
 /**

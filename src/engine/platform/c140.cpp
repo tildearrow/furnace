@@ -587,7 +587,7 @@ float DivPlatformC140::getPostAmp() {
 void DivPlatformC140::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (!is219) return;
   if ((ch&3)==0) {
-    ret.push_back(DivChannelPair(bankLabel[ch>>2],ch+1,ch+2,ch+3,-1,-1,-1,-1,-1));
+    ret.push_back(DivChannelPair(bankLabel[ch>>2],PAIR_ARROW_NONE,ch+1,ch+2,ch+3,-1,-1,-1,-1,-1));
   }
 }
 

@@ -767,17 +767,17 @@ DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
 
 void DivPlatformC64::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   if (chan[ch].ring) {
-    if (ch==0){
-      ret.push_back(DivChannelPair(_("ring"),2));
+    if (ch==0) {
+      ret.push_back(DivChannelPair(_N("ring"),PAIR_ARROW_CENTERED|PAIR_ARROW_LEFT,2));
     } else {
-      ret.push_back(DivChannelPair(_("ring"),(ch-1)%3));
+      ret.push_back(DivChannelPair(_N("ring"),PAIR_ARROW_CENTERED|PAIR_ARROW_RIGHT,(ch-1)%3));
     }
   }
   if (chan[ch].sync) {
     if (ch==0) {
-      ret.push_back(DivChannelPair(_("sync"),2));
+      ret.push_back(DivChannelPair(_N("sync"),PAIR_ARROW_CENTERED|PAIR_ARROW_LEFT,2));
     } else {
-      ret.push_back(DivChannelPair(_("sync"),(ch-1)%3));
+      ret.push_back(DivChannelPair(_N("sync"),PAIR_ARROW_CENTERED|PAIR_ARROW_RIGHT,(ch-1)%3));
     }
   }
 }

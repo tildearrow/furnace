@@ -1183,6 +1183,9 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_STATUS_ERROR,"",ImVec4(0.98f,0.06f,0.06f,1.0f)),
 
   D(GUI_COLOR_PATTERN_PAIR,"",ImVec4(0.6f,0.8f,1.0f,1.0f)),
+  D(GUI_COLOR_PATTERN_PAIR_2,"",ImVec4(0.8f,1.0f,0.6f,1.0f)),
+  D(GUI_COLOR_PATTERN_PAIR_3,"",ImVec4(1.0f,0.6f,0.8f,1.0f)),
+  D(GUI_COLOR_PATTERN_PAIR_4,"",ImVec4(0.8f,0.6f,1.0f,1.0f)),
 
   D(GUI_COLOR_SAMPLE_BG,"",ImVec4(0.04f,0.13f,0.2f,1.0f)),
   D(GUI_COLOR_SAMPLE_FG,"",ImVec4(0.7f,0.7f,0.7f,1.0f)),
