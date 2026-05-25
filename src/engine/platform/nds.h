@@ -102,6 +102,7 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual void notifyPitchTable(int sample=-1) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual const char** getRegisterSheet() override;

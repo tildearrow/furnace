@@ -365,8 +365,9 @@ struct DivPitchTable {
    * @param maximum the maximum period/frequency value supported by the chip.
    * @param period whether to use periods instead of accumulator values.
    * @param linear whether pitch linearity is set to full.
+   * @param block in an f-num/block table, sets the number of bits that the f-num has. set to 0 if this is not an f-num/block table.
    */
-  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
+  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear, unsigned char block=0);
 
   DivPitchTable():
     maxFreq(0xffffffff),
@@ -517,13 +518,17 @@ struct SharedChannel {
   }
   /**
    * calculates final frequency from current frequency values.
+   * @param pitchMult this may be used to multiply pitch in non-linear mode.
+   * it is used by OPL and some other chips to ensure that one pitch unit
+   * equals one chip frequency unit when the frequency must be converted to
+   * an f-num/block.
    * @return the frequency.
    */
-  int calcFreq() {
+  int calcFreq(int pitchMult=1) {
     if (rawFreq) return baseFreq;
     if (pitchTable==NULL) return 0;
     if (!pitchTable->linearity) {
-      return pitchTable->get(baseFreq,pitch,pitch2);
+      return pitchTable->get(baseFreq,pitch*pitchMult,pitch2);
     }
     if (fixedArp) {
       return pitchTable->get(baseNoteOverride<<7,pitch,pitch2);
@@ -588,7 +593,7 @@ class DivPitchTableManager {
      * @param chan an array of SharedChannel... hold on. this is not going to work well.
      * @return whether the number of pitch tables has changed.
      */
-    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample=-1) {
+    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample) {
       if (e==NULL) return false;
 
       bool hasSizeChanged=false;
@@ -641,7 +646,8 @@ class DivPitchTableManager {
      */
     template<class T> void destroy(T* chan, size_t numChans) {
       if (e==NULL) return;
-      if (samplePitchTable) {
+      if (!chan) logE("CHAN IS NULL");
+      if (samplePitchTable && chan) {
         DivPitchTable* firstEntry=samplePitchTable;
         DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
 

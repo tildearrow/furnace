@@ -161,6 +161,18 @@ class DivPlatformSID3: public DivDispatch {
       }
     }
 
+    int calcNoiseFreq() {
+      if (rawFreq) return baseFreq;
+      if (pitchTable==NULL) return 0;
+      if (!pitchTable->linearity) {
+        return pitchTable->get(baseFreq,pitch,pitch2);
+      }
+      if (noise_fixedArp) {
+        return pitchTable->get(noise_baseNoteOverride<<7,pitch,pitch2);
+      }
+      return pitchTable->get(baseFreq+(noise_arpOff<<7),pitch,pitch2);
+    }
+
     Channel(bool linear=true):
       SharedChannel(SID3_MAX_VOL,linear),
       prevFreq(0xffffff),
@@ -266,6 +278,7 @@ class DivPlatformSID3: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

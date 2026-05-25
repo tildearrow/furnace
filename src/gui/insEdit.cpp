@@ -5301,6 +5301,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             }
 
             ImGui::SetCursorPos(prevCurPos);
+            ImGui::Dummy(ImVec2(0,0));
             
             ImGui::TableNextColumn();
             switch (ins->type) {

@@ -102,7 +102,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -144,8 +144,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       unsigned char keyon=regPool[8]&~(1<<i);
       unsigned char keyoff=keyon|(1<<i);
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         unsigned int start=0;
@@ -193,12 +192,13 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
         chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -254,7 +254,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -277,7 +277,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -286,7 +286,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -347,6 +347,7 @@ void DivPlatformRF5C68::reset() {
   rWrite(0x08,0xff); // keyoff all channels
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformRF5C68::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     chWrite(i,0,255);
     chWrite(i,1,isMuted[i]?0:255);
@@ -378,6 +379,10 @@ void DivPlatformRF5C68::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformRF5C68::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
 void DivPlatformRF5C68::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: chipClock=10000000; break;
@@ -392,6 +397,8 @@ void DivPlatformRF5C68::setFlags(const DivConfig& flags) {
   }
   rf5c68=(chipType==1)?rf5c164_device():rf5c68_device();
   rf5c68.device_start(sampleMem);
+
+  notifyPitchTable();
 }
 
 void DivPlatformRF5C68::poke(unsigned int addr, unsigned short val) {
@@ -480,6 +487,7 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
 
 int DivPlatformRF5C68::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
 
@@ -511,4 +519,5 @@ DivPlatformRF5C68::DivPlatformRF5C68() {
 DivPlatformRF5C68::~DivPlatformRF5C68() {
   delete[] sampleOffRFC;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,8);
 }

@@ -56,9 +56,7 @@ class DivPlatformVERA: public DivDispatch {
     DivPitchTableManager samplePitchTable;
     struct VERA_PSG* psg;
     struct VERA_PCM* pcm;
-    int lastCenterRate;
   
-    int calcNoteFreq(int ch, int note);
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
@@ -77,6 +75,7 @@ class DivPlatformVERA: public DivDispatch {
     void setFlags(const DivConfig& flags);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     float getPostAmp();
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);

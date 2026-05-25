@@ -45,7 +45,7 @@ class DivPlatformSCV: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
-  DivPitchTable pitchTable;
+  DivPitchTable pitchTable, wavePitchTable;
 
   int curChan;
   int tempL[32];
@@ -78,6 +78,7 @@ class DivPlatformSCV: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
