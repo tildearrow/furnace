@@ -677,13 +677,16 @@ class DivPitchTableManager {
           }
 
           // now deallocate it
-          delete[] samplePitchTable;
-          samplePitchTable=NULL;
+          if (samplePitchTable) {
+            delete[] samplePitchTable;
+            samplePitchTable=NULL;
+          }
         } else {
           // recreate the pitch table array
           DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
           if (samplePitchTable) {
-            memcpy(newArray,samplePitchTable,MIN(eSongSampleSize(),samplePitchTableLen)*sizeof(DivPitchTable));
+            // I know, I know. we only create DivPitchTables though.
+            memcpy((void*)newArray,(void*)samplePitchTable,MIN(eSongSampleSize(),samplePitchTableLen)*sizeof(DivPitchTable));
 
             // adjust pitch table references
             DivPitchTable* firstEntry=samplePitchTable;
@@ -714,14 +717,16 @@ class DivPitchTableManager {
      */
     template<class T> void destroy(T* chan, size_t numChans) {
       if (e==NULL) return;
-      if (!chan) logE("CHAN IS NULL");
-      if (samplePitchTable && chan) {
+      if (!chan) logE("DivPitchTableManager: CHAN IS NULL");
+      if (samplePitchTable) {
         DivPitchTable* firstEntry=samplePitchTable;
         DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
 
-        for (size_t i=0; i<numChans; i++) {
-          if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-            chan[i].pitchTable=NULL;
+        if (chan) {
+          for (size_t i=0; i<numChans; i++) {
+            if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+              chan[i].pitchTable=NULL;
+            }
           }
         }
 
