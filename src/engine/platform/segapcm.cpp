@@ -27,7 +27,7 @@
 #define chWrite(c,a,v) rWrite(((isDiscrete?0x40:0)|((c)<<3))+(a),v)
 #define bankWrite(c,v,b) rWrite(((isDiscrete?0x40:0)|((c)<<3))+(0x86),v+((b)<<(bankShift)))
 
-#define CHIP_FREQBASE 65536
+#define CHIP_FREQBASE 32768
 
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   thread_local int os[2];
