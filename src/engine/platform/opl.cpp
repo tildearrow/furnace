@@ -1503,7 +1503,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         int mul=2;
         int fixedBlock=chan[i].state.block;
         if (!parent->song.compatFlags.linearPitch) {
-          mul=octave(chan[i].baseFreq,fixedBlock)*2;
+          mul=octave(chan[i].baseFreq,fixedBlock);
         }
         chan[i].freq=chan[i].calcFreq(mul);
         if (chan[i].freq<0) chan[i].freq=0;

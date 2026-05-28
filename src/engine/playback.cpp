@@ -1998,7 +1998,7 @@ void DivEngine::nextRow() {
 }
 
 // advances one tick.
-// it is called by nextBuf(), playSub() nd the export functions.
+// it is called by nextBuf(), playSub() and the export functions.
 // noAccum will prevent the playback time from increasing.
 // if inhibitLowLat is on, low-latency mode is not taken into account. this is used by the export functions.
 // returns whether the song has ended.

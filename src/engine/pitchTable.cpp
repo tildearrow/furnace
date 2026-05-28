@@ -174,11 +174,10 @@ int DivPitchTable::getBase(int note) {
   return note<<7;
 }
 
-void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod, bool isLinear, unsigned char block) {
+void DivPitchTable::init(float tuning, double clock, double divider, int maximum, bool isPeriod, bool isLinear) {
   period=isPeriod;
   linearity=isLinear;
   maxFreq=maximum;
-  blockBits=block;
   shift=period?0:14;
 
   // adjust the shift value so that the highest (or lowest in period mode) note has the highest period/freq
@@ -216,4 +215,25 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
     pitchDiff[i]=pitch[i+1]-pitch[i];
     logV("- %d: %x (%x)",i,pitch[i],pitchDiff[i]);
   }
+}
+
+// DivPitchTableFNum
+
+int DivPitchTableFNum::get(int base, int pitch1, int pitch2) {
+  return 0;
+}
+
+int DivPitchTableFNum::getBase(int note) {
+  return 0;
+}
+
+void DivPitchTableFNum::initFNum(float tuning, double clock, double divider, unsigned char fnumB, unsigned char blockB, bool linear) {
+  fnumBits=fnumB;
+  blockBits=blockB;
+
+  fnumMax=(1U<<fnumB)-1;
+  blockMax=(1U<<blockB)-1;
+
+  // calculate table for one f-num range
+  DivPitchTable::init(tuning,clock,divider,blockMax,false,linear);
 }
