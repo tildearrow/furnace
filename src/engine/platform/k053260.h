@@ -48,6 +48,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
   unsigned char curChan;
   unsigned int* sampleOff;
   bool* sampleLoaded;
+  DivPitchTableManager samplePitchTable;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -78,6 +79,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual void notifyPitchTable(int sample=-1) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;

@@ -34,6 +34,7 @@ class DivPlatformPong: public DivDispatch {
   int pos;
   bool freq;
   unsigned char regPool[2];
+  DivPitchTable pitchTable;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -51,6 +52,7 @@ class DivPlatformPong: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

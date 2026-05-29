@@ -52,6 +52,7 @@ class DivPlatformSM8521: public DivDispatch {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
 
   bool antiClickEnabled;
   int coreQuality, lastOut;
@@ -78,6 +79,7 @@ class DivPlatformSM8521: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

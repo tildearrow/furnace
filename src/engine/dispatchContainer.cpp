@@ -675,6 +675,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       // Pac-Man
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
       break;
+    case DIV_SYSTEM_NAMCO_POLEPOS:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(2);
+      break;
     case DIV_SYSTEM_NAMCO_15XX:
       dispatch=new DivPlatformNamcoWSG;
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(15);

@@ -1009,6 +1009,8 @@ void DivEngine::delUnusedSamples() {
 
   saveLock.unlock();
   BUSY_END;
+
+  notifyPitchTable();
 }
 
 bool DivEngine::sysChanCountChange(int firstChan, int before, int after) {

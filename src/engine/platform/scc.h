@@ -40,6 +40,7 @@ class DivPlatformSCC: public DivDispatch {
   bool isMuted[5];
   unsigned char writeOscBuf;
   int lastUpdated34;
+  DivPitchTable pitchTable;
 
   scc_core* scc;
   bool isPlus;
@@ -65,6 +66,7 @@ class DivPlatformSCC: public DivDispatch {
     bool hasAcquireDirect();
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -107,6 +107,10 @@ class DivPlatformPCE: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
+  // this provides pitch calculation. it is used in normal mode.
+  DivPitchTable pitchTable;
+  // this pitch table manager delivers pitch tables in sample mode.
+  DivPitchTableManager samplePitchTable;
 
   // PCE is a bit unique. you've got a channel selection register which you must write to
   // before setting channel registers.
@@ -151,6 +155,7 @@ class DivPlatformPCE: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -248,6 +248,7 @@ void FurnaceGUI::drawSpectrum() {
       ImGui::Checkbox(_("Show Y Grid##spec"),&spectrum.showYGrid);
       ImGui::Checkbox(_("Show X Scale##spec"),&spectrum.showXScale);
       ImGui::Checkbox(_("Show Y Scale##spec"),&spectrum.showYScale);
+      ImGui::EndPopup();
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SPECTRUM;

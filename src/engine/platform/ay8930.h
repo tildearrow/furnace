@@ -105,6 +105,8 @@ class DivPlatformAY8930: public DivDispatch {
     FixedQueue<QueuedWrite,128> writes;
     ay8930_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     unsigned char regPool[32];
     unsigned char ayNoiseAnd, ayNoiseOr;
     unsigned char stereoSep;
@@ -149,6 +151,7 @@ class DivPlatformAY8930: public DivDispatch {
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

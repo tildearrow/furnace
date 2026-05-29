@@ -1921,6 +1921,10 @@ void DivPlatformYM2608::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformYM2608::notifyPitchTable(int sample) {
+  ay->notifyPitchTable(sample);
+}
+
 void DivPlatformYM2608::setSkipRegisterWrites(bool value) {
   DivDispatch::setSkipRegisterWrites(value);
   ay->setSkipRegisterWrites(value);

@@ -49,6 +49,7 @@ class DivPlatformPOKEY: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
   unsigned char audctl, skctl;
   bool audctlChanged, skctlChanged;
   unsigned char oscBufDelay;
@@ -77,6 +78,7 @@ class DivPlatformPOKEY: public DivDispatch {
     float getPostAmp();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

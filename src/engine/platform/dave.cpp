@@ -164,11 +164,7 @@ void DivPlatformDave::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (i>=4) {
-          chan[i].baseFreq=parent->calcBaseFreq(1,1,parent->calcArp(chan[i].note,chan[i].std.arp.val),false);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
-        }
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -241,17 +237,9 @@ void DivPlatformDave::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+      chan[i].freq=chan[i].calcFreq();
       if (i>=4) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,0,chan[i].pitch2,1,1);
-
-        double off=1.0;
-        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].dacSample);
-          off=(double)s->centerRate/parent->getCenterRate();
-        }
-        chan[i].dacRate=chan[i].freq*off;
-      } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        chan[i].dacRate=chan[i].freq;
       }
 
       if (i<3) {
@@ -321,11 +309,13 @@ int DivPlatformDave::dispatch(DivCommand c) {
         ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].dacSample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
           chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].dacSample);
           c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
@@ -333,7 +323,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
           chan[0].writeVol=true;
         }
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -349,7 +339,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -437,7 +427,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
       rWrite(31,clockDiv?2:0);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -465,7 +455,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -473,7 +463,7 @@ int DivPlatformDave::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_DAVE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -575,6 +565,11 @@ void DivPlatformDave::reset() {
   memset(regPool,0,32);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformDave::Channel(parent->song.compatFlags.linearPitch);
+    if (i>3) {
+      chan[i].pitchTable=samplePitchTable.get(-1);
+    } else {
+      chan[i].pitchTable=&pitchTable;
+    }
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -603,6 +598,11 @@ void DivPlatformDave::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformDave::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,6,parent->song.tuning,1,1,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x3ffff,true,parent->song.compatFlags.linearPitch);
+}
+
 void DivPlatformDave::setFlags(const DivConfig& flags) {
   chipClock=8000000.0;
   CHECK_CUSTOM_CLOCK;
@@ -610,6 +610,8 @@ void DivPlatformDave::setFlags(const DivConfig& flags) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformDave::poke(unsigned int addr, unsigned short val) {
@@ -622,6 +624,7 @@ void DivPlatformDave::poke(std::vector<DivRegWrite>& wlist) {
 
 int DivPlatformDave::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   dave=new Ep128::Dave;
@@ -639,6 +642,7 @@ void DivPlatformDave::quit() {
     delete oscBuf[i];
   }
   delete dave;
+  samplePitchTable.destroy<Channel>(chan,6);
 }
 
 DivPlatformDave::~DivPlatformDave() {

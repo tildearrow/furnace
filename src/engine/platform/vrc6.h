@@ -53,6 +53,8 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,64> writes;
+  DivPitchTable pitchTable, sawPitchTable;
+  DivPitchTableManager samplePitchTable;
   vrcvi_core vrc6;
   int prevSample;
   unsigned char regPool[13];
@@ -77,6 +79,7 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

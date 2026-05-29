@@ -2277,6 +2277,11 @@ void FurnaceGUI::initSystemPresets() {
       }
     );
     SUB_ENTRY(
+      _("Namco Pole Position"), { // Pole position/2
+        CH(DIV_SYSTEM_NAMCO_POLEPOS, 1.0f, 0, "")
+      }
+    );
+    SUB_ENTRY(
       _("Namco Mappy"), { // Mappy, Super Pac-Man, Libble Rabble, etc
         CH(DIV_SYSTEM_NAMCO_15XX, 1.0f, 0, "")
       }
@@ -3748,6 +3753,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     _("Namco WSG"), {
       CH(DIV_SYSTEM_NAMCO, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    _("Namco Pole Position WSG (8-channel quadraphonic)"), {
+      CH(DIV_SYSTEM_NAMCO_POLEPOS, 1.0f, 0, "")
     }
   );
   ENTRY(

@@ -39,6 +39,7 @@ class DivPlatformPokeMini: public DivDispatch {
   unsigned short preset, pivot;
   unsigned char regPool[128];
   unsigned short elapsedMain;
+  DivPitchTable pitchTable;
 
   void rWrite(unsigned char addr, unsigned char val);
 
@@ -60,6 +61,7 @@ class DivPlatformPokeMini: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

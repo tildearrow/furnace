@@ -106,7 +106,7 @@ void DivPlatformPET::tick(bool sysTick) {
     chan[0].handleArp();
   } else if (chan[0].std.arp.had) {
     if (!chan[0].inPorta) {
-      chan[0].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[0].note,chan[0].std.arp.val));
+      chan[0].baseFreq=chan[0].calcBaseFreq(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }
     chan[0].freqChanged=true;
   }
@@ -126,7 +126,7 @@ void DivPlatformPET::tick(bool sysTick) {
     chan[0].freqChanged=true;
   }
   if (chan[0].freqChanged || chan[0].keyOn || chan[0].keyOff) {
-    chan[0].freq=parent->calcFreq(chan[0].baseFreq,chan[0].pitch,chan[0].fixedArp?chan[0].baseNoteOverride:chan[0].arpOff,chan[0].fixedArp,true,0,chan[0].pitch2,chipClock,CHIP_DIVIDER)-2;
+    chan[0].freq=chan[0].calcFreq()-2;
     if (chan[0].freq>65535) chan[0].freq=65535;
     if (chan[0].freq<0) chan[0].freq=0;
     rWrite(8,chan[0].freq&0xff);
@@ -151,7 +151,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_PET);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[0].baseFreq=NOTE_PERIODIC(c.value);
+        chan[0].baseFreq=chan[0].calcBaseFreq(c.value);
         chan[0].freqChanged=true;
         chan[0].note=c.value;
       }
@@ -198,7 +198,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       rWrite(10,chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[0].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[0].baseFreq) {
         chan[0].baseFreq+=c.value;
@@ -221,7 +221,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[0].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0)));
+      chan[0].baseFreq=chan[0].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0)));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;
@@ -229,7 +229,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       if (chan[0].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_PET));
       }
-      if (!chan[0].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[0].std.arp.will && !NEW_ARP_STRAT) chan[0].baseFreq=NOTE_PERIODIC(chan[0].note);
+      if (!chan[0].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[0].std.arp.will && !NEW_ARP_STRAT) chan[0].baseFreq=chan[0].calcBaseFreq(chan[0].note);
       chan[0].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -284,6 +284,7 @@ int DivPlatformPET::getRegisterPoolSize() {
 void DivPlatformPET::reset() {
   memset(regPool,0,16);
   chan[0]=Channel();
+  chan[0].pitchTable=&pitchTable;
   chan[0].std.setEngine(parent);
   rWrite(10,chan[0].wave);
 }
@@ -294,6 +295,10 @@ int DivPlatformPET::getOutputCount() {
 
 void DivPlatformPET::notifyInsDeletion(void* ins) {
   chan[0].std.notifyInsDeletion((DivInstrument*)ins);
+}
+
+void DivPlatformPET::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x10001,true,parent->song.compatFlags.linearPitch);
 }
 
 void DivPlatformPET::poke(unsigned int addr, unsigned short val) {
@@ -314,6 +319,7 @@ int DivPlatformPET::init(DivEngine* p, int channels, int sugRate, const DivConfi
   isMuted=false;
   oscBuf=new DivDispatchOscBuffer;
   oscBuf->setRate(rate);
+  notifyPitchTable();
   reset();
   return 1;
 }

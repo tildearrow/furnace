@@ -285,7 +285,7 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -323,13 +323,7 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
-      double off=1.0;
-      if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[i].sample);
-        off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      }
-      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].freq>16777215) chan[i].freq=16777215;
       if (chan[i].keyOn) {
         if (!chan[i].std.vol.had) {
@@ -351,6 +345,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
+        chan[c.chan].pitchTable=samplePitchTable.get(-1);
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
         chan[c.chan].useWave=true;
@@ -365,17 +360,19 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         chan[c.chan].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value));
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -448,7 +445,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=round(NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta));
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -471,7 +468,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -533,6 +530,7 @@ DivDispatchOscBuffer* DivPlatformPCMDAC::getOscBuffer(int ch) {
 void DivPlatformPCMDAC::reset() {
   for (int i=0; i<chans; i++) {
     chan[i]=DivPlatformPCMDAC::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);
@@ -589,6 +587,10 @@ void DivPlatformPCMDAC::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformPCMDAC::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,chans,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
 void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   // default to 44100Hz 16-bit stereo
   rate=flags.getInt("rate",44100);
@@ -606,10 +608,13 @@ void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   volMult=flags.getFloat("volMult",1.0f);
   if (volMult<0.0f) volMult=0.0f;
   if (volMult>1.0f) volMult=1.0f;
+
+  notifyPitchTable();
 }
 
 int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   oscBuf=new DivDispatchOscBuffer[channels];
@@ -628,6 +633,7 @@ void DivPlatformPCMDAC::quit() {
   delete[] chan;
   delete[] isMuted;
   delete[] oscBuf;
+  samplePitchTable.destroy<Channel>(chan,chans);
   chan=NULL;
   isMuted=NULL;
   oscBuf=NULL;

@@ -35,6 +35,8 @@ class DivPlatformZXBeeperQuadTone: public DivDispatch {
   };
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[5];
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   bool isMuted[5];
   bool noHiss;
   bool deHisser[8];
@@ -61,6 +63,7 @@ class DivPlatformZXBeeperQuadTone: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

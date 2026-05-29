@@ -58,6 +58,7 @@ class DivPlatformFDS: public DivDispatch {
   struct _fds* fds;
   xgm::NES_FDS* fds_NP;
   unsigned char regPool[128];
+  DivPitchTable pitchTable;
 
   void updateWave();
   
@@ -84,6 +85,7 @@ class DivPlatformFDS: public DivDispatch {
     void setNSFPlay(bool use);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     float getPostAmp();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

@@ -44,6 +44,7 @@ class DivPlatformT6W28: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,256> writes;
+  DivPitchTable tonePitchTable, noisePitchTable;
   unsigned char lastPan;
 
   int cycles, curChan, delay;
@@ -53,7 +54,6 @@ class DivPlatformT6W28: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
-  double NOTE_SN(int ch, int note);
   int snCalcFreq(int ch);
   
   void writeOutVol(int ch);
@@ -77,6 +77,7 @@ class DivPlatformT6W28: public DivDispatch {
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

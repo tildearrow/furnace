@@ -57,6 +57,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   FixedQueue<QueuedWrite,256> writes;
   unsigned int* sampleOffGA20;
   bool* sampleLoaded;
+  DivPitchTableManager samplePitchTable;
 
   int oldOut;
 
@@ -92,6 +93,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual void notifyPitchTable(int sample=-1) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;

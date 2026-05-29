@@ -56,6 +56,8 @@ class DivPlatformSwan: public DivDispatch {
   };
   FixedQueue<QueuedWrite,256> writes;
   FixedQueue<DivRegWrite,2048> postDACWrites;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
 
   swan_sound_t ws;
   WSwan* ws_mdfn;
@@ -81,6 +83,7 @@ class DivPlatformSwan: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     int getOutputCount();
     bool hasSoftPan(int ch);
     bool hasAcquireDirect();

@@ -1763,6 +1763,7 @@ class FurnaceGUI {
   bool orderLock;
   bool mobileEdit;
   bool killGraphics;
+  bool recoveringGraphics;
   bool safeMode;
   bool midiWakeUp;
   bool makeDrumkitMode;
@@ -2789,6 +2790,9 @@ class FurnaceGUI {
   float xyOscDecayTime;
   float xyOscIntensity;
   float xyOscThickness;
+
+  // register view
+  int regViewColumns;
 
   // spectrum and tuner
   double* tunerFFTInBuf;

@@ -775,7 +775,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("no pitch table assigned to this channel.");
         } else {
           ImGui::Text("%s - %s",pt->period?"period":"frequency",pt->linearity?"linear":"non-linear");
-          ImGui::Text("shift: %d - blockBits: %d",pt->shift,pt->blockBits);
+          ImGui::Text("shift: %d",pt->shift);
           ImGui::Text("max: %x",pt->maxFreq);
 
           if (ImGui::BeginTable("PTable",3)) {
@@ -794,13 +794,19 @@ void FurnaceGUI::drawDebug() {
               ImGui::TableNextColumn();
               ImGui::Text("%x (%d)",pt->pitch[i],pt->pitch[i]);
               ImGui::TableNextColumn();
-              if (i<12) ImGui::Text("%x (%d)",pt->pitchDiff[i],pt->pitchDiff[i]);
+              if (i<12) {
+                if (pt->pitchDiff[i]<0) {
+                  ImGui::Text("%x (%d)",-pt->pitchDiff[i],pt->pitchDiff[i]);
+                } else {
+                  ImGui::Text("%x (%d)",pt->pitchDiff[i],pt->pitchDiff[i]);
+                }
+              }
             }
 
             ImGui::EndTable();
           }
         }
-        ImGui::Text("freq: %x (%x + %x)",ch->freq,ch->baseFreq,ch->pitch);
+        ImGui::Text("freq: %d (%d%+d)",ch->freq,ch->baseFreq,ch->pitch);
       }
       ImGui::TreePop();
     }

@@ -365,9 +365,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<(int)parent->song.sample.size()) {
-            chan[c.chan].pitchTable=&samplePitchTable[chan[c.chan].sample];
-          }
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
@@ -953,54 +951,11 @@ void DivPlatformSNES::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSNES::notifyPitchTable(int sample) {
-  if (samplePitchTableLen!=parent->song.sample.size()) {
-    if (parent->song.sample.size()<1) {
-      // remove all references to the pitch table
-      for (int i=0; i<8; i++) {
-        chan[i].pitchTable=NULL;
-      }
-
-      // now deallocate it
-      delete[] samplePitchTable;
-      samplePitchTable=NULL;
-    } else {
-      // recreate the pitch table array
-      DivPitchTable* newArray=new DivPitchTable[parent->song.sample.size()];
-      if (samplePitchTable) {
-        memcpy(newArray,samplePitchTable,MIN(parent->song.sample.size(),samplePitchTableLen)*sizeof(DivPitchTable));
-
-        // adjust pitch table references
-        for (int i=0; i<8; i++) {
-          if (!chan[i].useWave) {
-            if (chan[i].sample>=0 && chan[i].sample<(int)parent->song.sample.size()) {
-              chan[i].pitchTable=&newArray[chan[i].sample];
-            } else {
-              chan[i].pitchTable=NULL;
-            }
-          }
-        }
-
-        delete[] samplePitchTable;
-      }
-      samplePitchTable=newArray;
-    }
-    samplePitchTableLen=parent->song.sample.size();
-  }
-  // should we recalculate the tables for all samples, or only one sample?
+  samplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_FREQBASE,0x3fff,false,parent->song.compatFlags.linearPitch,sample);
+  // check whether we should recalculate the wave pitch tables
   if (sample==-1) {
     for (int i=0; i<16; i++) {
       wavePitchTable[i].init(parent->song.tuning,chipClock,CHIP_FREQBASE*(1+i)/2.0,0x3fff,false,parent->song.compatFlags.linearPitch);
-    }
-    for (size_t i=0; i<MIN(parent->song.sample.size(),samplePitchTableLen); i++) {
-      DivSample* s=parent->song.sample[i];
-      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      samplePitchTable[i].init(parent->song.tuning,chipClock,CHIP_FREQBASE*off,0x3fff,false,parent->song.compatFlags.linearPitch);
-    }
-  } else {
-    if (sample>=0 && sample<(int)parent->song.sample.size() && sample<(int)samplePitchTableLen) {
-      DivSample* s=parent->song.sample[sample];
-      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      samplePitchTable[sample].init(parent->song.tuning,chipClock,CHIP_FREQBASE*off,0x3fff,false,parent->song.compatFlags.linearPitch);
     }
   }
 }
@@ -1173,6 +1128,7 @@ void DivPlatformSNES::setFlags(const DivConfig& flags) {
 
 int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   sampleMemLen=0;
@@ -1198,16 +1154,10 @@ void DivPlatformSNES::quit() {
 DivPlatformSNES::DivPlatformSNES() {
   sampleOff=new unsigned int[32768];
   sampleLoaded=new bool[32768];
-  samplePitchTable=NULL;
-  samplePitchTableLen=0;
 }
 
 DivPlatformSNES::~DivPlatformSNES() {
   delete[] sampleOff;
   delete[] sampleLoaded;
-  if (samplePitchTable) {
-    delete[] samplePitchTable;
-    samplePitchTable=NULL;
-    samplePitchTableLen=0;
-  }
+  samplePitchTable.destroy<Channel>(chan,8);
 }

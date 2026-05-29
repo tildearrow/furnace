@@ -268,6 +268,7 @@ the channel count is stored in the file in order to allow Furnace to load files 
 - 0xe1: PS1 - 24 channels (UNAVAILABLE)
 - 0xe2: C64 (6581) with PCM - 4 channels
 - 0xe3: Watara Supervision - 4 channels
+- 0xe4: Namco Pole Position WSG - 8 channels
 - 0xe5: µPD1771C-017 - 4 channels
 - 0xf0: SID2 - 3 channels
 - 0xf1: 5E01 - 5 channels

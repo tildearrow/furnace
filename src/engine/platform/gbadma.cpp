@@ -121,7 +121,7 @@ void DivPlatformGBADMA::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -162,12 +162,7 @@ void DivPlatformGBADMA::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      double off=1.0;
-      if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[i].sample);
-        off=(s->centerRate>=1)?(parent->getCenterRate()/(double)s->centerRate):1.0;
-      }
-      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=chan[i].calcFreq();
 
       // emulate prescaler rounding
       if (chan[i].freq<65536) {
@@ -200,6 +195,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
+        chan[c.chan].pitchTable=samplePitchTable.get(-1);
         chan[c.chan].audLen=ins->amiga.waveLen+1;
         wtMemCompo.entries[c.chan].end=wtMemCompo.entries[c.chan].begin+chan[c.chan].audLen;
         if (chan[c.chan].insChanged) {
@@ -212,12 +208,13 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           c.value=ins->amiga.getFreq(c.value);
         }
         chan[c.chan].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -291,7 +288,8 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].sample=ins->amiga.getSample(c.value2);
-      int destFreq=NOTE_PERIODIC(c.value2);
+      chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -314,7 +312,7 @@ int DivPlatformGBADMA::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -381,6 +379,7 @@ void DivPlatformGBADMA::reset() {
   memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformGBADMA::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);
@@ -418,6 +417,10 @@ void DivPlatformGBADMA::notifyInsChange(int ins) {
       chan[i].insChanged=true;
     }
   }
+}
+
+void DivPlatformGBADMA::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,2,parent->song.tuning,chipClock,CHIP_DIVIDER,0x3ffffff,true,parent->song.compatFlags.linearPitch,sample);
 }
 
 void DivPlatformGBADMA::notifyWaveChange(int wave) {
@@ -504,10 +507,13 @@ void DivPlatformGBADMA::setFlags(const DivConfig& flags) {
   for (int i=0; i<2; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformGBADMA::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   wtMemCompo=DivMemoryComposition();
@@ -546,4 +552,5 @@ DivPlatformGBADMA::DivPlatformGBADMA() {
 DivPlatformGBADMA::~DivPlatformGBADMA() {
   delete[] sampleOff;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,2);
 }

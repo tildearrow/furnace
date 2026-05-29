@@ -42,6 +42,7 @@ class DivPlatformRF5C68: public DivDispatch {
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
+  DivPitchTableManager samplePitchTable;
   int chipType;
   unsigned char curChan;
   unsigned int* sampleOffRFC;
@@ -74,6 +75,7 @@ class DivPlatformRF5C68: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     void setFlags(const DivConfig& flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
