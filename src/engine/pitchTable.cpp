@@ -220,10 +220,16 @@ void DivPitchTable::init(float tuning, double clock, double divider, int maximum
 // DivPitchTableFNum
 
 int DivPitchTableFNum::get(int base, int pitch1, int pitch2) {
-  return 0;
+  int offset=base+pitch1+pitch2;
+
+  int fNum=DivPitchTable::get(offset%1536,0,0);
+  // I give up (for now). the whole F-Num thing is absolute sorcery.
+  return fNum;
 }
 
 int DivPitchTableFNum::getBase(int note) {
+  if (linearity) DivPitchTable::getBase(note);
+  // calculate...
   return 0;
 }
 
