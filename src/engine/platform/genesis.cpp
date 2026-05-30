@@ -1903,6 +1903,8 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   for (int i=0; i<10; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

@@ -2065,6 +2065,8 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   ay->setFlags(ayFlags);
 
   logV("CLOCK: %d RATE: %d",chipClock,rate);
+
+  notifyPitchTable();
 }
 
 int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

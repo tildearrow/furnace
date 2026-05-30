@@ -1471,6 +1471,8 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   immWrite(prescale,0xff);
   ay->setExtClockDiv(chipClock,ayDiv);
   ay->setFlags(ayFlags);
+
+  notifyPitchTable();
 }
 
 int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
