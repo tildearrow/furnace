@@ -3137,14 +3137,6 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
         }},
       };
       break;
-    case GUI_WARN_NPR:
-      warnChoices={
-        {tGotIt,kGotIt,[this]{
-          tutorial.nprFieldTrial=true;
-          commitTutorial();
-        }},
-      };
-      break;
     case GUI_WARN_GENERIC:
       warnChoices={
         {tOk,kOk,[]{}},
@@ -5315,12 +5307,6 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      pushToggleColors(newPatternRenderer);
-      if (ImGui::SmallButton("NPR")) {
-        newPatternRenderer=!newPatternRenderer;
-      }
-      ImGui::SetItemTooltip(_("New Pattern Renderer"));
-      popToggleColors();
       ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
       if (e->isPlaying() && settings.playbackTime) {
@@ -7834,10 +7820,6 @@ bool FurnaceGUI::init() {
   syncSettings();
   syncTutorial();
 
-  if (!tutorial.nprFieldTrial && newPatternRenderer) {
-    showWarning(_("welcome to the New Pattern Renderer!\nit should be lighter on your CPU.\n\nif you find an issue, you can go back to the old pattern renderer by clicking the NPR button (next to Help).\nmake sure to report it!\n\nthank you!"),GUI_WARN_NPR);
-  }
-
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
     String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
@@ -8946,7 +8928,6 @@ FurnaceGUI::FurnaceGUI():
   replacePendingSample(false),
   displayExportingROM(false),
   displayExportingCS(false),
-  newPatternRenderer(true),
   quitNoSave(false),
   changeCoarse(false),
   orderLock(false),

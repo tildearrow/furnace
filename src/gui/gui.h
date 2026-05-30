@@ -397,6 +397,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_CHANNEL_OP,
   GUI_COLOR_CHANNEL_MUTED,
 
+  GUI_COLOR_PATTERN_BG,
   GUI_COLOR_PATTERN_PLAY_HEAD,
   GUI_COLOR_PATTERN_CURSOR,
   GUI_COLOR_PATTERN_CURSOR_HOVER,
@@ -1757,7 +1758,6 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
-  bool newPatternRenderer;
   bool quitNoSave;
   bool changeCoarse;
   bool orderLock;
@@ -3058,7 +3058,6 @@ class FurnaceGUI {
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
   ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
-  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void updateKeyHitPre();
   void updateKeyHitPost();
