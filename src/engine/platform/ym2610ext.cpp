@@ -163,7 +163,8 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2)<<7;
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
           opChan[ch].baseFreq+=c.value;

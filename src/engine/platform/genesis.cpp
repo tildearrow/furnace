@@ -1197,7 +1197,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2+chan[c.chan].sampleNoteDelta)<<7;
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
