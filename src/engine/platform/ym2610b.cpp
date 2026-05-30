@@ -1789,6 +1789,8 @@ void DivPlatformYM2610B::reset() {
   fm->reset();
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
+    // TODO: 17????
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<psgChanOffs; i++) {
@@ -1859,6 +1861,8 @@ void DivPlatformYM2610B::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformYM2610B::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
   ay->notifyPitchTable(sample);
 }
 
