@@ -520,7 +520,7 @@ struct SharedChannel {
    *   chan[i].handleArp();
    * } else if (chan[i].std.arp.had) {
    *   if (!chan[i].inPorta) {
-   *     chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+   *     chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
    *   }
    *   chan[i].freqChanged=true;
    * }
@@ -1624,7 +1624,6 @@ class DivDispatch {
   }
 
 // NOTE: these definitions are deprecated. see DivPitchTable.
-#define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
 #define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
 #define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits,blk)
 

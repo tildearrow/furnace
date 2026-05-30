@@ -647,7 +647,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
   }
   if (extMode) {
     if (chan[csmChan].freqChanged) {
-      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      chan[csmChan].freq=chan[csmChan].calcFreq();
       if (chan[csmChan].freq<1) chan[csmChan].freq=1;
       if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
       int wf=0x400-chan[csmChan].freq;
