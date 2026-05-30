@@ -56,6 +56,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
     fmopna_2610_t fm_lle;
+    DivPitchTableManager samplePitchTable;
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];

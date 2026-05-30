@@ -4292,6 +4292,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::TreePop();
         }
         if (ImGui::TreeNode(_("Pattern"))) {
+          UI_COLOR_CONFIG(GUI_COLOR_PATTERN_BG,_("Pattern background"));
           UI_COLOR_CONFIG(GUI_COLOR_PATTERN_PLAY_HEAD,_("Playhead"));
           UI_COLOR_CONFIG(GUI_COLOR_EDITING,_("Editing"));
           UI_COLOR_CONFIG(GUI_COLOR_EDITING_CLONE,_("Editing (will clone)"));

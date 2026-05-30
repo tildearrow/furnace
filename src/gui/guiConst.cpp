@@ -1120,6 +1120,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_CHANNEL_OP,"",ImVec4(0.2f,0.4f,1.0f,1.0f)),
   D(GUI_COLOR_CHANNEL_MUTED,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
 
+  D(GUI_COLOR_PATTERN_BG,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
   D(GUI_COLOR_PATTERN_PLAY_HEAD,"",ImVec4(1.0f,1.0f,1.0f,0.25f)),
   D(GUI_COLOR_PATTERN_CURSOR,"",ImVec4(0.1f,0.3f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_CURSOR_HOVER,"",ImVec4(0.2f,0.4f,0.6f,1.0f)),
