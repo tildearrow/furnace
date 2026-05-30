@@ -2840,6 +2840,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           // description
           ImGui::TableNextColumn();
           ImGui::Text("%s",i.displayName);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("index: %.2X"),i.macro->macroType);
+          }
           ImGui::SameLine();
           if (ImGui::SmallButton((i.macro->open&1)?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
             i.macro->open^=1;
@@ -2917,6 +2920,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           ImGui::PushID(index);
 
           ImGui::TextUnformatted(i.displayName);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("index: %.2X"),i.macro->macroType);
+          }
           ImGui::SameLine();
           if (ImGui::SmallButton((i.macro->open&1)?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
             i.macro->open^=1;
@@ -2987,6 +2993,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
 
           if (ImGui::Selectable(buf,state.selectedMacro==(int)i)) {
             state.selectedMacro=i;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("index: %.2X"),macros[i].macro->macroType);
           }
         }
 

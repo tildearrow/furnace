@@ -4771,7 +4771,7 @@ void FurnaceGUI::drawSettings() {
                     DivPattern* p=e->curSubSong->pat[i].data[j];
                     for (int k=0; k<DIV_MAX_ROWS; k++) {
                       if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
-                        int newNote=(6+p->newData[k][DIV_PAT_NOTE]/12)*12;
+                        int newNote=((6+p->newData[k][DIV_PAT_NOTE])/12)*12;
                         p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,0,168);
                       }
                     }
