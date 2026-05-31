@@ -1220,7 +1220,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -1333,7 +1333,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1383,7 +1383,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (c.chan<=(psgChanOffs-isCSM)) {
         if (chan[c.chan].insChanged) {
@@ -1789,6 +1789,8 @@ void DivPlatformYM2610B::reset() {
   fm->reset();
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
+    // TODO: 17????
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<psgChanOffs; i++) {
@@ -1859,6 +1861,9 @@ void DivPlatformYM2610B::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformYM2610B::notifyPitchTable(int sample) {
+  logV("DivPlatformYM2610B::notifyPitchTable()");
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
   ay->notifyPitchTable(sample);
 }
 

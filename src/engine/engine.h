@@ -726,12 +726,15 @@ class DivEngine {
     void factoryReset();
 
     // calculate base frequency/period
+    // DEPRECATED. use DivPitchTable instead.
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
+    // TODO: get rid of this and use DivPitchTable...
     int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock);
 
     // calculate frequency/period
+    // DEPRECATED. use DivPitchTable instead.
     int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0, int fixedBlock=0);
 
     // calculate arpeggio

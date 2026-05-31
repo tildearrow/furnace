@@ -915,7 +915,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         panChanged=true;
         break;
       case 0x80: { // panning (linear)
-        // convert to splir
+        // convert to split
         unsigned short pan=convertPanLinearToSplit(effectVal,8,255);
         chan[i].panL=pan>>8;
         chan[i].panR=pan&0xff;

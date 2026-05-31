@@ -2018,6 +2018,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
           if (!instruments.empty()) {
             if (e->song.sampleLen!=sampleCountBefore) {
               e->renderSamplesP();
+              e->notifyPitchTable();
             }
             if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
               if (prevIns==-3) {
@@ -4451,6 +4452,7 @@ bool FurnaceGUI::loop() {
             if (!instruments.empty()) {
               if (e->song.sampleLen!=sampleCountBefore) {
                 e->renderSamplesP();
+                e->notifyPitchTable();
               }
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -6098,6 +6100,7 @@ bool FurnaceGUI::loop() {
               }
               if (e->song.sampleLen!=sampleCountBefore) {
                 e->renderSamplesP();
+                e->notifyPitchTable();
               }
               if (warn) {
                 if (instruments.empty()) {
@@ -6138,6 +6141,7 @@ bool FurnaceGUI::loop() {
               if (!instruments.empty()) {
                 if (e->song.sampleLen!=sampleCountBefore) {
                   e->renderSamplesP();
+                  e->notifyPitchTable();
                 }
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);

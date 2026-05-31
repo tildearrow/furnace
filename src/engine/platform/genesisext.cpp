@@ -170,7 +170,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2)<<7;
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
           opChan[ch].baseFreq+=c.value;
@@ -685,7 +686,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
   if (extMode) {
     if (chan[csmChan].freqChanged) {
-      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      chan[csmChan].freq=chan[csmChan].calcFreq();
       if (chan[csmChan].freq<1) chan[csmChan].freq=1;
       if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
       int wf=0x400-chan[csmChan].freq;

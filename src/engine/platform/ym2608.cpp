@@ -281,7 +281,10 @@ double DivPlatformYM2608::NOTE_OPNB(int ch, int note) {
   if (ch>(8+isCSM)) { // ADPCM-B
     return NOTE_ADPCMB(note);
   } else if (ch>(5+isCSM)) { // PSG
-    return NOTE_PERIODIC(note);
+    // an artifact of time...
+    // we handle PSG in the AY instance.
+    return 0;
+    //return NOTE_PERIODIC(note);
   }
   // FM
   return NOTE_FNUM_BLOCK(note,11,chan[ch].state.block);
@@ -1208,7 +1211,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -1321,7 +1324,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1371,7 +1374,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (c.chan<=psgChanOffs) {
         if (chan[c.chan].insChanged) {
@@ -1789,6 +1792,7 @@ void DivPlatformYM2608::reset() {
   memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<17; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<6; i++) {
@@ -1922,6 +1926,8 @@ void DivPlatformYM2608::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformYM2608::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
   ay->notifyPitchTable(sample);
 }
 
@@ -2062,6 +2068,8 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   ay->setFlags(ayFlags);
 
   logV("CLOCK: %d RATE: %d",chipClock,rate);
+
+  notifyPitchTable();
 }
 
 int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
