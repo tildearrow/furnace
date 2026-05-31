@@ -326,6 +326,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         oscBuf[i]->setRate(rate);
       }
 
+      ay->setExtClockDiv(chipClock,32);
+      ay->setFlags(ayFlags);
+
       notifyPitchTable();
     }
 
