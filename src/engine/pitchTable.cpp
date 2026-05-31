@@ -25,7 +25,7 @@
 DivPitchTable* DivPitchTableManager::get(int sample) {
   if (e==NULL) return NULL;
   if (!samplePitchTable) return &defaultPitchTable;
-  if (sample<0 || sample>=(int)e->song.sample.size()) return &defaultPitchTable;
+  if (sample<0 || sample>=(int)samplePitchTableLen) return &defaultPitchTable;
   return &samplePitchTable[sample];
 }
 
