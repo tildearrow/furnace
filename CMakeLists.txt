@@ -557,6 +557,9 @@ src/fileutils.cpp
 src/timeutils.cpp
 src/utfutils.cpp
 
+src/fileutils/abstract.cpp
+src/fileutils/cfile.cpp
+
 extern/itcompress/compression.c
 
 extern/SAASound/src/SAAAmp.cpp
