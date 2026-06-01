@@ -77,6 +77,15 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
       }
       break;
     }
+    case SettingInvCheckbox: {
+      bool valueB=!getValue<int>();
+      if (ImGui::Checkbox(_(label),&valueB)) {
+        setValue<int>(!valueB);
+        callback();
+        ret=true;
+      }
+      break;
+    }
     case SettingRadio: {
       assert(extData && "SettingRadio requires extData!");
       SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
@@ -172,7 +181,7 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
     case SettingInputInt: {
       assert(extData && "SettingInputInt requires extData!");
       SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
-      if (ImGui::InputInt(_(label),(int*)value)) {
+      if (ImGui::InputInt(_(label),(int*)value,data->step,data->stepFast)) {
         if (getValue<int>()<data->min) setValue(data->min);
         if (getValue<int>()>data->max) setValue(data->max);
         callback();
@@ -472,9 +481,8 @@ void SettingsCategory::deleteRecursive() {
 #define _C(...) allSettings.push_back(SettingsCategory(__VA_ARGS__))
 #define _CC SettingsCategory
 
-#define SETTING_CHECKBOX(_label,_value) \
-  SettingEntry::Checkbox(_label,#_value,&settings._value)
-
+#define SETTING_CHECKBOX(_label,_value) SettingEntry::Checkbox(_label,#_value,&settings._value)
+#define SETTING_INV_CHECKBOX(_label,_value) SettingEntry::Checkbox(_label,#_value,&settings._value,true)
 #define SETTING_COLOR(_which) \
   SettingEntry::Color(guiColors[_which].friendlyName,NULL,&uiColors[_which])
 #define SETTING_KEYBIND(_which) \
@@ -487,7 +495,7 @@ void FurnaceGUI::initSettings() {
       SettingEntry::ComboString(
         _N("Language"),
         "locale",&settings.locale,{
-          {"<System>","",NULL},
+          {"<System>",""},
           {"English", "en", "restart Furnace for this setting to take effect."},
           {"Bahasa Indonesia (50%?)", "id", "???"},
           //{"Deutsch (0%)", "de", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
@@ -514,29 +522,29 @@ void FurnaceGUI::initSettings() {
         _N("Render backend"),
         "renderBackend",&settings.renderBackend,{
 #ifdef HAVE_RENDER_SDL
-          {"SDL Renderer","SDL",NULL},
+          {"SDL Renderer","SDL"},
 #endif
 #ifdef HAVE_RENDER_DX11
-          {"DirectX 11","DirectX 11",NULL},
+          {"DirectX 11","DirectX 11"},
 #endif
 #ifdef HAVE_RENDER_DX9
-          {"DirectX 9","DirectX 9",NULL},
+          {"DirectX 9","DirectX 9"},
 #endif
 #ifdef HAVE_RENDER_METAL
-          {"Metal","Metal",NULL},
+          {"Metal","Metal"},
 #endif
 #ifdef HAVE_RENDER_GL
 #ifdef USE_GLES
-          {"OpenGL ES 2.0","OpenGL ES 2.0",NULL},
+          {"OpenGL ES 2.0","OpenGL ES 2.0"},
 #else
-          {"OpenGL 3.0","OpenGL 3.0",NULL},
-          {"OpenGL 2.0","OpenGL 2.0",NULL},
+          {"OpenGL 3.0","OpenGL 3.0"},
+          {"OpenGL 2.0","OpenGL 2.0"},
 #endif
 #endif
 #ifdef HAVE_RENDER_GL1
-          {"OpenGL 1.1","OpenGL 1.1",NULL},
+          {"OpenGL 1.1","OpenGL 1.1"},
 #endif
-          {"Software","Software",NULL},
+          {"Software","Software"},
         }
       ).Tooltip(_("you may need to restart Furnace for this setting to take effect.")),
       SettingEntry(_N("Advanced render backend settings"),NULL,[this]{
@@ -637,17 +645,20 @@ void FurnaceGUI::initSettings() {
       SettingEntry::SliderInt(
         _N("Frame rate limit"),
         "frameRateLimit",&settings.frameRateLimit,
-        {0,250,"%d"}
+        {0,250}
       ).Tooltip(_("only applies when VSync is disabled.")),
       SETTING_CHECKBOX(
         _N("Display render time"),
         displayRenderTime
       ),
-      // TODO: should be hidden in Metal backend!
       SETTING_CHECKBOX(
         _N("Late render clear"),
         renderClearPos
-      ).Tooltip(_("calls rend->clear() after rend->present(). might reduce UI latency by one frame in some drivers.")),
+      ).Tooltip(_("calls rend->clear() after rend->present(). might reduce UI latency by one frame in some drivers."))
+#ifdef HAVE_RENDER_METAL
+       .Condition([this]{return settings.renderBackend!="Metal";})
+#endif
+      ,
       SETTING_CHECKBOX(
         _N("Power-saving mode"),
         powerSave
@@ -670,12 +681,12 @@ void FurnaceGUI::initSettings() {
       SettingEntry::SliderFloat(
         _N("Strength"),
         "vibrationStrength",&settings.vibrationStrength,
-        {0.0f,1.0f,"%f"}
+        {0.0f,1.0f}
       ),
       SettingEntry::SliderInt(
-        _N("Strength"),
-        "vibrationStrength",&settings.vibrationLength,
-        {10,500,"%d"}
+        _N("Length"),
+        "vibrationLength",&settings.vibrationLength,
+        {10,500,"%d ms"}
       )
     }),
 #endif
@@ -686,11 +697,10 @@ void FurnaceGUI::initSettings() {
         sysFileDialog
       ),
 #endif
-      // TODO: add a step setting. this specific setting had it set to 1,5.
       SettingEntry::InputInt(
         _N("Number of recent files"),
         "maxRecentFile",&settings.maxRecentFile,
-        {0,30,"%d"}
+        {0,30,1,5}
       ),
       SETTING_CHECKBOX(
         _N("Compress when saving"),
@@ -706,9 +716,9 @@ void FurnaceGUI::initSettings() {
       ).Tooltip(_("do not report any issues arising from the use of this option!")),
       SettingEntry::Radio(
         _N("Play after opening song:"),"playOnLoad",&settings.playOnLoad,{
-        {_N("No##pol0"),0,NULL},
-        {_N("Only if already playing##pol1"),1,NULL},
-        {_N("Yes##pol0"),2,NULL},
+        {_N("No##pol0"),0},
+        {_N("Only if already playing##pol1"),1},
+        {_N("Yes##pol0"),2},
       }),
       SETTING_CHECKBOX(
         _N("Store instrument name in .fui"),
@@ -723,14 +733,14 @@ void FurnaceGUI::initSettings() {
         _N("Backend"),
         "audioEngine",&settings.audioEngine,{
 #ifdef HAVE_JACK
-        {"JACK",DIV_AUDIO_JACK,NULL},
+        {"JACK",DIV_AUDIO_JACK},
 #endif
-        {"SDL",DIV_AUDIO_SDL,NULL},
+        {"SDL",DIV_AUDIO_SDL},
 #ifdef HAVE_PA
-        {"PortAudio",DIV_AUDIO_PORTAUDIO,NULL},
+        {"PortAudio",DIV_AUDIO_PORTAUDIO},
 #endif
 #ifdef HAVE_ASIO
-        {"ASIO",DIV_AUDIO_ASIO,NULL},
+        {"ASIO",DIV_AUDIO_ASIO},
 #endif
       }),
 #endif
@@ -752,11 +762,11 @@ void FurnaceGUI::initSettings() {
     SettingEntry::ComboInt(
       _N("PC Speacker Strategy"),
       "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
-        {_N("evdev SND_TONE"),0,NULL},
-        {_N("KIOCSOUND on /dev/tty1"),1,NULL},
-        {_N("/dev/port"),2,NULL},
-        {_N("KIOCSOUND on standard output"),3,NULL},
-        {_N("outb()"),4,NULL},
+        {_N("evdev SND_TONE"),0},
+        {_N("KIOCSOUND on /dev/tty1"),1},
+        {_N("/dev/port"),2},
+        {_N("KIOCSOUND on standard output"),3},
+        {_N("outb()"),4},
       })
   },{
     _CC(_N("Sample ROMs"),{
@@ -771,17 +781,17 @@ void FurnaceGUI::initSettings() {
     SettingEntry::Radio(
       _N("Channel feedback style:"),
       "channelFeedbackStyle",&settings.channelFeedbackStyle,{
-        {_N("Off##CHF0"),0,NULL},
-        {_N("Note##CHF1"),1,NULL},
-        {_N("Volume##CHF2"),2,NULL},
-        {_N("Active##CHF3"),3,NULL},
-        {_N("Volume (Real)##CHF4"),4,NULL},
+        {_N("Off##CHF0"),0},
+        {_N("Note##CHF1"),1},
+        {_N("Volume##CHF2"),2},
+        {_N("Active##CHF3"),3},
+        {_N("Volume (Real)##CHF4"),4},
       }
     ),
     SettingEntry::SliderFloat(
       _N("Gamma##CHF"),
       "channelFeedbackGamma",&settings.channelFeedbackGamma,
-      {0.0f,2.0f,NULL}
+      {0.0f,2.0f}
     ).Condition([this]{return settings.channelFeedbackStyle==4;})
   },{
     _CC(_N("Pattern view labels"),{
@@ -798,58 +808,59 @@ void FurnaceGUI::initSettings() {
     })
   });
   _C(_N("Color"),{
-    SETTING_CHECKBOX(_N("Guru mode"),basicColors),
+    SETTING_INV_CHECKBOX(_N("Guru mode"),basicColors),
     SettingEntry::SliderInt(
       _N("Frame shading"),
       "guiColorsShading",&settings.guiColorsShading,
-      {0,100,NULL}
+      {0,100,"%d%%"}
     ).Callback([this]{applyUISettings(false);}),
     SettingEntry::Radio(
       _N("Color scheme type:"),
       "guiColorsBase",&settings.guiColorsBase,
       {
-        {_N("Dark##gcb0"),0,NULL},
-        {_N("Light##gcb1"),1,NULL}
+        {_N("Dark##gcb0"),0},
+        {_N("Light##gcb1"),1}
       }
     ).Callback([this]{applyUISettings(false);})
     .Condition([this]{return settings.basicColors;}),
   },{
     _CC(_N("Interface"),{
-      SETTING_COLOR(GUI_COLOR_ACCENT_PRIMARY).Condition([this]{return settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_ACCENT_SECONDARY).Condition([this]{return settings.basicColors;}),
-
-      SETTING_COLOR(GUI_COLOR_BUTTON).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_BUTTON_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_BUTTON_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB_SELECTED_OVERLINE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB_UNFOCUSED).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB_UNFOCUSED_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_IMGUI_HEADER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_IMGUI_HEADER_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_IMGUI_HEADER_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_RESIZE_GRIP).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_RESIZE_GRIP_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_RESIZE_GRIP_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_WIDGET_BACKGROUND).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_WIDGET_BACKGROUND_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_SLIDER_GRAB).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_SLIDER_GRAB_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TITLE_BACKGROUND_ACTIVE).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_CHECK_MARK).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TEXT_LINK).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TEXT_SELECTION).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TREE_LINES).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_PLOT_LINES).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_PLOT_LINES_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_PLOT_HISTOGRAM).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_PLOT_HISTOGRAM_HOVER).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TABLE_ROW_EVEN).Condition([this]{return !settings.basicColors;}),
-      SETTING_COLOR(GUI_COLOR_TABLE_ROW_ODD).Condition([this]{return !settings.basicColors;}),
+#define BASIC_MODE .Condition([this]{return settings.basicColors;})
+      SETTING_COLOR(GUI_COLOR_ACCENT_PRIMARY) BASIC_MODE,
+      SETTING_COLOR(GUI_COLOR_ACCENT_SECONDARY) BASIC_MODE,
+#define GURU_MODE .Condition([this]{return !settings.basicColors;})
+      SETTING_COLOR(GUI_COLOR_BUTTON) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_BUTTON_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_BUTTON_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB_SELECTED_OVERLINE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB_UNFOCUSED) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB_UNFOCUSED_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TAB_DIMMED_SELECTED_OVERLINE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_IMGUI_HEADER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_IMGUI_HEADER_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_IMGUI_HEADER_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_RESIZE_GRIP) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_RESIZE_GRIP_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_RESIZE_GRIP_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_WIDGET_BACKGROUND) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_WIDGET_BACKGROUND_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_WIDGET_BACKGROUND_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_SLIDER_GRAB) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_SLIDER_GRAB_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TITLE_BACKGROUND_ACTIVE) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_CHECK_MARK) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TEXT_LINK) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TEXT_SELECTION) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TREE_LINES) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_PLOT_LINES) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_PLOT_LINES_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_PLOT_HISTOGRAM) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_PLOT_HISTOGRAM_HOVER) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TABLE_ROW_EVEN) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_TABLE_ROW_ODD) GURU_MODE,
     }),
     _CC(_N("Interface (other)"),{
       SETTING_COLOR(GUI_COLOR_BACKGROUND),

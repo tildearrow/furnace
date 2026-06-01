@@ -44,6 +44,7 @@ typedef std::vector<int> keybindList;
 enum SettingType {
   SettingNone=0,
   SettingCheckbox,    // basic checkbox. no extData required
+  SettingInvCheckbox, // save as above but inverted
   SettingRadio,       // radio buttons. extData - array of SettingEntryMultiChoiceExtData<int>
   SettingComboInt,    // combo, where the setting value is an integer. extData - array of SettingEntryMultiChoiceExtData<int>
   SettingComboStr,    // combo, where the setting value is a string. extData - array of SettingEntryMultiChoiceExtData<String>
@@ -65,21 +66,44 @@ struct SettingEntryMultiChoiceExtData {
   const char* choice;
   // the value of the choice
   T value;
-  // tooltip for the choice. set to NULL if unused
+  // tooltip for the choice
   const char* tooltip;
+  SettingEntryMultiChoiceExtData():
+    choice(NULL),
+    value(T()),
+    tooltip(NULL) {}
+  SettingEntryMultiChoiceExtData(const char* c, T v, const char* t=NULL):
+    choice(c),
+    value(v),
+    tooltip(t) {}
 };
 
 // numeric input definition
 // used by SettingSliderFloat, SettingSliderInt, SettingInputInt
 template <typename T>
 struct SettingEntryNumericInputExtData {
-  // minimum value of the input
-  T min;
-  // maximum value of the input
-  T max;
-  // optional, display format.
-  // set to NULL if not used
+  // minimum and maximum value of the input
+  T min, max;
+  // optional, input step sizes
+  T step, stepFast;
+  // optional, display format
   const char* fmt;
+  SettingEntryNumericInputExtData():
+    min(0), max(0),
+    step(1), stepFast(16),
+    fmt(NULL) {}
+  SettingEntryNumericInputExtData(T _min, T _max):
+    min(_min), max(_max),
+    step(1), stepFast(16),
+    fmt(NULL) {}
+  SettingEntryNumericInputExtData(T _min, T _max, const char* _fmt):
+    min(_min), max(_max),
+    step(1), stepFast(16),
+    fmt(_fmt) {}
+  SettingEntryNumericInputExtData(T _min, T _max, T s, T sf, const char* _fmt=NULL):
+    min(_min), max(_max),
+    step(s), stepFast(sf),
+    fmt(_fmt) {}
 };
 
 // text input definition
@@ -90,6 +114,15 @@ struct SettingEntryTextInputExtData {
   const char* hint;
   // which dialog to open. set to -1 if not a file dialog input
   int dialogNum;
+  SettingEntryTextInputExtData():
+    hint(NULL),
+    dialogNum(-1) {}
+  SettingEntryTextInputExtData(const char* h, int d=-1):
+    hint(h),
+    dialogNum(d) {}
+  SettingEntryTextInputExtData(int d):
+    hint(NULL),
+    dialogNum(-1) {}
 };
 
 // SettingEntry class
@@ -125,8 +158,8 @@ class SettingEntry {
     SettingEntry(const char* l, const char* n, boolReturnFunction f, boolReturnFunction b=trueLambda);
 
     // setting definition functions
-    static SettingEntry Checkbox(const char* label, const char* confName, int* value) {
-      return SettingEntry(SettingCheckbox,label,confName,value);
+    static SettingEntry Checkbox(const char* label, const char* confName, int* value, bool inverted=false) {
+      return SettingEntry(inverted?SettingInvCheckbox:SettingCheckbox,label,confName,value);
     }
     static SettingEntry Radio(const char* label, const char* confName, int* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {
       SettingEntryMultiChoiceExtData<int>* data=new SettingEntryMultiChoiceExtData<int>[entries.size()];
@@ -168,15 +201,11 @@ class SettingEntry {
       return SettingEntry(SettingInputInt,label,confName,value,dataPtr,1);
     }
     static SettingEntry InputText(const char* label, const char* confName, String* value, const char* hint=NULL) {
-      SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
-      dataPtr->hint=hint;
-      dataPtr->dialogNum=-1;
+      SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData(hint);
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
     static SettingEntry Path(const char* label, const char* confName, String* value, int dialog, const char* hint=NULL) {
-      SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData;
-      dataPtr->hint=hint;
-      dataPtr->dialogNum=dialog;
+      SettingEntryTextInputExtData* dataPtr=new SettingEntryTextInputExtData(hint,dialog);
       return SettingEntry(SettingInputStr,label,confName,value,dataPtr,1);
     }
     static SettingEntry Color(const char* label, const char* confName, ImVec4* value) {
