@@ -220,7 +220,7 @@ class SettingsCategory {
     SettingsCategory();
     SettingsCategory(const char* n, std::initializer_list<SettingEntry> s);
     SettingsCategory(const char* n, std::initializer_list<SettingEntry> s, std::initializer_list<SettingsCategory> c);
-    SettingsCategory(const SettingsCategory& s);
+    //SettingsCategory(const SettingsCategory& s);
 
     bool drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui);
     bool categoryPassFilterRecursive(ImGuiTextFilter* filter);

@@ -348,12 +348,13 @@ SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingE
   scrollPos=0.0f;
 }
 
-SettingsCategory::SettingsCategory(const SettingsCategory& s) {
+// commented out (deemed unnecessary and fails Android build)
+/*SettingsCategory::SettingsCategory(const SettingsCategory& s) {
   name=s.name;
   settings=s.settings;
   children=s.children;
   scrollPos=s.scrollPos;
-}
+}*/
 
 bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui) {
   // get Y position for scroll
@@ -509,6 +510,161 @@ void FurnaceGUI::initSettings() {
         }
       ),
 #endif
+      SettingEntry::ComboString(
+        _N("Render backend"),
+        "renderBackend",&settings.renderBackend,{
+#ifdef HAVE_RENDER_SDL
+          {"SDL Renderer","SDL",NULL},
+#endif
+#ifdef HAVE_RENDER_DX11
+          {"DirectX 11","DirectX 11",NULL},
+#endif
+#ifdef HAVE_RENDER_DX9
+          {"DirectX 9","DirectX 9",NULL},
+#endif
+#ifdef HAVE_RENDER_METAL
+          {"Metal","Metal",NULL},
+#endif
+#ifdef HAVE_RENDER_GL
+#ifdef USE_GLES
+          {"OpenGL ES 2.0","OpenGL ES 2.0",NULL},
+#else
+          {"OpenGL 3.0","OpenGL 3.0",NULL},
+          {"OpenGL 2.0","OpenGL 2.0",NULL},
+#endif
+#endif
+#ifdef HAVE_RENDER_GL1
+          {"OpenGL 1.1","OpenGL 1.1",NULL},
+#endif
+          {"Software","Software",NULL},
+        }
+      ).Tooltip(_("you may need to restart Furnace for this setting to take effect.")),
+      SettingEntry(_N("Advanced render backend settings"),NULL,[this]{
+        bool ret=false;
+        if (ImGui::TreeNode(_("Advanced render backend settings"))) {
+          String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
+          if (curRenderBackend=="SDL") {
+            if (ImGui::BeginCombo(_("Render driver"),settings.renderDriver.empty()?_("Automatic"):settings.renderDriver.c_str())) {
+              if (ImGui::Selectable(_("Automatic"),settings.renderDriver.empty())) {
+                settings.renderDriver="";
+                ret=true;
+              }
+              for (String& i: availRenderDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                  settings.renderDriver=i;
+                  ret=true;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
+            }
+          } else if (curRenderBackend.find("OpenGL")==0) {
+            ImGui::TextWrapped(_("beware: changing these settings may render Furnace unusable! do so at your own risk.\nstart Furnace with -safemode if you mess something up."));
+            if (ImGui::InputInt(_("Red bits"),&settings.glRedSize)) {
+              if (settings.glRedSize<0) settings.glRedSize=0;
+              if (settings.glRedSize>32) settings.glRedSize=32;
+              ret=true;
+            }
+            if (ImGui::InputInt(_("Green bits"),&settings.glGreenSize)) {
+              if (settings.glGreenSize<0) settings.glGreenSize=0;
+              if (settings.glGreenSize>32) settings.glGreenSize=32;
+              ret=true;
+            }
+            if (ImGui::InputInt(_("Blue bits"),&settings.glBlueSize)) {
+              if (settings.glBlueSize<0) settings.glBlueSize=0;
+              if (settings.glBlueSize>32) settings.glBlueSize=32;
+              ret=true;
+            }
+            if (ImGui::InputInt(_("Alpha bits"),&settings.glAlphaSize)) {
+              if (settings.glAlphaSize<0) settings.glAlphaSize=0;
+              if (settings.glAlphaSize>32) settings.glAlphaSize=32;
+              ret=true;
+            }
+            if (ImGui::InputInt(_("Color depth"),&settings.glDepthSize)) {
+              if (settings.glDepthSize<0) settings.glDepthSize=0;
+              if (settings.glDepthSize>128) settings.glDepthSize=128;
+              ret=true;
+            }
+            
+            bool glSetBSB=settings.glSetBS;
+            if (ImGui::Checkbox(_("Set stencil and buffer sizes"),&glSetBSB)) {
+              settings.glSetBS=glSetBSB;
+              ret=true;
+            }
+
+            if (settings.glSetBS) {
+              if (ImGui::InputInt(_("Stencil buffer size"),&settings.glStencilSize)) {
+                if (settings.glStencilSize<0) settings.glStencilSize=0;
+                if (settings.glStencilSize>32) settings.glStencilSize=32;
+                ret=true;
+              }
+              if (ImGui::InputInt(_("Buffer size"),&settings.glBufferSize)) {
+                if (settings.glBufferSize<0) settings.glBufferSize=0;
+                if (settings.glBufferSize>128) settings.glBufferSize=128;
+                ret=true;
+              }
+            }
+
+            bool glDoubleBufferB=settings.glDoubleBuffer;
+            if (ImGui::Checkbox(_("Double buffer"),&glDoubleBufferB)) {
+              settings.glDoubleBuffer=glDoubleBufferB;
+              ret=true;
+            }
+
+            ImGui::TextWrapped(_("the following values are common (in red, green, blue, alpha order):\n- 24 bits: 8, 8, 8, 0\n- 16 bits: 5, 6, 5, 0\n- 32 bits (with alpha): 8, 8, 8, 8\n- 30 bits (deep): 10, 10, 10, 0"));
+          } else {
+            ImGui::Text(_("nothing to configure"));
+          }
+          ImGui::TreePop();
+        }
+        return ret;
+      }),
+      SettingEntry(_N("Render backend information"),NULL,[this]{
+        ImGui::TextWrapped(_("current backend: %s\n%s\n%s\n%s"),rend->getBackendName(),rend->getVendorName(),rend->getDeviceName(),rend->getAPIVersion());
+        return false;
+      }),
+      SETTING_CHECKBOX(
+        _N("VSync"),
+        vsync
+      ).Callback([this]{
+        if (rend!=NULL) {
+          rend->setSwapInterval(settings.vsync);
+        }
+      }),
+      // TODO: dynamic text?
+      SettingEntry::SliderInt(
+        _N("Frame rate limit"),
+        "frameRateLimit",&settings.frameRateLimit,
+        {0,250,"%d"}
+      ).Tooltip(_("only applies when VSync is disabled.")),
+      SETTING_CHECKBOX(
+        _N("Display render time"),
+        displayRenderTime
+      ),
+      // TODO: should be hidden in Metal backend!
+      SETTING_CHECKBOX(
+        _N("Late render clear"),
+        renderClearPos
+      ).Tooltip(_("calls rend->clear() after rend->present(). might reduce UI latency by one frame in some drivers.")),
+      SETTING_CHECKBOX(
+        _N("Power-saving mode"),
+        powerSave
+      ).Tooltip(_("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!")),
+#ifndef IS_MOBILE
+      SETTING_CHECKBOX(
+        _N("Disable threaded input (restart after changing!)"),
+        noThreadedInput
+      ).Tooltip(_("threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.\nhowever, crashes have been reported when threaded input is on. enable this option if that is the case.")),
+#endif
+      SETTING_CHECKBOX(
+        _N("Enable event delay"),
+        eventDelay
+      ).Tooltip(_("may cause issues with high-polling-rate mice when previewing notes.")).Callback([this]{
+        applyUISettings(false);
+      }),
+
       SettingEntry::Radio(
         _N("Play after opening song:"),"playOnLoad",&settings.playOnLoad,{
         {_N("No##pol0"),0,NULL},
@@ -876,6 +1032,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_CHANNEL_MUTED),
     }),
     _CC(_N("Pattern"), {
+      SETTING_COLOR(GUI_COLOR_PATTERN_BG),
       SETTING_COLOR(GUI_COLOR_PATTERN_PLAY_HEAD),
       SETTING_COLOR(GUI_COLOR_EDITING),
       SETTING_COLOR(GUI_COLOR_EDITING_CLONE),
