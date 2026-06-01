@@ -664,7 +664,46 @@ void FurnaceGUI::initSettings() {
       ).Tooltip(_("may cause issues with high-polling-rate mice when previewing notes.")).Callback([this]{
         applyUISettings(false);
       }),
-
+    }),
+#ifdef IS_MOBILE
+    _CC(_N("Vibration"),{
+      SettingEntry::SliderFloat(
+        _N("Strength"),
+        "vibrationStrength",&settings.vibrationStrength,
+        {0.0f,1.0f,"%f"}
+      ),
+      SettingEntry::SliderInt(
+        _N("Strength"),
+        "vibrationStrength",&settings.vibrationLength,
+        {10,500,"%d"}
+      )
+    }),
+#endif
+    _CC(_N("File"),{
+#ifndef FLATPAK_WORKAROUNDS
+      SETTING_CHECKBOX(
+        _N("Use system file picker"),
+        sysFileDialog
+      ),
+#endif
+      // TODO: add a step setting. this specific setting had it set to 1,5.
+      SettingEntry::InputInt(
+        _N("Number of recent files"),
+        "maxRecentFile",&settings.maxRecentFile,
+        {0,30,"%d"}
+      ),
+      SETTING_CHECKBOX(
+        _N("Compress when saving"),
+        compress
+      ).Tooltip(_("use zlib to compress saved songs.")),
+      SETTING_CHECKBOX(
+        _N("Save unused patterns"),
+        saveUnusedPatterns
+      ),
+      SETTING_CHECKBOX(
+        _N("Don't apply compatibility flags when loading .dmf"),
+        noDMFCompat
+      ).Tooltip(_("do not report any issues arising from the use of this option!")),
       SettingEntry::Radio(
         _N("Play after opening song:"),"playOnLoad",&settings.playOnLoad,{
         {_N("No##pol0"),0,NULL},
@@ -675,7 +714,7 @@ void FurnaceGUI::initSettings() {
         _N("Store instrument name in .fui"),
         writeInsNames
       ),
-    })
+    }),
   });
   _C(_N("Audio"),{},{
     _CC(_N("Output"),{
