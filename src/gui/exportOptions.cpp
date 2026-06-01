@@ -529,6 +529,24 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportJSON(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text(
+    _("this option exports the song to a JSON file.\n")
+  );
+  ImGui::Checkbox(_("Formatted output"), &JSONPrettyOutput);
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_JSON);
+    ImGui::CloseCurrentPopup();
+  }
+}
+
 void FurnaceGUI::commandExportOptions() {
   ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
   ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
@@ -610,6 +628,10 @@ void FurnaceGUI::drawExport() {
         drawExportText(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("JSON"))) {
+        drawExportJSON(true);
+        ImGui::EndTabItem();
+      }
       if (ImGui::BeginTabItem(_("Command Stream"))) {
         drawExportCommand(true);
         ImGui::EndTabItem();
@@ -632,6 +654,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);
+      break;
+    case GUI_EXPORT_JSON:
+      drawExportJSON(true);
       break;
     case GUI_EXPORT_CMD_STREAM:
       drawExportCommand(true);

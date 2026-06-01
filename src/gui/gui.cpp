@@ -2217,6 +2217,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+    case GUI_FILE_EXPORT_JSON:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export JSON"),
+        {_("JSON file"), "*.json"},
+        workingDirROMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -5039,6 +5049,10 @@ bool FurnaceGUI::loop() {
             drawExportText();
             ImGui::EndMenu();
           }
+          if (ImGui::BeginMenu(_("export JSON..."))) {
+            drawExportJSON();
+            ImGui::EndMenu();
+          }
           if (ImGui::BeginMenu(_("export command stream..."))) {
             drawExportCommand();
             ImGui::EndMenu();
@@ -5660,6 +5674,7 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
+        case GUI_FILE_EXPORT_JSON:
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_COMPILED_INS:
         case GUI_FILE_EXPORT_COMPILED_INS_ONE:
@@ -5769,6 +5784,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_JSON) {
+            checkExtension(".json");
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
@@ -6349,6 +6367,27 @@ bool FurnaceGUI::loop() {
                 }
               } else {
                 showError(fmt::sprintf(_("could not write text! (%s)"),e->getLastError()));
+              }
+              break;
+            }
+            case GUI_FILE_EXPORT_JSON: {
+              SafeWriter* w=e->saveJSON(JSONPrettyOutput);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf(_("could not write JSON! (%s)"),e->getLastError()));
               }
               break;
             }
@@ -9467,6 +9506,7 @@ FurnaceGUI::FurnaceGUI():
   audioExportFilterExt("*"),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
+  JSONPrettyOutput(false),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

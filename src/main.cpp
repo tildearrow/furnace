@@ -316,6 +316,7 @@ TAParamResult pVersion(String) {
 #endif
   printf("- Portable File Dialogs by Sam Hocevar (WTFPL)\n");
   printf("- Native File Dialog (modified version) by Frogtoss Games (zlib license)\n");
+  printf("- JSON for Modern C++ by Niels Lohmann (MIT)\n");
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
   printf("- Nuked-OPM by nukeykt (LGPLv2.1)\n");
   printf("- Nuked-OPN2 by nukeykt (LGPLv2.1)\n");

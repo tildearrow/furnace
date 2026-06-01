@@ -487,6 +487,11 @@ else()
   endif()
 endif()
 
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(JSON_Install OFF CACHE INTERNAL "")
+add_subdirectory(extern/json)
+list(APPEND DEPENDENCIES_LIBRARIES nlohmann_json::nlohmann_json)
+
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
 src/audio/midi.cpp
@@ -764,6 +769,7 @@ src/engine/fileOps/fc.cpp
 src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/it.cpp
+src/engine/fileOps/json.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
