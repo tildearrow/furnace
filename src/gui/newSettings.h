@@ -83,25 +83,25 @@ struct SettingEntryMultiChoiceExtData {
 template <typename T>
 struct SettingEntryNumericInputExtData {
   // minimum and maximum value of the input
-  T min, max;
+  T minV, maxV;
   // optional, input step sizes
   T step, stepFast;
   // optional, display format
   const char* fmt;
   SettingEntryNumericInputExtData():
-    min(0), max(0),
+    minV(0), maxV(0),
     step(1), stepFast(16),
     fmt(NULL) {}
   SettingEntryNumericInputExtData(T _min, T _max):
-    min(_min), max(_max),
+    minV(_min), maxV(_max),
     step(1), stepFast(16),
     fmt(NULL) {}
   SettingEntryNumericInputExtData(T _min, T _max, const char* _fmt):
-    min(_min), max(_max),
+    minV(_min), maxV(_max),
     step(1), stepFast(16),
     fmt(_fmt) {}
   SettingEntryNumericInputExtData(T _min, T _max, T s, T sf, const char* _fmt=NULL):
-    min(_min), max(_max),
+    minV(_min), maxV(_max),
     step(s), stepFast(sf),
     fmt(_fmt) {}
 };

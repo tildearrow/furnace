@@ -159,9 +159,9 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
     case SettingSliderFloat: {
       assert(extData && "SettingSliderFloat requires extData!");
       SettingEntryNumericInputExtData<float>* data=(SettingEntryNumericInputExtData<float>*)extData;
-      if (gui->CWSliderFloat(_(label),(float*)value,data->min,data->max,data->fmt)) {
-        if (getValue<float>()<data->min) setValue(data->min);
-        if (getValue<float>()>data->max) setValue(data->max);
+      if (gui->CWSliderFloat(_(label),(float*)value,data->minV,data->maxV,data->fmt)) {
+        if (getValue<float>()<data->minV) setValue(data->minV);
+        if (getValue<float>()>data->maxV) setValue(data->maxV);
         callback();
         ret=true;
       } rightClickable
@@ -170,9 +170,9 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
     case SettingSliderInt: {
       assert(extData && "SettingSliderInt requires extData!");
       SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
-      if (gui->CWSliderInt(_(label),(int*)value,data->min,data->max,data->fmt)) {
-        if (getValue<int>()<data->min) setValue(data->min);
-        if (getValue<int>()>data->max) setValue(data->max);
+      if (gui->CWSliderInt(_(label),(int*)value,data->minV,data->maxV,data->fmt)) {
+        if (getValue<int>()<data->minV) setValue(data->minV);
+        if (getValue<int>()>data->maxV) setValue(data->maxV);
         callback();
         ret=true;
       } rightClickable
@@ -182,8 +182,8 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
       assert(extData && "SettingInputInt requires extData!");
       SettingEntryNumericInputExtData<int>* data=(SettingEntryNumericInputExtData<int>*)extData;
       if (ImGui::InputInt(_(label),(int*)value,data->step,data->stepFast)) {
-        if (getValue<int>()<data->min) setValue(data->min);
-        if (getValue<int>()>data->max) setValue(data->max);
+        if (getValue<int>()<data->minV) setValue(data->minV);
+        if (getValue<int>()>data->maxV) setValue(data->maxV);
         callback();
         ret=true;
       }
