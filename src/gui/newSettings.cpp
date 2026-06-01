@@ -470,8 +470,9 @@ void SettingsCategory::deleteRecursive() {
 }
 
 #define _S SettingEntry
-#define _C(...) allSettings.push_back(SettingsCategory(__VA_ARGS__))
-#define _CC SettingsCategory
+#define CATEGORY_BEGIN(_name) allSettings.push_back(SettingsCategory(_name,
+#define CATEGORY_END ));
+#define SUBCATEGORY SettingsCategory
 
 #define SETTING_CHECKBOX(_label,_value) SettingEntry::Checkbox(_label,#_value,&settings._value)
 #define SETTING_INV_CHECKBOX(_label,_value) SettingEntry::Checkbox(_label,#_value,&settings._value,true)
@@ -481,8 +482,8 @@ void SettingsCategory::deleteRecursive() {
   SettingEntry::Keybind(guiActions[_which].friendlyName,NULL,&actionKeys[_which],_which)
 
 void FurnaceGUI::initSettings() {
-  _C(_N("General"),{},{
-    _CC(_N("Program"),{
+  CATEGORY_BEGIN(_N("General")) {},{
+    SUBCATEGORY(_N("Program"),{
 #ifdef HAVE_LOCALE
       SettingEntry::ComboString(
         _N("Language"),
@@ -669,7 +670,7 @@ void FurnaceGUI::initSettings() {
       }),
     }),
 #ifdef IS_MOBILE
-    _CC(_N("Vibration"),{
+    SUBCATEGORY(_N("Vibration"),{
       SettingEntry::SliderFloat(
         _N("Strength"),
         "vibrationStrength",&settings.vibrationStrength,
@@ -682,7 +683,7 @@ void FurnaceGUI::initSettings() {
       )
     }),
 #endif
-    _CC(_N("File"),{
+    SUBCATEGORY(_N("File"),{
 #ifndef FLATPAK_WORKAROUNDS
       SETTING_CHECKBOX(
         _N("Use system file picker"),
@@ -717,9 +718,10 @@ void FurnaceGUI::initSettings() {
         writeInsNames
       ),
     }),
-  });
-  _C(_N("Audio"),{},{
-    _CC(_N("Output"),{
+  }
+  CATEGORY_END
+  CATEGORY_BEGIN(_N("Audio")) {},{
+    SUBCATEGORY(_N("Output"),{
 #if defined(HAVE_JACK) || defined(HAVE_PA) || defined(HAVE_ASIO)
       SettingEntry::ComboInt(
         _N("Backend"),
@@ -737,7 +739,7 @@ void FurnaceGUI::initSettings() {
       }),
 #endif
     }),
-    _CC(_N("Volumes"),{
+    SUBCATEGORY(_N("Volumes"),{
       SettingEntry::SliderInt(
         _N("Metronome volume"),
         "metroVol",&settings.metroVol,
@@ -749,8 +751,9 @@ void FurnaceGUI::initSettings() {
         {0,100,"%d%%"}
       ).Callback([this]{e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);})
     })
-  });
-  _C(_N("Emulation"),{
+  }
+  CATEGORY_END
+  CATEGORY_BEGIN(_N("Emulation")) {
     SettingEntry::ComboInt(
       _N("PC Speacker Strategy"),
       "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
@@ -761,15 +764,16 @@ void FurnaceGUI::initSettings() {
         {_N("outb()"),4},
       })
   },{
-    _CC(_N("Sample ROMs"),{
+    SUBCATEGORY(_N("Sample ROMs"),{
       SettingEntry::Path(
         _N("OPL4 YRW801 path"),
         "yrw801Path",&settings.yrw801Path,
         GUI_FILE_YRW801_ROM_OPEN
       )
     })
-  });
-  _C(_N("Appearance"),{
+  }
+  CATEGORY_END
+  CATEGORY_BEGIN(_N("Appearance")) {
     SettingEntry::Radio(
       _N("Channel feedback style:"),
       "channelFeedbackStyle",&settings.channelFeedbackStyle,{
@@ -786,7 +790,7 @@ void FurnaceGUI::initSettings() {
       {0.0f,2.0f}
     ).Condition([this]{return settings.channelFeedbackStyle==4;})
   },{
-    _CC(_N("Pattern view labels"),{
+    SUBCATEGORY(_N("Pattern view labels"),{
       SettingEntry::InputText(
         _N("Note off (3-char)"),
         "noteOffLabel",&settings.noteOffLabel,
@@ -798,8 +802,9 @@ void FurnaceGUI::initSettings() {
         "==="
       ),
     })
-  });
-  _C(_N("Color"),{
+  }
+  CATEGORY_END
+  CATEGORY_BEGIN(_N("Color")) {
     SETTING_INV_CHECKBOX(_N("Guru mode"),basicColors),
     SettingEntry::SliderInt(
       _N("Frame shading"),
@@ -816,7 +821,7 @@ void FurnaceGUI::initSettings() {
     ).Callback([this]{applyUISettings(false);})
     .Condition([this]{return settings.basicColors;}),
   },{
-    _CC(_N("Interface"),{
+    SUBCATEGORY(_N("Interface"),{
 #define BASIC_MODE .Condition([this]{return settings.basicColors;})
       SETTING_COLOR(GUI_COLOR_ACCENT_PRIMARY) BASIC_MODE,
       SETTING_COLOR(GUI_COLOR_ACCENT_SECONDARY) BASIC_MODE,
@@ -854,7 +859,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_TABLE_ROW_EVEN) GURU_MODE,
       SETTING_COLOR(GUI_COLOR_TABLE_ROW_ODD) GURU_MODE,
     }),
-    _CC(_N("Interface (other)"),{
+    SUBCATEGORY(_N("Interface (other)"),{
       SETTING_COLOR(GUI_COLOR_BACKGROUND),
       SETTING_COLOR(GUI_COLOR_FRAME_BACKGROUND),
       SETTING_COLOR(GUI_COLOR_FRAME_BACKGROUND_CHILD),
@@ -885,7 +890,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_NAV_WIN_BACKDROP),
       SETTING_COLOR(GUI_COLOR_INPUT_TEXT_CURSOR),
     }),
-    _CC(_N("Miscellaneous"), {
+    SUBCATEGORY(_N("Miscellaneous"), {
       SETTING_COLOR(GUI_COLOR_TOGGLE_ON),
       SETTING_COLOR(GUI_COLOR_TOGGLE_OFF),
       SETTING_COLOR(GUI_COLOR_PLAYBACK_STAT),
@@ -893,7 +898,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_WARNING),
       SETTING_COLOR(GUI_COLOR_ERROR),
     }),
-    _CC(_N("File Picker (built-in)"), {
+    SUBCATEGORY(_N("File Picker (built-in)"), {
       SETTING_COLOR(GUI_COLOR_FILE_DIR),
       SETTING_COLOR(GUI_COLOR_FILE_SONG_NATIVE),
       SETTING_COLOR(GUI_COLOR_FILE_SONG_IMPORT),
@@ -906,7 +911,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_FILE_FONT),
       SETTING_COLOR(GUI_COLOR_FILE_OTHER),
     }),
-    _CC(_N("Oscilloscope"), {
+    SUBCATEGORY(_N("Oscilloscope"), {
       SETTING_COLOR(GUI_COLOR_OSC_BORDER),
       SETTING_COLOR(GUI_COLOR_OSC_BG1),
       SETTING_COLOR(GUI_COLOR_OSC_BG2),
@@ -917,7 +922,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_OSC_REF),
       SETTING_COLOR(GUI_COLOR_OSC_GUIDE),
     },{
-      _CC(_N("Wave (non-mono)"), {
+      SUBCATEGORY(_N("Wave (non-mono)"), {
         SETTING_COLOR(GUI_COLOR_OSC_WAVE_CH0),
         SETTING_COLOR(GUI_COLOR_OSC_WAVE_CH1),
         SETTING_COLOR(GUI_COLOR_OSC_WAVE_CH2),
@@ -936,12 +941,12 @@ void FurnaceGUI::initSettings() {
         SETTING_COLOR(GUI_COLOR_OSC_WAVE_CH15),
       }),
     }),
-    _CC(_N("Volume Meter"), {
+    SUBCATEGORY(_N("Volume Meter"), {
       SETTING_COLOR(GUI_COLOR_VOLMETER_LOW),
       SETTING_COLOR(GUI_COLOR_VOLMETER_HIGH),
       SETTING_COLOR(GUI_COLOR_VOLMETER_PEAK),
     }),
-    _CC(_N("Orders"), {
+    SUBCATEGORY(_N("Orders"), {
       SETTING_COLOR(GUI_COLOR_ORDER_ROW_INDEX),
       SETTING_COLOR(GUI_COLOR_ORDER_ACTIVE),
       SETTING_COLOR(GUI_COLOR_SONG_LOOP),
@@ -949,12 +954,12 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_ORDER_SIMILAR),
       SETTING_COLOR(GUI_COLOR_ORDER_INACTIVE),
     }),
-    _CC(_N("Envelope View"), {
+    SUBCATEGORY(_N("Envelope View"), {
       SETTING_COLOR(GUI_COLOR_FM_ENVELOPE),
       SETTING_COLOR(GUI_COLOR_FM_ENVELOPE_SUS_GUIDE),
       SETTING_COLOR(GUI_COLOR_FM_ENVELOPE_RELEASE),}
     ),
-    _CC(_N("FM Editor"), {
+    SUBCATEGORY(_N("FM Editor"), {
       SETTING_COLOR(GUI_COLOR_FM_ALG_BG),
       SETTING_COLOR(GUI_COLOR_FM_ALG_LINE),
       SETTING_COLOR(GUI_COLOR_FM_MOD),
@@ -973,7 +978,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_FM_BORDER_CAR),
       SETTING_COLOR(GUI_COLOR_FM_BORDER_SHADOW_CAR),}
     ),
-    _CC(_N("Macro Editor"), {
+    SUBCATEGORY(_N("Macro Editor"), {
       SETTING_COLOR(GUI_COLOR_MACRO_VOLUME),
       SETTING_COLOR(GUI_COLOR_MACRO_PITCH),
       SETTING_COLOR(GUI_COLOR_MACRO_WAVE),
@@ -984,7 +989,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_MACRO_OTHER),
       SETTING_COLOR(GUI_COLOR_MACRO_HIGHLIGHT),
     }),
-    _CC(_N("Multi-instrument Play"), {
+    SUBCATEGORY(_N("Multi-instrument Play"), {
       SETTING_COLOR(GUI_COLOR_MULTI_INS_1),
       SETTING_COLOR(GUI_COLOR_MULTI_INS_2),
       SETTING_COLOR(GUI_COLOR_MULTI_INS_3),
@@ -993,7 +998,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_MULTI_INS_6),
       SETTING_COLOR(GUI_COLOR_MULTI_INS_7),
     }),
-    _CC(_N("Instrument Types"), {
+    SUBCATEGORY(_N("Instrument Types"), {
       SETTING_COLOR(GUI_COLOR_INSTR_FM),
       SETTING_COLOR(GUI_COLOR_INSTR_STD),
       SETTING_COLOR(GUI_COLOR_INSTR_T6W28),
@@ -1062,7 +1067,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_INSTR_SID3),
       SETTING_COLOR(GUI_COLOR_INSTR_UNKNOWN),
     }),
-    _CC(_N("Channel"), {
+    SUBCATEGORY(_N("Channel"), {
       SETTING_COLOR(GUI_COLOR_CHANNEL_BG),
       SETTING_COLOR(GUI_COLOR_CHANNEL_FG),
       SETTING_COLOR(GUI_COLOR_CHANNEL_FM),
@@ -1073,7 +1078,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_CHANNEL_OP),
       SETTING_COLOR(GUI_COLOR_CHANNEL_MUTED),
     }),
-    _CC(_N("Pattern"), {
+    SUBCATEGORY(_N("Pattern"), {
       SETTING_COLOR(GUI_COLOR_PATTERN_BG),
       SETTING_COLOR(GUI_COLOR_PATTERN_PLAY_HEAD),
       SETTING_COLOR(GUI_COLOR_EDITING),
@@ -1139,7 +1144,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_PATTERN_STATUS_WARNING),
       SETTING_COLOR(GUI_COLOR_PATTERN_STATUS_ERROR),
     }),
-    _CC(_N("Sample Editor"), {
+    SUBCATEGORY(_N("Sample Editor"), {
       SETTING_COLOR(GUI_COLOR_SAMPLE_BG),
       SETTING_COLOR(GUI_COLOR_SAMPLE_FG),
       SETTING_COLOR(GUI_COLOR_SAMPLE_TIME_BG),
@@ -1157,7 +1162,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_SAMPLE_CHIP_ENABLED),
       SETTING_COLOR(GUI_COLOR_SAMPLE_CHIP_WARNING),
     }),
-    _CC(_N("Pattern Manager"), {
+    SUBCATEGORY(_N("Pattern Manager"), {
       SETTING_COLOR(GUI_COLOR_PAT_MANAGER_NULL),
       SETTING_COLOR(GUI_COLOR_PAT_MANAGER_UNUSED),
       SETTING_COLOR(GUI_COLOR_PAT_MANAGER_USED),
@@ -1165,7 +1170,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED),
       SETTING_COLOR(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER),
     }),
-    _CC(_N("Piano"), {
+    SUBCATEGORY(_N("Piano"), {
       SETTING_COLOR(GUI_COLOR_PIANO_BACKGROUND),
       SETTING_COLOR(GUI_COLOR_PIANO_KEY_TOP),
       SETTING_COLOR(GUI_COLOR_PIANO_KEY_TOP_HIT),
@@ -1174,19 +1179,19 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_PIANO_KEY_BOTTOM_HIT),
       SETTING_COLOR(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE),
     }),
-    _CC(_N("Clock"), {
+    SUBCATEGORY(_N("Clock"), {
       SETTING_COLOR(GUI_COLOR_CLOCK_TEXT),
       SETTING_COLOR(GUI_COLOR_CLOCK_BEAT_LOW),
       SETTING_COLOR(GUI_COLOR_CLOCK_BEAT_HIGH),
     }),
-    _CC(_N("Patchbay"), {
+    SUBCATEGORY(_N("Patchbay"), {
       SETTING_COLOR(GUI_COLOR_PATCHBAY_PORTSET),
       SETTING_COLOR(GUI_COLOR_PATCHBAY_PORT),
       SETTING_COLOR(GUI_COLOR_PATCHBAY_PORT_HIDDEN),
       SETTING_COLOR(GUI_COLOR_PATCHBAY_CONNECTION),
       SETTING_COLOR(GUI_COLOR_PATCHBAY_CONNECTION_BG),
     }),
-    _CC(_N("Memory Composition"), {
+    SUBCATEGORY(_N("Memory Composition"), {
       SETTING_COLOR(GUI_COLOR_MEMORY_BG),
       SETTING_COLOR(GUI_COLOR_MEMORY_DATA),
       SETTING_COLOR(GUI_COLOR_MEMORY_FREE),
@@ -1210,21 +1215,22 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_MEMORY_BANK6),
       SETTING_COLOR(GUI_COLOR_MEMORY_BANK7),
     }),
-    _CC(_N("Tuner"), {
+    SUBCATEGORY(_N("Tuner"), {
       SETTING_COLOR(GUI_COLOR_TUNER_NEEDLE),
       SETTING_COLOR(GUI_COLOR_TUNER_SCALE_LOW),
       SETTING_COLOR(GUI_COLOR_TUNER_SCALE_HIGH),
     }),
-    _CC(_N("Log Viewer"), {
+    SUBCATEGORY(_N("Log Viewer"), {
       SETTING_COLOR(GUI_COLOR_LOGLEVEL_ERROR),
       SETTING_COLOR(GUI_COLOR_LOGLEVEL_WARNING),
       SETTING_COLOR(GUI_COLOR_LOGLEVEL_INFO),
       SETTING_COLOR(GUI_COLOR_LOGLEVEL_DEBUG),
       SETTING_COLOR(GUI_COLOR_LOGLEVEL_TRACE),
     }),
-  });
-  _C(_N("Keyboard"),{},{
-    _CC(_N("Global hotkeys"),{
+  }
+  CATEGORY_END
+  CATEGORY_BEGIN(_N("Keyboard")) {},{
+    SUBCATEGORY(_N("Global hotkeys"),{
       SETTING_KEYBIND(GUI_ACTION_NEW),
       SETTING_KEYBIND(GUI_ACTION_CLEAR),
       SETTING_KEYBIND(GUI_ACTION_OPEN),
@@ -1257,7 +1263,7 @@ void FurnaceGUI::initSettings() {
       SETTING_KEYBIND(GUI_ACTION_TX81Z_REQUEST),
       SETTING_KEYBIND(GUI_ACTION_PANIC),
     }),
-    _CC(_N("Note input"),{
+    SUBCATEGORY(_N("Note input"),{
       SettingEntry(_N("Note input"),NULL,[this]{
         bool ret=false;
         if (ImGui::BeginTable("keysNoteInput",4)) {
@@ -1356,5 +1362,6 @@ void FurnaceGUI::initSettings() {
         return ret;
       }),
     })
-  });
+  }
+  CATEGORY_END
 }
