@@ -234,9 +234,6 @@ class SettingEntry {
     bool draw(FurnaceGUI* gui);
     bool passesFilter(ImGuiTextFilter* filter);
 
-    void loadConf(DivConfig& conf);
-    void saveConf(DivConfig& conf);
-
     void destroy();
 };
 

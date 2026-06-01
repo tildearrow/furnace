@@ -296,14 +296,6 @@ bool SettingEntry::passesFilter(ImGuiTextFilter* filter) {
   return false;
 }
 
-void SettingEntry::loadConf(DivConfig& conf) {
-  
-}
-
-void SettingEntry::saveConf(DivConfig& conf) {
-  
-}
-
 void SettingEntry::destroy() {
   if (extData==NULL) return;
   switch (type) {
