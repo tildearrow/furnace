@@ -758,6 +758,228 @@ void FurnaceGUI::initSettings() {
       ).Tooltip(_("fill the file name field with an appropriate file name when saving or exporting.")),
     }),
     SUBCATEGORY(_N("New Song"),{
+      SettingEntry(_N("Initial system:"),NULL,[this]{
+        bool ret=false;
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Initial system:"));
+        ImGui::SameLine();
+        if (ImGui::Button(_("Current system"))) {
+          settings.initialSys.clear();
+          for (int i=0; i<e->song.systemLen; i++) {
+            settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(e->song.system[i]));
+            settings.initialSys.set(fmt::sprintf("vol%d",i),(float)e->song.systemVol[i]);
+            settings.initialSys.set(fmt::sprintf("pan%d",i),(float)e->song.systemPan[i]);
+            settings.initialSys.set(fmt::sprintf("fr%d",i),(float)e->song.systemPanFR[i]);
+            settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
+          }
+          settings.initialSysName=e->song.systemName;
+          ret=true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Randomize"))) {
+          settings.initialSys.clear();
+          int howMany=1+rand()%3;
+          int totalAvailSys=0;
+          for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
+          if (totalAvailSys>0) {
+            for (int i=0; i<howMany; i++) {
+              DivSystem theSystem=DIV_SYSTEM_DUMMY;
+              do {
+                theSystem=(DivSystem)availableSystems[rand()%totalAvailSys];
+              } while (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(theSystem));
+              settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(theSystem));
+              settings.initialSys.set(fmt::sprintf("vol%d",i),1.0f);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
+              settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
+              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+            }
+          } else {
+            settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
+            settings.initialSys.set("vol0",1.0f);
+            settings.initialSys.set("pan0",0.0f);
+            settings.initialSys.set("fr0",0.0f);
+            settings.initialSys.set("flags0","");
+            howMany=1;
+          }
+          // randomize system name
+          std::vector<String> wordPool[6];
+          for (int i=0; i<howMany; i++) {
+            int wpPos=0;
+            DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
+            String sName=e->getSystemName(sysID);
+            String nameWord;
+            sName+=" ";
+            for (char& i: sName) {
+              if (i==' ') {
+                if (nameWord!="") {
+                  wordPool[wpPos++].push_back(nameWord);
+                  if (wpPos>=6) break;
+                  nameWord="";
+                }
+              } else {
+                nameWord+=i;
+              }
+            }
+          }
+          settings.initialSysName="";
+          for (int i=0; i<6; i++) {
+            if (wordPool[i].empty()) continue;
+            settings.initialSysName+=wordPool[i][rand()%wordPool[i].size()];
+            settings.initialSysName+=" ";
+          }
+          ret=true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset to defaults"))) {
+          settings.initialSys.clear();
+          settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
+          settings.initialSys.set("vol0",1.0f);
+          settings.initialSys.set("pan0",0.0f);
+          settings.initialSys.set("fr0",0.0f);
+          settings.initialSys.set("flags0","");
+          settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
+          settings.initialSys.set("vol1",0.5f);
+          settings.initialSys.set("pan1",0.0f);
+          settings.initialSys.set("fr1",0.0f);
+          settings.initialSys.set("flags1","");
+          settings.initialSysName="Sega Genesis/Mega Drive";
+          ret=true;
+        }
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Name"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputText("##InitSysName",&settings.initialSysName)) ret=true;
+
+        int sysCount=0;
+        int doRemove=-1;
+        for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
+          DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
+          float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i),0);
+          float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i),0);
+          float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i),0);
+
+          sysCount=i+1;
+
+          //bool doRemove=false;
+          bool doInvert=(sysVol<0);
+          float vol=fabs(sysVol);
+          ImGui::PushID(i);
+
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+            if (ImGui::BeginCombo("##System",getSystemName(sysID),ImGuiComboFlags_HeightLargest)) {
+
+            sysID=systemPicker(true);
+
+            if (sysID!=DIV_SYSTEM_NULL)
+            {
+              settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
+              settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+              ret=true;
+
+              ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndCombo();
+          }
+
+          ImGui::SameLine();
+          if (ImGui::Checkbox(_("Invert"),&doInvert)) {
+            sysVol=-sysVol;
+            settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
+            ret=true;
+          }
+          ImGui::SameLine();
+          //ImGui::BeginDisabled(settings.initialSys.size()<=4);
+          pushDestColor();
+          if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
+            doRemove=i;
+            ret=true;
+          }
+          popDestColor();
+          //ImGui::EndDisabled();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (CWSliderFloat(_("Volume"),&vol,0.0f,3.0f)) {
+            if (doInvert) {
+              if (vol<0.0001) vol=0.0001;
+            }
+            if (vol<0) vol=0;
+            if (vol>10) vol=10;
+            sysVol=doInvert?-vol:vol;
+            settings.initialSys.set(fmt::sprintf("vol%d",i),(float)sysVol);
+            ret=true;
+          } rightClickable
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (CWSliderFloat(_("Panning"),&sysPan,-1.0f,1.0f)) {
+            if (sysPan<-1.0f) sysPan=-1.0f;
+            if (sysPan>1.0f) sysPan=1.0f;
+            settings.initialSys.set(fmt::sprintf("pan%d",i),(float)sysPan);
+            ret=true;
+          } rightClickable
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
+          if (CWSliderFloat(_("Front/Rear"),&sysPanFR,-1.0f,1.0f)) {
+            if (sysPanFR<-1.0f) sysPanFR=-1.0f;
+            if (sysPanFR>1.0f) sysPanFR=1.0f;
+            settings.initialSys.set(fmt::sprintf("fr%d",i),(float)sysPanFR);
+            ret=true;
+          } rightClickable
+
+          // oh please MSVC don't cry
+          if (ImGui::TreeNode(_("Configure"))) {
+            String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
+            DivConfig sysFlags;
+            sysFlags.loadFromBase64(sysFlagsS.c_str());
+            if (drawSysConf(-1,i,sysID,sysFlags,false)) {
+              settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags.toBase64());
+            }
+            ImGui::TreePop();
+            ret=true;
+          }
+
+          ImGui::PopID();
+        }
+
+        if (doRemove>=0 && sysCount>1) {
+          for (int i=doRemove; i<sysCount-1; i++) {
+            int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
+            float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i+1),0);
+            float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i+1),0);
+            float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i+1),0);
+            String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
+            settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
+            settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
+            settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
+            settings.initialSys.set(fmt::sprintf("fr%d",i),sysPanFR);
+            settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
+          }
+
+          settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("fr%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
+        }
+
+        if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
+          settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
+          settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
+          settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
+          settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
+          settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
+        }
+
+        return ret;
+      }),
+      SettingEntry::Radio(
+        _N("When creating new song:"),"newSongBehavior",&settings.newSongBehavior,{
+        {_N("Display system preset selector##NSB0"),0},
+        {_N("Start with initial system##NSB1"),1},
+      }),
+      SettingEntry::InputText(
+        _N("Default author name"),
+        "defaultAuthorName",&settings.defaultAuthorName
+      ),
     }),
   }
   CATEGORY_END
