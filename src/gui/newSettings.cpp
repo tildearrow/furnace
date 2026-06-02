@@ -98,9 +98,9 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
       break;
     }
     case SettingInvCheckbox: {
-      bool valueB=!getValue<int>();
+      bool valueB=!getValue<bool>();
       if (ImGui::Checkbox(_(label),&valueB)) {
-        setValue<int>(!valueB);
+        setValue<bool>(!valueB);
         callback();
         ret=true;
       }
