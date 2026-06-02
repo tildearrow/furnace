@@ -981,6 +981,54 @@ void FurnaceGUI::initSettings() {
         "defaultAuthorName",&settings.defaultAuthorName
       ),
     }),
+    SUBCATEGORY(_N("Start-up"),{
+#ifndef NO_INTRO
+      SettingEntry::Radio(
+        _N("Play intro on start-up:"),"alwaysPlayIntro",&settings.alwaysPlayIntro,{
+        {_N("No##pis0"),0},
+        {_N("Short##pis1"),1},
+        {_N("Full (short when loading song)##pis2"),2},
+        {_N("Full (always)##pis3"),3},
+      }),
+#endif
+      SETTING_CHECKBOX(
+        _N("Disable fade-in during start-up"),
+        disableFadeIn
+      ),
+      SETTING_CHECKBOX(
+        _N("Do not maximize on start-up when the Furnace window is too big"),
+        noMaximizeWorkaround
+      ),
+    }),
+    SUBCATEGORY(_N("Behavior"),{
+      SETTING_CHECKBOX(
+        _N("New instruments are blank"),
+        blankIns
+      ),
+      SETTING_CHECKBOX(
+        _N("Allow note input with open warning"),
+        warnNotePassthrough
+      ).Tooltip(_("allows passthrough for notes while warnings are open; only ESC will be used for warnings")),
+    }),
+    // TODO: configuration import/export/reset options should be in a menu next to search.
+    SUBCATEGORY(_N("Import"),{
+      SETTING_CHECKBOX(
+        _N("Use OPL3 instead of OPL2 for S3M import"),
+        s3mOPL3
+      ),
+      SETTING_CHECKBOX(
+        _N("Load sample fine tuning when importing a sample"),
+        sampleImportInstDetune
+      ).Tooltip(_("this may result in glitches with some samples.")),
+    }),
+#ifdef ANDROID
+    SUBCATEGORY(_N("Android"),{
+      SETTING_CHECKBOX(
+        _N("Enable background playback (restart!)"),
+        backgroundPlay
+      )
+    }),
+#endif
   }
   CATEGORY_END
   CATEGORY_BEGIN(_N("Audio")) {},{
