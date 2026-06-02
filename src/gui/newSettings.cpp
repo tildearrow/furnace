@@ -713,10 +713,51 @@ void FurnaceGUI::initSettings() {
         {_N("Only if already playing##pol1"),1},
         {_N("Yes##pol0"),2},
       }),
+      // I hate this setting
+      SettingEntry(_N("Audio export loop/fade out time:"),NULL,[this]{
+        bool ret=false;
+        ImGui::Text(_("Audio export loop/fade out time:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Set to these values on start-up:##fot0"),settings.persistFadeOut==0)) {
+          settings.persistFadeOut=0;
+          ret=true;
+        }
+        ImGui::BeginDisabled(settings.persistFadeOut);
+        ImGui::Indent();
+        if (ImGui::InputInt(_("Loops"),&settings.exportLoops,1,2)) {
+          if (settings.exportLoops<0) settings.exportLoops=0;
+          audioExportOptions.loops=settings.exportLoops;
+          ret=true;
+        }
+        if (ImGui::InputDouble(_("Fade out (seconds)"),&settings.exportFadeOut,1.0,2.0,"%.1f")) {
+          if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
+          audioExportOptions.fadeOut=settings.exportFadeOut;
+          ret=true;
+        }
+        ImGui::Unindent();
+        ImGui::EndDisabled();
+        if (ImGui::RadioButton(_("Remember last values##fot1"),settings.persistFadeOut==1)) {
+          settings.persistFadeOut=1;
+          ret=true;
+        }
+        ImGui::Unindent();
+
+        return ret;
+      }),
       SETTING_CHECKBOX(
         _N("Store instrument name in .fui"),
         writeInsNames
-      ),
+      ).Tooltip(_("when enabled, saving an instrument will store its name.\nthis may increase file size.")),
+      SETTING_CHECKBOX(
+        _N("Load instrument name from .fui"),
+        readInsNames
+      ).Tooltip(_("when enabled, loading an instrument will use the stored name (if present).\notherwise, it will use the file name.")),
+      SETTING_CHECKBOX(
+        _N("Auto-fill file name when saving"),
+        autoFillSave
+      ).Tooltip(_("fill the file name field with an appropriate file name when saving or exporting.")),
+    }),
+    SUBCATEGORY(_N("New Song"),{
     }),
   }
   CATEGORY_END
