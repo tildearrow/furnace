@@ -1047,10 +1047,189 @@ void FurnaceGUI::initSettings() {
 #ifdef HAVE_ASIO
         {"ASIO",DIV_AUDIO_ASIO},
 #endif
+      }).Callback([this]{
+        audioEngineChanged=true;
+        settings.audioDevice="";
+        settings.audioChans=2;
       }),
 #endif
+      SettingEntry(_N("Driver"),NULL,[this]{
+        bool ret=false;
+        if (ImGui::BeginCombo(_("Driver##SDLADriver"),settings.sdlAudioDriver.empty()?_("Automatic"):settings.sdlAudioDriver.c_str())) {
+          if (ImGui::Selectable(_("Automatic"),settings.sdlAudioDriver.empty())) {
+            settings.sdlAudioDriver="";
+            ret=true;
+          }
+          for (String& i: availAudioDrivers) {
+            if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+              settings.sdlAudioDriver=i;
+              ret=true;
+            }
+          }
+          ImGui::EndCombo();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("you may need to restart Furnace for this setting to take effect."));
+        }
+        return ret;
+      }).Condition([this]{
+        return (settings.audioEngine==DIV_AUDIO_SDL);
+      }),
+      SettingEntry(_N("Device"),NULL,[this]{
+        bool ret=false;
+        if (audioEngineChanged) {
+          ImGui::BeginDisabled();
+          if (ImGui::BeginCombo(_("Device##AudioDevice"),_("<click on OK or Apply first>"))) {
+            ImGui::Text(_("ALERT - TRESPASSER DETECTED"));
+            if (ImGui::IsItemHovered()) {
+              showError(_("you have been arrested for trying to engage with a disabled combo box."));
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndCombo();
+          }
+          ImGui::EndDisabled();
+        } else {
+          String audioDevName=settings.audioDevice.empty()?_("<System default>"):settings.audioDevice;
+          if (ImGui::BeginCombo(_("Device##AudioDevice"),audioDevName.c_str())) {
+            if (ImGui::Selectable(_("<System default>"),settings.audioDevice.empty())) {
+              settings.audioDevice="";
+              ret=true;
+            }
+            for (String& i: e->getAudioDevices()) {
+              if (ImGui::Selectable(i.c_str(),i==settings.audioDevice)) {
+                settings.audioDevice=i;
+                ret=true;
+              }
+            }
+            ImGui::EndCombo();
+          }
+        }
+        return ret;
+      }),
+      SettingEntry(_N("ASIO control panel"),NULL,[this]{
+        if (ImGui::Button(_("Control panel"))) {
+          if (e->audioBackendCommand(TA_AUDIO_CMD_SETUP)!=1) {
+            showError(_("this driver doesn't have a control panel."));
+          }
+        }
+        return false;
+      }),
+      SettingEntry::ComboInt(
+        _N("Sample rate"),
+        "audioRate",&settings.audioRate,{
+          {"8000",8000},
+          {"16000",16000},
+          {"22050",22050},
+          {"32000",32000},
+          {"44100",44100},
+          {"48000",48000},
+          {"88200",88200},
+          {"96000",96000},
+          {"192000",192000}
+        }
+      ),
+      SettingEntry::InputInt(
+        "Outputs",
+        "audioChans",&settings.audioChans,
+        {1,16,1,2}
+      ).Tooltip(_("common values:\n- 1 for mono\n- 2 for stereo")),
+      // TODO: dynamic label again. this time for latency
+      // String bs=fmt::sprintf(_("%d (latency: ~%.1fms)"),settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
+      SettingEntry::ComboInt(
+        _N("Buffer size"),
+        "audioBufSize",&settings.audioBufSize,{
+          {"64",64},
+          {"128",128},
+          {"256",256},
+          {"512",512},
+          {"1024",1024},
+          {"2048",2048}
+        }
+      ),
+      SettingEntry(_N("Multi-threaded"),NULL,[this]{
+        bool ret=false;
+        bool renderPoolThreadsB=(settings.renderPoolThreads>0);
+        if (ImGui::Checkbox(_("Multi-threaded (EXPERIMENTAL)"),&renderPoolThreadsB)) {
+          if (renderPoolThreadsB) {
+            settings.renderPoolThreads=2;
+          } else {
+            settings.renderPoolThreads=0;
+          }
+          ret=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("runs chip emulation on separate threads.\nmay increase performance when using heavy emulation cores.\n\nwarnings:\n- experimental!\n- only useful on multi-chip songs."));
+        }
+
+        if (renderPoolThreadsB) {
+          pushWarningColor(settings.renderPoolThreads>cpuCores,settings.renderPoolThreads>cpuCores);
+          if (ImGui::InputInt(_("Number of threads"),&settings.renderPoolThreads)) {
+            if (settings.renderPoolThreads<2) settings.renderPoolThreads=2;
+            if (settings.renderPoolThreads>32) settings.renderPoolThreads=32;
+            ret=true;
+          }
+          if (settings.renderPoolThreads>=DIV_MAX_CHIPS) {
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("that's the limit!"));
+            }
+          } else if (settings.renderPoolThreads>cpuCores) {
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(_("it is a VERY bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
+            }
+          }
+          popWarningColor();
+        }
+        return ret;
+      }),
+      SETTING_CHECKBOX(
+        _N("Low-latency mode"),
+        lowLatency
+      ).Tooltip(_("reduces latency by running the engine faster than the tick rate.\nuseful for live playback/jam mode.\n\nwarning: only enable if your buffer size is small (10ms or less).")),
+      SETTING_CHECKBOX(
+        _N("Force mono audio"),
+        forceMono
+      ),
+      SETTING_CHECKBOX(
+        _N("Exclusive mode"),
+        wasapiEx
+      ).Condition([this]{
+        if (settings.audioEngine==DIV_AUDIO_PORTAUDIO) {
+          if (settings.audioDevice.find("[Windows WASAPI] ")==0) {
+            return true;
+          }
+        }
+        return false;
+      }),
+      SettingEntry(_N("Audio information"),NULL,[this]{
+        TAAudioDesc& audioWant=e->getAudioDescWant();
+        TAAudioDesc& audioGot=e->getAudioDescGot();
+
+#ifdef HAVE_LOCALE
+        ImGui::Text(ngettext("want: %d samples @ %.0fHz (%d channel)","want: %d samples @ %.0fHz (%d channels)",audioWant.outChans),audioWant.bufsize,audioWant.rate,audioWant.outChans);
+        ImGui::Text(ngettext("got: %d samples @ %.0fHz (%d channel)","got: %d samples @ %.0fHz (%d channels)",audioGot.outChans),audioGot.bufsize,audioGot.rate,audioGot.outChans);
+#else
+        ImGui::Text(_GN("want: %d samples @ %.0fHz (%d channel)","want: %d samples @ %.0fHz (%d channels)",audioWant.outChans),audioWant.bufsize,audioWant.rate,audioWant.outChans);
+        ImGui::Text(_GN("got: %d samples @ %.0fHz (%d channel)","got: %d samples @ %.0fHz (%d channels)",audioGot.outChans),audioGot.bufsize,audioGot.rate,audioGot.outChans);
+#endif
+        return false;
+      }),
     }),
-    SUBCATEGORY(_N("Volumes"),{
+    SUBCATEGORY(_N("Mixing"),{
+      SettingEntry::ComboInt(
+        _N("Quality"),
+        "audioQuality",&settings.audioQuality,{
+          {_N("High"),0},
+          {_N("Low"),1},
+        }
+      ),
+      SETTING_CHECKBOX(
+        _N("Software clipping"),
+        clampSamples
+      ),
+      SETTING_CHECKBOX(
+        _N("DC offset correction"),
+        audioHiPass
+      ),
       SettingEntry::SliderInt(
         _N("Metronome volume"),
         "metroVol",&settings.metroVol,
@@ -1066,7 +1245,7 @@ void FurnaceGUI::initSettings() {
   CATEGORY_END
   CATEGORY_BEGIN(_N("Emulation")) {
     SettingEntry::ComboInt(
-      _N("PC Speacker Strategy"),
+      _N("PC Speaker strategy"),
       "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
         {_N("evdev SND_TONE"),0},
         {_N("KIOCSOUND on /dev/tty1"),1},
