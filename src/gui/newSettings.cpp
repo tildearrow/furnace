@@ -91,9 +91,7 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
   if (!settingCondition()) return false;
   switch (type) {
     case SettingCheckbox: {
-      bool valueB=getValue<int>();
-      if (ImGui::Checkbox(_(label),&valueB)) {
-        setValue<int>(valueB);
+      if (ImGui::Checkbox(_(label),(bool*)value)) {
         callback();
         ret=true;
       }
@@ -611,9 +609,7 @@ void FurnaceGUI::initSettings() {
               ret=true;
             }
             
-            bool glSetBSB=settings.glSetBS;
-            if (ImGui::Checkbox(_("Set stencil and buffer sizes"),&glSetBSB)) {
-              settings.glSetBS=glSetBSB;
+            if (ImGui::Checkbox(_("Set stencil and buffer sizes"),&settings.glSetBS)) {
               ret=true;
             }
 
@@ -630,9 +626,7 @@ void FurnaceGUI::initSettings() {
               }
             }
 
-            bool glDoubleBufferB=settings.glDoubleBuffer;
-            if (ImGui::Checkbox(_("Double buffer"),&glDoubleBufferB)) {
-              settings.glDoubleBuffer=glDoubleBufferB;
+            if (ImGui::Checkbox(_("Double buffer"),&settings.glDoubleBuffer)) {
               ret=true;
             }
 
@@ -1128,6 +1122,7 @@ void FurnaceGUI::initSettings() {
         }
         return ret;
       }),
+#ifdef HAVE_ASIO
       SettingEntry(_N("ASIO control panel"),NULL,[this]{
         if (ImGui::Button(_("Control panel"))) {
           if (e->audioBackendCommand(TA_AUDIO_CMD_SETUP)!=1) {
@@ -1135,7 +1130,8 @@ void FurnaceGUI::initSettings() {
           }
         }
         return false;
-      }),
+      }).Condition([this]{return settings.audioEngine==DIV_AUDIO_ASIO;}),
+#endif
       SettingEntry::ComboInt(
         _N("Sample rate"),
         "audioRate",&settings.audioRate,{

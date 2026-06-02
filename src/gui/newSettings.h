@@ -158,7 +158,7 @@ class SettingEntry {
     SettingEntry(const char* l, const char* n, boolReturnFunction f, boolReturnFunction b=trueLambda);
 
     // setting definition functions
-    static SettingEntry Checkbox(const char* label, const char* confName, int* value, bool inverted=false) {
+    static SettingEntry Checkbox(const char* label, const char* confName, bool* value, bool inverted=false) {
       return SettingEntry(inverted?SettingInvCheckbox:SettingCheckbox,label,confName,value);
     }
     static SettingEntry Radio(const char* label, const char* confName, int* value, std::initializer_list<SettingEntryMultiChoiceExtData<int>> entries) {

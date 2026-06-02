@@ -4960,48 +4960,48 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
       }
     }
 
-    settings.noThreadedInput=conf.getInt("noThreadedInput",0);
-    settings.powerSave=conf.getInt("powerSave",POWER_SAVE_DEFAULT);
-    settings.eventDelay=conf.getInt("eventDelay",0);
+    settings.noThreadedInput=conf.getBool("noThreadedInput",0);
+    settings.powerSave=conf.getBool("powerSave",POWER_SAVE_DEFAULT);
+    settings.eventDelay=conf.getBool("eventDelay",0);
 
     settings.renderBackend=conf.getString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
-    settings.renderClearPos=conf.getInt("renderClearPos",0);
+    settings.renderClearPos=conf.getBool("renderClearPos",0);
 
     settings.glRedSize=conf.getInt("glRedSize",8);
     settings.glGreenSize=conf.getInt("glGreenSize",8);
     settings.glBlueSize=conf.getInt("glBlueSize",8);
     settings.glAlphaSize=conf.getInt("glAlphaSize",0);
     settings.glDepthSize=conf.getInt("glDepthSize",24);
-    settings.glSetBS=conf.getInt("glSetBS",0);
+    settings.glSetBS=conf.getBool("glSetBS",0);
     settings.glStencilSize=conf.getInt("glStencilSize",0);
     settings.glBufferSize=conf.getInt("glBufferSize",32);
-    settings.glDoubleBuffer=conf.getInt("glDoubleBuffer",1);
+    settings.glDoubleBuffer=conf.getBool("glDoubleBuffer",1);
 
-    settings.vsync=conf.getInt("vsync",1);
+    settings.vsync=conf.getBool("vsync",1);
     settings.frameRateLimit=conf.getInt("frameRateLimit",100);
-    settings.displayRenderTime=conf.getInt("displayRenderTime",0);
+    settings.displayRenderTime=conf.getBool("displayRenderTime",0);
 
     settings.chanOscThreads=conf.getInt("chanOscThreads",0);
     settings.renderPoolThreads=conf.getInt("renderPoolThreads",0);
-    settings.shaderOsc=conf.getInt("shaderOsc",0);
-    settings.writeInsNames=conf.getInt("writeInsNames",0);
-    settings.readInsNames=conf.getInt("readInsNames",1);
+    settings.shaderOsc=conf.getBool("shaderOsc",0);
+    settings.writeInsNames=conf.getBool("writeInsNames",0);
+    settings.readInsNames=conf.getBool("readInsNames",1);
     settings.defaultAuthorName=conf.getString("defaultAuthorName","");
 
-    settings.hiddenSystems=conf.getInt("hiddenSystems",0);
-    settings.mswEnabled=conf.getInt("mswEnabled",0);
-    settings.allowEditDocking=conf.getInt("allowEditDocking",1);
+    settings.hiddenSystems=conf.getBool("hiddenSystems",0);
+    settings.mswEnabled=conf.getBool("mswEnabled",0);
+    settings.allowEditDocking=conf.getBool("allowEditDocking",1);
 #ifndef FLATPAK_WORKAROUNDS
-    settings.sysFileDialog=conf.getInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
+    settings.sysFileDialog=conf.getBool("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
 #endif
-    settings.displayAllInsTypes=conf.getInt("displayAllInsTypes",0);
+    settings.displayAllInsTypes=conf.getBool("displayAllInsTypes",0);
 
-    settings.blankIns=conf.getInt("blankIns",0);
-    settings.warnNotePassthrough=conf.getInt("warnNotePassthrough",0);
+    settings.blankIns=conf.getBool("blankIns",0);
+    settings.warnNotePassthrough=conf.getBool("warnNotePassthrough",0);
 
-    settings.saveWindowPos=conf.getInt("saveWindowPos",1);
+    settings.saveWindowPos=conf.getBool("saveWindowPos",1);
 
-    settings.saveUnusedPatterns=conf.getInt("saveUnusedPatterns",0);
+    settings.saveUnusedPatterns=conf.getBool("saveUnusedPatterns",0);
     settings.maxRecentFile=conf.getInt("maxRecentFile",10);
 
     settings.persistFadeOut=conf.getInt("persistFadeOut",1);
@@ -5009,31 +5009,30 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.exportFadeOut=conf.getDouble("exportFadeOut",0.0);
 
     settings.doubleClickTime=conf.getFloat("doubleClickTime",0.3f);
-    settings.disableFadeIn=conf.getInt("disableFadeIn",0);
+    settings.disableFadeIn=conf.getBool("disableFadeIn",0);
     settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
-    settings.iCannotWait=conf.getInt("iCannotWait",0);
-    settings.noMaximizeWorkaround=conf.getInt("noMaximizeWorkaround",0);
+    settings.noMaximizeWorkaround=conf.getBool("noMaximizeWorkaround",0);
 
-    settings.compress=conf.getInt("compress",1);
+    settings.compress=conf.getBool("compress",1);
     settings.newSongBehavior=conf.getInt("newSongBehavior",0);
     settings.playOnLoad=conf.getInt("playOnLoad",0);
-    settings.centerPopup=conf.getInt("centerPopup",1);
+    settings.centerPopup=conf.getBool("centerPopup",1);
 
     settings.vibrationStrength=conf.getFloat("vibrationStrength",0.5f);
     settings.vibrationLength=conf.getInt("vibrationLength",20);
 
-    settings.s3mOPL3=conf.getInt("s3mOPL3",1);
-    settings.sampleImportInstDetune=conf.getInt("sampleImportInstDetune",0);
+    settings.s3mOPL3=conf.getBool("s3mOPL3",1);
+    settings.sampleImportInstDetune=conf.getBool("sampleImportInstDetune",0);
 
-    settings.backupEnable=conf.getInt("backupEnable",1);
+    settings.backupEnable=conf.getBool("backupEnable",1);
     settings.backupInterval=conf.getInt("backupInterval",30);
     settings.backupMaxCopies=conf.getInt("backupMaxCopies",5);
 
-    settings.autoFillSave=conf.getInt("autoFillSave",0);
+    settings.autoFillSave=conf.getBool("autoFillSave",0);
 
     settings.locale=conf.getString("locale","");
 
-    settings.backgroundPlay=conf.getInt("backgroundPlay",0);
+    settings.backgroundPlay=conf.getBool("backgroundPlay",0);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -5050,28 +5049,28 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.audioDevice=conf.getString("audioDevice","");
     settings.sdlAudioDriver=conf.getString("sdlAudioDriver","");
     settings.audioQuality=conf.getInt("audioQuality",0);
-    settings.audioHiPass=conf.getInt("audioHiPass",1);
+    settings.audioHiPass=conf.getBool("audioHiPass",1);
     settings.audioBufSize=conf.getInt("audioBufSize",1024);
     settings.audioRate=conf.getInt("audioRate",44100);
     settings.audioChans=conf.getInt("audioChans",2);
 
-    settings.lowLatency=conf.getInt("lowLatency",0);
+    settings.lowLatency=conf.getBool("lowLatency",0);
 
     settings.metroVol=conf.getInt("metroVol",100);
     settings.sampleVol=conf.getInt("sampleVol",50);
 
-    settings.wasapiEx=conf.getInt("wasapiEx",0);
+    settings.wasapiEx=conf.getBool("wasapiEx",0);
 
-    settings.clampSamples=conf.getInt("clampSamples",0);
-    settings.forceMono=conf.getInt("forceMono",0);
+    settings.clampSamples=conf.getBool("clampSamples",0);
+    settings.forceMono=conf.getBool("forceMono",0);
   }
 
   if (groups&GUI_SETTINGS_MIDI) {
     settings.midiInDevice=conf.getString("midiInDevice","");
     settings.midiOutDevice=conf.getString("midiOutDevice","");
-    settings.midiOutClock=conf.getInt("midiOutClock",0);
-    settings.midiOutTime=conf.getInt("midiOutTime",0);
-    settings.midiOutProgramChange=conf.getInt("midiOutProgramChange",0);
+    settings.midiOutClock=conf.getBool("midiOutClock",0);
+    settings.midiOutTime=conf.getBool("midiOutTime",0);
+    settings.midiOutProgramChange=conf.getBool("midiOutProgramChange",0);
     settings.midiOutMode=conf.getInt("midiOutMode",1);
     settings.midiOutTimeRate=conf.getInt("midiOutTimeRate",0);
   }
@@ -5101,47 +5100,47 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_BEHAVIOR) {
     settings.soloAction=conf.getInt("soloAction",0);
     settings.ctrlWheelModifier=conf.getInt("ctrlWheelModifier",0);
-    settings.pullDeleteBehavior=conf.getInt("pullDeleteBehavior",1);
+    settings.pullDeleteBehavior=conf.getBool("pullDeleteBehavior",1);
     settings.wrapHorizontal=conf.getInt("wrapHorizontal",0);
     settings.wrapVertical=conf.getInt("wrapVertical",0);
 
-    settings.stepOnDelete=conf.getInt("stepOnDelete",0);
+    settings.stepOnDelete=conf.getBool("stepOnDelete",0);
     settings.scrollStep=conf.getInt("scrollStep",0);
-    settings.avoidRaisingPattern=conf.getInt("avoidRaisingPattern",0);
-    settings.insFocusesPattern=conf.getInt("insFocusesPattern",1);
-    settings.stepOnInsert=conf.getInt("stepOnInsert",0);
+    settings.avoidRaisingPattern=conf.getBool("avoidRaisingPattern",0);
+    settings.insFocusesPattern=conf.getBool("insFocusesPattern",1);
+    settings.stepOnInsert=conf.getBool("stepOnInsert",0);
     settings.effectCursorDir=conf.getInt("effectCursorDir",1);
-    settings.cursorPastePos=conf.getInt("cursorPastePos",1);
+    settings.cursorPastePos=conf.getBool("cursorPastePos",1);
 
-    settings.effectDeletionAltersValue=conf.getInt("effectDeletionAltersValue",1);
+    settings.effectDeletionAltersValue=conf.getBool("effectDeletionAltersValue",1);
 
-    settings.pushNibble=conf.getInt("pushNibble",0);
+    settings.pushNibble=conf.getBool("pushNibble",0);
     settings.scrollChangesOrder=conf.getInt("scrollChangesOrder",0);
-    settings.cursorMoveNoScroll=conf.getInt("cursorMoveNoScroll",0);
+    settings.cursorMoveNoScroll=conf.getBool("cursorMoveNoScroll",0);
 
     settings.notePreviewBehavior=conf.getInt("notePreviewBehavior",1);
 
-    settings.absorbInsInput=conf.getInt("absorbInsInput",0);
+    settings.absorbInsInput=conf.getBool("absorbInsInput",0);
 
-    settings.moveWindowTitle=conf.getInt("moveWindowTitle",1);
+    settings.moveWindowTitle=conf.getBool("moveWindowTitle",1);
 
-    settings.doubleClickColumn=conf.getInt("doubleClickColumn",1);
+    settings.doubleClickColumn=conf.getBool("doubleClickColumn",1);
     settings.dragMovesSelection=conf.getInt("dragMovesSelection",2);
-    settings.draggableDataView=conf.getInt("draggableDataView",1);
+    settings.draggableDataView=conf.getBool("draggableDataView",1);
 
-    settings.cursorFollowsOrder=conf.getInt("cursorFollowsOrder",1);
+    settings.cursorFollowsOrder=conf.getBool("cursorFollowsOrder",1);
 
-    settings.insertBehavior=conf.getInt("insertBehavior",1);
-    settings.pullDeleteRow=conf.getInt("pullDeleteRow",1);
+    settings.insertBehavior=conf.getBool("insertBehavior",1);
+    settings.pullDeleteRow=conf.getBool("pullDeleteRow",1);
     settings.cursorFollowsWheel=conf.getInt("cursorFollowsWheel",0);
     settings.cursorWheelStep=conf.getInt("cursorWheelStep",0);
-    settings.removeInsOff=conf.getInt("removeInsOff",0);
-    settings.removeVolOff=conf.getInt("removeVolOff",0);
-    settings.insTypeMenu=conf.getInt("insTypeMenu",1);
+    settings.removeInsOff=conf.getBool("removeInsOff",0);
+    settings.removeVolOff=conf.getBool("removeVolOff",0);
+    settings.insTypeMenu=conf.getBool("insTypeMenu",1);
 
-    settings.selectAssetOnLoad=conf.getInt("selectAssetOnLoad",1);
+    settings.selectAssetOnLoad=conf.getBool("selectAssetOnLoad",1);
 
-    settings.inputRepeat=conf.getInt("inputRepeat",1);
+    settings.inputRepeat=conf.getBool("inputRepeat",1);
   }
 
   if (groups&GUI_SETTINGS_FONT) {
@@ -5157,29 +5156,29 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.headFontPath=conf.getString("headFontPath","");
     settings.patFontPath=conf.getString("patFontPath","");
 
-    settings.loadFallback=conf.getInt("loadFallback",1);
-    settings.loadFallbackPat=conf.getInt("loadFallbackPat",1);
+    settings.loadFallback=conf.getBool("loadFallback",1);
+    settings.loadFallbackPat=conf.getBool("loadFallbackPat",1);
 
     settings.fontBackend=conf.getInt("fontBackend",FONT_BACKEND_DEFAULT);
     settings.fontHinting=conf.getInt("fontHinting",GUI_FONT_HINTING_DEFAULT);
-    settings.fontBitmap=conf.getInt("fontBitmap",0);
+    settings.fontBitmap=conf.getBool("fontBitmap",0);
     settings.fontAutoHint=conf.getInt("fontAutoHint",1);
-    settings.fontAntiAlias=conf.getInt("fontAntiAlias",GUI_FONT_ANTIALIAS_DEFAULT);
+    settings.fontAntiAlias=conf.getBool("fontAntiAlias",GUI_FONT_ANTIALIAS_DEFAULT);
     settings.fontOversample=conf.getInt("fontOversample",GUI_OVERSAMPLE_DEFAULT);
   }
 
   if (groups&GUI_SETTINGS_APPEARANCE) {
-    settings.oscRoundedCorners=conf.getInt("oscRoundedCorners",GUI_DECORATIONS_DEFAULT);
-    settings.oscTakesEntireWindow=conf.getInt("oscTakesEntireWindow",0);
-    settings.oscBorder=conf.getInt("oscBorder",1);
-    settings.oscEscapesBoundary=conf.getInt("oscEscapesBoundary",0);
-    settings.oscMono=conf.getInt("oscMono",1);
-    settings.oscAntiAlias=conf.getInt("oscAntiAlias",1);
+    settings.oscRoundedCorners=conf.getBool("oscRoundedCorners",GUI_DECORATIONS_DEFAULT);
+    settings.oscTakesEntireWindow=conf.getBool("oscTakesEntireWindow",0);
+    settings.oscBorder=conf.getBool("oscBorder",1);
+    settings.oscEscapesBoundary=conf.getBool("oscEscapesBoundary",0);
+    settings.oscMono=conf.getBool("oscMono",1);
+    settings.oscAntiAlias=conf.getBool("oscAntiAlias",1);
     settings.oscLineSize=conf.getFloat("oscLineSize",1.0f);
 
-    settings.songNotesWrap=conf.getInt("songNotesWrap",0);
+    settings.songNotesWrap=conf.getBool("songNotesWrap",0);
 
-    settings.rackShowLEDs=conf.getInt("rackShowLEDs",1);
+    settings.rackShowLEDs=conf.getBool("rackShowLEDs",1);
 
     settings.mixerStyle=conf.getInt("mixerStyle",1);
     settings.mixerLayout=conf.getInt("mixerLayout",0);
@@ -5191,23 +5190,22 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.channelFeedbackStyle=conf.getInt("channelFeedbackStyle",1);
     settings.channelFeedbackGamma=conf.getFloat("channelFeedbackGamma",1.0f);
     settings.channelFont=conf.getInt("channelFont",1);
-    settings.channelTextCenter=conf.getInt("channelTextCenter",1);
+    settings.channelTextCenter=conf.getBool("channelTextCenter",1);
 
-    settings.roundedWindows=conf.getInt("roundedWindows",GUI_DECORATIONS_DEFAULT);
-    settings.roundedButtons=conf.getInt("roundedButtons",GUI_DECORATIONS_DEFAULT);
-    settings.roundedMenus=conf.getInt("roundedMenus",0);
-    settings.roundedTabs=conf.getInt("roundedTabs",GUI_DECORATIONS_DEFAULT);
-    settings.roundedScrollbars=conf.getInt("roundedScrollbars",GUI_DECORATIONS_DEFAULT);
+    settings.roundedWindows=conf.getBool("roundedWindows",GUI_DECORATIONS_DEFAULT);
+    settings.roundedButtons=conf.getBool("roundedButtons",GUI_DECORATIONS_DEFAULT);
+    settings.roundedMenus=conf.getBool("roundedMenus",0);
+    settings.roundedTabs=conf.getBool("roundedTabs",GUI_DECORATIONS_DEFAULT);
+    settings.roundedScrollbars=conf.getBool("roundedScrollbars",GUI_DECORATIONS_DEFAULT);
 
-    settings.separateFMColors=conf.getInt("separateFMColors",0);
-    settings.insEditColorize=conf.getInt("insEditColorize",0);
+    settings.separateFMColors=conf.getBool("separateFMColors",0);
+    settings.insEditColorize=conf.getBool("insEditColorize",0);
 
-    settings.chipNames=conf.getInt("chipNames",0);
-    settings.overflowHighlight=conf.getInt("overflowHighlight",0);
-    settings.flatNotes=conf.getInt("flatNotes",0);
-    settings.germanNotation=conf.getInt("germanNotation",0);
+    settings.overflowHighlight=conf.getBool("overflowHighlight",0);
+    settings.flatNotes=conf.getBool("flatNotes",0);
+    settings.germanNotation=conf.getBool("germanNotation",0);
 
-    settings.frameBorders=conf.getInt("frameBorders",0);
+    settings.frameBorders=conf.getBool("frameBorders",0);
 
     settings.noteOffLabel=conf.getString("noteOffLabel","OFF");
     settings.noteRelLabel=conf.getString("noteRelLabel","===");
@@ -5225,45 +5223,44 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.orderRowsBase=conf.getInt("orderRowsBase",1);
     settings.fmNames=conf.getInt("fmNames",0);
     settings.statusDisplay=conf.getInt("statusDisplay",0);
-    settings.playbackTime=conf.getInt("playbackTime",1);
-    settings.viewPrevPattern=conf.getInt("viewPrevPattern",1);
+    settings.playbackTime=conf.getBool("playbackTime",1);
+    settings.viewPrevPattern=conf.getBool("viewPrevPattern",1);
     settings.susPosition=conf.getInt("susPosition",0);
 
     settings.titleBarInfo=conf.getInt("titleBarInfo",1);
-    settings.titleBarSys=conf.getInt("titleBarSys",1);
+    settings.titleBarSys=conf.getBool("titleBarSys",1);
 
-    settings.oplStandardWaveNames=conf.getInt("oplStandardWaveNames",0);
+    settings.oplStandardWaveNames=conf.getBool("oplStandardWaveNames",0);
 
-    settings.horizontalDataView=conf.getInt("horizontalDataView",0);
-    settings.noMultiSystem=conf.getInt("noMultiSystem",0);
-    settings.oldMacroVSlider=conf.getInt("oldMacroVSlider",0);
-    settings.unsignedDetune=conf.getInt("unsignedDetune",0);
-    settings.centerPattern=conf.getInt("centerPattern",0);
-    settings.ordersCursor=conf.getInt("ordersCursor",1);
-    settings.oneDigitEffects=conf.getInt("oneDigitEffects",0);
+    settings.horizontalDataView=conf.getBool("horizontalDataView",0);
+    settings.noMultiSystem=conf.getBool("noMultiSystem",0);
+    settings.oldMacroVSlider=conf.getBool("oldMacroVSlider",0);
+    settings.unsignedDetune=conf.getBool("unsignedDetune",0);
+    settings.centerPattern=conf.getBool("centerPattern",0);
+    settings.ordersCursor=conf.getBool("ordersCursor",1);
+    settings.oneDigitEffects=conf.getBool("oneDigitEffects",0);
     settings.orderButtonPos=conf.getInt("orderButtonPos",2);
     settings.memUsageUnit=conf.getInt("memUsageUnit",1);
-    settings.capitalMenuBar=conf.getInt("capitalMenuBar",0);
+    settings.capitalMenuBar=conf.getBool("capitalMenuBar",0);
     settings.insIconsStyle=conf.getInt("insIconsStyle",1);
-    settings.sysSeparators=conf.getInt("sysSeparators",1);
+    settings.sysSeparators=conf.getBool("sysSeparators",1);
 
     settings.autoMacroStepSize=conf.getInt("autoMacroStepSize",0);
   }
 
   if (groups&GUI_SETTINGS_LAYOUTS) {
     settings.fmLayout=conf.getInt("fmLayout",4);
-    settings.sampleLayout=conf.getInt("sampleLayout",0);
     settings.exportOptionsLayout=conf.getInt("exportOptionsLayout",1);
-    settings.unifiedDataView=conf.getInt("unifiedDataView",0);
+    settings.unifiedDataView=conf.getBool("unifiedDataView",0);
     settings.macroLayout=conf.getInt("macroLayout",0);
     settings.controlLayout=conf.getInt("controlLayout",3);
-    settings.classicChipOptions=conf.getInt("classicChipOptions",0);
+    settings.classicChipOptions=conf.getBool("classicChipOptions",0);
   }
 
   if (groups&GUI_SETTINGS_COLOR) {
     settings.guiColorsBase=conf.getInt("guiColorsBase",0);
     settings.guiColorsShading=conf.getInt("guiColorsShading",0);
-    settings.basicColors=conf.getInt("basicColors",1);
+    settings.basicColors=conf.getBool("basicColors",1);
 
     // colors
     for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -5331,7 +5328,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.iconSize,2,48);
   clampSetting(settings.audioEngine,0,4);
   clampSetting(settings.audioQuality,0,1);
-  clampSetting(settings.audioHiPass,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.audioChans,1,16);
@@ -5384,83 +5380,29 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.orderRowsBase,0,1);
   clampSetting(settings.soloAction,0,2);
   clampSetting(settings.ctrlWheelModifier,0,3);
-  clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
   clampSetting(settings.wrapVertical,0,3);
   clampSetting(settings.fmNames,0,2);
-  clampSetting(settings.allowEditDocking,0,1);
-  clampSetting(settings.chipNames,0,1);
-  clampSetting(settings.overflowHighlight,0,1);
-  clampSetting(settings.flatNotes,0,1);
-  clampSetting(settings.germanNotation,0,1);
-  clampSetting(settings.stepOnDelete,0,1);
   clampSetting(settings.scrollStep,0,1);
-  clampSetting(settings.sysSeparators,0,1);
-  clampSetting(settings.forceMono,0,1);
   clampSetting(settings.controlLayout,0,3);
   clampSetting(settings.statusDisplay,0,3);
   clampSetting(settings.dpiScale,0.0f,4.0f);
-  clampSetting(settings.viewPrevPattern,0,1);
   clampSetting(settings.guiColorsBase,0,1);
   clampSetting(settings.guiColorsShading,0,100);
-  clampSetting(settings.avoidRaisingPattern,0,1);
-  clampSetting(settings.insFocusesPattern,0,1);
-  clampSetting(settings.stepOnInsert,0,1);
-  clampSetting(settings.unifiedDataView,0,1);
-#ifndef FLATPAK_WORKAROUNDS
-  clampSetting(settings.sysFileDialog,0,1);
-#endif
-  clampSetting(settings.roundedWindows,0,1);
-  clampSetting(settings.roundedButtons,0,1);
-  clampSetting(settings.roundedMenus,0,1);
-  clampSetting(settings.roundedTabs,0,1);
-  clampSetting(settings.roundedScrollbars,0,1);
-  clampSetting(settings.loadFallback,0,1);
-  clampSetting(settings.loadFallbackPat,0,1);
   clampSetting(settings.fmLayout,0,7);
   clampSetting(settings.susPosition,0,3);
   clampSetting(settings.effectCursorDir,0,2);
-  clampSetting(settings.cursorPastePos,0,1);
   clampSetting(settings.titleBarInfo,0,3);
-  clampSetting(settings.titleBarSys,0,1);
-  clampSetting(settings.frameBorders,0,1);
-  clampSetting(settings.effectDeletionAltersValue,0,1);
-  clampSetting(settings.sampleLayout,0,1);
-  clampSetting(settings.separateFMColors,0,1);
-  clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
   clampSetting(settings.sampleVol,0,100);
-  clampSetting(settings.pushNibble,0,1);
   clampSetting(settings.scrollChangesOrder,0,2);
-  clampSetting(settings.oplStandardWaveNames,0,1);
-  clampSetting(settings.cursorMoveNoScroll,0,1);
-  clampSetting(settings.lowLatency,0,1);
   clampSetting(settings.notePreviewBehavior,0,3);
-  clampSetting(settings.powerSave,0,1);
-  clampSetting(settings.absorbInsInput,0,1);
-  clampSetting(settings.eventDelay,0,1);
-  clampSetting(settings.moveWindowTitle,0,1);
-  clampSetting(settings.hiddenSystems,0,1);
-  clampSetting(settings.mswEnabled,0,1);
-  clampSetting(settings.horizontalDataView,0,1);
-  clampSetting(settings.noMultiSystem,0,1);
-  clampSetting(settings.oldMacroVSlider,0,1);
-  clampSetting(settings.displayAllInsTypes,0,1);
   clampSetting(settings.noteCellSpacing,0,32);
   clampSetting(settings.insCellSpacing,0,32);
   clampSetting(settings.volCellSpacing,0,32);
   clampSetting(settings.effectCellSpacing,0,32);
   clampSetting(settings.effectValCellSpacing,0,32);
-  clampSetting(settings.doubleClickColumn,0,1);
-  clampSetting(settings.blankIns,0,1);
-  clampSetting(settings.warnNotePassthrough,0,1);
   clampSetting(settings.dragMovesSelection,0,5);
-  clampSetting(settings.draggableDataView,0,1);
-  clampSetting(settings.unsignedDetune,0,1);
-  clampSetting(settings.noThreadedInput,0,1);
-  clampSetting(settings.saveWindowPos,0,1);
-  clampSetting(settings.clampSamples,0,1);
-  clampSetting(settings.saveUnusedPatterns,0,1);
   clampSetting(settings.channelColors,0,2);
   clampSetting(settings.channelTextColors,0,2);
   clampSetting(settings.channelStyle,0,5);
@@ -5468,86 +5410,43 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.channelFeedbackStyle,0,4);
   clampSetting(settings.channelFeedbackGamma,0.0f,2.0f);
   clampSetting(settings.channelFont,0,1);
-  clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
-  clampSetting(settings.midiOutClock,0,1);
-  clampSetting(settings.midiOutTime,0,1);
-  clampSetting(settings.midiOutProgramChange,0,1);
   clampSetting(settings.midiOutMode,0,2);
   clampSetting(settings.midiOutTimeRate,0,4);
-  clampSetting(settings.centerPattern,0,1);
-  clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
   clampSetting(settings.macroLayout,0,4);
   clampSetting(settings.doubleClickTime,0.02,1.0);
-  clampSetting(settings.oneDigitEffects,0,1);
-  clampSetting(settings.disableFadeIn,0,1);
   clampSetting(settings.alwaysPlayIntro,0,3);
-  clampSetting(settings.cursorFollowsOrder,0,1);
-  clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
-  clampSetting(settings.compress,0,1);
-  clampSetting(settings.renderClearPos,0,1);
-  clampSetting(settings.insertBehavior,0,1);
-  clampSetting(settings.pullDeleteRow,0,1);
   clampSetting(settings.newSongBehavior,0,1);
   clampSetting(settings.memUsageUnit,0,1);
   clampSetting(settings.cursorFollowsWheel,0,2);
-  clampSetting(settings.noDMFCompat,0,1);
-  clampSetting(settings.removeInsOff,0,1);
-  clampSetting(settings.removeVolOff,0,1);
   clampSetting(settings.playOnLoad,0,2);
-  clampSetting(settings.insTypeMenu,0,1);
-  clampSetting(settings.capitalMenuBar,0,1);
-  clampSetting(settings.centerPopup,0,1);
   clampSetting(settings.insIconsStyle,0,2);
-  clampSetting(settings.classicChipOptions,0,1);
   clampSetting(settings.exportOptionsLayout,0,2);
-  clampSetting(settings.wasapiEx,0,1);
   clampSetting(settings.chanOscThreads,0,256);
   clampSetting(settings.renderPoolThreads,0,DIV_MAX_CHIPS);
-  clampSetting(settings.writeInsNames,0,1);
-  clampSetting(settings.readInsNames,0,1);
   clampSetting(settings.fontBackend,0,1);
   clampSetting(settings.fontHinting,0,3);
-  clampSetting(settings.fontBitmap,0,1);
   clampSetting(settings.fontAutoHint,0,2);
-  clampSetting(settings.fontAntiAlias,0,1);
   clampSetting(settings.fontOversample,1,3);
-  clampSetting(settings.selectAssetOnLoad,0,1);
-  clampSetting(settings.basicColors,0,1);
-  clampSetting(settings.playbackTime,0,1);
-  clampSetting(settings.shaderOsc,0,1);
   clampSetting(settings.oscLineSize,0.25f,16.0f);
-  clampSetting(settings.songNotesWrap,0,1);
-  clampSetting(settings.rackShowLEDs,0,1);
   clampSetting(settings.mixerStyle,0,2);
   clampSetting(settings.mixerLayout,0,1);
   clampSetting(settings.cursorWheelStep,0,2);
-  clampSetting(settings.vsync,0,4);
   clampSetting(settings.frameRateLimit,0,1000);
-  clampSetting(settings.displayRenderTime,0,1);
   clampSetting(settings.vibrationStrength,0.0f,1.0f);
   clampSetting(settings.vibrationLength,10,500);
-  clampSetting(settings.inputRepeat,0,1);
   clampSetting(settings.glRedSize,0,32);
   clampSetting(settings.glGreenSize,0,32);
   clampSetting(settings.glBlueSize,0,32);
   clampSetting(settings.glAlphaSize,0,32);
   clampSetting(settings.glDepthSize,0,128);
-  clampSetting(settings.glSetBS,0,1);
   clampSetting(settings.glStencilSize,0,32);
   clampSetting(settings.glBufferSize,0,128);
-  clampSetting(settings.glDoubleBuffer,0,1);
-  clampSetting(settings.backupEnable,0,1);
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
-  clampSetting(settings.autoFillSave,0,1);
   clampSetting(settings.autoMacroStepSize,0,2);
-  clampSetting(settings.s3mOPL3,0,1);
-  clampSetting(settings.sampleImportInstDetune,0,1);
-  clampSetting(settings.backgroundPlay,0,1);
-  clampSetting(settings.noMaximizeWorkaround,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -5615,7 +5514,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("disableFadeIn",settings.disableFadeIn);
     conf.set("alwaysPlayIntro",settings.alwaysPlayIntro);
-    conf.set("iCannotWait",settings.iCannotWait);
     conf.set("noMaximizeWorkaround",settings.noMaximizeWorkaround);
 
     conf.set("compress",settings.compress);
@@ -5792,7 +5690,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("separateFMColors",settings.separateFMColors);
     conf.set("insEditColorize",settings.insEditColorize);
 
-    conf.set("chipNames",settings.chipNames);
     conf.set("overflowHighlight",settings.overflowHighlight);
     conf.set("flatNotes",settings.flatNotes);
     conf.set("germanNotation",settings.germanNotation);
@@ -5842,7 +5739,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   // layout
   if (groups&GUI_SETTINGS_LAYOUTS) {
     conf.set("fmLayout",settings.fmLayout);
-    conf.set("sampleLayout",settings.sampleLayout);
     conf.set("exportOptionsLayout",settings.exportOptionsLayout);
     conf.set("unifiedDataView",settings.unifiedDataView);
     conf.set("macroLayout",settings.macroLayout);

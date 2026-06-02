@@ -1870,11 +1870,10 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
-    bool settingsChanged;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
-    int audioHiPass;
+    bool audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1931,177 +1930,173 @@ class FurnaceGUI {
     int orderRowsBase;
     int soloAction;
     int ctrlWheelModifier;
-    int pullDeleteBehavior;
+    bool pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
-    int macroView;
     int fmNames;
-    int allowEditDocking;
-    int chipNames;
-    int overflowHighlight;
-    int flatNotes;
-    int germanNotation;
-    int stepOnDelete;
+    bool allowEditDocking;
+    bool overflowHighlight;
+    bool flatNotes;
+    bool germanNotation;
+    bool stepOnDelete;
     int scrollStep;
-    int sysSeparators;
-    int forceMono;
+    bool sysSeparators;
+    bool forceMono;
     int controlLayout;
     int statusDisplay;
     float dpiScale;
-    int viewPrevPattern;
+    bool viewPrevPattern;
     int guiColorsBase;
     int guiColorsShading;
-    int avoidRaisingPattern;
-    int insFocusesPattern;
-    int stepOnInsert;
-    int unifiedDataView;
+    bool avoidRaisingPattern;
+    bool insFocusesPattern;
+    bool stepOnInsert;
+    bool unifiedDataView;
 #ifndef FLATPAK_WORKAROUNDS
-    int sysFileDialog;
+    bool sysFileDialog;
 #endif
-    int roundedWindows;
-    int roundedButtons;
-    int roundedMenus;
-    int roundedTabs;
-    int roundedScrollbars;
-    int loadFallback;
-    int loadFallbackPat;
+    bool roundedWindows;
+    bool roundedButtons;
+    bool roundedMenus;
+    bool roundedTabs;
+    bool roundedScrollbars;
+    bool loadFallback;
+    bool loadFallbackPat;
     int fmLayout;
-    int sampleLayout;
     int susPosition;
     int effectCursorDir;
-    int cursorPastePos;
+    bool cursorPastePos;
     int titleBarInfo;
-    int titleBarSys;
-    int frameBorders;
-    int effectDeletionAltersValue;
-    int oscRoundedCorners;
-    int oscTakesEntireWindow;
-    int oscBorder;
-    int oscEscapesBoundary;
-    int oscMono;
-    int oscAntiAlias;
+    bool titleBarSys;
+    bool frameBorders;
+    bool effectDeletionAltersValue;
+    bool oscRoundedCorners;
+    bool oscTakesEntireWindow;
+    bool oscBorder;
+    bool oscEscapesBoundary;
+    bool oscMono;
+    bool oscAntiAlias;
     float oscLineSize;
-    int separateFMColors;
-    int insEditColorize;
+    bool separateFMColors;
+    bool insEditColorize;
     int metroVol;
     int sampleVol;
-    int pushNibble;
+    bool pushNibble;
     int scrollChangesOrder;
-    int oplStandardWaveNames;
-    int cursorMoveNoScroll;
-    int lowLatency;
+    bool oplStandardWaveNames;
+    bool cursorMoveNoScroll;
+    bool lowLatency;
     int notePreviewBehavior;
-    int powerSave;
-    int absorbInsInput;
-    int eventDelay;
-    int moveWindowTitle;
-    int hiddenSystems;
-    int mswEnabled;
-    int horizontalDataView;
-    int noMultiSystem;
-    int oldMacroVSlider;
-    int displayAllInsTypes;
+    bool powerSave;
+    bool absorbInsInput;
+    bool eventDelay;
+    bool moveWindowTitle;
+    bool hiddenSystems;
+    bool mswEnabled;
+    bool horizontalDataView;
+    bool noMultiSystem;
+    bool oldMacroVSlider;
+    bool displayAllInsTypes;
     int noteCellSpacing;
     int insCellSpacing;
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
-    int doubleClickColumn;
-    int blankIns;
+    bool doubleClickColumn;
+    bool blankIns;
     int dragMovesSelection;
-    int draggableDataView;
-    int cursorFollowsOrder;
-    int unsignedDetune;
-    int noThreadedInput;
-    int saveWindowPos;
-    int clampSamples;
-    int saveUnusedPatterns;
+    bool draggableDataView;
+    bool cursorFollowsOrder;
+    bool unsignedDetune;
+    bool noThreadedInput;
+    bool saveWindowPos;
+    bool clampSamples;
+    bool saveUnusedPatterns;
     int channelColors;
     int channelTextColors;
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
     int channelFont;
-    int channelTextCenter;
-    int midiOutClock;
-    int midiOutTime;
-    int midiOutProgramChange;
+    bool channelTextCenter;
+    bool midiOutClock;
+    bool midiOutTime;
+    bool midiOutProgramChange;
     int midiOutMode;
     int midiOutTimeRate;
     int maxRecentFile;
-    int centerPattern;
-    int ordersCursor;
+    bool centerPattern;
+    bool ordersCursor;
     int persistFadeOut;
     int exportLoops;
     double exportFadeOut;
     int macroLayout;
     float doubleClickTime;
-    int oneDigitEffects;
-    int disableFadeIn;
+    bool oneDigitEffects;
+    bool disableFadeIn;
     int alwaysPlayIntro;
-    int iCannotWait;
     int orderButtonPos;
-    int compress;
-    int renderClearPos;
-    int insertBehavior;
-    int pullDeleteRow;
+    bool compress;
+    bool renderClearPos;
+    bool insertBehavior;
+    bool pullDeleteRow;
     int newSongBehavior;
     int memUsageUnit;
     int cursorFollowsWheel;
-    int noDMFCompat;
-    int removeInsOff;
-    int removeVolOff;
+    bool noDMFCompat;
+    bool removeInsOff;
+    bool removeVolOff;
     int playOnLoad;
-    int insTypeMenu;
-    int capitalMenuBar;
-    int centerPopup;
+    bool insTypeMenu;
+    bool capitalMenuBar;
+    bool centerPopup;
     int insIconsStyle;
-    int classicChipOptions;
+    bool classicChipOptions;
     int exportOptionsLayout;
-    int wasapiEx;
+    bool wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
-    int writeInsNames;
-    int readInsNames;
+    bool writeInsNames;
+    bool readInsNames;
     int fontBackend;
     int fontHinting;
-    int fontBitmap;
+    bool fontBitmap;
     int fontAutoHint;
-    int fontAntiAlias;
+    bool fontAntiAlias;
     int fontOversample;
-    int selectAssetOnLoad;
-    int basicColors;
-    int playbackTime;
+    bool selectAssetOnLoad;
+    bool basicColors;
+    bool playbackTime;
     int shaderOsc;
     int cursorWheelStep;
-    int vsync;
+    bool vsync;
     int frameRateLimit;
-    int displayRenderTime;
-    int inputRepeat;
+    bool displayRenderTime;
+    bool inputRepeat;
     int glRedSize;
     int glGreenSize;
     int glBlueSize;
     int glAlphaSize;
     int glDepthSize;
-    int glSetBS;
+    bool glSetBS;
     int glStencilSize;
     int glBufferSize;
-    int glDoubleBuffer;
-    int backupEnable;
+    bool glDoubleBuffer;
+    bool backupEnable;
     int backupInterval;
     int backupMaxCopies;
-    int autoFillSave;
+    bool autoFillSave;
     int autoMacroStepSize;
-    int backgroundPlay;
-    int noMaximizeWorkaround;
+    bool backgroundPlay;
+    bool noMaximizeWorkaround;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
-    int s3mOPL3;
-    int songNotesWrap;
-    int rackShowLEDs;
-    int warnNotePassthrough;
-    int sampleImportInstDetune;
+    bool s3mOPL3;
+    bool songNotesWrap;
+    bool rackShowLEDs;
+    bool warnNotePassthrough;
+    bool sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
     float channelFeedbackGamma;
@@ -2125,7 +2120,6 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
-      settingsChanged(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
@@ -2191,10 +2185,8 @@ class FurnaceGUI {
       pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
-      macroView(0),
       fmNames(0),
       allowEditDocking(1),
-      chipNames(0),
       overflowHighlight(0),
       germanNotation(0),
       stepOnDelete(0),
@@ -2222,7 +2214,6 @@ class FurnaceGUI {
       loadFallback(1),
       loadFallbackPat(1),
       fmLayout(4),
-      sampleLayout(0),
       susPosition(0),
       effectCursorDir(1),
       cursorPastePos(1),
@@ -2294,7 +2285,6 @@ class FurnaceGUI {
       oneDigitEffects(0),
       disableFadeIn(0),
       alwaysPlayIntro(0),
-      iCannotWait(0),
       orderButtonPos(2),
       compress(1),
       renderClearPos(0),
