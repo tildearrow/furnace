@@ -26,6 +26,28 @@
 #include "intConst.h"
 #include <imgui.h>
 
+static const char* valueInputStyles[]={
+  _N("Disabled/custom"),
+  _N("Two octaves (0 is C-4, F is D#5)"),
+  _N("Raw (note number is value)"),
+  _N("Two octaves alternate (lower keys are 0-9, upper keys are A-F)"),
+  _N("Use dual control change (one for each nibble)"),
+  _N("Use 14-bit control change"),
+  _N("Use single control change (imprecise)")
+};
+
+static String stripName(String what) {
+  String ret;
+  for (char& i: what) {
+    if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
+      ret+=i;
+    } else {
+      ret+='-';
+    }
+  }
+  return ret;
+}
+
 SettingEntry::SettingEntry():
   type(SettingNone),
   label(NULL),
@@ -1241,6 +1263,94 @@ void FurnaceGUI::initSettings() {
         {0,100,"%d%%"}
       ).Callback([this]{e->setSamplePreviewVol(((float)settings.sampleVol)/100.0f);})
     })
+  }
+  CATEGORY_END
+  CATEGORY_BEGIN(_N("MIDI")) {},{
+    SUBCATEGORY(_N("MIDI input"),{
+      SettingEntry(_N("MIDI input device/re-scan"),NULL,[this]{
+        bool ret=false;
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("MIDI input"));
+        ImGui::SameLine();
+        String midiInName=settings.midiInDevice.empty()?_("<disabled>"):settings.midiInDevice;
+        bool hasToReloadMidi=false;
+        if (ImGui::BeginCombo("##MidiInDevice",midiInName.c_str())) {
+          if (ImGui::Selectable(_("<disabled>"),settings.midiInDevice.empty())) {
+            settings.midiInDevice="";
+            hasToReloadMidi=true;
+            ret=true;
+          }
+          for (String& i: e->getMidiIns()) {
+            if (ImGui::Selectable(i.c_str(),i==settings.midiInDevice)) {
+              settings.midiInDevice=i;
+              hasToReloadMidi=true;
+              ret=true;
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button(_("Re-scan MIDI devices"))) {
+          e->rescanMidiDevices();
+          audioEngineChanged=true;
+          ret=false;
+        }
+
+        if (hasToReloadMidi) {
+          midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
+          midiMap.compile();
+        }
+
+        if (ImGui::Checkbox(_("Note input"),&midiMap.noteInput)) ret=true;
+        if (ImGui::Checkbox(_("Velocity input"),&midiMap.volInput)) ret=true;
+        // TODO
+        //ImGui::Checkbox(_("Use raw velocity value (don't map from linear to log)"),&midiMap.rawVolume);
+        //ImGui::Checkbox(_("Polyphonic/chord input"),&midiMap.polyInput);
+        if (ImGui::Checkbox(_("Map MIDI channels to direct channels"),&midiMap.directChannel)) {
+          e->setMidiDirect(midiMap.directChannel);
+          e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+          ret=true;
+        }
+        if (midiMap.directChannel) {
+          if (ImGui::Checkbox(_("Program change pass-through"),&midiMap.directProgram)) {
+            e->setMidiDirectProgram(midiMap.directChannel && midiMap.directProgram);
+            ret=true;
+          }
+        }
+        if (ImGui::Checkbox(_("Map Yamaha FM voice data to instruments"),&midiMap.yamahaFMResponse)) ret=true;
+        if (!(midiMap.directChannel && midiMap.directProgram)) {
+          if (ImGui::Checkbox(_("Program change is instrument selection"),&midiMap.programChange)) ret=true;
+        }
+        //ImGui::Checkbox(_("Listen to MIDI clock"),&midiMap.midiClock);
+        //ImGui::Checkbox(_("Listen to MIDI time code"),&midiMap.midiTimeCode);
+        if (ImGui::Combo(_("Value input style"),&midiMap.valueInputStyle,LocalizedComboGetter,valueInputStyles,7)) ret=true;
+        if (midiMap.valueInputStyle>3) {
+          if (midiMap.valueInputStyle==6) {
+            if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputControlSingle,1,16)) {
+              if (midiMap.valueInputControlSingle<0) midiMap.valueInputControlSingle=0;
+              if (midiMap.valueInputControlSingle>127) midiMap.valueInputControlSingle=127;
+              ret=true;
+            }
+          } else {
+            if (ImGui::InputInt((midiMap.valueInputStyle==4)?_("CC of upper nibble##valueCC1"):_("MSB CC##valueCC1"),&midiMap.valueInputControlMSB,1,16)) {
+              if (midiMap.valueInputControlMSB<0) midiMap.valueInputControlMSB=0;
+              if (midiMap.valueInputControlMSB>127) midiMap.valueInputControlMSB=127;
+              ret=true;
+            }
+            if (ImGui::InputInt((midiMap.valueInputStyle==4)?_("CC of lower nibble##valueCC2"):_("LSB CC##valueCC2"),&midiMap.valueInputControlLSB,1,16)) {
+              if (midiMap.valueInputControlLSB<0) midiMap.valueInputControlLSB=0;
+              if (midiMap.valueInputControlLSB>127) midiMap.valueInputControlLSB=127;
+              ret=true;
+            }
+          }
+        }
+
+        return ret;
+      }),
+    }),
+    SUBCATEGORY(_N("MIDI output"),{
+    }),
   }
   CATEGORY_END
   CATEGORY_BEGIN(_N("Emulation")) {

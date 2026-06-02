@@ -235,7 +235,7 @@ const char* pcspkrOutMethods[]={
   _N("outb()")
 };
 
-const char* valueInputStyles[]={
+static const char* valueInputStyles[]={
   _N("Disabled/custom"),
   _N("Two octaves (0 is C-4, F is D#5)"),
   _N("Raw (note number is value)"),
@@ -317,7 +317,7 @@ const char* specificControls[18]={
   ImGui::EndChild(); \
   ImGui::EndTabItem();
 
-String stripName(String what) {
+static String stripName(String what) {
   String ret;
   for (char& i: what) {
     if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
