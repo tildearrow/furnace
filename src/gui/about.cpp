@@ -25,7 +25,7 @@ const char* aboutLine[]={
   "tildearrow",
   _N("is proud to present"),
   "",
-  ("Pee " DIV_VERSION),
+  ("Furnace " DIV_VERSION),
   "",
   _N("the biggest multi-system chiptune tracker!"),
   _N("featuring DefleMask song compatibility."),
@@ -207,7 +207,7 @@ const char* aboutLine[]={
   _N("LICENSE for more information."),
 #endif
   "",
-  _N("help Pee grow:"),
+  _N("help Furnace grow:"),
   "https://github.com/tildearrow/furnace",
   "",
   _N("contact tildearrow at:"),

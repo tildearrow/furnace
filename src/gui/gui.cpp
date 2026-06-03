@@ -705,18 +705,18 @@ void FurnaceGUI::updateWindowTitle() {
   String title;
   switch (settings.titleBarInfo) {
     case 0:
-      title="Pee";
+      title="Furnace";
       break;
     case 1:
       if (e->song.name.empty()) {
-        title="Pee";
+        title="Furnace";
       } else {
-        title=fmt::sprintf("%s - Pee",e->song.name);
+        title=fmt::sprintf("%s - Furnace",e->song.name);
       }
       break;
     case 2:
       if (curFileName.empty()) {
-        title="Pee";
+        title="Furnace";
       } else {
         String shortName;
         size_t pos=curFileName.rfind(DIR_SEPARATOR);
@@ -725,14 +725,14 @@ void FurnaceGUI::updateWindowTitle() {
         } else {
           shortName=curFileName.substr(pos+1);
         }
-        title=fmt::sprintf("%s - Pee",shortName);
+        title=fmt::sprintf("%s - Furnace",shortName);
       }
       break;
     case 3:
       if (curFileName.empty()) {
-        title="Pee";
+        title="Furnace";
       } else {
-        title=fmt::sprintf("%s - Pee",curFileName);
+        title=fmt::sprintf("%s - Furnace",curFileName);
       }
       break;
   }
@@ -1946,7 +1946,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       }
       hasOpened=fileDialog->openLoad(
         _("Restore Backup"),
-        {_("Pee song"), "*.fur"},
+        {_("Furnace song"), "*.fur"},
         backupPath+String(DIR_SEPARATOR_STR),
         dpiScale
       );
@@ -1955,7 +1955,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openSave(
         _("Save File"),
-        {_("Pee song"), "*.fur"},
+        {_("Furnace song"), "*.fur"},
         workingDirSong,
         dpiScale
       );
@@ -1993,7 +1993,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         _("Load Instrument"),
         {_("all compatible files"), "*.fui *.dmp *.tfi *.vgi *.eif *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
-         _("Pee instrument"), "*.fui",
+         _("Furnace instrument"), "*.fui",
          _("DefleMask preset"), "*.dmp",
          _("TFM Music Maker instrument"), "*.tfi",
          _("VGM Music Maker instrument"), "*.vgi",
@@ -2045,7 +2045,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openSave(
         _("Save Instrument"),
-        {_("Pee instrument"), "*.fui"},
+        {_("Furnace instrument"), "*.fui"},
         workingDirIns,
         dpiScale,
         (settings.autoFillSave)?e->getIns(curIns)->name:""
@@ -2086,7 +2086,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
       hasOpened=fileDialog->openSave(
         _("Save Wavetable"),
-        {_("Pee wavetable"), ".fuw"},
+        {_("Furnace wavetable"), ".fuw"},
         workingDirWave,
         dpiScale
       );
@@ -2464,7 +2464,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
       hasOpened=fileDialog->openSave(
         _("Save Test"),
-        {_("Pee song"), "*.fur",
+        {_("Furnace song"), "*.fur",
          _("DefleMask module"), "*.dmf"},
         workingDirTest,
         dpiScale
@@ -2668,21 +2668,21 @@ int FurnaceGUI::load(String path) {
     }
   } else {
     // warn the user
-    showWarning(_("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nPee will not save backups of backups."),GUI_WARN_GENERIC);
+    showWarning(_("you have loaded a backup!\nif you need to, please save it somewhere.\n\nDO NOT RELY ON THE BACKUP SYSTEM FOR AUTO-SAVE!\nFurnace will not save backups of backups."),GUI_WARN_GENERIC);
   }
 
   // if this is a PC module import, warn the user on the first import.
   if (!tutorial.importedMOD && e->song.version==DIV_VERSION_MOD) {
-    showWarning(_("you have imported a ProTracker/SoundTracker/PC module!\nkeep the following in mind:\n\n- Pee is not a replacement for your MOD player\n- import is not perfect. your song may sound different:\n  - E6x pattern loop is not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+    showWarning(_("you have imported a ProTracker/SoundTracker/PC module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your MOD player\n- import is not perfect. your song may sound different:\n  - E6x pattern loop is not supported\n\nhave fun!"),GUI_WARN_IMPORT);
   }
   if (!tutorial.importedS3M && e->song.version==DIV_VERSION_S3M) {
-    showWarning(_("you have imported a Scream Tracker 3 module!\nkeep the following in mind:\n\n- Pee is not a replacement for your S3M player\n- import is not perfect. your song may sound different:\n  - OPL instruments may be detuned\n\nhave fun!"),GUI_WARN_IMPORT);
+    showWarning(_("you have imported a Scream Tracker 3 module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your S3M player\n- import is not perfect. your song may sound different:\n  - OPL instruments may be detuned\n\nhave fun!"),GUI_WARN_IMPORT);
   }
   if (!tutorial.importedXM && e->song.version==DIV_VERSION_XM) {
-    showWarning(_("you have imported a FastTracker II module!\nkeep the following in mind:\n\n- Pee is not a replacement for your XM player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+    showWarning(_("you have imported a FastTracker II module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your XM player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
   }
   if (!tutorial.importedIT && e->song.version==DIV_VERSION_IT) {
-    showWarning(_("you have imported an Impulse Tracker module!\nkeep the following in mind:\n\n- Pee is not a replacement for your IT player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n  - channel volume changes are not supported\n  - New Note Actions (NNA) are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
+    showWarning(_("you have imported an Impulse Tracker module!\nkeep the following in mind:\n\n- Furnace is not a replacement for your IT player\n- import is not perfect. your song may sound different:\n  - envelopes have been converted to macros\n  - global volume changes are not supported\n  - channel volume changes are not supported\n  - New Note Actions (NNA) are not supported\n\nhave fun!"),GUI_WARN_IMPORT);
   }
   return 0;
 }
@@ -4264,7 +4264,7 @@ bool FurnaceGUI::loop() {
   }
 
   if (safeMode) {
-    showError(_("Pee has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Pee start up in this mode.\nfont loading is one of these."));
+    showError(_("Furnace has been started in Safe Mode.\nthis means that:\n\n- software rendering is being used\n- audio output may not work\n- font loading is disabled\n\ncheck any settings which may have made Furnace start up in this mode.\nfont loading is one of these."));
     settingsOpen=true;
   }
 
@@ -4836,7 +4836,7 @@ bool FurnaceGUI::loop() {
       }
 
       if (initAttempts>5) {
-        reportError(_("can't keep going without graphics! Pee will quit now."));
+        reportError(_("can't keep going without graphics! Furnace will quit now."));
         quit=true;
         break;
       }
@@ -5200,7 +5200,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndDisabled();
         if (sysFullScreen) {
-          ImGui::SetItemTooltip(_("the system has set Pee to full screen."));
+          ImGui::SetItemTooltip(_("the system has set Furnace to full screen."));
         }
 #endif
         if (ImGui::MenuItem(_("lock layout"),NULL,lockLayout)) {
@@ -6687,7 +6687,7 @@ bool FurnaceGUI::loop() {
     ImGui::SetNextWindowSizeConstraints(romExportMinSize,romExportMaxSize);
     if (ImGui::BeginPopupModal(_("CmdStream Export Progress"),NULL)) {
       if (csExportThread==NULL) {
-        ImGui::TextWrapped("%s",_("it appears your Pee has too many bugs in it. any song you can export?"));
+        ImGui::TextWrapped("%s",_("it appears your Furnace has too many bugs in it. any song you can export?"));
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::Button(_("Talk With Devs"),ImVec2(ImGui::GetContentRegionAvail().x/3.0f,0.0f))) {
           ImGui::CloseCurrentPopup();
@@ -7973,9 +7973,9 @@ bool FurnaceGUI::init() {
       settings.renderBackend="Software";
       e->setConf("renderBackend","Software");
       e->saveConf();
-      lastError=fmt::sprintf(_("could not init renderer!\nfalling back to software renderer. please restart Pee."));
+      lastError=fmt::sprintf(_("could not init renderer!\nfalling back to software renderer. please restart Furnace."));
     } else if (settings.renderBackend=="SDL") {
-      lastError=fmt::sprintf(_("could not init renderer! %s\nfalling back to software renderer. please restart Pee."),SDL_GetError());
+      lastError=fmt::sprintf(_("could not init renderer! %s\nfalling back to software renderer. please restart Furnace."),SDL_GetError());
       settings.renderBackend="Software";
       e->setConf("renderBackend","Software");
       e->saveConf();
@@ -7988,7 +7988,7 @@ bool FurnaceGUI::init() {
   rend->preInit(e->getConfObject());
 
   logD("creating window...");
-  sdlWin=SDL_CreateWindow("Pee",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|rend->getWindowFlags());
+  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|rend->getWindowFlags());
   if (sdlWin==NULL) {
     const char* sdlErr=SDL_GetError();
     lastError=fmt::sprintf(_("could not open window! %s"),sdlErr);
@@ -7996,7 +7996,7 @@ bool FurnaceGUI::init() {
       settings.renderBackend="Software";
       e->setConf("renderBackend","Software");
       e->saveConf();
-      lastError+=_("\nfalling back to software renderer. please restart Pee.");
+      lastError+=_("\nfalling back to software renderer. please restart Furnace.");
     }
     return false;
   }
@@ -8083,9 +8083,9 @@ bool FurnaceGUI::init() {
       settings.renderBackend="Software";
       e->setConf("renderBackend","Software");
       e->saveConf();
-      lastError=fmt::sprintf(_("could not init renderer!\nfalling back to software renderer. please restart Pee."));
+      lastError=fmt::sprintf(_("could not init renderer!\nfalling back to software renderer. please restart Furnace."));
     } else if (settings.renderBackend=="SDL") {
-      lastError=fmt::sprintf(_("could not init renderer! %s\nfalling back to software renderer. please restart Pee."),SDL_GetError());
+      lastError=fmt::sprintf(_("could not init renderer! %s\nfalling back to software renderer. please restart Furnace."),SDL_GetError());
       settings.renderBackend="Software";
       e->setConf("renderBackend","Software");
       e->saveConf();
