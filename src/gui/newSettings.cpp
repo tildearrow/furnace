@@ -1386,17 +1386,262 @@ void FurnaceGUI::initSettings() {
       {0.0f,2.0f}
     ).Condition([this]{return settings.channelFeedbackStyle==4;})
   },{
-    SUBCATEGORY(_N("Pattern view labels"),{
-      SettingEntry::InputText(
-        _N("Note off (3-char)"),
-        "noteOffLabel",&settings.noteOffLabel,
-        "OFF"
+    SUBCATEGORY(_N("Scaling"),{
+      SettingEntry(_N("Automatic UI scaling factor"),NULL,[this]{
+        bool dpiScaleAuto=(settings.dpiScale<0.5f), ret=false;
+        if (ImGui::Checkbox(_("Automatic UI scaling factor"),&dpiScaleAuto)) {
+          if (dpiScaleAuto) {
+            settings.dpiScale=0.0f;
+          } else {
+            settings.dpiScale=1.0f;
+          }
+          ret=true;
+        }
+        return ret;
+      }),
+      SettingEntry::SliderFloat(
+        _N("UI scaling factor"),"dpiScale",
+        &settings.dpiScale,
+        {1.0f,3.0f}
+      ).Condition([this]{return settings.dpiScale>0.5f;}),
+      SettingEntry::SliderInt(
+        _N("Icon size"),"iconSize",
+        &settings.iconSize,
+        {3,48}
       ),
-      SettingEntry::InputText(
-        _N("Note release (3-char)"),
-        "macroRelLabel",&settings.macroRelLabel,
-        "==="
+    }),
+    SUBCATEGORY(_N("Text"),{
+#ifdef HAVE_FREETYPE
+      SettingEntry::ComboInt(
+        _N("Font renderer"),"fontBackend",
+        &settings.fontBackend,{
+          {"stb_truetype",0},
+          {"FreeType",1}
+        }
       ),
+#endif
+      SettingEntry::ComboInt(
+        _N("Main font"),"mainFont",
+        &settings.mainFont,{
+          {"IBM Plex Sans",0},
+          {"Liberation Sans",1},
+          {"Exo",2},
+          {"Proggy Clean",3},
+          {"GNU Unifont",4},
+          {_N("<Use system font>"),5},
+          {_N("<Custom...>"),6}
+        }
+      ),
+      SettingEntry::Path(
+        _N("Main font path"),"mainFontPath",
+        &settings.mainFontPath,
+        GUI_FILE_LOAD_MAIN_FONT
+      ).Condition([this]{return settings.mainFont==6;}),
+      SettingEntry::InputInt(
+        _N("Main font size"),"mainFontSize",
+        &settings.mainFontSize,
+        {3,96,1,3}
+      ),
+      SettingEntry::ComboInt(
+        _N("Header font"),"headFont",
+        &settings.headFont,{
+          {"IBM Plex Sans",0},
+          {"Liberation Sans",1},
+          {"Exo",2},
+          {"Proggy Clean",3},
+          {"GNU Unifont",4},
+          {_N("<Use system font>"),5},
+          {_N("<Custom...>"),6}
+        }
+      ),
+      SettingEntry::Path(
+        _N("Header font path"),"headFontPath",
+        &settings.headFontPath,
+        GUI_FILE_LOAD_HEAD_FONT
+      ).Condition([this]{return settings.headFont==6;}),
+      SettingEntry::InputInt(
+        _N("Header font size"),"headFontSize",
+        &settings.headFontSize,
+        {3,96,1,3}
+      ),
+      SettingEntry::ComboInt(
+        _N("Pattern font"),"patFont",
+        &settings.patFont,{
+          {"IBM Plex Sans",0},
+          {"Liberation Sans",1},
+          {"Mononoki",2},
+          {"PT Mono",3},
+          {"GNU Unifont",4},
+          {_N("<Use system font>"),5},
+          {_N("<Custom...>"),6}
+        }
+      ),
+      SettingEntry::Path(
+        _N("Pattern font path"),"patFontPath",
+        &settings.patFontPath,
+        GUI_FILE_LOAD_PAT_FONT
+      ).Condition([this]{return settings.patFont==6;}),
+      SettingEntry::InputInt(
+        _N("Pattern font size"),"patFontSize",
+        &settings.patFontSize,
+        {3,96,1,3}
+      ),
+      SETTING_CHECKBOX(
+        _N("Anti-aliased fonts"),fontAntiAlias
+      ).Condition([this]{return settings.fontBackend==1;}),
+      SETTING_CHECKBOX(
+        _N("Support bitmap fonts"),fontBitmap
+      ).Condition([this]{return settings.fontBackend==1;}),
+      SettingEntry::Radio(
+        _N("Hinting:"),"fontHinting",
+        &settings.fontHinting,{
+          {_N("Off (soft)##fh0"),0},
+          {_N("Slight##fh1"),1},
+          {_N("Normal##fh2"),2},
+          {_N("Full (hard)##fh3"),3}
+        }
+      ).Condition([this]{return settings.fontBackend==1;}),
+      SettingEntry::Radio(
+        _N("Auto-hinter:"),"fontAutoHint",
+        &settings.fontAutoHint,{
+          {_N("Disable##fah0"),0},
+          {_N("Enable##fah1"),1},
+          {_N("Force##fah2"),2}
+        }
+      ).Condition([this]{return settings.fontBackend==1;}),
+      SettingEntry::Radio(
+        _N("Oversample:"),"fontOversample",
+        &settings.fontOversample,{
+          {_N("1×##fos1"),1,_N("saves video memory. reduces font rendering quality.\nuse for pixel/bitmap fonts.")},
+          {_N("2×##fos2"),2,_N("default.")},
+          {_N("3×##fos3"),3,_N("slightly better font rendering quality.\nuses more video memory.")}
+        }
+      ),
+      SETTING_CHECKBOX(
+        _N("Load fallback font"),loadFallback
+      ).Tooltip(_N("disable to save video memory.")),
+      SETTING_CHECKBOX(
+        _N("Load fallback font (pattern)"),loadFallbackPat
+      ).Tooltip(_N("disable to save video memory.")),
+    }),
+    SUBCATEGORY(_N("Program"),{
+      SettingEntry::Radio(
+        _N("Title bar:"),"titleBarInfo",
+        &settings.titleBarInfo,{
+          {_N("Furnace##tbar0"),0},
+          {_N("Song Name - Furnace##tbar1"),1},
+          {_N("file_name.fur - Furnace##tbar2"),2},
+          {_N("/path/to/file.fur - Furnace##tbar3"),3}
+        }
+      ).Callback([this]{updateWindowTitle();}),
+      SETTING_CHECKBOX(
+        _N("Display system name on title bar"),titleBarSys
+      ).Callback([this]{updateWindowTitle();}),
+      SETTING_CHECKBOX(
+        _N("Display chip names instead of \"multi-system\" in title bar"),noMultiSystem
+      ).Callback([this]{updateWindowTitle();}),
+      SettingEntry::Radio(
+        _N("Status bar:"),"statusDisplay",
+        &settings.statusDisplay,{
+          {_N("Cursor details##sbar0"),0},
+          {_N("File path##sbar1"),1},
+          {_N("Cursor details or file path##sbar2"),2},
+          {_N("Nothing##sbar3"),3}
+        }
+      ),
+      SETTING_CHECKBOX(_("Display playback status when playing"),playbackTime),
+      SettingEntry::Radio(
+        _N("Export options layout:"),"exportOptionsLayout",
+        &settings.exportOptionsLayout,{
+          {_N("Sub-menus in File menu##eol0"),0},
+          {_N("Modal window with tabs##eol1"),1},
+          {_N("Modal windows with options in File menu##eol2"),2}
+        }
+      ),
+      SETTING_CHECKBOX(_N("Capitalize menu bar"),capitalMenuBar),
+      SETTING_CHECKBOX(_N("Display add/configure/change/remove chip menus in File menu"),classicChipOptions)
+    }),
+    SUBCATEGORY(_N("Orders"),{
+      // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
+      // SETTING_CHECKBOX(_N("Add separators between systems in Orders"),sysSeparators),
+      SETTING_CHECKBOX(_N("Orders row number format:"),ordersCursor),
+      SettingEntry::Radio(
+        _N("Orders row number format:"),"orderRowsBase",
+        &settings.orderRowsBase,{
+          {_N("Decimal##orbD"),0},
+          {_N("Hexadecimal##orbH"),1}
+        }
+      ),
+    }),
+    SUBCATEGORY(_N("Pattern"),{
+      SETTING_CHECKBOX(_N("Center pattern view"),centerPattern),
+      SETTING_CHECKBOX(_N("Overflow pattern highlights"),overflowHighlight),
+      SETTING_CHECKBOX(_N("Display previous/next pattern"),viewPrevPattern),
+      SettingEntry::Radio(
+        _N("Pattern row number format:"),"patRowsBase",
+        &settings.patRowsBase,{
+          {_N("Decimal##prbD"),0},
+          {_N("Hexadecimal##prbH"),1}
+        }
+      ),
+      SETTING_CHECKBOX(_("Single-digit effects for 00-0F"),oneDigitEffects),
+      SETTING_CHECKBOX(_("Use flats instead of sharps"),flatNotes),
+      SETTING_CHECKBOX(_("Use German notation"),germanNotation),
+    },{
+      SUBCATEGORY(_N("Pattern view labels"),{
+        SettingEntry::InputText(
+          _N("Note off (3-char)"),
+          "noteOffLabel",&settings.noteOffLabel,
+          "OFF"
+        ),
+        SettingEntry::InputText(
+          _N("Note release (3-char)"),
+          "noteRelLabel",&settings.noteRelLabel,
+          "==="
+        ),
+        SettingEntry::InputText(
+          _N("Macro release (3-char)"),
+          "macroRelLabel",&settings.macroRelLabel,
+          "REL"
+        ),
+        SettingEntry::InputText(
+          _N("Empty field (3-char)"),
+          "emptyLabel",&settings.emptyLabel,
+          "..."
+        ),
+        SettingEntry::InputText(
+          _N("Empty field (2-char)"),
+          "emptyLabel2",&settings.emptyLabel2,
+          ".."
+        ),
+      }),
+      SUBCATEGORY(_N("Pattern view spacing after:"),{
+        SettingEntry::InputInt(
+          _N("Note"),"noteCellSpacing",
+          &settings.noteCellSpacing,
+          {0,32}
+        ),
+        SettingEntry::InputInt(
+          _N("Instrument"),"insCellSpacing",
+          &settings.insCellSpacing,
+          {0,32}
+        ),
+        SettingEntry::InputInt(
+          _N("Volume"),"volCellSpacing",
+          &settings.volCellSpacing,
+          {0,32}
+        ),
+        SettingEntry::InputInt(
+          _N("Effect"),"effectCellSpacing",
+          &settings.effectCellSpacing,
+          {0,32}
+        ),
+        SettingEntry::InputInt(
+          _N("Effect value"),"effectValCellSpacing",
+          &settings.effectValCellSpacing,
+          {0,32}
+        ),
+      })
     })
   }
   CATEGORY_END
