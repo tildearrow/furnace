@@ -5863,7 +5863,7 @@ void FurnaceGUI::commitSettings() {
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||
     settings.saaQuality!=e->getConfInt("saaQuality",3) ||
     settings.audioQuality!=e->getConfInt("audioQuality",0) ||
-    settings.audioHiPass!=e->getConfInt("audioHiPass",1)
+    settings.audioHiPass!=e->getConfBool("audioHiPass",1)
   );
 
   writeConfig(e->getConfObject());
