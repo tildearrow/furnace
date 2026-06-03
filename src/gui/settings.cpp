@@ -4918,7 +4918,7 @@ void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
 void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_GENERAL) {
     settings.renderDriver=conf.getString("renderDriver","");
-    settings.noDMFCompat=conf.getInt("noDMFCompat",0);
+    settings.noDMFCompat=conf.getBool("noDMFCompat",0);
 
     settings.dpiScale=conf.getFloat("dpiScale",0.0f);
 
