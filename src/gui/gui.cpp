@@ -1726,7 +1726,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (it!=valueKeys.cend()) {
             int num=it->second;
             if (num<10) {
-              alterSampleMap(0,num+60);
+              alterSampleMap(0,num);
               return;
             }
           }
