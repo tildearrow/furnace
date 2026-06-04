@@ -1369,6 +1369,256 @@ void FurnaceGUI::initSettings() {
     })
   }
   CATEGORY_END
+  CATEGORY_BEGIN(_N("Appearance")) {}, {
+    SUBCATEGORY(_N("Layout"),{
+      SettingEntry(_N("Workspace layout import/export/reset"),NULL,[this]{
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Workspace layout:"));
+        ImGui::SameLine();
+        if (ImGui::Button(_("Import"))) {
+          openFileDialog(GUI_FILE_IMPORT_LAYOUT);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Export"))) {
+          openFileDialog(GUI_FILE_EXPORT_LAYOUT);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Reset"))) {
+          showWarning(_("Are you sure you want to reset the workspace layout?"),GUI_WARN_RESET_LAYOUT);
+        }
+        return false;
+      }),
+      SETTING_CHECKBOX(
+        _N("Allow docking editors"),
+        allowEditDocking
+      ),
+#ifndef IS_MOBILE
+      SETTING_CHECKBOX(
+        _N("Remember window position"),
+        saveWindowPos
+      ).Tooltip(_("remembers the window's last position on start-up.")),
+#endif
+      SETTING_CHECKBOX(
+        _N("Only allow window movement when clicking on title bar"),
+        moveWindowTitle
+      ).Callback([this]{
+        applyUISettings(false);
+      }),
+      SETTING_CHECKBOX(
+        _N("Center pop-up windows"),
+        centerPopup
+      ),
+      SettingEntry::Radio(
+        _N("Play/edit controls layout:"),
+        "controlLayout",&settings.controlLayout,{
+          {_N("Classic##ecl0"),0},
+          {_N("Compact##ecl1"),1},
+          {_N("Compact (vertical)##ecl2"),2},
+          {_N("Split##ecl3"),3},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Position of buttons in Orders:"),
+        "orderButtonPos",&settings.orderButtonPos,{
+          {_N("Top##obp0"),0},
+          {_N("Left##obp1"),1},
+          {_N("Right##obp2"),2},
+        }
+      ),
+    }),
+    SUBCATEGORY(_N("Mouse"),{
+      SettingEntry::SliderFloat(
+        _N("Double-click time (seconds)"),
+        "doubleClickTime",&settings.doubleClickTime,
+        {0.02f,1.0f}
+      ),
+      SETTING_CHECKBOX(
+        _N("Don't raise pattern editor on click"),
+        avoidRaisingPattern
+      ),
+      SETTING_CHECKBOX(
+        _N("Focus pattern editor when selecting instrument"),
+        insFocusesPattern
+      ),
+      SETTING_CHECKBOX(
+        _N("Draggable instruments/samples/waves"),
+        draggableDataView
+      ),
+      SettingEntry::Radio(
+        _N("Note preview behavior:"),
+        "notePreviewBehavior",&settings.notePreviewBehavior,{
+          {_N("Never##npb0"),0},
+          {_N("When cursor is in Note column##npb1"),1},
+          {_N("When cursor is in Note column or not in edit mode##npb2"),2},
+          {_N("Always##npb3"),3},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Allow dragging selection:"),
+        "dragMovesSelection",&settings.dragMovesSelection,{
+          {_N("No##dms0"),0},
+          {_N("Yes##dms1"),1},
+          {_N("Yes (while holding Ctrl only)##dms2"),2},
+          {_N("Yes (copy)##dms3"),3},
+          {_N("Yes (while holding Ctrl only and copy)##dms4"),4},
+          {_N("Yes (holding Ctrl copies)##dms5"),5},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Toggle channel solo on:"),
+        "soloAction",&settings.soloAction,{
+          {_N("Right-click or double-click##soloA"),0},
+          {_N("Right-click##soloR"),1},
+          {_N("Double-click##soloD"),2},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"),
+        "ctrlWheelModifier",&settings.ctrlWheelModifier,{
+          {_N("Ctrl or Meta/Cmd##cwm1"),0},
+          {_N("Ctrl##cwm2"),1},
+          {_N("Meta/Cmd##cwm3"),2},
+          // technically this key is called Option on mac, but we call it Alt in getKeyName(s)
+          {_N("Alt##cwm4"),3},
+        }
+      ),
+      SETTING_CHECKBOX(
+        _N("Double click selects entire column"),
+        doubleClickColumn
+      ),
+    }),
+    SUBCATEGORY(_N("Cursor behavior"),{
+      SETTING_CHECKBOX(
+        _N("Insert pushes entire channel row"),
+        insertBehavior
+      ),
+      SETTING_CHECKBOX(
+        _N("Pull delete affects entire channel row"),
+        pullDeleteRow
+      ),
+      SETTING_CHECKBOX(
+        _N("Push value when overwriting instead of clearing it"),
+        pushNibble
+      ),
+      SETTING_CHECKBOX(
+        _N("Keyboard note/value input repeat (hold key to input continuously)"),
+        inputRepeat
+      ),
+      SettingEntry::Radio(
+        _N("Effect input behavior:"),
+        "effectCursorDir",&settings.effectCursorDir,{
+          {_N("Move down##eicb0"),0},
+          {_N("Move to effect value (otherwise move down)##eicb1"),1},
+          {_N("Move to effect value/next effect and wrap around##eicb2"),2},
+        }
+      ),
+      SETTING_CHECKBOX(
+        _N("Delete effect value when deleting effect"),
+        effectDeletionAltersValue
+      ),
+      SETTING_CHECKBOX(
+        _N("Change current instrument when changing instrument column (absorb)"),
+        absorbInsInput
+      ),
+      SETTING_CHECKBOX(
+        _N("Remove instrument value when inserting note off/release"),
+        removeInsOff
+      ),
+      SETTING_CHECKBOX(
+        _N("Remove volume value when inserting note off/release"),
+        removeVolOff
+      ),
+    }),
+    SUBCATEGORY(_N("Cursor movement"),{
+      SettingEntry::Radio(
+        _N("Wrap horizontally:"),
+        "wrapHorizontal",&settings.wrapHorizontal,{
+          {_N("No##wrapH0"),0},
+          {_N("Yes##wrapH1"),1},
+          {_N("Yes, and move to next/prev row##wrapH2"),2},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Wrap vertically:"),
+        "wrapVertical",&settings.wrapVertical,{
+          {_N("No##wrapV0"),0},
+          {_N("Yes##wrapV1"),1},
+          {_N("Yes, and move to next/prev pattern##wrapV2"),2},
+          {_N("Yes, and move to next/prev pattern (wrap around)##wrapV3"),3},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Cursor movement keys behavior:"),
+        "scrollStep",&settings.scrollStep,{
+          {_N("Move by one##cmk0"),0},
+          {_N("Move by Edit Step##cmk1"),1},
+        }
+      ),
+      SETTING_CHECKBOX(
+        _N("Move cursor by edit step on delete"),
+        stepOnDelete
+      ),
+      SETTING_CHECKBOX(
+        _N("Move cursor by edit step on insert (push)"),
+        stepOnInsert
+      ),
+      SETTING_CHECKBOX(
+        _N("Move cursor up on backspace-delete"),
+        pullDeleteBehavior
+      ),
+      SETTING_CHECKBOX(
+        _N("Move cursor to end of clipboard content when pasting"),
+        cursorPastePos
+      ),
+    }),
+    SUBCATEGORY(_N("Scrolling"),{
+      SettingEntry::Radio(
+        _N("Change order when scrolling outside of pattern bounds:"),
+        "scrollChangesOrder",&settings.scrollChangesOrder,{
+          {_N("No##pscroll0"),0},
+          {_N("Yes##pscroll1"),1},
+          {_N("Yes, and wrap around song##pscroll2"),2},
+        }
+      ),
+      SETTING_CHECKBOX(
+        _N("Cursor follows current order when moving it"),
+        cursorFollowsOrder
+      ).Tooltip(_("applies when playback is stopped.")),
+      SETTING_CHECKBOX(
+        _N("Don't scroll when moving cursor"),
+        cursorMoveNoScroll
+      ),
+      SettingEntry::Radio(
+        _N("Move cursor with scroll wheel:"),
+        "cursorFollowsWheel",&settings.cursorFollowsWheel,{
+          {_N("No##csw0"),0},
+          {_N("Yes##csw1"),1},
+          {_N("Inverted##csw2"),2},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("How many steps to move with each scroll wheel step?"),
+        "cursorWheelStep",&settings.cursorWheelStep,{
+          {_N("One##cws0"),0},
+          {_N("Edit Step##cws1"),1},
+          {_N("Coarse Step##cws2"),2},
+        }
+      ).Condition([this]{
+        return settings.cursorFollowsWheel;
+      }),
+    }),
+    SUBCATEGORY(_N("Assets"),{
+      SETTING_CHECKBOX(
+        _N("Display instrument type menu when adding instrument"),
+        insTypeMenu
+      ),
+      SETTING_CHECKBOX(
+        _N("Select asset after opening one"),
+        selectAssetOnLoad
+      ),
+    }),
+  }
+  CATEGORY_END
   CATEGORY_BEGIN(_N("Appearance")) {
     SettingEntry::Radio(
       _N("Channel feedback style:"),
