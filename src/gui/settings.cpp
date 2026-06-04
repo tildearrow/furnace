@@ -4809,10 +4809,29 @@ void FurnaceGUI::drawSettings() {
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.8f);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(ICON_FA_BARS).x-ImGui::GetStyle().FramePadding.x*4.0f);
       if (ImGui::InputTextWithHint("##nnsSearch",_("Search..."),settingsFilter.InputBuf,IM_ARRAYSIZE(settingsFilter.InputBuf))) {
         settingsFilter.Build();
         settingsShowItemResults=true;
+      }
+      ImGui::SameLine();
+      ImGui::Button(ICON_FA_BARS "##SettingsImportExportReset");
+      if (ImGui::BeginPopupContextItem("##SettingsImportExportResetPopup",ImGuiPopupFlags_MouseButtonLeft)) {
+        if (ImGui::MenuItem(_("Import..."))) {
+          openFileDialog(GUI_FILE_IMPORT_CONFIG);
+          ImGui::CloseCurrentPopup();
+        }
+        if (ImGui::MenuItem(_("Export..."))) {
+          openFileDialog(GUI_FILE_EXPORT_CONFIG);
+          ImGui::CloseCurrentPopup();
+        }
+        pushDestColor();
+        if (ImGui::MenuItem(_("Factory Reset"))) {
+          showWarning(_("Are you sure you want to reset all Furnace settings?\nYou must restart Furnace after doing so."),GUI_WARN_RESET_CONFIG);
+          ImGui::CloseCurrentPopup();
+        }
+        popDestColor();
+        ImGui::EndPopup();
       }
       float scrollPos=-1.0f;
       ImVec2 childSize=ImGui::GetContentRegionAvail();

@@ -1369,25 +1369,26 @@ void FurnaceGUI::initSettings() {
     })
   }
   CATEGORY_END
-  CATEGORY_BEGIN(_N("Appearance")) {}, {
+  CATEGORY_BEGIN(_N("Interface")) {
+    SettingEntry(_N("Workspace layout import/export/reset"),NULL,[this]{
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Workspace layout:"));
+      ImGui::SameLine();
+      if (ImGui::Button(_("Import"))) {
+        openFileDialog(GUI_FILE_IMPORT_LAYOUT);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Export"))) {
+        openFileDialog(GUI_FILE_EXPORT_LAYOUT);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Reset"))) {
+        showWarning(_("Are you sure you want to reset the workspace layout?"),GUI_WARN_RESET_LAYOUT);
+      }
+      return false;
+    }),
+  },{
     SUBCATEGORY(_N("Layout"),{
-      SettingEntry(_N("Workspace layout import/export/reset"),NULL,[this]{
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Workspace layout:"));
-        ImGui::SameLine();
-        if (ImGui::Button(_("Import"))) {
-          openFileDialog(GUI_FILE_IMPORT_LAYOUT);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Export"))) {
-          openFileDialog(GUI_FILE_EXPORT_LAYOUT);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Reset"))) {
-          showWarning(_("Are you sure you want to reset the workspace layout?"),GUI_WARN_RESET_LAYOUT);
-        }
-        return false;
-      }),
       SETTING_CHECKBOX(
         _N("Allow docking editors"),
         allowEditDocking
