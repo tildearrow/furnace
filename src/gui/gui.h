@@ -542,6 +542,53 @@ enum FurnaceGUIColors {
   GUI_COLOR_MAX
 };
 
+/**
+ * this enum defines all windows in the Furnace GUI.
+ * to define a new window, make sure to do the following:
+ * 1. declare your new window in this enum (ideally before the SPOILER one). we'll use GUI_WINDOW_EXAMPLE as an example.
+ * 2. add your window as GUI_ACTION_WINDOW_EXAMPLE in the FurnaceGUIActions enum. preferably in the same position as you declared here.
+ * 3. add a bool to the FurnaceGUI class called exampleOpen, next to the other *Open bools.
+ * 4. add a drawExample() function to the same class, next to the other draw* functions.
+ * 5. go to doAction.cpp, and add a handler for GUI_ACTION_WINDOW_EXAMPLE to doAction():
+ * ```
+ *   case GUI_ACTION_WINDOW_EXAMPLE:
+ *     nextWindow=GUI_WINDOW_EXAMPLE;
+ *     break;
+ * ```
+ * 6. in the same file, add a handler for GUI_ACTION_CLOSE_WINDOW:
+ * ```
+ *   case GUI_WINDOW_EXAMPLE:
+ *     exampleOpen=false;
+ *     break;
+ * ```
+ * 7. go to gui.cpp and tell FurnaceGUI::loop() about your window:
+ *   - DECLARE_METRIC(example) on top
+ *   - IMPORT_CLOSE(exampleOpen) in the pendingLayoutImport handler
+ *   - MEASURE(example,drawExample()) in the area where all the draw* calls are made
+ *     - there are two of them. one is for the mobile UI and the other is for the regular UI.
+ *   - add a MenuItem for your window if desired
+ * 8. in the same file, store your window's state:
+ *   - FurnaceGUI::syncState(): exampleOpen=e->getConfBool("exampleOpen",false);
+ *   - FurnaceGUI::commitState(): conf.set("exampleOpen",exampleOpen);
+ * 9. in the same file, initialize exampleOpen in the FurnaceGUI constructor, which should be at the end.
+ * 10. create a new file (e.g. example.cpp) that contains your window's drawing code.
+ * 11. use the following skeleton:
+ * ```
+ * void FurnaceGUI::drawExample() {
+ *   if (nextWindow==GUI_WINDOW_EXAMPLE) {
+ *     exampleOpen=true;
+ *     ImGui::SetNextWindowFocus();
+ *     nextWindow=GUI_WINDOW_NOTHING;
+ *   }
+ *   if (!exampleOpen) return;
+ *   if (ImGui::Begin("Example",&exampleOpen,globalWinFlags,_("Example"))) {
+ *     // code here
+ *   }
+ *   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EXAMPLE;
+ *   ImGui::End();
+ * }
+ * ```
+ */
 enum FurnaceGUIWindows {
   GUI_WINDOW_NOTHING=0,
   GUI_WINDOW_EDIT_CONTROLS,
