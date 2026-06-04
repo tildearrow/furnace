@@ -1374,15 +1374,15 @@ void FurnaceGUI::initSettings() {
       ImGui::AlignTextToFramePadding();
       ImGui::Text(_("Workspace layout:"));
       ImGui::SameLine();
-      if (ImGui::Button(_("Import"))) {
+      if (ImGui::Button(_("Import##intf"))) {
         openFileDialog(GUI_FILE_IMPORT_LAYOUT);
       }
       ImGui::SameLine();
-      if (ImGui::Button(_("Export"))) {
+      if (ImGui::Button(_("Export##intf"))) {
         openFileDialog(GUI_FILE_EXPORT_LAYOUT);
       }
       ImGui::SameLine();
-      if (ImGui::Button(_("Reset"))) {
+      if (ImGui::Button(_("Reset##intf"))) {
         showWarning(_("Are you sure you want to reset the workspace layout?"),GUI_WARN_RESET_LAYOUT);
       }
       return false;
@@ -1897,6 +1897,23 @@ void FurnaceGUI::initSettings() {
   }
   CATEGORY_END
   CATEGORY_BEGIN(_N("Color")) {
+    SettingEntry(_N("Color scheme Import/Export/Reset defaults"),NULL,[this]{
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Color scheme:"));
+      ImGui::SameLine();
+      if (ImGui::Button(_("Import##col"))) {
+        openFileDialog(GUI_FILE_IMPORT_COLORS);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Export##col"))) {
+        openFileDialog(GUI_FILE_EXPORT_COLORS);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Reset defaults##col"))) {
+        showWarning(_("Are you sure you want to reset the color scheme?"),GUI_WARN_RESET_COLORS);
+      }
+      return false;
+    }),
     SETTING_INV_CHECKBOX(_N("Guru mode"),basicColors),
     SettingEntry::SliderInt(
       _N("Frame shading"),
@@ -2323,15 +2340,15 @@ void FurnaceGUI::initSettings() {
   CATEGORY_END
   CATEGORY_BEGIN(_N("Keyboard")) {
     SettingEntry(_N("Keyboard Import/Export/Reset defaults"),NULL,[this]{
-      if (ImGui::Button(_("Import"))) {
+      if (ImGui::Button(_("Import##kbd"))) {
         openFileDialog(GUI_FILE_IMPORT_KEYBINDS);
       }
       ImGui::SameLine();
-      if (ImGui::Button(_("Export"))) {
+      if (ImGui::Button(_("Export##kbd"))) {
         openFileDialog(GUI_FILE_EXPORT_KEYBINDS);
       }
       ImGui::SameLine();
-      if (ImGui::Button(_("Reset defaults"))) {
+      if (ImGui::Button(_("Reset defaults##kbd"))) {
         showWarning(_("Are you sure you want to reset the keyboard settings?"),GUI_WARN_RESET_KEYBINDS);
       }
       return false;
