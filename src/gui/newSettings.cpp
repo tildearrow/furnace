@@ -1620,23 +1620,7 @@ void FurnaceGUI::initSettings() {
     }),
   }
   CATEGORY_END
-  CATEGORY_BEGIN(_N("Appearance")) {
-    SettingEntry::Radio(
-      _N("Channel feedback style:"),
-      "channelFeedbackStyle",&settings.channelFeedbackStyle,{
-        {_N("Off##CHF0"),0},
-        {_N("Note##CHF1"),1},
-        {_N("Volume##CHF2"),2},
-        {_N("Active##CHF3"),3},
-        {_N("Volume (Real)##CHF4"),4},
-      }
-    ),
-    SettingEntry::SliderFloat(
-      _N("Gamma##CHF"),
-      "channelFeedbackGamma",&settings.channelFeedbackGamma,
-      {0.0f,2.0f}
-    ).Condition([this]{return settings.channelFeedbackStyle==4;})
-  },{
+  CATEGORY_BEGIN(_N("Appearance")) {},{
     SUBCATEGORY(_N("Scaling"),{
       SettingEntry(_N("Automatic UI scaling factor"),NULL,[this]{
         bool dpiScaleAuto=(settings.dpiScale<0.5f), ret=false;
@@ -1654,7 +1638,9 @@ void FurnaceGUI::initSettings() {
         _N("UI scaling factor"),"dpiScale",
         &settings.dpiScale,
         {1.0f,3.0f}
-      ).Condition([this]{return settings.dpiScale>0.5f;}),
+      ).Condition([this]{
+        return settings.dpiScale>0.5f;
+      }),
       SettingEntry::SliderInt(
         _N("Icon size"),"iconSize",
         &settings.iconSize,
@@ -1738,11 +1724,17 @@ void FurnaceGUI::initSettings() {
         {3,96,1,3}
       ),
       SETTING_CHECKBOX(
-        _N("Anti-aliased fonts"),fontAntiAlias
-      ).Condition([this]{return settings.fontBackend==1;}),
+        _N("Anti-aliased fonts"),
+        fontAntiAlias
+      ).Condition([this]{
+        return settings.fontBackend==1;
+      }),
       SETTING_CHECKBOX(
-        _N("Support bitmap fonts"),fontBitmap
-      ).Condition([this]{return settings.fontBackend==1;}),
+        _N("Support bitmap fonts"),
+        fontBitmap
+      ).Condition([this]{
+        return settings.fontBackend==1;
+      }),
       SettingEntry::Radio(
         _N("Hinting:"),"fontHinting",
         &settings.fontHinting,{
@@ -1751,7 +1743,9 @@ void FurnaceGUI::initSettings() {
           {_N("Normal##fh2"),2},
           {_N("Full (hard)##fh3"),3}
         }
-      ).Condition([this]{return settings.fontBackend==1;}),
+      ).Condition([this]{
+        return settings.fontBackend==1;
+      }),
       SettingEntry::Radio(
         _N("Auto-hinter:"),"fontAutoHint",
         &settings.fontAutoHint,{
@@ -1759,7 +1753,9 @@ void FurnaceGUI::initSettings() {
           {_N("Enable##fah1"),1},
           {_N("Force##fah2"),2}
         }
-      ).Condition([this]{return settings.fontBackend==1;}),
+      ).Condition([this]{
+        return settings.fontBackend==1;
+      }),
       SettingEntry::Radio(
         _N("Oversample:"),"fontOversample",
         &settings.fontOversample,{
@@ -1769,10 +1765,12 @@ void FurnaceGUI::initSettings() {
         }
       ),
       SETTING_CHECKBOX(
-        _N("Load fallback font"),loadFallback
+        _N("Load fallback font"),
+        loadFallback
       ).Tooltip(_N("disable to save video memory.")),
       SETTING_CHECKBOX(
-        _N("Load fallback font (pattern)"),loadFallbackPat
+        _N("Load fallback font (pattern)"),
+        loadFallbackPat
       ).Tooltip(_N("disable to save video memory.")),
     }),
     SUBCATEGORY(_N("Program"),{
@@ -1784,13 +1782,21 @@ void FurnaceGUI::initSettings() {
           {_N("file_name.fur - Furnace##tbar2"),2},
           {_N("/path/to/file.fur - Furnace##tbar3"),3}
         }
-      ).Callback([this]{updateWindowTitle();}),
+      ).Callback([this]{
+        updateWindowTitle();
+      }),
       SETTING_CHECKBOX(
-        _N("Display system name on title bar"),titleBarSys
-      ).Callback([this]{updateWindowTitle();}),
+        _N("Display system name on title bar"),
+        titleBarSys
+      ).Callback([this]{
+        updateWindowTitle();
+      }),
       SETTING_CHECKBOX(
-        _N("Display chip names instead of \"multi-system\" in title bar"),noMultiSystem
-      ).Callback([this]{updateWindowTitle();}),
+        _N("Display chip names instead of \"multi-system\" in title bar"),
+        noMultiSystem
+      ).Callback([this]{
+        updateWindowTitle();
+      }),
       SettingEntry::Radio(
         _N("Status bar:"),"statusDisplay",
         &settings.statusDisplay,{
@@ -1800,7 +1806,10 @@ void FurnaceGUI::initSettings() {
           {_N("Nothing##sbar3"),3}
         }
       ),
-      SETTING_CHECKBOX(_("Display playback status when playing"),playbackTime),
+      SETTING_CHECKBOX(
+        _("Display playback status when playing"),
+        playbackTime
+      ),
       SettingEntry::Radio(
         _N("Export options layout:"),"exportOptionsLayout",
         &settings.exportOptionsLayout,{
@@ -1809,13 +1818,22 @@ void FurnaceGUI::initSettings() {
           {_N("Modal windows with options in File menu##eol2"),2}
         }
       ),
-      SETTING_CHECKBOX(_N("Capitalize menu bar"),capitalMenuBar),
-      SETTING_CHECKBOX(_N("Display add/configure/change/remove chip menus in File menu"),classicChipOptions)
+      SETTING_CHECKBOX(
+        _N("Capitalize menu bar"),
+        capitalMenuBar
+      ),
+      SETTING_CHECKBOX(
+        _N("Display add/configure/change/remove chip menus in File menu"),
+        classicChipOptions
+      )
     }),
     SUBCATEGORY(_N("Orders"),{
       // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
       // SETTING_CHECKBOX(_N("Add separators between systems in Orders"),sysSeparators),
-      SETTING_CHECKBOX(_N("Orders row number format:"),ordersCursor),
+      SETTING_CHECKBOX(
+        _N("Highlight channel at cursor in Orders"),
+        ordersCursor
+      ),
       SettingEntry::Radio(
         _N("Orders row number format:"),"orderRowsBase",
         &settings.orderRowsBase,{
@@ -1893,7 +1911,250 @@ void FurnaceGUI::initSettings() {
           {0,32}
         ),
       })
-    })
+    }),
+    SUBCATEGORY(_N("Channel"),{
+      SettingEntry::Radio(
+        _N("Channel style:"),
+        "channelStyle",&settings.channelStyle,{
+          {_N("Classic##CHS0"),0},
+          {_N("Line##CHS1"),1},
+          {_N("Round##CHS2"),2},
+          {_N("Split button##CHS3"),3},
+          {_N("Square border##CHS4"),4},
+          {_N("Round border##CHS5"),5},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Channel volume bar:"),
+        "channelVolStyle",&settings.channelVolStyle,{
+          {_N("None##CHV0"),0},
+          {_N("Simple##CHV1"),1},
+          {_N("Stereo##CHV2"),2},
+          {_N("Real##CHV3"),3},
+          {_N("Real (stereo)##CHV4"),4},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Channel feedback style:"),
+        "channelFeedbackStyle",&settings.channelFeedbackStyle,{
+          {_N("Off##CHF0"),0},
+          {_N("Note##CHF1"),1},
+          {_N("Volume##CHF2"),2},
+          {_N("Active##CHF3"),3},
+          {_N("Volume (Real)##CHF4"),4},
+        }
+      ),
+      SettingEntry::SliderFloat(
+        _N("Gamma##CHF"),
+        "channelFeedbackGamma",&settings.channelFeedbackGamma,
+        {0.0f,2.0f}
+      ).Condition([this]{
+        return settings.channelFeedbackStyle==4;
+      }),
+      SettingEntry::Radio(
+        _N("Channel font:"),
+        "channelFont",&settings.channelFont,{
+          {_N("Regular##CHFont0"),0},
+          {_N("Monospace##CHFont1"),1},
+        }
+      ),
+      SETTING_CHECKBOX(_("Center channel name"),channelTextCenter),
+      SettingEntry::Radio(
+        _N("Channel colors:"),
+        "channelColors",&settings.channelColors,{
+          {_N("Single##CHC0"),0},
+          {_N("Channel type##CHC1"),1},
+          {_N("Instrument type##CHC2"),2},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Channel name colors:"),
+        "channelTextColors",&settings.channelTextColors,{
+          {_N("Single##CTC0"),0},
+          {_N("Channel type##CTC1"),1},
+          {_N("Instrument type##CTC2"),2},
+        }
+      ),
+    }),
+    SUBCATEGORY(_N("Assets"),{
+      SETTING_CHECKBOX(_("Unified instrument/wavetable/sample list"),unifiedDataView).Callback([this] {
+        if (settings.unifiedDataView) {
+          settings.horizontalDataView=0;
+        }
+      }),
+      SETTING_CHECKBOX(_("Horizontal instrument/wavetable list"),horizontalDataView).Condition([this] {
+        return !settings.unifiedDataView;
+      }),
+      SettingEntry::Radio(
+        _N("Instrument list icon style:"),
+        "insIconsStyle",&settings.insIconsStyle,{
+          {_N("None##iis0"),0},
+          {_N("Graphical icons##iis1"),1},
+          {_N("Letter icons##iis2"),2},
+        }
+      ),
+      SETTING_CHECKBOX(_("Colorize instrument editor using instrument type"),insEditColorize),
+    }),
+    SUBCATEGORY(_N("Macro Editor"),{
+      SettingEntry::Radio(
+        _N("Macro editor layout:"),
+        "macroLayout",&settings.macroLayout,{
+          {_N("Unified##mel0"),0},
+          {_N("Tabs##mel1"),1},
+          {_N("Grid##mel2"),2},
+          {_N("Single (with list)##mel3"),3},
+          {_N("Single (combo box)##mel4"),4},
+        }
+      ),
+      SETTING_CHECKBOX(_("Use classic macro editor vertical slider"),oldMacroVSlider),
+      SettingEntry::Radio(
+        _N("Macro step size/horizontal zoom::"),
+        "autoMacroStepSize",&settings.autoMacroStepSize,{
+          {_N("Manual"),0},
+          {_N("Automatic per macro"),1},
+          {_N("Automatic (use longest macro)"),2},
+        }
+      ).Condition([this] {
+        return settings.macroLayout!=2;
+      }),
+    }),
+    SUBCATEGORY(_N("FM Editor"),{
+      SettingEntry::Radio(
+        _N("FM parameter names:"),
+        "fmNames",&settings.fmNames,{
+          {_N("Friendly##fmn0"),0},
+          {_N("Technical##fmn1"),1},
+          {_N("Technical (alternate)##fmn2"),2},
+        }
+      ),
+      SETTING_CHECKBOX(_("Use standard OPL waveform names"),oplStandardWaveNames),
+      SettingEntry::Radio(
+        _N("FM parameter editor layout:"),
+        "fmLayout",&settings.fmLayout,{
+          {_N("Modern##fml0"),0},
+          {_N("Modern with more labels##fml7"),7},
+          {_N("Compact (2x2, classic)##fml1"),1},
+          {_N("Compact (1x4)##fml2"),2},
+          {_N("Compact (4x1)##fml3"),3},
+          {_N("Alternate (2x2)##fml4"),4},
+          {_N("Alternate (1x4)##fml5"),5},
+          {_N("Alternate (4x1)##fml5"),6},
+        }
+      ),
+      // HACK: the original code disabled the last two options if settings.fmLayout!=0. we can't do that here...
+      SettingEntry::Radio(
+        _N("Position of Sustain in FM editor:"),
+        "susPosition",&settings.susPosition,{
+          {_("Between Decay and Sustain Rate##susp0"),0},
+          {_("After Release Rate##susp1"),1},
+          {_("After Release Rate, after spacing##susp2"),2},
+          {_("After TL##susp3"),3},
+        }
+      ).Condition([this] {
+        return settings.fmLayout==0;
+      }),
+      SettingEntry::Radio(
+        _N("Position of Sustain in FM editor:"),
+        "susPosition",&settings.susPosition,{
+          {_("Between Decay and Sustain Rate##susp0"),0},
+          {_("After Release Rate##susp1"),1},
+        }
+      ).Condition([this] {
+        return settings.fmLayout!=0;
+      }),
+      SETTING_CHECKBOX(_("Use separate colors for carriers/modulators in FM editor"),separateFMColors),
+      SETTING_CHECKBOX(_("Unsigned FM detune values"),unsignedDetune),
+    }),
+    SUBCATEGORY(_N("Memory Composition"),{
+      SettingEntry::Radio(
+        _N("Chip memory usage unit:"),
+        "memUsageUnit",&settings.memUsageUnit,{
+          {_N("Bytes##MUU0"),0},
+          {_N("Kilobytes##MUU1"),1},
+        }
+      ),
+    }),
+    SUBCATEGORY(_N("Oscilloscope"),{
+      SETTING_CHECKBOX(_("Rounded corners"),oscRoundedCorners),
+      SETTING_CHECKBOX(_("Border"),oscBorder),
+      SETTING_CHECKBOX(_("Mono"),oscMono),
+      SETTING_CHECKBOX(_("Anti-aliased"),oscAntiAlias),
+      SETTING_CHECKBOX(_("Fill entire window"),oscTakesEntireWindow),
+      SETTING_CHECKBOX(_("Waveform goes out of bounds"),oscEscapesBoundary),
+      SettingEntry::SliderFloat(
+        _N("Line size"),
+        "oscLineSize",&settings.oscLineSize,
+        {0.25f,16.0f,"%.1f"}
+      ),
+      // ...
+      SettingEntry(_N("Per-channel oscilloscope threads"),NULL,[this]{
+        bool ret=false;
+        pushWarningColor(settings.chanOscThreads>cpuCores,settings.chanOscThreads>(cpuCores*2));
+        if (ImGui::InputInt(_("Per-channel oscilloscope threads"),&settings.chanOscThreads)) {
+          if (settings.chanOscThreads<0) settings.chanOscThreads=0;
+          if (settings.chanOscThreads>(cpuCores*3)) settings.chanOscThreads=cpuCores*3;
+          if (settings.chanOscThreads>256) settings.chanOscThreads=256;
+          ret=true;
+        }
+        if (settings.chanOscThreads>=(cpuCores*3)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("you're being silly, aren't you? that's enough."));
+          }
+        } else if (settings.chanOscThreads>(cpuCores*2)) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("what are you doing? stop!"));
+          }
+        } else if (settings.chanOscThreads>cpuCores) {
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("it is a bad idea to set this number higher than your CPU core count (%d)!"),cpuCores);
+          }
+        }
+        popWarningColor();
+        return ret;
+      }),
+      SettingEntry::Radio(
+        _N("Oscilloscope rendering engine:"),
+        "shaderOsc",&settings.shaderOsc,{
+          {_N("ImGui line plot"),0,_N("render using Dear ImGui's built-in line drawing functions.")},
+#ifdef USE_GLES
+          {_N("GLSL (if available)"),1,_N("render using shaders that run on the graphics card.\nonly available in OpenGL ES 2.0 render backend.")},
+#else
+          {_N("GLSL (if available)"),1,_N("render using shaders that run on the graphics card.\nonly available in OpenGL 3.0 render backend.")},
+#endif
+        }
+      ),
+    }),
+    SUBCATEGORY(_N("Song Comments"),{
+      SETTING_CHECKBOX(_("Wrap text"),songNotesWrap),
+    }),
+    SUBCATEGORY(_N("Chip Manager"),{
+      SETTING_CHECKBOX(_("Show channel indicators"),rackShowLEDs),
+    }),
+    SUBCATEGORY(_N("Mixer"),{
+      SettingEntry::Radio(
+        _N("Mixer layout:"),
+        "mixerLayout",&settings.mixerLayout,{
+          {_N("Horizontal##mixl0"),0},
+          {_N("Vertical##mixl1"),1},
+        }
+      ),
+      SettingEntry::Radio(
+        _N("Mixer style:"),
+        "mixerStyle",&settings.mixerStyle,{
+          {_N("No volume meters"),0},
+          {_N("Volume meters separate"),1},
+          {_N("Volume meters in volume sliders"),2},
+        }
+      ),
+    }),
+    SUBCATEGORY(_N("Windows"),{
+      SETTING_CHECKBOX(_("Rounded window corners"),roundedWindows),
+      SETTING_CHECKBOX(_("Rounded buttons"),roundedButtons),
+      SETTING_CHECKBOX(_("Rounded menu corners"),roundedMenus),
+      SETTING_CHECKBOX(_("Rounded tabs"),roundedTabs),
+      SETTING_CHECKBOX(_("Rounded scrollbars"),roundedScrollbars),
+      SETTING_CHECKBOX(_("Borders around widgets"),frameBorders),
+    }),
   }
   CATEGORY_END
   CATEGORY_BEGIN(_N("Color")) {
