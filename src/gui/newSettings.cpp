@@ -504,6 +504,88 @@ void SettingsCategory::deleteRecursive() {
 void FurnaceGUI::initSettings() {
   CATEGORY_BEGIN(_N("General")) {},{
     SUBCATEGORY(_N("Program"),{
+      // the codes are somewhere else...
+      SettingEntry(_N("Cheat Codes"),NULL,[this]{
+        ImGui::Text(_("Enter code:"));
+        ImGui::InputText("##CheatCode",&mmlString[31]);
+        if (ImGui::Button(_("Submit"))) {
+          unsigned int checker=0x11111111;
+          unsigned int checker1=0;
+          int index=0;
+          mmlString[30]=_("invalid code");
+
+          for (char& i: mmlString[31]) {
+            checker^=((unsigned int)i)<<index;
+            checker1+=i;
+            checker=(checker>>1|(((checker)^(checker>>2)^(checker>>3)^(checker>>5))&1)<<31);
+            checker1<<=1;
+            index=(index+1)&31;
+          }
+          if (checker==0x90888b65 && checker1==0x1482) {
+            mmlString[30]=_("toggled alternate UI");
+            toggleMobileUI(!mobileUI);
+          }
+          if (checker==0x5a42a113 && checker1==0xe4ef451e) {
+            mmlString[30]=_(":smile: :star_struck: :sunglasses: :ok_hand:");
+            settings.hiddenSystems=!settings.hiddenSystems;
+          }
+          if (checker==0x3affa803 && checker1==0x37db2520) {
+            mmlString[30]=_("now cutting FM chip costs");
+            settings.mswEnabled=!settings.mswEnabled;
+          }
+          if (checker==0xe888896b && checker1==0xbde) {
+            mmlString[30]=_("enabled all instrument types");
+            settings.displayAllInsTypes=!settings.displayAllInsTypes;
+          }
+          if (checker==0x78444162 && checker1==0x2306) {
+            mmlString[30]=_("$2500 withdrawn successfully!");
+            for (int i=0; i<e->getTotalChannelCount(); i++) {
+              for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+                if (e->curSubSong->pat[i].data[j]!=NULL) {
+                  DivPattern* p=e->curSubSong->pat[i].data[j];
+                  for (int k=0; k<DIV_MAX_ROWS; k++) {
+                    if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
+                      int newNote=((6+p->newData[k][DIV_PAT_NOTE])/12)*12;
+                      p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,0,168);
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (checker==0x94222d83 && checker1==0x6600) {
+            mmlString[30]=_("enabled \"comfortable\" mode");
+            ImGuiStyle& sty=ImGui::GetStyle();
+            sty.FramePadding=ImVec2(20.0f*dpiScale,20.0f*dpiScale);
+            sty.ItemSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+            sty.ItemInnerSpacing=ImVec2(10.0f*dpiScale,10.0f*dpiScale);
+            settingsOpen=false;
+          }
+          if ((checker==0x2222225c && checker1==0x2d2) ||
+              (checker==0x4444447e && checker1==0x146)) {
+            mmlString[30]=_("Oh my god... Kill me now so I don't have to go through that again!");
+            for (int i=0; i<e->getTotalChannelCount(); i++) {
+              for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+                if (e->curSubSong->pat[i].data[j]!=NULL) {
+                  DivPattern* p=e->curSubSong->pat[i].data[j];
+                  for (int k=0; k<DIV_MAX_ROWS; k++) {
+                    if (p->newData[k][DIV_PAT_NOTE]>=0 && p->newData[k][DIV_PAT_NOTE]<180) {
+                      int newNote=p->newData[k][DIV_PAT_NOTE]+(rand()%40)-18;
+                      p->newData[k][DIV_PAT_NOTE]=CLAMP(newNote,60,179);
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          mmlString[31]="";
+        }
+        ImGui::Text("%s",mmlString[30].c_str());
+        return false;
+      }).Condition([this] {
+        return nonLatchNibble;
+      }),
 #ifdef HAVE_LOCALE
       SettingEntry::ComboString(
         _N("Language"),
