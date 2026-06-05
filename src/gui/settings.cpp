@@ -245,14 +245,14 @@ static const char* valueInputStyles[]={
   _N("Use single control change (imprecise)")
 };
 
-const char* valueSInputStyles[]={
+static const char* valueSInputStyles[]={
   _N("Disabled/custom"),
   _N("Use dual control change (one for each nibble)"),
   _N("Use 14-bit control change"),
   _N("Use single control change (imprecise)")
 };
 
-const char* messageTypes[]={
+static const char* messageTypes[]={
   _N("--select--"),
   _N("???"),
   _N("???"),
@@ -271,11 +271,11 @@ const char* messageTypes[]={
   _N("SysEx")
 };
 
-const char* messageChannels[]={
+static const char* messageChannels[]={
   "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", _N("Any")
 };
 
-const char* specificControls[18]={
+static const char* specificControls[18]={
   _N("Instrument"),
   _N("Volume"),
   _N("Effect 1 type"),

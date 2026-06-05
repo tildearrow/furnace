@@ -36,6 +36,58 @@ static const char* valueInputStyles[]={
   _N("Use single control change (imprecise)")
 };
 
+static const char* valueSInputStyles[]={
+  _N("Disabled/custom"),
+  _N("Use dual control change (one for each nibble)"),
+  _N("Use 14-bit control change"),
+  _N("Use single control change (imprecise)")
+};
+
+static const char* messageTypes[]={
+  _N("--select--"),
+  _N("???"),
+  _N("???"),
+  _N("???"),
+  _N("???"),
+  _N("???"),
+  _N("???"),
+  _N("???"),
+  _N("Note Off"),
+  _N("Note On"),
+  _N("Aftertouch"),
+  _N("Control"),
+  _N("Program"),
+  _N("ChanPressure"),
+  _N("Pitch Bend"),
+  _N("SysEx")
+};
+
+static const char* messageChannels[]={
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", _N("Any")
+};
+
+static const char* specificControls[18]={
+  _N("Instrument"),
+  _N("Volume"),
+  _N("Effect 1 type"),
+  _N("Effect 1 value"),
+  _N("Effect 2 type"),
+  _N("Effect 2 value"),
+  _N("Effect 3 type"),
+  _N("Effect 3 value"),
+  _N("Effect 4 type"),
+  _N("Effect 4 value"),
+  _N("Effect 5 type"),
+  _N("Effect 5 value"),
+  _N("Effect 6 type"),
+  _N("Effect 6 value"),
+  _N("Effect 7 type"),
+  _N("Effect 7 value"),
+  _N("Effect 8 type"),
+  _N("Effect 8 value")
+};
+
+
 static const char* arcadeCores[]={
   "ymfm",
   "Nuked-OPM"
@@ -1634,11 +1686,307 @@ void FurnaceGUI::initSettings() {
             }
           }
         }
+        if (ImGui::TreeNode(_("Per-column control change"))) {
+          for (int i=0; i<18; i++) {
+            ImGui::PushID(i);
+            if (ImGui::Combo(specificControls[i],&midiMap.valueInputSpecificStyle[i],LocalizedComboGetter,valueSInputStyles,4)) ret=true;
+            if (midiMap.valueInputSpecificStyle[i]>0) {
+              ImGui::Indent();
+              if (midiMap.valueInputSpecificStyle[i]==3) {
+                if (ImGui::InputInt(_("Control##valueCCS"),&midiMap.valueInputSpecificSingle[i],1,16)) {
+                  if (midiMap.valueInputSpecificSingle[i]<0) midiMap.valueInputSpecificSingle[i]=0;
+                  if (midiMap.valueInputSpecificSingle[i]>127) midiMap.valueInputSpecificSingle[i]=127;
+                  ret=true;
+                }
+              } else {
+                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?_("CC of upper nibble##valueCC1"):_("MSB CC##valueCC1"),&midiMap.valueInputSpecificMSB[i],1,16)) {
+                  if (midiMap.valueInputSpecificMSB[i]<0) midiMap.valueInputSpecificMSB[i]=0;
+                  if (midiMap.valueInputSpecificMSB[i]>127) midiMap.valueInputSpecificMSB[i]=127;
+                  ret=true;
+                }
+                if (ImGui::InputInt((midiMap.valueInputSpecificStyle[i]==4)?_("CC of lower nibble##valueCC2"):_("LSB CC##valueCC2"),&midiMap.valueInputSpecificLSB[i],1,16)) {
+                  if (midiMap.valueInputSpecificLSB[i]<0) midiMap.valueInputSpecificLSB[i]=0;
+                  if (midiMap.valueInputSpecificLSB[i]>127) midiMap.valueInputSpecificLSB[i]=127;
+                  ret=true;
+                }
+              }
+              ImGui::Unindent();
+            }
+            ImGui::PopID();
+          }
+          ImGui::TreePop();
+        }
+        if (ImGui::SliderFloat(_("Volume curve"),&midiMap.volExp,0.01,8.0,"%.2f")) {
+          if (midiMap.volExp<0.01) midiMap.volExp=0.01;
+          if (midiMap.volExp>8.0) midiMap.volExp=8.0;
+          e->setMidiVolExp(midiMap.volExp);
+          ret=true;
+        } rightClickable
+        float curve[128];
+        for (int i=0; i<128; i++) {
+          curve[i]=(int)(pow((double)i/127.0,midiMap.volExp)*127.0);
+        }
+        ImGui::PlotLines("##VolCurveDisplay",curve,128,0,_("Volume curve"),0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("Actions:"));
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
+          midiMap.binds.push_back(MIDIBind());
+          ret=true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_EXTERNAL_LINK "##AddLearnAction")) {
+          midiMap.binds.push_back(MIDIBind());
+          learning=midiMap.binds.size()-1;
+          ret=true;
+        }
+        if (learning!=-1) {
+          ImGui::SameLine();
+          ImGui::Text(_("(learning! press a button or move a slider/knob/something on your device.)"));
+        }
+
+        if (ImGui::BeginTable("MIDIActions",7)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.2);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.1);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.3);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.2);
+          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.5);
+          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
+
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Type"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Channel"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Note/Control"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Velocity/Value"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Action"));
+          ImGui::TableNextColumn();
+          ImGui::TableNextColumn();
+
+          for (size_t i=0; i<midiMap.binds.size(); i++) {
+            MIDIBind& bind=midiMap.binds[i];
+            char bindID[1024];
+            ImGui::PushID(i);
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##BType",messageTypes[bind.type])) {
+              for (int j=8; j<15; j++) {
+                if (ImGui::Selectable(messageTypes[j],bind.type==j)) {
+                  bind.type=j;
+                  ret=true;
+                }
+              }
+              ImGui::EndCombo();
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##BChannel",messageChannels[bind.channel])) {
+              if (ImGui::Selectable(messageChannels[16],bind.channel==16)) {
+                bind.channel=16;
+                ret=true;
+              }
+              for (int j=0; j<16; j++) {
+                if (ImGui::Selectable(messageChannels[j],bind.channel==j)) {
+                  bind.channel=j;
+                  ret=true;
+                }
+              }
+              ImGui::EndCombo();
+            }
+
+            ImGui::TableNextColumn();
+            if (bind.data1==128) {
+              snprintf(bindID,1024,_("Any"));
+            } else {
+              const char* nName="???";
+              if ((bind.data1+60)>0 && (bind.data1+60)<180) {
+                nName=noteNames[bind.data1+60];
+              }
+              snprintf(bindID,1024,"%d (0x%.2X, %s)",bind.data1,bind.data1,nName);
+            }
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##BValue1",bindID)) {
+              if (ImGui::Selectable(_("Any"),bind.data1==128)) {
+                bind.data1=128;
+                ret=true;
+              }
+              for (int j=0; j<128; j++) {
+                const char* nName="???";
+                if ((j+60)>0 && (j+60)<180) {
+                  nName=noteNames[j+60];
+                }
+                snprintf(bindID,1024,"%d (0x%.2X, %s)##BV1_%d",j,j,nName,j);
+                if (ImGui::Selectable(bindID,bind.data1==j)) {
+                  bind.data1=j;
+                  ret=true;
+                }
+              }
+              ImGui::EndCombo();
+            }
+
+            ImGui::TableNextColumn();
+            if (bind.data2==128) {
+              snprintf(bindID,1024,_("Any"));
+            } else {
+              snprintf(bindID,1024,"%d (0x%.2X)",bind.data2,bind.data2);
+            }
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##BValue2",bindID)) {
+              if (ImGui::Selectable(_("Any"),bind.data2==128)) {
+                bind.data2=128;
+                ret=true;
+              }
+              for (int j=0; j<128; j++) {
+                snprintf(bindID,1024,"%d (0x%.2X)##BV2_%d",j,j,j);
+                if (ImGui::Selectable(bindID,bind.data2==j)) {
+                  bind.data2=j;
+                  ret=true;
+                }
+              }
+              ImGui::EndCombo();
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##BAction",(bind.action==0)?_("--none--"):guiActions[bind.action].friendlyName)) {
+              if (ImGui::Selectable(_("--none--"),bind.action==0)) {
+                bind.action=0;
+                ret=true;
+              }
+              for (int j=0; j<GUI_ACTION_MAX; j++) {
+                if (strcmp(guiActions[j].friendlyName,"")==0) continue;
+                if (strstr(guiActions[j].friendlyName,"---")==guiActions[j].friendlyName) {
+                  ImGui::TextUnformatted(guiActions[j].friendlyName);
+                } else {
+                  snprintf(bindID,1024,"%s##BA_%d",_(guiActions[j].friendlyName),j);
+                  if (ImGui::Selectable(bindID,bind.action==j)) {
+                    bind.action=j;
+                    ret=true;
+                  }
+                }
+              }
+              ImGui::EndCombo();
+            }
+
+            ImGui::TableNextColumn();
+            pushToggleColors(learning==(int)i);
+            if (ImGui::Button((learning==(int)i)?(_("waiting...##BLearn")):(_("Learn##BLearn")))) {
+              if (learning==(int)i) {
+                learning=-1;
+              } else {
+                learning=i;
+              }
+              ret=true;
+            }
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_TIMES "##BRemove")) {
+              midiMap.binds.erase(midiMap.binds.begin()+i);
+              if (learning==(int)i) learning=-1;
+              i--;
+              ret=true;
+            }
+
+            ImGui::PopID();
+          }
+          ImGui::EndTable();
+        }
 
         return ret;
       }),
     }),
     SUBCATEGORY(_N("MIDI output"),{
+      SettingEntry(_N("MIDI output device"),NULL,[this]{
+        bool ret=false;
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text(_("MIDI output"));
+        ImGui::SameLine();
+        String midiOutName=settings.midiOutDevice.empty()?_("<disabled>"):settings.midiOutDevice;
+        if (ImGui::BeginCombo("##MidiOutDevice",midiOutName.c_str())) {
+          if (ImGui::Selectable(_("<disabled>"),settings.midiOutDevice.empty())) {
+            settings.midiOutDevice="";
+            ret=true;
+          }
+          for (String& i: e->getMidiIns()) {
+            if (ImGui::Selectable(i.c_str(),i==settings.midiOutDevice)) {
+              settings.midiOutDevice=i;
+              ret=true;
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        ImGui::Text(_("Output mode:"));
+        ImGui::Indent();
+        if (ImGui::RadioButton(_("Off (use for TX81Z)"),settings.midiOutMode==0)) {
+          settings.midiOutMode=0;
+          ret=true;
+        }
+        if (ImGui::RadioButton(_("Melodic"),settings.midiOutMode==1)) {
+          settings.midiOutMode=1;
+          ret=true;
+        }
+        /*
+        if (ImGui::RadioButton(_("Light Show (use for Launchpad)"),settings.midiOutMode==2)) {
+          settings.midiOutMode=2;
+        }*/
+        ImGui::Unindent();
+
+        bool midiOutProgramChangeB=settings.midiOutProgramChange;
+        if (ImGui::Checkbox(_("Send Program Change"),&midiOutProgramChangeB)) {
+          settings.midiOutProgramChange=midiOutProgramChangeB;
+          ret=true;
+        }
+
+        bool midiOutClockB=settings.midiOutClock;
+        if (ImGui::Checkbox(_("Send MIDI clock"),&midiOutClockB)) {
+          settings.midiOutClock=midiOutClockB;
+          ret=true;
+        }
+
+        bool midiOutTimeB=settings.midiOutTime;
+        if (ImGui::Checkbox(_("Send MIDI timecode"),&midiOutTimeB)) {
+          settings.midiOutTime=midiOutTimeB;
+          ret=true;
+        }
+
+        if (settings.midiOutTime) {
+          ImGui::Text(_("Timecode frame rate:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Closest to Tick Rate"),settings.midiOutTimeRate==0)) {
+            settings.midiOutTimeRate=0;
+            ret=true;
+          }
+          if (ImGui::RadioButton(_("Film (24fps)"),settings.midiOutTimeRate==1)) {
+            settings.midiOutTimeRate=1;
+            ret=true;
+          }
+          if (ImGui::RadioButton(_("PAL (25fps)"),settings.midiOutTimeRate==2)) {
+            settings.midiOutTimeRate=2;
+            ret=true;
+          }
+          if (ImGui::RadioButton(_("NTSC drop (29.97fps)"),settings.midiOutTimeRate==3)) {
+            settings.midiOutTimeRate=3;
+            ret=true;
+          }
+          if (ImGui::RadioButton(_("NTSC non-drop (30fps)"),settings.midiOutTimeRate==4)) {
+            settings.midiOutTimeRate=4;
+            ret=true;
+          }
+          ImGui::Unindent();
+        }
+        return ret;
+      }),
     }),
   }
   CATEGORY_END
