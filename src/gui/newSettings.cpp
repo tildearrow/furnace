@@ -296,7 +296,6 @@ bool SettingEntry::passesFilter(ImGuiTextFilter* filter) {
   switch (type) {
     case SettingRadio:
     case SettingComboInt: {
-      assert(extData && "SettingComboInt requires extData!");
       SettingEntryMultiChoiceExtData<int>* choices=(SettingEntryMultiChoiceExtData<int>*)extData;
       for (int i=0; i<extDataCount; i++) {
         if (filter->PassFilter(_(choices[i].choice))) return true;
@@ -304,7 +303,6 @@ bool SettingEntry::passesFilter(ImGuiTextFilter* filter) {
       break;
     }
     case SettingComboStr: {
-      assert(extData && "SettingComboInt requires extData!");
       SettingEntryMultiChoiceExtData<const char*>* choices=(SettingEntryMultiChoiceExtData<const char*>*)extData;
       for (int i=0; i<extDataCount; i++) {
         if (filter->PassFilter(_(choices[i].choice))) return true;
@@ -489,7 +487,6 @@ void SettingsCategory::deleteRecursive() {
   }
 }
 
-#define _S SettingEntry
 #define CATEGORY_BEGIN(_name) allSettings.push_back(SettingsCategory(_name,
 #define CATEGORY_END ));
 #define SUBCATEGORY SettingsCategory
@@ -500,6 +497,136 @@ void SettingsCategory::deleteRecursive() {
   SettingEntry::Color(guiColors[_which].friendlyName,NULL,&uiColors[_which])
 #define SETTING_KEYBIND(_which) \
   SettingEntry::Keybind(guiActions[_which].friendlyName,NULL,&actionKeys[_which],_which)
+
+/*
+  HOW TO ADD TO SETTINGS
+  settings consist of SettingEntry-s inside SettingsCategory-s.
+  - categories start with CATEGORY_BEGIN and end with CATEGORY_END
+    - this is done to comply with MSVC (MSVC doesn't like preprocessor directives inside macro expansions)
+  - subcategories use the SUBCATEGORY macro
+    a typical category definition looks like
+      CATEGORY_BEGIN(_N("Category")) {
+        SettingEntry::...(...),
+        SettingEntry::...(...),
+        SettingEntry::...(...),
+      },{
+        SUBCATEGORY(_N("Subcategory"),{
+          SettingEntry::...(...),
+          SettingEntry::...(...),
+          SettingEntry::...(...),
+        }),
+      }
+      CATEGORY_END,
+    - if localized, (sub)category labels should be inside the _N() macro (not _() !)
+    - subcategories can contain their own subcategories
+  - use the static definition functions for common types.
+   a setting definition usually looks like
+      SettingEntry::Setting(
+        _N("Setting"),
+        "setting", &settings.setting,
+        ...
+      )
+    - if localized, labels should be in the _N() macro (not _() !)
+      - using _() is okay inside custom draw functions
+    - for checkboxes, you can use the SETTING_CHECKBOX or SETTING_INV_CHECKBOX macros
+    - for colors, you can use the SETTING_COLOR macro
+    - for keybinds, you can use the SETTING_KEYBIND macro
+    - typical setting types look like:
+      SETTING_CHECKBOX(
+        _N("Checkbox"),
+        checkbox // will expand to "checkbox",&settings.checkbox
+      ),
+      SettingEntry::Radio(
+        _N("Radio"),
+        "radio",&settings.radio,
+        {
+          {_N("Option 1"),0,_N("this option has a tooltip!")},
+          {_N("Option 2"),1},
+          {_N("Option 3"),2},
+        }
+      ),
+      SettingEntry::ComboInt(
+        _N("Intger Combo"),
+        "comboInt",&settings.comboInt,
+        {
+          {_N("Option 1"),0,_N("this option has a tooltip!")},
+          {_N("Option 2"),1},
+          {_N("Option 3"),2},
+        }
+      ),
+      SettingEntry::ComboString(
+        _N("String Combo"),
+        "comboStr",&settings.comboStr,
+        {
+          {_N("Option 1"),"Option 1",_N("this option has a tooltip!")},
+          {_N("Option 2"),"Option 2"},
+          {_N("Option 3"),"Option 3"},
+        }
+      ),
+      SettingEntry::SliderFloat(
+        _N("Float slider"),
+        "sliderFloat",&settings.sliderFloat,
+        {
+          -1.0f,1.0f, // slider range
+          "%g"        // optional format string
+        }
+      ),
+      SettingEntry::SliderInt(
+        _N("Integer slider"),
+        "sliderInt",&settings.sliderInt,
+        {
+          0,100, // slider range
+          "%d%%" // optional format string
+        }
+      ),
+      SettingEntry::InputInt(
+        _N("integer input"),
+        "inputInt",&settings.inputInt,
+        {
+          0,256,  // input range
+          1,5,    // optional input steps - slow (regular click) and fast (ctrl+click)
+          "%d px" // optional format string
+        }
+      ),
+      SettingEntry::InputText(
+        _N("Text input"),
+        "inputText",&settings.inputText,
+        "text here..." // optional hint
+      ),
+      SettingEntry::Path(
+        _N("File path"),
+        "filePath",&settings.filePath,
+        GUI_FILE_OPEN,        // file dialog ID
+        "/home/user/song.fur" // optional hint
+      ),
+      SETTING_COLOR(GUI_COLOR_ACCENT_PRIMARY), // color ID
+      SETTING_KEYBIND(GUI_ACTION_NEW) // action ID
+    - custom settings look like
+      SettingEntry(
+        _N("Custom Setting"), // note that this label will only be used for search
+        "customSetting",      // usually NULL
+        [this] {
+          bool ret=false;
+          if (...) {
+            ...
+            ret=true;
+          }
+          return ret;
+        }
+      ),
+  - use Tooltip() to add a tooltip to the setting (text that will be visible when hovering on the setting):
+    SettingEntry::...(
+      ...
+    ).Tooltip(_N("this setting does ...")),
+  - use Condition() to add a condition to the setting (when the setting will be drawn):
+    SettingEntry::...(
+      ...
+    ).Condition([this]{return someNumber==5}), // setting will be drawn when someNumber is equal to 5
+  - use Callback to run code when the setting value changes:
+    SettingEntry::...(
+      ...
+    ).Callback([this]{updateSomething();})
+*/
 
 void FurnaceGUI::initSettings() {
   CATEGORY_BEGIN(_N("General")) {},{
@@ -2258,23 +2385,22 @@ void FurnaceGUI::initSettings() {
       return false;
     }),
     SETTING_INV_CHECKBOX(_N("Guru mode"),basicColors),
-    SettingEntry::SliderInt(
-      _N("Frame shading"),
-      "guiColorsShading",&settings.guiColorsShading,
-      {0,100,"%d%%"}
-    ).Callback([this]{applyUISettings(false);}),
-    SettingEntry::Radio(
-      _N("Color scheme type:"),
-      "guiColorsBase",&settings.guiColorsBase,
-      {
-        {_N("Dark##gcb0"),0},
-        {_N("Light##gcb1"),1}
-      }
-    ).Callback([this]{applyUISettings(false);})
-    .Condition([this]{return settings.basicColors;}),
   },{
     SUBCATEGORY(_N("Interface"),{
+      SettingEntry::SliderInt(
+        _N("Frame shading"),
+        "guiColorsShading",&settings.guiColorsShading,
+        {0,100,"%d%%"}
+      ).Callback([this]{applyUISettings(false);}),
 #define BASIC_MODE .Condition([this]{return settings.basicColors;})
+      SettingEntry::Radio(
+        _N("Color scheme type:"),
+        "guiColorsBase",&settings.guiColorsBase,
+        {
+          {_N("Dark##gcb0"),0},
+          {_N("Light##gcb1"),1}
+        }
+      ).Callback([this]{applyUISettings(false);}) BASIC_MODE,
       SETTING_COLOR(GUI_COLOR_ACCENT_PRIMARY) BASIC_MODE,
       SETTING_COLOR(GUI_COLOR_ACCENT_SECONDARY) BASIC_MODE,
 #define GURU_MODE .Condition([this]{return !settings.basicColors;})
