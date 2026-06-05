@@ -143,82 +143,82 @@ const char* audioQualities[]={
   _N("Low")
 };
 
-const char* arcadeCores[]={
+static const char* arcadeCores[]={
   "ymfm",
   "Nuked-OPM"
 };
 
-const char* ym2612Cores[]={
+static const char* ym2612Cores[]={
   "Nuked-OPN2",
   "ymfm",
   "YMF276-LLE"
 };
 
-const char* snCores[]={
+static const char* snCores[]={
   "MAME",
   "Nuked-PSG Mod"
 };
 
-const char* nesCores[]={
+static const char* nesCores[]={
   "puNES",
   "NSFplay"
 };
 
-const char* c64Cores[]={
+static const char* c64Cores[]={
   "reSID",
   "reSIDfp",
   "dSID"
 };
 
-const char* pokeyCores[]={
+static const char* pokeyCores[]={
   "Atari800 (mzpokeysnd)",
   _N("ASAP (C++ port)")
 };
 
-const char* opnCores[]={
+static const char* opnCores[]={
   "ymfm",
   "Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)",
   "YM2608-LLE"
 };
 
-const char* opl2Cores[]={
+static const char* opl2Cores[]={
   "Nuked-OPL3",
   "ymfm",
   "YM3812-LLE"
 };
 
-const char* opl3Cores[]={
+static const char* opl3Cores[]={
   "Nuked-OPL3",
   "ymfm",
   "YMF262-LLE"
 };
 
-const char* opl4Cores[]={
+static const char* opl4Cores[]={
   "Nuked-OPL3 (FM) + openMSX (PCM)",
   "ymfm"
 };
 
-const char* esfmCores[]={
+static const char* esfmCores[]={
   "ESFMu",
   _N("ESFMu (fast)")
 };
 
-const char* opllCores[]={
+static const char* opllCores[]={
   "Nuked-OPLL",
   "emu2413"
 };
 
-const char* ayCores[]={
+static const char* ayCores[]={
   "MAME",
   "AtomicSSG"
 };
 
-const char* swanCores[]={
+static const char* swanCores[]={
   "asiekierka new core",
   "Mednafen"
 };
 
-const char* coreQualities[]={
+static const char* coreQualities[]={
   _N("Lower"),
   _N("Low"),
   _N("Medium"),

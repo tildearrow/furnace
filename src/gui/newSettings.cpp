@@ -36,6 +36,90 @@ static const char* valueInputStyles[]={
   _N("Use single control change (imprecise)")
 };
 
+static const char* arcadeCores[]={
+  "ymfm",
+  "Nuked-OPM"
+};
+
+static const char* ym2612Cores[]={
+  "Nuked-OPN2",
+  "ymfm",
+  "YMF276-LLE"
+};
+
+static const char* snCores[]={
+  "MAME",
+  "Nuked-PSG Mod"
+};
+
+static const char* nesCores[]={
+  "puNES",
+  "NSFplay"
+};
+
+static const char* c64Cores[]={
+  "reSID",
+  "reSIDfp",
+  "dSID"
+};
+
+static const char* pokeyCores[]={
+  "Atari800 (mzpokeysnd)",
+  _N("ASAP (C++ port)")
+};
+
+static const char* opnCores[]={
+  "ymfm",
+  "Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)",
+  "YM2608-LLE"
+};
+
+static const char* opl2Cores[]={
+  "Nuked-OPL3",
+  "ymfm",
+  "YM3812-LLE"
+};
+
+static const char* opl3Cores[]={
+  "Nuked-OPL3",
+  "ymfm",
+  "YMF262-LLE"
+};
+
+static const char* opl4Cores[]={
+  "Nuked-OPL3 (FM) + openMSX (PCM)",
+  "ymfm"
+};
+
+static const char* esfmCores[]={
+  "ESFMu",
+  _N("ESFMu (fast)")
+};
+
+static const char* opllCores[]={
+  "Nuked-OPLL",
+  "emu2413"
+};
+
+static const char* ayCores[]={
+  "MAME",
+  "AtomicSSG"
+};
+
+static const char* swanCores[]={
+  "asiekierka new core",
+  "Mednafen"
+};
+
+static const char* coreQualities[]={
+  _N("Lower"),
+  _N("Low"),
+  _N("Medium"),
+  _N("High"),
+  _N("Ultra"),
+  _N("Ultimate")
+};
+
 static String stripName(String what) {
   String ret;
   for (char& i: what) {
@@ -1558,23 +1642,283 @@ void FurnaceGUI::initSettings() {
     }),
   }
   CATEGORY_END
-  CATEGORY_BEGIN(_N("Emulation")) {
-    SettingEntry::ComboInt(
-      _N("PC Speaker strategy"),
-      "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
-        {_N("evdev SND_TONE"),0},
-        {_N("KIOCSOUND on /dev/tty1"),1},
-        {_N("/dev/port"),2},
-        {_N("KIOCSOUND on standard output"),3},
-        {_N("outb()"),4},
-      })
-  },{
+  CATEGORY_BEGIN(_N("Emulation")) {},{
+    SUBCATEGORY(_N("Cores"),{
+      // please forgive me for this table. we gotta hurry up. we're being attacked from all sides.
+      // the Trio of Destruction is ready and Project Dragon has been launched towards the factory!
+      SettingEntry(_N("Emulation cores"),NULL,[this]{
+        bool ret=false;
+        if (ImGui::BeginTable("##Cores",3)) {
+          ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          ImGui::Text(_("System"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Playback Core(s)"));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("used for playback"));
+          }
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Render Core(s)"));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("used in audio export"));
+          }
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("YM2151");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##ArcadeCoreRender",&settings.arcadeCoreRender,arcadeCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("YM2612");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##YM2612CoreRender",&settings.ym2612CoreRender,ym2612Cores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("SN76489");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##SNCore",&settings.snCore,snCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##SNCoreRender",&settings.snCoreRender,snCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("NES");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##NESCoreRender",&settings.nesCoreRender,nesCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("FDS");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##FDSCoreRender",&settings.fdsCoreRender,nesCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("SID");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##C64CoreRender",&settings.c64CoreRender,c64Cores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("POKEY");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##POKEYCoreRender",&settings.pokeyCoreRender,pokeyCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPN");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPNCore",&settings.opn1Core,opnCores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPNCoreRender",&settings.opn1CoreRender,opnCores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPNA");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPNACore",&settings.opnaCore,opnCores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPNACoreRender",&settings.opnaCoreRender,opnCores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPNB");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPNBCore",&settings.opnbCore,opnCores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPNBCoreRender",&settings.opnbCoreRender,opnCores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL/OPL2/Y8950");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL2Core",&settings.opl2Core,opl2Cores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL2CoreRender",&settings.opl2CoreRender,opl2Cores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL3");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL3Core",&settings.opl3Core,opl3Cores,3)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL3CoreRender",&settings.opl3CoreRender,opl3Cores,3)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPL4");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL4Core",&settings.opl4Core,opl4Cores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPL4CoreRender",&settings.opl4CoreRender,opl4Cores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("ESFM");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##ESFMCore",&settings.esfmCore,LocalizedComboGetter,esfmCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##ESFMCoreRender",&settings.esfmCoreRender,LocalizedComboGetter,esfmCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("OPLL");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPLLCore",&settings.opllCore,opllCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##OPLLCoreRender",&settings.opllCoreRender,opllCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("AY-3-8910/SSG");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##AYCore",&settings.ayCore,ayCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##AYCoreRender",&settings.ayCoreRender,ayCores,2)) ret=true;
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
+          ImGui::Text("WonderSwan");
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##SwanCore",&settings.swanCore,swanCores,2)) ret=true;
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::Combo("##SwanCoreRender",&settings.swanCoreRender,swanCores,2)) ret=true;
+
+          ImGui::EndTable();
+        }
+        return ret;
+      }),
+    }),
+    SUBCATEGORY(_N("Quality"),{
+      SettingEntry(_N("Core quality"),NULL,[this]{
+        bool ret=false;
+        if (ImGui::BeginTable("##CoreQual",3)) {
+          ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("##RenderCores",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          ImGui::Text(_("System"));
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Playback"));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("used for playback"));
+          }
+          ImGui::TableNextColumn();
+          ImGui::Text(_("Render"));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(_("used in audio export"));
+          }
+
+          CORE_QUALITY("Game Boy",gbQuality,gbQualityRender);
+          CORE_QUALITY("PowerNoise",pnQuality,pnQualityRender);
+          CORE_QUALITY("SAA1099",saaQuality,saaQualityRender);
+          CORE_QUALITY("SID (dSID)",dsidQuality,dsidQualityRender);
+
+          ImGui::EndTable();
+        }
+        return ret;
+      }),
+    }),
+    SUBCATEGORY(_N("Other"),{
+      SettingEntry::ComboInt(
+        _N("PC Speaker strategy"),
+        "pcSpeakerOutMethod",&settings.pcSpeakerOutMethod,{
+          {_N("evdev SND_TONE"),0},
+          {_N("KIOCSOUND on /dev/tty1"),1},
+          {_N("/dev/port"),2},
+          {_N("KIOCSOUND on standard output"),3},
+          {_N("outb()"),4},
+        }
+      )
+    }),
     SUBCATEGORY(_N("Sample ROMs"),{
       SettingEntry::Path(
         _N("OPL4 YRW801 path"),
         "yrw801Path",&settings.yrw801Path,
         GUI_FILE_YRW801_ROM_OPEN
-      )
+      ),
+      /*
+      SettingEntry::Path(
+        _N("MultiPCM TG100 path"),
+        "tg100Path",&settings.tg100Path,
+        GUI_FILE_TG100_ROM_OPEN
+      ),
+      SettingEntry::Path(
+        _N("MultiPCM MU5 path"),
+        "mu5Path",&settings.mu5Path,
+        GUI_FILE_MU5_ROM_OPEN
+      ),
+      */
     })
   }
   CATEGORY_END
