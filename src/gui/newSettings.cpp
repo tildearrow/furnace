@@ -169,11 +169,6 @@ static const char* ayCores[]={
   "AtomicSSG"
 };
 
-static const char* swanCores[]={
-  "asiekierka new core",
-  "Mednafen"
-};
-
 static const char* coreQualities[]={
   _N("Lower"),
   _N("Low"),
@@ -2169,17 +2164,6 @@ void FurnaceGUI::initSettings() {
           ImGui::TableNextColumn();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::Combo("##AYCoreRender",&settings.ayCoreRender,ayCores,2)) ret=true;
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::AlignTextToFramePadding();
-          ImGui::Text("WonderSwan");
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##SwanCore",&settings.swanCore,swanCores,2)) ret=true;
-          ImGui::TableNextColumn();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::Combo("##SwanCoreRender",&settings.swanCoreRender,swanCores,2)) ret=true;
 
           ImGui::EndTable();
         }
