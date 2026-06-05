@@ -844,32 +844,6 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
-        ImGui::Text(_("Audio export loop/fade out time:"));
-        ImGui::Indent();
-        if (ImGui::RadioButton(_("Set to these values on start-up:##fot0"),settings.persistFadeOut==0)) {
-          settings.persistFadeOut=0;
-          settingsChanged=true;
-        }
-        ImGui::BeginDisabled(settings.persistFadeOut);
-        ImGui::Indent();
-        if (ImGui::InputInt(_("Loops"),&settings.exportLoops,1,2)) {
-          if (settings.exportLoops<0) settings.exportLoops=0;
-          audioExportOptions.loops=settings.exportLoops;
-          settingsChanged=true;
-        }
-        if (ImGui::InputDouble(_("Fade out (seconds)"),&settings.exportFadeOut,1.0,2.0,"%.1f")) {
-          if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
-          audioExportOptions.fadeOut=settings.exportFadeOut;
-          settingsChanged=true;
-        }
-        ImGui::Unindent();
-        ImGui::EndDisabled();
-        if (ImGui::RadioButton(_("Remember last values##fot1"),settings.persistFadeOut==1)) {
-          settings.persistFadeOut=1;
-          settingsChanged=true;
-        }
-        ImGui::Unindent();
-
         bool writeInsNamesB=settings.writeInsNames;
         if (ImGui::Checkbox(_("Store instrument name in .fui"),&writeInsNamesB)) {
           settings.writeInsNames=writeInsNamesB;
@@ -5023,10 +4997,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.saveUnusedPatterns=conf.getBool("saveUnusedPatterns",0);
     settings.maxRecentFile=conf.getInt("maxRecentFile",10);
 
-    settings.persistFadeOut=conf.getInt("persistFadeOut",1);
-    settings.exportLoops=conf.getInt("exportLoops",0);
-    settings.exportFadeOut=conf.getDouble("exportFadeOut",0.0);
-
     settings.doubleClickTime=conf.getFloat("doubleClickTime",0.3f);
     settings.disableFadeIn=conf.getBool("disableFadeIn",0);
     settings.alwaysPlayIntro=conf.getInt("alwaysPlayIntro",0);
@@ -5432,7 +5402,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutMode,0,2);
   clampSetting(settings.midiOutTimeRate,0,4);
-  clampSetting(settings.persistFadeOut,0,1);
   clampSetting(settings.macroLayout,0,4);
   clampSetting(settings.doubleClickTime,0.02,1.0);
   clampSetting(settings.alwaysPlayIntro,0,3);
@@ -5466,9 +5435,6 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.backupInterval,10,86400);
   clampSetting(settings.backupMaxCopies,1,100);
   clampSetting(settings.autoMacroStepSize,0,2);
-
-  if (settings.exportLoops<0.0) settings.exportLoops=0.0;
-  if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
 }
 
 void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
@@ -5525,10 +5491,6 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
     conf.set("saveUnusedPatterns",settings.saveUnusedPatterns);
     conf.set("maxRecentFile",settings.maxRecentFile);
-
-    conf.set("persistFadeOut",settings.persistFadeOut);
-    conf.set("exportLoops",settings.exportLoops);
-    conf.set("exportFadeOut",settings.exportFadeOut);
 
     conf.set("doubleClickTime",settings.doubleClickTime);
     conf.set("disableFadeIn",settings.disableFadeIn);

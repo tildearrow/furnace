@@ -2074,9 +2074,6 @@ class FurnaceGUI {
     int maxRecentFile;
     bool centerPattern;
     bool ordersCursor;
-    int persistFadeOut;
-    int exportLoops;
-    double exportFadeOut;
     int macroLayout;
     float doubleClickTime;
     bool oneDigitEffects;
@@ -2324,9 +2321,6 @@ class FurnaceGUI {
       maxRecentFile(10),
       centerPattern(0),
       ordersCursor(1),
-      persistFadeOut(1),
-      exportLoops(0),
-      exportFadeOut(0.0),
       macroLayout(0),
       doubleClickTime(0.3f),
       oneDigitEffects(0),

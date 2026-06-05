@@ -7832,11 +7832,6 @@ bool FurnaceGUI::init() {
     }
   }
 
-  if (!settings.persistFadeOut) {
-    audioExportOptions.loops=settings.exportLoops;
-    audioExportOptions.fadeOut=settings.exportFadeOut;
-  }
-
   initSystemPresets();
 
   e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
@@ -8695,10 +8690,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("orderEditMode",orderEditMode);
   conf.set("noteInputMode",(int)noteInputMode);
   conf.set("filePlayerSync",filePlayerSync);
-  if (settings.persistFadeOut) {
-    conf.set("exportLoops",audioExportOptions.loops);
-    conf.set("exportFadeOut",audioExportOptions.fadeOut);
-  }
+  conf.set("exportLoops",audioExportOptions.loops);
+  conf.set("exportFadeOut",audioExportOptions.fadeOut);
 
   // commit oscilloscope state
   conf.set("oscZoom",oscZoom);
