@@ -3852,7 +3852,7 @@ void FurnaceGUI::initSettings() {
     })
   }
   CATEGORY_END
-  CATEGORY_BEGIN(_N("Keyboard")) {},{
+  CATEGORY_BEGIN(_N("Backup")) {},{
     SUBCATEGORY(_N("Configuration"),{
       SETTING_CHECKBOX(
         _N("Enable backup system"),
