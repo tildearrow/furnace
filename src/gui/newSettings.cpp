@@ -25,6 +25,7 @@
 #include "util.h"
 #include "intConst.h"
 #include <imgui.h>
+#include "../utfutils.h"
 
 #ifdef _WIN32
 #include <windows.h>

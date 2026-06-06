@@ -4775,16 +4775,16 @@ void FurnaceGUI::drawSettings() {
       ImGui::SameLine();
       ImGui::Button(ICON_FA_BARS "##SettingsImportExportReset");
       if (ImGui::BeginPopupContextItem("##SettingsImportExportResetPopup",ImGuiPopupFlags_MouseButtonLeft)) {
-        if (ImGui::MenuItem(_("Import..."))) {
+        if (ImGui::MenuItem(_("import..."))) {
           openFileDialog(GUI_FILE_IMPORT_CONFIG);
           ImGui::CloseCurrentPopup();
         }
-        if (ImGui::MenuItem(_("Export..."))) {
+        if (ImGui::MenuItem(_("export..."))) {
           openFileDialog(GUI_FILE_EXPORT_CONFIG);
           ImGui::CloseCurrentPopup();
         }
         pushDestColor();
-        if (ImGui::MenuItem(_("Factory Reset"))) {
+        if (ImGui::MenuItem(_("factory reset"))) {
           showWarning(_("Are you sure you want to reset all Furnace settings?\nYou must restart Furnace after doing so."),GUI_WARN_RESET_CONFIG);
           ImGui::CloseCurrentPopup();
         }
@@ -4795,7 +4795,7 @@ void FurnaceGUI::drawSettings() {
       ImVec2 childSize=ImGui::GetContentRegionAvail();
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsSidebar",childSize)) {
-        for (SettingsCategory& c:allSettings) {
+        for (SettingsCategory& c: allSettings) {
           if (c.drawSidebar(&settingsFilter,&scrollPos)) {
             settingsShowItemResults=false;
           }
@@ -4809,7 +4809,7 @@ void FurnaceGUI::drawSettings() {
       childSize=ImGui::GetContentRegionAvail();
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsEntries",childSize)) {
-        for (SettingsCategory& c:allSettings) {
+        for (SettingsCategory& c: allSettings) {
           if (c.drawSettings(&settingsFilter,settingsShowItemResults,this))
             settingsChanged=true;
         }
