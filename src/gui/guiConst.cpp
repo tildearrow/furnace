@@ -1186,7 +1186,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
   D(GUI_COLOR_PATTERN_PAIR,_N(""),ImVec4(0.6f,0.8f,1.0f,1.0f)),
 
-  D(GUI_COLOR_SAMPLE_BG,_N("Background"),ImVec4(0.04f,0.13f,0.2f,1.0f)),
+  D(GUI_COLOR_SAMPLE_BG,_N("Background##sample"),ImVec4(0.04f,0.13f,0.2f,1.0f)),
   D(GUI_COLOR_SAMPLE_FG,_N("Waveform"),ImVec4(0.7f,0.7f,0.7f,1.0f)),
   D(GUI_COLOR_SAMPLE_LOOP,_N("Loop region"),ImVec4(0.1f,0.22f,0.35f,1.0f)),
   D(GUI_COLOR_SAMPLE_CENTER,_N("Center guide"),ImVec4(0.2f,0.2f,0.2f,1.0f)),
@@ -1210,7 +1210,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER,_N("Combo Breaker"),ImVec4(1.0f,0.15f,1.0f,1.0f)),
   D(GUI_COLOR_PAT_MANAGER_UNUSED,_N("Unused"),ImVec4(1.0f,0.15f,0.15f,1.0f)),
 
-  D(GUI_COLOR_PIANO_BACKGROUND,_N("Background"),ImVec4(0.0f,0.0f,0.0f,1.0f)),
+  D(GUI_COLOR_PIANO_BACKGROUND,_N("Background##piano"),ImVec4(0.0f,0.0f,0.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_BOTTOM,_N("Lower key"),ImVec4(1.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_TOP,_N("Upper key"),ImVec4(0.0f,0.0f,0.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,_N("Lower key (feedback)"),ImVec4(0.5f,0.7f,0.9f,1.0f)),
@@ -1229,7 +1229,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATCHBAY_CONNECTION_BG,_N("Connection (other)"),ImVec4(0.1f,0.25f,0.3f,1.0f)),
   D(GUI_COLOR_PATCHBAY_CONNECTION_HI,_N(""),ImVec4(0.2f,1.0f,1.0f,1.0f)),
 
-  D(GUI_COLOR_MEMORY_BG,_N("Background"),ImVec4(0.12f,0.12f,0.12f,1.0f)),
+  D(GUI_COLOR_MEMORY_BG,_N("Background##memcompo"),ImVec4(0.12f,0.12f,0.12f,1.0f)),
   D(GUI_COLOR_MEMORY_DATA,_N("Waveform data"),ImVec4(1.0f,1.0f,1.0f,0.8f)),
   D(GUI_COLOR_MEMORY_FREE,_N("Unknown"),ImVec4(0.25f,0.25f,0.25f,1.0f)),
   D(GUI_COLOR_MEMORY_PADDING,_N(""),ImVec4(0.25f,0.25f,0.25f,1.0f)),
