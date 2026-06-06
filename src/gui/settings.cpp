@@ -4762,9 +4762,14 @@ void FurnaceGUI::drawSettings() {
 
   if (ImGui::Begin("New Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags,_("New Settings"))) {
     const float buttonsHeight=ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*4.0f;
-    if (ImGui::BeginTable("nnsTable",2,ImGuiTableFlags_Resizable)) {
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.2f);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.8f);
+    const bool vertical=ImGui::GetWindowHeight()>ImGui::GetWindowWidth();
+    if (ImGui::BeginTable("nnsTable",vertical?1:2,ImGuiTableFlags_Resizable|(vertical?ImGuiTableFlags_BordersInnerH:0))) {
+      if (vertical) {
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+      } else {
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.2f);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.8f);
+      }
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(ICON_FA_BARS).x-ImGui::GetStyle().FramePadding.x*4.0f);
@@ -4793,24 +4798,30 @@ void FurnaceGUI::drawSettings() {
       }
       float scrollPos=-1.0f;
       ImVec2 childSize=ImGui::GetContentRegionAvail();
-      childSize.y-=buttonsHeight;
+      if (vertical)
+        childSize.y/=3.0f;
+      else
+        childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsSidebar",childSize)) {
-        for (SettingsCategory& c: allSettings) {
-          if (c.drawSidebar(&settingsFilter,&scrollPos)) {
+        for (size_t i=0; i<allSettings.size(); i++) {
+          if (allSettings[i].drawSidebar(&settingsFilter,this)) {
             settingsShowItemResults=false;
-          }
-          if (scrollPos!=-1.0f) {
-            logV("settings: cat set scroll to %f",scrollPos);
           }
         }
       }
       ImGui::EndChild();
+      if (vertical) ImGui::TableNextRow();
       ImGui::TableNextColumn();
       childSize=ImGui::GetContentRegionAvail();
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsEntries",childSize)) {
-        for (SettingsCategory& c: allSettings) {
-          if (c.drawSettings(&settingsFilter,settingsShowItemResults,this))
+        if (settingsFilter.IsActive() && settingsShowItemResults) {
+          for (SettingsCategory& c: allSettings) {
+            if (c.drawSettings(&settingsFilter,settingsShowItemResults,this))
+              settingsChanged=true;
+          }
+        } else if (curCategory!=NULL) {
+          if (curCategory->drawSettings(&settingsFilter,settingsShowItemResults,this))
             settingsChanged=true;
         }
         if (scrollPos!=-1.0f) {

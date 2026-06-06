@@ -356,7 +356,6 @@ class SettingsCategory {
   const char* name;
   std::vector<SettingEntry> settings;
   std::vector<SettingsCategory> children;
-  float scrollPos;
   public:
     SettingsCategory();
     SettingsCategory(const char* n, std::initializer_list<SettingEntry> s);
@@ -364,8 +363,8 @@ class SettingsCategory {
     //SettingsCategory(const SettingsCategory& s);
 
     bool drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui);
-    bool categoryPassFilterRecursive(ImGuiTextFilter* filter);
-    bool drawSidebar(ImGuiTextFilter* filter, float* targetScrollPos);
+    int categoryPassFilterRecursive(ImGuiTextFilter* filter);
+    bool drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui);
 
     void deleteRecursive();
 };

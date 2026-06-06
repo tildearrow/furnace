@@ -24,19 +24,6 @@
 #include "guiConst.h"
 #include "util.h"
 #include "intConst.h"
-#include <imgui.h>
-#include "../utfutils.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#include <shlobj.h>
-#include <shlwapi.h>
-#else
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-#endif
 
 static const char* valueInputStyles[]={
   _N("Disabled/custom"),
@@ -493,21 +480,18 @@ void SettingEntry::destroy() {
 SettingsCategory::SettingsCategory():
   name(NULL),
   settings({}),
-  children({}),
-  scrollPos(0.0f) {}
+  children({}) {}
 
 SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingEntry> s) {
   name=n;
   settings=s;
   children={};
-  scrollPos=0.0f;
 }
 
 SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingEntry> s, std::initializer_list<SettingsCategory> c) {
   name=n;
   settings=s;
   children=c;
-  scrollPos=0.0f;
 }
 
 // commented out (deemed unnecessary and fails Android build)
@@ -519,8 +503,6 @@ SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingE
 }*/
 
 bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui) {
-  // get Y position for scroll
-  if (!(filter->IsActive() && doFilter)) scrollPos=ImGui::GetCursorPosY();
   // check whether to draw the name
   // if no settings in the category match the filter, then no
   bool drawOwnSettings=true;
@@ -540,8 +522,6 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, Furn
   bool ret=false;
   if (drawOwnSettings) {
     ImGui::SeparatorText(_(name));
-    // ImGui::SameLine();
-    // ImGui::TextColored(ImVec4(1.0f,.5f,.5f,1.f), "%f",scrollPos);
     ImGui::Indent();
     for (SettingEntry& s:settings) {
       if (filter->IsActive() && doFilter) {
@@ -559,67 +539,78 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, Furn
   return ret;
 }
 
-bool SettingsCategory::categoryPassFilterRecursive(ImGuiTextFilter* filter) {
-  if (filter->PassFilter(_(name))) return true;
+int SettingsCategory::categoryPassFilterRecursive(ImGuiTextFilter* filter) {
+  int ret=0;
+  if (filter->PassFilter(_(name))) ret|=1;
   for (SettingsCategory& c:children) {
-    if (c.categoryPassFilterRecursive(filter)) return true;
+    if (c.categoryPassFilterRecursive(filter)) ret|=2;
   }
-  return false;
+  return ret;
 }
 
-bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollPos) {
-  bool ret=false;
+bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
+  // this code is a mess but it works, somehow
+  // well, barely
+  // the treenode clicking only works when its closed
+  bool ret=false; // return if clicked
+  bool popDisabled=false; // disable current node if it doesnt pass the filter but its children do
+  bool drawChildren=true; // dont draw if doesnt have children or the children dont pass the filter
+  bool forceOpen=false;
+  ImGuiTreeNodeFlags treeFlags=ImGuiTreeNodeFlags_None;
   if (children.empty()) {
+    drawChildren=false;
     if (filter->IsActive()) {
       if (!filter->PassFilter(_(name))) return false;
     }
-    ImGui::Selectable(_(name)); // should i use TreeNode with ImGuiTreeNodeFlags_Leaf?
-    if (ImGui::IsItemClicked()) {
-      *targetScrollPos=scrollPos;
-      return true;
-    }
   } else {
-    bool popDisabled=false;
-    ImGuiTreeNodeFlags treeFlags=ImGuiTreeNodeFlags_None;
     if (filter->IsActive()) {
-      if (!filter->PassFilter(_(name))) {
-        if (!categoryPassFilterRecursive(filter)) return false;
-        else popDisabled=true;
+      switch (categoryPassFilterRecursive(filter)) {
+        case 0: // none
+          return false;
+        case 1: // only self
+          treeFlags|=ImGuiTreeNodeFlags_Leaf|ImGuiTreeNodeFlags_NoTreePushOnOpen;
+          drawChildren=false;
+          break;
+        case 2: // only children
+          popDisabled=true;
+          forceOpen=true;
+          break;
+        case 3: // both
+          forceOpen=true;
+          break;
       }
-      treeFlags|=ImGuiTreeNodeFlags_DefaultOpen;
     }
+    if (gui->curCategory==this) {
+      treeFlags|=ImGuiTreeNodeFlags_Selected;
+    }
+  }
+  if (drawChildren) {
     ImGui::BeginDisabled(popDisabled);
     popDisabled=true;
-    if (ImGui::TreeNodeEx(_(name), treeFlags)) {
+    if (forceOpen) ImGui::SetNextItemOpen(true);
+    if (ImGui::TreeNodeEx(_(name),treeFlags)) {
       ImGui::EndDisabled();
       popDisabled=false;
-      for (SettingsCategory& c:children)
-        ret=c.drawSidebar(filter, targetScrollPos);
-      ImGui::TreePop();
+      for (size_t i=0; i<children.size(); i++)
+        ret|=children[i].drawSidebar(filter,gui);
+      ImGui::Dummy({0.f,0.f}); // I DONT KNOW WHY BUT WITHOUT THIS HOVERING ON THE LAST CHILD ALSO HOVERS ON THE TREENODE
+      if (!(treeFlags&ImGuiTreeNodeFlags_NoTreePushOnOpen))
+        ImGui::TreePop();
     }
     if (popDisabled) ImGui::EndDisabled();
     if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) { // hack because IsItemClicked returns true when anywhere inside the node and on the rising edge
-      if (*targetScrollPos==-1.0f) *targetScrollPos=scrollPos;
+      gui->curCategory=this;
       ret=true;
+    }
+  } else {
+    ImGui::Selectable(_(name),gui->curCategory==this);
+    if (ImGui::IsItemClicked()) {
+      gui->curCategory=this;
+      return true;
     }
   }
   return ret;
 }
-/*bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, float* targetScrollPos) {
-  bool ret=false;
-  ImGui::BeginDisabled(filter->IsActive() && !filter->PassFilter(_(name)));
-  if (ImGui::Selectable(_(name))) {
-    *targetScrollPos=scrollPos;
-    ret=true;
-  }
-  ImGui::EndDisabled();
-  ImGui::Indent();
-  for (SettingsCategory& s:children) {
-    ret|=s.drawSidebar(filter,targetScrollPos);
-  }
-  ImGui::Unindent();
-  return ret;
-}*/
 
 void SettingsCategory::deleteRecursive() {
   for (size_t i=0; i<settings.size(); i++) {
@@ -765,7 +756,7 @@ void SettingsCategory::deleteRecursive() {
     SettingEntry::...(
       ...
     ).Condition([this]{return someNumber==5}), // setting will be drawn when someNumber is equal to 5
-  - use Callback to run code when the setting value changes:
+  - use Callback() to run code when the setting value changes:
     SettingEntry::...(
       ...
     ).Callback([this]{updateSomething();})
@@ -3837,269 +3828,29 @@ void FurnaceGUI::initSettings() {
     })
   }
   CATEGORY_END
-  CATEGORY_BEGIN(_N("Backup")) {},{
-    SUBCATEGORY(_N("Configuration"),{
-      SETTING_CHECKBOX(
-        _N("Enable backup system"),
-        backupEnable
-      ),
-      SettingEntry::InputInt(
-        _N("Interval (in seconds)"),"backupInterval",
-        &settings.backupInterval,
-        {10,86400}
-      ),
-      SettingEntry::InputInt(
-        _N("Backups per file"),"backupMaxCopies",
-        &settings.backupMaxCopies,
-        {1,100}
-      ),
-    }),
-    SUBCATEGORY(_N("Backup Management"),{
-      SettingEntry(_N("Backups"),NULL,[this]{
-        bool purgeDateChanged=false;
-
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Purge before:"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(60.0f*dpiScale);
-        if (ImGui::InputInt("##PYear",&purgeYear,0,0)) purgeDateChanged=true;
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(40.0f*dpiScale);
-        if (ImGui::InputInt("##PMonth",&purgeMonth,0,0)) purgeDateChanged=true;
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(40.0f*dpiScale);
-        if (ImGui::InputInt("##PDay",&purgeDay,0,0)) purgeDateChanged=true;
-
-        if (purgeDateChanged) {
-          // check month/day validity
-          time_t thisMakesNoSense=time(NULL);
-          bool tmFailed=false;
-          struct tm curTime;
-#ifdef _WIN32
-          struct tm* tempTM=localtime(&thisMakesNoSense);
-          if (tempTM==NULL) {
-            memset(&curTime,0,sizeof(struct tm));
-            tmFailed=true;
-          } else {
-            memcpy(&curTime,tempTM,sizeof(struct tm));
-          }
-#else
-          if (localtime_r(&thisMakesNoSense,&curTime)==NULL) {
-            memset(&curTime,0,sizeof(struct tm));
-            tmFailed=true;
-          }
-#endif
-
-          // don't allow dates in the future
-          if (!tmFailed) {
-            int curYear=curTime.tm_year+1900;
-            int curMonth=curTime.tm_mon+1;
-            int curDay=curTime.tm_mday;
-
-            if (purgeYear<1) purgeYear=1;
-            if (purgeYear>curYear) purgeYear=curYear;
-
-            if (purgeYear==curYear) {
-              if (purgeMonth>curMonth) purgeMonth=curMonth;
-
-              if (purgeMonth==curMonth) {
-                if (purgeDay>curDay) purgeDay=curDay;
-              }
-            }
-          }
-
-          // general checks
-          if (purgeYear<1) purgeYear=1;
-          if (purgeMonth<1) purgeMonth=1;
-          if (purgeMonth>12) purgeMonth=12;
-          if (purgeDay<1) purgeDay=1;
-
-          // 1752 calendar alignment
-          if (purgeYear==1752 && purgeMonth==9) {
-            if (purgeDay>2 && purgeDay<14) purgeDay=2;
-          }
-          if (purgeMonth==2) {
-            // leap year
-            if ((purgeYear&3)==0 && ((purgeYear%100)!=0 || (purgeYear%400)==0)) {
-              if (purgeDay>29) purgeDay=29;
-            } else {
-              if (purgeDay>28) purgeDay=28;
-            }
-          } else if (purgeMonth==1 || purgeMonth==3 || purgeMonth==5 || purgeMonth==7 || purgeMonth==8 || purgeMonth==10 || purgeMonth==12) {
-            if (purgeDay>31) purgeDay=31;
-          } else {
-            if (purgeDay>30) purgeDay=30;
-          }
-        }
-
-        ImGui::SameLine();
-        if (ImGui::Button(_("Go##PDate"))) {
-          purgeBackups(purgeYear,purgeMonth,purgeDay);
-        }
-
-        backupEntryLock.lock();
-        ImGui::AlignTextToFramePadding();
-        if (totalBackupSize>=(1ULL<<50ULL)) {
-          ImGui::Text(_("%" PRIu64 "PB used"),totalBackupSize>>50);
-        } else if (totalBackupSize>=(1ULL<<40ULL)) {
-          ImGui::Text(_("%" PRIu64 "TB used"),totalBackupSize>>40);
-        } else if (totalBackupSize>=(1ULL<<30ULL)) {
-          ImGui::Text(_("%" PRIu64 "GB used"),totalBackupSize>>30);
-        } else if (totalBackupSize>=(1ULL<<20ULL)) {
-          ImGui::Text(_("%" PRIu64 "MB used"),totalBackupSize>>20);
-        } else if (totalBackupSize>=(1ULL<<10ULL)) {
-          ImGui::Text(_("%" PRIu64 "KB used"),totalBackupSize>>10);
-        } else {
-          ImGui::Text(_("%" PRIu64 " bytes used"),totalBackupSize);
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button(_("Refresh"))) {
-          refreshBackups=true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(_("Delete all"))) {
-          purgeBackups(0,0,0);
-        }
-
-        if (ImGui::BeginTable("BackupList",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders)) {
-          ImGui::TableSetupColumn(_("Name"),ImGuiTableColumnFlags_WidthStretch,0.6f);
-          ImGui::TableSetupColumn(_("Size"),ImGuiTableColumnFlags_WidthStretch,0.15f);
-          ImGui::TableSetupColumn(_("Latest"),ImGuiTableColumnFlags_WidthStretch,0.25f);
-
-          ImGui::TableHeadersRow();
-
-          for (FurnaceGUIBackupEntry& i: backupEntries) {
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(i.name.c_str());
-            ImGui::TableNextColumn();
-            if (i.size>=(1ULL<<50ULL)) {
-              ImGui::Text(_("%" PRIu64 "P"),i.size>>50);
-            } else if (i.size>=(1ULL<<40ULL)) {
-              ImGui::Text(_("%" PRIu64 "T"),i.size>>40);
-            } else if (i.size>=(1ULL<<30ULL)) {
-              ImGui::Text(_("%" PRIu64 "G"),i.size>>30);
-            } else if (i.size>=(1ULL<<20ULL)) {
-              ImGui::Text(_("%" PRIu64 "M"),i.size>>20);
-            } else if (i.size>=(1ULL<<10ULL)) {
-              ImGui::Text(_("%" PRIu64 "K"),i.size>>10);
-            } else {
-              ImGui::Text(_("%" PRIu64 ""),i.size);
-            }
-            ImGui::TableNextColumn();
-            ImGui::Text("%d-%02d-%02d",i.lastEntryTime.tm_year+1900,i.lastEntryTime.tm_mon+1,i.lastEntryTime.tm_mday);
-          }
-
-          ImGui::EndTable();
-        }
-        backupEntryLock.unlock();
-        if (refreshBackups) {
-          refreshBackups=false;
-          if (backupEntryTask.valid()) backupEntryTask.get();
-          backupEntryTask=std::async(std::launch::async,[this]() -> bool {
-            backupEntryLock.lock();
-            backupEntries.clear();
-            totalBackupSize=0;
-            backupEntryLock.unlock();
-
-#ifdef _WIN32
-            String findPath=backupPath+String(DIR_SEPARATOR_STR)+String("*.fur");
-            WString findPathW=utf8To16(findPath.c_str());
-            WIN32_FIND_DATAW next;
-            HANDLE backDir=FindFirstFileW(findPathW.c_str(),&next);
-            if (backDir!=INVALID_HANDLE_VALUE) {
-              do {
-                FurnaceGUIBackupEntry nextEntry;
-                String cFileNameU=utf16To8(next.cFileName);
-                if (!splitBackupName(cFileNameU.c_str(),nextEntry.name,nextEntry.lastEntryTime)) continue;
-
-                nextEntry.size=(((uint64_t)next.nFileSizeHigh)<<32)|next.nFileSizeLow;
-
-                backupEntryLock.lock();
-                backupEntries.push_back(nextEntry);
-                totalBackupSize+=nextEntry.size;
-                backupEntryLock.unlock();
-              } while (FindNextFileW(backDir,&next)!=0);
-              FindClose(backDir);
-            }
-#else
-            DIR* backDir=opendir(backupPath.c_str());
-            if (backDir==NULL) {
-              logW("could not open backups dir!");
-              return false;
-            }
-            while (true) {
-              FurnaceGUIBackupEntry nextEntry;
-              struct stat nextStat;
-              struct dirent* next=readdir(backDir);
-              if (next==NULL) break;
-              if (strcmp(next->d_name,".")==0) continue;
-              if (strcmp(next->d_name,"..")==0) continue;
-              if (!splitBackupName(next->d_name,nextEntry.name,nextEntry.lastEntryTime)) continue;
-
-              String nextPath=backupPath+DIR_SEPARATOR_STR+next->d_name;
-
-              if (stat(nextPath.c_str(),&nextStat)>=0) {
-                nextEntry.size=nextStat.st_size;
-              }
-
-              backupEntryLock.lock();
-              backupEntries.push_back(nextEntry);
-              totalBackupSize+=nextEntry.size;
-              backupEntryLock.unlock();
-            }
-            closedir(backDir);
-#endif
-
-            // sort and merge
-            backupEntryLock.lock();
-            std::sort(backupEntries.begin(),backupEntries.end(),[](const FurnaceGUIBackupEntry& a, const FurnaceGUIBackupEntry& b) -> bool {
-              int sc=strcmp(a.name.c_str(),b.name.c_str());
-              if (sc==0) {
-                if (a.lastEntryTime.tm_year==b.lastEntryTime.tm_year) {
-                  if (a.lastEntryTime.tm_mon==b.lastEntryTime.tm_mon) {
-                    if (a.lastEntryTime.tm_mday==b.lastEntryTime.tm_mday) {
-                      if (a.lastEntryTime.tm_hour==b.lastEntryTime.tm_hour) {
-                        if (a.lastEntryTime.tm_min==b.lastEntryTime.tm_min) {
-                          return (a.lastEntryTime.tm_sec<b.lastEntryTime.tm_sec);
-                        } else {
-                          return (a.lastEntryTime.tm_min<b.lastEntryTime.tm_min);
-                        }
-                      } else {
-                        return (a.lastEntryTime.tm_hour<b.lastEntryTime.tm_hour);
-                      }
-                    } else {
-                      return (a.lastEntryTime.tm_mday<b.lastEntryTime.tm_mday);
-                    }
-                  } else {
-                    return (a.lastEntryTime.tm_mon<b.lastEntryTime.tm_mon);
-                  }
-                } else {
-                  return (a.lastEntryTime.tm_year<b.lastEntryTime.tm_year);
-                }
-              }
-
-              return sc<0;
-            });
-            for (size_t i=1; i<backupEntries.size(); i++) {
-              FurnaceGUIBackupEntry& prevEntry=backupEntries[i-1];
-              FurnaceGUIBackupEntry& thisEntry=backupEntries[i];
-
-              if (thisEntry.name==prevEntry.name) {
-                prevEntry.size+=thisEntry.size;
-                backupEntries.erase(backupEntries.begin()+i);
-                i--;
-              }
-            }
-            backupEntryLock.unlock();
-            return true;
-          });
-        }
-        return false;
-      })
+  CATEGORY_BEGIN(_N("Backup Configuration")) {
+    SETTING_CHECKBOX(
+      _N("Enable backup system"),
+      backupEnable
+    ),
+    SettingEntry::InputInt(
+      _N("Interval (in seconds)"),"backupInterval",
+      &settings.backupInterval,
+      {10,86400}
+    ),
+    SettingEntry::InputInt(
+      _N("Backups per file"),"backupMaxCopies",
+      &settings.backupMaxCopies,
+      {1,100}
+    ),
+    SettingEntry(_N("Backups"),NULL,[this]{
+      if (ImGui::Button(_("Open backup management..."))) {
+        nextWindow=GUI_WINDOW_BACKUPS_MANAGER;
+        backupsManagerOpen=true;
+      }
+      return false;
     })
   }
   CATEGORY_END
+  curCategory=&allSettings[0];
 }

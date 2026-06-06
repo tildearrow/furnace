@@ -968,6 +968,7 @@ src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
 src/gui/about.cpp
+src/gui/backupsManager.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp

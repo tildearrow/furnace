@@ -680,6 +680,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_USER_PRESETS", _N("User Presets"), 0),
   D("WINDOW_REF_PLAYER", _N("Reference Music Player"), 0),
   D("MULTI_INS_SETUP", _N("Multi-Instrument Setup"), 0),
+  D("WINDOW_BACKUPS_MANAGER", _N("Backup Management"), 0),
 
   D("COLLAPSE_WINDOW", _N("Collapse/expand current window"), 0),
   D("CLOSE_WINDOW", _N("Close current window"), FURKMOD_SHIFT|SDLK_ESCAPE),

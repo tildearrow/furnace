@@ -632,6 +632,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
+  GUI_WINDOW_BACKUPS_MANAGER,
   GUI_WINDOW_SPOILER
 };
 
@@ -845,6 +846,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_USER_PRESETS,
   GUI_ACTION_WINDOW_REF_PLAYER,
   GUI_ACTION_WINDOW_MULTI_INS_SETUP,
+  GUI_ACTION_WINDOW_BACKUPS_MANAGER,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -2412,6 +2414,7 @@ class FurnaceGUI {
 
   ImGuiTextFilter settingsFilter;
   std::vector<SettingsCategory> allSettings;
+  SettingsCategory* curCategory;
   // when clicking on a category while the filter is active,
   // set to false so the filter is ignored for items.
   // otherwise set to true on filter update
@@ -2482,7 +2485,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
-  bool multiInsSetupOpen;
+  bool multiInsSetupOpen, backupsManagerOpen;
 
   bool cvNotSerious;
 
@@ -3176,6 +3179,7 @@ class FurnaceGUI {
   void drawUserPresets();
   void drawRefPlayer();
   void drawMultiInsSetup();
+  void drawBackupsManager();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
