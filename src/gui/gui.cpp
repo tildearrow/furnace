@@ -25,6 +25,7 @@
 
 #include "gui.h"
 #include "util.h"
+#include "../discord/discordRPC.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "imgui.h"
@@ -7808,12 +7809,20 @@ bool FurnaceGUI::loop() {
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
       SDL_Delay(100);
     }
+
+    updateDiscordRPC();
   }
   return false;
 }
 
 bool FurnaceGUI::init() {
   logI("initializing GUI.");
+
+  // Discord Rich Presence — read level from config (default Full)
+  discordRPCLevel=(unsigned char)e->getConfInt("discordRPCLevel",(int)FurnaceDiscordRPC::LEVEL_FULL);
+  if (discordRPCLevel>FurnaceDiscordRPC::LEVEL_FULL) discordRPCLevel=FurnaceDiscordRPC::LEVEL_FULL;
+  discordRPC.reset(new FurnaceDiscordRPC());
+  discordRPC->start((FurnaceDiscordRPC::Level)discordRPCLevel);
 
   newFilePicker=new FurnaceFilePicker;
   newFilePicker->setConfigPrefix("fp_");
@@ -8782,6 +8791,11 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 }
 
 bool FurnaceGUI::finish(bool saveConfig) {
+  if (discordRPC) {
+    e->setConf("discordRPCLevel",(int)discordRPCLevel);
+    discordRPC->stop();
+    discordRPC.reset();
+  }
   if (!quitNoSave) {
     commitState(e->getConfObject());
     if (userPresetsOpen) {
@@ -8865,6 +8879,14 @@ bool FurnaceGUI::requestQuit() {
     quit=true;
   }
   return quit;
+}
+
+FurnaceGUI::~FurnaceGUI() {}
+
+void FurnaceGUI::updateDiscordRPC() {
+  if (!discordRPC || !discordRPC->isActive()) return;
+  discordRPC->setActivity(e);
+  discordRPC->tick();
 }
 
 FurnaceGUI::FurnaceGUI():
@@ -9476,7 +9498,8 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileDispatch(0),
   sampleCompileIndex(0),
   sampleCompileSize(0),
-  warnIsOpen(false) {
+  warnIsOpen(false),
+  discordRPCLevel(2) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

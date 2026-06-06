@@ -1700,6 +1700,7 @@ enum NoteInputModes: unsigned char {
 };
 
 struct FurnaceCV;
+class FurnaceDiscordRPC;
 
 class FurnaceGUI {
   DivEngine* e;
@@ -3296,6 +3297,11 @@ class FurnaceGUI {
   bool setMultiIns(int newIns);
   bool isMultiInsActive();
 
+  // Discord Rich Presence
+  std::unique_ptr<FurnaceDiscordRPC> discordRPC;
+  unsigned char discordRPCLevel;  // 0=off, 1=minimal, 2=full
+  void updateDiscordRPC();
+
   public:
     void editStr(String* which);
     void showError(String what);
@@ -3322,6 +3328,7 @@ class FurnaceGUI {
     bool init();
     bool requestQuit();
     FurnaceGUI();
+    ~FurnaceGUI();
 };
 
 #endif

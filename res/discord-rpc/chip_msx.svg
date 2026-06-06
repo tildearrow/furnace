@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<circle cx="256" cy="256" r="256" fill="#288c50"/>
+<rect x="70.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="70.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="89.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="89.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="108.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="108.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="127.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="127.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="146.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="146.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="165.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="165.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="184.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="184.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="203.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="203.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="222.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="222.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="241.28" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="241.28" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="260.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="260.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="279.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="279.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="298.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="298.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="317.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="317.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="336.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="336.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="355.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="355.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="374.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="374.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="393.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="393.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="412.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="412.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="431.27" y="133" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="431.27" y="341" width="10.45" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="66" y="171" width="380" height="170" rx="16" fill="#0e1115"/>
+<circle cx="94" cy="199" r="9" fill="#cfd2d8"/>
+<rect x="80" y="185" width="352" height="3" fill="#000" fill-opacity="0.45"/>
+<text x="256" y="242" font-family="Arial Black, Segoe UI Bold, DejaVu Sans Bold, sans-serif" font-weight="900" font-size="84" fill="white" text-anchor="middle" dominant-baseline="central">SCC</text>
+<text x="256" y="294" font-family="Arial Black, Segoe UI Bold, DejaVu Sans Bold, sans-serif" font-weight="700" font-size="36" fill="#cbd3df" text-anchor="middle" dominant-baseline="central">Konami K051649</text>
+</svg>

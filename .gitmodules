@@ -11,3 +11,6 @@
 [submodule "extern/asio"]
 	path = extern/asio
 	url = https://github.com/tildearrow/asio-cmake.git
+[submodule "extern/discord-rpc"]
+	path = extern/discord-rpc
+	url = https://github.com/discord/discord-rpc.git

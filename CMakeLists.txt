@@ -148,6 +148,7 @@ option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
 option(NO_INTRO "Disable intro animation entirely" OFF)
 option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
+option(WITH_DISCORD_RPC "Build with Discord Rich Presence integration" ON)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -283,6 +284,56 @@ if (BUILD_GUI AND USE_FREETYPE)
     message(STATUS "Using vendored FreeType")
   endif()
   list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
+endif()
+
+# Discord Rich Presence (optional)
+if (WITH_DISCORD_RPC)
+  # discord-rpc's CMakeLists declares cmake_minimum_required(3.2). Modern
+  # CMake refuses to honor that policy without an explicit override.
+  set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+  set(BUILD_EXAMPLES OFF CACHE BOOL "discord-rpc: skip example apps" FORCE)
+
+  # discord-rpc bundles rapidjson 1.1.0 via file(DOWNLOAD) during configure.
+  # That copy contains an invalid GenericStringRef::operator= (assigns through
+  # const members) which newer C++ compilers reject. Pre-fetch and patch it
+  # before letting discord-rpc's CMakeLists run.
+  set(_RJ_THIRDPARTY ${CMAKE_CURRENT_SOURCE_DIR}/extern/discord-rpc/thirdparty)
+  set(_RJ_DOC ${_RJ_THIRDPARTY}/rapidjson-1.1.0/include/rapidjson/document.h)
+  if (NOT EXISTS ${_RJ_DOC})
+    file(MAKE_DIRECTORY ${_RJ_THIRDPARTY})
+    message(STATUS "Discord RPC: downloading rapidjson 1.1.0 ...")
+    file(DOWNLOAD
+      https://github.com/Tencent/rapidjson/archive/v1.1.0.tar.gz
+      ${_RJ_THIRDPARTY}/v1.1.0.tar.gz
+      STATUS _RJ_DL_STATUS
+    )
+    list(GET _RJ_DL_STATUS 0 _RJ_DL_CODE)
+    if (NOT _RJ_DL_CODE EQUAL 0)
+      message(FATAL_ERROR "Discord RPC: rapidjson download failed: ${_RJ_DL_STATUS}")
+    endif()
+    execute_process(
+      COMMAND ${CMAKE_COMMAND} -E tar xzf v1.1.0.tar.gz
+      WORKING_DIRECTORY ${_RJ_THIRDPARTY}
+    )
+    file(REMOVE ${_RJ_THIRDPARTY}/v1.1.0.tar.gz)
+  endif()
+  if (EXISTS ${_RJ_DOC})
+    file(READ ${_RJ_DOC} _RJ_CONTENT)
+    string(REPLACE
+      "GenericStringRef& operator=(const GenericStringRef& rhs) { s = rhs.s; length = rhs.length; }"
+      "GenericStringRef& operator=(const GenericStringRef&) { return *this; }"
+      _RJ_PATCHED "${_RJ_CONTENT}")
+    if (NOT "${_RJ_PATCHED}" STREQUAL "${_RJ_CONTENT}")
+      file(WRITE ${_RJ_DOC} "${_RJ_PATCHED}")
+      message(STATUS "Discord RPC: patched rapidjson 1.1.0 GenericStringRef::operator=")
+    endif()
+  endif()
+
+  add_subdirectory(extern/discord-rpc EXCLUDE_FROM_ALL)
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/discord-rpc/include)
+  list(APPEND DEPENDENCIES_LIBRARIES discord-rpc)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_DISCORD_RPC)
+  message(STATUS "Discord Rich Presence: enabled")
 endif()
 
 # Opus is mandatory
@@ -975,6 +1026,7 @@ src/gui/about.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
+src/discord/discordRPC.cpp
 src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
 src/gui/csPlayer.cpp

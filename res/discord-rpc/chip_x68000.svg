@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<circle cx="256" cy="256" r="256" fill="#aa5096"/>
+<rect x="82.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="82.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="112.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="112.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="142.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="142.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="172.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="172.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="202.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="202.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="232.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="232.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="262.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="262.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="292.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="292.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="322.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="322.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="352.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="352.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="382.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="382.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="412.75" y="123" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="412.75" y="351" width="16.50" height="38" fill="#cfd6e0" rx="3"/>
+<rect x="76" y="161" width="360" height="190" rx="16" fill="#0e1115"/>
+<circle cx="104" cy="189" r="9" fill="#cfd2d8"/>
+<rect x="90" y="175" width="332" height="3" fill="#000" fill-opacity="0.45"/>
+<text x="256" y="242" font-family="Arial Black, Segoe UI Bold, DejaVu Sans Bold, sans-serif" font-weight="900" font-size="58" fill="white" text-anchor="middle" dominant-baseline="central">YM2151</text>
+<text x="256" y="294" font-family="Arial Black, Segoe UI Bold, DejaVu Sans Bold, sans-serif" font-weight="700" font-size="36" fill="#cbd3df" text-anchor="middle" dominant-baseline="central">X68000</text>
+</svg>
