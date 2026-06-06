@@ -4796,7 +4796,6 @@ void FurnaceGUI::drawSettings() {
         popDestColor();
         ImGui::EndPopup();
       }
-      float scrollPos=-1.0f;
       ImVec2 childSize=ImGui::GetContentRegionAvail();
       if (vertical)
         childSize.y/=3.0f;
@@ -4823,9 +4822,6 @@ void FurnaceGUI::drawSettings() {
         } else if (curCategory!=NULL) {
           if (curCategory->drawSettings(&settingsFilter,settingsShowItemResults,this))
             settingsChanged=true;
-        }
-        if (scrollPos!=-1.0f) {
-          ImGui::SetScrollY(scrollPos);
         }
       }
       ImGui::EndChild();
