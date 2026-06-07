@@ -4796,6 +4796,7 @@ void FurnaceGUI::drawSettings() {
         popDestColor();
         ImGui::EndPopup();
       }
+      bool resetScroll=false;
       ImVec2 childSize=ImGui::GetContentRegionAvail();
       if (vertical)
         childSize.y/=3.0f;
@@ -4805,6 +4806,7 @@ void FurnaceGUI::drawSettings() {
         for (size_t i=0; i<allSettings.size(); i++) {
           if (allSettings[i].drawSidebar(&settingsFilter,this)) {
             settingsShowItemResults=false;
+            resetScroll=true;
           }
         }
       }
@@ -4814,6 +4816,10 @@ void FurnaceGUI::drawSettings() {
       childSize=ImGui::GetContentRegionAvail();
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsEntries",childSize)) {
+        if (resetScroll) {
+          resetScroll=false;
+          ImGui::SetScrollHereY(0.0f);
+        }
         if (settingsFilter.IsActive() && settingsShowItemResults) {
           for (SettingsCategory& c: allSettings) {
             if (c.drawSettings(&settingsFilter,settingsShowItemResults,this))

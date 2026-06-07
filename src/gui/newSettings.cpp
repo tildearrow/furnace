@@ -547,7 +547,7 @@ int SettingsCategory::categoryPassFilterRecursive(ImGuiTextFilter* filter) {
   }
   return ret;
 }
-
+/*
 bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
   // this code is a mess but it works, somehow
   // well, barely
@@ -608,6 +608,46 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
       gui->curCategory=this;
       return true;
     }
+  }
+  return ret;
+}*/
+bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
+  bool ret=false;
+  bool drawChildren=true;
+  bool isDisabled=false;
+  if (filter->IsActive()) {
+    if (children.empty()) {
+      drawChildren=false;
+      if (!filter->PassFilter(_(name))) return false;
+    } else {
+      switch (categoryPassFilterRecursive(filter)) {
+        case 0: // none
+          return false;
+        case 1: // only self
+          drawChildren=false;
+          break;
+        case 2: // only children
+          isDisabled=true;
+          break;
+        case 3: // both
+          break;
+      }
+    }
+  }
+  ImGui::BeginDisabled(isDisabled);
+  if (ImGui::Selectable(_(name),gui->curCategory==this)) {
+    gui->curCategory=this;
+    ret=true;
+  }
+  ImGui::EndDisabled();
+  if (drawChildren) {
+    ImGui::PushID(this);
+    ImGui::Indent();
+    for (size_t i=0; i<children.size(); i++) {
+      ret|=children[i].drawSidebar(filter,gui);
+    }
+    ImGui::Unindent();
+    ImGui::PopID();
   }
   return ret;
 }
