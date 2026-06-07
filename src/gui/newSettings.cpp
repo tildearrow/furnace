@@ -422,6 +422,7 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
 }
 
 bool SettingEntry::passesFilter(ImGuiTextFilter* filter) {
+  if (!settingCondition()) return false;
   if (filter->PassFilter(_(label))) return true;
   switch (type) {
     case SettingRadio:
