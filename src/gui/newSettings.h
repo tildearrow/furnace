@@ -362,9 +362,9 @@ class SettingsCategory {
     SettingsCategory(const char* n, std::initializer_list<SettingEntry> s, std::initializer_list<SettingsCategory> c);
     //SettingsCategory(const SettingsCategory& s);
 
-    bool drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui);
+    bool drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui, int depth, SettingsCategory* resetScroll);
     int categoryPassFilterRecursive(ImGuiTextFilter* filter);
-    bool drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui);
+    SettingsCategory* drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui, SettingsCategory* parent=NULL);
 
     void deleteRecursive();
 };

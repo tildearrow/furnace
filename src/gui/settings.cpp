@@ -419,17 +419,19 @@ void FurnaceGUI::drawSettings() {
         popDestColor();
         ImGui::EndPopup();
       }
-      bool resetScroll=false;
+      SettingsCategory* resetScroll=NULL;
       ImVec2 childSize=ImGui::GetContentRegionAvail();
-      if (vertical)
+      if (vertical) {
         childSize.y/=3.0f;
-      else
+      } else {
         childSize.y-=buttonsHeight;
+      }
       if (ImGui::BeginChild("nnsSidebar",childSize)) {
         for (size_t i=0; i<allSettings.size(); i++) {
-          if (allSettings[i].drawSidebar(&settingsFilter,this)) {
+          SettingsCategory* clicked=allSettings[i].drawSidebar(&settingsFilter,this);
+          if (clicked) {
             settingsShowItemResults=false;
-            resetScroll=true;
+            resetScroll=clicked;
           }
         }
       }
@@ -439,17 +441,13 @@ void FurnaceGUI::drawSettings() {
       childSize=ImGui::GetContentRegionAvail();
       childSize.y-=buttonsHeight;
       if (ImGui::BeginChild("nnsEntries",childSize)) {
-        if (resetScroll) {
-          resetScroll=false;
-          ImGui::SetScrollHereY(0.0f);
-        }
         if (settingsFilter.IsActive() && settingsShowItemResults) {
           for (SettingsCategory& c: allSettings) {
-            if (c.drawSettings(&settingsFilter,settingsShowItemResults,this))
+            if (c.drawSettings(&settingsFilter,settingsShowItemResults,this,0,resetScroll))
               settingsChanged=true;
           }
         } else if (curCategory!=NULL) {
-          if (curCategory->drawSettings(&settingsFilter,settingsShowItemResults,this))
+          if (curCategory->drawSettings(&settingsFilter,settingsShowItemResults,this,0,resetScroll))
             settingsChanged=true;
         }
       }

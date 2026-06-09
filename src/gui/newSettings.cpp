@@ -503,7 +503,7 @@ SettingsCategory::SettingsCategory(const char* n, std::initializer_list<SettingE
   scrollPos=s.scrollPos;
 }*/
 
-bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui) {
+bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, FurnaceGUI* gui, int depth, SettingsCategory* resetScroll) {
   // check whether to draw the name
   // if no settings in the category match the filter, then no
   bool drawOwnSettings=true;
@@ -522,21 +522,27 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, Furn
   }
   bool ret=false;
   if (drawOwnSettings) {
+    ImGui::PushFont(gui->headFont,gui->settings.headFontSize*gui->dpiScale*(3.0f/(float)(3+depth)));
     ImGui::SeparatorText(_(name));
-    ImGui::Indent();
+    ImGui::PopFont();
+    if (resetScroll==this) {
+      resetScroll=NULL;
+      ImGui::SetScrollHereY(0.0f);
+    }
+    //ImGui::Indent();
     for (SettingEntry& s:settings) {
       if (filter->IsActive() && doFilter) {
         if (!s.passesFilter(filter)) continue;
       }
       if (s.draw(gui)) ret=true;
     }
-    ImGui::Unindent();
+    //ImGui::Unindent();
   }
-  ImGui::Indent();
+  //ImGui::Indent();
   for (SettingsCategory& c:children) {
-    if (c.drawSettings(filter,doFilter,gui)) ret=true;
+    if (c.drawSettings(filter,doFilter,gui,depth+1,resetScroll)) ret=true;
   }
-  ImGui::Unindent();
+  //ImGui::Unindent();
   return ret;
 }
 
@@ -612,18 +618,18 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
   }
   return ret;
 }*/
-bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
-  bool ret=false;
+SettingsCategory* SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui, SettingsCategory* parent) {
+  SettingsCategory* ret=NULL;
   bool drawChildren=true;
   bool isDisabled=false;
   if (filter->IsActive()) {
     if (children.empty()) {
       drawChildren=false;
-      if (!filter->PassFilter(_(name))) return false;
+      if (!filter->PassFilter(_(name))) return NULL;
     } else {
       switch (categoryPassFilterRecursive(filter)) {
         case 0: // none
-          return false;
+          return NULL;
         case 1: // only self
           drawChildren=false;
           break;
@@ -637,15 +643,19 @@ bool SettingsCategory::drawSidebar(ImGuiTextFilter* filter, FurnaceGUI* gui) {
   }
   ImGui::BeginDisabled(isDisabled);
   if (ImGui::Selectable(_(name),gui->curCategory==this)) {
-    gui->curCategory=this;
-    ret=true;
+    // show the top level category
+    // I don't think it's a good idea to display a sub-category alone
+    if (parent) logW("has parent");
+    gui->curCategory=parent?parent:this;
+    ret=this;
   }
   ImGui::EndDisabled();
   if (drawChildren) {
     ImGui::PushID(this);
     ImGui::Indent();
     for (size_t i=0; i<children.size(); i++) {
-      ret|=children[i].drawSidebar(filter,gui);
+      SettingsCategory* newRet=children[i].drawSidebar(filter,gui,parent?parent:this);
+      if (newRet) ret=newRet;
     }
     ImGui::Unindent();
     ImGui::PopID();
