@@ -3186,7 +3186,6 @@ class FurnaceGUI {
   void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
-  void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
   void parseKeybinds();
   void promptKey(int which, int bindIdx);
   void doAction(int what);

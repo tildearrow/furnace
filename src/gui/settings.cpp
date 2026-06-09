@@ -33,6 +33,7 @@
 #include "scaling.h"
 #include <fmt/printf.h>
 
+// some of these arent needed i think...
 #ifdef _WIN32
 #include <windows.h>
 #include <shlobj.h>
@@ -46,6 +47,7 @@
 
 #include "newSettings.h"
 
+// default setting values
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
 #if defined(_WIN32) || defined(__APPLE__) || defined(IS_MOBILE)
@@ -69,66 +71,6 @@
 #define SYS_FILE_DIALOG_DEFAULT 1
 #endif
 
-// name, locale, restart message
-const char* locales[][3]={
-  {"<System>", "", ""},
-  {"English", "en", "restart Furnace for this setting to take effect."},
-  {"Bahasa Indonesia (50%?)", "id", "???"},
-  //{"Deutsch (0%)", "de", "Starten Sie Furnace neu, damit diese Einstellung wirksam wird."},
-  {"Español", "es", "reinicia Furnace para que esta opción tenga efecto."},
-  //{"Suomi (0%)", "fi", "käynnistä Furnace uudelleen, jotta tämä asetus tulee voimaan."},
-  {"Français (10%)", "fr", "redémarrer Furnace pour que ce réglage soit effectif."},
-  //{"Հայերեն (1%)", "hy", "???"},
-  //{"日本語 (0%)", "ja", "???"},
-  {"한국어 (25%)", "ko", "이 설정을 적용하려면 Furnace를 다시 시작해야 합니다."},
-  //{"Nederlands (4%)", "nl", "start Furnace opnieuw op om deze instelling effectief te maken."},
-  {"Polski (95%)", "pl", "aby to ustawienie było skuteczne, należy ponownie uruchomić program."},
-  {"Português (Brasil) (70%)", "pt_BR", "reinicie o Furnace para que essa configuração entre em vigor."},
-  {"Русский", "ru", "перезапустите программу, чтобы эта настройка вступила в силу."},
-  {"Slovenčina (15%)", "sk", "???"},
-  {"Svenska", "sv", "starta om programmet för att denna inställning ska träda i kraft."},
-  //{"ไทย (0%)", "th", "???"},
-  //{"Türkçe (0%)", "tr", "bu ayarı etkin hale getirmek için programı yeniden başlatın."},
-  //{"Українська (0%)", "uk", "перезапустіть програму, щоб це налаштування набуло чинності."},
-  {"中文 (15%)", "zh", "???"},
-  {NULL, NULL, NULL}
-};
-
-const char* fontBackends[]={
-  "stb_truetype",
-  "FreeType"
-};
-
-const char* mainFonts[]={
-  "IBM Plex Sans",
-  "Liberation Sans",
-  "Exo",
-  "Proggy Clean",
-  "GNU Unifont",
-  _N("<Use system font>"),
-  _N("<Custom...>")
-};
-
-const char* headFonts[]={
-  "IBM Plex Sans",
-  "Liberation Sans",
-  "Exo",
-  "Proggy Clean",
-  "GNU Unifont",
-  _N("<Use system font>"),
-  _N("<Custom...>")
-};
-
-const char* patFonts[]={
-  "IBM Plex Mono",
-  "Mononoki",
-  "PT Mono",
-  "Proggy Clean",
-  "GNU Unifont",
-  _N("<Use system font>"),
-  _N("<Custom...>")
-};
-
 const char* audioBackends[]={
   "JACK",
   "SDL",
@@ -137,40 +79,6 @@ const char* audioBackends[]={
   "Uhh, can you explain to me what exactly you were trying to do?",
   "ASIO"
 };
-
-const char* audioQualities[]={
-  _N("High"),
-  _N("Low")
-};
-
-const char* pcspkrOutMethods[]={
-  _N("evdev SND_TONE"),
-  _N("KIOCSOUND on /dev/tty1"),
-  _N("/dev/port"),
-  _N("KIOCSOUND on standard output"),
-  _N("outb()")
-};
-
-#define CONFIG_SUBSECTION(what) \
-  if (_subInit) { \
-    ImGui::Separator(); \
-  } else { \
-    _subInit=true; \
-  } \
-  ImGui::PushFont(headFont); \
-  ImGui::TextUnformatted(what); \
-  ImGui::PopFont();
-
-#define CONFIG_SECTION(what) \
-  if (ImGui::BeginTabItem(what)) { \
-    bool _subInit=false; \
-    ImVec2 settingsViewSize=ImGui::GetContentRegionAvail(); \
-    settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y; \
-    if (ImGui::BeginChild("SettingsView",settingsViewSize,0))
-
-#define END_SECTION } \
-  ImGui::EndChild(); \
-  ImGui::EndTabItem();
 
 static String stripName(String what) {
   String ret;
@@ -477,45 +385,6 @@ void FurnaceGUI::drawSettings() {
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
-}
-
-void FurnaceGUI::drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx) {
-  ImGui::TableNextRow();
-  ImGui::TableNextColumn();
-  ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted(guiActions[actionIdx].friendlyName);
-  ImGui::TableNextColumn();
-  ImGui::PushID(actionIdx);
-  for (size_t i=0; i<actionKeys[actionIdx].size()+1; i++) {
-    ImGui::PushID(i);
-    if (i>0) ImGui::SameLine();
-    bool isPending=bindSetPending && bindSetTarget==actionIdx && bindSetTargetIdx==(int)i;
-    if (i<actionKeys[actionIdx].size()) {
-      if (ImGui::Button(isPending?_N("Press key..."):getKeyName(actionKeys[actionIdx][i]).c_str())) {
-        promptKey(actionIdx,i);
-        settingsChanged=true;
-      }
-      bool rightClicked=ImGui::IsItemClicked(ImGuiMouseButton_Right);
-      if (!rightClicked) {
-        ImGui::SameLine(0.0f, 1.0f);
-      }
-      if (rightClicked || ImGui::Button(ICON_FA_TIMES)) {
-        actionKeys[actionIdx].erase(actionKeys[actionIdx].begin()+i);
-        if (isPending) {
-          bindSetActive=false;
-          bindSetPending=false;
-        }
-        parseKeybinds();
-      }
-    } else {
-      if (ImGui::Button(isPending?_N("Press key..."):"+")) {
-        promptKey(actionIdx,i);
-        settingsChanged=true;
-      }
-    }
-    ImGui::PopID(); // i
-  }
-  ImGui::PopID(); // action
 }
 
 #define clampSetting(x,minV,maxV) \

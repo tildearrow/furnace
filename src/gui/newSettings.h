@@ -20,7 +20,7 @@
 #ifndef NEW_SETTINGS_H
 #define NEW_SETTINGS_H
 
-#include "../engine/config.h"
+#include "../ta-utils.h"
 #include "imgui.h"
 #include <functional>
 #include <initializer_list>
@@ -369,33 +369,9 @@ class SettingsCategory {
     void deleteRecursive();
 };
 
-#define SAMPLE_RATE_SELECTABLE(x) \
-  if (ImGui::Selectable(#x,settings.audioRate==x)) { \
-    settings.audioRate=x; \
-    settingsChanged=true; \
-  }
-
-#define BUFFER_SIZE_SELECTABLE(x) \
-  if (ImGui::Selectable(#x,settings.audioBufSize==x)) { \
-    settings.audioBufSize=x; \
-    settingsChanged=true; \
-  }
-
-#define UI_COLOR_CONFIG(what) \
-  ImGui::PushID(what); \
-  if (ImGui::ColorEdit4(_(guiColors[what].friendlyName),(float*)&uiColors[what])) { \
-    applyUISettings(false); \
-    settingsChanged=true; \
-  } \
-  ImGui::PopID();
-
-#define KEYBIND_CONFIG_BEGIN(id) \
-  if (ImGui::BeginTable(id,2,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX|ImGuiTableFlags_NoClip)) {
-
-#define KEYBIND_CONFIG_END \
-    ImGui::EndTable(); \
-  }
-
+// this is still used?
+// ...
+// then why not one for cores?
 #define CORE_QUALITY(_name,_play,_render) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
