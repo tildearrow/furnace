@@ -384,4 +384,17 @@ class SettingsCategory {
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
+#define CORE_SETTING(_name,_setting,_combo) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::AlignTextToFramePadding(); \
+  ImGui::Text(_name); \
+  ImGui::TableNextColumn(); \
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
+  if (ImGui::Combo("##" _name "Core",&settings._setting,_combo,sizeof(_combo)/sizeof(_combo[0]))) ret=true; \
+  ImGui::TableNextColumn(); \
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
+  if (ImGui::Combo("##" _name "CoreRender",&settings._setting ## Render,_combo,sizeof(_combo)/sizeof(_combo[0]))) ret=true;
+
+
 #endif
