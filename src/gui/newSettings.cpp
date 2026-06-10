@@ -492,7 +492,6 @@ SettingsCategory* SettingsCategory::drawSidebar(ImGuiTextFilter* filter, Furnace
   if (ImGui::Selectable(_(name),gui->curCategory==this)) {
     // show the top level category
     // I don't think it's a good idea to display a sub-category alone
-    if (parent) logW("has parent");
     gui->curCategory=parent?parent:this;
     ret=this;
   }
