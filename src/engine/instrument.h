@@ -1063,7 +1063,7 @@ struct DivInstrumentTemp {
     memset(vScroll,0,160*sizeof(int));
     memset(vZoom,-1,160*sizeof(int));
     memset(typeMemory,0,160*16*sizeof(int));
-    memset(lenMemory,0,160*sizeof(int));
+    memset(lenMemory,0,160*sizeof(unsigned char));
   }
 };
 

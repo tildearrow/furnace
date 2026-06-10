@@ -1921,10 +1921,109 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
+    bool audioHiPass;
+    bool pullDeleteBehavior;
+    bool allowEditDocking;
+    bool overflowHighlight;
+    bool flatNotes;
+    bool germanNotation;
+    bool stepOnDelete;
+    bool sysSeparators;
+    bool forceMono;
+    bool viewPrevPattern;
+    bool avoidRaisingPattern;
+    bool insFocusesPattern;
+    bool stepOnInsert;
+    bool unifiedDataView;
+#ifndef FLATPAK_WORKAROUNDS
+    bool sysFileDialog;
+#endif
+    bool roundedWindows;
+    bool roundedButtons;
+    bool roundedMenus;
+    bool roundedTabs;
+    bool roundedScrollbars;
+    bool loadFallback;
+    bool loadFallbackPat;
+    bool cursorPastePos;
+    bool titleBarSys;
+    bool frameBorders;
+    bool effectDeletionAltersValue;
+    bool oscRoundedCorners;
+    bool oscTakesEntireWindow;
+    bool oscBorder;
+    bool oscEscapesBoundary;
+    bool oscMono;
+    bool oscAntiAlias;
+    bool separateFMColors;
+    bool insEditColorize;
+    bool pushNibble;
+    bool oplStandardWaveNames;
+    bool cursorMoveNoScroll;
+    bool lowLatency;
+    bool powerSave;
+    bool absorbInsInput;
+    bool eventDelay;
+    bool moveWindowTitle;
+    bool hiddenSystems;
+    bool mswEnabled;
+    bool horizontalDataView;
+    bool noMultiSystem;
+    bool oldMacroVSlider;
+    bool displayAllInsTypes;
+    bool doubleClickColumn;
+    bool blankIns;
+    bool draggableDataView;
+    bool cursorFollowsOrder;
+    bool unsignedDetune;
+    bool noThreadedInput;
+    bool saveWindowPos;
+    bool clampSamples;
+    bool saveUnusedPatterns;
+    bool channelTextCenter;
+    bool midiOutClock;
+    bool midiOutTime;
+    bool midiOutProgramChange;
+    bool centerPattern;
+    bool ordersCursor;
+    bool oneDigitEffects;
+    bool disableFadeIn;
+    bool compress;
+    bool renderClearPos;
+    bool insertBehavior;
+    bool pullDeleteRow;
+    bool noDMFCompat;
+    bool removeInsOff;
+    bool removeVolOff;
+    bool insTypeMenu;
+    bool capitalMenuBar;
+    bool centerPopup;
+    bool classicChipOptions;
+    bool wasapiEx;
+    bool writeInsNames;
+    bool readInsNames;
+    bool fontBitmap;
+    bool fontAntiAlias;
+    bool selectAssetOnLoad;
+    bool basicColors;
+    bool playbackTime;
+    bool vsync;
+    bool displayRenderTime;
+    bool inputRepeat;
+    bool glSetBS;
+    bool glDoubleBuffer;
+    bool backupEnable;
+    bool autoFillSave;
+    bool backgroundPlay;
+    bool noMaximizeWorkaround;
+    bool s3mOPL3;
+    bool songNotesWrap;
+    bool rackShowLEDs;
+    bool warnNotePassthrough;
+    bool sampleImportInstDetune;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
-    bool audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1969,9 +2068,6 @@ class FurnaceGUI {
     int pnQualityRender;
     int saaQualityRender;
     int pcSpeakerOutMethod;
-    String yrw801Path;
-    String tg100Path;
-    String mu5Path;
     int mainFont;
     int headFont;
     int patFont;
@@ -1981,173 +2077,77 @@ class FurnaceGUI {
     int orderRowsBase;
     int soloAction;
     int ctrlWheelModifier;
-    bool pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
     int fmNames;
-    bool allowEditDocking;
-    bool overflowHighlight;
-    bool flatNotes;
-    bool germanNotation;
-    bool stepOnDelete;
     int scrollStep;
-    bool sysSeparators;
-    bool forceMono;
     int controlLayout;
     int statusDisplay;
     float dpiScale;
-    bool viewPrevPattern;
     int guiColorsBase;
     int guiColorsShading;
-    bool avoidRaisingPattern;
-    bool insFocusesPattern;
-    bool stepOnInsert;
-    bool unifiedDataView;
-#ifndef FLATPAK_WORKAROUNDS
-    bool sysFileDialog;
-#endif
-    bool roundedWindows;
-    bool roundedButtons;
-    bool roundedMenus;
-    bool roundedTabs;
-    bool roundedScrollbars;
-    bool loadFallback;
-    bool loadFallbackPat;
     int fmLayout;
     int susPosition;
     int effectCursorDir;
-    bool cursorPastePos;
     int titleBarInfo;
-    bool titleBarSys;
-    bool frameBorders;
-    bool effectDeletionAltersValue;
-    bool oscRoundedCorners;
-    bool oscTakesEntireWindow;
-    bool oscBorder;
-    bool oscEscapesBoundary;
-    bool oscMono;
-    bool oscAntiAlias;
     float oscLineSize;
-    bool separateFMColors;
-    bool insEditColorize;
     int metroVol;
     int sampleVol;
-    bool pushNibble;
     int scrollChangesOrder;
-    bool oplStandardWaveNames;
-    bool cursorMoveNoScroll;
-    bool lowLatency;
     int notePreviewBehavior;
-    bool powerSave;
-    bool absorbInsInput;
-    bool eventDelay;
-    bool moveWindowTitle;
-    bool hiddenSystems;
-    bool mswEnabled;
-    bool horizontalDataView;
-    bool noMultiSystem;
-    bool oldMacroVSlider;
-    bool displayAllInsTypes;
     int noteCellSpacing;
     int insCellSpacing;
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
-    bool doubleClickColumn;
-    bool blankIns;
     int dragMovesSelection;
-    bool draggableDataView;
-    bool cursorFollowsOrder;
-    bool unsignedDetune;
-    bool noThreadedInput;
-    bool saveWindowPos;
-    bool clampSamples;
-    bool saveUnusedPatterns;
     int channelColors;
     int channelTextColors;
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
     int channelFont;
-    bool channelTextCenter;
-    bool midiOutClock;
-    bool midiOutTime;
-    bool midiOutProgramChange;
     int midiOutMode;
     int midiOutTimeRate;
     int maxRecentFile;
-    bool centerPattern;
-    bool ordersCursor;
     int macroLayout;
     float doubleClickTime;
-    bool oneDigitEffects;
-    bool disableFadeIn;
     int alwaysPlayIntro;
     int orderButtonPos;
-    bool compress;
-    bool renderClearPos;
-    bool insertBehavior;
-    bool pullDeleteRow;
     int newSongBehavior;
     int memUsageUnit;
     int cursorFollowsWheel;
-    bool noDMFCompat;
-    bool removeInsOff;
-    bool removeVolOff;
     int playOnLoad;
-    bool insTypeMenu;
-    bool capitalMenuBar;
-    bool centerPopup;
     int insIconsStyle;
-    bool classicChipOptions;
     int exportOptionsLayout;
-    bool wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
-    bool writeInsNames;
-    bool readInsNames;
     int fontBackend;
     int fontHinting;
-    bool fontBitmap;
     int fontAutoHint;
-    bool fontAntiAlias;
     int fontOversample;
-    bool selectAssetOnLoad;
-    bool basicColors;
-    bool playbackTime;
     int shaderOsc;
     int cursorWheelStep;
-    bool vsync;
     int frameRateLimit;
-    bool displayRenderTime;
-    bool inputRepeat;
     int glRedSize;
     int glGreenSize;
     int glBlueSize;
     int glAlphaSize;
     int glDepthSize;
-    bool glSetBS;
     int glStencilSize;
     int glBufferSize;
-    bool glDoubleBuffer;
-    bool backupEnable;
     int backupInterval;
     int backupMaxCopies;
-    bool autoFillSave;
     int autoMacroStepSize;
-    bool backgroundPlay;
-    bool noMaximizeWorkaround;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
-    bool s3mOPL3;
-    bool songNotesWrap;
-    bool rackShowLEDs;
-    bool warnNotePassthrough;
-    bool sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
     float channelFeedbackGamma;
+    String yrw801Path;
+    String tg100Path;
+    String mu5Path;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2168,13 +2168,111 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
+      audioHiPass(true),
+      pullDeleteBehavior(true),
+      allowEditDocking(true),
+      overflowHighlight(false),
+      flatNotes(false),
+      germanNotation(false),
+      stepOnDelete(false),
+      sysSeparators(true),
+      forceMono(false),
+      viewPrevPattern(true),
+      avoidRaisingPattern(false),
+      insFocusesPattern(true),
+      stepOnInsert(false),
+      unifiedDataView(false),
+#ifndef FLATPAK_WORKAROUNDS
+      sysFileDialog(true),
+#endif
+      roundedWindows(true),
+      roundedButtons(true),
+      roundedMenus(false),
+      roundedTabs(true),
+      roundedScrollbars(true),
+      loadFallback(true),
+      loadFallbackPat(true),
+      cursorPastePos(true),
+      titleBarSys(true),
+      frameBorders(false),
+      effectDeletionAltersValue(true),
+      oscRoundedCorners(true),
+      oscTakesEntireWindow(false),
+      oscBorder(true),
+      oscEscapesBoundary(false),
+      oscMono(true),
+      oscAntiAlias(true),
+      separateFMColors(false),
+      insEditColorize(false),
+      pushNibble(false),
+      oplStandardWaveNames(false),
+      cursorMoveNoScroll(false),
+      lowLatency(false),
+      powerSave(true),
+      absorbInsInput(false),
+      eventDelay(false),
+      moveWindowTitle(true),
+      hiddenSystems(false),
+      mswEnabled(false),
+      horizontalDataView(false),
+      noMultiSystem(false),
+      oldMacroVSlider(false),
+      displayAllInsTypes(false),
+      doubleClickColumn(true),
+      blankIns(false),
+      draggableDataView(true),
+      cursorFollowsOrder(true),
+      unsignedDetune(false),
+      noThreadedInput(false),
+      clampSamples(false),
+      saveUnusedPatterns(false),
+      channelTextCenter(true),
+      midiOutClock(false),
+      midiOutTime(false),
+      midiOutProgramChange(false),
+      centerPattern(false),
+      ordersCursor(true),
+      oneDigitEffects(false),
+      disableFadeIn(false),
+      compress(true),
+      renderClearPos(false),
+      insertBehavior(true),
+      pullDeleteRow(true),
+      noDMFCompat(false),
+      removeInsOff(false),
+      removeVolOff(false),
+      insTypeMenu(true),
+      capitalMenuBar(false),
+      centerPopup(true),
+      classicChipOptions(false),
+      wasapiEx(false),
+      writeInsNames(false),
+      readInsNames(true),
+      fontBitmap(false),
+      fontAntiAlias(true),
+      selectAssetOnLoad(true),
+      basicColors(true),
+      playbackTime(true),
+      vsync(true),
+      displayRenderTime(false),
+      inputRepeat(true),
+      glSetBS(false),
+      glDoubleBuffer(true),
+      backupEnable(true),
+      autoFillSave(false),
+      backgroundPlay(false),
+      noMaximizeWorkaround(false),
+      s3mOPL3(true),
+      songNotesWrap(false),
+      rackShowLEDs(true),
+      warnNotePassthrough(false),
+      sampleImportInstDetune(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
       iconSize(GUI_ICON_SIZE_DEFAULT),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
-      audioHiPass(1),
       audioChans(2),
       arcadeCore(0),
       ym2612Core(0),
@@ -2219,9 +2317,6 @@ class FurnaceGUI {
       pnQualityRender(3),
       saaQualityRender(3),
       pcSpeakerOutMethod(0),
-      yrw801Path(""),
-      tg100Path(""),
-      mu5Path(""),
       mainFont(0),
       patFont(0),
       audioRate(44100),
@@ -2230,171 +2325,77 @@ class FurnaceGUI {
       orderRowsBase(1),
       soloAction(0),
       ctrlWheelModifier(0),
-      pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
       fmNames(0),
-      allowEditDocking(1),
-      overflowHighlight(0),
-      germanNotation(0),
-      stepOnDelete(0),
       scrollStep(0),
-      sysSeparators(1),
-      forceMono(0),
       controlLayout(3),
       statusDisplay(0),
       dpiScale(0.0f),
-      viewPrevPattern(1),
       guiColorsBase(0),
       guiColorsShading(0),
-      avoidRaisingPattern(0),
-      insFocusesPattern(1),
-      stepOnInsert(0),
-      unifiedDataView(0),
-#ifndef FLATPAK_WORKAROUNDS
-      sysFileDialog(1),
-#endif
-      roundedWindows(1),
-      roundedButtons(1),
-      roundedMenus(0),
-      roundedTabs(1),
-      roundedScrollbars(1),
-      loadFallback(1),
-      loadFallbackPat(1),
       fmLayout(4),
       susPosition(0),
       effectCursorDir(1),
-      cursorPastePos(1),
       titleBarInfo(1),
-      titleBarSys(1),
-      frameBorders(0),
-      effectDeletionAltersValue(1),
-      oscRoundedCorners(1),
-      oscTakesEntireWindow(0),
-      oscBorder(1),
-      oscEscapesBoundary(0),
-      oscMono(1),
-      oscAntiAlias(1),
       oscLineSize(1.0f),
-      separateFMColors(0),
-      insEditColorize(0),
       metroVol(100),
       sampleVol(50),
-      pushNibble(0),
       scrollChangesOrder(0),
-      oplStandardWaveNames(0),
-      cursorMoveNoScroll(0),
-      lowLatency(0),
       notePreviewBehavior(1),
-      powerSave(1),
-      absorbInsInput(0),
-      eventDelay(0),
-      moveWindowTitle(1),
-      hiddenSystems(0),
-      mswEnabled(0),
-      horizontalDataView(0),
-      noMultiSystem(0),
-      oldMacroVSlider(0),
-      displayAllInsTypes(0),
       noteCellSpacing(0),
       insCellSpacing(0),
       volCellSpacing(0),
       effectCellSpacing(0),
       effectValCellSpacing(0),
-      doubleClickColumn(1),
-      blankIns(0),
       dragMovesSelection(1),
-      draggableDataView(1),
-      cursorFollowsOrder(1),
-      unsignedDetune(0),
-      noThreadedInput(0),
-      clampSamples(0),
-      saveUnusedPatterns(0),
       channelColors(1),
       channelTextColors(0),
       channelStyle(1),
       channelVolStyle(0),
       channelFeedbackStyle(1),
       channelFont(1),
-      channelTextCenter(1),
-      midiOutClock(0),
-      midiOutTime(0),
-      midiOutProgramChange(0),
       midiOutMode(1),
       midiOutTimeRate(0),
       maxRecentFile(10),
-      centerPattern(0),
-      ordersCursor(1),
       macroLayout(0),
       doubleClickTime(0.3f),
-      oneDigitEffects(0),
-      disableFadeIn(0),
       alwaysPlayIntro(0),
       orderButtonPos(2),
-      compress(1),
-      renderClearPos(0),
-      insertBehavior(1),
-      pullDeleteRow(1),
       newSongBehavior(0),
       memUsageUnit(1),
       cursorFollowsWheel(0),
-      noDMFCompat(0),
-      removeInsOff(0),
-      removeVolOff(0),
       playOnLoad(0),
-      insTypeMenu(1),
-      capitalMenuBar(0),
-      centerPopup(1),
       insIconsStyle(1),
-      classicChipOptions(0),
       exportOptionsLayout(1),
-      wasapiEx(0),
       chanOscThreads(0),
       renderPoolThreads(0),
-      writeInsNames(0),
-      readInsNames(1),
       fontBackend(1),
       fontHinting(0),
-      fontBitmap(0),
       fontAutoHint(1),
-      fontAntiAlias(1),
       fontOversample(GUI_OVERSAMPLE_DEFAULT),
-      selectAssetOnLoad(1),
-      basicColors(1),
-      playbackTime(1),
       shaderOsc(1),
       cursorWheelStep(0),
-      vsync(1),
       frameRateLimit(60),
-      displayRenderTime(0),
-      inputRepeat(1),
       glRedSize(8),
       glGreenSize(8),
       glBlueSize(8),
       glAlphaSize(0),
       glDepthSize(24),
-      glSetBS(0),
       glStencilSize(0),
       glBufferSize(32),
-      glDoubleBuffer(1),
-      backupEnable(1),
       backupInterval(30),
       backupMaxCopies(5),
-      autoFillSave(0),
       autoMacroStepSize(0),
-      backgroundPlay(0),
-      noMaximizeWorkaround(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
-      s3mOPL3(1),
-      songNotesWrap(0),
-      rackShowLEDs(1),
-      warnNotePassthrough(0),
-      sampleImportInstDetune(0),
       mixerStyle(1),
       mixerLayout(0),
       channelFeedbackGamma(1.0f),
+      yrw801Path(""),
+      tg100Path(""),
+      mu5Path(""),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
