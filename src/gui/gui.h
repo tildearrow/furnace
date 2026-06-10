@@ -154,6 +154,8 @@ enum FurnaceGUIRenderBackend {
 #define GUI_EDIT_OCTAVE_MIN -5
 #define GUI_EDIT_OCTAVE_MAX 7
 
+#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)

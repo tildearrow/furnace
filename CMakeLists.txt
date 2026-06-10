@@ -942,6 +942,9 @@ src/gui/render.cpp
 src/gui/render/abstract.cpp
 src/gui/render/renderSoftware.cpp
 
+src/gui/settings/allSettings.cpp
+src/gui/settings/loadSettings.cpp
+
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp

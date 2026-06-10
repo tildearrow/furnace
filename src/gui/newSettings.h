@@ -384,6 +384,7 @@ class SettingsCategory {
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); \
   if (ImGui::Combo("##" _name "QR",&settings._render,LocalizedComboGetter,coreQualities,6)) settingsChanged=true;
 
+// here it is. i hope it's good enough......
 #define CORE_SETTING(_name,_setting,_combo) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
