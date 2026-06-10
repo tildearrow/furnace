@@ -4249,6 +4249,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(userPresets)
   DECLARE_METRIC(refPlayer)
   DECLARE_METRIC(multiInsSetup)
+  DECLARE_METRIC(backupsManager)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -4907,6 +4908,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(userPresetsOpen);
         IMPORT_CLOSE(refPlayerOpen);
         IMPORT_CLOSE(multiInsSetupOpen);
+        IMPORT_CLOSE(backupsManagerOpen);
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -5223,6 +5225,9 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("user systems..."),BIND_FOR(GUI_ACTION_WINDOW_USER_PRESETS))) {
           userPresetsOpen=true;
         }
+        if (ImGui::MenuItem(_("backup management..."),BIND_FOR(GUI_ACTION_WINDOW_BACKUPS_MANAGER))) {
+          backupsManagerOpen=true;
+        }
         if (ImGui::MenuItem(_("settings..."),BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
           syncSettings();
           settingsOpen=true;
@@ -5499,6 +5504,7 @@ bool FurnaceGUI::loop() {
       MEASURE(patManager,drawPatManager());
       MEASURE(tuner,drawTuner());
       MEASURE(spectrum,drawSpectrum());
+      MEASURE(backupsManager,drawBackupsManager());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(0,NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplit|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5546,6 +5552,7 @@ bool FurnaceGUI::loop() {
       MEASURE(userPresets,drawUserPresets());
       MEASURE(refPlayer,drawRefPlayer());
       MEASURE(multiInsSetup,drawMultiInsSetup());
+      MEASURE(backupsManager,drawBackupsManager());
 
     }
 
@@ -7832,11 +7839,6 @@ bool FurnaceGUI::init() {
     }
   }
 
-  if (!settings.persistFadeOut) {
-    audioExportOptions.loops=settings.exportLoops;
-    audioExportOptions.fadeOut=settings.exportFadeOut;
-  }
-
   initSystemPresets();
 
   e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
@@ -8410,6 +8412,8 @@ bool FurnaceGUI::init() {
   audioLoadFormats.push_back(_("all files"));
   audioLoadFormats.push_back("*");
 
+  initSettings();
+
   logI("done!");
   return true;
 }
@@ -8476,6 +8480,7 @@ void FurnaceGUI::syncState() {
   userPresetsOpen=e->getConfBool("userPresetsOpen",false);
   refPlayerOpen=e->getConfBool("refPlayerOpen",false);
   multiInsSetupOpen=e->getConfBool("multiInsSetupOpen",false);
+  backupsManagerOpen=e->getConfBool("backupsManagerOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -8659,6 +8664,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("userPresetsOpen",userPresetsOpen);
   conf.set("refPlayerOpen",refPlayerOpen);
   conf.set("multiInsSetupOpen",multiInsSetupOpen);
+  conf.set("backupsManagerOpen",backupsManagerOpen);
 
   // commit dir state
   conf.set("insListDir",insListDir);
@@ -8693,10 +8699,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("orderEditMode",orderEditMode);
   conf.set("noteInputMode",(int)noteInputMode);
   conf.set("filePlayerSync",filePlayerSync);
-  if (settings.persistFadeOut) {
-    conf.set("exportLoops",audioExportOptions.loops);
-    conf.set("exportFadeOut",audioExportOptions.fadeOut);
-  }
+  conf.set("exportLoops",audioExportOptions.loops);
+  conf.set("exportFadeOut",audioExportOptions.fadeOut);
 
   // commit oscilloscope state
   conf.set("oscZoom",oscZoom);
@@ -8854,6 +8858,9 @@ bool FurnaceGUI::finish(bool saveConfig) {
       spectrum.plot[i]=NULL;
     }
   }
+
+  for (size_t i=0; i<allSettings.size(); i++)
+    allSettings[i].deleteRecursive();
 
   return true;
 }
@@ -9016,6 +9023,8 @@ FurnaceGUI::FurnaceGUI():
   totalLength(0.0),
   curProgress(0.0f),
   totalFiles(0),
+  curCategory(NULL),
+  settingsShowItemResults(true),
   localeRequiresJapanese(false),
   localeRequiresChinese(false),
   localeRequiresChineseTrad(false),
@@ -9113,6 +9122,7 @@ FurnaceGUI::FurnaceGUI():
   userPresetsOpen(false),
   refPlayerOpen(false),
   multiInsSetupOpen(false),
+  backupsManagerOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),

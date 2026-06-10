@@ -372,6 +372,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
       nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
+    case GUI_ACTION_WINDOW_BACKUPS_MANAGER:
+      nextWindow=GUI_WINDOW_BACKUPS_MANAGER;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -491,6 +494,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SPECTRUM:
           spectrumOpen=false;
+          break;
+        case GUI_WINDOW_BACKUPS_MANAGER:
+          backupsManagerOpen=false;
           break;
         default:
           break;

@@ -709,7 +709,6 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 src/engine/platform/sound/qsound.c
 
 src/engine/platform/sound/swan.c
-src/engine/platform/sound/swan_mdfn.cpp
 
 src/engine/platform/sound/su.cpp
 
@@ -946,6 +945,9 @@ src/gui/render.cpp
 src/gui/render/abstract.cpp
 src/gui/render/renderSoftware.cpp
 
+src/gui/settings/allSettings.cpp
+src/gui/settings/loadSettings.cpp
+
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp
@@ -972,6 +974,7 @@ src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
 src/gui/about.cpp
+src/gui/backupsManager.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
@@ -1008,6 +1011,7 @@ src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
 src/gui/settings.cpp
+src/gui/newSettings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/spectrum.cpp

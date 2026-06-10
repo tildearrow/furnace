@@ -40,6 +40,7 @@
 
 #include "fileDialog.h"
 #include "newFilePicker.h"
+#include "newSettings.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -152,6 +153,8 @@ enum FurnaceGUIRenderBackend {
 
 #define GUI_EDIT_OCTAVE_MIN -5
 #define GUI_EDIT_OCTAVE_MAX 7
+
+#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -541,6 +544,53 @@ enum FurnaceGUIColors {
   GUI_COLOR_MAX
 };
 
+/**
+ * this enum defines all windows in the Furnace GUI.
+ * to define a new window, make sure to do the following:
+ * 1. declare your new window in this enum (ideally before the SPOILER one). we'll use GUI_WINDOW_EXAMPLE as an example.
+ * 2. add your window as GUI_ACTION_WINDOW_EXAMPLE in the FurnaceGUIActions enum. preferably in the same position as you declared here.
+ * 3. add a bool to the FurnaceGUI class called exampleOpen, next to the other *Open bools.
+ * 4. add a drawExample() function to the same class, next to the other draw* functions.
+ * 5. go to doAction.cpp, and add a handler for GUI_ACTION_WINDOW_EXAMPLE to doAction():
+ * ```
+ *   case GUI_ACTION_WINDOW_EXAMPLE:
+ *     nextWindow=GUI_WINDOW_EXAMPLE;
+ *     break;
+ * ```
+ * 6. in the same file, add a handler for GUI_ACTION_CLOSE_WINDOW:
+ * ```
+ *   case GUI_WINDOW_EXAMPLE:
+ *     exampleOpen=false;
+ *     break;
+ * ```
+ * 7. go to gui.cpp and tell FurnaceGUI::loop() about your window:
+ *   - DECLARE_METRIC(example) on top
+ *   - IMPORT_CLOSE(exampleOpen) in the pendingLayoutImport handler
+ *   - MEASURE(example,drawExample()) in the area where all the draw* calls are made
+ *     - there are two of them. one is for the mobile UI and the other is for the regular UI.
+ *   - add a MenuItem for your window if desired
+ * 8. in the same file, store your window's state:
+ *   - FurnaceGUI::syncState(): exampleOpen=e->getConfBool("exampleOpen",false);
+ *   - FurnaceGUI::commitState(): conf.set("exampleOpen",exampleOpen);
+ * 9. in the same file, initialize exampleOpen in the FurnaceGUI constructor, which should be at the end.
+ * 10. create a new file (e.g. example.cpp) that contains your window's drawing code.
+ * 11. use the following skeleton:
+ * ```
+ * void FurnaceGUI::drawExample() {
+ *   if (nextWindow==GUI_WINDOW_EXAMPLE) {
+ *     exampleOpen=true;
+ *     ImGui::SetNextWindowFocus();
+ *     nextWindow=GUI_WINDOW_NOTHING;
+ *   }
+ *   if (!exampleOpen) return;
+ *   if (ImGui::Begin("Example",&exampleOpen,globalWinFlags,_("Example"))) {
+ *     // code here
+ *   }
+ *   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EXAMPLE;
+ *   ImGui::End();
+ * }
+ * ```
+ */
 enum FurnaceGUIWindows {
   GUI_WINDOW_NOTHING=0,
   GUI_WINDOW_EDIT_CONTROLS,
@@ -584,6 +634,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
+  GUI_WINDOW_BACKUPS_MANAGER,
   GUI_WINDOW_SPOILER
 };
 
@@ -797,6 +848,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_USER_PRESETS,
   GUI_ACTION_WINDOW_REF_PLAYER,
   GUI_ACTION_WINDOW_MULTI_INS_SETUP,
+  GUI_ACTION_WINDOW_BACKUPS_MANAGER,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1869,11 +1921,10 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
-    bool settingsChanged;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
-    int audioHiPass;
+    bool audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1930,177 +1981,170 @@ class FurnaceGUI {
     int orderRowsBase;
     int soloAction;
     int ctrlWheelModifier;
-    int pullDeleteBehavior;
+    bool pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
-    int macroView;
     int fmNames;
-    int allowEditDocking;
-    int chipNames;
-    int overflowHighlight;
-    int flatNotes;
-    int germanNotation;
-    int stepOnDelete;
+    bool allowEditDocking;
+    bool overflowHighlight;
+    bool flatNotes;
+    bool germanNotation;
+    bool stepOnDelete;
     int scrollStep;
-    int sysSeparators;
-    int forceMono;
+    bool sysSeparators;
+    bool forceMono;
     int controlLayout;
     int statusDisplay;
     float dpiScale;
-    int viewPrevPattern;
+    bool viewPrevPattern;
     int guiColorsBase;
     int guiColorsShading;
-    int avoidRaisingPattern;
-    int insFocusesPattern;
-    int stepOnInsert;
-    int unifiedDataView;
+    bool avoidRaisingPattern;
+    bool insFocusesPattern;
+    bool stepOnInsert;
+    bool unifiedDataView;
 #ifndef FLATPAK_WORKAROUNDS
-    int sysFileDialog;
+    bool sysFileDialog;
 #endif
-    int roundedWindows;
-    int roundedButtons;
-    int roundedMenus;
-    int roundedTabs;
-    int roundedScrollbars;
-    int loadFallback;
-    int loadFallbackPat;
+    bool roundedWindows;
+    bool roundedButtons;
+    bool roundedMenus;
+    bool roundedTabs;
+    bool roundedScrollbars;
+    bool loadFallback;
+    bool loadFallbackPat;
     int fmLayout;
-    int sampleLayout;
     int susPosition;
     int effectCursorDir;
-    int cursorPastePos;
+    bool cursorPastePos;
     int titleBarInfo;
-    int titleBarSys;
-    int frameBorders;
-    int effectDeletionAltersValue;
-    int oscRoundedCorners;
-    int oscTakesEntireWindow;
-    int oscBorder;
-    int oscEscapesBoundary;
-    int oscMono;
-    int oscAntiAlias;
+    bool titleBarSys;
+    bool frameBorders;
+    bool effectDeletionAltersValue;
+    bool oscRoundedCorners;
+    bool oscTakesEntireWindow;
+    bool oscBorder;
+    bool oscEscapesBoundary;
+    bool oscMono;
+    bool oscAntiAlias;
     float oscLineSize;
-    int separateFMColors;
-    int insEditColorize;
+    bool separateFMColors;
+    bool insEditColorize;
     int metroVol;
     int sampleVol;
-    int pushNibble;
+    bool pushNibble;
     int scrollChangesOrder;
-    int oplStandardWaveNames;
-    int cursorMoveNoScroll;
-    int lowLatency;
+    bool oplStandardWaveNames;
+    bool cursorMoveNoScroll;
+    bool lowLatency;
     int notePreviewBehavior;
-    int powerSave;
-    int absorbInsInput;
-    int eventDelay;
-    int moveWindowTitle;
-    int hiddenSystems;
-    int mswEnabled;
-    int horizontalDataView;
-    int noMultiSystem;
-    int oldMacroVSlider;
-    int displayAllInsTypes;
+    bool powerSave;
+    bool absorbInsInput;
+    bool eventDelay;
+    bool moveWindowTitle;
+    bool hiddenSystems;
+    bool mswEnabled;
+    bool horizontalDataView;
+    bool noMultiSystem;
+    bool oldMacroVSlider;
+    bool displayAllInsTypes;
     int noteCellSpacing;
     int insCellSpacing;
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
-    int doubleClickColumn;
-    int blankIns;
+    bool doubleClickColumn;
+    bool blankIns;
     int dragMovesSelection;
-    int draggableDataView;
-    int cursorFollowsOrder;
-    int unsignedDetune;
-    int noThreadedInput;
-    int saveWindowPos;
-    int clampSamples;
-    int saveUnusedPatterns;
+    bool draggableDataView;
+    bool cursorFollowsOrder;
+    bool unsignedDetune;
+    bool noThreadedInput;
+    bool saveWindowPos;
+    bool clampSamples;
+    bool saveUnusedPatterns;
     int channelColors;
     int channelTextColors;
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
     int channelFont;
-    int channelTextCenter;
-    int midiOutClock;
-    int midiOutTime;
-    int midiOutProgramChange;
+    bool channelTextCenter;
+    bool midiOutClock;
+    bool midiOutTime;
+    bool midiOutProgramChange;
     int midiOutMode;
     int midiOutTimeRate;
     int maxRecentFile;
-    int centerPattern;
-    int ordersCursor;
-    int persistFadeOut;
-    int exportLoops;
-    double exportFadeOut;
+    bool centerPattern;
+    bool ordersCursor;
     int macroLayout;
     float doubleClickTime;
-    int oneDigitEffects;
-    int disableFadeIn;
+    bool oneDigitEffects;
+    bool disableFadeIn;
     int alwaysPlayIntro;
-    int iCannotWait;
     int orderButtonPos;
-    int compress;
-    int renderClearPos;
-    int insertBehavior;
-    int pullDeleteRow;
+    bool compress;
+    bool renderClearPos;
+    bool insertBehavior;
+    bool pullDeleteRow;
     int newSongBehavior;
     int memUsageUnit;
     int cursorFollowsWheel;
-    int noDMFCompat;
-    int removeInsOff;
-    int removeVolOff;
+    bool noDMFCompat;
+    bool removeInsOff;
+    bool removeVolOff;
     int playOnLoad;
-    int insTypeMenu;
-    int capitalMenuBar;
-    int centerPopup;
+    bool insTypeMenu;
+    bool capitalMenuBar;
+    bool centerPopup;
     int insIconsStyle;
-    int classicChipOptions;
+    bool classicChipOptions;
     int exportOptionsLayout;
-    int wasapiEx;
+    bool wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
-    int writeInsNames;
-    int readInsNames;
+    bool writeInsNames;
+    bool readInsNames;
     int fontBackend;
     int fontHinting;
-    int fontBitmap;
+    bool fontBitmap;
     int fontAutoHint;
-    int fontAntiAlias;
+    bool fontAntiAlias;
     int fontOversample;
-    int selectAssetOnLoad;
-    int basicColors;
-    int playbackTime;
+    bool selectAssetOnLoad;
+    bool basicColors;
+    bool playbackTime;
     int shaderOsc;
     int cursorWheelStep;
-    int vsync;
+    bool vsync;
     int frameRateLimit;
-    int displayRenderTime;
-    int inputRepeat;
+    bool displayRenderTime;
+    bool inputRepeat;
     int glRedSize;
     int glGreenSize;
     int glBlueSize;
     int glAlphaSize;
     int glDepthSize;
-    int glSetBS;
+    bool glSetBS;
     int glStencilSize;
     int glBufferSize;
-    int glDoubleBuffer;
-    int backupEnable;
+    bool glDoubleBuffer;
+    bool backupEnable;
     int backupInterval;
     int backupMaxCopies;
-    int autoFillSave;
+    bool autoFillSave;
     int autoMacroStepSize;
-    int backgroundPlay;
-    int noMaximizeWorkaround;
+    bool backgroundPlay;
+    bool noMaximizeWorkaround;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
-    int s3mOPL3;
-    int songNotesWrap;
-    int rackShowLEDs;
-    int warnNotePassthrough;
-    int sampleImportInstDetune;
+    bool s3mOPL3;
+    bool songNotesWrap;
+    bool rackShowLEDs;
+    bool warnNotePassthrough;
+    bool sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
     float channelFeedbackGamma;
@@ -2124,7 +2168,6 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
-      settingsChanged(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
@@ -2190,10 +2233,8 @@ class FurnaceGUI {
       pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
-      macroView(0),
       fmNames(0),
       allowEditDocking(1),
-      chipNames(0),
       overflowHighlight(0),
       germanNotation(0),
       stepOnDelete(0),
@@ -2221,7 +2262,6 @@ class FurnaceGUI {
       loadFallback(1),
       loadFallbackPat(1),
       fmLayout(4),
-      sampleLayout(0),
       susPosition(0),
       effectCursorDir(1),
       cursorPastePos(1),
@@ -2285,15 +2325,11 @@ class FurnaceGUI {
       maxRecentFile(10),
       centerPattern(0),
       ordersCursor(1),
-      persistFadeOut(1),
-      exportLoops(0),
-      exportFadeOut(0.0),
       macroLayout(0),
       doubleClickTime(0.3f),
       oneDigitEffects(0),
       disableFadeIn(0),
       alwaysPlayIntro(0),
-      iCannotWait(0),
       orderButtonPos(2),
       compress(1),
       renderClearPos(0),
@@ -2378,6 +2414,14 @@ class FurnaceGUI {
       locale("") {}
   } settings;
 
+  ImGuiTextFilter settingsFilter;
+  std::vector<SettingsCategory> allSettings;
+  SettingsCategory* curCategory;
+  // when clicking on a category while the filter is active,
+  // set to false so the filter is ignored for items.
+  // otherwise set to true on filter update
+  bool settingsShowItemResults;
+
   struct Tutorial {
     bool introPlayed;
     bool protoWelcome;
@@ -2443,7 +2487,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
-  bool multiInsSetupOpen;
+  bool multiInsSetupOpen, backupsManagerOpen;
 
   bool cvNotSerious;
 
@@ -3137,13 +3181,13 @@ class FurnaceGUI {
   void drawUserPresets();
   void drawRefPlayer();
   void drawMultiInsSetup();
+  void drawBackupsManager();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
   void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
-  void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
   void parseKeybinds();
   void promptKey(int which, int bindIdx);
   void doAction(int what);
@@ -3168,6 +3212,7 @@ class FurnaceGUI {
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
+  void initSettings();
   void syncSettings();
   void commitSettings();
   void syncTutorial();
@@ -3295,6 +3340,9 @@ class FurnaceGUI {
   void setCurIns(int newIns);
   bool setMultiIns(int newIns);
   bool isMultiInsActive();
+
+  friend class SettingsCategory;
+  friend class SettingEntry;
 
   public:
     void editStr(String* which);
