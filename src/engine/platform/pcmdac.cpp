@@ -630,10 +630,10 @@ int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivCo
 }
 
 void DivPlatformPCMDAC::quit() {
+  samplePitchTable.destroy<Channel>(chan,chans);
   delete[] chan;
   delete[] isMuted;
   delete[] oscBuf;
-  samplePitchTable.destroy<Channel>(chan,chans);
   chan=NULL;
   isMuted=NULL;
   oscBuf=NULL;
