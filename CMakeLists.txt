@@ -941,6 +941,17 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 
 src/gui/plot_nolerp.cpp
 
+src/gui/presets/arcadeSystems.cpp
+src/gui/presets/computers.cpp
+src/gui/presets/defleCompat.cpp
+src/gui/presets/fm.cpp
+src/gui/presets/gameConsoles.cpp
+src/gui/presets/sample.cpp
+src/gui/presets/specialized.cpp
+src/gui/presets/square.cpp
+src/gui/presets/user.cpp
+src/gui/presets/wavetable.cpp
+
 src/gui/render.cpp
 src/gui/render/abstract.cpp
 src/gui/render/renderSoftware.cpp
