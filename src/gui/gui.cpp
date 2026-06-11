@@ -104,6 +104,8 @@ const char* FurnaceGUI::noteName(short note) {
     return noteRelLabel;
   } else if (note==DIV_MACRO_REL) { // envelope release only
     return macroRelLabel;
+  } else if (note==DIV_NOTE_RAW) { // this shouldn't be normally visible, but is here just in case
+    return "RAW";
   } else if (note==-1) {
     return emptyLabel;
   } else if (note==DIV_NOTE_NULL_PAT) {
@@ -140,6 +142,11 @@ bool FurnaceGUI::decodeNote(const char* what, short& note) {
   }
   if (strcmp(what,"REL")==0) {
     note=DIV_MACRO_REL;
+    return true;
+  }
+  if (strcmp(what,"RAW")==0) {
+    // TODO: how are we gonna handle this raw frequency?
+    note=DIV_NOTE_RAW;
     return true;
   }
   for (int i=0; i<180; i++) {
@@ -558,10 +565,13 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
   return false;
 }
 
+// TODO: an input field for raw frequency?
 bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int octaveMax) {
   bool ret=false, calcNote=false;
   char tempID[64];
-  if (*value==DIV_MACRO_REL) {
+  if (*value==DIV_NOTE_RAW) {
+    snprintf(tempID,64,"RawFreq##NRAW");
+  } else if (*value==DIV_MACRO_REL) {
     snprintf(tempID,64,"%s##MREL",macroRelLabel);
   } else if (*value==DIV_NOTE_REL) {
     snprintf(tempID,64,"%s##NREL",noteRelLabel);
@@ -602,7 +612,11 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
         *value=DIV_MACRO_REL;
         ret=true;
       }
-      if (*value>=DIV_NOTE_OFF && *value<=DIV_MACRO_REL) ImGui::SetItemDefaultFocus();
+      if (ImGui::Selectable("RawFreq",*value==DIV_NOTE_RAW)) {
+        *value=DIV_NOTE_RAW;
+        ret=true;
+      }
+      if (*value>=DIV_NOTE_OFF && *value<=DIV_NOTE_RAW) ImGui::SetItemDefaultFocus();
     }
     ImGui::EndCombo();
   }
@@ -1446,6 +1460,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
 
   DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
   bool removeIns=false;
+  bool doNotAdvance=false;
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT,UndoRegion(ord,ch,y,ord,ch,y));
 
@@ -1458,6 +1473,16 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
   } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->newData[y][DIV_PAT_NOTE]=DIV_MACRO_REL;
     removeIns=true;
+  } else if (key==GUI_NOTE_RAW) { // raw frequency (toggle)
+    if (pat->newData[y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+      // restore previous note
+      pat->newData[y][DIV_PAT_NOTE]=pat->newData[y][DIV_PAT_NOTE_BUFFER];
+    } else {
+      // store note in buffer and set raw frequency
+      pat->newData[y][DIV_PAT_NOTE_BUFFER]=pat->newData[y][DIV_PAT_NOTE];
+      pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+    }
+    doNotAdvance=true;
   } else {
     pat->newData[y][DIV_PAT_NOTE]=num;
     if (latchIns==-2) {
@@ -1485,7 +1510,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
       pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
-  if ((!e->isPlaying() || !followPattern) && (chanOff<1 || noteInputMode!=GUI_NOTE_INPUT_CHORD)) {
+  if ((!e->isPlaying() || !followPattern) && (chanOff<1 || noteInputMode!=GUI_NOTE_INPUT_CHORD) && !doNotAdvance) {
     editAdvance();
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT,UndoRegion(ord,ch,y,ord,ch,y));
@@ -5367,6 +5392,8 @@ bool FurnaceGUI::loop() {
                   info=fmt::sprintf(_("Note off (release)"));
                 } else if (p->newData[cursor.y][DIV_PAT_NOTE]==DIV_MACRO_REL) {
                   info=fmt::sprintf(_("Macro release only"));
+                } else if (p->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+                  info=fmt::sprintf(_("Raw frequency/period"));
                 } else {
                   info=fmt::sprintf(_("Note on: %s"),noteName(p->newData[cursor.y][DIV_PAT_NOTE]));
                 }

@@ -42,6 +42,8 @@ const char* FurnaceGUI::noteNameNormal(short note) {
     return "===";
   } else if (note==DIV_MACRO_REL) { // envelope release only
     return "REL";
+  } else if (note==DIV_NOTE_RAW) { // this shouldn't be normally visible, but is here just in case
+    return "RAW";
   } else if (note==-1) {
     return "...";
   } else if (note==DIV_NOTE_NULL_PAT) {
@@ -532,6 +534,7 @@ void FurnaceGUI::doTranspose(int amount, OperationMask& mask) {
             if (pat->newData[j][iFine]==DIV_NOTE_OFF) continue;
             if (pat->newData[j][iFine]==DIV_NOTE_REL) continue;
             if (pat->newData[j][iFine]==DIV_MACRO_REL) continue;
+            if (pat->newData[j][iFine]==DIV_NOTE_RAW) continue; // TODO: transpose raw frequency
             if (pat->newData[j][iFine]==DIV_NOTE_NULL_PAT) continue;
           } else if (iFine==DIV_PAT_INS) {
             if (e->song.ins.empty()) continue;
@@ -1389,8 +1392,9 @@ void FurnaceGUI::doInterpolate() {
           DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
           for (; j<e->curSubSong->patLen && (j<=selEnd.y || jOrder<selEnd.order); j++) {
             touch(jOrder,j);
+            // TODO: raw frequency interpolation
             if (pat->newData[j][DIV_PAT_NOTE]!=-1) {
-              if (pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
+              if (pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_MACRO_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_RAW) {
                 points.emplace(points.end(),j|(jOrder<<8),pat->newData[j][DIV_PAT_NOTE]);
               }
             }
@@ -1923,7 +1927,7 @@ void FurnaceGUI::doAbsorbInstrument() {
       // skip "special note values" like OFF/REL/=== and "none", since there won't be valid
       // octave values
       short note=pat->newData[i][DIV_PAT_NOTE];
-      if (!foundOctave && note!=-1 && note!=DIV_NOTE_OFF && note!=DIV_NOTE_REL && note!=DIV_MACRO_REL) {
+      if (!foundOctave && note!=-1 && note!=DIV_NOTE_OFF && note!=DIV_NOTE_REL && note!=DIV_MACRO_REL && note!=DIV_NOTE_RAW) {
         foundOctave=true;
 
         // decode octave data
