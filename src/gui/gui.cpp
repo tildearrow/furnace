@@ -1417,6 +1417,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
     if (key==100) return;
     if (key==101) return;
     if (key==102) return;
+    if (key==103) return;
 
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num+60);
@@ -1481,6 +1482,11 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
       // store note in buffer and set raw frequency
       pat->newData[y][DIV_PAT_NOTE_BUFFER]=pat->newData[y][DIV_PAT_NOTE];
       pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+      // check for invalid bytes
+      if (pat->newData[y][DIV_PAT_RAW0]==-1) pat->newData[y][DIV_PAT_RAW0]=0;
+      if (pat->newData[y][DIV_PAT_RAW1]==-1) pat->newData[y][DIV_PAT_RAW1]=0;
+      if (pat->newData[y][DIV_PAT_RAW2]==-1) pat->newData[y][DIV_PAT_RAW2]=0;
+      if (pat->newData[y][DIV_PAT_RAW3]==-1) pat->newData[y][DIV_PAT_RAW3]=0;
     }
     doNotAdvance=true;
   } else {
@@ -3880,7 +3886,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           if (it!=noteKeys.cend()) {
             int key=it->second;
             int num=12*curOctave+key;
-            if (key!=100 && key!=101 && key!=102) {
+            if (key!=100 && key!=101 && key!=102 && key!=103) {
               int pStart=-1;
               int pEnd=-1;
               if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
@@ -3908,7 +3914,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           if (it!=noteKeys.cend()) {
             int key=it->second;
             int num=12*curOctave+key;
-            if (key!=100 && key!=101 && key!=102) {
+            if (key!=100 && key!=101 && key!=102 && key!=103) {
               e->previewWave(curWave,num+60);
               wavePreviewOn=true;
               wavePreviewKey=ev->key.keysym.scancode;
@@ -3936,7 +3942,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (num<-60) num=-60; // C-(-5)
             if (num>119) num=119; // B-9
 
-            if (key!=100 && key!=101 && key!=102) {
+            if (key!=100 && key!=101 && key!=102 && key!=103) {
               previewNote(cursor.xCoarse,num);
             }
           }

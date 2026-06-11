@@ -2983,9 +2983,14 @@ void FurnaceGUI::initSettings() {
             ImGui::SameLine();
             ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
             ImGui::TableNextColumn();
-            if (i.val==102) {
-              if (ImGui::Button(_("Macro release##SNType"))) {
+            if (i.val==103) {
+              if (ImGui::Button(_("Toggle raw note##SNType"))) {
                 i.val=0;
+                ret=true;
+              }
+            } else if (i.val==102) {
+              if (ImGui::Button(_("Macro release##SNType"))) {
+                i.val=103;
                 ret=true;
               }
             } else if (i.val==101) {

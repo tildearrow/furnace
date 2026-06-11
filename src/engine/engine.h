@@ -885,6 +885,9 @@ class DivEngine {
     // map volume to gain
     float getGain(int ch, int vol);
 
+    // get max frequency/period of a channel
+    unsigned int getMaxFreqChan(int ch);
+
     // get current order
     unsigned char getOrder();
 

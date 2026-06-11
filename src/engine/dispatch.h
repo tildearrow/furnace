@@ -1393,6 +1393,13 @@ class DivDispatch {
     virtual float getGain(int ch, int vol);
 
     /**
+     * get the highest period or frequency a channel is capable of.
+     * @param ch the chip channel.
+     * @return the maximum period/frequency. 0 if the frequency is fixed.
+     */
+    virtual unsigned int getMaxFreq(int ch);
+
+    /**
      * get the lowest note in a portamento.
      * @param ch the channel in question.
      * @return the lowest note.

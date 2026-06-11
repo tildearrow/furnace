@@ -2473,6 +2473,13 @@ int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
 
+unsigned int DivEngine::getMaxFreqChan(int ch) {
+  if (ch<0 || ch>=song.chans) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
+  if (disCont[song.dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[song.dispatchOfChan[ch]].dispatch->getMaxFreq(song.dispatchChanOfChan[ch]);
+}
+
 int DivEngine::mapVelocity(int ch, float vel) {
   if (ch<0) return 0;
   if (ch>=song.chans) return 0;
