@@ -896,6 +896,10 @@ void DivPlatformX1_010::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,8192,0xff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformX1_010::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: // 16.67MHz (later hardwares)

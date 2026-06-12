@@ -504,6 +504,11 @@ void DivPlatformPOKEY::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfffffff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPOKEY::getMaxFreq(int ch) {
+  // in raw frequency mode, all calculations (e.g. 16-bit mode) are overridden.
+  return 0xff;
+}
+
 void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*2.0/5.0;

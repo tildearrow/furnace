@@ -440,6 +440,11 @@ void DivPlatformMMC5::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,32000,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformMMC5::getMaxFreq(int ch) {
+  if (ch>=2) return 0x7fff;
+  return 0x7ff;
+}
+
 void DivPlatformMMC5::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

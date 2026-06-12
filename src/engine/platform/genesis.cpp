@@ -1827,6 +1827,13 @@ void DivPlatformGenesis::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,10,parent->song.tuning,1,1,0x3ffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformGenesis::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  // DAC mode maximum
+  if (ch>=5) return 0x3ffff;
+  return 0x3fff;
+}
+
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }

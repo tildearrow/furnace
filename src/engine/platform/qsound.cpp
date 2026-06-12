@@ -699,6 +699,12 @@ void DivPlatformQSound::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,19,parent->song.tuning,rate,4096,0xefff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformQSound::getMaxFreq(int ch) {
+  // $EFFF is the safe maximum.
+  // I am gonna let you break the chip.
+  return 0xffff;
+}
+
 void DivPlatformQSound::setFlags(const DivConfig& flags) {
   echoDelay = 2725 - flags.getInt("echoDelay",0);
   echoFeedback = flags.getInt("echoFeedback",0) & 255;

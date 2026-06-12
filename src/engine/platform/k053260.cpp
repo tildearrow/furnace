@@ -429,6 +429,10 @@ void DivPlatformK053260::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformK053260::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformK053260::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: chipClock=4000000; break;

@@ -864,6 +864,12 @@ void DivPlatformYM2610BExt::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformYM2610BExt::getMaxFreq(int ch) {
+  if (ch>5) return DivPlatformYM2610B::getMaxFreq(ch-3);
+  return 0x3fff;
+}
+
+
 int DivPlatformYM2610BExt::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2610B::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {

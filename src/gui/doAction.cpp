@@ -1939,7 +1939,7 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder>0) {
         setOrder(curOrder-1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1947,7 +1947,7 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1962,7 +1962,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1977,7 +1977,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1987,7 +1987,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1997,7 +1997,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]--;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }

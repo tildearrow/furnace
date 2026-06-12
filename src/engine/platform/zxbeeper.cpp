@@ -307,6 +307,10 @@ void DivPlatformZXBeeper::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformZXBeeper::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   // TODO: where's ZX Spectrum 48K?!
   if (flags.getInt("clockSel",0)) {

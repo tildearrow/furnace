@@ -286,7 +286,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
 
 void FurnaceGUI::doSelectAll() {
   finishSelection();
-  curNibble=false;
+  curNibble=0;
   if (selStart.xFine==0 && selEnd.xFine==2+e->curPat[selEnd.xCoarse].effectCols*2) {
     if (selStart.y==0 && selEnd.y==e->curSubSong->patLen-1) { // select entire pattern
       selStart.xCoarse=0;
@@ -366,7 +366,7 @@ void FurnaceGUI::doSelectAll() {
 void FurnaceGUI::doDelete() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
-  curNibble=false;
+  curNibble=0;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -408,7 +408,7 @@ void FurnaceGUI::doPullDelete() {
   }
 
   prepareUndo(GUI_UNDO_PATTERN_PULL);
-  curNibble=false;
+  curNibble=0;
 
   if (settings.pullDeleteBehavior) {
     if (--selStart.y<0) {
@@ -478,7 +478,7 @@ void FurnaceGUI::doInsert() {
   }
 
   prepareUndo(GUI_UNDO_PATTERN_PUSH);
-  curNibble=false;
+  curNibble=0;
 
   SelectionPoint sStart=selStart;
   SelectionPoint sEnd=selEnd;
@@ -512,7 +512,7 @@ void FurnaceGUI::doInsert() {
 void FurnaceGUI::doTranspose(int amount, OperationMask& mask) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
-  curNibble=false;
+  curNibble=0;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -558,7 +558,7 @@ String FurnaceGUI::doCopy(bool cut, bool writeClipboard, const SelectionPoint& s
   if (writeClipboard) {
     finishSelection();
     if (cut) {
-      curNibble=false;
+      curNibble=0;
       prepareUndo(GUI_UNDO_PATTERN_CUT);
     }
   }

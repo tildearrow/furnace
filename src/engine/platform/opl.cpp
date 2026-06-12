@@ -2973,6 +2973,10 @@ void DivPlatformOPL::notifyPitchTable(int sample) {
   }
 }
 
+unsigned int DivPlatformOPL::getMaxFreq(int ch) {
+  return 0x1fff;
+}
+
 void DivPlatformOPL::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }

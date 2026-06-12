@@ -90,6 +90,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual float getPostAmp() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual unsigned int getMaxFreq(int ch) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual void setFlags(const DivConfig& flags) override;

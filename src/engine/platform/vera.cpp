@@ -502,6 +502,10 @@ void DivPlatformVERA::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,17,parent->song.tuning,chipClock,65536,0x80,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformVERA::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformVERA::poke(unsigned int addr, unsigned short val) {
   switch (addr) {
     case 64:

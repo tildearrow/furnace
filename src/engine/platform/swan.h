@@ -82,6 +82,7 @@ class DivPlatformSwan: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int getOutputCount();
     bool hasSoftPan(int ch);
     void poke(unsigned int addr, unsigned short val);

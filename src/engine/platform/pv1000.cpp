@@ -271,6 +271,10 @@ void DivPlatformPV1000::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x3f,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPV1000::getMaxFreq(int ch) {
+  return 0x3f;
+}
+
 void DivPlatformPV1000::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC*5.0;
   CHECK_CUSTOM_CLOCK;

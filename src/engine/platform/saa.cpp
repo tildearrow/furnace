@@ -442,6 +442,10 @@ void DivPlatformSAA1099::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformSAA1099::getMaxFreq(int ch) {
+  return 0x7ff;
+}
+
 void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==2) {

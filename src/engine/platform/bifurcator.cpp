@@ -357,6 +357,10 @@ void DivPlatformBifurcator::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformBifurcator::getMaxFreq(int ch) {
+  return 0x1fff;
+}
+
 void DivPlatformBifurcator::setFlags(const DivConfig& flags) {
   chipClock=1000000;
   CHECK_CUSTOM_CLOCK;

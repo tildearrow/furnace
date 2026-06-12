@@ -349,6 +349,10 @@ void DivPlatformVIC20::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformVIC20::getMaxFreq(int ch) {
+  return 0x7f;
+}
+
 void DivPlatformVIC20::setFlags(const DivConfig& flags) {
   filterOff=flags.getBool("filterOff",false);
   if (flags.getInt("clockSel",0)) {

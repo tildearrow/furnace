@@ -401,6 +401,10 @@ void DivPlatformMSM5232::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformMSM5232::getMaxFreq(int ch) {
+  return 0xff;
+}
+
 void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
   chipClock=2119040;
   CHECK_CUSTOM_CLOCK;

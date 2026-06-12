@@ -589,6 +589,11 @@ void DivPlatformLynx::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformLynx::getMaxFreq(int ch) {
+  // I hope
+  return 0xffff;
+}
+
 void DivPlatformLynx::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

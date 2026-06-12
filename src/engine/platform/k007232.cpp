@@ -514,6 +514,10 @@ void DivPlatformK007232::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,2,parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformK007232::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformK007232::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;

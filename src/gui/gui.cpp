@@ -1359,7 +1359,7 @@ void FurnaceGUI::play(int row) {
       showError(_("the song is over!"));
     }
   }
-  curNibble=false;
+  curNibble=0;
   orderNibble=false;
   chordInputOffset=0;
   activeNotes.clear();
@@ -1375,7 +1375,7 @@ void FurnaceGUI::setOrder(unsigned char order, bool forced) {
 void FurnaceGUI::stop() {
   bool wasPlaying=e->isPlaying();
   e->stop();
-  curNibble=false;
+  curNibble=0;
   orderNibble=false;
   chordInputOffset=0;
   if (followPattern && wasPlaying) {
@@ -1520,7 +1520,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
     editAdvance();
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT,UndoRegion(ord,ch,y,ord,ch,y));
-  curNibble=false;
+  curNibble=0;
 }
 
 void FurnaceGUI::valueInput(int num, bool direct, int target) {
@@ -1561,14 +1561,17 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       updateFMPreview=true;
     }
     if (direct) {
-      curNibble=false;
+      curNibble=0;
     } else {
       if (e->song.ins.size()<16) {
-        curNibble=false;
+        curNibble=0;
         editAdvance();
       } else {
-        curNibble=!curNibble;
-        if (!curNibble) editAdvance();
+        curNibble++;
+        if (curNibble>=2) {
+          curNibble=0;
+          editAdvance();
+        }
       }
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -1579,24 +1582,28 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       pat->newData[y][target]&=15;
     }
     if (direct) {
-      curNibble=false;
+      curNibble=0;
     } else {
       if (e->getMaxVolumeChan(ch)<16) {
-        curNibble=false;
+        curNibble=0;
         if (pat->newData[y][target]>e->getMaxVolumeChan(ch)) pat->newData[y][target]=e->getMaxVolumeChan(ch);
         editAdvance();
       } else {
-        curNibble=!curNibble;
-        if (!curNibble) editAdvance();
+        curNibble++;
+        if (curNibble>=2) {
+          curNibble=0;
+          editAdvance();
+        }
       }
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
   } else {
     if (direct) {
-      curNibble=false;
+      curNibble=0;
     } else {
-      curNibble=!curNibble;
-      if (!curNibble) {
+      curNibble++;
+      if (curNibble>=2) {
+        curNibble=0;
         if (!settings.effectCursorDir) {
           editAdvance();
         } else {
@@ -1627,9 +1634,10 @@ void FurnaceGUI::orderInput(int num) {
       e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
     });
     MARK_MODIFIED;
-    curNibble=!curNibble;
+    curNibble++;
     if (orderEditMode==2 || orderEditMode==3) {
-      if (!curNibble) {
+      if (curNibble>=2) {
+        curNibble=0;
         if (orderEditMode==2) {
           orderCursor++;
           if (orderCursor>=e->getTotalChannelCount()) orderCursor=0;
@@ -2670,7 +2678,7 @@ int FurnaceGUI::load(String path) {
   curFileName=path;
   backupLock.unlock();
   modified=false;
-  curNibble=false;
+  curNibble=0;
   orderNibble=false;
   orderCursor=-1;
   curOrder=0;
@@ -6555,7 +6563,7 @@ bool FurnaceGUI::loop() {
         redoHist.clear();
         curFileName="";
         modified=false;
-        curNibble=false;
+        curNibble=0;
         orderNibble=false;
         orderCursor=-1;
         samplePos=0;
@@ -9166,10 +9174,10 @@ FurnaceGUI::FurnaceGUI():
   clockShowBeat(true),
   clockShowMetro(true),
   clockShowTime(true),
+  curNibble(0),
   selecting(false),
   selectingFull(false),
   dragging(false),
-  curNibble(false),
   orderNibble(false),
   followOrders(true),
   followPattern(true),

@@ -613,6 +613,10 @@ void DivPlatformSwan::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,4,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformSwan::getMaxFreq(int ch) {
+  return 0x7ff;
+}
+
 void DivPlatformSwan::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

@@ -215,6 +215,7 @@ class DivPlatformESFM: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int mapVelocity(int ch, float vel);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

@@ -603,6 +603,11 @@ void DivPlatformDave::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x3ffff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformDave::getMaxFreq(int ch) {
+  if (ch>=4) return 0xffffff;
+  return 0xfff;
+}
+
 void DivPlatformDave::setFlags(const DivConfig& flags) {
   chipClock=8000000.0;
   CHECK_CUSTOM_CLOCK;

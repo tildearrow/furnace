@@ -125,6 +125,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);

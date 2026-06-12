@@ -375,6 +375,10 @@ void DivPlatformT6W28::notifyPitchTable(int sample) {
   noisePitchTable.init(parent->song.tuning,chipClock,15,0x3ff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformT6W28::getMaxFreq(int ch) {
+  return 0x3ff;
+}
+
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   chipClock=3072000.0;
   CHECK_CUSTOM_CLOCK;

@@ -880,6 +880,11 @@ void DivPlatformGenesisExt::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformGenesisExt::getMaxFreq(int ch) {
+  if (ch>5) return DivPlatformGenesis::getMaxFreq(ch-3);
+  return 0x3fff;
+}
+
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
   return (ch>8)?72:60;
 }

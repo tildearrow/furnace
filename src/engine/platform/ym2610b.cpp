@@ -1867,6 +1867,14 @@ void DivPlatformYM2610B::notifyPitchTable(int sample) {
   ay->notifyPitchTable(sample);
 }
 
+unsigned int DivPlatformYM2610B::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  if (ch>=adpcmBChanOffs) return 0xffff;
+  if (ch>=adpcmAChanOffs) return 0;
+  if (ch>=psgChanOffs) return 0xfff;
+  return 0x3fff;
+}
+
 void DivPlatformYM2610B::setSkipRegisterWrites(bool value) {
   DivDispatch::setSkipRegisterWrites(value);
   ay->setSkipRegisterWrites(value);

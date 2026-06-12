@@ -960,6 +960,10 @@ void DivPlatformSNES::notifyPitchTable(int sample) {
   }
 }
 
+unsigned int DivPlatformSNES::getMaxFreq(int ch) {
+  return 0x3fff;
+}
+
 void DivPlatformSNES::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

@@ -1105,6 +1105,11 @@ void DivPlatformAY8910::notifyPitchTable(int sample) {
   }
 }
 
+unsigned int DivPlatformAY8910::getMaxFreq(int ch) {
+  // the envelope does support going up to $FFFF. update once you implement separate envelope channel.
+  return 0xfff;
+}
+
 void DivPlatformAY8910::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }

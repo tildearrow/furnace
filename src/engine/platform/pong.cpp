@@ -255,6 +255,11 @@ void DivPlatformPong::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPong::getMaxFreq(int ch) {
+  // I hate you
+  return 1;
+}
+
 void DivPlatformPong::poke(unsigned int addr, unsigned short val) {
   // ???
 }

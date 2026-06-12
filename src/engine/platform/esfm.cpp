@@ -1109,6 +1109,10 @@ void DivPlatformESFM::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x1ffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformESFM::getMaxFreq(int ch) {
+  return 0x1fff;
+}
+
 int DivPlatformESFM::mapVelocity(int ch, float vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
   double attenDb=20*log10(vel); // 20dB/decade for a linear mapping

@@ -301,6 +301,11 @@ void DivPlatformPET::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x10001,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPET::getMaxFreq(int ch) {
+  // the PET's real frequency range is $00 to $FF.
+  return 0xff;
+}
+
 void DivPlatformPET::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

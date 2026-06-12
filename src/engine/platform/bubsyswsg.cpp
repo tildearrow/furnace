@@ -350,6 +350,10 @@ void DivPlatformBubSysWSG::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformBubSysWSG::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;

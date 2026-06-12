@@ -704,6 +704,11 @@ void DivPlatformGB::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformGB::getMaxFreq(int ch) {
+  if (ch==3) return 0xff; // noise
+  return 0x7ff;
+}
+
 void DivPlatformGB::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }

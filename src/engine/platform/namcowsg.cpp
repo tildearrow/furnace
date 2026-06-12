@@ -683,6 +683,12 @@ void DivPlatformNamcoWSG::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,((devType==2)?0xffff:0xfffff),false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformNamcoWSG::getMaxFreq(int ch) {
+  if (devType==2) return 0xffff;
+  // TODO: in the 3-channel WSG, one channel has more precision than the others.
+  return 0xfffff;
+}
+
 void DivPlatformNamcoWSG::setDeviceType(int type) {
   devType=type;
   switch (type) {

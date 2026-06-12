@@ -1200,7 +1200,7 @@ struct UndoStep {
   SelectionPoint newCursor, newSelStart, newSelEnd;
   float oldScroll, newScroll;
   int oldOrder, newOrder;
-  bool nibble;
+  unsigned char nibble;
   int oldOrdersLen, newOrdersLen;
   int oldPatLen, newPatLen;
   std::vector<UndoOrderData> ord;
@@ -1219,7 +1219,7 @@ struct UndoStep {
     newScroll(-1.0f),
     oldOrder(0),
     newOrder(0),
-    nibble(false),
+    nibble(0),
     oldOrdersLen(0),
     newOrdersLen(0),
     oldPatLen(0),
@@ -2023,6 +2023,9 @@ class FurnaceGUI {
     bool warnNotePassthrough;
     bool sampleImportInstDetune;
     int mainFontSize, patFontSize, headFontSize, iconSize;
+    int headFontSize2;
+    int headFontSize3;
+    int headFontSize4;
     int audioEngine;
     int audioQuality;
     int audioChans;
@@ -2272,6 +2275,9 @@ class FurnaceGUI {
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
       iconSize(GUI_ICON_SIZE_DEFAULT),
+      headFontSize2(20),
+      headFontSize3(16),
+      headFontSize4(13),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
       audioChans(2),
@@ -2501,7 +2507,8 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   SelectionPoint undoSelStart, undoSelEnd, undoCursor;
-  bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
+  unsigned char curNibble;
+  bool selecting, selectingFull, dragging, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
   bool mobilePatSel;

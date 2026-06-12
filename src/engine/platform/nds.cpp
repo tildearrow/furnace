@@ -547,6 +547,10 @@ void DivPlatformNDS::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_DIVIDER,0x10000,true,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformNDS::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformNDS::poke(unsigned int addr, unsigned short val) {
   rWrite8(addr,val);
 }

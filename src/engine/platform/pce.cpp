@@ -929,6 +929,13 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 }
 
+// this function returns the maximum frequency or period that a channel may be set to.
+// it is used by the GUI and the engine to clamp raw frequency/period notes and display them correctly.
+unsigned int DivPlatformPCE::getMaxFreq(int ch) {
+  // certain chips have special per-channel behavior. if so, add if statements to count them.
+  return 0xfff;
+}
+
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
   // used in the debug menu. writes to a register.
   rWrite(addr,val);

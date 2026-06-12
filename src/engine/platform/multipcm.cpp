@@ -539,6 +539,10 @@ void DivPlatformMultiPCM::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,28,parent->song.tuning,chipClock,CHIP_FREQBASE,0x3ffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformMultiPCM::getMaxFreq(int ch) {
+  return 0x3fff;
+}
+
 void DivPlatformMultiPCM::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }

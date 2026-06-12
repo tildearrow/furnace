@@ -557,6 +557,10 @@ void DivPlatformN163::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x7ffffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformN163::getMaxFreq(int ch) {
+  return 0x3ffff;
+}
+
 SharedChannel* DivPlatformN163::getChanState(int ch) {
   return &chan[ch];
 }

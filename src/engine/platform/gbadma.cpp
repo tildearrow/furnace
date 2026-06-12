@@ -423,6 +423,10 @@ void DivPlatformGBADMA::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,2,parent->song.tuning,chipClock,CHIP_DIVIDER,0x3ffffff,true,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformGBADMA::getMaxFreq(int ch) {
+  return 0x3ffff;
+}
+
 void DivPlatformGBADMA::notifyWaveChange(int wave) {
   for (int i=0; i<2; i++) {
     if (chan[i].useWave && chan[i].wave==wave) {

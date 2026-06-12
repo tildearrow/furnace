@@ -953,6 +953,11 @@ void DivPlatformNES::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,5,parent->song.tuning,1,1,32000,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformNES::getMaxFreq(int ch) {
+  if (ch>=3) return 15; // noise/DPCM
+  return 0x7ff;
+}
+
 void DivPlatformNES::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

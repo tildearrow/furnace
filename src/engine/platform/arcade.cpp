@@ -921,6 +921,10 @@ void DivPlatformArcade::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformArcade::getMaxFreq(int ch) {
+  return 0x1fff;
+}
+
 SharedChannel* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }

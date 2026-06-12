@@ -365,6 +365,10 @@ void DivPlatformSCV::notifyPitchTable(int sample) {
   wavePitchTable.init(parent->song.tuning,chipClock,64,0xff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformSCV::getMaxFreq(int ch) {
+  return 0xff;
+}
+
 void DivPlatformSCV::setFlags(const DivConfig& flags) {
   chipClock=6000000;
   CHECK_CUSTOM_CLOCK;
