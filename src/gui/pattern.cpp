@@ -1328,27 +1328,37 @@ void FurnaceGUI::drawPattern() {
               (pat->newData[row][DIV_PAT_RAW3]<<24)
             );
 
-            if (maxFreq>=0x100000) {
+            if (maxFreq>=0x1000000) {
               // we must fit 8 chars in a 3-char space...
               snprintf(id,63,"%.4X",freq>>16);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos,activeColor,id);
               snprintf(id,63,"%.4X",freq&0xffff);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.5f),activeColor,id);
+            } else if (maxFreq>=0x100000) {
+              // 6 chars (isn't this too small?)
+              snprintf(id,63,"%.3X",(freq&0xfff000)>>24);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,0),activeColor,id);
+              snprintf(id,63,"%.3X",freq&0xfff);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,lineHeight*0.5f),activeColor,id);
             } else if (maxFreq>=0x10000) {
               // 5 chars
               snprintf(id,63,"%.5X",freq&0xfffff);
-              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos,activeColor,id);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos+ImVec2(0,lineHeight*0.2f),activeColor,id);
             } else if (maxFreq>=0x1000) {
               // 4 chars
               snprintf(id,63,"%.4X",freq&0xffff);
-              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos,activeColor,id);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.125f),activeColor,id);
             } else if (maxFreq>=0x100) {
               // 3 chars
               snprintf(id,63,"%.3X",freq&0xfff);
               dl->AddText(pos,activeColor,id);
-            } else {
+            } else if (maxFreq>=0x10) {
               // 2 chars
-              snprintf(id,63,"$%.2X",freq&0xff);
+              snprintf(id,63,"$%.2X",freq&0xfff);
+              dl->AddText(pos,activeColor,id);
+            } else {
+              // 1 char
+              snprintf(id,63," %.1X",freq&0xf);
               dl->AddText(pos,activeColor,id);
             }
           } else {

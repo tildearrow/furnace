@@ -40,6 +40,7 @@
 #include <zlib.h>
 #include <fmt/printf.h>
 #include <stdexcept>
+#include "../engine/bsr.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1626,6 +1627,50 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 }
 
+void FurnaceGUI::rawFreqInput(int num) {
+  int ch=cursor.xCoarse;
+  int ord=curOrder;
+  int y=cursor.y;
+  unsigned int valMax=e->getMaxFreqChan(ch);
+
+  // bail out if this channel is not pitchable
+  if (valMax==0) return;
+
+  logV("rawFreqInput: chan %d, %d:%d",ch,ord,y);
+
+  if (e->isPlaying() && !e->isStepping() && followPattern) {
+    e->getPlayPos(ord,y);
+  }
+
+  DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
+  prepareUndo(GUI_UNDO_PATTERN_EDIT);
+
+  unsigned int val=(
+    pat->newData[y][DIV_PAT_RAW0]|
+    (pat->newData[y][DIV_PAT_RAW1]<<8)|
+    (pat->newData[y][DIV_PAT_RAW2]<<16)|
+    (pat->newData[y][DIV_PAT_RAW3]<<24)
+  );
+  
+  unsigned int valNibbles=(bsr32(valMax)+3)>>2;
+  if (!settings.pushNibble && !curNibble) {
+    val=num;
+  } else {
+    val=((val<<4)|num)&valMax;
+  }
+  pat->newData[y][DIV_PAT_RAW0]=val&0xff;
+  pat->newData[y][DIV_PAT_RAW1]=(val>>8)&0xff;
+  pat->newData[y][DIV_PAT_RAW2]=(val>>16)&0xff;
+  pat->newData[y][DIV_PAT_RAW3]=(val>>24)&0xff;
+  
+  curNibble++;
+  if (curNibble>=valNibbles) {
+    curNibble=0;
+    editAdvance();
+  }
+  makeUndo(GUI_UNDO_PATTERN_EDIT);
+}
+
 void FurnaceGUI::orderInput(int num) {
   if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
     prepareUndo(GUI_UNDO_CHANGE_ORDER);
@@ -1836,20 +1881,34 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         // pattern input otherwise
         if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
         if (warnIsOpen && !settings.warnNotePassthrough) break;
-        if (!ev.key.repeat || settings.inputRepeat) {
+        if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && 
+            curOrder>=0 && curOrder<DIV_MAX_PATTERNS &&
+            cursor.y>=0 && cursor.y<DIV_MAX_ROWS &&
+            (!ev.key.repeat || settings.inputRepeat)) {
           if (cursor.xFine==0) { // note
-            auto it=noteKeys.find(ev.key.keysym.scancode);
-            if (it!=noteKeys.cend()) {
-              int key=it->second;
-              int num=12*curOctave+key+60;
+            // check whether we're in a raw frequency note (if so we must use value keys instead)
+            DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
 
-              if (num<0) num=0; // C-(-5)
-              if (num>179) num=179; // B-9
-
-              if (edit) {
-                noteInput(num,key,-1,chordInputOffset);
+            if (pat->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+              auto it=valueKeys.find(ev.key.keysym.sym);
+              if (it!=valueKeys.cend()) {
+                int num=it->second;
+                rawFreqInput(num);
               }
-              chordInputOffset++;
+            } else {
+              auto it=noteKeys.find(ev.key.keysym.scancode);
+              if (it!=noteKeys.cend()) {
+                int key=it->second;
+                int num=12*curOctave+key+60;
+
+                if (num<0) num=0; // C-(-5)
+                if (num>179) num=179; // B-9
+
+                if (edit) {
+                  noteInput(num,key,-1,chordInputOffset);
+                }
+                chordInputOffset++;
+              }
             }
           } else if (edit) { // value
             auto it=valueKeys.find(ev.key.keysym.sym);

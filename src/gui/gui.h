@@ -3274,6 +3274,7 @@ class FurnaceGUI {
   void editOptions(bool topMenu);
   DivSystem systemPicker(bool fullWidth);
   void noteInput(int num, int key, int vol=-1, int chanOff=0);
+  void rawFreqInput(int num);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
 
