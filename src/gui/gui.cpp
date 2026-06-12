@@ -1662,7 +1662,7 @@ void FurnaceGUI::rawFreqInput(int num) {
   pat->newData[y][DIV_PAT_RAW1]=(val>>8)&0xff;
   pat->newData[y][DIV_PAT_RAW2]=(val>>16)&0xff;
   pat->newData[y][DIV_PAT_RAW3]=(val>>24)&0xff;
-  
+
   curNibble++;
   if (curNibble>=valNibbles) {
     curNibble=0;
@@ -1893,7 +1893,10 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               auto it=valueKeys.find(ev.key.keysym.sym);
               if (it!=valueKeys.cend()) {
                 int num=it->second;
-                rawFreqInput(num);
+
+                if (edit) {
+                  rawFreqInput(num);
+                }
               }
             } else {
               auto it=noteKeys.find(ev.key.keysym.scancode);

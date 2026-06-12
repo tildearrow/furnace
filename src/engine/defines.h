@@ -60,5 +60,6 @@
 // dispatch
 #define DIV_MAX_OUTPUTS 16
 #define DIV_NOTE_NULL 0x7fffffff
+#define DIV_NOTE_RAW_FLAG 0x80000000
 
 #endif

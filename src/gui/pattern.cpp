@@ -1236,6 +1236,17 @@ void FurnaceGUI::drawPattern() {
                     ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]):
                     ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
                 );
+                // display an indicator for the current nibble
+                if (curNibble) {
+                  if (fmod(secondTimer,0.5f)<0.25f) {
+                    dl->AddLine(
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+2.0f*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_TEXT]),
+                      dpiScale
+                    );
+                  }
+                }
               }
             }
           }

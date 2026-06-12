@@ -569,6 +569,10 @@ struct SharedChannel {
    * @param note the note.
    */
   int calcBaseFreq(int note) {
+    rawFreq=note&DIV_NOTE_RAW_FLAG;
+    if (rawFreq) {
+      return note&(~DIV_NOTE_RAW_FLAG);
+    }
     if (pitchTable==NULL) return 0;
     return pitchTable->getBase(note);
   }
