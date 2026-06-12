@@ -369,7 +369,21 @@ bool SettingsCategory::drawSettings(ImGuiTextFilter* filter, bool doFilter, Furn
   }
   bool ret=false;
   if (drawOwnSettings) {
-    ImGui::PushFont(gui->headFont,gui->settings.headFontSize*gui->dpiScale*(3.0f/(float)(3+depth)));
+    switch (depth) {
+      case 0:
+        ImGui::PushFont(gui->headFont,gui->settings.headFontSize*gui->dpiScale);
+        break;
+      case 1:
+        ImGui::PushFont(gui->headFont,gui->settings.headFontSize2*gui->dpiScale);
+        break;
+      case 2:
+        ImGui::PushFont(gui->headFont,gui->settings.headFontSize3*gui->dpiScale);
+        break;
+      default:
+        ImGui::PushFont(gui->headFont,gui->settings.headFontSize4*gui->dpiScale);
+        break;
+    }
+    
     ImGui::SeparatorText(_(name));
     ImGui::PopFont();
     if (resetScroll==this) {

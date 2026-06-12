@@ -1955,6 +1955,21 @@ void FurnaceGUI::initSettings() {
         &settings.headFontSize,
         {3,96,1,3}
       ),
+      SettingEntry::InputInt(
+        _N("Header font size (2nd level)"),"headFontSize2",
+        &settings.headFontSize2,
+        {3,96,1,3}
+      ),
+      SettingEntry::InputInt(
+        _N("Header font size (3rd level)"),"headFontSize3",
+        &settings.headFontSize3,
+        {3,96,1,3}
+      ),
+      SettingEntry::InputInt(
+        _N("Header font size (4th level)"),"headFontSize4",
+        &settings.headFontSize4,
+        {3,96,1,3}
+      ),
       SettingEntry::ComboInt(
         _N("Pattern font"),"patFont",
         &settings.patFont,{

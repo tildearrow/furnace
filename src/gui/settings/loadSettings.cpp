@@ -302,6 +302,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_FONT) {
     settings.mainFontSize=conf.getInt("mainFontSize",GUI_FONT_SIZE_DEFAULT);
     settings.headFontSize=conf.getInt("headFontSize",27);
+    settings.headFontSize2=conf.getInt("headFontSize2",20);
+    settings.headFontSize3=conf.getInt("headFontSize3",16);
+    settings.headFontSize4=conf.getInt("headFontSize4",13);
     settings.patFontSize=conf.getInt("patFontSize",GUI_FONT_SIZE_DEFAULT);
     settings.iconSize=conf.getInt("iconSize",GUI_ICON_SIZE_DEFAULT);
 
@@ -481,6 +484,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   /// CLAMPING
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
+  clampSetting(settings.headFontSize2,2,96);
+  clampSetting(settings.headFontSize3,2,96);
+  clampSetting(settings.headFontSize4,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
   clampSetting(settings.audioEngine,0,4);
@@ -791,6 +797,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   if (groups&GUI_SETTINGS_FONT) {
     conf.set("mainFontSize",settings.mainFontSize);
     conf.set("headFontSize",settings.headFontSize);
+    conf.set("headFontSize2",settings.headFontSize2);
+    conf.set("headFontSize3",settings.headFontSize3);
+    conf.set("headFontSize4",settings.headFontSize4);
     conf.set("patFontSize",settings.patFontSize);
     conf.set("iconSize",settings.iconSize);
 
