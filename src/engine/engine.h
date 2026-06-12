@@ -657,6 +657,12 @@ class DivEngine {
     SafeWriter* saveText(bool separatePatterns=true);
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);
+    // render oscilloscope video: calls frameCallback(frameIndex) after each frame's samples have been processed.
+    // must be called from a thread (does deinitAudioBackend/initAudioBackend internally).
+    // returns false if engine not ready.
+    bool renderOscVideo(int fps, int loops,
+      const std::function<void(int frameIdx, float** audio, int samplesPerFrame)>& frameCallback,
+      const std::function<bool()>& shouldStop);
     // wait for audio export to finish
     void waitAudioFile();
     // stop audio file export
