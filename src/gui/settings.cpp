@@ -74,10 +74,12 @@ void FurnaceGUI::promptKey(int which, int bindIdx) {
 }
 
 void FurnaceGUI::drawSettings() {
+  bool settingsRequested=false;
   if (nextWindow==GUI_WINDOW_SETTINGS) {
     settingsOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
+    settingsRequested=true;
   }
   if (!settingsOpen) return;
   if (mobileUI) {
@@ -112,6 +114,10 @@ void FurnaceGUI::drawSettings() {
       if (ImGui::InputTextWithHint("##nnsSearch",_("Search..."),settingsFilter.InputBuf,IM_ARRAYSIZE(settingsFilter.InputBuf))) {
         settingsFilter.Build();
         settingsShowItemResults=true;
+      }
+      if (settingsRequested) {
+        settingsRequested=false;
+        ImGui::SetKeyboardFocusHere(-1);
       }
       ImGui::SameLine();
       ImGui::Button(ICON_FA_BARS "##SettingsImportExportReset");
