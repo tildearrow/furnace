@@ -2246,6 +2246,21 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+    case GUI_FILE_EXPORT_OSC_VIDEO:
+      if (!dirExists(workingDirOscVideoExport)) workingDirOscVideoExport=getHomeDir();
+      if (oscVideoExport.outputFormat==1) {
+        oscVideoOutputFilterName=_("MP4 video");
+        oscVideoOutputFilterExt=".mp4";
+      } else {
+        oscVideoOutputFilterName=_("Matroska video");
+        oscVideoOutputFilterExt=".mkv";
+      }
+      hasOpened=fileDialog->openSave(
+        _("Export Oscilloscope Video"),
+        {oscVideoOutputFilterName,"*"+oscVideoOutputFilterExt},
+        workingDirOscVideoExport,dpiScale,
+        (settings.autoFillSave)?shortName:"");
+      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4850,6 +4865,14 @@ bool FurnaceGUI::loop() {
         chanOscGradTex=NULL;
       }
 
+      if (oscVideoPreviewTex!=NULL) {
+        rend->destroyTexture(oscVideoPreviewTex);
+        oscVideoPreviewTex=NULL;
+        oscVideoPreviewTexW=0;
+        oscVideoPreviewTexH=0;
+      }
+      clearOscVideoSoftFont();
+
       for (auto& i: images) {
         if (i.second->tex!=NULL) {
           rend->destroyTexture(i.second->tex);
@@ -5088,6 +5111,10 @@ bool FurnaceGUI::loop() {
             drawExportDMF();
             ImGui::EndMenu();
           }
+          if (ImGui::BeginMenu(_("export osc video..."))) {
+            drawExportOscVideo();
+            ImGui::EndMenu();
+          }
         } else if (settings.exportOptionsLayout==2) {
           if (ImGui::MenuItem(_("export audio..."))) {
             curExportType=GUI_EXPORT_AUDIO;
@@ -5113,6 +5140,10 @@ bool FurnaceGUI::loop() {
           }
           if (ImGui::MenuItem(_("export .dmf..."))) {
             curExportType=GUI_EXPORT_DMF;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem(_("export osc video..."))) {
+            curExportType=GUI_EXPORT_OSC_VIDEO;
             displayExport=true;
           }
         } else {
@@ -5706,6 +5737,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_VGM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_OSC_VIDEO:
+          workingDirOscVideoExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
@@ -5811,6 +5845,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_OSC_VIDEO) {
+            checkExtension(oscVideoOutputFilterExt.c_str());
           }
           if (curFileDialog==GUI_FILE_EXPORT_ROM) {
             checkExtension(romFilterExt.c_str());
@@ -6293,6 +6330,16 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+            case GUI_FILE_EXPORT_OSC_VIDEO:
+              oscVideoExporting=true;
+              displayExportingOscVideo=true;
+              oscVideoCurOrder.store(0);
+              oscVideoMaxOrder.store(e->curSubSong->ordersLen);
+              oscVideoThread=new std::thread([this,copyOfName](){
+                runOscVideoExport(copyOfName);
+              });
+              oscVideoThread->detach();
+              break;
             case GUI_FILE_EXPORT_ROM:
               romExportPath=copyOfName;
               pendingExport=e->buildROM(romTarget);
@@ -6553,6 +6600,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup(_("CmdStream Export Progress"));
     }
 
+    if (displayExportingOscVideo) {
+      displayExportingOscVideo=false;
+      ImGui::OpenPopup(_("Osc Video Render"));
+    }
+
     if (displayNew) {
       newSongQuery="";
       newSongFirstFrame=true;
@@ -6803,6 +6855,8 @@ bool FurnaceGUI::loop() {
       }
       ImGui::EndPopup();
     }
+
+    drawOscVideoProgress();
 
     drawTutorial();
 
@@ -8622,6 +8676,20 @@ void FurnaceGUI::syncState() {
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
 
+  oscVideoExport.width=e->getConfInt("oscVideoWidth",1280);
+  oscVideoExport.height=e->getConfInt("oscVideoHeight",720);
+  oscVideoExport.fps=e->getConfInt("oscVideoFps",60);
+  oscVideoExport.outputFormat=e->getConfInt("oscVideoOutputFormat",0);
+  if (oscVideoExport.outputFormat<0||oscVideoExport.outputFormat>1) oscVideoExport.outputFormat=0;
+  oscVideoExport.targetSizeMB=e->getConfInt("oscVideoTargetSizeMB",0);
+  if (oscVideoExport.targetSizeMB<0) oscVideoExport.targetSizeMB=0;
+  oscVideoExport.sampleRate=e->getConfInt("oscVideoSampleRate",44100);
+  oscVideoExport.audioBitrate=e->getConfInt("oscVideoAudioBitrate",192);
+  oscVideoExport.textScale=e->getConfFloat("oscVideoTextScale",1.0f);
+  oscVideoExport.lineSize=e->getConfFloat("oscVideoLineSize",1.0f);
+  oscVideoExport.videoCRF=e->getConfInt("oscVideoCRF",18);
+  oscVideoExport.ffmpegPath=e->getConfString("oscVideoFfmpegPath","");
+
   xyOscXChannel=e->getConfInt("xyOscXChannel",0);
   xyOscXInvert=e->getConfBool("xyOscXInvert",false);
   xyOscYChannel=e->getConfInt("xyOscYChannel",1);
@@ -8796,6 +8864,19 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("chanOscUseGrad",chanOscUseGrad);
   conf.set("chanOscGrad",chanOscGrad.toString());
   conf.set("chanOscColorMode",chanOscColorMode);
+
+  // commit osc video export settings
+  conf.set("oscVideoWidth",oscVideoExport.width);
+  conf.set("oscVideoHeight",oscVideoExport.height);
+  conf.set("oscVideoFps",oscVideoExport.fps);
+  conf.set("oscVideoOutputFormat",oscVideoExport.outputFormat);
+  conf.set("oscVideoTargetSizeMB",oscVideoExport.targetSizeMB);
+  conf.set("oscVideoSampleRate",oscVideoExport.sampleRate);
+  conf.set("oscVideoAudioBitrate",oscVideoExport.audioBitrate);
+  conf.set("oscVideoTextScale",oscVideoExport.textScale);
+  conf.set("oscVideoLineSize",oscVideoExport.lineSize);
+  conf.set("oscVideoCRF",oscVideoExport.videoCRF);
+  conf.set("oscVideoFfmpegPath",oscVideoExport.ffmpegPath);
 
   // commit x-y osc state
   conf.set("xyOscXChannel",xyOscXChannel);
@@ -8975,6 +9056,7 @@ FurnaceGUI::FurnaceGUI():
   replacePendingSample(false),
   displayExportingROM(false),
   displayExportingCS(false),
+  displayExportingOscVideo(false),
   quitNoSave(false),
   changeCoarse(false),
   orderLock(false),
@@ -9453,6 +9535,19 @@ FurnaceGUI::FurnaceGUI():
   xyOscDecayTime(10.0f),
   xyOscIntensity(2.0f),
   xyOscThickness(2.0f),
+  oscVideoExporting(false),
+  oscVideoCombining(false),
+  oscVideoFfmpegFound(false),
+  oscVideoOutputFilterName(_("Matroska video")),
+  oscVideoOutputFilterExt(".mkv"),
+  oscVideoThread(NULL),
+  oscVideoCurOrder(0),
+  oscVideoMaxOrder(0),
+  oscVideoCurrentFrame(0),
+  oscVideoPreviewTex(NULL),
+  oscVideoPreviewTexW(0),
+  oscVideoPreviewTexH(0),
+  oscVideoSoftFont(NULL),
   regViewColumns(16),
   tunerFFTInBuf(NULL),
   tunerFFTOutBuf(NULL),
