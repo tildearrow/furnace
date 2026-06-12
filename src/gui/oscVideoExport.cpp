@@ -116,23 +116,49 @@ struct PixBuf {
     px[y*w+x]=color;
   }
 
-  void drawLine(int x0, int y0, int x1, int y1, unsigned int color, int thick) {
-    int dx=abs(x1-x0), sx=(x0<x1)?1:-1;
-    int dy=-abs(y1-y0), sy=(y0<y1)?1:-1;
-    int err=dx+dy;
-    for (;;) {
-      if (thick==0) {
-        setPixel(x0,y0,color);
-      } else {
-        for (int ty=-thick; ty<=thick; ty++)
-          for (int tx=-thick; tx<=thick; tx++)
-            if (tx*tx+ty*ty<=thick*thick+thick)
-              setPixel(x0+tx,y0+ty,color);
+  inline void blendPixel(int x, int y, unsigned int color, float a) {
+    if ((unsigned)x>=(unsigned)w||(unsigned)y>=(unsigned)h) return;
+    unsigned int dst=px[y*w+x];
+    float ia=1.0f-a;
+    unsigned char sr=color&0xff, sg=(color>>8)&0xff, sb=(color>>16)&0xff;
+    unsigned char dr=dst&0xff, dg=(dst>>8)&0xff, db=(dst>>16)&0xff;
+    px[y*w+x]=((unsigned int)(unsigned char)(sr*a+dr*ia))
+      |(((unsigned int)(unsigned char)(sg*a+dg*ia))<<8)
+      |(((unsigned int)(unsigned char)(sb*a+db*ia))<<16)
+      |(0xffu<<24);
+  }
+
+  // anti-aliased line. thickness below 1px fades out.
+  void drawLine(int x0, int y0, int x1, int y1, unsigned int color, float thick) {
+    float alphaMul=1.0f;
+    if (thick<1.0f) {
+      if (thick<=0.0f) return;
+      alphaMul=thick;
+      thick=1.0f;
+    }
+    float r=thick*0.5f;
+    float dx=(float)(x1-x0), dy=(float)(y1-y0);
+    float len2=dx*dx+dy*dy;
+    int minX=(int)floorf(((x0<x1)?(float)x0:(float)x1)-r-1.0f);
+    int maxX=(int)ceilf(((x0>x1)?(float)x0:(float)x1)+r+1.0f);
+    int minY=(int)floorf(((y0<y1)?(float)y0:(float)y1)-r-1.0f);
+    int maxY=(int)ceilf(((y0>y1)?(float)y0:(float)y1)+r+1.0f);
+    if (minX<0) minX=0;
+    if (minY<0) minY=0;
+    if (maxX>=w) maxX=w-1;
+    if (maxY>=h) maxY=h-1;
+    for (int y=minY; y<=maxY; y++) {
+      for (int x=minX; x<=maxX; x++) {
+        float qx=(float)(x-x0), qy=(float)(y-y0);
+        float t=(len2>0.0f)?((qx*dx+qy*dy)/len2):0.0f;
+        if (t<0.0f) t=0.0f;
+        if (t>1.0f) t=1.0f;
+        float ex=qx-t*dx, ey=qy-t*dy;
+        float a=r+0.5f-sqrtf(ex*ex+ey*ey);
+        if (a<=0.0f) continue;
+        if (a>1.0f) a=1.0f;
+        blendPixel(x,y,color,a*alphaMul);
       }
-      if (x0==x1&&y0==y1) break;
-      int e2=2*err;
-      if (e2>=dy){err+=dy;x0+=sx;}
-      if (e2<=dx){err+=dx;y0+=sy;}
     }
   }
 
@@ -284,12 +310,11 @@ static void renderFrame(PixBuf& pb, DivEngine* e, FurnaceGUI* gui,
 
   const unsigned int sepColor=0xff3a3a3a;
   for (int r=1; r<rows; r++)
-    pb.drawLine(0,r*cellH,pb.w-1,r*cellH,sepColor,0);
+    pb.drawLine(0,r*cellH,pb.w-1,r*cellH,sepColor,1.0f);
   for (int c=1; c<cols; c++)
-    pb.drawLine(c*cellW,0,c*cellW,pb.h-1,sepColor,0);
+    pb.drawLine(c*cellW,0,c*cellW,pb.h-1,sepColor,1.0f);
 
-  int thick=(int)roundf(lineThick*0.5f);
-  if (thick<0) thick=0;
+  float thick=lineThick;
 
   float oscTex[1024];
 
@@ -442,7 +467,7 @@ static void renderFrame(PixBuf& pb, DivEngine* e, FurnaceGUI* gui,
 
     unsigned int color=(colorMode==1 && ch<(int)chanColors.size()) ? chanColors[ch] : solidColorU;
 
-    pb.drawLine(x0,cy0,x1,cy0,0xff242424,0);
+    pb.drawLine(x0,cy0,x1,cy0,0xff242424,1.0f);
 
     int prevPX=x0, prevPY=cy0;
     for (int j=0; j<precision; j++) {
@@ -497,28 +522,24 @@ void FurnaceGUI::drawOscVideoProgress() {
       ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize)) {
     WAKE_UP;
 
-    int curOrd=oscVideoCurOrder.load();
-    int maxOrd=oscVideoMaxOrder.load();
-
     if (!oscVideoExporting) {
-      if (ImGui::Button(_("OK"),ImVec2(200.0f*dpiScale,0)))
-        ImGui::CloseCurrentPopup();
+      ImGui::CloseCurrentPopup();
     } else if (oscVideoCombining) {
       ImGui::Text(_("Combining..."));
       ImGui::ProgressBar(-1.0f*(float)ImGui::GetTime(),ImVec2(320.0f*dpiScale,0),"");
     } else {
-      ImGui::Text(_("Rendering..."));
-      if (maxOrd>0) {
-        float frac=(float)curOrd/(float)maxOrd;
-        int curFrame=oscVideoCurrentFrame.load();
-        float elapsed=(float)curFrame/(float)oscVideoExport.fps;
-        int elMin=(int)(elapsed/60.0f);
-        float elSec=elapsed-(float)(elMin*60);
-        char ovl[64];
-        snprintf(ovl,64,"Order %d / %d (%d:%04.1f)",curOrd,maxOrd,elMin,elSec);
-        ImGui::ProgressBar(frac,ImVec2(320.0f*dpiScale,0),ovl);
+      ImGui::Text(_("Please wait..."));
+      double elapsed=(double)oscVideoCurrentFrame.load()/(double)oscVideoExport.fps;
+      if (oscVideoTotalTime>0.0) {
+        float frac=(float)(elapsed/oscVideoTotalTime);
+        if (frac<0.0f) frac=0.0f;
+        if (frac>1.0f) frac=1.0f;
+        ImGui::ProgressBar(frac,ImVec2(320.0f*dpiScale,0),fmt::sprintf("%.2f%%",frac*100.0f).c_str());
       } else {
         ImGui::ProgressBar(-1.0f*(float)ImGui::GetTime(),ImVec2(320.0f*dpiScale,0),"");
+      }
+      if (ImGui::Button(_("Abort"),ImVec2(320.0f*dpiScale,0))) {
+        oscVideoAbort=true;
       }
     }
 
@@ -669,10 +690,18 @@ void FurnaceGUI::drawExportOscVideo(bool onWindow) {
 
   ImGui::SeparatorText(_("ffmpeg"));
   {
+    if (!oscVideoFfmpegChecked) {
+      detectOscVideoFfmpeg();
+      oscVideoFfmpegChecked=true;
+    }
     float detectW=80.0f*dpiScale;
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-detectW-ImGui::GetStyle().ItemSpacing.x);
+    float browseW=ImGui::CalcTextSize("...").x+ImGui::GetStyle().FramePadding.x*2.0f;
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-detectW-browseW-ImGui::GetStyle().ItemSpacing.x*2.0f);
     if (ImGui::InputTextWithHint("##ovffmpegpath",_("path to ffmpeg (leave blank for system PATH)"),&oscVideoExport.ffmpegPath))
       oscVideoFfmpegFound=false;
+    ImGui::SameLine();
+    if (ImGui::Button("...##ovffbrowse"))
+      openFileDialog(GUI_FILE_OSC_VIDEO_FFMPEG);
     ImGui::SameLine();
     if (ImGui::Button(_("Detect"),ImVec2(detectW,0)))
       detectOscVideoFfmpeg();
@@ -700,6 +729,7 @@ void FurnaceGUI::drawExportOscVideo(bool onWindow) {
 void FurnaceGUI::runOscVideoExport(const String& path) {
   int W=oscVideoExport.width, H=oscVideoExport.height, FPS=oscVideoExport.fps;
   int audioBr=oscVideoExport.audioBitrate;
+  oscVideoAbort=false;
 
   int rate=(int)e->getAudioDescGot().rate;
   if (rate<=0) rate=44100;
@@ -752,13 +782,11 @@ void FurnaceGUI::runOscVideoExport(const String& path) {
 
   std::vector<float> audioSamples;
 
-  oscVideoMaxOrder.store(e->curSubSong->ordersLen);
   int frameCount=0;
   e->renderOscVideo(FPS, 1,
     [&](int /*frameIdx*/, float** audio, int spf) {
       frameCount++;
       oscVideoCurrentFrame.store(frameCount);
-      oscVideoCurOrder.store((int)e->getOrder());
 
       for (int i=0; i<spf; i++) {
         audioSamples.push_back(audio[0][i]);
@@ -771,10 +799,18 @@ void FurnaceGUI::runOscVideoExport(const String& path) {
                   chanColors,chanState,threadSf.loaded?&threadSf:NULL);
       fwrite(pb.px.data(),4,(size_t)(W*H),vpipe);
     },
-    [&]()->bool { return false; }
+    [this]()->bool { return oscVideoAbort.load(); }
   );
 
   FURNACE_PCLOSE(vpipe);
+
+  if (oscVideoAbort.load()) {
+    logI("OscVideo: aborted");
+    remove(vidTmp.c_str());
+    oscVideoCombining=false;
+    oscVideoExporting=false;
+    return;
+  }
 
   logI("OscVideo: writing audio (%zu stereo samples)",(size_t)audioSamples.size()/2);
 

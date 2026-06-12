@@ -2261,6 +2261,14 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         workingDirOscVideoExport,dpiScale,
         (settings.autoFillSave)?shortName:"");
       break;
+    case GUI_FILE_OSC_VIDEO_FFMPEG:
+      hasOpened=fileDialog->openLoad(
+        _("Select ffmpeg"),
+        {_("all files"), "*"},
+        getHomeDir(),
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_TEXT:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -6330,11 +6338,16 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+            case GUI_FILE_OSC_VIDEO_FFMPEG:
+              oscVideoExport.ffmpegPath=copyOfName;
+              detectOscVideoFfmpeg();
+              break;
             case GUI_FILE_EXPORT_OSC_VIDEO:
               oscVideoExporting=true;
               displayExportingOscVideo=true;
-              oscVideoCurOrder.store(0);
-              oscVideoMaxOrder.store(e->curSubSong->ordersLen);
+              e->calcSongTimestamps();
+              oscVideoTotalTime=e->curSubSong->ts.totalTime.toDouble();
+              oscVideoCurrentFrame.store(0);
               oscVideoThread=new std::thread([this,copyOfName](){
                 runOscVideoExport(copyOfName);
               });
@@ -9538,12 +9551,13 @@ FurnaceGUI::FurnaceGUI():
   oscVideoExporting(false),
   oscVideoCombining(false),
   oscVideoFfmpegFound(false),
+  oscVideoFfmpegChecked(false),
   oscVideoOutputFilterName(_("Matroska video")),
   oscVideoOutputFilterExt(".mkv"),
   oscVideoThread(NULL),
-  oscVideoCurOrder(0),
-  oscVideoMaxOrder(0),
   oscVideoCurrentFrame(0),
+  oscVideoAbort(false),
+  oscVideoTotalTime(0.0),
   oscVideoPreviewTex(NULL),
   oscVideoPreviewTexW(0),
   oscVideoPreviewTexH(0),

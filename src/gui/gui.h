@@ -700,6 +700,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_COMPILED_INS,
   GUI_FILE_EXPORT_COMPILED_INS_ONE,
   GUI_FILE_EXPORT_OSC_VIDEO,
+  GUI_FILE_OSC_VIDEO_FFMPEG,
   GUI_FILE_EXPORT_COMPILED_SAMPLE,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_HEAD_FONT,
@@ -2853,11 +2854,12 @@ class FurnaceGUI {
   bool oscVideoExporting;
   bool oscVideoCombining;
   bool oscVideoFfmpegFound;
+  bool oscVideoFfmpegChecked;
   String oscVideoOutputFilterName, oscVideoOutputFilterExt;
   std::thread* oscVideoThread;
-  std::atomic<int> oscVideoCurOrder;
-  std::atomic<int> oscVideoMaxOrder;
   std::atomic<int> oscVideoCurrentFrame;
+  std::atomic<bool> oscVideoAbort;
+  double oscVideoTotalTime; // song length in seconds, set before the export thread starts
   FurnaceGUITexture* oscVideoPreviewTex;
   int oscVideoPreviewTexW, oscVideoPreviewTexH;
   std::vector<unsigned char> mainFontRawData; // raw TTF bytes from the main font
