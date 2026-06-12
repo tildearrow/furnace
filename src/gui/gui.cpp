@@ -5748,6 +5748,8 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_OSC_VIDEO:
           workingDirOscVideoExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_OSC_VIDEO_FFMPEG:
+          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
