@@ -1973,10 +1973,10 @@ void FurnaceGUI::initSettings() {
       SettingEntry::ComboInt(
         _N("Pattern font"),"patFont",
         &settings.patFont,{
-          {"IBM Plex Sans",0},
-          {"Liberation Sans",1},
-          {"Mononoki",2},
-          {"PT Mono",3},
+          {"IBM Plex Mono",0},
+          {"Mononoki",1},
+          {"PT Mono",2},
+          {"Proggy Clean",3},
           {"GNU Unifont",4},
           {_N("<Use system font>"),5},
           {_N("<Custom...>"),6}
