@@ -856,10 +856,15 @@ void FurnaceGUI::runOscVideoExport(const String& path) {
         ffmpegExe,vidTmp,audTmp,oscVideoExport.sampleRate,audioBr,String(path),NULL_REDIRECT);
     }
   } else {
+    // vorbis only supports bitrate mode up to 48kHz. use quality mode, which
+    // works at any rate. the presets match the vorbis quality levels (q0-q10).
+    static const int vorbisBr[]={64,80,96,112,128,160,192,224,256,320,500};
+    int vorbisQ=6;
+    for (int i=0; i<11; i++) if (audioBr>=vorbisBr[i]) vorbisQ=i;
     ccmd=fmt::sprintf(
       "\"%s\" -y -i \"%s\" -i \"%s\" "
-      "-c:v copy -c:a libvorbis -ar %d -b:a %dk \"%s\" %s",
-      ffmpegExe,vidTmp,audTmp,oscVideoExport.sampleRate,audioBr,String(path),NULL_REDIRECT);
+      "-c:v copy -c:a libvorbis -ar %d -q:a %d \"%s\" %s",
+      ffmpegExe,vidTmp,audTmp,oscVideoExport.sampleRate,vorbisQ,String(path),NULL_REDIRECT);
   }
   int ret=system(ccmd.c_str());
   if (ret!=0) logE("OscVideo: combine failed (code %d)",ret);
