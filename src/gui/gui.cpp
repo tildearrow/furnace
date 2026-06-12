@@ -9564,6 +9564,7 @@ FurnaceGUI::FurnaceGUI():
   oscVideoPreviewTexW(0),
   oscVideoPreviewTexH(0),
   oscVideoSoftFont(NULL),
+  oscVideoPreviewState(NULL),
   regViewColumns(16),
   tunerFFTInBuf(NULL),
   tunerFFTOutBuf(NULL),

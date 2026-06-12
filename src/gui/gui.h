@@ -2864,6 +2864,7 @@ class FurnaceGUI {
   int oscVideoPreviewTexW, oscVideoPreviewTexH;
   std::vector<unsigned char> mainFontRawData; // raw TTF bytes from the main font
   struct OscSoftFont* oscVideoSoftFont;
+  struct OscVideoPreviewState* oscVideoPreviewState;
 
   // register view
   int regViewColumns;

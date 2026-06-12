@@ -281,6 +281,12 @@ struct VideoOscState {
   }
 };
 
+// persists across preview frames so DC correction and FFT plans behave
+// like the channel oscilloscope
+struct OscVideoPreviewState {
+  std::vector<VideoOscState> chans;
+};
+
 static void renderFrame(PixBuf& pb, DivEngine* e, FurnaceGUI* gui,
     float windowSizeMs, float amplify, float lineThick,
     int colorMode, unsigned int solidColorU, unsigned int textColorU,
@@ -486,6 +492,7 @@ static void renderFrame(PixBuf& pb, DivEngine* e, FurnaceGUI* gui,
 
 void FurnaceGUI::clearOscVideoSoftFont() {
   if (oscVideoSoftFont!=NULL) { delete oscVideoSoftFont; oscVideoSoftFont=NULL; }
+  if (oscVideoPreviewState!=NULL) { delete oscVideoPreviewState; oscVideoPreviewState=NULL; }
 }
 
 void FurnaceGUI::detectOscVideoFfmpeg() {
@@ -668,12 +675,16 @@ void FurnaceGUI::drawExportOscVideo(bool onWindow) {
     PixBuf pb;
     pb.init(previewPxW,previewPxH);
     pb.clear(0xff000000u);
-    std::vector<VideoOscState> previewState((size_t)totalChans);
+    if (oscVideoPreviewState==NULL) oscVideoPreviewState=new OscVideoPreviewState();
+    if ((int)oscVideoPreviewState->chans.size()!=totalChans) {
+      oscVideoPreviewState->chans.clear();
+      oscVideoPreviewState->chans.resize((size_t)totalChans);
+    }
     renderFrame(pb,e,this,
       chanOscWindowSize,chanOscAmplify,previewLineSize,
       chanOscColorMode,solidColorU,textColorU,
       chanOscTextFormat,chanOscCenterStrat,chanOscWaveCorr,
-      chanColors,previewState,oscVideoSoftFont);
+      chanColors,oscVideoPreviewState->chans,oscVideoSoftFont);
 
     rend->updateTexture(oscVideoPreviewTex,pb.px.data(),previewPxW*4);
     ImGui::Image(rend->getTextureID(oscVideoPreviewTex),
