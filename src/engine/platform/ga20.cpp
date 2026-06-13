@@ -176,7 +176,8 @@ void DivPlatformGA20::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      chan[i].freq=0x100-chan[i].calcFreq();
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) chan[i].freq=0x100-chan[i].freq;
       if (chan[i].freq>255) chan[i].freq=255;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {

@@ -242,7 +242,7 @@ void DivPlatformDave::tick(bool sysTick) {
         chan[i].dacRate=chan[i].freq;
       }
 
-      if (i<3) {
+      if (i<3 && !chan[i].rawFreq) {
         switch (chan[i].wave) {
           case 0:
             chan[i].freq>>=2;
@@ -265,17 +265,21 @@ void DivPlatformDave::tick(bool sysTick) {
       }
 
       if (i<4) {
-        if (chan[i].freq<1) chan[i].freq=1;
-        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<1) chan[i].freq=1;
+          if (chan[i].freq>4095) chan[i].freq=4095;
+        }
       }
 
       if (i<3) {
-        if (chan[i].wave==1) { // short 1
-          chan[i].freq=15*(chan[i].freq/15)+snapPeriodShort[(chan[i].freq%15)];
-        } else if (chan[i].wave==2) { // long 1
-          chan[i].freq=15*(chan[i].freq/15)+snapPeriodLong[(chan[i].freq%15)];
-        } else if (chan[i].wave==3) { // long 2 (30, 61, 92, 123... result in silence)
-          if ((chan[i].freq%30)==(chan[i].freq/30)-1) chan[i].freq++;
+        if (!chan[i].rawFreq) {
+          if (chan[i].wave==1) { // short 1
+            chan[i].freq=15*(chan[i].freq/15)+snapPeriodShort[(chan[i].freq%15)];
+          } else if (chan[i].wave==2) { // long 1
+            chan[i].freq=15*(chan[i].freq/15)+snapPeriodLong[(chan[i].freq%15)];
+          } else if (chan[i].wave==3) { // long 2 (30, 61, 92, 123... result in silence)
+            if ((chan[i].freq%30)==(chan[i].freq/30)-1) chan[i].freq++;
+          }
         }
         rWrite((i<<1),chan[i].freq&0xff);
         rWrite(1+(i<<1),(chan[i].freq>>8)|((waveMap[chan[i].wave])<<4)|(chan[i].highPass?0x40:0)|(chan[i].ringMod?0x80:0));

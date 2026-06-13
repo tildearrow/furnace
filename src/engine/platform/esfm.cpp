@@ -349,28 +349,33 @@ void DivPlatformESFM::tick(bool sysTick) {
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=i*32+o*8;
         DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
-        int ct=(int)opE.ct;
-        int dt=(int)opE.dt;
-        if (opE.fixed) {
-          chan[i].freqL[o]=opE.dt;
-          chan[i].freqH[o]=opE.ct&0x1f;
+        if (chan[i].rawFreq) {
+          chan[i].freqL[o]=chan[i].freq&0xff;
+          chan[i].freqH[o]=chan[i].freq>>8;
         } else {
-          int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
-          int pitch2=chan[i].pitch2+dt;
-          int fixedArp=chan[i].fixedArp;
-          if(chan[i].opsState[o].hasOpArp) {
-            arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
-            fixedArp=chan[i].opsState[o].fixedArp;
+          int ct=(int)opE.ct;
+          int dt=(int)opE.dt;
+          if (opE.fixed) {
+            chan[i].freqL[o]=opE.dt;
+            chan[i].freqH[o]=opE.ct&0x1f;
+          } else {
+            int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
+            int pitch2=chan[i].pitch2+dt;
+            int fixedArp=chan[i].fixedArp;
+            if (chan[i].opsState[o].hasOpArp) {
+              arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
+              fixedArp=chan[i].opsState[o].fixedArp;
+            }
+            if (chan[i].opsState[o].hasOpPitch) {
+              pitch2=chan[i].opsState[o].pitch2+dt;
+            }
+            int opFreq=chan[i].esfmCalcOpFreq(arp,fixedArp,mul,pitch2);
+            if (opFreq<0) opFreq=0;
+            if (opFreq>131071) opFreq=131071;
+            int freqt=toFreq(opFreq,fixedBlock);
+            chan[i].freqL[o]=freqt&0xff;
+            chan[i].freqH[o]=freqt>>8;
           }
-          if(chan[i].opsState[o].hasOpPitch) {
-            pitch2=chan[i].opsState[o].pitch2+dt;
-          }
-          int opFreq=chan[i].esfmCalcOpFreq(arp,fixedArp,mul,pitch2);
-          if (opFreq<0) opFreq=0;
-          if (opFreq>131071) opFreq=131071;
-          int freqt=toFreq(opFreq,fixedBlock);
-          chan[i].freqL[o]=freqt&0xff;
-          chan[i].freqH[o]=freqt>>8;
         }
         immWrite(baseAddr+ADDR_FREQL,chan[i].freqL[o]);
         immWrite(baseAddr+ADDR_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));

@@ -278,10 +278,15 @@ void DivPlatformLynx::tick(bool sysTick) {
           }
         }
         chan[i].freq=chan[i].calcFreq();
-        if (tuned) {
-          chan[i].fd=chan[i].freq/DUTY_DIVIDERS[chan[i].duty.val&0x1ff];
+        if (chan[i].rawFreq) {
+          chan[i].fd.clockDivider=chan[i].freq>>8;
+          chan[i].fd.backup=chan[i].freq&0xff;
         } else {
-          chan[i].fd=chan[i].freq;
+          if (tuned) {
+            chan[i].fd=chan[i].freq/DUTY_DIVIDERS[chan[i].duty.val&0x1ff];
+          } else {
+            chan[i].fd=chan[i].freq;
+          }
         }
         WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
         WRITE_BACKUP( i, chan[i].fd.backup );

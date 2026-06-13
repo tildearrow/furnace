@@ -326,10 +326,14 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
-        if (ntPos<0) ntPos=0;
-        if (ntPos>255) ntPos=255;
-        chan[i].freq=noiseTable[ntPos];
+        if (chan[i].rawFreq) {
+          chan[i].freq=chan[i].baseFreq&0xf7;
+        } else {
+          int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
+          if (ntPos<0) ntPos=0;
+          if (ntPos>255) ntPos=255;
+          chan[i].freq=noiseTable[ntPos];
+        }
       } else {
         chan[i].freq=chan[i].calcFreq();
         if (chan[i].freq>2047) chan[i].freq=2047;
@@ -401,7 +405,13 @@ int DivPlatformGB::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan==3) { // noise
-          chan[c.chan].baseFreq=c.value;
+          if (c.value&DIV_NOTE_RAW_FLAG) {
+            chan[c.chan].baseFreq=c.value&0xff;
+            chan[c.chan].rawFreq=true;
+          } else {
+            chan[c.chan].baseFreq=c.value;
+            chan[c.chan].rawFreq=false;
+          }
         } else {
           chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         }
