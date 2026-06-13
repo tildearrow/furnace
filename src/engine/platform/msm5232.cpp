@@ -25,7 +25,7 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define NOTE_LINEAR(x) (((x)&DIV_NOTE_RAW_FLAG)?((x)&0xff):((x)<<7)
+#define NOTE_LINEAR(x) ((x)&DIV_NOTE_RAW_FLAG)?((x)&0xff):((x)<<7)
 
 const char* regCheatSheetMSM5232[]={
   "Select", "0",

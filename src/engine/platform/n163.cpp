@@ -267,14 +267,16 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
       chan[i].freq=chan[i].calcFreq();
-      if (lenCompensate) {
-        chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
-      } else {
-        chan[i].freq*=(chanMax+1);
-        chan[i].freq>>=3;
+      if (!chan[i].rawFreq) {
+        if (lenCompensate) {
+          chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
+        } else {
+          chan[i].freq*=(chanMax+1);
+          chan[i].freq>>=3;
+        }
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff && !isMuted[i]) {

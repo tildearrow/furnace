@@ -362,26 +362,31 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq-60;
-        if (NEW_ARP_STRAT) {
-          if (chan[i].fixedArp) {
-            ntPos=chan[i].baseNoteOverride-60;
+        if (chan[i].rawFreq) {
+          chan[i].freq=chan[i].rawFreq&15;
+        } else {
+          int ntPos=chan[i].baseFreq-60;
+          if (NEW_ARP_STRAT) {
+            if (chan[i].fixedArp) {
+              ntPos=chan[i].baseNoteOverride-60;
+            } else {
+              ntPos+=chan[i].arpOff;
+            }
+          }
+          ntPos+=chan[i].pitch2;
+          if (isE) {
+            chan[i].freq=31-(ntPos&31);
+          } else if (parent->song.compatFlags.properNoiseLayout) {
+            chan[i].freq=15-(ntPos&15);
           } else {
-            ntPos+=chan[i].arpOff;
+            if (ntPos<0) ntPos=0;
+            if (ntPos>252) ntPos=252;
+            chan[i].freq=noiseTable[ntPos];
           }
         }
-        ntPos+=chan[i].pitch2;
-        if (isE) {
-          chan[i].freq=31-(ntPos&31);
-        } else if (parent->song.compatFlags.properNoiseLayout) {
-          chan[i].freq=15-(ntPos&15);
-        } else {
-          if (ntPos<0) ntPos=0;
-          if (ntPos>252) ntPos=252;
-          chan[i].freq=noiseTable[ntPos];
-        }
       } else {
-        chan[i].freq=chan[i].calcFreq()-1;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq--;
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<0) chan[i].freq=0;
       }
@@ -420,7 +425,12 @@ void DivPlatformNES::tick(bool sysTick) {
   // PCM
   if (chan[4].freqChanged || chan[4].keyOn) {
     chan[4].freq=chan[4].calcFreq();
-    dacRate=MIN(chan[4].freq,48000);
+    if (chan[4].rawFreq) {
+      dacRate=32000;
+      nextDPCMFreq=chan[4].freq;
+    } else {
+      dacRate=MIN(chan[4].freq,48000);
+    }
     if (chan[4].keyOn) {
       if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
         unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
@@ -562,7 +572,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
         break;
       } else if (c.chan==3) { // noise
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=c.value;
+          chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+          chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         }
       } else {
         if (c.value!=DIV_NOTE_NULL) {

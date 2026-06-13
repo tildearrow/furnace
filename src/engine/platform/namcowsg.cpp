@@ -322,7 +322,6 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=chan[i].calcFreq();
       if (devType==2) {
         if (chan[i].freq<0) chan[i].freq=0;
