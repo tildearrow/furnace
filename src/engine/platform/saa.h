@@ -48,6 +48,7 @@ class DivPlatformSAA1099: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     FixedQueue<QueuedWrite,256> writes;
+    DivPitchTable pitchTable;
     int coreQuality;
     CSAASound* saa_saaSound;
     unsigned char regPool[32];
@@ -88,6 +89,8 @@ class DivPlatformSAA1099: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

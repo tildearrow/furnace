@@ -269,6 +269,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   };
   FixedQueue<QueuedHostIntf,2048> hostIntf32;
   FixedQueue<QueuedHostIntf,2048> hostIntf8;
+  DivPitchTableManager samplePitchTable;
   int cycle, curPage, volScale;
   unsigned int irqv;
   bool isReaded;
@@ -314,6 +315,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual void notifyPitchTable(int sample=-1) override;
+    virtual unsigned int getMaxFreq(int ch) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual const void* getSampleMem(int index = 0) override;

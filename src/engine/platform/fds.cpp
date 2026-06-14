@@ -510,6 +510,10 @@ void DivPlatformFDS::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformFDS::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 float DivPlatformFDS::getPostAmp() {
   return useNP?2.0f:1.0f;
 }

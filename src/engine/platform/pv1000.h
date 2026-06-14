@@ -31,6 +31,7 @@ class DivPlatformPV1000: public DivDispatch {
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
+  DivPitchTable pitchTable;
 
   unsigned char regPool[4];
   d65010g031_t d65010g031;
@@ -50,6 +51,8 @@ class DivPlatformPV1000: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

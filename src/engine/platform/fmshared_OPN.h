@@ -176,6 +176,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     DivConfig ayFlags;
 
+    DivPitchTable csmPitchTable;
+
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
     DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
@@ -200,6 +202,9 @@ class DivPlatformOPN: public DivPlatformFMBase {
   public:
     void setCombo(unsigned char combo) {
       useCombo=combo;
+    }
+    virtual unsigned int getMaxFreq(int ch) {
+      return 0x3fff;
     }
     virtual int mapVelocity(int ch, float vel) {
       if (ch==csmChan) return vel*127.0;

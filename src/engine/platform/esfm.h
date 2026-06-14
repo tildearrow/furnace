@@ -98,6 +98,18 @@ class DivPlatformESFM: public DivDispatch {
       }
     }
 
+    int esfmCalcOpFreq(int myArp, int myFixedArp, int pitchMult, int myPitch2) {
+      if (rawFreq) return baseFreq;
+      if (pitchTable==NULL) return 0;
+      if (!pitchTable->linearity) {
+        return pitchTable->get(baseFreq,pitch*pitchMult,myPitch2);
+      }
+      if (myFixedArp) {
+        return pitchTable->get(myArp<<7,pitch,myPitch2);
+      }
+      return pitchTable->get(baseFreq+(myArp<<7),pitch,myPitch2);
+    }
+
     Channel(bool linear=true):
       SharedChannel(0,linear),
       freqL{0, 0, 0, 0},
@@ -120,6 +132,7 @@ class DivPlatformESFM: public DivDispatch {
     };
   FixedQueue<QueuedWrite,2048> writes;
   esfm_chip chip;
+  DivPitchTable pitchTable;
   short oldOut[2];
   bool isFast;
 
@@ -201,6 +214,8 @@ class DivPlatformESFM: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int mapVelocity(int ch, float vel);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

@@ -369,6 +369,10 @@ void DivPlatformMSM6258::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformMSM6258::getMaxFreq(int ch) {
+  return 0;
+}
+
 void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 3:

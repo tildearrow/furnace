@@ -968,7 +968,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - pos: %d",ch->samplePos);
       ImGui::Text(" - accum: %d",ch->sampleAccum);
       ImGui::Text(" * freq: %d",ch->sampleFreq);
-      ImGui::Text("  - base: %d",ch->sampleBaseFreq);
       ImGui::Text("* duty:");
       ImGui::Text(" - int_feedback7: %d",ch->duty.int_feedback7);
       ImGui::Text(" - feedback: %d",ch->duty.feedback);

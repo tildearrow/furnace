@@ -1981,6 +1981,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
               pat->newData[j][0]=DIV_NOTE_REL;
             } else if (note==182) {
               pat->newData[j][0]=DIV_MACRO_REL;
+            } else if (note==183) {
+              pat->newData[j][0]=DIV_NOTE_RAW;
+              // read raw frequency
+              pat->newData[j][DIV_PAT_RAW0]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW1]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW2]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW3]=(unsigned char)reader.readC();
             } else if (note<180) {
               pat->newData[j][DIV_PAT_NOTE]=note;
             } else {
@@ -2778,6 +2785,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         finalNote=181;
       } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_MACRO_REL) { // macro release
         finalNote=182;
+      } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency
+        finalNote=183;
       } else if (pat->newData[j][DIV_PAT_NOTE]==-1) { // empty
         finalNote=255;
       } else {
@@ -2821,7 +2830,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         if (mask&32) w->writeC(effectMask&0xff);
         if (mask&64) w->writeC((effectMask>>8)&0xff);
 
-        if (mask&1) w->writeC(finalNote);
+        if (mask&1) {
+          w->writeC(finalNote);
+          if (finalNote==183) { // write raw frequency
+            w->writeC(pat->newData[j][DIV_PAT_RAW0]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW1]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW2]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW3]);
+          }
+        }
         if (mask&2) w->writeC(pat->newData[j][DIV_PAT_INS]);
         if (mask&4) w->writeC(pat->newData[j][DIV_PAT_VOL]);
         if (mask&8) w->writeC(pat->newData[j][DIV_PAT_FX(0)]);

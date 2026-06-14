@@ -150,8 +150,6 @@ void DivPlatformVRC6::acquireDirect(blip_buffer_t** bb, size_t len) {
 
 void DivPlatformVRC6::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
-    // 16 for pulse; 14 for saw
-    int CHIP_DIVIDER=(i==2)?14:16;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       if (i==2) { // sawtooth
@@ -174,7 +172,7 @@ void DivPlatformVRC6::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -216,9 +214,9 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,14)-1;
+        chan[i].freq=chan[i].calcFreq()-1;
       } else { // pulse
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,16)-1;
+        chan[i].freq=chan[i].calcFreq()-1;
         if (chan[i].pcm) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -249,7 +247,6 @@ void DivPlatformVRC6::tick(bool sysTick) {
 }
 
 int DivPlatformVRC6::dispatch(DivCommand c) {
-  int CHIP_DIVIDER=(c.chan==2)?14:16;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.chan!=2) { // pulse wave
@@ -291,7 +288,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
           }
           chan[c.chan].dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+            chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
             chan[c.chan].freqChanged=true;
             chan[c.chan].note=c.value;
           }
@@ -305,7 +302,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -364,7 +361,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -408,7 +405,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       chan[c.chan].setPos=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -416,7 +413,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -491,6 +488,11 @@ int DivPlatformVRC6::getRegisterPoolSize() {
 void DivPlatformVRC6::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformVRC6::Channel(parent->song.compatFlags.linearPitch);
+    if (i==2) {
+      chan[i].pitchTable=&sawPitchTable;
+    } else {
+      chan[i].pitchTable=&pitchTable;
+    }
     chan[i].std.setEngine(parent);
   }
   // HELP
@@ -533,12 +535,24 @@ void DivPlatformVRC6::setFlags(const DivConfig& flags) {
   for (int i=0; i<3; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformVRC6::notifyInsDeletion(void* ins) {
   for (int i=0; i<3; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformVRC6::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,16,0x1000,true,parent->song.compatFlags.linearPitch);
+  sawPitchTable.init(parent->song.tuning,chipClock,14,0x1000,true,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformVRC6::getMaxFreq(int ch) {
+  return 0xfff;
 }
 
 void DivPlatformVRC6::poke(unsigned int addr, unsigned short val) {
@@ -551,6 +565,7 @@ void DivPlatformVRC6::poke(std::vector<DivRegWrite>& wlist) {
 
 int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<3; i++) {
@@ -569,4 +584,5 @@ void DivPlatformVRC6::quit() {
 }
 
 DivPlatformVRC6::~DivPlatformVRC6() {
+  samplePitchTable.destroy<Channel>(chan,3);
 }

@@ -56,6 +56,7 @@ class DivPlatformPCMDAC: public DivDispatch {
   bool* isMuted;
   int chans;
   DivDispatchOscBuffer* oscBuf;
+  DivPitchTableManager samplePitchTable;
   int outDepth;
   // valid values:
   // - 0: none
@@ -88,6 +89,8 @@ class DivPlatformPCMDAC: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformPCMDAC():

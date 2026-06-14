@@ -153,6 +153,10 @@ void DivPlatformDummy::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformDummy::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;

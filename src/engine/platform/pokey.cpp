@@ -144,7 +144,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -184,7 +184,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
   for (int i=0; i<4; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,parent->song.compatFlags.linearPitch?chan[i].pitch:0,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,parent->song.compatFlags.linearPitch?chan[i].pitch2:0,chipClock,CHIP_DIVIDER);
+      chan[i].freq=chan[i].calcFreq();
 
       if ((i==0 && !(audctl&64)) || (i==2 && !(audctl&32)) || i==1 || i==3) {
         chan[i].freq/=7;
@@ -290,7 +290,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POKEY);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -354,7 +354,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       skctlChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -377,7 +377,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -385,7 +385,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEY));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -467,6 +467,7 @@ void DivPlatformPOKEY::reset() {
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformPOKEY::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -499,6 +500,15 @@ void DivPlatformPOKEY::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformPOKEY::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfffffff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformPOKEY::getMaxFreq(int ch) {
+  // in raw frequency mode, all calculations (e.g. 16-bit mode) are overridden.
+  return 0xff;
+}
+
 void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*2.0/5.0;
@@ -520,6 +530,8 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
       oscBuf[i]->setRate(rate);
     }
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformPOKEY::poke(unsigned int addr, unsigned short val) {

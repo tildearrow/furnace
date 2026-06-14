@@ -623,6 +623,10 @@ void DivPlatformVB::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformVB::getMaxFreq(int ch) {
+  return 0x7ff;
+}
+
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
   CHECK_CUSTOM_CLOCK;

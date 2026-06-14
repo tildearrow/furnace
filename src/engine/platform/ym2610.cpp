@@ -1151,7 +1151,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -1264,7 +1264,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1314,7 +1314,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (c.chan<=psgChanOffs) {
         if (chan[c.chan].insChanged) {
@@ -1720,6 +1720,8 @@ void DivPlatformYM2610::reset() {
   fm->reset();
   for (int i=0; i<15; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
+    // TODO: 16??????
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
@@ -1783,6 +1785,21 @@ void DivPlatformYM2610::notifyInsDeletion(void* ins) {
   for (int i=adpcmAChanOffs; i<chanNum; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformYM2610::notifyPitchTable(int sample) {
+  logV("DivPlatformYM2610::notifyPitchTable()");
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
+  ay->notifyPitchTable(sample);
+}
+
+unsigned int DivPlatformYM2610::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  if (ch>=adpcmBChanOffs) return 0xffff;
+  if (ch>=adpcmAChanOffs) return 0;
+  if (ch>=psgChanOffs) return 0xfff;
+  return 0x3fff;
 }
 
 void DivPlatformYM2610::setSkipRegisterWrites(bool value) {

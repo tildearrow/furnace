@@ -78,6 +78,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     unsigned short getPan(int chan);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     void setYMFM(bool use);

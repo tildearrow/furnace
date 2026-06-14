@@ -343,6 +343,10 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
+  return 0;
+}
+
 int DivPlatformMSM6295::getSampleGroup(int chan) {
   return (isBanked?2:0)|(rateSel&1);
 }

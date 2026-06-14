@@ -372,6 +372,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
       nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
+    case GUI_ACTION_WINDOW_BACKUPS_MANAGER:
+      nextWindow=GUI_WINDOW_BACKUPS_MANAGER;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -491,6 +494,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SPECTRUM:
           spectrumOpen=false;
+          break;
+        case GUI_WINDOW_BACKUPS_MANAGER:
+          backupsManagerOpen=false;
           break;
         default:
           break;
@@ -1000,6 +1006,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1058,6 +1065,7 @@ void FurnaceGUI::doAction(int what) {
         showError(_("too many samples!"));
       } else {
         wantScrollListSample=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       updateSampleTex=true;
@@ -1092,6 +1100,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1122,6 +1131,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1131,6 +1141,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1143,6 +1154,7 @@ void FurnaceGUI::doAction(int what) {
       }
       updateSampleTex=true;
       notifySampleChange=true;
+      e->notifyPitchTable();
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -1875,6 +1887,7 @@ void FurnaceGUI::doAction(int what) {
       curSample=prevSampleNum;
 
       // TODO: confirm these
+      e->notifyPitchTable();
       wantScrollListSample=true;
       MARK_MODIFIED;
       updateSampleTex=true;
@@ -1926,7 +1939,7 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder>0) {
         setOrder(curOrder-1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1934,7 +1947,7 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1949,7 +1962,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1964,7 +1977,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1974,7 +1987,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1984,7 +1997,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]--;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }

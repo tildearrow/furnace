@@ -50,6 +50,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   };
   FixedQueue<RealQueueVal,2048> realQueue;
   std::mutex realQueueLock;
+  DivPitchTable pitchTable;
   bool isMuted[1];
   bool on, flip, lastOn, realOutEnabled, resetPhase, posToggle;
   int pos, oldOut, speakerType, beepFD, realOutMethod;
@@ -90,6 +91,8 @@ class DivPlatformPCSpeaker: public DivDispatch {
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void notifyPlaybackStop();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

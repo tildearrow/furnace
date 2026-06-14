@@ -827,6 +827,21 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // send macro release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
     chan[i].releasing=true;
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency/period
+    // disable arpeggio completely
+    chan[i].arp=0;
+    dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+
+    chan[i].oldNote=chan[i].note;
+    chan[i].note=(
+      pat->newData[whatRow][DIV_PAT_RAW0]|
+      (pat->newData[whatRow][DIV_PAT_RAW1]<<8)|
+      (pat->newData[whatRow][DIV_PAT_RAW2]<<16)|
+      (pat->newData[whatRow][DIV_PAT_RAW3]<<24)|
+      DIV_NOTE_RAW_FLAG
+    );
+
+    chan[i].doNote=true;
   } else if (pat->newData[whatRow][DIV_PAT_NOTE]!=-1) {
     // prepare/schedule a new note
     chan[i].oldNote=chan[i].note;
@@ -915,7 +930,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         panChanged=true;
         break;
       case 0x80: { // panning (linear)
-        // convert to splir
+        // convert to split
         unsigned short pan=convertPanLinearToSplit(effectVal,8,255);
         chan[i].panL=pan>>8;
         chan[i].panR=pan&0xff;
@@ -1998,7 +2013,7 @@ void DivEngine::nextRow() {
 }
 
 // advances one tick.
-// it is called by nextBuf(), playSub() nd the export functions.
+// it is called by nextBuf(), playSub() and the export functions.
 // noAccum will prevent the playback time from increasing.
 // if inhibitLowLat is on, low-latency mode is not taken into account. this is used by the export functions.
 // returns whether the song has ended.
@@ -2872,7 +2887,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
           } else {
             // find a suitable channel and add this event to the queue
-            autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
+            autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
           }
           // start the engine if necessary
           if (!playing) {
@@ -2891,16 +2906,16 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
             } else {
               // find a suitable channel and add this event to the queue
-              autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
+              autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=song.chans) break;
-              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true,false,true));
+              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12+60,msg.data[1],true,false,true));
             } else {
               // find a suitable channel and add this event to the queue
-              autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
+              autoNoteOn(msg.type&15,ins,msg.data[0]-12+60,msg.data[1]);
             }
           }
           break;

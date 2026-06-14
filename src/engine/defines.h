@@ -38,10 +38,17 @@
 #define DIV_PAT_FX(_x) (3+((_x)<<1))
 #define DIV_PAT_FXVAL(_x) (4+((_x)<<1))
 
+#define DIV_PAT_NOTE_BUFFER 27
+#define DIV_PAT_RAW0 28
+#define DIV_PAT_RAW1 29
+#define DIV_PAT_RAW2 30
+#define DIV_PAT_RAW3 31
+
 // column type checks
 #define DIV_PAT_IS_EFFECT(_x) ((_x)>DIV_PAT_VOL && ((_x)&1))
 #define DIV_PAT_IS_EFFECT_VAL(_x) ((_x)>DIV_PAT_VOL && (!((_x)&1)))
 
+#define DIV_NOTE_RAW 251
 #define DIV_NOTE_NULL_PAT 252
 #define DIV_NOTE_OFF 253
 #define DIV_NOTE_REL 254
@@ -53,5 +60,6 @@
 // dispatch
 #define DIV_MAX_OUTPUTS 16
 #define DIV_NOTE_NULL 0x7fffffff
+#define DIV_NOTE_RAW_FLAG 0x80000000
 
 #endif

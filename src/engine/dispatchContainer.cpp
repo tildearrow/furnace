@@ -604,11 +604,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
-      if (isRender) {
-        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCoreRender",0));
-      } else {
-        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCore",0));
-      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
@@ -674,6 +669,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformNamcoWSG;
       // Pac-Man
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
+      break;
+    case DIV_SYSTEM_NAMCO_POLEPOS:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(2);
       break;
     case DIV_SYSTEM_NAMCO_15XX:
       dispatch=new DivPlatformNamcoWSG;
