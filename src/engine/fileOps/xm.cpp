@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -559,7 +559,7 @@ bool DivEngine::loadXM(unsigned char* file, size_t len) {
         logV("sample header size: %d",sampleHeaderSize);
         for (int j=0; j<96; j++) {
           unsigned char nextMap=reader.readC();
-          ins->amiga.noteMap[j].map=ds.sample.size()+nextMap;
+          ins->amiga.noteMap[j+60].map=ds.sample.size()+nextMap;
           noteMap[(i<<7)|j]=nextMap;
         }
 

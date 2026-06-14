@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+
+// please disregard the insults. these are to myself. signed, tildearrow
 
 #define CHIP_FREQBASE (32768*288)
 
@@ -132,7 +134,7 @@ void DivPlatformESFM::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -287,7 +289,7 @@ void DivPlatformESFM::tick(bool sysTick) {
           chan[i].freqChanged=true;
         }
       } else {
-        chan[i].handleArpFmOp(0, o);
+        chan[i].handleArpFmOp(60, o);
         chan[i].handlePitchFmOp(o);
       }
 
@@ -340,35 +342,40 @@ void DivPlatformESFM::tick(bool sysTick) {
       if (!parent->song.compatFlags.linearPitch) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,mul,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=chan[i].calcFreq(mul);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>131071) chan[i].freq=131071;
 
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=i*32+o*8;
         DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
-        int ct=(int)opE.ct;
-        int dt=(int)opE.dt;
-        if (opE.fixed) {
-          chan[i].freqL[o]=opE.dt;
-          chan[i].freqH[o]=opE.ct&0x1f;
+        if (chan[i].rawFreq) {
+          chan[i].freqL[o]=chan[i].freq&0xff;
+          chan[i].freqH[o]=chan[i].freq>>8;
         } else {
-          int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
-          int pitch2=chan[i].pitch2+dt;
-          int fixedArp=chan[i].fixedArp;
-          if(chan[i].opsState[o].hasOpArp) {
-            arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
-            fixedArp=chan[i].opsState[o].fixedArp;
+          int ct=(int)opE.ct;
+          int dt=(int)opE.dt;
+          if (opE.fixed) {
+            chan[i].freqL[o]=opE.dt;
+            chan[i].freqH[o]=opE.ct&0x1f;
+          } else {
+            int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
+            int pitch2=chan[i].pitch2+dt;
+            int fixedArp=chan[i].fixedArp;
+            if (chan[i].opsState[o].hasOpArp) {
+              arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
+              fixedArp=chan[i].opsState[o].fixedArp;
+            }
+            if (chan[i].opsState[o].hasOpPitch) {
+              pitch2=chan[i].opsState[o].pitch2+dt;
+            }
+            int opFreq=chan[i].esfmCalcOpFreq(arp,fixedArp,mul,pitch2);
+            if (opFreq<0) opFreq=0;
+            if (opFreq>131071) opFreq=131071;
+            int freqt=toFreq(opFreq,fixedBlock);
+            chan[i].freqL[o]=freqt&0xff;
+            chan[i].freqH[o]=freqt>>8;
           }
-          if(chan[i].opsState[o].hasOpPitch) {
-            pitch2=chan[i].opsState[o].pitch2+dt;
-          }
-          int opFreq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,arp,fixedArp,false,mul,pitch2,chipClock,CHIP_FREQBASE);
-          if (opFreq<0) opFreq=0;
-          if (opFreq>131071) opFreq=131071;
-          int freqt=toFreq(opFreq,fixedBlock);
-          chan[i].freqL[o]=freqt&0xff;
-          chan[i].freqH[o]=freqt>>8;
         }
         immWrite(baseAddr+ADDR_FREQL,chan[i].freqL[o]);
         immWrite(baseAddr+ADDR_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
@@ -504,7 +511,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -564,7 +571,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       int newFreq;
       bool return2=false;
       int mul=1;
@@ -607,7 +614,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -988,7 +995,7 @@ int DivPlatformESFM::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -1012,7 +1019,7 @@ void DivPlatformESFM::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformESFM::getChanState(int ch) {
+SharedChannel* DivPlatformESFM::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1056,7 +1063,10 @@ void DivPlatformESFM::reset() {
   }
 
   for (int i=0; i<18; i++) {
-    chan[i]=DivPlatformESFM::Channel();
+    chan[i]=DivPlatformESFM::Channel(parent->song.compatFlags.linearPitch);
+    // ASSHOLE
+    // YOU DIDN'T EVEN BIND THE FUCKING TABLE
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].vol=0x3f;
     chan[i].outVol=0x3f;
@@ -1100,6 +1110,14 @@ void DivPlatformESFM::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformESFM::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x1ffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformESFM::getMaxFreq(int ch) {
+  return 0x1fff;
+}
+
 int DivPlatformESFM::mapVelocity(int ch, float vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
   double attenDb=20*log10(vel); // 20dB/decade for a linear mapping
@@ -1121,6 +1139,11 @@ void DivPlatformESFM::setFlags(const DivConfig& flags) {
   for (int i=0; i<18; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  // are you stupid or what? why the hell have you forgotten to initialize the pitch table?!?!
+  notifyPitchTable();
+
+  // guess what. that didn't fix it.
 }
 
 void DivPlatformESFM::setFast(bool fast) {

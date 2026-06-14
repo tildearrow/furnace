@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -210,6 +210,7 @@ void FurnaceGUI::doAction(int what) {
       followPattern=!followPattern;
       break;
     case GUI_ACTION_FULLSCREEN:
+      if (sysFullScreen) break;
       fullScreen=!fullScreen;
       SDL_SetWindowFullscreen(sdlWin,fullScreen?(SDL_WINDOW_FULLSCREEN|SDL_WINDOW_FULLSCREEN_DESKTOP):0);
       break;
@@ -371,6 +372,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
       nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
+    case GUI_ACTION_WINDOW_BACKUPS_MANAGER:
+      nextWindow=GUI_WINDOW_BACKUPS_MANAGER;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -490,6 +494,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SPECTRUM:
           spectrumOpen=false;
+          break;
+        case GUI_WINDOW_BACKUPS_MANAGER:
+          backupsManagerOpen=false;
           break;
         default:
           break;
@@ -673,6 +680,34 @@ void FurnaceGUI::doAction(int what) {
         e->curSubSong->chanCollapse[cursor.xCoarse]--;
       }
       break;
+    case GUI_ACTION_PAT_COLLAPSE_SELECTED: {
+      finishSelection();
+      int chCount=e->getTotalChannelCount();
+      int chStart=(int)selStart.xCoarse;
+      if (chStart<0) chStart=0;
+      else if (chStart>=chCount) chStart=chCount-1;
+      int chEnd=(int)selEnd.xCoarse;
+      if (chEnd<0) chEnd=0;
+      else if (chEnd>=chCount) chEnd=chCount-1;
+      for (int i=chStart; i<=chEnd; i++) {
+        e->curSubSong->chanCollapse[i]=3;
+      }
+      break;
+    }
+    case GUI_ACTION_PAT_EXPAND_SELECTED: {
+      finishSelection();
+      int chCount=e->getTotalChannelCount();
+      int chStart=(int)selStart.xCoarse;
+      if (chStart<0) chStart=0;
+      else if (chStart>=chCount) chStart=chCount-1;
+      int chEnd=(int)selEnd.xCoarse;
+      if (chEnd<0) chEnd=0;
+      else if (chEnd>=chCount) chEnd=chCount-1;
+      for (int i=chStart; i<=chEnd; i++) {
+        e->curSubSong->chanCollapse[i]=0;
+      }
+      break;
+    }
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->curPat[cursor.xCoarse].effectCols++;
@@ -971,6 +1006,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1029,6 +1065,7 @@ void FurnaceGUI::doAction(int what) {
         showError(_("too many samples!"));
       } else {
         wantScrollListSample=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       updateSampleTex=true;
@@ -1063,6 +1100,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1093,6 +1131,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1102,6 +1141,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1114,6 +1154,7 @@ void FurnaceGUI::doAction(int what) {
       }
       updateSampleTex=true;
       notifySampleChange=true;
+      e->notifyPitchTable();
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -1795,12 +1836,110 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     }
+    case GUI_ACTION_SAMPLE_COPY_NEW: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      int prevSampleNum=curSample;
+
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT) {
+        showError(_("sample depth must be 16 or 8 bit!"));
+        break;
+      }
+
+      SAMPLE_OP_BEGIN;
+      if (end-start<1) {
+        showError(_("select at least one sample!"));
+        break;
+      }
+
+      curSample=e->addSample();
+      if (curSample==-1) {
+        showError(_("too many samples!"));
+        break;
+      }
+
+      DivSample* prevSample=sample;
+      e->lockEngine([this,prevSample,start,end]() {
+        DivSample* sample=e->getSample(curSample);
+        if (sample!=NULL) {
+          int length=end-start;
+          sample->centerRate=prevSample->centerRate;
+          sample->name=prevSample->name;
+          sample->loopStart=prevSample->loopStart;
+          sample->loopEnd=prevSample->loopEnd;
+          sample->loop=prevSample->loop;
+          sample->loopMode=prevSample->loopMode;
+          sample->brrEmphasis=prevSample->brrEmphasis;
+          sample->brrNoFilter=prevSample->brrNoFilter;
+          sample->dither=prevSample->dither;
+          sample->depth=prevSample->depth;
+          if (sample->init(length)) {
+            if (prevSample->getCurBuf()!=NULL) {
+              int offS=prevSample->getSampleOffset(start,0,sample->depth);
+              int offE=prevSample->getSampleOffset(end,0,sample->depth);
+              uint8_t *srcMem=(uint8_t*)prevSample->getCurBuf();
+              memcpy(sample->getCurBuf(),&srcMem[offS],offE-offS);
+            }
+          }
+        }
+        e->renderSamples();
+      });
+      curSample=prevSampleNum;
+
+      // TODO: confirm these
+      e->notifyPitchTable();
+      wantScrollListSample=true;
+      MARK_MODIFIED;
+      updateSampleTex=true;
+      notifySampleChange=true;
+      break;
+    }
+
+    case GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) break;
+      if (!sample->isLoopable()) break;
+      if ((unsigned int)sample->loopEnd>=sample->samples) break;
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        sample->trim(0,sample->loopEnd);
+        updateSampleTex=true;
+        notifySampleChange=true;
+        e->renderSamples(curSample);
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
+
+    case GUI_ACTION_SAMPLE_TRIM_TO_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) break;
+      if (!sample->isLoopable()) break;
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        int loopLen=sample->loopEnd-sample->loopStart;
+        sample->trim(sample->loopStart,sample->loopEnd);
+        sample->loopStart=0;
+        sample->loopEnd=loopLen;
+        updateSampleTex=true;
+        notifySampleChange=true;
+        e->renderSamples(curSample);
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
 
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {
         setOrder(curOrder-1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1808,7 +1947,7 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1823,7 +1962,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1838,7 +1977,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1848,7 +1987,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1858,7 +1997,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]--;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }

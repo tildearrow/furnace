@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -423,9 +423,9 @@ bool DivConfig::has(String key) const {
 
 void DivConfig::set(String key, bool value) {
   if (value) {
-    conf[key]="true";
+    conf[key]="1";
   } else {
-    conf[key]="false";
+    conf[key]="0";
   }
 }
 

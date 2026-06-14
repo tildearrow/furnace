@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -145,7 +145,7 @@ void DivPlatformK007232::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -206,18 +206,9 @@ void DivPlatformK007232::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      double off=1.0;
-      int sample=chan[i].sample;
-      if (sample>=0 && sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=parent->getCenterRate()/s->centerRate;
-        }
-      }
       DivSample* s=parent->getSample(chan[i].sample);
-      chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) chan[i].freq=0x1000-chan[i].freq;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -307,12 +298,13 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:15;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
         chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -375,7 +367,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      const int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      const int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -398,7 +390,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -407,7 +399,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -450,7 +442,7 @@ void DivPlatformK007232::forceIns() {
   lastVolume=0;
 }
 
-void* DivPlatformK007232::getChanState(int ch) {
+SharedChannel* DivPlatformK007232::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -477,7 +469,8 @@ void DivPlatformK007232::reset() {
   lastOut[0]=0;
   lastOut[1]=0;
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformK007232::Channel();
+    chan[i]=DivPlatformK007232::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     // keyoff all channels
     chWrite(i,0,0);
@@ -491,6 +484,10 @@ void DivPlatformK007232::reset() {
 
 int DivPlatformK007232::getOutputCount() {
   return stereo?2:1;
+}
+
+bool DivPlatformK007232::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformK007232::hasAcquireDirect() {
@@ -514,6 +511,14 @@ void DivPlatformK007232::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformK007232::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,2,parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformK007232::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformK007232::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;
@@ -523,6 +528,8 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
     chan[i].volumeChanged=true;
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformK007232::poke(unsigned int addr, unsigned short val) {
@@ -619,6 +626,7 @@ void DivPlatformK007232::renderSamples(int sysID) {
 
 int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
 
@@ -653,4 +661,5 @@ DivPlatformK007232::DivPlatformK007232():
 DivPlatformK007232::~DivPlatformK007232() {
   delete[] sampleOffK007232;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,2);
 }

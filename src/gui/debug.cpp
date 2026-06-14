@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -307,7 +307,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformPCE* ch=(DivPlatformPCE*)data;
       ImGui::Text("> PCEngine");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- lastPan: %d",ch->lastPan);
       ImGui::Text("- curChan: %d",ch->curChan);
       ImGui::Text("- lfoMode: %d",ch->lfoMode);
       ImGui::Text("- lfoSpeed: %d",ch->lfoSpeed);
@@ -969,7 +968,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - pos: %d",ch->samplePos);
       ImGui::Text(" - accum: %d",ch->sampleAccum);
       ImGui::Text(" * freq: %d",ch->sampleFreq);
-      ImGui::Text("  - base: %d",ch->sampleBaseFreq);
       ImGui::Text("* duty:");
       ImGui::Text(" - int_feedback7: %d",ch->duty.int_feedback7);
       ImGui::Text(" - feedback: %d",ch->duty.feedback);

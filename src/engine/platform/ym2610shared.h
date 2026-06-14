@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
     fmopna_2610_t fm_lle;
+    DivPitchTableManager samplePitchTable;
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];
@@ -92,7 +93,8 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       if (ch>=adpcmBChanOffs) { // ADPCM
         return NOTE_ADPCMB(note);
       } else if (ch>=psgChanOffs) { // PSG
-        return NOTE_PERIODIC(note);
+        // not used.
+        //return NOTE_PERIODIC(note);
       }
       // FM
       return NOTE_FNUM_BLOCK(note,11,chan[ch].state.block);
@@ -365,9 +367,15 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       } else {
         rate=fm->sample_rate(chipClock);
       }
+      tfxRate=rate*4;
       for (int i=0; i<17; i++) {
         oscBuf[i]->setRate(rate);
       }
+
+      ay->setExtClockDiv(chipClock,32);
+      ay->setFlags(ayFlags);
+
+      notifyPitchTable();
     }
 
     int init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -388,12 +396,12 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       iface.adpcmBMem=adpcmBMem;
       fm=new ymfm::ym2610b(iface);
       fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
-      setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32,144);
       ay->setCore(0);
       ay->init(p,3,sugRate,ayFlags);
       ay->toggleRegisterDump(true);
+      setFlags(flags);
       return 0;
     }
 

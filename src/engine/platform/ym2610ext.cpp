@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +163,8 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2)<<7;
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
           opChan[ch].baseFreq+=c.value;
@@ -639,7 +640,7 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
   }
   if (extMode) {
     if (chan[csmChan].freqChanged) {
-      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      chan[csmChan].freq=chan[csmChan].calcFreq();
       if (chan[csmChan].freq<1) chan[csmChan].freq=1;
       if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
       int wf=0x400-chan[csmChan].freq;
@@ -787,7 +788,7 @@ void DivPlatformYM2610Ext::forceIns() {
   }
 }
 
-void* DivPlatformYM2610Ext::getChanState(int ch) {
+SharedChannel* DivPlatformYM2610Ext::getChanState(int ch) {
   if (ch>=(extChanOffs+4)) return &chan[ch-3];
   if (ch>=extChanOffs) return &opChan[ch-extChanOffs];
   return &chan[ch];
@@ -861,6 +862,12 @@ void DivPlatformYM2610Ext::notifyInsDeletion(void* ins) {
     opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
+
+unsigned int DivPlatformYM2610Ext::getMaxFreq(int ch) {
+  if (ch>4) return DivPlatformYM2610::getMaxFreq(ch-3);
+  return 0x3fff;
+}
+
 
 int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2610::init(parent,channels,sugRate,flags);

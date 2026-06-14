@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,42 +18,6 @@
  */
 
 #include "fileOpsCommon.h"
-
-short newFormatNotes[180]={
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -5
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -4
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -3
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -2
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -1
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  0
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  1
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  2
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  3
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  4
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  5
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  6
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  7
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  8
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11  //  9
-};
-
-short newFormatOctaves[180]={
-  250, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251, // -5
-  251, 252, 252, 252, 252, 252, 252, 252, 252, 252, 252, 252, // -4
-  252, 253, 253, 253, 253, 253, 253, 253, 253, 253, 253, 253, // -3
-  253, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, // -2
-  254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, // -1
-  255,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, //  0
-    0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, //  1
-    1,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2, //  2
-    2,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3, //  3
-    3,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4, //  4
-    4,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5, //  5
-    5,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6, //  6
-    6,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7, //  7
-    7,   8,   8,   8,   8,   8,   8,   8,   8,   8,   8,   8, //  8
-    8,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9, //  9
-};
 
 struct PatToWrite {
   unsigned short subsong, chan, pat;
@@ -1165,7 +1129,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       if (tchans>DIV_MAX_CHANS) {
         tchans=DIV_MAX_CHANS;
-        logW("too many channels!");
+        logE("too many channels!");
+        lastError="too many channels!";
+        delete[] file;
+        return false;
       }
       logV("system len: %d",ds.systemLen);
       if (ds.systemLen<1) {
@@ -1545,6 +1512,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       if (ds.version>=96) {
         subSong->virtualTempoN=reader.readS();
         subSong->virtualTempoD=reader.readS();
+
+        if (subSong->virtualTempoN<1) subSong->virtualTempoN=1;
+        if (subSong->virtualTempoD<1) subSong->virtualTempoD=1;
       } else {
         reader.readI();
       }
@@ -1638,6 +1608,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         for (int i=0; i<16; i++) {
           subSong->speeds.val[i]=(unsigned char)reader.readC();
         }
+        subSong->speeds.checkBounds();
 
         // grooves
         unsigned char grooveCount=reader.readC();
@@ -1648,6 +1619,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
           for (int j=0; j<16; j++) {
             gp.val[j]=(unsigned char)reader.readC();
           }
+          gp.checkBounds();
 
           ds.grooves.push_back(gp);
         }
@@ -1666,7 +1638,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
     // read compatibility flags
     if (compatFlagPtr) {
-      DivConfig c;
+      logD("reading compatibility flags...");
       if (!reader.seek(compatFlagPtr,SEEK_SET)) {
         logE("couldn't seek to compat flags!");
         lastError=fmt::sprintf("couldn't seek to compat flags!");
@@ -1675,7 +1647,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
         return false;
       }
 
-      if (!song.compatFlags.readData(reader)) {
+      if (!ds.compatFlags.readData(reader)) {
         logE("invalid compat flag header!");
         lastError="invalid compat flag header!";
         ds.unload();
@@ -1686,6 +1658,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
 
     // read song comments
     if (commentPtr) {
+      logD("reading song comments...");
       if (!reader.seek(commentPtr,SEEK_SET)) {
         logE("couldn't seek to song comments!");
         lastError=fmt::sprintf("couldn't seek to song comments!");
@@ -1704,13 +1677,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       reader.readI();
 
-      song.notes=reader.readString();
+      ds.notes=reader.readString();
     }
 
     // read grooves
     ds.grooves.reserve(groovePtr.size());
     for (size_t i=0; i<groovePtr.size(); i++) {
       DivGroovePattern groove;
+
+      if (groovePtr[i]==0) {
+        // could happen due to a bug in unstable Furnace
+        continue;
+      }
       if (!reader.seek(groovePtr[i],SEEK_SET)) {
         logE("couldn't seek to groove %d!",i);
         lastError=fmt::sprintf("couldn't seek to groove %d!",i);
@@ -2003,6 +1981,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
               pat->newData[j][0]=DIV_NOTE_REL;
             } else if (note==182) {
               pat->newData[j][0]=DIV_MACRO_REL;
+            } else if (note==183) {
+              pat->newData[j][0]=DIV_NOTE_RAW;
+              // read raw frequency
+              pat->newData[j][DIV_PAT_RAW0]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW1]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW2]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW3]=(unsigned char)reader.readC();
             } else if (note<180) {
               pat->newData[j][DIV_PAT_NOTE]=note;
             } else {
@@ -2389,6 +2374,27 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // OPL4 default mix levels
+    if (ds.version<242) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPL4 || ds.system[i]==DIV_SYSTEM_OPL4_DRUMS) {
+          ds.systemFlags[i].set("fmMixL",7);
+          ds.systemFlags[i].set("fmMixR",7);
+          ds.systemFlags[i].set("pcmMixL",7);
+          ds.systemFlags[i].set("pcmMixR",7);
+        }
+      }
+    }
+
+    // Namco 163 no wave pos latch
+    if (ds.version<244) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_N163) {
+          ds.systemFlags[i].set("posLatch",false);
+        }
+      }
+    }
+
     // warn on partial pitch linearity
     if (ds.compatFlags.linearPitch>1) {
       ds.compatFlags.linearPitch=1;
@@ -2721,6 +2727,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   assetDirPtr[2]=w->tell();
   putAssetDirData(w,song.sampleDir);
 
+  /// GROOVES
+  for (DivGroovePattern& i: song.grooves) {
+    groovePtr.push_back(w->tell());
+    i.putData(w);
+  }
+
   /// INSTRUMENT
   insPtr.reserve(song.insLen);
   for (int i=0; i<song.insLen; i++) {
@@ -2773,6 +2785,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         finalNote=181;
       } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_MACRO_REL) { // macro release
         finalNote=182;
+      } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency
+        finalNote=183;
       } else if (pat->newData[j][DIV_PAT_NOTE]==-1) { // empty
         finalNote=255;
       } else {
@@ -2816,7 +2830,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         if (mask&32) w->writeC(effectMask&0xff);
         if (mask&64) w->writeC((effectMask>>8)&0xff);
 
-        if (mask&1) w->writeC(finalNote);
+        if (mask&1) {
+          w->writeC(finalNote);
+          if (finalNote==183) { // write raw frequency
+            w->writeC(pat->newData[j][DIV_PAT_RAW0]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW1]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW2]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW3]);
+          }
+        }
         if (mask&2) w->writeC(pat->newData[j][DIV_PAT_INS]);
         if (mask&4) w->writeC(pat->newData[j][DIV_PAT_VOL]);
         if (mask&8) w->writeC(pat->newData[j][DIV_PAT_FX(0)]);

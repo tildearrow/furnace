@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -928,7 +928,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
         chan[i].dacRate=chan[i].freq*off;
         if (chan[i].dacRate<1) chan[i].dacRate=1;
-        if (dumpWrites) addWrite(0xffff0001,chan[i].dacRate);
+        if (dumpWrites && !isMuted[i]) addWrite(0xffff0001,chan[i].dacRate);
       }
       chan[i].freqChanged=false;
     }
@@ -1038,7 +1038,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -1060,51 +1060,47 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       if (c.chan>=5 && chan[c.chan].dacMode) {
         //if (skipRegisterWrites) break;
-        if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
-            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-          }
-          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            rWrite(0x2b,1<<7);
-            if (dumpWrites) {
-              addWrite(0xffff0000,chan[c.chan].dacSample);
-              addWrite(0xffff0003,chan[c.chan].dacDirection);
-            }
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            chan[c.chan].dacPos=0;
-          }
-          chan[c.chan].dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
-            chan[c.chan].portaPause=false;
-            chan[c.chan].note=c.value;
-            chan[c.chan].freqChanged=true;
-          }
-
-          chan[c.chan].macroInit(ins);
-          if (!chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
-
-          // ???
-          //chan[c.chan].keyOn=true;
-          chan[c.chan].active=true;
-        } else { // compatible mode
-          assert(false && "LEGACY SAMPLE MODE!!!");
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          chan[c.chan].dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
+        if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
+          chan[c.chan].dacSample=-1;
+          if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0002,0);
+          break;
+        } else {
+          rWrite(0x2b,1<<7);
+          if (dumpWrites && !isMuted[c.chan]) {
+            addWrite(0xffff0000,chan[c.chan].dacSample);
+            addWrite(0xffff0003,chan[c.chan].dacDirection);
+          }
+        }
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          chan[c.chan].dacPos=0;
+        }
+        chan[c.chan].dacPeriod=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          chan[c.chan].portaPause=false;
+          chan[c.chan].note=c.value;
+          chan[c.chan].freqChanged=true;
+        }
+
+        chan[c.chan].macroInit(ins);
+        if (!chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+        }
+
+        // ???
+        //chan[c.chan].keyOn=true;
+        chan[c.chan].active=true;
         break;
       }
       if (c.chan>=6) break;
@@ -1130,7 +1126,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       if (c.chan>=5 && c.chan<csmChan) {
         chan[c.chan].dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
+        if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0002,0);
         if (parent->song.compatFlags.brokenDACMode) {
           rWrite(0x2b,0);
           if (chan[c.chan].dacMode) break;
@@ -1143,7 +1139,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF_ENV:
       if (c.chan>=5) {
         chan[c.chan].dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
+        if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0002,0);
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
@@ -1201,7 +1197,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2+chan[c.chan].sampleNoteDelta)<<7;
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1224,7 +1221,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         break;
       }
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1281,18 +1278,18 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacDirection=c.value;
-      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].dacDirection);
+      if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0003,chan[c.chan].dacDirection);
       break;
     }
     case DIV_CMD_SAMPLE_POS:
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacPos=c.value;
       chan[c.chan].setPos=true;
-      if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dacPos);
+      if (dumpWrites && !isMuted[c.chan]) addWrite(0xffff0005,chan[c.chan].dacPos);
       break;
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       } else if (c.chan>=5 && chan[c.chan].dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta,false);
       } else {
@@ -1654,7 +1651,7 @@ void DivPlatformGenesis::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformGenesis::getChanState(int ch) {
+SharedChannel* DivPlatformGenesis::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1766,7 +1763,8 @@ void DivPlatformGenesis::reset() {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<10; i++) {
-    chan[i]=DivPlatformGenesis::Channel();
+    chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
@@ -1824,6 +1822,18 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformGenesis::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,10,parent->song.tuning,1,1,0x3ffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGenesis::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  // DAC mode maximum
+  if (ch>=5) return 0x3ffff;
+  return 0x3fff;
+}
+
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }
@@ -1833,7 +1843,7 @@ void DivPlatformGenesis::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformGenesis::getPortaFloor(int ch) {
-  return 0;
+  return 60;
 }
 
 void DivPlatformGenesis::setYMFM(unsigned char use) {
@@ -1902,10 +1912,13 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   for (int i=0; i<10; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   chipType=0;
   skipRegisterWrites=false;
@@ -1931,6 +1944,7 @@ void DivPlatformGenesis::quit() {
     delete oscBuf[i];
   }
   if (fm_ymfm!=NULL) delete fm_ymfm;
+  samplePitchTable.destroy<Channel>(chan,10);
 }
 
 DivPlatformGenesis::~DivPlatformGenesis() {

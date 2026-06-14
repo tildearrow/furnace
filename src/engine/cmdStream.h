@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,45 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// cmdStream.h: reference command stream player.
+
 #ifndef _CMD_STREAM_H
 #define _CMD_STREAM_H
 
 #include "defines.h"
 #include "safeReader.h"
 
+// size of the trace log (per channel)
 #define DIV_MAX_CSTRACE 64
+// stack size
 #define DIV_MAX_CSSTACK 128
 
 class DivEngine;
 
+/**
+ * state for a channel in the command stream player.
+ * this sort of resembles DivChannelState but is minimal.
+ */
 struct DivCSChannelState {
+  // initial program counter address.
   unsigned int startPos;
+  // the current "program counter" (position within the command stream) address.
   unsigned int readPos;
+  // number of ticks to wait before processing. set by the wait command.
   int waitTicks;
+  // length of the last wait command.
   int lastWaitLen;
 
+  // I don't think I have to explain these.
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
+  int tremoloDepth, tremoloRate, tremoloPos;
+  int panbrelloDepth, panbrelloRate, panbrelloPos;
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks;
+  unsigned char panL, panR;
+  signed char panSpeed;
 
   unsigned int callStack[DIV_MAX_CSSTACK];
   unsigned char callStackPos, callStackSize;
@@ -61,11 +78,22 @@ struct DivCSChannelState {
     vibratoDepth(0),
     vibratoRate(0),
     vibratoPos(0),
+    vibratoRange(15),
+    vibratoShape(0),
+    tremoloDepth(0),
+    tremoloRate(0),
+    tremoloPos(0),
+    panbrelloDepth(0),
+    panbrelloRate(0),
+    panbrelloPos(0),
     portaTarget(0),
     portaSpeed(0),
     arp(0),
     arpStage(0),
     arpTicks(0),
+    panL(255),
+    panR(255),
+    panSpeed(0),
     callStackPos(0),
     callStackSize(0),
     tracePos(0) {
@@ -93,6 +121,7 @@ class DivCSPlayer {
   bool bigEndian;
 
   short vibTable[64];
+  short tremTable[128];
   public:
     unsigned char* getData();
     unsigned short* getDataAccess();

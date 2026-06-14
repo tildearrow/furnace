@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  * 
  * Original author: Piotr Fusik (http://asap.sourceforge.net)
  * Rewritten based on Mikey emulation by Waldemar Pawlaszek

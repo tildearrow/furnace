@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 32
+#define CHIP_DIVIDER 16
 
 const char* regCheatSheetSupervision[]={
   "Freq0L", "10",
@@ -118,7 +118,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
           //if (chan[i].baseFreq>255) chan[i].baseFreq=255;
           if (chan[i].baseFreq<0) chan[i].baseFreq=0;
         } else {
-          chan[i].baseFreq=NOTE_PERIODIC(f);
+          chan[i].baseFreq=chan[i].calcBaseFreq(f);
         }
       }
       chan[i].freqChanged=true;
@@ -141,7 +141,8 @@ void DivPlatformSupervision::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       if (i<2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock<<1,CHIP_DIVIDER);
+        // the original code used chipClock<<1. does this break anything?
+        chan[i].freq=chan[i].calcFreq();
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freqChanged || chan[i].initWrite) {
@@ -159,6 +160,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
         ntPos+=chan[i].pitch2;
+        ntPos-=60;
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         rWrite(0x28,r);
@@ -171,6 +173,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
           ntPos+=chan[i].pitch2;
+          ntPos-=60;
           chan[i].freq=3-(ntPos&3);
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
@@ -193,6 +196,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
           ntPos+=chan[i].pitch2;
+          ntPos-=60;
           chan[i].freq=3-(ntPos&3);
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
@@ -222,6 +226,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
           }
         }
         ntPos+=chan[i].pitch2;
+        ntPos-=60;
         chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         if (noiseReg[0] != r) rWrite(0x28,r);
@@ -234,6 +239,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
         if (chan[i].pcm) {
           int ntPos=chan[i].sampleNote;
           ntPos+=chan[i].pitch2;
+          ntPos-=60;
           chan[i].freq=3-(ntPos&3);
           int sNum=chan[i].sample;
           DivSample* sample=parent->getSample(sNum);
@@ -289,7 +295,7 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
         chan[c.chan].sampleNoteDelta=0;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=c.chan==3?c.value:NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=c.chan==3?c.value:chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -341,7 +347,7 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -378,7 +384,7 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -386,7 +392,7 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SUPERVISION));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -419,7 +425,7 @@ void DivPlatformSupervision::forceIns() {
   }
 }
 
-void* DivPlatformSupervision::getChanState(int ch) {
+SharedChannel* DivPlatformSupervision::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -443,7 +449,8 @@ void DivPlatformSupervision::reset() {
   writes.clear();
   memset(regPool,0,64);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformSupervision::Channel();
+    chan[i]=DivPlatformSupervision::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -471,6 +478,16 @@ void DivPlatformSupervision::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformSupervision::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSupervision::getMaxFreq(int ch) {
+  if (ch==3) return 15;
+  if (ch==2) return 3;
+  return 0x7ff;
+}
+
 void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   if (flags.getInt("swapDuty",true)) {
     dutySwap=1;
@@ -489,6 +506,8 @@ void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   }
   supervision_sound_set_clock(&svision,(unsigned int)chipClock);
   supervision_sound_set_flags(&svision,(unsigned int)otherFlags);
+
+  notifyPitchTable();
 }
 
 void DivPlatformSupervision::poke(unsigned int addr, unsigned short val) {

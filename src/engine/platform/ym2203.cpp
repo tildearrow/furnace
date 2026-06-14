@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,8 +175,8 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -269,8 +269,8 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -279,7 +279,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     ay->getRegisterWrites().clear();
 
     os=0;
-    if (!writes.empty()) {
+    while (!writes.empty()) {
       if (--delay<1) {
         QueuedWrite& w=writes.front();
         if (w.addr==0xfffffffe) {
@@ -288,10 +288,11 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
           fm->write(0x0,w.addr);
           fm->write(0x1,w.val);
           regPool[w.addr&0xff]=w.val;
-          delay=6;
+          if (w.addr>15) delay=6;
         }
         writes.pop_front();
       }
+      if (delay>0) break;
     }
     
     fm->generate(&fmout);
@@ -341,8 +342,8 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
     }
 
     // AY -> OPN
-    ay->runDAC();
-    ay->runTFX(rate);
+    ay->runDAC(tfxRate);
+    ay->runTFX(tfxRate);
     ay->flushWrites();
     for (DivRegWrite& i: ay->getRegisterWrites()) {
       if (i.addr>15) continue;
@@ -350,8 +351,10 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
     }
     ay->getRegisterWrites().clear();
 
+    //logI("output");
+
     while (true) {
-      bool canWeWrite=fm_lle.prescaler_latch[1]&1;
+      bool canWeWrite=(fm_lle.prescaler_latch[1]&1);
 
       if (canWeWrite) {
         if (delay>0) {
@@ -362,6 +365,8 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a0=0;
             fm_lle.input.a1=0;
             delay=0;
+
+            //logV("idle - delay 3");
           } else {
             fm_lle.input.cs=0;
             fm_lle.input.rd=0;
@@ -370,6 +375,8 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a1=0;
             fm_lle.input.data=0;
             delay=1;
+
+            //logV("waiting");
           }
         } else if (!writes.empty()) {
           QueuedWrite& w=writes.front();
@@ -382,6 +389,8 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a0=0;
             fm_lle.input.data=0;
 
+            //logV("idle - PRESCALER WRITE");
+
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
           } else if (w.addrOrVal) {
@@ -392,7 +401,10 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a0=1;
             fm_lle.input.data=w.val;
 
+            //logV("fucking the value %.2x",w.val);
+
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             regPool[w.addr&0x1ff]=w.val;
             writes.pop_front();
@@ -404,7 +416,10 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
             fm_lle.input.a0=0;
             fm_lle.input.data=w.addr&0xff;
 
+            //logV("fucking the address %.2x",w.addr);
+
             delay=2;
+            if (w.addr<0x10) delay=3;
 
             w.addrOrVal=true;
           }
@@ -414,11 +429,14 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
           fm_lle.input.wr=1;
           fm_lle.input.a0=0;
           fm_lle.input.a1=0;
+          //logV("idle");
         }
       }
 
       FMOPNA_Clock(&fm_lle,0);
       FMOPNA_Clock(&fm_lle,1);
+
+      //logV("CLOCK");
 
       if (++subSubCycle>=6) {
         subSubCycle=0;
@@ -433,6 +451,7 @@ void DivPlatformYM2203::acquire_lle(short** buf, size_t len) {
           // check busy status here
           if (!fm_lle.busy_cnt_en[1]) {
             delay=0;
+            //logV("work done");
           }
         }
       }
@@ -764,7 +783,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -845,7 +864,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -895,7 +914,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].insChanged) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
@@ -1231,7 +1250,7 @@ void DivPlatformYM2203::forceIns() {
   ay->getRegisterWrites().clear();
 }
 
-void* DivPlatformYM2203::getChanState(int ch) {
+SharedChannel* DivPlatformYM2203::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1272,6 +1291,7 @@ void DivPlatformYM2203::reset() {
   memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<7; i++) {
     chan[i]=DivPlatformOPN::OPNChannel();
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<3; i++) { // check back later / me from future: wha?
@@ -1366,6 +1386,18 @@ void DivPlatformYM2203::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformYM2203::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
+  ay->notifyPitchTable(sample);
+}
+
+unsigned int DivPlatformYM2203::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  if (ch>=psgChanOffs) return 0xfff;
+  return 0x3fff;
+}
+
 void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
   DivDispatch::setSkipRegisterWrites(value);
   ay->setSkipRegisterWrites(value);
@@ -1427,6 +1459,17 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   } else {
     rate=fm->sample_rate(chipClock);
   }
+  switch (ayDiv) {
+    case 4:
+      tfxRate=rate/2;
+      break;
+    case 8:
+      tfxRate=rate;
+      break;
+    default:
+      tfxRate=rate*2;
+      break;
+  }
   for (int i=0; i<7; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -1434,6 +1477,8 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   immWrite(prescale,0xff);
   ay->setExtClockDiv(chipClock,ayDiv);
   ay->setFlags(ayFlags);
+
+  notifyPitchTable();
 }
 
 int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

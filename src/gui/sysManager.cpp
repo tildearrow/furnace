@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ void FurnaceGUI::drawSysManager() {
       const DivSysDef* sysDef=e->getSystemDef(e->song.system[i]);
 
       ImGui::PushID(i);
-      if (ImGui::BeginChild(rackID.c_str(),ImVec2(0,0),ImGuiChildFlags_Border|ImGuiChildFlags_AutoResizeY)) {
+      if (ImGui::BeginChild(rackID.c_str(),ImVec2(0,0),ImGuiChildFlags_Borders|ImGuiChildFlags_AutoResizeY)) {
         // swap handle and name
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }

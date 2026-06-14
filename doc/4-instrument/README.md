@@ -3,7 +3,7 @@
 the instrument editor allows you to edit instruments.
 it can be activated by double-clicking on an instrument in the instrument list.
 
-alternatively, window > instrument editor displays it.
+it can also be found by going to window > assets > instrument editor in the main menu bar.
 
 ## main
 
@@ -36,7 +36,7 @@ the following instrument types are available:
 - [ES5506](es5506.md) - for use with Ensoniq ES5506 sound chip.
 - [FDS](fds.md) - for use with Famicom Disk System sound source.
 - [FM (ESFM)](fm-esfm.md) - for use with ESFM.
-- [FM (OPL)](fm-opll.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
+- [FM (OPL)](fm-opl.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
 - [FM (OPLL)](fm-opll.md) - for use with YM2413.
 - [FM (OPM)](fm-opm.md) - for use with YM2151.
 - [FM (OPN)](fm-opn.md) - for use with YM2612, YM2203, YM2608, YM2610 and YM2610B.

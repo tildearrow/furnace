@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(((c)<<3)+(a),v)
+
+#define CHIP_FREQBASE 65536
 
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   thread_local int os[2];
@@ -83,7 +85,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       }
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=(parent->calcArp(chan[i].note,chan[i].std.arp.val)<<7);
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
       chan[i].pcm.freq=-1;
@@ -119,23 +121,11 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=chan[i].baseFreq+(chan[i].pitch)-128+(oldSlides?0:chan[i].pitch2);
-      if (!parent->song.compatFlags.oldArpStrategy) {
-        if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+(chan[i].pitch2<<(oldSlides?1:0));
-        } else {
-          chan[i].freq+=chan[i].arpOff<<7;
-        }
-      }
-      if (oldSlides) chan[i].freq&=~1;
+      // TODO: consider oldSlides
+      chan[i].freq=chan[i].calcFreq();
 
-      double off=1.0;
-      if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[i].pcm.sample);
-        off=(double)s->centerRate/parent->getCenterRate();
-      }
       if (chan[i].pcm.freq==-1) {
-        chan[i].pcm.freq=MIN(255,((rate*0.5)+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/rate)+(oldSlides?chan[i].pitch2:0);
+        chan[i].pcm.freq=chan[i].freq;
         rWrite(7+(i<<3),chan[i].pcm.freq);
       }
       chan[i].freqChanged=false;
@@ -187,6 +177,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].isNewSegaPCM=(ins->type==DIV_INS_SEGAPCM);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].pcm.sample);
         chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
@@ -199,7 +190,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].note=c.value;
-        chan[c.chan].baseFreq=(c.value<<7);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].pcm.freq=-1;
       }
@@ -282,7 +273,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=((c.value2+chan[c.chan].sampleNoteDelta)<<7);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       int newFreq;
       int mul=(oldSlides || !parent->song.compatFlags.linearPitch)?8:1;
       bool return2=false;
@@ -309,7 +300,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=((c.value+chan[c.chan].sampleNoteDelta)<<7);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
       chan[c.chan].pcm.freq=-1;
       break;
@@ -334,7 +325,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<7);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -378,7 +369,16 @@ void DivPlatformSegaPCM::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSegaPCM::getChanState(int ch) {
+void DivPlatformSegaPCM::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_FREQBASE,0xff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+// TODO: convert 20xx effects to raw frequency notes
+unsigned int DivPlatformSegaPCM::getMaxFreq(int ch) {
+  return 0xff;
+}
+
+SharedChannel* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -447,7 +447,8 @@ void DivPlatformSegaPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformSegaPCM::Channel();
+    chan[i]=DivPlatformSegaPCM::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
@@ -531,14 +532,21 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   }
 
   oldSlides=flags.getBool("oldSlides",false);
+
+  notifyPitchTable();
 }
 
 int DivPlatformSegaPCM::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformSegaPCM::hasSoftPan(int ch) {
+  return true;
+}
+
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<16; i++) {
@@ -574,4 +582,5 @@ DivPlatformSegaPCM::~DivPlatformSegaPCM() {
   delete[] sampleOffSegaPCM;
   delete[] sampleEndSegaPCM;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,16);
 }

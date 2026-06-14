@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #define ESFM_REG_POOL_SIZE 0x400
 
 class DivPlatformESFM: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     struct {
       DivInstrumentFM fm;
       DivInstrumentESFM esfm;
@@ -98,8 +98,20 @@ class DivPlatformESFM: public DivDispatch {
       }
     }
 
-    Channel():
-      SharedChannel<int>(0),
+    int esfmCalcOpFreq(int myArp, int myFixedArp, int pitchMult, int myPitch2) {
+      if (rawFreq) return baseFreq;
+      if (pitchTable==NULL) return 0;
+      if (!pitchTable->linearity) {
+        return pitchTable->get(baseFreq,pitch*pitchMult,myPitch2);
+      }
+      if (myFixedArp) {
+        return pitchTable->get(myArp<<7,pitch,myPitch2);
+      }
+      return pitchTable->get(baseFreq+(myArp<<7),pitch,myPitch2);
+    }
+
+    Channel(bool linear=true):
+      SharedChannel(0,linear),
       freqL{0, 0, 0, 0},
       freqH{0, 0, 0, 0},
       hardReset(false),
@@ -120,6 +132,7 @@ class DivPlatformESFM: public DivDispatch {
     };
   FixedQueue<QueuedWrite,2048> writes;
   esfm_chip chip;
+  DivPitchTable pitchTable;
   short oldOut[2];
   bool isFast;
 
@@ -183,7 +196,7 @@ class DivPlatformESFM: public DivDispatch {
     void acquire(short** buf, size_t len);
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -201,6 +214,8 @@ class DivPlatformESFM: public DivDispatch {
     void toggleRegisterDump(bool enable);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int mapVelocity(int ch, float vel);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,7 +147,8 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2)<<7;
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
           opChan[ch].baseFreq+=c.value;
@@ -586,7 +587,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
   }
   if (extMode) {
     if (chan[csmChan].freqChanged) {
-      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      chan[csmChan].freq=chan[csmChan].calcFreq();
       if (chan[csmChan].freq<1) chan[csmChan].freq=1;
       if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
       int wf=0x400-chan[csmChan].freq;
@@ -726,7 +727,7 @@ void DivPlatformYM2203Ext::forceIns() {
   }
 }
 
-void* DivPlatformYM2203Ext::getChanState(int ch) {
+SharedChannel* DivPlatformYM2203Ext::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
@@ -784,6 +785,12 @@ void DivPlatformYM2203Ext::notifyInsDeletion(void* ins) {
     opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
+
+unsigned int DivPlatformYM2203Ext::getMaxFreq(int ch) {
+  if (ch>5) return DivPlatformYM2203::getMaxFreq(ch-3);
+  return 0x3fff;
+}
+
 
 int DivPlatformYM2203Ext::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2203::init(parent,channels,sugRate,flags);
