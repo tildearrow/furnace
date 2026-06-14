@@ -1256,6 +1256,10 @@ void DivPlatformSID3::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,SID3_NUM_CHANNELS,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformSID3::getMaxFreq(int ch) {
+  return 0xffffff;
+}
+
 SharedChannel* DivPlatformSID3::getChanState(int ch) {
   return &chan[ch];
 }

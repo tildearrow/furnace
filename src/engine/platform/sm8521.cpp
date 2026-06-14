@@ -403,6 +403,10 @@ void DivPlatformSM8521::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformSM8521::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;

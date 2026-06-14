@@ -551,6 +551,10 @@ void DivPlatformVRC6::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformVRC6::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformVRC6::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

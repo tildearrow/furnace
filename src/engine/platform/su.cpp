@@ -645,6 +645,10 @@ void DivPlatformSoundUnit::notifyPitchTable(int sample) {
   roleSwitchedSamplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_DIVIDER*0.25,0xffff,true,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformSoundUnit::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformSoundUnit::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=1190000;

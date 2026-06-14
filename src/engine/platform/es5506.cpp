@@ -1399,6 +1399,10 @@ void DivPlatformES5506::notifyPitchTable(int sample) {
   }
 }
 
+unsigned int DivPlatformES5506::getMaxFreq(int ch) {
+  return 0x1ffff;
+}
+
 void DivPlatformES5506::setFlags(const DivConfig& flags) {
   chipClock=16000000;
   CHECK_CUSTOM_CLOCK;

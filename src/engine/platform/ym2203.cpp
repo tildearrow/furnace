@@ -783,7 +783,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -864,7 +864,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -914,7 +914,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].insChanged) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
@@ -1291,6 +1291,7 @@ void DivPlatformYM2203::reset() {
   memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<7; i++) {
     chan[i]=DivPlatformOPN::OPNChannel();
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<3; i++) { // check back later / me from future: wha?
@@ -1386,7 +1387,15 @@ void DivPlatformYM2203::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformYM2203::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
   ay->notifyPitchTable(sample);
+}
+
+unsigned int DivPlatformYM2203::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  if (ch>=psgChanOffs) return 0xfff;
+  return 0x3fff;
 }
 
 void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
@@ -1468,6 +1477,8 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   immWrite(prescale,0xff);
   ay->setExtClockDiv(chipClock,ayDiv);
   ay->setFlags(ayFlags);
+
+  notifyPitchTable();
 }
 
 int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

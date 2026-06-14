@@ -564,6 +564,10 @@ void DivPlatformC140::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,24,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformC140::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformC140::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

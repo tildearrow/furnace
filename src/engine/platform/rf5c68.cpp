@@ -383,6 +383,10 @@ void DivPlatformRF5C68::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformRF5C68::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformRF5C68::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: chipClock=10000000; break;

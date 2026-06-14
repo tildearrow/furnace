@@ -423,6 +423,10 @@ void DivPlatformYMZ280B::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_FREQBASE/256.0,0x200,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformYMZ280B::getMaxFreq(int ch) {
+  return 0x1ff;
+}
+
 
 void DivPlatformYMZ280B::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);

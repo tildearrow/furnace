@@ -391,6 +391,10 @@ void DivPlatformZXBeeperQuadTone::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,5,parent->song.tuning,chipClock,CHIP_DIVIDER,258,true,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformZXBeeperQuadTone::getMaxFreq(int ch) {
+  if (ch>=4) return 0xff;
+  return 0x7fff;
+}
 
 void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {

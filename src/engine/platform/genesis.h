@@ -68,6 +68,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     ymfm::ym2612::output_data out_ymfm;
     DivOPNInterface iface;
 
+    DivPitchTableManager samplePitchTable;
+
     int softPCMTimer;
 
     bool extMode, softPCM, noExtMacros, canWriteDAC, msw;
@@ -122,6 +124,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);

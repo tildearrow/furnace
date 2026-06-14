@@ -200,16 +200,21 @@ void DivPlatformMultiPCM::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       unsigned char ctrl=0;
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq<0x400) chan[i].freq=0x400;
-      chan[i].freqH=0;
-      if (chan[i].freq>0x3ffffff) {
-        chan[i].freq=0x3ffffff;
-        chan[i].freqH=15;
-      } else if (chan[i].freq>=0x800) {
-        chan[i].freqH=bsr32(chan[i].freq)-11;
+      if (chan[i].rawFreq) {
+        chan[i].freqL=chan[i].freq&0xff;
+        chan[i].freqH=(chan[i].freq>>8)&0x3f;
+      } else {
+        if (chan[i].freq<0x400) chan[i].freq=0x400;
+        chan[i].freqH=0;
+        if (chan[i].freq>0x3ffffff) {
+          chan[i].freq=0x3ffffff;
+          chan[i].freqH=15;
+        } else if (chan[i].freq>=0x800) {
+          chan[i].freqH=bsr32(chan[i].freq)-11;
+        }
+        chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
+        chan[i].freqH=8^chan[i].freqH;
       }
-      chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
-      chan[i].freqH=8^chan[i].freqH;
       ctrl|=chan[i].active?0x80:0;
       int waveNum=chan[i].sample;
       if (waveNum>=0) {
@@ -537,6 +542,10 @@ void DivPlatformMultiPCM::notifyInsDeletion(void* ins) {
 
 void DivPlatformMultiPCM::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,28,parent->song.tuning,chipClock,CHIP_FREQBASE,0x3ffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformMultiPCM::getMaxFreq(int ch) {
+  return 0x3fff;
 }
 
 void DivPlatformMultiPCM::poke(unsigned int addr, unsigned short val) {

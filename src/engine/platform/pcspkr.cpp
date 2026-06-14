@@ -726,6 +726,10 @@ void DivPlatformPCSpeaker::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPCSpeaker::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformPCSpeaker::notifyPlaybackStop() {
   beepFreq(0);
 }

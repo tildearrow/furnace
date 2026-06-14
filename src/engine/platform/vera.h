@@ -76,6 +76,7 @@ class DivPlatformVERA: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     float getPostAmp();
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);

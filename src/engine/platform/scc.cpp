@@ -373,6 +373,10 @@ void DivPlatformSCC::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformSCC::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformSCC::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

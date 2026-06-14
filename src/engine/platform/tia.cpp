@@ -491,6 +491,10 @@ void DivPlatformTIA::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformTIA::getMaxFreq(int ch) {
+  return 0x1f;
+}
+
 void DivPlatformTIA::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

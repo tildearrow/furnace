@@ -911,6 +911,10 @@ void DivPlatformAY8930::notifyPitchTable(int sample) {
   }
 }
 
+unsigned int DivPlatformAY8930::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformAY8930::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }

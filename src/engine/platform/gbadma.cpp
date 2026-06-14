@@ -108,6 +108,10 @@ void DivPlatformGBADMA::acquire(short** buf, size_t len) {
   }
 }
 
+static const int prescalerValues[4]={
+  0, 6, 8, 10
+};
+
 void DivPlatformGBADMA::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
@@ -164,17 +168,24 @@ void DivPlatformGBADMA::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
 
-      // emulate prescaler rounding
-      if (chan[i].freq<65536) {
+      if (chan[i].rawFreq) {
+        // emulate prescaler register
+        chan[i].freq=(chan[i].freq&0xffff)<<(prescalerValues[(chan[i].freq>>16)&3]);
         if (chan[i].freq<1) chan[i].freq=1;
-      } else if (chan[i].freq<65536*64) {
-        chan[i].freq=chan[i].freq&~63;
-      } else if (chan[i].freq<65536*256) {
-        chan[i].freq=chan[i].freq&~255;
       } else {
-        chan[i].freq=chan[i].freq&~1024;
-        if (chan[i].freq>65536*1024) chan[i].freq=65536*1024;
+        // emulate prescaler rounding
+        if (chan[i].freq<65536) {
+          if (chan[i].freq<1) chan[i].freq=1;
+        } else if (chan[i].freq<65536*64) {
+          chan[i].freq=chan[i].freq&~63;
+        } else if (chan[i].freq<65536*256) {
+          chan[i].freq=chan[i].freq&~255;
+        } else {
+          chan[i].freq=chan[i].freq&~1024;
+          if (chan[i].freq>65536*1024) chan[i].freq=65536*1024;
+        }
       }
+
       if (chan[i].keyOn) {
         if (!chan[i].std.vol.had) {
           chan[i].envVol=2;
@@ -421,6 +432,10 @@ void DivPlatformGBADMA::notifyInsChange(int ins) {
 
 void DivPlatformGBADMA::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,2,parent->song.tuning,chipClock,CHIP_DIVIDER,0x3ffffff,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGBADMA::getMaxFreq(int ch) {
+  return 0x3ffff;
 }
 
 void DivPlatformGBADMA::notifyWaveChange(int wave) {

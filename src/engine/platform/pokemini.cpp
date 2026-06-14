@@ -341,6 +341,10 @@ void DivPlatformPokeMini::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPokeMini::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformPokeMini::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

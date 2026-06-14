@@ -895,6 +895,13 @@ void DivPlatformAmiga::notifyPitchTable(int sample) {
   }
 }
 
+unsigned int DivPlatformAmiga::getMaxFreq(int ch) {
+  // the actual maximum is $FFFF, but DMA does not stop instantly.
+  // it waits for a sample to be done playing, which would take ~19ms at that period.
+  // this is too long to be practical, so we limit it to $FFF.
+  return 0xfff;
+}
+
 void DivPlatformAmiga::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*4.0/5.0;

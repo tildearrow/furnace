@@ -1076,6 +1076,10 @@ void DivPlatformTX81Z::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformTX81Z::getMaxFreq(int ch) {
+  return 0x1fff;
+}
+
 SharedChannel* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
 }

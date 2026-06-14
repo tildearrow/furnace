@@ -818,6 +818,8 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
 
 bool DivSample::insert(unsigned int pos, unsigned int length) {
   unsigned int count=samples+length;
+  if (pos>samples) pos=samples;
+
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;

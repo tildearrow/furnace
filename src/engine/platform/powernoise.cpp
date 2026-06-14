@@ -517,6 +517,10 @@ void DivPlatformPowerNoise::notifyPitchTable(int sample) {
   slopePitchTable.init(parent->song.tuning,chipClock,128,0x7ffffff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformPowerNoise::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
   chipClock=16000000;
 

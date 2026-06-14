@@ -584,6 +584,10 @@ void DivPlatformSMS::notifyPitchTable(int sample) {
   noisePitchTable.init(parent->song.tuning,chipClock,noiseDivider,0x3ff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformSMS::getMaxFreq(int ch) {
+  return 0x3ff;
+}
+
 void DivPlatformSMS::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }

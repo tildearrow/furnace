@@ -326,6 +326,10 @@ void DivPlatformTED::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x3fff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformTED::getMaxFreq(int ch) {
+  return 0x3ff;
+}
+
 void DivPlatformTED::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*2.0/5.0;

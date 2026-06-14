@@ -1448,16 +1448,21 @@ void DivPlatformOPL::tick(bool sysTick) {
       if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
         unsigned char ctrl=0;
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq<0x400) chan[i].freq=0x400;
-        chan[i].freqH=0;
-        if (chan[i].freq>0x3ffffff) {
-          chan[i].freq=0x3ffffff;
-          chan[i].freqH=15;
-        } else if (chan[i].freq>=0x800) {
-          chan[i].freqH=bsr32(chan[i].freq)-11;
+        if (chan[i].rawFreq) {
+          chan[i].freqL=chan[i].freq&0xff;
+          chan[i].freqH=(chan[i].freq>>8)&0x3f;
+        } else {
+          if (chan[i].freq<0x400) chan[i].freq=0x400;
+          chan[i].freqH=0;
+          if (chan[i].freq>0x3ffffff) {
+            chan[i].freq=0x3ffffff;
+            chan[i].freqH=15;
+          } else if (chan[i].freq>=0x800) {
+            chan[i].freqH=bsr32(chan[i].freq)-11;
+          }
+          chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
+          chan[i].freqH=8^chan[i].freqH;
         }
-        chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
-        chan[i].freqH=8^chan[i].freqH;
         ctrl|=(chan[i].active?0x80:0)|(chan[i].damp?0x40:0)|(chan[i].lfoReset?0x20:0)|(chan[i].ch?0x10:0)|(isMuted[i]?8:(chan[i].pan&0xf));
         int waveNum=chan[i].sample;
         if (waveNum>=0) {
@@ -1506,12 +1511,17 @@ void DivPlatformOPL::tick(bool sysTick) {
           mul=octave(chan[i].baseFreq,fixedBlock);
         }
         chan[i].freq=chan[i].calcFreq(mul);
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>131071) chan[i].freq=131071;
-        if (chan[i].fixedFreq>=0) chan[i].freq=chan[i].fixedFreq;
-        int freqt=(chan[i].fixedFreq>=0)?chan[i].fixedFreq:toFreq(chan[i].freq,fixedBlock);
-        chan[i].freqH=freqt>>8;
-        chan[i].freqL=freqt&0xff;
+        if (chan[i].rawFreq) {
+          chan[i].freqH=(chan[i].freq>>8)&0x1f;
+          chan[i].freqL=chan[i].freq&0xff;
+        } else {
+          if (chan[i].freq<0) chan[i].freq=0;
+          if (chan[i].freq>131071) chan[i].freq=131071;
+          if (chan[i].fixedFreq>=0) chan[i].freq=chan[i].fixedFreq;
+          int freqt=(chan[i].fixedFreq>=0)?chan[i].fixedFreq:toFreq(chan[i].freq,fixedBlock);
+          chan[i].freqH=freqt>>8;
+          chan[i].freqL=freqt&0xff;
+        }
         immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
       }
       if (i<melodicChans) {
@@ -2971,6 +2981,10 @@ void DivPlatformOPL::notifyPitchTable(int sample) {
       samplePitchTable.update<Channel>(chan,44,parent->song.tuning,(double)chipClock/(compatYPitch?144:72),65535.0,0xffff,false,parent->song.compatFlags.linearPitch,sample);
       break;
   }
+}
+
+unsigned int DivPlatformOPL::getMaxFreq(int ch) {
+  return 0x1fff;
 }
 
 void DivPlatformOPL::poke(unsigned int addr, unsigned short val) {

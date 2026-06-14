@@ -106,6 +106,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();

@@ -343,6 +343,10 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
+  return 0;
+}
+
 const void* DivPlatformMSM6295::getSampleMem(int index) {
   return index == 0 ? adpcmMem : NULL;
 }

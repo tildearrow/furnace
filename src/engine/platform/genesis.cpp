@@ -1038,7 +1038,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -1197,7 +1197,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2+chan[c.chan].sampleNoteDelta)<<7;
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1220,7 +1221,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         break;
       }
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -1288,7 +1289,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       } else if (c.chan>=5 && chan[c.chan].dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta,false);
       } else {
@@ -1763,6 +1764,7 @@ void DivPlatformGenesis::reset() {
   }
   for (int i=0; i<10; i++) {
     chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
     chan[i].outVol=0x7f;
@@ -1818,6 +1820,18 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
   for (int i=0; i<10; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformGenesis::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,10,parent->song.tuning,1,1,0x3ffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGenesis::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  // DAC mode maximum
+  if (ch>=5) return 0x3ffff;
+  return 0x3fff;
 }
 
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
@@ -1898,10 +1912,13 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   for (int i=0; i<10; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   chipType=0;
   skipRegisterWrites=false;
@@ -1927,6 +1944,7 @@ void DivPlatformGenesis::quit() {
     delete oscBuf[i];
   }
   if (fm_ymfm!=NULL) delete fm_ymfm;
+  samplePitchTable.destroy<Channel>(chan,10);
 }
 
 DivPlatformGenesis::~DivPlatformGenesis() {

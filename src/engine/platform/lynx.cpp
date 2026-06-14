@@ -278,10 +278,15 @@ void DivPlatformLynx::tick(bool sysTick) {
           }
         }
         chan[i].freq=chan[i].calcFreq();
-        if (tuned) {
-          chan[i].fd=chan[i].freq/DUTY_DIVIDERS[chan[i].duty.val&0x1ff];
+        if (chan[i].rawFreq) {
+          chan[i].fd.clockDivider=chan[i].freq>>8;
+          chan[i].fd.backup=chan[i].freq&0xff;
         } else {
-          chan[i].fd=chan[i].freq;
+          if (tuned) {
+            chan[i].fd=chan[i].freq/DUTY_DIVIDERS[chan[i].duty.val&0x1ff];
+          } else {
+            chan[i].fd=chan[i].freq;
+          }
         }
         WRITE_CONTROL(i, (chan[i].fd.clockDivider|0x18|chan[i].duty.int_feedback7));
         WRITE_BACKUP( i, chan[i].fd.backup );
@@ -587,6 +592,11 @@ void DivPlatformLynx::notifyPitchTable(int sample) {
   // divided later in tuned mode
   pitchTable.init(parent->song.tuning,chipClock,tuned?8:64,0x3ffffff,true,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformLynx::getMaxFreq(int ch) {
+  // I hope
+  return 0xffff;
 }
 
 void DivPlatformLynx::poke(unsigned int addr, unsigned short val) {

@@ -827,6 +827,21 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // send macro release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
     chan[i].releasing=true;
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency/period
+    // disable arpeggio completely
+    chan[i].arp=0;
+    dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+
+    chan[i].oldNote=chan[i].note;
+    chan[i].note=(
+      pat->newData[whatRow][DIV_PAT_RAW0]|
+      (pat->newData[whatRow][DIV_PAT_RAW1]<<8)|
+      (pat->newData[whatRow][DIV_PAT_RAW2]<<16)|
+      (pat->newData[whatRow][DIV_PAT_RAW3]<<24)|
+      DIV_NOTE_RAW_FLAG
+    );
+
+    chan[i].doNote=true;
   } else if (pat->newData[whatRow][DIV_PAT_NOTE]!=-1) {
     // prepare/schedule a new note
     chan[i].oldNote=chan[i].note;
@@ -915,7 +930,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         panChanged=true;
         break;
       case 0x80: { // panning (linear)
-        // convert to splir
+        // convert to split
         unsigned short pan=convertPanLinearToSplit(effectVal,8,255);
         chan[i].panL=pan>>8;
         chan[i].panR=pan&0xff;

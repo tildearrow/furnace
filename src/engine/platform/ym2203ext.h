@@ -42,6 +42,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     void setCSM(bool isCSM);

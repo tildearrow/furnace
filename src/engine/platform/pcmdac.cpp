@@ -591,6 +591,10 @@ void DivPlatformPCMDAC::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,chans,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformPCMDAC::getMaxFreq(int ch) {
+  return 0xffffff;
+}
+
 void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   // default to 44100Hz 16-bit stereo
   rate=flags.getInt("rate",44100);
@@ -630,10 +634,10 @@ int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivCo
 }
 
 void DivPlatformPCMDAC::quit() {
+  samplePitchTable.destroy<Channel>(chan,chans);
   delete[] chan;
   delete[] isMuted;
   delete[] oscBuf;
-  samplePitchTable.destroy<Channel>(chan,chans);
   chan=NULL;
   isMuted=NULL;
   oscBuf=NULL;

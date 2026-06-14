@@ -757,6 +757,10 @@ void DivPlatformC64::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformC64::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 SharedChannel* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
 }

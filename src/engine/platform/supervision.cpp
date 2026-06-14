@@ -482,6 +482,12 @@ void DivPlatformSupervision::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformSupervision::getMaxFreq(int ch) {
+  if (ch==3) return 15;
+  if (ch==2) return 3;
+  return 0x7ff;
+}
+
 void DivPlatformSupervision::setFlags(const DivConfig& flags) {
   if (flags.getInt("swapDuty",true)) {
     dutySwap=1;

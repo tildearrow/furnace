@@ -1186,6 +1186,10 @@ void DivPlatformOPLL::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
+unsigned int DivPlatformOPLL::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformOPLL::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }
