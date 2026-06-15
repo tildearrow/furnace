@@ -842,7 +842,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
+      if (chan[i].rawFreq) {
+        chan[i].freq=chan[i].baseFreq&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -1172,6 +1174,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].portaPause=false;
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -1322,6 +1325,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           commitState(c.chan,ins);
           chan[c.chan].insChanged=false;
         }
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       }
       chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;

@@ -1122,6 +1122,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].portaPause=false;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
@@ -1306,6 +1307,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].insChanged=false;
         }
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       }
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
