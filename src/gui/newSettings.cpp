@@ -208,7 +208,7 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
       break;
     }
     case SettingColor:
-      ImGui::PushID(label);
+      ImGui::PushID(this);
       if (ImGui::ColorEdit4(_(label),(float*)value)) {
         gui->applyUISettings(false);
         callback();
