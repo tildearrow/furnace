@@ -393,7 +393,9 @@ void DivPlatformQSound::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>0xefff) chan[i].freq=0xefff;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>0xefff) chan[i].freq=0xefff;
+      }
       if (chan[i].keyOn) {
         if (chan[i].setPos) {
           chan[i].setPos=false;

@@ -219,11 +219,16 @@ void DivPlatformSwan::tick(bool sysTick) {
         dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
         if (dumpWrites) postWrite(0xffff0001,dacRate);
       }
-      if (chan[i].freq>2048) chan[i].freq=2048;
-      if (chan[i].freq<1) chan[i].freq=1;
-      int rVal=2048-chan[i].freq;
-      rWrite(i*2,rVal&0xff);
-      rWrite(i*2+1,rVal>>8);
+      if (chan[i].rawFreq) {
+        rWrite(i*2,chan[i].freq&0xff);
+        rWrite(i*2+1,(chan[i].freq>>8)&7);
+      } else {
+        if (chan[i].freq>2048) chan[i].freq=2048;
+        if (chan[i].freq<1) chan[i].freq=1;
+        int rVal=2048-chan[i].freq;
+        rWrite(i*2,rVal&0xff);
+        rWrite(i*2+1,rVal>>8);
+      }
       if (chan[i].keyOn) {
         if (!chan[i].std.vol.will) {
           calcAndWriteOutVol(i,15);

@@ -217,16 +217,21 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      chan[i].freq>>=chan[i].octaveOff;
+      if (chan[i].rawFreq) {
+        chan[i].fNum=chan[i].freq&0xfff;
+        chan[i].octave=(chan[i].freq>>12)&15;
+      } else {
+        chan[i].freq>>=chan[i].octaveOff;
 
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
-      int bsr32Val=bsr32(chan[i].freq);
-      chan[i].octave=MAX(bsr32Val-12,0);
-      if (chan[i].octave>15) chan[i].octave=15;
-      chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
-      if (chan[i].fNum<0) chan[i].fNum=0;
-      if (chan[i].fNum>4095) chan[i].fNum=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
+        int bsr32Val=bsr32(chan[i].freq);
+        chan[i].octave=MAX(bsr32Val-12,0);
+        if (chan[i].octave>15) chan[i].octave=15;
+        chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
+        if (chan[i].fNum<0) chan[i].fNum=0;
+        if (chan[i].fNum>4095) chan[i].fNum=4095;
+      }
 
       chWrite(i,0x01,chan[i].fNum&0xff);
       chWrite(i,0x02,(chan[i].fNum>>8)|(chan[i].octave<<4));

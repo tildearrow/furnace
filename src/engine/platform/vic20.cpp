@@ -138,13 +138,18 @@ void DivPlatformVIC20::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (i<3) {
-        chan[i].freq>>=(2-i);
+      if (chan[i].rawFreq) {
+        // counter-transformation
+        chan[i].freq=255-chan[i].freq;
       } else {
-        chan[i].freq>>=1;
+        if (i<3) {
+          chan[i].freq>>=(2-i);
+        } else {
+          chan[i].freq>>=1;
+        }
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>127) chan[i].freq=0;
       }
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>127) chan[i].freq=0;
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
         if (i<3) {
@@ -350,7 +355,7 @@ void DivPlatformVIC20::notifyPitchTable(int sample) {
 }
 
 unsigned int DivPlatformVIC20::getMaxFreq(int ch) {
-  return 0x7f;
+  return 0xff;
 }
 
 void DivPlatformVIC20::setFlags(const DivConfig& flags) {
