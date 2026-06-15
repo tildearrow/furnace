@@ -2873,6 +2873,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
               if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
                 i.macro->mode=modeVal;
+                i.ins->temp.vZoom[DIV_MACRO_PAN_RIGHT]=-1;
+                i.ins->temp.vScroll[DIV_MACRO_PAN_RIGHT]=-1;
               }
             }
           }
@@ -2960,6 +2962,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
               if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
                 i.macro->mode=modeVal;
+                i.ins->temp.vZoom[DIV_MACRO_PAN_RIGHT]=-1;
+                i.ins->temp.vScroll[DIV_MACRO_PAN_RIGHT]=-1;
               }
             }
           }
@@ -3117,6 +3121,10 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
                 ImGui::SameLine();
                 if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
                   m.macro->mode=modeVal;
+                  m.ins->temp.vZoom[m.macro->macroType]=-1;
+                  m.ins->temp.vScroll[m.macro->macroType]=-1;
+                  m.ins->temp.vZoom[DIV_MACRO_PAN_RIGHT]=-1;
+                  m.ins->temp.vScroll[DIV_MACRO_PAN_RIGHT]=-1;
                 }
               }
               ImGui::EndTable();
