@@ -97,7 +97,11 @@ void DivPlatformSCV::tick(bool sysTick) {
         if (waveMode) {
           chan[i].freq=chan[i].calcFreq();
         } else {
-          chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
+          if (chan[i].rawFreq) {
+            chan[i].freq=chan[i].baseFreq;
+          } else {
+            chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
+          }
         }
         if (!parent->song.compatFlags.oldArpStrategy) {
           if (chan[i].fixedArp) {

@@ -98,17 +98,28 @@ void DivPlatformTED::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=chan[i].calcFreq()-1;
-      if (i==1 && chan[i].noise && !chan[i].square) chan[i].freq>>=4;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>1023) chan[i].freq=1023;
-
-      if (i==1) {
-        rWrite(0x0f,(1022-chan[i].freq)&0xff);
-        rWrite(0x10,((1022-chan[i].freq)>>8)&0xff);
+      chan[i].freq=chan[i].calcFreq();
+      if (chan[i].rawFreq) {
+        if (i==1) {
+          rWrite(0x0f,(chan[i].freq)&0xff);
+          rWrite(0x10,((chan[i].freq)>>8)&0xff);
+        } else {
+          rWrite(0x0e,(chan[i].freq)&0xff);
+          rWrite(0x12,((chan[i].freq)>>8)&0xff);
+        }
       } else {
-        rWrite(0x0e,(1022-chan[i].freq)&0xff);
-        rWrite(0x12,((1022-chan[i].freq)>>8)&0xff);
+        chan[i].freq--;
+        if (i==1 && chan[i].noise && !chan[i].square) chan[i].freq>>=4;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>1023) chan[i].freq=1023;
+
+        if (i==1) {
+          rWrite(0x0f,(1022-chan[i].freq)&0xff);
+          rWrite(0x10,((1022-chan[i].freq)>>8)&0xff);
+        } else {
+          rWrite(0x0e,(1022-chan[i].freq)&0xff);
+          rWrite(0x12,((1022-chan[i].freq)>>8)&0xff);
+        }
       }
 
       if (chan[i].keyOn) {

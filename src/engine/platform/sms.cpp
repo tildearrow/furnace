@@ -204,6 +204,8 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
 int DivPlatformSMS::snCalcFreq(int ch) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
+  if (chan[ch].rawFreq) return chan[ch].calcFreq();
+
   int easyStartingPeriod=16;
   int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64+60*128;
   int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);

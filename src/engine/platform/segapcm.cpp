@@ -126,6 +126,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       // TODO: consider oldSlides
       chan[i].freq=chan[i].calcFreq();
 
+      // TODO: convert 20xx effect to raw frequency notes?
       if (chan[i].pcm.freq==-1) {
         chan[i].pcm.freq=chan[i].freq;
         chWrite(i,7,chan[i].pcm.freq);

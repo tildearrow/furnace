@@ -94,6 +94,7 @@ void DivPlatformT6W28::writeOutVol(int ch) {
 
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
+  if (chan[ch].rawFreq) return chan[ch].calcFreq();
   if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
     int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
     if (ret<0) ret=0;

@@ -503,7 +503,7 @@ void DivPlatformVERA::notifyPitchTable(int sample) {
 }
 
 unsigned int DivPlatformVERA::getMaxFreq(int ch) {
-  return 0xffff;
+  return (ch>=16)?0xff:0xffff;
 }
 
 void DivPlatformVERA::poke(unsigned int addr, unsigned short val) {

@@ -281,7 +281,8 @@ void DivPlatformNDS::tick(bool sysTick) {
           rWrite32(0x04+i*16,start&0x7fffffc);
         }
       } else {
-        chan[i].freq=0x10000-chan[i].calcFreq();
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq=0x10000-chan[i].freq;
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         ctrl=(chan[i].active?0xe8:0)|(chan[i].duty&7);

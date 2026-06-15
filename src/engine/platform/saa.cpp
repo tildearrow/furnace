@@ -161,13 +161,18 @@ void DivPlatformSAA1099::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>65535) chan[i].freq=65535;
-      chan[i].freqH=0;
-      if (chan[i].freq>511) {
-        chan[i].freqH=bsr((unsigned short)chan[i].freq)-9;
+      if (chan[i].rawFreq) {
+        chan[i].freqH=(chan[i].freq>>8)&15;
+        chan[i].freqL=chan[i].freq&0xff;
+      } else {
+        if (chan[i].freq>65535) chan[i].freq=65535;
+        chan[i].freqH=0;
+        if (chan[i].freq>511) {
+          chan[i].freqH=bsr((unsigned short)chan[i].freq)-9;
+        }
+        chan[i].freqL=0xff-(chan[i].freq>>chan[i].freqH);
+        chan[i].freqH=7-chan[i].freqH;
       }
-      chan[i].freqL=0xff-(chan[i].freq>>chan[i].freqH);
-      chan[i].freqH=7-chan[i].freqH;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
       }

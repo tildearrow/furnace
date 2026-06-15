@@ -143,8 +143,10 @@ void DivPlatformSupervision::tick(bool sysTick) {
       if (i<2) {
         // the original code used chipClock<<1. does this break anything?
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq<1) chan[i].freq=1;
-        if (chan[i].freq>2047) chan[i].freq=2047;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<1) chan[i].freq=1;
+          if (chan[i].freq>2047) chan[i].freq=2047;
+        }
         if (chan[i].freqChanged || chan[i].initWrite) {
           rWrite(0x10|(i<<2),chan[i].freq&0xff);
           rWrite(0x11|(i<<2),(chan[i].freq>>8)&0x7);

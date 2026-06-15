@@ -376,9 +376,11 @@ void DivPlatformPCE::tick(bool sysTick) {
         // if we're dumping writes, tell the engine we have a software PCM rate change
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
-      // clamp the final period...
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4096) chan[i].freq=4096;
+      // clamp the final period (as long as we're not in raw frequency mode)...
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>4096) chan[i].freq=4096;
+      }
       // ...and write it
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,(chan[i].freq>>8)&0xf);

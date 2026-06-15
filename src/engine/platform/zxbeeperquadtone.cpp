@@ -393,6 +393,7 @@ void DivPlatformZXBeeperQuadTone::notifyPitchTable(int sample) {
 
 unsigned int DivPlatformZXBeeperQuadTone::getMaxFreq(int ch) {
   if (ch>=4) return 0xff;
+  // it should be 32768, but then we can't and
   return 0x7fff;
 }
 
