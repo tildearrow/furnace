@@ -678,7 +678,9 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_MEMORY", _N("Memory Composition"), 0),
   D("WINDOW_CS_PLAYER", _N("Command Stream Player"), 0),
   D("WINDOW_USER_PRESETS", _N("User Presets"), 0),
+#ifdef HAVE_SNDFILE
   D("WINDOW_REF_PLAYER", _N("Reference Music Player"), 0),
+#endif
   D("MULTI_INS_SETUP", _N("Multi-Instrument Setup"), 0),
   D("WINDOW_BACKUPS_MANAGER", _N("Backup Management"), 0),
 
