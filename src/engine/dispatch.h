@@ -1635,7 +1635,7 @@ class DivDispatch {
   }
 
 // NOTE: these definitions are deprecated. see DivPitchTable.
-#define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits,blk)
+#define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,(x)&(~DIV_NOTE_RAW_FLAG),bits,blk)
 
 // this is for volume scaling calculation.
 #define VOL_SCALE_LINEAR(x,y,range) ((parent->song.compatFlags.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))

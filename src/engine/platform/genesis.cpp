@@ -894,7 +894,9 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<csmChan; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
+      if (chan[i].rawFreq) {
+        chan[i].freq=chan[i].baseFreq&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -925,8 +927,13 @@ void DivPlatformGenesis::tick(bool sysTick) {
             off=(double)s->centerRate/parent->getCenterRate();
           }
         }
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
-        chan[i].dacRate=chan[i].freq*off;
+        if (chan[i].rawFreq) {
+          chan[i].freq=chan[i].baseFreq;
+          chan[i].dacRate=chan[i].freq;
+        } else {
+          chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
+          chan[i].dacRate=chan[i].freq*off;
+        }
         if (chan[i].dacRate<1) chan[i].dacRate=1;
         if (dumpWrites && !isMuted[i]) addWrite(0xffff0001,chan[i].dacRate);
       }
