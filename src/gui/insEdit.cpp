@@ -4391,7 +4391,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                     if (!isPresent[j]) continue;
                     ImGui::TableNextColumn();
                     ImGui::PushID(j*17+i);
-                    if (ImGui::Selectable(_(opllInsNames[j][i]),ins->fm.opllPreset==i)) {
+                    if (ImGui::Selectable(_(opllInsNames[j][i]),ins->fm.opllPreset==i)) { PARAMETER
                       ins->fm.opllPreset=i;
                     }
                     ImGui::PopID();
@@ -4402,7 +4402,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
             } else {
               for (int i=0; i<17; i++) {
-                if (ImGui::Selectable(_(opllInsNames[presentWhich][i]),ins->fm.opllPreset==i)) {
+                if (ImGui::Selectable(_(opllInsNames[presentWhich][i]),ins->fm.opllPreset==i)) { PARAMETER
                   ins->fm.opllPreset=i;
                 }
                 if (ins->fm.opllPreset==i) ImGui::SetItemDefaultFocus();
