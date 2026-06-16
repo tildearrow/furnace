@@ -270,7 +270,7 @@ void DivPlatformPCE::tick(bool sysTick) {
     // on linear pitch, we can use the new arp strategy helper
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       // handle noise (mapped to current note)
       // and calculate the new frequency
       if (!chan[i].inPorta) {

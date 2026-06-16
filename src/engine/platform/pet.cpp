@@ -104,7 +104,7 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[0].handleArp();
-  } else if (chan[0].std.arp.had) {
+  } else if (chan[0].std.arp.had && !chan[0].rawFreq) {
     if (!chan[0].inPorta) {
       chan[0].baseFreq=chan[0].calcBaseFreq(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }

@@ -483,7 +483,7 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       opChan[i].handleArp();
-    } else if (opChan[i].std.arp.had) {
+    } else if (opChan[i].std.arp.had && !opChan[i].rawFreq) {
       if (!opChan[i].inPorta) {
         opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }

@@ -80,10 +80,10 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-      if (chan[i].std.arp.had) {
+      if (chan[i].std.arp.had && !chan[i].rawFreq) {
         if (chan[i].freqChanged) chan[i].pcm.freq=-1;
       }
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
