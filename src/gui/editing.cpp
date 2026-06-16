@@ -228,7 +228,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
               if (p->newData[j][k]!=op->newData[j][k]) {
                 s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][h],j,k,op->newData[j][k],p->newData[j][k]));
 
-                if (k>=DIV_PAT_FX(0)) {
+                if (k>=DIV_PAT_FX(0) && k<DIV_PAT_NOTE_BUFFER) {
                   int fxCol=(k&1)?k:(k-1);
                   if (op->newData[j][fxCol]==0x09 ||
                       op->newData[j][fxCol]==0x0b ||
