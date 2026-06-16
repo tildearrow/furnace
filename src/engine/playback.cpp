@@ -1368,6 +1368,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xe1: // portamento up
         // this is a shortcut for 03xx and a higher note.
         // it has the benefit of being able to be used in conjunction with a note.
+        // it is ignored in raw frequency mode...
+        if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
@@ -1397,6 +1399,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe2: // portamento down
         // this is the same as E1xy but in the opposite direction.
+        // it is ignored in raw frequency mode...
+        if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
@@ -1729,12 +1733,20 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // these are done later to let note on happen first
         case 0xf1: // single pitch slide up
         case 0xf2: // single pitch slide down
-          if (effect==0xf1) {
-            // COMPAT FLAG: limit slide range
-            chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+          if (chan[i].note&DIV_NOTE_RAW_FLAG) {
+            if (effect==0xf1) {
+              chan[i].portaNote=getMaxFreqChan(i)|DIV_NOTE_RAW_FLAG;
+            } else {
+              chan[i].portaNote=0|DIV_NOTE_RAW_FLAG;
+            }
           } else {
-            // COMPAT FLAG: limit slide range
-            chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
+            if (effect==0xf1) {
+              // COMPAT FLAG: limit slide range
+              chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+            } else {
+              // COMPAT FLAG: limit slide range
+              chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
+            }
           }
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
@@ -1743,7 +1755,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.compatFlags.linearPitch?song.compatFlags.pitchSlideSpeed:1),chan[i].portaNote));
+          int portaSpeedMultiplier=(song.compatFlags.linearPitch && !(chan[i].note&DIV_NOTE_RAW_FLAG))?song.compatFlags.pitchSlideSpeed:1;
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*portaSpeedMultiplier,chan[i].portaNote));
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
