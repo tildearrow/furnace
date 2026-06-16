@@ -2918,6 +2918,17 @@ class FurnaceGUI {
     PIANO_KEY_COLOR_INSTRUMENT
   };
 
+  enum PianoInputMode {
+    PIANO_INPUT_NOTE=0,
+    PIANO_INPUT_VALUE,
+    PIANO_INPUT_ORDER,
+    PIANO_INPUT_SAMPLE_MAP_NOTE,
+    PIANO_INPUT_SAMPLE_MAP_VALUE,
+    PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ,
+    PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA,
+    PIANO_INPUT_RAW_FREQ
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   struct pianoKeyState {
