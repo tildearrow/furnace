@@ -407,7 +407,101 @@ JSON serializeInstrument(DivInstrument* ins) {
     json["fm"]=fm;
   }
   if (featureGB) {
-    
+    JSON gb;
+    SET_VALUE(gb,envVol);
+    SET_VALUE(gb,envDir);
+    SET_VALUE(gb,envLen);
+    SET_VALUE(gb,soundLen);
+    SET_VALUE(gb,hwSeqLen);
+    SET_VALUE(gb,softEnv);
+    SET_VALUE(gb,alwaysInit);
+    SET_VALUE(gb,doubleWave);
+    gb["hwSeq"]={};
+    for (int i=0; i<=ins->gb.hwSeqLen; i++) {
+      JSON seq;
+      seq["cmd"]=ins->gb.hwSeq[i].cmd;
+      seq["data"]=ins->gb.hwSeq[i].data;
+      gb["hwSeq"].push_back(seq);
+    }
+    json["gb"]=gb;
+  }
+  if (feature64) {
+    JSON c64;
+    SET_VALUE(c64,triOn);
+    SET_VALUE(c64,sawOn);
+    SET_VALUE(c64,pulseOn);
+    SET_VALUE(c64,noiseOn);
+    SET_VALUE(c64,a);
+    SET_VALUE(c64,d);
+    SET_VALUE(c64,s);
+    SET_VALUE(c64,r);
+    SET_VALUE(c64,duty);
+    SET_VALUE(c64,ringMod);
+    SET_VALUE(c64,oscSync);
+    SET_VALUE(c64,toFilter);
+    SET_VALUE(c64,initFilter);
+    SET_VALUE(c64,dutyIsAbs);
+    SET_VALUE(c64,filterIsAbs);
+    SET_VALUE(c64,noTest);
+    SET_VALUE(c64,resetDuty);
+    SET_VALUE(c64,res);
+    SET_VALUE(c64,cut);
+    SET_VALUE(c64,hp);
+    SET_VALUE(c64,lp);
+    SET_VALUE(c64,bp);
+    SET_VALUE(c64,ch3off);
+    json["64"]=c64;
+  }
+  if (featureSM) {
+    JSON amiga;
+    SET_VALUE(amiga,initSample);
+    SET_VALUE(amiga,useNoteMap);
+    SET_VALUE(amiga,useSample);
+    SET_VALUE(amiga,useWave);
+    SET_VALUE(amiga,waveLen);
+    if (ins->amiga.useNoteMap) {
+      amiga["sampleMap"]={};
+      for (int i=0; i<180; i++) {
+        JSON map;
+        map["freq"]=ins->amiga.noteMap[i].freq;
+        map["map"]=ins->amiga.noteMap[i].map;
+        map["dpcmFreq"]=ins->amiga.noteMap[i].dpcmFreq;
+        map["dpcmDelta"]=ins->amiga.noteMap[i].dpcmDelta;
+        amiga["sampleMap"].push_back(map);
+      }
+    }
+    json["amiga"]=amiga;
+  }
+  if (featureX1) {
+    JSON x1_010;
+    SET_VALUE(x1_010,bankSlot);
+    json["x1_010"]=x1_010;
+  }
+  if (featureN1) {
+    JSON n163;
+    SET_VALUE(n163,wave);
+    SET_VALUE(n163,wavePos);
+    SET_VALUE(n163,waveLen);
+    SET_VALUE(n163,perChanPos);
+    JSON wavePosCh={}, waveLenCh={};
+    for (int i=0; i<8; i++) {
+      wavePosCh.push_back(ins->n163.wavePosCh[i]);
+      waveLenCh.push_back(ins->n163.waveLenCh[i]);
+    }
+    n163["wavePosCh"]=wavePosCh;
+    n163["waveLenCh"]=waveLenCh;
+    json["n163"]=n163;
+  }
+  if (featureFD) {
+    JSON fds;
+    SET_VALUE(fds,modSpeed);
+    SET_VALUE(fds,modDepth);
+    SET_VALUE(fds,initModTableWithFirstWave);
+    fds["modTable"]={};
+    for (int i=0; i<32; i++)
+      fds["modTable"].push_back(ins->fds.modTable[i]);
+
+    json["fds"]=fds;
   }
 
   return json;
