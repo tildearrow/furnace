@@ -381,7 +381,7 @@ void DivPlatformArcade::tick(bool sysTick) {
       if (chan[i].rawFreq) {
         chan[i].freq=chan[i].baseFreq;
         immWrite(i+0x28,(chan[i].freq>>6));
-        immWrite(i+0x30,(chan[i].freq&63));
+        immWrite(i+0x30,(chan[i].freq&63)<<2);
       } else {
         chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
         if (!parent->song.compatFlags.oldArpStrategy) {
@@ -494,6 +494,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -590,6 +591,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
       }
       chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       chan[c.chan].freqChanged=true;
       break;
     }

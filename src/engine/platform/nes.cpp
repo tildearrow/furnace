@@ -167,7 +167,7 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
+
     nes1_NP->Tick(8);
     nes2_NP->TickFrameSequence(8);
     nes2_NP->Tick(8);
@@ -211,7 +211,7 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
+
     e1_NP->Tick(8);
     e2_NP->TickFrameSequence(8);
     e2_NP->Tick(8);
@@ -529,6 +529,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
           } else {
             if (c.value==DIV_NOTE_NULL) {
               nextDPCMFreq=lastDPCMFreq;
+            } else if (c.value&DIV_NOTE_RAW_FLAG) {
+              nextDPCMFreq=(c.value)&15;
             } else {
               nextDPCMFreq=(c.value-60)&15;
             }
@@ -563,7 +565,13 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
         dacPeriod=0;
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          if (c.value&DIV_NOTE_RAW_FLAG) {
+            chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+            chan[c.chan].rawFreq=true;
+          } else {
+            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+            chan[c.chan].rawFreq=false;
+          }
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -946,7 +954,7 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->setRate(rate);
   }
-  
+
   dpcmModeDefault=flags.getBool("dpcmMode",true);
   resetSweep=flags.getBool("resetSweep",false);
 
