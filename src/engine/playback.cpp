@@ -124,7 +124,7 @@ const char* cmdName[]={
   "STD_NOISE_MODE",
 
   "WAVE",
-  
+
   "GB_SWEEP_TIME",
   "GB_SWEEP_DIR",
 
@@ -166,7 +166,7 @@ const char* cmdName[]={
   "AMIGA_FILTER",
   "AMIGA_AM",
   "AMIGA_PM",
-  
+
   "LYNX_LFSR_LOAD",
 
   "QSOUND_ECHO_FEEDBACK",
@@ -277,7 +277,7 @@ const char* cmdName[]={
   "BIFURCATOR_PARAMETER",
 
   "FDS_MOD_AUTO",
-  
+
   "FM_OPMASK",
 
   "MULTIPCM_MIX_FM",
@@ -470,7 +470,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
               int target=c.value-60+12;
               if (target<0) target=0;
               if (target>127) target=127;
-              
+
               // set the source note?
               if (chan[c.chan].curMidiNote>=0) {
                 output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x54,chan[c.chan].curMidiNote));
@@ -850,7 +850,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       (pat->newData[whatRow][DIV_PAT_RAW2]<<16)|
       (pat->newData[whatRow][DIV_PAT_RAW3]<<24)|
       DIV_NOTE_RAW_FLAG
-    );
+    )&(DIV_NOTE_RAW_FLAG|getMaxFreqChan(i));
 
     chan[i].doNote=true;
   } else if (pat->newData[whatRow][DIV_PAT_NOTE]!=-1) {
@@ -903,7 +903,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       break; // technically you could have both D3 and D4... let's not care
     }
   }
-  
+
   // don't apply volume if a scivolando is set
   if (pat->newData[whatRow][DIV_PAT_VOL]!=-1 && !noApplyVolume) {
     // COMPAT FLAG: legacy ALWAYS_SET_VOLUME behavior (oldAlwaysSetVolume)
@@ -1294,7 +1294,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       /// MISC
       case 0x90: case 0x91: case 0x92: case 0x93:
-      case 0x94: case 0x95: case 0x96: case 0x97: 
+      case 0x94: case 0x95: case 0x96: case 0x97:
       case 0x98: case 0x99: case 0x9a: case 0x9b:
       case 0x9c: case 0x9d: case 0x9e: case 0x9f: // set samp. pos
         // COMPAT FLAG: old sample offset effect
@@ -1932,7 +1932,7 @@ void DivEngine::nextRow() {
   if (song.compatFlags.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];
-    
+
     // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
     if ((curSubSong->patLen&1) && curOrder&1) {
       ticks=((curRow&1)?speed2:speed1);
@@ -2081,7 +2081,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   } else {
     tickMult=1;
   }
-  
+
   // set the number of samples between ticks (or sub-ticks in low-latency mode)
   cycles=got.rate/(divider*tickMult);
   clockDrift+=fmod(got.rate,(double)(divider*tickMult));
@@ -2685,7 +2685,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     }
   }
 
-  
+
   // halt engine if requested (debug menu)
   if (haltOn==DIV_HALT_TICK) halted=true;
 
@@ -2774,7 +2774,7 @@ void DivEngine::runMidiTime(int totalCycles) {
     int frame=0;
     int drop=0;
     int actualTime=curMidiTimeCode;
-    
+
     switch (timeRate) {
       case 1: // 24
         frameRate=96.0;
@@ -2988,7 +2988,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     //logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
-  
+
   // process sample/wave preview (not during audio export)
   if (((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) && !exporting) {
     // we use blip_buf to pitch the sample
@@ -3253,7 +3253,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
                   dc->cycles-=lastAvail;
                 }
               }
-              
+
               // if the buffer is too small, resize it
               int total=blip_clocks_needed(dc->bb[0],dc->cycles);
               if (total>(int)dc->bbInLen) {

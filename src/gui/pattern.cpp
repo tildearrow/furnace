@@ -420,7 +420,7 @@ void FurnaceGUI::drawPattern() {
         if (settings.channelStyle==2) {
           sizeHeader.y+=6.0f*dpiScale;
         }
-        
+
         ImVec2 minAreaHeader=window->DC.CursorPos;
         ImVec2 maxAreaHeader=ImVec2(
           minAreaHeader.x+sizeHeader.x,
@@ -614,7 +614,7 @@ void FurnaceGUI::drawPattern() {
                 soloChan=-1;
               }
             }
-          } 
+          }
         } else {
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
@@ -695,7 +695,7 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        
+
         // extra buttons
         if (patExtraButtons) {
           snprintf(chanID,2048,"%c###_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
@@ -1341,35 +1341,35 @@ void FurnaceGUI::drawPattern() {
 
             if (maxFreq>=0x1000000) {
               // we must fit 8 chars in a 3-char space...
-              snprintf(id,63,"%.4X",freq>>16);
+              snprintf(id,63,"%.4X",(freq&maxFreq)>>16);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos,activeColor,id);
-              snprintf(id,63,"%.4X",freq&0xffff);
+              snprintf(id,63,"%.4X",(freq&maxFreq)&0xffff);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.5f),activeColor,id);
             } else if (maxFreq>=0x100000) {
               // 6 chars (isn't this too small?)
-              snprintf(id,63,"%.3X",(freq&0xfff000)>>24);
+              snprintf(id,63,"%.3X",((freq&maxFreq)&0xfff000)>>24);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,0),activeColor,id);
-              snprintf(id,63,"%.3X",freq&0xfff);
+              snprintf(id,63,"%.3X",(freq&maxFreq)&0xfff);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,lineHeight*0.5f),activeColor,id);
             } else if (maxFreq>=0x10000) {
               // 5 chars
-              snprintf(id,63,"%.5X",freq&0xfffff);
+              snprintf(id,63,"%.5X",(freq&maxFreq));
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos+ImVec2(0,lineHeight*0.2f),activeColor,id);
             } else if (maxFreq>=0x1000) {
               // 4 chars
-              snprintf(id,63,"%.4X",freq&0xffff);
+              snprintf(id,63,"%.4X",(freq&maxFreq));
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.125f),activeColor,id);
             } else if (maxFreq>=0x100) {
               // 3 chars
-              snprintf(id,63,"%.3X",freq&0xfff);
+              snprintf(id,63,"%.3X",(freq&maxFreq));
               dl->AddText(pos,activeColor,id);
             } else if (maxFreq>=0x10) {
               // 2 chars
-              snprintf(id,63,"$%.2X",freq&0xfff);
+              snprintf(id,63,"$%.2X",(freq&maxFreq));
               dl->AddText(pos,activeColor,id);
             } else {
               // 1 char
-              snprintf(id,63," %.1X",freq&0xf);
+              snprintf(id,63," %.1X",(freq&maxFreq));
               dl->AddText(pos,activeColor,id);
             }
           } else {
@@ -1907,7 +1907,7 @@ void FurnaceGUI::drawPattern() {
       whereY+=warnTextSize3.y;
     }
     ImGui::PopFont();
-    
+
     // visualizer
     if (fancyPattern) {
       e->getCommandStream(cmdStream);
@@ -2207,7 +2207,7 @@ void FurnaceGUI::drawPattern() {
 void FurnaceGUI::updateKeyHitPre() {
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     bool muted=e->isChannelMuted(i);
-    
+
     // update key hit
     if (e->keyHit[i]) {
       keyHit1[i]=1.0f;
