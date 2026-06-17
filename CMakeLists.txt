@@ -562,6 +562,9 @@ src/fileutils.cpp
 src/timeutils.cpp
 src/utfutils.cpp
 
+src/fileutils/abstract.cpp
+src/fileutils/cfile.cpp
+
 extern/itcompress/compression.c
 
 extern/SAASound/src/SAAAmp.cpp
@@ -711,7 +714,6 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 src/engine/platform/sound/qsound.c
 
 src/engine/platform/sound/swan.c
-src/engine/platform/sound/swan_mdfn.cpp
 
 src/engine/platform/sound/su.cpp
 
@@ -945,9 +947,23 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 
 src/gui/plot_nolerp.cpp
 
+src/gui/presets/arcadeSystems.cpp
+src/gui/presets/computers.cpp
+src/gui/presets/defleCompat.cpp
+src/gui/presets/fm.cpp
+src/gui/presets/gameConsoles.cpp
+src/gui/presets/sample.cpp
+src/gui/presets/specialized.cpp
+src/gui/presets/square.cpp
+src/gui/presets/user.cpp
+src/gui/presets/wavetable.cpp
+
 src/gui/render.cpp
 src/gui/render/abstract.cpp
 src/gui/render/renderSoftware.cpp
+
+src/gui/settings/allSettings.cpp
+src/gui/settings/loadSettings.cpp
 
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
@@ -975,6 +991,7 @@ src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
 src/gui/about.cpp
+src/gui/backupsManager.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
@@ -1011,6 +1028,7 @@ src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
 src/gui/settings.cpp
+src/gui/newSettings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/spectrum.cpp

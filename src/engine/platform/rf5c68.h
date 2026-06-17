@@ -76,6 +76,7 @@ class DivPlatformRF5C68: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setFlags(const DivConfig& flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

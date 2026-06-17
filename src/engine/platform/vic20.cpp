@@ -101,7 +101,7 @@ void DivPlatformVIC20::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -138,13 +138,18 @@ void DivPlatformVIC20::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (i<3) {
-        chan[i].freq>>=(2-i);
+      if (chan[i].rawFreq) {
+        // counter-transformation
+        chan[i].freq=255-chan[i].freq;
       } else {
-        chan[i].freq>>=1;
+        if (i<3) {
+          chan[i].freq>>=(2-i);
+        } else {
+          chan[i].freq>>=1;
+        }
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>127) chan[i].freq=0;
       }
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>127) chan[i].freq=0;
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
         if (i<3) {
@@ -347,6 +352,10 @@ void DivPlatformVIC20::notifyInsDeletion(void* ins) {
 
 void DivPlatformVIC20::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformVIC20::getMaxFreq(int ch) {
+  return 0xff;
 }
 
 void DivPlatformVIC20::setFlags(const DivConfig& flags) {

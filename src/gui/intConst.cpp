@@ -26,6 +26,7 @@ const int _FOUR=4;
 const int _SEVEN=7;
 const int _EIGHT=8;
 const int _TEN=10;
+const int _TWELVE=12;
 const int _FIFTEEN=15;
 const int _SIXTEEN=16;
 const int _TWENTY_FOUR=24;

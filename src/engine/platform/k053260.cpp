@@ -104,7 +104,7 @@ void DivPlatformK053260::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -145,7 +145,8 @@ void DivPlatformK053260::tick(bool sysTick) {
       unsigned char keyoff=keyon&~(0x11<<i);
       unsigned char loopoff=regPool[0x2a]&~(0x11<<i);
       unsigned char loopon=loopoff|(s->isLoopable()?(1<<i):0)|(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K?(0x10<<i):0);
-      chan[i].freq=0x1000-chan[i].calcFreq();
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) chan[i].freq=0x1000-chan[i].freq;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -427,6 +428,10 @@ void DivPlatformK053260::notifyInsDeletion(void* ins) {
 
 void DivPlatformK053260::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformK053260::getMaxFreq(int ch) {
+  return 0xfff;
 }
 
 void DivPlatformK053260::setFlags(const DivConfig& flags) {

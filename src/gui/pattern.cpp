@@ -420,7 +420,7 @@ void FurnaceGUI::drawPattern() {
         if (settings.channelStyle==2) {
           sizeHeader.y+=6.0f*dpiScale;
         }
-        
+
         ImVec2 minAreaHeader=window->DC.CursorPos;
         ImVec2 maxAreaHeader=ImVec2(
           minAreaHeader.x+sizeHeader.x,
@@ -614,7 +614,7 @@ void FurnaceGUI::drawPattern() {
                 soloChan=-1;
               }
             }
-          } 
+          }
         } else {
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
@@ -695,7 +695,7 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
-        
+
         // extra buttons
         if (patExtraButtons) {
           snprintf(chanID,2048,"%c###_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
@@ -1236,6 +1236,17 @@ void FurnaceGUI::drawPattern() {
                     ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]):
                     ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
                 );
+                // display an indicator for the current nibble
+                if (curNibble) {
+                  if (fmod(secondTimer,0.5f)<0.25f) {
+                    dl->AddLine(
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+2.0f*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_TEXT]),
+                      dpiScale
+                    );
+                  }
+                }
               }
             }
           }
@@ -1287,6 +1298,8 @@ void FurnaceGUI::drawPattern() {
 
         const DivPattern* pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord&0xff],true);
 
+        unsigned int maxFreq=e->getMaxFreqChan(i);
+
         // rows
         for (int j=rowsBegin; j<rowsEnd; j++) {
           // set color
@@ -1317,10 +1330,54 @@ void FurnaceGUI::drawPattern() {
 
           // note
           const char* idN=noteName(pat->newData[row][DIV_PAT_NOTE]);
-          if (pat->newData[row][DIV_PAT_NOTE]==-1) {
-            dl->AddText(pos,inactiveColor,idN,idN+3);
+          if (pat->newData[row][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+            // special case: raw frequency
+            unsigned int freq=(
+              (pat->newData[row][DIV_PAT_RAW0])|
+              (pat->newData[row][DIV_PAT_RAW1]<<8)|
+              (pat->newData[row][DIV_PAT_RAW2]<<16)|
+              (pat->newData[row][DIV_PAT_RAW3]<<24)
+            );
+
+            if (maxFreq>=0x1000000) {
+              // we must fit 8 chars in a 3-char space...
+              snprintf(id,63,"%.4X",(freq&maxFreq)>>16);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos,activeColor,id);
+              snprintf(id,63,"%.4X",(freq&maxFreq)&0xffff);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.5f),activeColor,id);
+            } else if (maxFreq>=0x100000) {
+              // 6 chars (isn't this too small?)
+              snprintf(id,63,"%.3X",((freq&maxFreq)&0xfff000)>>24);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,0),activeColor,id);
+              snprintf(id,63,"%.3X",(freq&maxFreq)&0xfff);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,lineHeight*0.5f),activeColor,id);
+            } else if (maxFreq>=0x10000) {
+              // 5 chars
+              snprintf(id,63,"%.5X",(freq&maxFreq));
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos+ImVec2(0,lineHeight*0.2f),activeColor,id);
+            } else if (maxFreq>=0x1000) {
+              // 4 chars
+              snprintf(id,63,"%.4X",(freq&maxFreq));
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.125f),activeColor,id);
+            } else if (maxFreq>=0x100) {
+              // 3 chars
+              snprintf(id,63,"%.3X",(freq&maxFreq));
+              dl->AddText(pos,activeColor,id);
+            } else if (maxFreq>=0x10) {
+              // 2 chars
+              snprintf(id,63,"$%.2X",(freq&maxFreq));
+              dl->AddText(pos,activeColor,id);
+            } else {
+              // 1 char
+              snprintf(id,63," %.1X",(freq&maxFreq));
+              dl->AddText(pos,activeColor,id);
+            }
           } else {
-            dl->AddText(pos,activeColor,idN,idN+3);
+            if (pat->newData[row][DIV_PAT_NOTE]==-1) {
+              dl->AddText(pos,inactiveColor,idN,idN+3);
+            } else {
+              dl->AddText(pos,activeColor,idN,idN+3);
+            }
           }
 
           // instrument
@@ -1850,7 +1907,7 @@ void FurnaceGUI::drawPattern() {
       whereY+=warnTextSize3.y;
     }
     ImGui::PopFont();
-    
+
     // visualizer
     if (fancyPattern) {
       e->getCommandStream(cmdStream);
@@ -2150,7 +2207,7 @@ void FurnaceGUI::drawPattern() {
 void FurnaceGUI::updateKeyHitPre() {
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     bool muted=e->isChannelMuted(i);
-    
+
     // update key hit
     if (e->keyHit[i]) {
       keyHit1[i]=1.0f;

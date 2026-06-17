@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev246"
-#define DIV_ENGINE_VERSION 246
+#define DIV_VERSION "dev248"
+#define DIV_ENGINE_VERSION 248
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -886,6 +886,9 @@ class DivEngine {
 
     // map volume to gain
     float getGain(int ch, int vol);
+
+    // get max frequency/period of a channel
+    unsigned int getMaxFreqChan(int ch);
 
     // get current order
     unsigned char getOrder();

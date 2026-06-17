@@ -216,7 +216,21 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (chan[i].fixedArp) {
+      if (chan[i].rawFreq) {
+        if (softwarePitch) {
+          chan[i].freq=(chan[i].baseFreq>>8)&31;
+          chan[i].tuneFreq=chan[i].baseFreq&255;
+        } else {
+          chan[i].freq=chan[i].baseFreq&31;
+        }
+        if (!skipRegisterWrites && dumpWrites) {
+          if (softwarePitch) {
+          addWrite(0xfffe0000+i,chan[i].freq);
+          } else {
+            addWrite(0xfffe0000+i,chan[i].freq*256);
+          }
+        }
+      } else if (chan[i].fixedArp) {
         chan[i].freq=(chan[i].baseNoteOverride-60)&31;
         chan[i].tuneFreq=0;
         if (!skipRegisterWrites && dumpWrites) {
@@ -287,7 +301,13 @@ int DivPlatformTIA::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_TIA);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=c.value<<8;
+        if (c.value&DIV_NOTE_RAW_FLAG) {
+          chan[c.chan].baseFreq=c.value;
+          chan[c.chan].rawFreq=true;
+        } else {
+          chan[c.chan].baseFreq=c.value<<8;
+          chan[c.chan].rawFreq=false;
+        }
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -489,6 +509,10 @@ void DivPlatformTIA::notifyInsDeletion(void* ins) {
   for (int i=0; i<2; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformTIA::getMaxFreq(int ch) {
+  return softwarePitch?0x1fff:0x1f;
 }
 
 void DivPlatformTIA::poke(unsigned int addr, unsigned short val) {

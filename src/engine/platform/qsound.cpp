@@ -349,7 +349,7 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -393,7 +393,9 @@ void DivPlatformQSound::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>0xefff) chan[i].freq=0xefff;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>0xefff) chan[i].freq=0xefff;
+      }
       if (chan[i].keyOn) {
         if (chan[i].setPos) {
           chan[i].setPos=false;
@@ -697,6 +699,12 @@ void DivPlatformQSound::notifyInsDeletion(void* ins) {
 
 void DivPlatformQSound::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,19,parent->song.tuning,rate,4096,0xefff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformQSound::getMaxFreq(int ch) {
+  // $EFFF is the safe maximum.
+  // I am gonna let you break the chip.
+  return 0xffff;
 }
 
 void DivPlatformQSound::setFlags(const DivConfig& flags) {

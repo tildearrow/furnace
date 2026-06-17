@@ -143,7 +143,7 @@ void DivPlatformK007232::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -207,7 +207,8 @@ void DivPlatformK007232::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      chan[i].freq=0x1000-chan[i].calcFreq();
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) chan[i].freq=0x1000-chan[i].freq;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -512,6 +513,10 @@ void DivPlatformK007232::notifyInsDeletion(void* ins) {
 
 void DivPlatformK007232::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,2,parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformK007232::getMaxFreq(int ch) {
+  return 0xfff;
 }
 
 void DivPlatformK007232::setFlags(const DivConfig& flags) {

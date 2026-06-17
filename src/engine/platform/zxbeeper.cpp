@@ -89,7 +89,7 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -305,6 +305,10 @@ void DivPlatformZXBeeper::notifyInsDeletion(void* ins) {
 
 void DivPlatformZXBeeper::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformZXBeeper::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {

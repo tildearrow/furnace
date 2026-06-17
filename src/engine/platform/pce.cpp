@@ -270,7 +270,7 @@ void DivPlatformPCE::tick(bool sysTick) {
     // on linear pitch, we can use the new arp strategy helper
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       // handle noise (mapped to current note)
       // and calculate the new frequency
       if (!chan[i].inPorta) {
@@ -376,9 +376,11 @@ void DivPlatformPCE::tick(bool sysTick) {
         // if we're dumping writes, tell the engine we have a software PCM rate change
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
-      // clamp the final period...
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4096) chan[i].freq=4096;
+      // clamp the final period (as long as we're not in raw frequency mode)...
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>4096) chan[i].freq=4096;
+      }
       // ...and write it
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,(chan[i].freq>>8)&0xf);
@@ -927,6 +929,13 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
 
   // recalculate our pitch tables as the chip clock may have changed
   notifyPitchTable();
+}
+
+// this function returns the maximum frequency or period that a channel may be set to.
+// it is used by the GUI and the engine to clamp raw frequency/period notes and display them correctly.
+unsigned int DivPlatformPCE::getMaxFreq(int ch) {
+  // certain chips have special per-channel behavior. if so, add if statements to count them.
+  return 0xfff;
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {

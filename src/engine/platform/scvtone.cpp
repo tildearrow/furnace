@@ -67,7 +67,7 @@ void DivPlatformSCV::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=chan[i].calcBaseFreq(f);
@@ -97,7 +97,11 @@ void DivPlatformSCV::tick(bool sysTick) {
         if (waveMode) {
           chan[i].freq=chan[i].calcFreq();
         } else {
-          chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
+          if (chan[i].rawFreq) {
+            chan[i].freq=chan[i].baseFreq;
+          } else {
+            chan[i].freq=(chan[i].baseFreq+chan[i].pitch+chan[i].pitch2+143);
+          }
         }
         if (!parent->song.compatFlags.oldArpStrategy) {
           if (chan[i].fixedArp) {
@@ -363,6 +367,10 @@ void DivPlatformSCV::notifyInsDeletion(void* ins) {
 void DivPlatformSCV::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,512,0xff,true,parent->song.compatFlags.linearPitch);
   wavePitchTable.init(parent->song.tuning,chipClock,64,0xff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSCV::getMaxFreq(int ch) {
+  return 0xff;
 }
 
 void DivPlatformSCV::setFlags(const DivConfig& flags) {

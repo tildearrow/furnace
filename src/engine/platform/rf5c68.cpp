@@ -100,7 +100,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -381,6 +381,10 @@ void DivPlatformRF5C68::notifyInsDeletion(void* ins) {
 
 void DivPlatformRF5C68::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,8,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformRF5C68::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformRF5C68::setFlags(const DivConfig& flags) {

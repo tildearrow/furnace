@@ -222,7 +222,7 @@ void FurnaceGUI::drawOrderButtons() {
   if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
     orderEditMode++;
     if (orderEditMode>3) orderEditMode=mobileUI?1:0;
-    curNibble=false;
+    curNibble=0;
   }
   if (ImGui::IsItemHovered()) {
     if (orderEditMode==3) {
@@ -342,7 +342,7 @@ void FurnaceGUI::drawOrders() {
           }
           if (ImGui::Selectable(selID)) {
             setOrder(i);
-            curNibble=false;
+            curNibble=0;
             orderCursor=-1;
 
             if (orderEditMode==0) {
@@ -384,13 +384,13 @@ void FurnaceGUI::drawOrders() {
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
               } else {
                 setOrder(i);
                 if (orderEditMode!=0) {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
 
                 // i wonder whether this is necessary
@@ -468,13 +468,13 @@ void FurnaceGUI::drawOrders() {
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
               } else {
                 setOrder(i);
                 if (orderEditMode!=0) {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
 
                 if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&

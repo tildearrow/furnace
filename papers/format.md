@@ -581,6 +581,8 @@ size | description
      |   - 180 is note off
      |   - 181 is note release
      |   - 182 is macro release
+     |   - 183 is raw frequency (>=248)
+     |     - after reading 183, you must read a 32-bit int (which is the raw frequency).
 ```
 
 ---

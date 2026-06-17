@@ -703,7 +703,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (i>=5 && chan[i].dacMode) {
       if (NEW_ARP_STRAT) {
         chan[i].handleArp();
-      } else if (chan[i].std.arp.had) {
+      } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=parent->calcBaseFreq(1,1,parent->calcArp(chan[i].note,chan[i].std.arp.val),false);
         }
@@ -712,7 +712,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     } else {
       if (NEW_ARP_STRAT) {
         chan[i].handleArp();
-      } else if (chan[i].std.arp.had) {
+      } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11,chan[i].state.block);
         }
@@ -894,7 +894,9 @@ void DivPlatformGenesis::tick(bool sysTick) {
   for (int i=0; i<csmChan; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
+      if (chan[i].rawFreq) {
+        chan[i].freq=chan[i].baseFreq&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -925,8 +927,13 @@ void DivPlatformGenesis::tick(bool sysTick) {
             off=(double)s->centerRate/parent->getCenterRate();
           }
         }
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
-        chan[i].dacRate=chan[i].freq*off;
+        if (chan[i].rawFreq) {
+          chan[i].freq=chan[i].baseFreq;
+          chan[i].dacRate=chan[i].freq;
+        } else {
+          chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,1,1);
+          chan[i].dacRate=chan[i].freq*off;
+        }
         if (chan[i].dacRate<1) chan[i].dacRate=1;
         if (dumpWrites && !isMuted[i]) addWrite(0xffff0001,chan[i].dacRate);
       }
@@ -1115,6 +1122,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].portaPause=false;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
@@ -1299,6 +1307,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].insChanged=false;
         }
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       }
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
@@ -1825,6 +1834,13 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
 void DivPlatformGenesis::notifyPitchTable(int sample) {
   csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,10,parent->song.tuning,1,1,0x3ffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGenesis::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  // DAC mode maximum
+  if (ch>=5) return 0x3ffff;
+  return 0x3fff;
 }
 
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {

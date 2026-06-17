@@ -323,7 +323,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -894,6 +894,10 @@ void DivPlatformX1_010::notifyInsDeletion(void* ins) {
 void DivPlatformX1_010::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,8192,0xff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformX1_010::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformX1_010::setFlags(const DivConfig& flags) {

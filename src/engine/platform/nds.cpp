@@ -159,7 +159,7 @@ void DivPlatformNDS::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -210,7 +210,8 @@ void DivPlatformNDS::tick(bool sysTick) {
           case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x20; break;
           default: ctrl=0x00; break;
         }
-        chan[i].freq=0x10000-chan[i].calcFreq();
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq=0x10000-chan[i].freq;
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         if ((!chan[i].keyOn) && ((rRead8(0x03+i*16)&0x80)==0))
@@ -280,7 +281,8 @@ void DivPlatformNDS::tick(bool sysTick) {
           rWrite32(0x04+i*16,start&0x7fffffc);
         }
       } else {
-        chan[i].freq=0x10000-chan[i].calcFreq();
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq=0x10000-chan[i].freq;
         if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         ctrl=(chan[i].active?0xe8:0)|(chan[i].duty&7);
@@ -545,6 +547,10 @@ void DivPlatformNDS::notifyPitchTable(int sample) {
   // why is the divider 8??????????
   pitchTable.init(parent->song.tuning,chipClock,8,0x10000,true,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_DIVIDER,0x10000,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformNDS::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformNDS::poke(unsigned int addr, unsigned short val) {

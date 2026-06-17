@@ -147,7 +147,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -415,19 +415,25 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
-      if (!parent->song.compatFlags.oldArpStrategy) {
-        if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
-        } else {
-          chan[i].freq+=chan[i].arpOff<<7;
+      if (chan[i].rawFreq) {
+        chan[i].freq=chan[i].baseFreq;
+        immWrite(i+0x28,(chan[i].freq>>6));
+        immWrite(i+0x30,((chan[i].freq&63)<<2)|(chan[i].chVolL==chan[i].chVolR));
+      } else {
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
+        if (!parent->song.compatFlags.oldArpStrategy) {
+          if (chan[i].fixedArp) {
+            chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
+          } else {
+            chan[i].freq+=chan[i].arpOff<<7;
+          }
         }
+        chan[i].freq+=OFFSET_LINEAR;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
+        immWrite(i+0x28,hScale(chan[i].freq>>7));
+        immWrite(i+0x30,((chan[i].freq<<1)&0xfc)|(chan[i].chVolL==chan[i].chVolR));
       }
-      chan[i].freq+=OFFSET_LINEAR;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
-      immWrite(i+0x28,hScale(chan[i].freq>>7));
-      immWrite(i+0x30,((chan[i].freq<<1)&0xfc)|(chan[i].chVolL==chan[i].chVolR));
       hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
@@ -1074,6 +1080,10 @@ void DivPlatformTX81Z::notifyInsDeletion(void* ins) {
   for (int i=0; i<8; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformTX81Z::getMaxFreq(int ch) {
+  return 0x1fff;
 }
 
 SharedChannel* DivPlatformTX81Z::getChanState(int ch) {

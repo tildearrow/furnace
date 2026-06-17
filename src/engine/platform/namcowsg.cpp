@@ -276,7 +276,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -322,7 +322,6 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=chan[i].calcFreq();
       if (devType==2) {
         if (chan[i].freq<0) chan[i].freq=0;
@@ -681,6 +680,12 @@ void DivPlatformNamcoWSG::notifyInsDeletion(void* ins) {
 
 void DivPlatformNamcoWSG::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,((devType==2)?0xffff:0xfffff),false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformNamcoWSG::getMaxFreq(int ch) {
+  if (devType==2) return 0xffff;
+  // TODO: in the 3-channel WSG, one channel has more precision than the others.
+  return 0xfffff;
 }
 
 void DivPlatformNamcoWSG::setDeviceType(int type) {

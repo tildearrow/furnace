@@ -313,7 +313,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -909,6 +909,10 @@ void DivPlatformAY8930::notifyPitchTable(int sample) {
   if (sample==-1) {
     pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
   }
+}
+
+unsigned int DivPlatformAY8930::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformAY8930::poke(unsigned int addr, unsigned short val) {

@@ -90,6 +90,7 @@ class DivPlatformPCMDAC: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformPCMDAC():

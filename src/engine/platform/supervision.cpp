@@ -110,7 +110,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         if (i==2 || i==3) {
@@ -143,8 +143,10 @@ void DivPlatformSupervision::tick(bool sysTick) {
       if (i<2) {
         // the original code used chipClock<<1. does this break anything?
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq<1) chan[i].freq=1;
-        if (chan[i].freq>2047) chan[i].freq=2047;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<1) chan[i].freq=1;
+          if (chan[i].freq>2047) chan[i].freq=2047;
+        }
         if (chan[i].freqChanged || chan[i].initWrite) {
           rWrite(0x10|(i<<2),chan[i].freq&0xff);
           rWrite(0x11|(i<<2),(chan[i].freq>>8)&0x7);
@@ -480,6 +482,12 @@ void DivPlatformSupervision::notifyInsDeletion(void* ins) {
 
 void DivPlatformSupervision::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSupervision::getMaxFreq(int ch) {
+  if (ch==3) return 15;
+  if (ch==2) return 3;
+  return 0x7ff;
 }
 
 void DivPlatformSupervision::setFlags(const DivConfig& flags) {

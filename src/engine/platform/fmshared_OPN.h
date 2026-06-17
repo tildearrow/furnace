@@ -203,6 +203,9 @@ class DivPlatformOPN: public DivPlatformFMBase {
     void setCombo(unsigned char combo) {
       useCombo=combo;
     }
+    virtual unsigned int getMaxFreq(int ch) {
+      return 0x3fff;
+    }
     virtual int mapVelocity(int ch, float vel) {
       if (ch==csmChan) return vel*127.0;
       if (ch==adpcmBChanOffs) return vel*255.0;

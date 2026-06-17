@@ -3224,7 +3224,7 @@ void FurnaceGUI::alterSampleMap(int column, int val) {
 
   if (advance && sampleMapMin==sampleMapMax) {
     sampleMapSelStart++;
-    if (sampleMapSelStart>119) sampleMapSelStart=119;
+    if (sampleMapSelStart>179) sampleMapSelStart=179;
     sampleMapSelEnd=sampleMapSelStart;
   }
 
@@ -3404,19 +3404,21 @@ void FurnaceGUI::insTabWavetable(DivInstrument* ins)
         ImGui::Text(_("Single-waveform"));
         ImGui::Indent();
         for (int i=0; i<DIV_WS_SINGLE_MAX; i++) {
-          if (ImGui::Selectable(_(singleWSEffects[i]))) { PARAMETER
+          if (ImGui::Selectable(_(singleWSEffects[i]),ins->ws.effect==i)) { PARAMETER
             ins->ws.effect=i;
             wavePreviewInit=true;
           }
+          if (ins->ws.effect==i) ImGui::SetItemDefaultFocus();
         }
         ImGui::Unindent();
         ImGui::Text(_("Dual-waveform"));
         ImGui::Indent();
         for (int i=129; i<DIV_WS_DUAL_MAX; i++) {
-          if (ImGui::Selectable(_(dualWSEffects[i-128]))) { PARAMETER
+          if (ImGui::Selectable(_(dualWSEffects[i-128]),ins->ws.effect==i)) { PARAMETER
             ins->ws.effect=i;
             wavePreviewInit=true;
           }
+          if (ins->ws.effect==i) ImGui::SetItemDefaultFocus();
         }
         ImGui::Unindent();
         ImGui::EndCombo();
@@ -3963,12 +3965,12 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
           ImGui::PushID(i+2);
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##SMSample",prevName.c_str())) {
-            if (ImGui::Selectable("---")) {
+            if (ImGui::Selectable("---",sampleMap.map==-1)) {
               sampleMap.map=-1;
             }
             for (int k=0; k<e->song.sampleLen; k++) {
               String itemName=fmt::sprintf("%d: %s",k,e->song.sample[k]->name);
-              if (ImGui::Selectable(itemName.c_str())) {
+              if (ImGui::Selectable(itemName.c_str(),sampleMap.map==k)) {
                 sampleMap.map=k;
               }
             }
@@ -4389,19 +4391,21 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                     if (!isPresent[j]) continue;
                     ImGui::TableNextColumn();
                     ImGui::PushID(j*17+i);
-                    if (ImGui::Selectable(_(opllInsNames[j][i]))) {
+                    if (ImGui::Selectable(_(opllInsNames[j][i]),ins->fm.opllPreset==i)) { PARAMETER
                       ins->fm.opllPreset=i;
                     }
                     ImGui::PopID();
+                    if (ins->fm.opllPreset==i) ImGui::SetItemDefaultFocus();
                   }
                 }
                 ImGui::EndTable();
               }
             } else {
               for (int i=0; i<17; i++) {
-                if (ImGui::Selectable(_(opllInsNames[presentWhich][i]))) {
+                if (ImGui::Selectable(_(opllInsNames[presentWhich][i]),ins->fm.opllPreset==i)) { PARAMETER
                   ins->fm.opllPreset=i;
                 }
+                if (ins->fm.opllPreset==i) ImGui::SetItemDefaultFocus();
               }
             }
             ImGui::EndCombo();

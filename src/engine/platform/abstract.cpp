@@ -121,6 +121,11 @@ float DivDispatch::getGain(int ch, int vol) {
   return (float)vol/volMax;
 }
 
+// by default we return 0xffff. I hope it's a good one.
+unsigned int DivDispatch::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 int DivDispatch::getPortaFloor(int ch) {
   return 60;
 }

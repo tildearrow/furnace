@@ -117,7 +117,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -958,6 +958,10 @@ void DivPlatformSNES::notifyPitchTable(int sample) {
       wavePitchTable[i].init(parent->song.tuning,chipClock,CHIP_FREQBASE*(1+i)/2.0,0x3fff,false,parent->song.compatFlags.linearPitch);
     }
   }
+}
+
+unsigned int DivPlatformSNES::getMaxFreq(int ch) {
+  return 0x3fff;
 }
 
 void DivPlatformSNES::poke(unsigned int addr, unsigned short val) {

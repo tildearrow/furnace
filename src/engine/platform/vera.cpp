@@ -169,7 +169,7 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -213,7 +213,7 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[16].handleArp();
-  } else if (chan[16].std.arp.had) {
+  } else if (chan[16].std.arp.had && !chan[16].rawFreq) {
     if (!chan[16].inPorta) {
       chan[16].baseFreq=chan[16].calcBaseFreq(parent->calcArp(chan[16].note,chan[16].std.arp.val));
     }
@@ -500,6 +500,10 @@ void DivPlatformVERA::notifyInsDeletion(void* ins) {
 void DivPlatformVERA::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,2097152,0xffff,false,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,17,parent->song.tuning,chipClock,65536,0x80,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformVERA::getMaxFreq(int ch) {
+  return (ch>=16)?0xff:0xffff;
 }
 
 void DivPlatformVERA::poke(unsigned int addr, unsigned short val) {

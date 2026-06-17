@@ -25,7 +25,7 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define NOTE_LINEAR(x) ((x)<<7)
+#define NOTE_LINEAR(x) ((x)&DIV_NOTE_RAW_FLAG)?((x)&0xff):((x)<<7)
 
 const char* regCheatSheetMSM5232[]={
   "Select", "0",
@@ -110,7 +110,7 @@ void DivPlatformMSM5232::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -155,17 +155,20 @@ void DivPlatformMSM5232::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(72<<7);
-      if (!parent->song.compatFlags.oldArpStrategy) {
-        if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(72<<7);
-        } else {
-          chan[i].freq+=chan[i].arpOff<<7;
+      if (chan[i].rawFreq) {
+        chan[i].freq=(chan[i].baseFreq&0xff)<<7;
+      } else {
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(72<<7);
+        if (!parent->song.compatFlags.oldArpStrategy) {
+          if (chan[i].fixedArp) {
+            chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(72<<7);
+          } else {
+            chan[i].freq+=chan[i].arpOff<<7;
+          }
         }
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x2aff) chan[i].freq=0x2aff;
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x2aff) chan[i].freq=0x2aff;
       if (chan[i].keyOn) {
         //rWrite(16+i*5,0x80);
         //chWrite(i,0x04,0x80|chan[i].vol);
@@ -200,6 +203,7 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+        chan[c.chan].rawFreq=(c.value&DIV_NOTE_RAW_FLAG);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -399,6 +403,10 @@ void DivPlatformMSM5232::notifyInsDeletion(void* ins) {
   for (int i=0; i<8; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformMSM5232::getMaxFreq(int ch) {
+  return 0xff;
 }
 
 void DivPlatformMSM5232::setFlags(const DivConfig& flags) {

@@ -58,78 +58,6 @@ const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-// Mednafen
-void DivPlatformSwan::acquireDirect(blip_buffer_t** bb, size_t len) {
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->begin(len);
-    ws_mdfn->oscBuf[i]=oscBuf[i];
-  }
-
-  ws_mdfn->sbuf[0]=bb[0];
-  ws_mdfn->sbuf[1]=bb[1];
-
-  for (size_t h=0; h<len; h++) {
-    ws_mdfn->v30mz_timestamp=h;
-    // heuristic
-    int pcmAdvance=1;
-    if (writes.empty()) {
-      if (!pcm || dacSample==-1) {
-        break;
-      } else {
-        pcmAdvance=len-h;
-        if (dacRate>0) {
-          int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
-          if (remainTime<pcmAdvance) pcmAdvance=remainTime;
-          if (remainTime<1) pcmAdvance=1;
-        }
-      }
-    }
-
-    // PCM part
-    if (pcm && dacSample!=-1) {
-      dacPeriod+=dacRate*pcmAdvance;
-      while (dacPeriod>=rate) {
-        DivSample* s=parent->getSample(dacSample);
-        if (s->samples<=0 || dacPos>=s->samples) {
-          dacSample=-1;
-          dacPeriod=0;
-          break;
-        }
-        rWrite(0x09,(unsigned char)s->data8[dacPos++]+0x80);
-        if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
-          dacPos=s->loopStart;
-        } else if (dacPos>=s->samples) {
-          dacSample=-1;
-        }
-        dacPeriod-=rate;
-      }
-    }
-
-    h+=pcmAdvance-1;
-  
-    // the rest
-    while (!writes.empty()) {
-      QueuedWrite w=writes.front();
-      regPool[w.addr]=w.val;
-      if (w.addr<0x40) {
-        ws_mdfn->SoundWrite(w.addr|0x80,w.val);
-      } else {
-        ws_mdfn->SoundCheckRAMWrite(w.addr&0x3f);
-        ws_mdfn->RAMWrite(w.addr&0x3f,w.val);
-      }
-      writes.pop();
-    }
-  }
-
-  ws_mdfn->v30mz_timestamp=len;
-  ws_mdfn->SoundUpdate();
-  ws_mdfn->SoundFlush(NULL,0);
-
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->end(len);
-  }
-}
-
 // asiekierka
 void DivPlatformSwan::acquire(short** buf, size_t len) {
   for (int i=0; i<4; i++) {
@@ -238,7 +166,7 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -291,11 +219,16 @@ void DivPlatformSwan::tick(bool sysTick) {
         dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
         if (dumpWrites) postWrite(0xffff0001,dacRate);
       }
-      if (chan[i].freq>2048) chan[i].freq=2048;
-      if (chan[i].freq<1) chan[i].freq=1;
-      int rVal=2048-chan[i].freq;
-      rWrite(i*2,rVal&0xff);
-      rWrite(i*2+1,rVal>>8);
+      if (chan[i].rawFreq) {
+        rWrite(i*2,chan[i].freq&0xff);
+        rWrite(i*2+1,(chan[i].freq>>8)&7);
+      } else {
+        if (chan[i].freq>2048) chan[i].freq=2048;
+        if (chan[i].freq<1) chan[i].freq=1;
+        int rVal=2048-chan[i].freq;
+        rWrite(i*2,rVal&0xff);
+        rWrite(i*2+1,rVal>>8);
+      }
       if (chan[i].keyOn) {
         if (!chan[i].std.vol.will) {
           calcAndWriteOutVol(i,15);
@@ -644,7 +577,6 @@ void DivPlatformSwan::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  ws_mdfn->SoundReset();
   swan_sound_init(&ws, true);
   pcm=false;
   sweep=false;
@@ -659,19 +591,11 @@ void DivPlatformSwan::reset() {
 }
 
 int DivPlatformSwan::getOutputCount() {
-  return (stereo || useMdfn)?2:1;
+  return (stereo)?2:1;
 }
 
 bool DivPlatformSwan::hasSoftPan(int ch) {
-  return (stereo || useMdfn);
-}
-
-bool DivPlatformSwan::hasAcquireDirect() {
-  return useMdfn;
-}
-
-void DivPlatformSwan::setUseMdfn(bool use) {
-  useMdfn=use;
+  return (stereo);
 }
 
 void DivPlatformSwan::notifyWaveChange(int wave) {
@@ -694,6 +618,10 @@ void DivPlatformSwan::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,4,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
+unsigned int DivPlatformSwan::getMaxFreq(int ch) {
+  return 0x7ff;
+}
+
 void DivPlatformSwan::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
@@ -705,11 +633,7 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
-  if (useMdfn) {
-    rate=chipClock;
-  } else {
-    rate=chipClock/128;
-  }
+  rate=chipClock/128;
   stereo=flags.getBool("stereo",true);
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
@@ -730,8 +654,6 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConf
     oscBuf[i]=new DivDispatchOscBuffer;
   }
 
-  ws_mdfn=new WSwan();
-
   setFlags(flags);
   reset();
   return 4;
@@ -741,7 +663,6 @@ void DivPlatformSwan::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
-  delete ws_mdfn;
 }
 
 DivPlatformSwan::~DivPlatformSwan() {

@@ -201,7 +201,7 @@ void DivPlatformN163::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -267,14 +267,16 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
       chan[i].freq=chan[i].calcFreq();
-      if (lenCompensate) {
-        chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
-      } else {
-        chan[i].freq*=(chanMax+1);
-        chan[i].freq>>=3;
+      if (!chan[i].rawFreq) {
+        if (lenCompensate) {
+          chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
+        } else {
+          chan[i].freq*=(chanMax+1);
+          chan[i].freq>>=3;
+        }
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff && !isMuted[i]) {
@@ -555,6 +557,10 @@ void DivPlatformN163::notifyInsDeletion(void* ins) {
 
 void DivPlatformN163::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x7ffffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformN163::getMaxFreq(int ch) {
+  return 0x3ffff;
 }
 
 SharedChannel* DivPlatformN163::getChanState(int ch) {

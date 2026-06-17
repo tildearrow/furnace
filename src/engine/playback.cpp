@@ -124,7 +124,7 @@ const char* cmdName[]={
   "STD_NOISE_MODE",
 
   "WAVE",
-  
+
   "GB_SWEEP_TIME",
   "GB_SWEEP_DIR",
 
@@ -166,7 +166,7 @@ const char* cmdName[]={
   "AMIGA_FILTER",
   "AMIGA_AM",
   "AMIGA_PM",
-  
+
   "LYNX_LFSR_LOAD",
 
   "QSOUND_ECHO_FEEDBACK",
@@ -277,7 +277,7 @@ const char* cmdName[]={
   "BIFURCATOR_PARAMETER",
 
   "FDS_MOD_AUTO",
-  
+
   "FM_OPMASK",
 
   "MULTIPCM_MIX_FM",
@@ -470,7 +470,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
               int target=c.value-60+12;
               if (target<0) target=0;
               if (target>127) target=127;
-              
+
               // set the source note?
               if (chan[c.chan].curMidiNote>=0) {
                 output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x54,chan[c.chan].curMidiNote));
@@ -827,7 +827,44 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // send macro release
     dispatchCmd(DivCommand(DIV_CMD_ENV_RELEASE,i));
     chan[i].releasing=true;
+  } else if (pat->newData[whatRow][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency/period
+    // stop the current porta if we weren't in raw frequency mode
+    if (!(chan[i].note&DIV_NOTE_RAW_FLAG)) {
+      if (chan[i].portaSpeed>0) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,0,0));
+        chan[i].inPorta=false;
+        dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+      }
+    }
+
+    // disable arpeggio completely
+    chan[i].arp=0;
+    dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+
+    chan[i].oldNote=chan[i].note;
+    chan[i].note=(
+      pat->newData[whatRow][DIV_PAT_RAW0]|
+      (pat->newData[whatRow][DIV_PAT_RAW1]<<8)|
+      (pat->newData[whatRow][DIV_PAT_RAW2]<<16)|
+      (pat->newData[whatRow][DIV_PAT_RAW3]<<24)|
+      DIV_NOTE_RAW_FLAG
+    )&(DIV_NOTE_RAW_FLAG|getMaxFreqChan(i));
+
+    chan[i].doNote=true;
   } else if (pat->newData[whatRow][DIV_PAT_NOTE]!=-1) {
+    // stop the current porta if we were in raw frequency mode
+    if (chan[i].note&DIV_NOTE_RAW_FLAG) {
+      if (chan[i].portaSpeed>0) {
+        chan[i].portaNote=-1;
+        chan[i].portaSpeed=-1;
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,0,0));
+        chan[i].inPorta=false;
+        dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+      }
+    }
+
     // prepare/schedule a new note
     chan[i].oldNote=chan[i].note;
     chan[i].note=pat->newData[whatRow][DIV_PAT_NOTE];
@@ -866,7 +903,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       break; // technically you could have both D3 and D4... let's not care
     }
   }
-  
+
   // don't apply volume if a scivolando is set
   if (pat->newData[whatRow][DIV_PAT_VOL]!=-1 && !noApplyVolume) {
     // COMPAT FLAG: legacy ALWAYS_SET_VOLUME behavior (oldAlwaysSetVolume)
@@ -1000,8 +1037,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
           // - yep, the lowest portamento note depends on the system...
           // - the highest note is B-9. I am sorry.
-          chan[i].portaNote=song.compatFlags.limitSlides?156:179;
-          chan[i].portaSpeed=effectVal;
+          if (chan[i].note&DIV_NOTE_RAW_FLAG) {
+            // if we're in raw frequency mode, we must use the max raw frequency
+            chan[i].portaNote=getMaxFreqChan(i)|DIV_NOTE_RAW_FLAG;
+            chan[i].portaSpeed=effectVal;
+          } else {
+            // otherwise proceed as usual
+            chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+            chan[i].portaSpeed=effectVal;
+          }
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
           // most of these are used for compat flag handling
           chan[i].portaStop=true;
@@ -1036,8 +1080,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
           // COMPAT FLAG: limit slide range
           // - this confines pitch slides from dispatch->getPortaFloor to C-8 (I think)
           // - yep, the lowest portamento note depends on the system...
-          chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
-          chan[i].portaSpeed=effectVal;
+          if (chan[i].note&DIV_NOTE_RAW_FLAG) {
+            // if we're in raw frequency mode, we must use zero
+            chan[i].portaNote=0|DIV_NOTE_RAW_FLAG;
+            chan[i].portaSpeed=effectVal;
+          } else {
+            // otherwise proceed as usual
+            chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
+            chan[i].portaSpeed=effectVal;
+          }
           dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
           chan[i].portaStop=true;
           chan[i].stopOnOff=false;
@@ -1222,6 +1273,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       /// NOTE
       case 0x00: // arpeggio
+        // don't accept simultaneous arp and raw frequency
+        if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].arp=effectVal;
         // COMPAT FLAG: reset note to base on arp stop (inverted in the GUI)
         // - a 0000 effect resets arpeggio position
@@ -1241,7 +1294,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       /// MISC
       case 0x90: case 0x91: case 0x92: case 0x93:
-      case 0x94: case 0x95: case 0x96: case 0x97: 
+      case 0x94: case 0x95: case 0x96: case 0x97:
       case 0x98: case 0x99: case 0x9a: case 0x9b:
       case 0x9c: case 0x9d: case 0x9e: case 0x9f: // set samp. pos
         // COMPAT FLAG: old sample offset effect
@@ -1315,6 +1368,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xe1: // portamento up
         // this is a shortcut for 03xx and a higher note.
         // it has the benefit of being able to be used in conjunction with a note.
+        // it is ignored in raw frequency mode...
+        if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
@@ -1344,6 +1399,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       case 0xe2: // portamento down
         // this is the same as E1xy but in the opposite direction.
+        // it is ignored in raw frequency mode...
+        if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
@@ -1676,12 +1733,20 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // these are done later to let note on happen first
         case 0xf1: // single pitch slide up
         case 0xf2: // single pitch slide down
-          if (effect==0xf1) {
-            // COMPAT FLAG: limit slide range
-            chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+          if (chan[i].note&DIV_NOTE_RAW_FLAG) {
+            if (effect==0xf1) {
+              chan[i].portaNote=getMaxFreqChan(i)|DIV_NOTE_RAW_FLAG;
+            } else {
+              chan[i].portaNote=0|DIV_NOTE_RAW_FLAG;
+            }
           } else {
-            // COMPAT FLAG: limit slide range
-            chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
+            if (effect==0xf1) {
+              // COMPAT FLAG: limit slide range
+              chan[i].portaNote=song.compatFlags.limitSlides?156:179;
+            } else {
+              // COMPAT FLAG: limit slide range
+              chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
+            }
           }
           chan[i].portaSpeed=effectVal;
           chan[i].portaStop=true;
@@ -1690,7 +1755,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
-          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.compatFlags.linearPitch?song.compatFlags.pitchSlideSpeed:1),chan[i].portaNote));
+          int portaSpeedMultiplier=(song.compatFlags.linearPitch && !(chan[i].note&DIV_NOTE_RAW_FLAG))?song.compatFlags.pitchSlideSpeed:1;
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*portaSpeedMultiplier,chan[i].portaNote));
           chan[i].portaNote=-1;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
@@ -1866,7 +1932,7 @@ void DivEngine::nextRow() {
   if (song.compatFlags.brokenSpeedSel) {
     unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
     unsigned char speed1=speeds.val[0];
-    
+
     // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
     if ((curSubSong->patLen&1) && curOrder&1) {
       ticks=((curRow&1)?speed2:speed1);
@@ -2015,7 +2081,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   } else {
     tickMult=1;
   }
-  
+
   // set the number of samples between ticks (or sub-ticks in low-latency mode)
   cycles=got.rate/(divider*tickMult);
   clockDrift+=fmod(got.rate,(double)(divider*tickMult));
@@ -2437,7 +2503,9 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             // - 1: full (pitch slides linear... we multiply the portamento speed by a user-defined multiplier)
             // COMPAT FLAG: reset pitch slide/portamento upon reaching target (inverted in the GUI)
             // - when disabled, portamento remains active after it has finished
-            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(song.compatFlags.linearPitch?song.compatFlags.pitchSlideSpeed:1),chan[i].portaNote))==2 && chan[i].portaStop && song.compatFlags.targetResetsSlides) {
+            // don't use the user-defined multiplier in raw frequency mode
+            int portaSpeedMultiplier=(song.compatFlags.linearPitch && !(chan[i].note&DIV_NOTE_RAW_FLAG))?song.compatFlags.pitchSlideSpeed:1;
+            if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*portaSpeedMultiplier,chan[i].portaNote))==2 && chan[i].portaStop && song.compatFlags.targetResetsSlides) {
               // if we are here, it means we reached the target and shall stop
               chan[i].portaSpeed=0;
               dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
@@ -2617,7 +2685,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     }
   }
 
-  
+
   // halt engine if requested (debug menu)
   if (haltOn==DIV_HALT_TICK) halted=true;
 
@@ -2706,7 +2774,7 @@ void DivEngine::runMidiTime(int totalCycles) {
     int frame=0;
     int drop=0;
     int actualTime=curMidiTimeCode;
-    
+
     switch (timeRate) {
       case 1: // 24
         frameRate=96.0;
@@ -2920,7 +2988,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     //logD("%.2x",msg.type);
     output->midiIn->queue.pop();
   }
-  
+
   // process sample/wave preview (not during audio export)
   if (((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) && !exporting) {
     // we use blip_buf to pitch the sample
@@ -3185,7 +3253,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
                   dc->cycles-=lastAvail;
                 }
               }
-              
+
               // if the buffer is too small, resize it
               int total=blip_clocks_needed(dc->bb[0],dc->cycles);
               if (total>(int)dc->bbInLen) {

@@ -94,6 +94,7 @@ void DivPlatformT6W28::writeOutVol(int ch) {
 
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
+  if (chan[ch].rawFreq) return chan[ch].calcFreq();
   if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
     int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
     if (ret<0) ret=0;
@@ -110,7 +111,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=chan[i].calcBaseFreq(noiseSeek);
@@ -373,6 +374,10 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
 void DivPlatformT6W28::notifyPitchTable(int sample) {
   tonePitchTable.init(parent->song.tuning,chipClock,16,0x3ff,true,parent->song.compatFlags.linearPitch);
   noisePitchTable.init(parent->song.tuning,chipClock,15,0x3ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformT6W28::getMaxFreq(int ch) {
+  return 0x3ff;
 }
 
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {

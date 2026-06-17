@@ -483,7 +483,7 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       opChan[i].handleArp();
-    } else if (opChan[i].std.arp.had) {
+    } else if (opChan[i].std.arp.had && !opChan[i].rawFreq) {
       if (!opChan[i].inPorta) {
         opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
@@ -605,7 +605,9 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
   unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
+      if (opChan[i].rawFreq) {
+        opChan[i].freq=opChan[i].baseFreq&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
         opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);
@@ -640,10 +642,15 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
   }
   if (extMode) {
     if (chan[csmChan].freqChanged) {
+      int wf=0;
       chan[csmChan].freq=chan[csmChan].calcFreq();
-      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
-      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
-      int wf=0x400-chan[csmChan].freq;
+      if (chan[csmChan].rawFreq) {
+        wf=chan[csmChan].freq&0x3ff;
+      } else {
+        if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+        if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+        wf=0x400-chan[csmChan].freq;
+      }
       immWrite(0x24,wf>>2);
       immWrite(0x25,wf&3);
       chan[csmChan].freqChanged=false;
@@ -862,6 +869,12 @@ void DivPlatformYM2610Ext::notifyInsDeletion(void* ins) {
     opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
+
+unsigned int DivPlatformYM2610Ext::getMaxFreq(int ch) {
+  if (ch>4) return DivPlatformYM2610::getMaxFreq(ch-3);
+  return 0x3fff;
+}
+
 
 int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2610::init(parent,channels,sugRate,flags);

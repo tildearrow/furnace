@@ -499,7 +499,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     // arpeggio/pitch macros, frequency related
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
@@ -1397,6 +1397,10 @@ void DivPlatformES5506::notifyPitchTable(int sample) {
   } else {
     samplePitchTable.update<Channel>(chan,32,parent->song.tuning,chipClock,PITCH_OFFSET,0x1ffff,false,parent->song.compatFlags.linearPitch,sample);
   }
+}
+
+unsigned int DivPlatformES5506::getMaxFreq(int ch) {
+  return 0x1ffff;
 }
 
 void DivPlatformES5506::setFlags(const DivConfig& flags) {

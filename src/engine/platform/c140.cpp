@@ -159,7 +159,7 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -562,6 +562,10 @@ void DivPlatformC140::notifyInsDeletion(void* ins) {
 
 void DivPlatformC140::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,24,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformC140::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformC140::poke(unsigned int addr, unsigned short val) {

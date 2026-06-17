@@ -373,7 +373,7 @@ void DivPlatformSID3::tick(bool sysTick)
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -1254,6 +1254,10 @@ void DivPlatformSID3::notifyInsDeletion(void* ins) {
 void DivPlatformSID3::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,SID3_NUM_CHANNELS,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformSID3::getMaxFreq(int ch) {
+  return 0xffffff;
 }
 
 SharedChannel* DivPlatformSID3::getChanState(int ch) {

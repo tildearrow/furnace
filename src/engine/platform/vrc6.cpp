@@ -170,7 +170,7 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -214,9 +214,11 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=chan[i].calcFreq()-1;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq--;
       } else { // pulse
-        chan[i].freq=chan[i].calcFreq()-1;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq--;
         if (chan[i].pcm) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -549,6 +551,10 @@ void DivPlatformVRC6::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,16,0x1000,true,parent->song.compatFlags.linearPitch);
   sawPitchTable.init(parent->song.tuning,chipClock,14,0x1000,true,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformVRC6::getMaxFreq(int ch) {
+  return 0xfff;
 }
 
 void DivPlatformVRC6::poke(unsigned int addr, unsigned short val) {

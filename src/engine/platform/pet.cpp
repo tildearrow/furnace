@@ -104,7 +104,7 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[0].handleArp();
-  } else if (chan[0].std.arp.had) {
+  } else if (chan[0].std.arp.had && !chan[0].rawFreq) {
     if (!chan[0].inPorta) {
       chan[0].baseFreq=chan[0].calcBaseFreq(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }
@@ -126,7 +126,8 @@ void DivPlatformPET::tick(bool sysTick) {
     chan[0].freqChanged=true;
   }
   if (chan[0].freqChanged || chan[0].keyOn || chan[0].keyOff) {
-    chan[0].freq=chan[0].calcFreq()-2;
+    chan[0].freq=chan[0].calcFreq();
+    if (!chan[0].rawFreq) chan[0].freq-=2;
     if (chan[0].freq>65535) chan[0].freq=65535;
     if (chan[0].freq<0) chan[0].freq=0;
     rWrite(8,chan[0].freq&0xff);
@@ -299,6 +300,11 @@ void DivPlatformPET::notifyInsDeletion(void* ins) {
 
 void DivPlatformPET::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x10001,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformPET::getMaxFreq(int ch) {
+  // the PET's real frequency range is $00 to $FF.
+  return 0xff;
 }
 
 void DivPlatformPET::poke(unsigned int addr, unsigned short val) {

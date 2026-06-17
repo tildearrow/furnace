@@ -172,7 +172,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -348,7 +348,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
       if (chan[i].fixedFreq>0 && properDrums) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
-      int freqt=toFreq(chan[i].freq,fixedBlock);
+      int freqt=chan[i].rawFreq?chan[i].freq:toFreq(chan[i].freq,fixedBlock);
       if (freqt>4095) freqt=4095;
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums && (i<9 || !noTopHatFreq)) {
@@ -1184,6 +1184,10 @@ void DivPlatformOPLL::notifyInsDeletion(void* ins) {
 
 void DivPlatformOPLL::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformOPLL::getMaxFreq(int ch) {
+  return 0xfff;
 }
 
 void DivPlatformOPLL::poke(unsigned int addr, unsigned short val) {

@@ -389,7 +389,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
       if (newDef!=NULL) {
         if (romExportAvail[i]) {
-          if (ImGui::Selectable(newDef->name)) {
+          if (ImGui::Selectable(newDef->name,romTarget==i)) {
             romTarget=(DivROMExportOptions)i;
             romMultiFile=newDef->multiOutput;
             romConfig=DivConfig();

@@ -70,7 +70,7 @@ class TAFile {
      *   - SEEK_END: from end of file
      * @throws TAFileError if an error occurs.
      */
-    virtual void seek(int off, int whence);
+    virtual void seek(long off, int whence);
 
     /**
      * get the current file position.
