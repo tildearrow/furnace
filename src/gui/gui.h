@@ -3002,7 +3002,10 @@ class FurnaceGUI {
   DivCSProgress csProgress;
 
   // JSON export specific
-  bool JSONPrettyOutput;
+  struct JSONExportOptions {
+    bool pretty;
+    bool bson;
+  } jsonExportOptions;
 
   // ROM export specific
   DivROMExportOptions romTarget;

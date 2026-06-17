@@ -656,7 +656,7 @@ class DivEngine {
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
     // export to json
-    SafeWriter* saveJSON(bool pretty=true);
+    SafeWriter* saveJSON(bool pretty=true, bool bson=false);
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish

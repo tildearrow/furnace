@@ -2318,16 +2318,23 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
-    case GUI_FILE_EXPORT_JSON:
+    case GUI_FILE_EXPORT_JSON: {
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      String filter=_("JSON file");
+      String filterExt="*.json";
+      if (jsonExportOptions.bson) {
+        filter=_("BSON file");
+        filterExt="*.bson";
+      }
       hasOpened=fileDialog->openSave(
-        _("Export JSON"),
-        {_("JSON file"), "*.json"},
+        _("Export JSON data"),
+        {filter,filterExt},
         workingDirROMExport,
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
       break;
+    }
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -5896,7 +5903,12 @@ bool FurnaceGUI::loop() {
             checkExtension(".txt");
           }
           if (curFileDialog==GUI_FILE_EXPORT_JSON) {
-            checkExtension(".json");
+            if (jsonExportOptions.bson) {
+              checkExtension(".bson");
+            } else {
+              checkExtension(".json");
+            }
+            
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
@@ -6481,7 +6493,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_JSON: {
-              SafeWriter* w=e->saveJSON(JSONPrettyOutput);
+              SafeWriter* w=e->saveJSON(jsonExportOptions.pretty,jsonExportOptions.bson);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -6497,7 +6509,7 @@ bool FurnaceGUI::loop() {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
               } else {
-                showError(fmt::sprintf(_("could not write JSON! (%s)"),e->getLastError()));
+                showError(fmt::sprintf(_("could not write JSON data! (%s)"),e->getLastError()));
               }
               break;
             }
@@ -9619,7 +9631,7 @@ FurnaceGUI::FurnaceGUI():
   audioExportFilterExt("*"),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
-  JSONPrettyOutput(false),
+  jsonExportOptions({false,false}),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

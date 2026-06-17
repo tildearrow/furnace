@@ -533,9 +533,12 @@ void FurnaceGUI::drawExportJSON(bool onWindow) {
   exitDisabledTimer=1;
 
   ImGui::Text(
-    _("this option exports the song to a JSON file.\n")
+    _("this option exports the song in the JSON format.\n")
   );
-  ImGui::Checkbox(_("Formatted output"), &JSONPrettyOutput);
+  ImGui::BeginDisabled(jsonExportOptions.bson);
+  ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.pretty);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("BSON file"), &jsonExportOptions.bson);
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();

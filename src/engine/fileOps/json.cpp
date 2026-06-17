@@ -24,8 +24,10 @@ using JSON = nlohmann::json;
 
 JSON serializePattern(DivPattern* pat, int rows, int effectCols);
 JSON serializeInstrument(DivInstrument* ins);
+JSON serializeWavetable(DivWavetable* wave);
+JSON serializeSample(DivSample* sample);
 
-SafeWriter* DivEngine::saveJSON(bool pretty) {
+SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
   saveLock.lock();
 
   JSON json;
@@ -60,6 +62,19 @@ SafeWriter* DivEngine::saveJSON(bool pretty) {
   json["comments"]=song.notes;
   json["subsongs"]={};
   
+  json["instruments"]={};
+  for (int j=0; j<song.insLen; j++) {
+    json["instruments"].push_back(serializeInstrument(getIns(j)));
+  }
+  json["wavetables"]={};
+  for (int j=0; j<song.waveLen; j++) {
+    json["wavetables"].push_back(serializeWavetable(getWave(j)));
+  }
+  json["samples"]={};
+  for (int j=0; j<song.sampleLen; j++) {
+    json["samples"].push_back(serializeSample(getSample(j)));
+  }
+  
   for (size_t i=0; i<song.subsong.size(); i++) {
     JSON subsong;
     DivSubSong* s=song.subsong[i];
@@ -83,22 +98,23 @@ SafeWriter* DivEngine::saveJSON(bool pretty) {
       subsong["orders"].push_back(order);
       subsong["patterns"].push_back(patterns);
     }
-    subsong["instruments"]={};
-    for (int j=0; j<song.insLen; j++) {
-      subsong["instruments"].push_back(serializeInstrument(getIns(j)));
-    }
     json["subsongs"].push_back(subsong);
   }
 
   SafeWriter* w=new SafeWriter;
   w->init();
-  String dump;
-  if (pretty) {
-    dump=json.dump(2);
+  if (bson) {
+    std::vector<uint8_t> bsonDump=JSON::to_bson(json);
+    w->write(bsonDump.data(),bsonDump.size());
   } else {
-    dump=json.dump();
+    String dump;
+    if (pretty) {
+      dump=json.dump(2);
+    } else {
+      dump=json.dump();
+    }
+    w->writeString(dump,false);
   }
-  w->writeString(dump,false);
 
   saveLock.unlock();
   return w;
@@ -116,6 +132,7 @@ JSON serializePattern(DivPattern* pat, int rows, int effectCols) {
   for (int i=0; i<rows; i++) {
     JSON row;
     bool isEmpty=true;
+    // TODO: raw note
     if (pat->newData[i][DIV_PAT_NOTE]!=-1) {
       row["note"]=pat->newData[i][DIV_PAT_NOTE];
       isEmpty=false;
@@ -159,7 +176,6 @@ JSON serializePattern(DivPattern* pat, int rows, int effectCols) {
       json["rows"].push_back({});
     else
       json["rows"].push_back(row);
-    
   }
 
   return json;
@@ -333,7 +349,7 @@ JSON serializeInstrument(DivInstrument* ins) {
     case DIV_INS_NULL:
       break;
   }
-  
+
   if (ins->std.volMacro.len ||
       ins->std.arpMacro.len ||
       ins->std.dutyMacro.len ||
@@ -503,6 +519,136 @@ JSON serializeInstrument(DivInstrument* ins) {
 
     json["fds"]=fds;
   }
+  if (featureMP) {
+    JSON multipcm;
+    SET_VALUE(multipcm,ar);
+    SET_VALUE(multipcm,d1r);
+    SET_VALUE(multipcm,dl);
+    SET_VALUE(multipcm,d2r);
+    SET_VALUE(multipcm,rr);
+    SET_VALUE(multipcm,rc);
+    SET_VALUE(multipcm,lfo);
+    SET_VALUE(multipcm,vib);
+    SET_VALUE(multipcm,am);
+    SET_VALUE(multipcm,damp);
+    SET_VALUE(multipcm,pseudoReverb);
+    SET_VALUE(multipcm,lfoReset);
+    SET_VALUE(multipcm,levelDirect);
+    json["multipcm"]=multipcm;
+  }
+  if (featureSU) {
+    JSON su;
+    SET_VALUE(su,switchRoles);
+    SET_VALUE(su,hwSeqLen);
+    su["hwSeq"]={};
+    for (int i=0; i<=ins->su.hwSeqLen; i++) {
+      JSON seq;
+      seq["cmd"]=ins->su.hwSeq[i].cmd;
+      seq["bound"]=ins->su.hwSeq[i].bound;
+      seq["val"]=ins->su.hwSeq[i].val;
+      seq["speed"]=ins->su.hwSeq[i].speed;
+      // seq["padding"]=ins->su.hwSeq[i].padding;
+      su["hwSeq"].push_back(seq);
+    }
+    json["su"]=su;
+  }
+  if (featureES) {
+    JSON es;
+    es["filter"]={};
+    es["envelope"]={};
+    es["filter"]["mode"]=ins->es5506.filter.mode;
+    es["filter"]["k1"]=ins->es5506.filter.k1;
+    es["filter"]["k2"]=ins->es5506.filter.k2;
+    es["envelope"]["ecount"]=ins->es5506.envelope.ecount;
+    es["envelope"]["lVRamp"]=ins->es5506.envelope.lVRamp;
+    es["envelope"]["rVRamp"]=ins->es5506.envelope.rVRamp;
+    es["envelope"]["k1Ramp"]=ins->es5506.envelope.k1Ramp;
+    es["envelope"]["k2Ramp"]=ins->es5506.envelope.k2Ramp;
+    es["envelope"]["k1Slow"]=ins->es5506.envelope.k1Slow;
+    es["envelope"]["k2Slow"]=ins->es5506.envelope.k2Slow;
+    json["es5506"]=es;
+  }
+  if (featureSN) {
+    JSON snes;
+    SET_VALUE(snes,useEnv);
+    SET_VALUE(snes,sus);
+    SET_VALUE(snes,gainMode);
+    SET_VALUE(snes,a);
+    SET_VALUE(snes,d);
+    SET_VALUE(snes,s);
+    SET_VALUE(snes,r);
+    SET_VALUE(snes,d2);
+    json["snes"]=snes;
+  }
+  if (featureEF) {
+    JSON esfm;
+    SET_VALUE(esfm,noise);
+    esfm["op"]={};
+    for (int i=0; i<4; i++) {
+      JSON op;
+#define SET_OP_VALUE(x) op[#x]=ins->esfm.op[i].x;
+      SET_OP_VALUE(delay);
+      SET_OP_VALUE(outLvl);
+      SET_OP_VALUE(modIn);
+      SET_OP_VALUE(left);
+      SET_OP_VALUE(right);
+      SET_OP_VALUE(fixed);
+      SET_OP_VALUE(ct);
+      SET_OP_VALUE(dt);
+#undef SET_OP_VALUE
+      esfm["op"].push_back(op);
+    }
+    json["esfm"]=esfm;
+  }
+  if (featurePN) {
+    JSON powernoise;
+    SET_VALUE(powernoise,octave);
+    json["powernoise"]=powernoise;
+  }
 
+  return json;
+}
+
+JSON serializeWavetable(DivWavetable* wave) {
+  JSON json;
+  json["len"]=wave->len;
+  // json["min"]=wave->min;
+  json["max"]=wave->max;
+  json["data"]={};
+  for (int i=0; i<wave->len; i++) {
+    json["data"].push_back(wave->data[i]);
+  }
+
+  return json;
+}
+
+JSON serializeSample(DivSample* sample) {
+  JSON json;
+  json["name"]=sample->name;
+  json["centerRate"]=sample->centerRate;
+  json["loopStart"]=sample->loopStart;
+  json["loopEnd"]=sample->loopEnd;
+  json["depth"]=sample->depth;
+  json["loop"]=sample->loop;
+  json["brrEmphasis"]=sample->brrEmphasis;
+  json["brrNoFilter"]=sample->brrNoFilter;
+  json["dither"]=sample->dither;
+  json["loopMode"]=sample->loopMode;
+  json["samples"]=sample->samples;
+
+  json["renderOn"]={};
+  for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
+    JSON renderPerType={};
+    for (int j=0; j<DIV_MAX_CHIPS; j++) {
+      renderPerType.push_back(sample->renderOn[i][j]);
+    }
+    json["renderOn"].push_back(renderPerType);
+  }
+
+  json["data"]={};
+  unsigned char* data=(unsigned char*)sample->getCurBuf();
+  for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
+    json["data"].push_back(data[i]);
+  }
   return json;
 }
