@@ -51,4 +51,5 @@ the default layout of Furnace is depicted below.
 - [piano/input pad](../8-advanced/piano.md)
 - [reference music player](../8-advanced/refPlayer.md)
 - [multi-ins setup](../8-advanced/multi-ins.md)
+- [backup management](backup.md)
 - [settings](settings.md)

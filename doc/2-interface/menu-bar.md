@@ -88,6 +88,7 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
 - **pattern visualizer**: toggles pattern view particle effects when the song plays.
 - **reset layout**: resets the workspace to its defaults.
 - **user systems...**: shows the User Systems window. this is detailed in [the User Systems documentation](../8-advanced/user-systems.md).
+- **backup management...**: shows the Backup Management window, detailed in [the Backup Management documentation](backup.md).
 - **settings...**: shows the Settings window. these are detailed in [the Settings documentation](settings.md).
 
 ## window
@@ -136,9 +137,9 @@ all these menu items show or hide their associated windows.
 
 ## help
 
+- **effect list**: displays the [effect list](../3-pattern/effects.md).
 - **online manual**: opens the online manual in your default browser.
   - the online manual is frequently updated to match Furnace's development; it may contain material that doesn't apply to the most recent stable release.
-- **effect list**: displays the [effect list](../3-pattern/effects.md).
 - **debug menu**: this menu contains various debug utilities.
   - unless you are working with the Furnace codebase, it's not useful.
 - **inspector**: this option shows the Dear ImGui Metrics/Debugger window.

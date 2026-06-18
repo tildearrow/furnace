@@ -85,6 +85,7 @@ to rename and/or hide channels, open [the Channels window](../8-advanced/channel
 - **note release** (`===`) triggers macro release (and in FM/hardware envelope channels it also triggers key off).
 - **macro release** (`REL`) does the same as above, but does not trigger key off in FM/hardware envelope channels.
 - **toggle edit** enables and disables editing. when editing is enabled, the cursor's row will be shaded red.
+- **toggle raw note** does not have a default key, but can be bound in [keyboard settings](./settings.md#note-input). when toggled, notes are not entered by note name but as a hexadecimal value sent directly to the chip's frequency register. it is recommended to read the [raw note documentation](../9-guides/raw-notes.md) before use.
 
 ### instrument/volume input
 
