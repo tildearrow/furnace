@@ -302,7 +302,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_TIA);
       if (c.value!=DIV_NOTE_NULL) {
         if (c.value&DIV_NOTE_RAW_FLAG) {
-          chan[c.chan].baseFreq=c.value;
+          chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
           chan[c.chan].rawFreq=true;
         } else {
           chan[c.chan].baseFreq=c.value<<8;
@@ -369,7 +369,12 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=c.value2<<8;
+      int destFreq=0;
+      if (c.value2&DIV_NOTE_RAW_FLAG) {
+        destFreq=c.value2&(~DIV_NOTE_RAW_FLAG);
+      } else {
+        destFreq=c.value2<<8;
+      }
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -392,7 +397,13 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=c.value<<8;
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+        chan[c.chan].rawFreq=true;
+      } else {
+        chan[c.chan].baseFreq=c.value<<8;
+        chan[c.chan].rawFreq=false;
+      }
       chan[c.chan].freqChanged=true;
       break;
     }
