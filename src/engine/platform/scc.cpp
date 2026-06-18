@@ -147,9 +147,11 @@ void DivPlatformSCC::tick(bool sysTick) {
     }
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].calcFreq();
-      if (!chan[i].rawFreq) chan[i].freq--;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+      }
       if (!chan[i].freqInit || regPool[regBase+0+i*2]!=(chan[i].freq&0xff)) {
         rWrite(regBase+0+i*2,chan[i].freq&0xff);
       }

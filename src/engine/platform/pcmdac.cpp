@@ -324,7 +324,9 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>16777215) chan[i].freq=16777215;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>16777215) chan[i].freq=16777215;
+      }
       if (chan[i].keyOn) {
         if (!chan[i].std.vol.had) {
           chan[i].envVol=64;

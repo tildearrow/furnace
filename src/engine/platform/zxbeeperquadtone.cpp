@@ -130,8 +130,10 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>32768) chan[i].freq=32768;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<0) chan[i].freq=0;
+          if (chan[i].freq>32768) chan[i].freq=32768;
+        }
         rWrite(0+i*4,chan[i].freq&0xff);
         rWrite(1+i*4,chan[i].freq>>8);
       }

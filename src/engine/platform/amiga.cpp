@@ -497,10 +497,12 @@ void DivPlatformAmiga::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
 
-      chWrite(i,6,chan[i].freq);
+      chWrite(i,6,chan[i].freq&0xfff);
 
       if (chan[i].keyOn) {
         if (chan[i].useWave) {

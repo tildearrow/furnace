@@ -667,8 +667,12 @@ void DivPlatformSID3::tick(bool sysTick)
         chan[i].gate = false;
       }
 
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0xffffff) chan[i].freq=0xffffff;
+      if (chan[i].rawFreq) {
+        chan[i].freq&=0xffffff;
+      } else {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0xffffff) chan[i].freq=0xffffff;
+      }
 
       updateFreq(i);
       

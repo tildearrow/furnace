@@ -131,7 +131,9 @@ void DivPlatformBifurcator::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       rWrite(i*8+4,chan[i].freq&0xff);
       rWrite(i*8+5,chan[i].freq>>8);
       if (chan[i].keyOn) {

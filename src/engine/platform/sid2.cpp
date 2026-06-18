@@ -247,8 +247,10 @@ void DivPlatformSID2::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+      }
       if (chan[i].keyOn) 
       {
         if(!chan[i].resetMask)

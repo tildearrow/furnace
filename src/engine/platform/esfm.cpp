@@ -343,8 +343,10 @@ void DivPlatformESFM::tick(bool sysTick) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
       chan[i].freq=chan[i].calcFreq(mul);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>131071) chan[i].freq=131071;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>131071) chan[i].freq=131071;
+      }
 
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=i*32+o*8;

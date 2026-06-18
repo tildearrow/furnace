@@ -336,8 +336,10 @@ void DivPlatformGB::tick(bool sysTick) {
         }
       } else {
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<1) chan[i].freq=1;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq>2047) chan[i].freq=2047;
+          if (chan[i].freq<1) chan[i].freq=1;
+        }
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave

@@ -753,11 +753,16 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (amigaPitch && !parent->song.compatFlags.linearPitch) {
         // TODO: why is it 2???
         chan[i].freq=chan[i].calcFreq(2);
+        if (chan[i].rawFreq) {
+          chan[i].freq&=65535;
+        }
         chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=chan[i].calcFreq(2);
-        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        if (!chan[i].rawFreq) {
+          chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        }
       }
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {

@@ -569,7 +569,9 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
         }
         opChan[i].freq=(block<<11)|fNum;
       }
-      if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      if (!opChan[i].rawFreq) {
+        if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      }
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
     }
