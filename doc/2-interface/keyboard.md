@@ -79,6 +79,8 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Reference Music Player                                 | —                |
 | Tuner                                                  | —                |
 | Spectrum                                               | —                |
+| Multi-Instrument Setup                                 | —                |
+| Backup Management                                      | —                |
 | About                                                  | —                |
 | Collapse/expand current window                         | —                |
 | Close current window                                   | `Shift-Escape`   |

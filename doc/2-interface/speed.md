@@ -29,6 +29,6 @@ there are multiple ways to set the tempo of a song.
 - these don't have to line up with the track's actual beats and measures. set them as preferred for tracking.
 - these values are used for the metronome and calculating BPM.
 
-**Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. Individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` effects.
+**Pattern Length**: the length of each pattern in rows. this affects all patterns in the song, and every pattern must be the same length. individual patterns can be cut short by `0Bxx`, `0Dxx`, and `FFxx` effects.
 
 **Song Length**: how many orders are in the order list. decreasing it will hide the orders at the bottom. increasing it will restore those orders; increasing it further will add new orders of all `00` patterns.
