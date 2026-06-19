@@ -27,6 +27,9 @@
 #define VALUE_DIGIT(x,label) \
   if (ImGui::Button(label,buttonSize)) { \
     doValueDigit(x); \
+  } \
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+    doValueDigitClick(x); \
   }
 
 ImVec4 FurnaceGUI::pianoKeyColor(int chan, ImVec4 fallback) {
@@ -164,6 +167,14 @@ void FurnaceGUI::drawPiano() {
       default:
         logE("input pad %d on invalid target!",value);
         break;
+    }
+  };
+
+  auto doValueDigitClick=[this](int value) {
+    if (curRawNoteState==GUI_RAWNOTE_READY) {
+      if (!e->autoNoteOn(-1,curIns,(curRawNote<<4)|value|DIV_NOTE_RAW_FLAG)) failedNoteOn=true;
+      pendingRawNote=(curRawNote<<4)|value;
+      pendingRawNoteKey=(SDL_Keycode)0;
     }
   };
 

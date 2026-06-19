@@ -3710,7 +3710,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol, int transpose) {
     if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
-      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note+(note&DIV_NOTE_RAW_FLAG)?0:transpose,vol,true));
+      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note+((note&DIV_NOTE_RAW_FLAG)?0:transpose),vol,true));
       return true;
     }
     if (++finalChan>=song.chans) {
@@ -3731,7 +3731,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol, int transpose) {
 
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
-  pendingNotes.push_back(DivNoteEvent(candidate,ins,note+(note&DIV_NOTE_RAW_FLAG)?0:transpose,vol,true));
+  pendingNotes.push_back(DivNoteEvent(candidate,ins,note+((note&DIV_NOTE_RAW_FLAG)?0:transpose),vol,true));
   return true;
 }
 

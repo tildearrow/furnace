@@ -4004,6 +4004,18 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           // fall-through
         default: {
           if (warnIsOpen && !settings.warnNotePassthrough) break;
+          if (curRawNoteState==GUI_RAWNOTE_PENDING) break;
+          if (curRawNoteState==GUI_RAWNOTE_READY) {
+            auto it=valueKeys.find(ev->key.keysym.sym);
+            if (it!=valueKeys.cend()) {
+              int num=it->second;
+              if (!e->autoNoteOn(-1,curIns,(curRawNote<<4)|num|DIV_NOTE_RAW_FLAG)) failedNoteOn=true;
+              pendingRawNote=(curRawNote<<4)|num;
+              pendingRawNoteKey=ev->key.keysym.sym;
+            }
+            break;
+          }
+          // normal keys
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -4022,6 +4034,14 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
     }
   } else if (ev->type==SDL_KEYUP) {
     stopPreviewNote(ev->key.keysym.scancode,true);
+    if (pendingRawNoteKey==ev->key.keysym.sym) {
+      e->synchronized([this]() {
+        e->autoNoteOff(-1,pendingRawNote|DIV_NOTE_RAW_FLAG);
+        pendingRawNote=-1;
+        pendingRawNoteKey=(SDL_Keycode)0;
+        failedNoteOn=false;
+      });
+    }
     if (wavePreviewOn) {
       if (ev->key.keysym.scancode==wavePreviewKey) {
         wavePreviewOn=false;
@@ -4215,6 +4235,12 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   if (dragMobileEditButton) {
     dragMobileEditButton=false;
+  }
+  if (pendingRawNote>=0) {
+    e->autoNoteOff(-1,pendingRawNote|DIV_NOTE_RAW_FLAG);
+    pendingRawNote=-1;
+    pendingRawNoteKey=(SDL_Keycode)0;
+    failedNoteOn=false;
   }
 }
 
@@ -5673,6 +5699,30 @@ bool FurnaceGUI::loop() {
           }
         }
       }
+    }
+
+    // update raw note ztate
+    if (curWindow==GUI_WINDOW_PATTERN && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && curOrder>=0 && curOrder<DIV_MAX_PATTERNS && cursor.y>=0 && cursor.y<DIV_MAX_ROWS) {
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
+
+      if (pat->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+        unsigned int val=(
+          pat->newData[cursor.y][DIV_PAT_RAW0]|
+          (pat->newData[cursor.y][DIV_PAT_RAW1]<<8)|
+          (pat->newData[cursor.y][DIV_PAT_RAW2]<<16)|
+          (pat->newData[cursor.y][DIV_PAT_RAW3]<<24)
+        );
+        unsigned int valMax=e->getMaxFreqChan(cursor.xCoarse);
+        unsigned int valNibbles=(bsr32(valMax)+3)>>2;
+
+        curRawNoteState=(curNibble+1>=valNibbles)?GUI_RAWNOTE_READY:GUI_RAWNOTE_PENDING;
+        curRawNote=val;
+      } else {
+        curRawNoteState=GUI_RAWNOTE_NORMAL;
+      }
+    } else {
+      curRawNoteState=GUI_RAWNOTE_NORMAL;
+      // we don't clear curRawNote because the key down event handler may still need it.
     }
 
     updateKeyHitPost();
@@ -9172,6 +9222,10 @@ FurnaceGUI::FurnaceGUI():
   curPaletteChoice(0),
   curPaletteType(0),
   soloTimeout(0.0f),
+  curRawNote(0),
+  curRawNoteState(GUI_RAWNOTE_NORMAL),
+  pendingRawNote(-1),
+  pendingRawNoteKey((SDL_Keycode)0),
   mobileMultiInsToggle(false),
   purgeYear(2021),
   purgeMonth(4),
