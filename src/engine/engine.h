@@ -246,7 +246,8 @@ struct DivChannelState {
 struct DivNoteEvent {
   signed char channel;
   short ins;
-  unsigned char note;
+  // we can't save space anymore now that raw notes exist.
+  int note;
   signed char volume;
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):

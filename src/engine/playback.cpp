@@ -2937,7 +2937,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           if (midiIsDirect) {
             // in direct mode, map the event directly to the channel
             if (chan<0 || chan>=song.chans) break;
-            pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
+            pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false,false,true));
           } else {
             // find a suitable channel and add this event to the queue
             autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
@@ -2956,7 +2956,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=song.chans) break;
-              pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
+              pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false,false,true));
             } else {
               // find a suitable channel and add this event to the queue
               autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
