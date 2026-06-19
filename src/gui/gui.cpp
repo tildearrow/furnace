@@ -5714,8 +5714,9 @@ bool FurnaceGUI::loop() {
         );
         unsigned int valMax=e->getMaxFreqChan(cursor.xCoarse);
         unsigned int valNibbles=(bsr32(valMax)+3)>>2;
+        if (valMax==0) valNibbles=0;
 
-        curRawNoteState=(curNibble+1>=valNibbles)?GUI_RAWNOTE_READY:GUI_RAWNOTE_PENDING;
+        curRawNoteState=((unsigned int)(curNibble+1)>=valNibbles)?GUI_RAWNOTE_READY:GUI_RAWNOTE_PENDING;
         curRawNote=val;
       } else {
         curRawNoteState=GUI_RAWNOTE_NORMAL;
