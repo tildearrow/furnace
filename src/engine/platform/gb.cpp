@@ -327,7 +327,7 @@ void DivPlatformGB::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         if (chan[i].rawFreq) {
-          chan[i].freq=chan[i].baseFreq&0xf7;
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&0xf7;
         } else {
           int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
           if (ntPos<0) ntPos=0;

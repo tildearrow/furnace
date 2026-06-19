@@ -416,7 +416,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
       if (chan[i].rawFreq) {
-        chan[i].freq=chan[i].baseFreq;
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch2;
         immWrite(i+0x28,(chan[i].freq>>6));
         immWrite(i+0x30,((chan[i].freq&63)<<2)|(chan[i].chVolL==chan[i].chVolR));
       } else {

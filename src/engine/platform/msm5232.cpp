@@ -156,7 +156,7 @@ void DivPlatformMSM5232::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].rawFreq) {
-        chan[i].freq=(chan[i].baseFreq&0xff)<<7;
+        chan[i].freq=((chan[i].baseFreq+chan[i].pitch2)&0xff)<<7;
       } else {
         chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(72<<7);
         if (!parent->song.compatFlags.oldArpStrategy) {

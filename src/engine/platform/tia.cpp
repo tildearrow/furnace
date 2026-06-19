@@ -218,10 +218,10 @@ void DivPlatformTIA::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].rawFreq) {
         if (softwarePitch) {
-          chan[i].freq=(chan[i].baseFreq>>8)&31;
-          chan[i].tuneFreq=chan[i].baseFreq&255;
+          chan[i].freq=((chan[i].baseFreq+chan[i].pitch2)>>8)&31;
+          chan[i].tuneFreq=(chan[i].baseFreq+chan[i].pitch2)&255;
         } else {
-          chan[i].freq=chan[i].baseFreq&31;
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&31;
         }
         if (!skipRegisterWrites && dumpWrites) {
           if (softwarePitch) {

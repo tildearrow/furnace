@@ -912,7 +912,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (chan[i].rawFreq) {
-        chan[i].freq=chan[i].baseFreq&0x3fff;
+        chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&0x3fff;
       } else if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {

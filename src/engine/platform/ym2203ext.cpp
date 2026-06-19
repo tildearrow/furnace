@@ -553,7 +553,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (opChan[i].rawFreq) {
-        opChan[i].freq=opChan[i].baseFreq&0x3fff;
+        opChan[i].freq=(opChan[i].baseFreq+opChan[i].pitch2)&0x3fff;
       } else if (parent->song.compatFlags.linearPitch) {
         opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
