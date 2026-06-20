@@ -139,6 +139,24 @@ bool DivCSPlayer::tick() {
         case 0xb8:
           command=DIV_CMD_INSTRUMENT;
           break;
+        case 0xb9: {
+          unsigned int param=stream.readI()|DIV_NOTE_RAW_FLAG;
+          e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,param));
+          chan[i].note=param;
+          chan[i].vibratoPos=0;
+          break;
+        }
+        case 0xba: {
+          chan[i].portaTarget=stream.readI()|DIV_NOTE_RAW_FLAG;
+          chan[i].portaSpeed=(unsigned char)stream.readC();
+          break;
+        }
+        case 0xbb: {
+          unsigned int param=stream.readI()|DIV_NOTE_RAW_FLAG;
+          chan[i].note=param;
+          e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+          break;
+        }
         case 0xc0:
           command=DIV_CMD_PRE_PORTA;
           break;
