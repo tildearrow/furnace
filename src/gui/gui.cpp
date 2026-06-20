@@ -1479,8 +1479,10 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
     if (pat->newData[y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
       // restore previous note
       pat->newData[y][DIV_PAT_NOTE]=pat->newData[y][DIV_PAT_NOTE_BUFFER];
+      logV("Out.....");
     } else {
       // store note in buffer and set raw frequency
+      logV("In......");
       pat->newData[y][DIV_PAT_NOTE_BUFFER]=pat->newData[y][DIV_PAT_NOTE];
       pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_RAW;
       // check for invalid bytes
@@ -1896,6 +1898,15 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
                 if (edit) {
                   rawFreqInput(num);
+                }
+              } else {
+                // try again to find the toggle raw key
+                auto it1=noteKeys.find(ev.key.keysym.scancode);
+                if (it1!=noteKeys.cend()) {
+                  int key=it1->second;
+                  if (edit && key==GUI_NOTE_RAW) {
+                    noteInput(0,key,-1,chordInputOffset);
+                  }
                 }
               }
             } else {
