@@ -840,8 +840,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
 
     // disable arpeggio completely
-    chan[i].arp=0;
-    dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+    if (chan[i].arp) {
+      chan[i].arp=0;
+      dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+    }
 
     chan[i].oldNote=chan[i].note;
     chan[i].note=(

@@ -265,8 +265,6 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
       if (speedDial==NULL) return 0;
       return 1+getCmdLength(speedDial[ins&3]);
     case 0xd0: // opt
-    case 0xb9: // note raw
-    case 0xbb: // legato raw
       return 4;
     case 0xd7: // cmd
       // determine length from secondary
@@ -280,8 +278,11 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xda: // jmp
     case 0xdb: // rate
     case 0xcb: // volporta
-    case 0xba: // porta raw
+    case 0xb9: // note raw
+    case 0xbb: // legato raw
       return 5;
+    case 0xba: // porta raw
+      return 6;
   }
   return 1;
 }

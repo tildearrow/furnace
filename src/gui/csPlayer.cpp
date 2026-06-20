@@ -245,7 +245,7 @@ void FurnaceGUI::drawCSPlayer() {
       if (ImGui::BeginTabBar("CSOptions")) {
         int chans=e->getTotalChannelCount();
         if (ImGui::BeginTabItem(_("Status"))) {
-          if (ImGui::BeginTable("CSStat",13,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
+          if (ImGui::BeginTable("CSStat",13,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
             ImGui::TableSetupScrollFreeze(1,1);
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();
