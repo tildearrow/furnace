@@ -142,4 +142,14 @@ void DivEngine::registerROMExports() {
     },
     false, DIV_REQPOL_ANY
   );
+  
+  romExportDefs[DIV_ROM_SNES]=new DivROMExportDef(
+    "SNES SPC700 sound data", "tildearrow",
+    "I am not done...",
+    "SPC700 sound data", ".spc",
+    {
+      DIV_SYSTEM_SNES
+    },
+    false, DIV_REQPOL_EXACT
+  );
 }
