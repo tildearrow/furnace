@@ -180,7 +180,7 @@ struct DivChannelState {
     lastIns(-1),
     pitch(0),
     portaSpeed(-1),
-    portaNote(-1),
+    portaNote(0),
     volume(0x7f00),
     volSpeed(0),
     volSpeedTarget(-1),

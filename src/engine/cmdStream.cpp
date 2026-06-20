@@ -643,7 +643,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (chan[i].portaSpeed) {
-      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.compatFlags.linearPitch?e->song.compatFlags.pitchSlideSpeed:1),chan[i].portaTarget));
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*((e->song.compatFlags.linearPitch && !(chan[i].note&DIV_NOTE_RAW_FLAG))?e->song.compatFlags.pitchSlideSpeed:1),chan[i].portaTarget));
     }
     if (chan[i].arp && !chan[i].portaSpeed) {
       if (chan[i].arpTicks==0) {

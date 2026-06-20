@@ -420,7 +420,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
           w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
         }
       } else {
-        unsigned char val=CLAMP(c.value,0,255);
+        unsigned char val=CLAMP(c.value,0,179);
         w->writeC(val);
       }
       w->writeC(c.value2);
