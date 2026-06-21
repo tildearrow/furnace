@@ -95,7 +95,7 @@
 
 **PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
 
-**PWM**: pulse width modulation. a techniqur which consists of changing the width of a pulse wave to alter its tone.
+**PWM**: pulse width modulation. a technique which consists of changing the width of a pulse wave to alter its tone.
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
