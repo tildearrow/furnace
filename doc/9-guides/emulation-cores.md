@@ -9,7 +9,7 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
 - **YM2612 core**:
   - **Nuked-OPN2**: default core. lighter on the CPU than Nuked-OPM, can be used to simulate any variant of YM2612.
   - **ymfm**: same as ymfm above.
-  - **YMF276-LLE**: a new core written by the author of the Nuked cores, specifically focused on YMF276 emulation. it is very slow and not useful for real-time playback. Produces audio comparable to output of Sega Mega Drive model 2 and later Fujitsu FM Towns computers, doesn't emulate DAC distortion of the original YM2612.
+  - **YMF276-LLE**: a new core written by the author of the Nuked cores, specifically focused on YMF276 emulation. it is very slow and not useful for real-time playback. produces audio comparable to output of Sega Mega Drive model 2 and later Fujitsu FM Towns computers, doesn't emulate DAC distortion of the original YM2612.
 
 - **SN76489 core**:
   - **MAME**: default core. less accurate than Nuked, but with lower CPU usage. comes from the MAME emulator project.
@@ -64,7 +64,3 @@ Furnace achieves the authentic sound of videogame hardware by emulating sound ch
 - **AY-3-8910/SSG core**:
   - **MAME**: default core.
   - **AtomicSSG**: SSG core extracted from YM2608-LLE.
-
-- **WonderSwan core**:
-  - **asiekierka new core**: default core. highest accuracy and efficiency.
-  - **Mednafen**: slower and less accurate. included for compatibility with older modules.

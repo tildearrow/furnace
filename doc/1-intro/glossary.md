@@ -32,6 +32,8 @@
 - changing this may change aspects of how some chips work, most notably pitch.
 - some chips cannot operate at anything other than their designed clock rate.
 
+**CSM**: Composite Sinusoidal Modeling. a feature of all Yamaha OPN-series FM sound chips that uses a timer to restart the extended channel (usually channel 3)'s phase and envelope. this can be used to create vocal formants (speech synthesis) or other complex effects. elsewhere, the technique is known as "oscillator sync".
+
 **cursor** (1): the marker of input focus. anything typed will happen at the cursor's location.
 
 **cursor** (2): the pointer controlled by a mouse or similar input. clicking when the cursor(2) is in a valid area will place the cursor(1) there.
@@ -93,6 +95,8 @@
 
 **PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
 
+**PWM**: pulse width modulation. a techniqur which consists of changing the width of a pulse wave to alter its tone.
+
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
 **periodic noise**: an approximation of random noise generated algorithmically with an LFSR.
@@ -134,6 +138,8 @@
 
 **square wave**: a wave consisting of only two values, high and low, with equal durations within the wave's period.
 - this is equivalent to a pulse wave with a duty of 50%.
+
+**SSG-EG**: Software-controlled Sound Generator - Envelope Generator. a feature of all Yamaha OPN series sound chips. it is the AY-3-8910/YM2149 envelope generator applied to each individual FM operator. more information can be found in the documentation for each OPN family chip.
 
 **supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
 
