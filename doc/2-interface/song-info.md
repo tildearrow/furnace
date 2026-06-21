@@ -8,3 +8,5 @@
 all of this metadata will be included in a VGM export. this isn't the case for an audio export, however.
 
 - **Tuning (A-4)**: set tuning based on the note A-4, which should be 440 in most cases. opening an Amiga MOD will set it to 436 for hardware compatibility.
+
+to change song speeds/parameters or edit sub-song information, see the [subsongs.md](subsongs) and [speed.md](speed) sections of this manual.
