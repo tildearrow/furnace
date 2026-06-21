@@ -1,15 +1,17 @@
 # settings
 
-the Settings window allows you to change Furnace settings. categories and subcategories are listed in the top of the window, and the settings themselves are in the bottom. changing window size may switch these to left and right sides, respectively, and the divider between halves can be dragged to resize them.
+the Settings window allows you to change Furnace settings.
 
-at the top of the window is a search bar, which will filter the visible settings to only those that match the search term.
+one side of the window contains setting categories. the other displays these settings.
 
-to the right of the search bar is a button that opens a menu:
-- **import**: select an exported `.ini` config file to overwrite current settings.
-- **export**: select an `.ini` file to save current settings.
-- **factory reset**: resets all settings to default and purges settings backups.
+the search bar filters visible settings to only those that match the search term.
+click on the adjacent button to see additional options:
 
-settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window, and when closing the program. several backups are kept in the Furnace settings directory.
+- **import**: select a Furnace config file (`.cfg`) to overwrite current settings.
+- **export**: export the current settings to a Furnace config file (`.cfg`).
+- **factory reset**: resets all settings and the workspace layout to default.
+
+click on either the **OK** or **Apply** button to save your settings.
 
 ## General
 
@@ -116,9 +118,8 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Buffer size**: size of buffer in both samples and milliseconds.
   - setting this to a low value may cause stuttering/glitches in playback (known as "underruns" or "xruns").
   - setting this to a high value increases latency.
-- **Multi-threaded (EXPERIMENTAL)**: runs chip emulations on separate threads, which may increase performance with heavy emulation cores.
-  - this is, as it says, experimental.
-- **Number of threads**: maximum number of threads to use. only appears when the above is enabled.  
+- **Multi-threaded (EXPERIMENTAL)**: runs chip emulation cores on separate threads, which may increase performance with heavy emulation cores.
+  - **Number of threads**: maximum number of threads to use in multi-threaded mode.
 - **Exclusive mode**: enables Exclusive Mode, which may offer latency improvements.
   - only available on WASAPI devices in the PortAudio backend!
 - **Low-latency mode**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
@@ -226,9 +227,14 @@ the available quality settings are:
 
 - **PC Speaker strategy**: this is covered in the [PC speaker page](../7-systems/pcspkr.md).
 
+<!--
 ### Sample ROMs
 
-some sample-based chips use external ROMs to store sample data. paths to ROM files can be entered here. (please do not ask for these files.)
+certain sample-based chips (in particular OPL4 and MultiPCM) may use external ROMs for sample data.
+you may enter a path to appropriate ROM files here.
+
+these files are not distributed with Furnace as they are under copyright. you shall only acquire these files using legal methods.
+-->
 
 ## Interface
 
@@ -266,7 +272,7 @@ some sample-based chips use external ROMs to store sample data. paths to ROM fil
 - **Allow dragging selection:**
   - **No**: don't allow drag-and-drop.
   - **Yes**: allow drag-and-drop.
-  - **Yes (while holding Ctrl only)**: allow drag-and-drop but only when holding Control (Command on macOS).
+  - **Yes (while holding Ctrl only)**: allow drag-and-drop but only when holding the Control key (Command on macOS).
   - **Yes (copy)**: allow drag-and-drop to copy data.
   - **Yes (while holding Ctrl only and copy)**: allow drag-and-drop with copy but only when holding Control.
   - **Yes (holding Ctrl copies)**: allow drag-and-drop, with data copied when holding Control.
@@ -454,7 +460,7 @@ some sample-based chips use external ROMs to store sample data. paths to ROM fil
   - **Off**: no indicator.
   - **Note**: flash at the start of a note, then fades.
   - **Volume**: change intensity with channel volume.
-  - **Active**: stay fully on while a note is held.
+  - **Active**: stay fully on while a note is playing.
   - **Volume (real)**: change intensity with output loudness.
 - **Channel font:**
   - **Regular**
