@@ -7996,11 +7996,76 @@ bool FurnaceGUI::init() {
   syncSettings();
   syncTutorial();
 
+  // sync the recent files list
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
     String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
     if (!r.empty()) {
       recentFile.push_back(r);
+    }
+  }
+
+  // dev249 introduces raw note input key (default is hyphen).
+  // check whether we should add it to the current map.
+  if (e->getConfInt("configVersion",DIV_ENGINE_VERSION)<249) {
+    // find whether the user already assigned a raw note key
+    logV("adding raw note key.");
+    bool shouldMapRawNoteKey=true;
+    for (std::map<int,int>::value_type& i: noteKeys) {
+      if (i.second==GUI_NOTE_RAW) {
+        shouldMapRawNoteKey=false;
+        break;
+      }
+    }
+    if (shouldMapRawNoteKey) {
+      // we'll try with two keys: hyphen and backslash (if hyphen is already bound)
+      bool isHyphenAvailable=true;
+      bool isBackslashAvailable=true;
+
+      // check availability in the note keys
+      for (std::map<int,int>::value_type& i: noteKeys) {
+        if (i.first==SDL_SCANCODE_MINUS) {
+          isHyphenAvailable=false;
+        }
+        if (i.first==SDL_SCANCODE_BACKSLASH) {
+          isBackslashAvailable=false;
+        }
+      }
+
+      // now check in action binds
+      for (int i=0; i<GUI_ACTION_MAX; i++) {
+        for (int j: actionKeys[i]) {
+          if (j==SDL_SCANCODE_MINUS) {
+            isHyphenAvailable=false;
+          }
+          if (j==SDL_SCANCODE_BACKSLASH) {
+            isBackslashAvailable=false;
+          }
+        }
+      }
+
+      // try to bind the first available key
+      if (isHyphenAvailable) {
+        noteKeys[SDL_SCANCODE_MINUS]=GUI_NOTE_RAW;
+        decompileNoteKeys();
+        e->setConf("noteKeys",encodeKeyMap(noteKeys));
+      } else if (isBackslashAvailable) {
+        noteKeys[SDL_SCANCODE_BACKSLASH]=GUI_NOTE_RAW;
+        decompileNoteKeys();
+        e->setConf("noteKeys",encodeKeyMap(noteKeys));
+      } else {
+        // we couldn't map a key for raw note...
+        // warn the user
+        showError(_(
+          "a new feature has arrived: raw frequency notes!\n"
+          "these allow you to address frequency/period registers directly for exact pitch control or accessing notes outside the nominal note range.\n\n"
+          "unfortunately I could not map a key for toggling between raw notes and normal ones.\n"
+          "by default it's Minus (-), but I see you've bound that key to a different action.\n"
+          "please go into Settings > Keyboard > Note input and assign a different key.\n\n"
+          "this may be the only time you see this warning."
+        ));
+        logW("couldn't add raw note key!");
+      }
     }
   }
 
