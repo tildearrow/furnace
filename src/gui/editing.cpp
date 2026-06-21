@@ -383,6 +383,11 @@ void FurnaceGUI::doDelete() {
           touch(jOrder,j);
           if (iFine==0) {
             if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_INS]=-1;
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
           }
           pat->newData[j][iFine]=-1;
 
@@ -458,8 +463,22 @@ void FurnaceGUI::doPullDelete() {
         //       more than one order.
         if (j<e->curSubSong->patLen-1) {
           pat->newData[j][iFine]=pat->newData[j+1][iFine];
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=pat->newData[j+1][DIV_PAT_NOTE_BUFFER];
+            pat->newData[j][DIV_PAT_RAW0]=pat->newData[j+1][DIV_PAT_RAW0];
+            pat->newData[j][DIV_PAT_RAW1]=pat->newData[j+1][DIV_PAT_RAW1];
+            pat->newData[j][DIV_PAT_RAW2]=pat->newData[j+1][DIV_PAT_RAW2];
+            pat->newData[j][DIV_PAT_RAW3]=pat->newData[j+1][DIV_PAT_RAW3];
+          }
         } else {
           pat->newData[j][iFine]=-1;
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
+          }
         }
       }
     }
@@ -498,8 +517,22 @@ void FurnaceGUI::doInsert() {
       for (int j=e->curSubSong->patLen-1; j>=sStart.y; j--) {
         if (j==sStart.y) {
           pat->newData[j][iFine]=-1;
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
+          }
         } else {
           pat->newData[j][iFine]=pat->newData[j-1][iFine];
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=pat->newData[j-1][DIV_PAT_NOTE_BUFFER];
+            pat->newData[j][DIV_PAT_RAW0]=pat->newData[j-1][DIV_PAT_RAW0];
+            pat->newData[j][DIV_PAT_RAW1]=pat->newData[j-1][DIV_PAT_RAW1];
+            pat->newData[j][DIV_PAT_RAW2]=pat->newData[j-1][DIV_PAT_RAW2];
+            pat->newData[j][DIV_PAT_RAW3]=pat->newData[j-1][DIV_PAT_RAW3];
+          }
         }
       }
     }
