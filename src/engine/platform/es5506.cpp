@@ -205,7 +205,7 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
-  for (int i=0; i<chanMax; i++) {
+  for (int i=0; i<=chanMax; i++) {
     oscBuf[i]->begin(len);
   }
   for (size_t h=0; h<len; h++) {
@@ -253,7 +253,7 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
   }
-  for (int i=0; i<chanMax; i++) {
+  for (int i=0; i<=chanMax; i++) {
     oscBuf[i]->end(len);
   }
 }
