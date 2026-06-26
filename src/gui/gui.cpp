@@ -6485,7 +6485,7 @@ bool FurnaceGUI::loop() {
                 showError(_("invalid chip index!"));
                 break;
               }
-              const unsigned char* compiledMem=(const unsigned char*)dis->compileSampleMem(sampleCompileIndex,sampleCompileSize);
+              const unsigned char* compiledMem=(const unsigned char*)dis->compileROMData(sampleCompileIndex,sampleCompileSize);
               if (compiledMem!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {

@@ -1586,14 +1586,13 @@ class DivDispatch {
     virtual const DivMemoryComposition* getMemCompo(int index);
 
     /**
-     * get a "compiled" version of sample memory.
+     * compile data for ROM export, such as sample data, pitch tables and chip flags.
      * this may be the same as getSampleMem() or not (may include extra data such as sample offsets).
-     * used in ROM export.
-     * @param index the memory index.
-     * @param size the memory size will be stored here.
-     * @return a pointer to compiled sample memory which must be deallocated after use (delete[]), or NULL if not implemented.
+     * @param index the data index.
+     * @param size the size will be stored here.
+     * @return a pointer to compiled data which must be deallocated after use (delete[]), or NULL if not implemented.
      */
-    virtual const void* compileSampleMem(int index, size_t& size);
+    virtual const void* compileROMData(int index, size_t& size);
 
     /**
      * Render samples into sample memory.

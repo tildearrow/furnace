@@ -535,11 +535,11 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
 
       ImGui::PushFont(headFont);
-      ImGui::TextUnformatted("Sample Data");
+      ImGui::TextUnformatted("ROM Export Data");
       ImGui::PopFont();
       ImGui::InputInt("Chip Index",&sampleCompileDispatch);
-      ImGui::InputInt("Memory Index",&sampleCompileIndex);
-      if (ImGui::Button("Compile Memory")) {
+      ImGui::InputInt("Data Index",&sampleCompileIndex);
+      if (ImGui::Button("Compile")) {
         openFileDialog(GUI_FILE_EXPORT_COMPILED_SAMPLE);
       }
       ImGui::Text("%d bytes (compile to update)",(int)sampleCompileSize);

@@ -1001,7 +1001,7 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
   return &memCompo;
 }
 
-const void* DivPlatformSNES::compileSampleMem(int index, size_t& size) {
+const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
   size=MIN(sampleMemLen,65536)-sampleTableBase;
   unsigned char* ret=new unsigned char[size];
   memcpy(ret,&copyOfSampleMem[sampleTableBase],size);
