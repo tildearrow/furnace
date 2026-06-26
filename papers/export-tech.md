@@ -1,5 +1,30 @@
 # ROM export technical details
 
+## global data
+
+### SNES
+
+pitchTable1.bin
+
+```
+size | description
+-----|----------------------------------
+ 1?? | wavetable pitch table pointers (low)
+     | - 16 entries
+ 1?? | sample pitch table pointers (low)
+```
+
+pitchTable2.bin
+
+```
+size | description
+-----|----------------------------------
+ 1?? | wavetable pitch table pointers (high)
+     | - 16 entries
+ 1?? | sample pitch table pointers (high)
+ ??? | pitch tables...
+```
+
 ## instrument data (common)
 
 ### wave synth
@@ -251,6 +276,15 @@ size | description
      |   - 1: saw (down to up)
      |   - 2: pulse
      |   - 3: saw (up to down)
+```
+
+## compiled pitch table
+
+```
+size | description
+-----|------------------------------------
+ 2?? | base (12 entries)
+ 2?? | delta to next (12 entries)
 ```
 
 ## binary command stream

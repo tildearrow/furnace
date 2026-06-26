@@ -11,8 +11,9 @@ divChanPitch=divBase+(divChans*2) ; short
 divChanPitch2=divBase+(divChans*4) ; short
 ; shared by arpOff and baseNoteOverride
 divChanArpState=divBase+(divChans*6) ; unsigned char
-divChanIns=divBase+(divChans*6)+1 ; unsigned char
-divChanSampleNoteDelta=divBase+(divChans*8) ; unsigned char
+divChanSampleNoteDelta=divBase+(divChans*6)+1 ; unsigned char
+; this is a pointer...
+divChanIns=divBase+(divChans*8) ; short
 ; flags:
 ; - bit 7: active
 ; - bit 6: insChanged
@@ -22,23 +23,23 @@ divChanSampleNoteDelta=divBase+(divChans*8) ; unsigned char
 ; - bit 2: keyOff
 ; - bit 1: inPorta
 ; - bit 0: rawFreq
-divChanFlags=divBase+(divChans*8)+1 ; unsigned char
 divChanVol=divBase+(divChans*10) ; unsigned char
 divChanOutVol=divBase+(divChans*10)+1 ; unsigned char
 divChanPitchTablePtr=divBase+(divChans*12) ; short
+divChanFlags=divBase+(divChans*14) ; unsigned char
 
 ;;;; ---- DivPlatformSNES::Channel ---- ;;;;
 ; condensed to a short
 ; setPos is true if this is not $ffff
-divChanAudPos=divBase+(divChans*14) ; short
+divChanAudPos=divBase+(divChans*16) ; short
 ; shared with divChanWave
-divChanSample=divBase+(divChans*16) ; short
+divChanSample=divBase+(divChans*18) ; short
 divChanWave=divChanSample
 ; upper bit: invert
-divChanPanL=divBase+(divChans*18) ; unsigned char
+divChanPanL=divBase+(divChans*20) ; unsigned char
 ; upper bit: invert
-divChanPanR=divBase+(divChans*18)+1 ; unsigned char
-divChanWtLen=divBase+(divChans*20) ; unsigned char
+divChanPanR=divBase+(divChans*20)+1 ; unsigned char
+divChanWtLen=divBase+(divChans*22) ; unsigned char
 ; flags:
 ; - bit 7: useWave
 ; - bit 6: noise
@@ -47,15 +48,20 @@ divChanWtLen=divBase+(divChans*20) ; unsigned char
 ; - bit 3: shallWriteVol
 ; - bit 2: shallWriteEnv
 ; - bit 0-1: sustain mode
-divChanSNESFlags=divBase+(divChans*20)+1 ; unsigned char
+divChanSNESFlags=divBase+(divChans*22)+1 ; unsigned char
 ; I guess we can load D2 from the instrument. there's no command to change it so yeah
 ; XDDDAAAA (X: ADSR on)
-divChanAD=divBase+(divChans*22) ; unsigned char
+divChanAD=divBase+(divChans*24) ; unsigned char
 ; SSSRRRRR
-divChanSR=divBase+(divChans*22)+1 ; unsigned char
+divChanSR=divBase+(divChans*24)+1 ; unsigned char
 ; dang it.
-divChanGain=divBase+(divChans*24) ; unsigned char
-divChanD2=divBase+(divChans*24)+1 ; unsigned char
+divChanGain=divBase+(divChans*26) ; unsigned char
+divChanD2=divBase+(divChans*26)+1 ; unsigned char
+
+;;;; ---- DivPlatformSNES (global state) ---- ;;;;
+divGlobalBase=divBase+(divChans*28)
+divGlobalVolL=divGlobalBase ; unsigned char
+divGlobalVolR=divGlobalBase+1 ; unsigned char
 
 ;;;; ---- LOOK-UP TABLES ---- ;;;;
 divChanOffs:
@@ -67,6 +73,9 @@ divChanOffs:
   .db $50, $50
   .db $60, $60
   .db $70, $70
+
+divDefaultIns:
+  .dsb 11, 0
 
 ; chWriteX <REG>
 ; writes Y into channel X's register REG.
@@ -80,8 +89,80 @@ divChanOffs:
   mov spc_dspData, y
 .ENDM
 
+; dspWrite <addr> <data>
+; write a static value into DSP register.
+; alters A and Y.
+.MACRO dspWrite
+  mov spc_dspAddr, #\1
+  mov spc_dspData, #\2
+.ENDM
+
 ; run a tick.
 divTick:
+  ret
+
+; void DivPlatformSNES::writeOutVol(int ch);
+; - x: ch (<<1)
+divWriteOutVol:
+  ; outVol*panL (rol will cancel the invert flag)
+  mov a, !divChanPanL+x
+  clrc
+  rol a
+  mov y, a
+  mov a, !divChanOutVol+x
+  mul ya
+  ; rounding
+  and a, #$ff
+  bne +
+  inc y
+  ; (previousResult)*globalVolL
++ mov a, !divGlobalVolL
+  clrc
+  rol a
+  mul ya
+  ; rounding
+  and a, #$ff ; test A
+  beq +
+  inc y
++ push y
+
+  ; outVol*panR (rol will cancel the invert flag)
+  mov a, !divChanPanR+x
+  clrc
+  rol a
+  mov y, a
+  mov a, !divChanOutVol+x
+  mul ya
+  ; rounding
+  and a, #$ff
+  bne +
+  inc y
+  ; (previousResult)*globalVolR
++ mov a, !divGlobalVolR
+  clrc
+  rol a
+  mul ya
+  ; rounding
+  and a, #$ff ; test A
+  beq +
+  inc y
+  
+  ; apply invert flag if necessary
+  ; then perform writes
++ mov a, !divChanPanR+x
+  bpl +
+  mov a, y
+  eor a, #$ff
+  mov y, a
++ chWriteX 1
+
+  pop y
+  mov a, !divChanPanL+x
+  bpl +
+  mov a, y
+  eor a, #$ff
+  mov y, a
++ chWriteX 0
   ret
 
 ; void DivPlatformSNES::writeEnv(int ch);
@@ -171,8 +252,74 @@ divWriteEnvSubTable:
   .dw divWriteEnvDirect, divWriteEnvDecLin, divWriteEnvDecExp, divWriteEnvDelayed
   .dw divWriteEnvDirect, divWriteEnvActive, divWriteEnvActive, divWriteEnvActive
 
-; reset.
+; void DivPlatformSNES::reset()
 divReset:
+  ; set the sample table base
+  ; I expect the dir to sit at $400
+  dspWrite dsp_DIR, #$04
+  dspWrite dsp_MVOL_L, #$7f
+  dspWrite dsp_MVOL_R, #$7f
+  dspWrite dsp_FLG, #0
+  
+  ; clear state memory
+  mov y, #(divGlobalBase-divBase).b
+  mov a, #0
+- mov !divBase+y, a
+  dbnz y, -
+
+  ; initialize channel state
+  ; why didn't they add a more complete movw ya?
+  ; only direct page? no index? no absolute?
+
+  ; baseFreq
+.ifdef DIV_LINEAR_FREQ
+  mov a, #$1e
+  mov x, #(divChans-1)*2+1 ; upper byte
+- mov !divChanBaseFreq+x, a
+  dec x
+  dec x
+  bpl -
+.endif
+
+  ; ins
+  ; this is slow
+  mov x, #(divChans-1)*2+1 ; upper byte
+- mov a, #<divDefaultIns
+  mov !divChanIns+x, a
+  dec x
+  mov a, #>divDefaultIns
+  mov !divChanIns+x, a
+  dec x
+  bpl -
+
+  ; vol/outVol/panL/panR
+  mov a, #$7f
+  mov x, #(divChans-1)*2+1 ; upper byte
+- mov !divChanVol+x, a
+  mov !divChanPanL+x, a
+  dec x
+  mov !divChanVol+x, a
+  mov !divChanPanL+x, a
+  dec x
+  bpl -
+
+  ; wtLen
+  mov a, #16
+  mov x, #(divChans-1)*2
+- mov !divChanWtLen+x, a
+  dec x
+  dec x
+  bpl -
+
+
+  ; assign default pitch table
+
+  ; writeOutVol
+
+  ; set source number
+
+  ; default global state
+
   ret
 
 ; --- COMMAND HANDLERS ---
