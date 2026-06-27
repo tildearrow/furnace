@@ -34,6 +34,7 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
   json["furVersion"]["versionString"]=DIV_VERSION;
   json["furVersion"]["versionNumber"]=DIV_ENGINE_VERSION;
 
+  json["songInfo"]["version"]=song.version;
   json["songInfo"]["name"]=song.name;
   json["songInfo"]["author"]=song.author;
   json["songInfo"]["album"]=song.category;
@@ -61,7 +62,7 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
 
   json["comments"]=song.notes;
   json["subsongs"]={};
-  
+
   json["instruments"]={};
   for (int j=0; j<song.insLen; j++) {
     json["instruments"].push_back(serializeInstrument(getIns(j)));
@@ -74,7 +75,18 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
   for (int j=0; j<song.sampleLen; j++) {
     json["samples"].push_back(serializeSample(getSample(j)));
   }
-  
+
+  json["grooves"]={};
+  for (auto& g:song.grooves) {
+    JSON groove;
+    groove["len"]=g.len;
+    groove["val"]={};
+    for (int i=0; i<g.len; i++) {
+      groove["val"].push_back(g.val[i]);
+    }
+    json["grooves"].push_back(groove);
+  }
+
   for (size_t i=0; i<song.subsong.size(); i++) {
     JSON subsong;
     DivSubSong* s=song.subsong[i];
@@ -373,6 +385,59 @@ JSON serializeInstrument(DivInstrument* ins) {
       ins->std.ex9Macro.len ||
       ins->std.ex10Macro.len) {
     featureMA=true;
+  }
+  if (featureMA) {
+    json["macros"]={};
+    DivInstrumentMacro* curMacro;
+    for (DivMacroType i=DIV_MACRO_VOL; i<=DIV_MACRO_EX10; i=(DivMacroType)((int)i+1)) {
+      curMacro=ins->std.macroByType(i);
+      if (curMacro->len==0) continue;
+      JSON macro;
+      macro["code"]=(int)curMacro->macroType;
+      macro["length"]=(int)curMacro->len;
+      macro["loop"]=(int)curMacro->loop;
+      macro["release"]=(int)curMacro->rel;
+      macro["mode"]=curMacro->mode;
+      macro["open"]=(int)curMacro->open&1;
+      int macroType=(curMacro->open>>1)&3;
+      macro["type"]=macroType;
+      macro["instantRelease"]=(bool)(curMacro->open&(1<<3));
+      macro["wordSize"]=(int)(curMacro->open>>5)&3;
+      macro["delay"]=(int)curMacro->delay;
+      macro["speed"]=(int)curMacro->speed;
+      switch (macroType) {
+        case 0: { // normal
+          macro["data"]={};
+          for (unsigned char j=0; j<curMacro->len; j++) {
+            macro["data"].push_back((int)curMacro->val[j]);
+          }
+          break;
+        }
+        case 1: { // adsr
+          macro["data"]["bottom"]=curMacro->val[0];
+          macro["data"]["top"]=curMacro->val[1];
+          macro["data"]["attack"]=curMacro->val[2];
+          macro["data"]["hold"]=curMacro->val[3];
+          macro["data"]["decay"]=curMacro->val[4];
+          macro["data"]["sustain"]=curMacro->val[5];
+          macro["data"]["susTime"]=curMacro->val[6];
+          macro["data"]["susDecay"]=curMacro->val[7];
+          macro["data"]["release"]=curMacro->val[8];
+          break;
+        }
+        case 2: { // lfo
+          macro["data"]["bottom"]=curMacro->val[0];
+          macro["data"]["top"]=curMacro->val[1];
+          macro["data"]["speed"]=curMacro->val[11];
+          macro["data"]["shape"]=curMacro->val[12];
+          macro["data"]["phase"]=curMacro->val[13];
+          break;
+        }
+        default:
+          logW("json: invalid macro type!");
+      }
+      json["macros"].push_back(macro);
+    }
   }
 #define SET_VALUE(v,x) v[#x]=ins->v.x
   if (featureFM) {
