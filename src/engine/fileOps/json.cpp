@@ -26,6 +26,7 @@ JSON serializePattern(DivPattern* pat, int rows, int effectCols);
 JSON serializeInstrument(DivInstrument* ins);
 JSON serializeWavetable(DivWavetable* wave);
 JSON serializeSample(DivSample* sample);
+JSON serializeCompatFlags(DivCompatFlags* flags);
 
 SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
   saveLock.lock();
@@ -112,6 +113,35 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
     }
     json["subsongs"].push_back(subsong);
   }
+
+  json["assetDirs"]={};
+  JSON dir;
+  if (!song.insDir.empty()) for (DivAssetDir& i:song.insDir) {
+    dir["name"]=i.name;
+    dir["assets"]={};
+    for (int a:i.entries) {
+      dir["assets"].push_back(a);
+    }
+    json["assetDirs"]["ins"].push_back(dir);
+  }
+  if (!song.waveDir.empty()) for (DivAssetDir& i:song.waveDir) {
+    dir["name"]=i.name;
+    dir["assets"]={};
+    for (int a:i.entries) {
+      dir["assets"].push_back(a);
+    }
+    json["assetDirs"]["wave"].push_back(dir);
+  }
+  if (!song.sampleDir.empty()) for (DivAssetDir& i:song.sampleDir) {
+    dir["name"]=i.name;
+    dir["assets"]={};
+    for (int a:i.entries) {
+      dir["assets"].push_back(a);
+    }
+    json["assetDirs"]["sample"].push_back(dir);
+  }
+
+  json["compatFlags"]=serializeCompatFlags(&song.compatFlags);
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -715,5 +745,69 @@ JSON serializeSample(DivSample* sample) {
   for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
     json["data"].push_back(data[i]);
   }
+  return json;
+}
+
+JSON serializeCompatFlags(DivCompatFlags* flags) {
+  JSON json;
+#define SET_FLAG(f) json[ #f ]=flags->f
+  SET_FLAG(limitSlides);
+  SET_FLAG(linearPitch);
+  SET_FLAG(pitchSlideSpeed);
+  SET_FLAG(loopModality);
+  SET_FLAG(delayBehavior);
+  SET_FLAG(jumpTreatment);
+  SET_FLAG(properNoiseLayout);
+  SET_FLAG(waveDutyIsVol);
+  SET_FLAG(resetMacroOnPorta);
+  SET_FLAG(legacyVolumeSlides);
+  SET_FLAG(compatibleArpeggio);
+  SET_FLAG(noteOffResetsSlides);
+  SET_FLAG(targetResetsSlides);
+  SET_FLAG(arpNonPorta);
+  SET_FLAG(algMacroBehavior);
+  SET_FLAG(brokenShortcutSlides);
+  SET_FLAG(ignoreDuplicateSlides);
+  SET_FLAG(stopPortaOnNoteOff);
+  SET_FLAG(continuousVibrato);
+  SET_FLAG(brokenDACMode);
+  SET_FLAG(oneTickCut);
+  SET_FLAG(newInsTriggersInPorta);
+  SET_FLAG(arp0Reset);
+  SET_FLAG(brokenSpeedSel);
+  SET_FLAG(noSlidesOnFirstTick);
+  SET_FLAG(rowResetsArpPos);
+  SET_FLAG(ignoreJumpAtEnd);
+  SET_FLAG(buggyPortaAfterSlide);
+  SET_FLAG(gbInsAffectsEnvelope);
+  SET_FLAG(sharedExtStat);
+  SET_FLAG(ignoreDACModeOutsideIntendedChannel);
+  SET_FLAG(e1e2AlsoTakePriority);
+  SET_FLAG(newSegaPCM);
+  SET_FLAG(fbPortaPause);
+  SET_FLAG(snDutyReset);
+  SET_FLAG(pitchMacroIsLinear);
+  SET_FLAG(oldOctaveBoundary);
+  SET_FLAG(noOPN2Vol);
+  SET_FLAG(newVolumeScaling);
+  SET_FLAG(volMacroLinger);
+  SET_FLAG(brokenOutVol);
+  SET_FLAG(brokenOutVol2);
+  SET_FLAG(e1e2StopOnSameNote);
+  SET_FLAG(brokenPortaArp);
+  SET_FLAG(snNoLowPeriods);
+  SET_FLAG(disableSampleMacro);
+  SET_FLAG(oldArpStrategy);
+  SET_FLAG(brokenPortaLegato);
+  SET_FLAG(brokenFMOff);
+  SET_FLAG(preNoteNoEffect);
+  SET_FLAG(oldDPCM);
+  SET_FLAG(resetArpPhaseOnNewNote);
+  SET_FLAG(ceilVolumeScaling);
+  SET_FLAG(oldAlwaysSetVolume);
+  SET_FLAG(oldSampleOffset);
+  SET_FLAG(oldCenterRate);
+  SET_FLAG(noVolSlideReset);
+#undef SET_FLAG
   return json;
 }
