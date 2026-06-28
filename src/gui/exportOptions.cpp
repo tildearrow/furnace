@@ -535,10 +535,26 @@ void FurnaceGUI::drawExportJSON(bool onWindow) {
   ImGui::Text(
     _("this option exports the song in the JSON format.\n")
   );
-  ImGui::BeginDisabled(jsonExportOptions.bson);
-  ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.pretty);
+  ImGui::Text(_("Export format:"));
+  ImGui::Indent();
+  if (ImGui::RadioButton("JSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_JSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_JSON;
+  }
+  if (ImGui::RadioButton("BSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_BSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_BSON;
+  }
+  if (ImGui::RadioButton("CBOR",jsonExportOptions.format==DivJSONExportOptions::EXPORT_CBOR)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_CBOR;
+  }
+  ImGui::Unindent();
+  ImGui::BeginDisabled(jsonExportOptions.format!=DivJSONExportOptions::EXPORT_JSON);
+  ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.jsonPretty);
   ImGui::EndDisabled();
-  ImGui::Checkbox(_("BSON file"), &jsonExportOptions.bson);
+  ImGui::Checkbox(_("Export instruments"), &jsonExportOptions.exportInstruments);
+  ImGui::Checkbox(_("Export wavetables"), &jsonExportOptions.exportWaves);
+  ImGui::Checkbox(_("Export samples"), &jsonExportOptions.exportSamples);
+  ImGui::Checkbox(_("Export orders"), &jsonExportOptions.exportOrders);
+  ImGui::Checkbox(_("Export patterns"), &jsonExportOptions.exportPatterns);
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();

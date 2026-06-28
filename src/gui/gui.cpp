@@ -2320,14 +2320,28 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       break;
     case GUI_FILE_EXPORT_JSON: {
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
-      String filter=_("JSON file");
-      String filterExt="*.json";
-      if (jsonExportOptions.bson) {
-        filter=_("BSON file");
-        filterExt="*.bson";
+      String dialogHeader;
+      String filter;
+      String filterExt;
+      switch (jsonExportOptions.format) {
+        case DivJSONExportOptions::EXPORT_JSON:
+          dialogHeader=_("Export JSON data");
+          filter=_("JSON file");
+          filterExt="*.json";
+          break;
+        case DivJSONExportOptions::EXPORT_BSON:
+          dialogHeader=_("Export BSON data");
+          filter=_("BSON file");
+          filterExt="*.bson";
+          break;
+        case DivJSONExportOptions::EXPORT_CBOR:
+          dialogHeader=_("Export CBOR data");
+          filter=_("CBOR file");
+          filterExt="*.cbor";
+          break;
       }
       hasOpened=fileDialog->openSave(
-        _("Export JSON data"),
+        dialogHeader,
         {filter,filterExt},
         workingDirROMExport,
         dpiScale,
@@ -5903,12 +5917,20 @@ bool FurnaceGUI::loop() {
             checkExtension(".txt");
           }
           if (curFileDialog==GUI_FILE_EXPORT_JSON) {
-            if (jsonExportOptions.bson) {
-              checkExtension(".bson");
-            } else {
-              checkExtension(".json");
+            switch (jsonExportOptions.format) {
+              case DivJSONExportOptions::EXPORT_JSON: {
+                checkExtension(".json");
+                break;
+              }
+              case DivJSONExportOptions::EXPORT_BSON: {
+                checkExtension(".bson");
+                break;
+              }
+              case DivJSONExportOptions::EXPORT_CBOR: {
+                checkExtension(".cbor");
+                break;
+              }
             }
-            
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
@@ -6493,7 +6515,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_JSON: {
-              SafeWriter* w=e->saveJSON(jsonExportOptions.pretty,jsonExportOptions.bson);
+              SafeWriter* w=e->saveJSON(&jsonExportOptions);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -9631,7 +9653,6 @@ FurnaceGUI::FurnaceGUI():
   audioExportFilterExt("*"),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
-  jsonExportOptions({false,false}),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),

@@ -28,22 +28,21 @@ JSON serializeWavetable(DivWavetable* wave);
 JSON serializeSample(DivSample* sample);
 JSON serializeCompatFlags(DivCompatFlags* flags);
 
-SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
+SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
   saveLock.lock();
 
   JSON json;
-  json["furVersion"]["versionString"]=DIV_VERSION;
-  json["furVersion"]["versionNumber"]=DIV_ENGINE_VERSION;
 
   json["songInfo"]["version"]=song.version;
   json["songInfo"]["name"]=song.name;
   json["songInfo"]["author"]=song.author;
   json["songInfo"]["album"]=song.category;
-  json["songInfo"]["system"]=song.systemName;
+  json["songInfo"]["system"]={song.autoSystem,song.systemName};
   json["songInfo"]["tuning"]=song.tuning;
   json["songInfo"]["instrumentCount"]=song.insLen;
   json["songInfo"]["wavetableCount"]=song.waveLen;
   json["songInfo"]["sampleCount"]=song.sampleLen;
+  json["songInfo"]["comments"]=song.notes;
 
   json["chips"]={};
   for (int i=0; i<song.systemLen; i++) {
@@ -61,20 +60,25 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
     json["chips"].push_back(chip);
   }
 
-  json["comments"]=song.notes;
   json["subsongs"]={};
 
-  json["instruments"]={};
-  for (int j=0; j<song.insLen; j++) {
-    json["instruments"].push_back(serializeInstrument(getIns(j)));
+  if (options->exportInstruments) {
+    json["instruments"]={};
+    for (int j=0; j<song.insLen; j++) {
+      json["instruments"].push_back(serializeInstrument(getIns(j)));
+    }
   }
-  json["wavetables"]={};
-  for (int j=0; j<song.waveLen; j++) {
-    json["wavetables"].push_back(serializeWavetable(getWave(j)));
+  if (options->exportWaves) {
+    json["wavetables"]={};
+    for (int j=0; j<song.waveLen; j++) {
+      json["wavetables"].push_back(serializeWavetable(getWave(j)));
+    }
   }
-  json["samples"]={};
-  for (int j=0; j<song.sampleLen; j++) {
-    json["samples"].push_back(serializeSample(getSample(j)));
+  if (options->exportSamples) {
+    json["samples"]={};
+    for (int j=0; j<song.sampleLen; j++) {
+      json["samples"].push_back(serializeSample(getSample(j)));
+    }
   }
 
   json["grooves"]={};
@@ -88,6 +92,13 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
     json["grooves"].push_back(groove);
   }
 
+  JSON patchbay;
+  patchbay["auto"]=song.patchbayAuto;
+  for (unsigned int& i:song.patchbay) {
+    patchbay["connections"].push_back(i);
+  }
+  json["patchbay"]=patchbay;
+
   for (size_t i=0; i<song.subsong.size(); i++) {
     JSON subsong;
     DivSubSong* s=song.subsong[i];
@@ -98,19 +109,42 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
       subsong["speeds"].push_back(s->speeds.val[j]);
     subsong["virtualTempo"]={s->virtualTempoN,s->virtualTempoD};
     subsong["patternLength"]=s->patLen;
+    subsong["orderLength"]=s->ordersLen;
+    subsong["highlights"]={s->hilightA,s->hilightB};
 
-    subsong["orders"]={};
-    subsong["patterns"]={};
+    if (options->exportOrders) subsong["orders"]={};
+    if (options->exportPatterns) subsong["patterns"]={};
+    subsong["channelData"]={};
+    JSON order;
+    JSON patterns;
     for (int j=0; j<song.chans; j++) {
-      JSON order;
-      JSON patterns;
-      for (int k=0; k<s->ordersLen; k++) {
-        order.push_back(s->orders.ord[j][k]);
-        patterns.push_back(serializePattern(s->pat[j].getPattern(j,false),s->patLen,s->pat[j].effectCols));
+      if (options->exportOrders || options->exportPatterns) {
+        for (int k=0; k<s->ordersLen; k++) {
+          if (options->exportOrders) order.push_back(s->orders.ord[j][k]);
+          if (options->exportPatterns) patterns.push_back(serializePattern(s->pat[j].getPattern(j,false),s->patLen,s->pat[j].effectCols));
+        }
+        if (options->exportOrders) subsong["orders"].push_back(order);
+        if (options->exportPatterns) subsong["patterns"].push_back(patterns);
       }
-      subsong["orders"].push_back(order);
-      subsong["patterns"].push_back(patterns);
+
+      JSON chanData;
+      chanData["effectColumns"]=s->pat[j].effectCols;
+      chanData["show"]["pattern"]=s->chanShow[j];
+      chanData["show"]["chanOsc"]=s->chanShowChanOsc[j];
+      chanData["collapse"]=s->chanCollapse[j];
+      chanData["name"]=s->chanName[j];
+      chanData["shortName"]=s->chanShortName[j];
+      unsigned int color=s->chanColor[j];
+      if (color) {
+        chanData["color"]["r"]=(color)&255;
+        chanData["color"]["g"]=(color>>8)&255;
+        chanData["color"]["b"]=(color>>16)&255;
+        chanData["color"]["a"]=(color>>24)&255;
+      }
+      subsong["channelData"].push_back(chanData);
     }
+    subsong["notes"]=s->notes;
+
     json["subsongs"].push_back(subsong);
   }
 
@@ -145,19 +179,32 @@ SafeWriter* DivEngine::saveJSON(bool pretty, bool bson) {
 
   SafeWriter* w=new SafeWriter;
   w->init();
-  if (bson) {
-    std::vector<uint8_t> bsonDump=JSON::to_bson(json);
-    w->write(bsonDump.data(),bsonDump.size());
-  } else {
-    String dump;
-    if (pretty) {
-      dump=json.dump(2);
-    } else {
-      dump=json.dump();
+  switch (options->format) {
+    case DivJSONExportOptions::EXPORT_BSON: {
+      std::vector<uint8_t> bsonDump=JSON::to_bson(json);
+      w->write(bsonDump.data(),bsonDump.size());
+      break;
     }
-    w->writeString(dump,false);
+    case DivJSONExportOptions::EXPORT_CBOR: {
+      std::vector<uint8_t> cborDump=JSON::to_cbor(json);
+      w->write(cborDump.data(),cborDump.size());
+      break;
+    }
+    case DivJSONExportOptions::EXPORT_JSON:
+    default: {
+      String dump;
+      if (options->jsonPretty) {
+        dump=json.dump(2);
+      } else {
+        dump=json.dump();
+      }
+      w->writeString(dump,false);
+      break;
+    }
   }
-
+  if (w->tell()==0) {
+    lastError="empty file";
+  }
   saveLock.unlock();
   return w;
 }
