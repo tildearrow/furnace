@@ -411,7 +411,7 @@ unsigned int DivPlatformSM8521::getMaxFreq(int ch) {
 }
 
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
-  chipClock=11059200;
+  chipClock=10000000;
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/2; // CKIN -> fCLK(/2) -> Function blocks (/2)
