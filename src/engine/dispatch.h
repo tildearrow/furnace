@@ -339,6 +339,52 @@ enum DivDispatchCmds {
   DIV_CMD_MAX
 };
 
+/**
+ * used in DivPitchTable::compile().
+ * delta values are omitted if the table is non-linear.
+ */
+enum DivPitchTableLayout {
+  /**
+   * 8-bit values (12 pitch, 12 delta).
+   * 24 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U8=0,
+  /**
+   * 16-bit little-endian values (12 pitch, 12 delta).
+   * 48 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U16LE,
+  /**
+   * 24-bit little-endian values (12 pitch, 12 delta).
+   * 72 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U24LE,
+  /**
+   * 32-bit little-endian values (12 pitch, 12 delta).
+   * 96 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U32LE,
+  /**
+   * 16-bit big-endian values (12 pitch, 12 delta).
+   * 48 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U16BE,
+  /**
+   * 24-bit big-endian values (12 pitch, 12 delta).
+   * 72 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U24BE,
+  /**
+   * 32-bit big-endian values (12 pitch, 12 delta).
+   * 96 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U32BE,
+  /**
+   * 16-bit values, low/high bytes split (12 pitch LSB, 12 delta LSB, 12 pitch MSB, 12 delta MSB).
+   * 48 bytes
+   **/
+  DIV_PITCH_TABLE_LAYOUT_U16SPLIT,
+};
 
 /**
  * this struct contains a pitch table.
@@ -406,6 +452,16 @@ struct DivPitchTable {
    * @param linear whether pitch linearity is set to full.
    */
   void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
+
+  /**
+   * write this pitch table to memory.
+   * this does not check memory boundaries. use with care.
+   * @param ptr pointer to memory.
+   * @param layout the data layout. see DivPitchTableLayout.
+   * @param writeDelta whether to include delta values in the output.
+   * @return number of bytes written.
+   */
+  size_t compile(void* ptr, DivPitchTableLayout layout, bool writeDelta=true);
 
   DivPitchTable():
     maxFreq(0xffffffff),

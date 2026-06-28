@@ -1002,11 +1002,77 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
 }
 
 const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
-  size=MIN(sampleMemLen,65536)-sampleTableBase;
-  unsigned char* ret=new unsigned char[size];
-  memcpy(ret,&copyOfSampleMem[sampleTableBase],size);
+  switch (index) {
+    case 0: { // sample data
+      size=MIN(sampleMemLen,65536)-sampleTableBase;
+      unsigned char* ret=new unsigned char[size];
+      memcpy(ret,&copyOfSampleMem[sampleTableBase],size);
+      return ret;
+      break;
+    }
+    case 1: { // pitch tables and config
+      bool isWaveSizeUsed[16];
+      unsigned int wavePitchTablePtr[16];
+      unsigned int* samplePitchTablePtr=NULL;
+      size_t start=0;
 
-  return ret;
+      // allocate sample pointers
+      if (!parent->song.sample.empty()) {
+        samplePitchTablePtr=new unsigned int[parent->song.sample.size()];
+      }
+
+      // we don't need delta in non-linear pitch. save 24 bytes if so.
+      const size_t pitchTableSize=parent->song.linearPitch?48:24;
+      memset(isWaveSizeUsed,0,16*sizeof(bool));
+
+      // check which wave sizes are used (so we can skip unused pitch tables)
+      for (DivInstrument* i: parent->song.ins) {
+        if (i->amiga.useWave) {
+          isWaveSizeUsed[(((i->amiga.waveLen+1)>>4)-1)&15]=true;
+        }
+      }
+
+      // allocate space for pointers
+      size=32+parent->song.sample.size()*2;
+      start=size;
+
+      // allocate space for wave pitch tables
+      for (int i=0; i<16; i++) {
+        if (isWaveSizeUsed[i]) {
+          size+=pitchTableSize;
+        }
+      }
+
+      // allocate space for sample pitch tables
+      // TODO:
+      // - skip unavailable samples
+      // - optimize (de-duplication)
+      size+=pitchTableSize*parent->song.sample.size();
+
+      // allocate the actual data
+      unsigned char* ret=new unsigned char[size];
+      
+      // fill in
+      for (int i=0; i<16; i++) {
+        if (isWaveSizeUsed[i]) {
+          start+=wavePitchTable[i].compile(&ret[start],DIV_PITCH_TABLE_LAYOUT_U16SPLIT,pitchTableSize==48);
+        } else {
+          wavePitchTablePtr[i]=0;
+        }
+      }
+
+      // compile sample pitch tables
+      for (size_t i=0; i<parent->song.sample.size(); i++) {
+        start+=samplePitchTable.get(i)->compile(&ret[start],DIV_PITCH_TABLE_LAYOUT_U16SPLIT,pitchTableSize==48);
+      }
+
+      // what the hell man... you gotta compile one more table for fallback...
+      
+      return ret;
+      break;
+    }
+  }
+  return NULL;
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {
