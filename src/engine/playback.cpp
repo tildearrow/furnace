@@ -783,16 +783,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].inPorta && song.compatFlags.noteOffResetsSlides) {
       // stopOnOff will be false if stopPortaOnNoteOff flag is off
       if (chan[i].stopOnOff) {
-        chan[i].portaNote=-1;
+        chan[i].portaNote=0;
         chan[i].portaSpeed=-1;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
         chan[i].stopOnOff=false;
       }
       // depending on the system, portamento may still be disabled
       if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
-        chan[i].portaNote=-1;
+        chan[i].portaNote=0;
         chan[i].portaSpeed=-1;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
       }
       // another compatibility hack which schedules a second reset later just in case
       chan[i].scheduledSlideReset=true;
@@ -807,15 +807,15 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // same thing here regarding reset slide behavior
     if (chan[i].inPorta && song.compatFlags.noteOffResetsSlides) {
       if (chan[i].stopOnOff) {
-        chan[i].portaNote=-1;
+        chan[i].portaNote=0;
         chan[i].portaSpeed=-1;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
         chan[i].stopOnOff=false;
       }
       if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
-        chan[i].portaNote=-1;
+        chan[i].portaNote=0;
         chan[i].portaSpeed=-1;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
       }
       chan[i].scheduledSlideReset=true;
     }
@@ -831,7 +831,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // stop the current porta if we weren't in raw frequency mode
     if (!(chan[i].note&DIV_NOTE_RAW_FLAG)) {
       if (chan[i].portaSpeed>0) {
-        chan[i].portaNote=-1;
+        chan[i].portaNote=0;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,0,0));
         chan[i].inPorta=false;
@@ -840,8 +840,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
 
     // disable arpeggio completely
-    chan[i].arp=0;
-    dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+    if (chan[i].arp) {
+      chan[i].arp=0;
+      dispatchCmd(DivCommand(DIV_CMD_HINT_ARPEGGIO,i,chan[i].arp));
+    }
 
     chan[i].oldNote=chan[i].note;
     chan[i].note=(
@@ -857,7 +859,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // stop the current porta if we were in raw frequency mode
     if (chan[i].note&DIV_NOTE_RAW_FLAG) {
       if (chan[i].portaSpeed>0) {
-        chan[i].portaNote=-1;
+        chan[i].portaNote=0;
         chan[i].portaSpeed=-1;
         dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,0,0));
         chan[i].inPorta=false;
@@ -1022,9 +1024,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (song.compatFlags.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
         lastSlide=0x01;
         if (effectVal==0) {
-          chan[i].portaNote=-1;
+          chan[i].portaNote=0;
           chan[i].portaSpeed=-1;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
           // - the PRE_PORTA command is used to let the dispatch know we're entering a pitch slide
@@ -1046,7 +1048,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].portaNote=song.compatFlags.limitSlides?156:179;
             chan[i].portaSpeed=effectVal;
           }
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           // most of these are used for compat flag handling
           chan[i].portaStop=true;
           chan[i].stopOnOff=false;
@@ -1070,9 +1072,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (song.compatFlags.ignoreDuplicateSlides && (lastSlide==0x02 || lastSlide==0x1337)) break;
         lastSlide=0x02;
         if (effectVal==0) {
-          chan[i].portaNote=-1;
+          chan[i].portaNote=0;
           chan[i].portaSpeed=-1;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
@@ -1089,7 +1091,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].portaNote=(song.compatFlags.limitSlides && song.dispatchChanOfChan[i]>=0)?(disCont[song.dispatchOfChan[i]].dispatch->getPortaFloor(song.dispatchChanOfChan[i])):0;
             chan[i].portaSpeed=effectVal;
           }
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           chan[i].portaStop=true;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
@@ -1103,9 +1105,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // exception: the arpNonPorta flag is not checked here.
         // a portamento shall override arp macros on non-linear pitch.
         if (effectVal==0) {
-          chan[i].portaNote=-1;
+          chan[i].portaNote=0;
           chan[i].portaSpeed=-1;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
@@ -1127,7 +1129,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             // ...but this one is for ANOTHER compat flag. yuck!
             chan[i].wasShorthandPorta=false;
           }
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           // TODO; portaStop is guaranteed to be true anyway. what's the point of this?
           chan[i].portaStop=true;
           // this is why we didn't send noye on before.
@@ -1186,9 +1188,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0x06: // vol slide + porta
         // same thing here. this is another effect that doesn't need to exist.
         if (effectVal==0 || chan[i].lastPorta==0) {
-          chan[i].portaNote=-1;
+          chan[i].portaNote=0;
           chan[i].portaSpeed=-1;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
@@ -1205,7 +1207,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].inPorta=true;
             chan[i].wasShorthandPorta=false;
           }
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           // this is the same as 03xx.
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
@@ -1372,7 +1374,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].portaNote=chan[i].note+(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
         // these are for compatibility stuff
         chan[i].portaStop=true;
         // COMPAT FLAG: stop portamento on note off
@@ -1403,7 +1405,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (chan[i].note&DIV_NOTE_RAW_FLAG) break;
         chan[i].portaNote=chan[i].note-(effectVal&15);
         chan[i].portaSpeed=(effectVal>>4)*4;
-        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
         chan[i].portaStop=true;
         // COMPAT FLAG: stop portamento on note off
         chan[i].stopOnOff=song.compatFlags.stopPortaOnNoteOff; // what?!
@@ -1659,7 +1661,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - if there was a shortcut slide, stop it
         if (song.compatFlags.e1e2StopOnSameNote && chan[i].wasShorthandPorta) {
           chan[i].portaSpeed=-1;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
           // COMPAT FLAG: broken shortcut slides
           // - oddly enough, shortcut slides are not communicated to the dispatch
           // - this was fixed in 0.5.7
@@ -1669,7 +1671,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         } else {
           // otherwise we change the portamento target
           chan[i].portaNote=chan[i].note;
-          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
         }
       } else if (!chan[i].noteOnInhibit) {
         // noteOnInhibit is set during live playback to prevent an extra note from playing
@@ -1697,9 +1699,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
     // reset slide if scheduled and not keying on
     // I don't understand
     if (!chan[i].keyOn && chan[i].scheduledSlideReset) {
-      chan[i].portaNote=-1;
+      chan[i].portaNote=0;
       chan[i].portaSpeed=-1;
-      dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+      dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
       chan[i].scheduledSlideReset=false;
       chan[i].inPorta=false;
     }
@@ -1757,7 +1759,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (!song.compatFlags.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
           int portaSpeedMultiplier=(song.compatFlags.linearPitch && !(chan[i].note&DIV_NOTE_RAW_FLAG))?song.compatFlags.pitchSlideSpeed:1;
           dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*portaSpeedMultiplier,chan[i].portaNote));
-          chan[i].portaNote=-1;
+          chan[i].portaNote=0;
           chan[i].portaSpeed=-1;
           chan[i].inPorta=false;
           // COMPAT FLAG: arpeggio inhibits non-porta slides
@@ -2508,7 +2510,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             if (dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*portaSpeedMultiplier,chan[i].portaNote))==2 && chan[i].portaStop && song.compatFlags.targetResetsSlides) {
               // if we are here, it means we reached the target and shall stop
               chan[i].portaSpeed=0;
-              dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+              dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
               chan[i].oldNote=chan[i].note;
               chan[i].note=chan[i].portaNote;
               chan[i].inPorta=false;
@@ -2536,16 +2538,16 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
                 chan[i].keyOn=false;
                 // stopOnOff will be false if stopPortaOnNoteOff flag is off
                 if (chan[i].stopOnOff) {
-                  chan[i].portaNote=-1;
+                  chan[i].portaNote=0;
                   chan[i].portaSpeed=-1;
-                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
                   chan[i].stopOnOff=false;
                 }
                 // depending on the system, portamento may still be disabled
                 if (song.dispatchChanOfChan[i]>=0) if (disCont[song.dispatchOfChan[i]].dispatch->keyOffAffectsPorta(song.dispatchChanOfChan[i])) {
-                  chan[i].portaNote=-1;
+                  chan[i].portaNote=0;
                   chan[i].portaSpeed=-1;
-                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,0,179),MAX(chan[i].portaSpeed,0)));
+                  dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,chan[i].portaNote,MAX(chan[i].portaSpeed,0)));
                 }
                 dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
                 // another compatibility hack which schedules a second reset later just in case
@@ -2937,7 +2939,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           if (midiIsDirect) {
             // in direct mode, map the event directly to the channel
             if (chan<0 || chan>=song.chans) break;
-            pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
+            pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false,false,true));
           } else {
             // find a suitable channel and add this event to the queue
             autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);
@@ -2956,7 +2958,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             if (midiIsDirect) {
               // in direct mode, map the event directly to the channel
               if (chan<0 || chan>=song.chans) break;
-              pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false,false,true));
+              pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false,false,true));
             } else {
               // find a suitable channel and add this event to the queue
               autoNoteOff(msg.type&15,msg.data[0]-12+60,msg.data[1]);

@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev248"
-#define DIV_ENGINE_VERSION 248
+#define DIV_VERSION "dev249"
+#define DIV_ENGINE_VERSION 249
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -199,7 +199,7 @@ struct DivChannelState {
     lastIns(-1),
     pitch(0),
     portaSpeed(-1),
-    portaNote(-1),
+    portaNote(0),
     volume(0x7f00),
     volSpeed(0),
     volSpeedTarget(-1),
@@ -265,7 +265,8 @@ struct DivChannelState {
 struct DivNoteEvent {
   signed char channel;
   short ins;
-  unsigned char note;
+  // we can't save space anymore now that raw notes exist.
+  int note;
   signed char volume;
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):

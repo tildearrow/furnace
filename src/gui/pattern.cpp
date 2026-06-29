@@ -1238,10 +1238,13 @@ void FurnaceGUI::drawPattern() {
                 );
                 // display an indicator for the current nibble
                 if (curNibble) {
-                  if (fmod(secondTimer,0.5f)<0.25f) {
+                  WAKE_UP;
+                  float blinkTime=(cursor.xFine==0 && curRawNoteState==GUI_RAWNOTE_READY)?0.25f:0.5f;
+                  float blinkPos=(cursor.xFine>0)?1.0f:2.0f;
+                  if (fmod(secondTimer,blinkTime)<blinkTime*0.5f) {
                     dl->AddLine(
-                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+oneCharSize,pos.y+lineHeight-2.0*dpiScale),
-                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+2.0f*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+blinkPos*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+(blinkPos+1.0f)*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
                       ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_TEXT]),
                       dpiScale
                     );

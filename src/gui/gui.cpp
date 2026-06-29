@@ -1398,10 +1398,10 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    if (!e->autoNoteOn(-1,curIns,note+60)) failedNoteOn=true;
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
     for (int mi=0; mi<7; mi++) {
       if (multiIns[mi]!=-1) {
-        e->autoNoteOn(-1,multiIns[mi],note+60,-1,multiInsTranspose[mi]);
+        e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
       }
     }
   });
@@ -1479,8 +1479,10 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
     if (pat->newData[y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
       // restore previous note
       pat->newData[y][DIV_PAT_NOTE]=pat->newData[y][DIV_PAT_NOTE_BUFFER];
+      logV("Out.....");
     } else {
       // store note in buffer and set raw frequency
+      logV("In......");
       pat->newData[y][DIV_PAT_NOTE_BUFFER]=pat->newData[y][DIV_PAT_NOTE];
       pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_RAW;
       // check for invalid bytes
@@ -1896,6 +1898,15 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
                 if (edit) {
                   rawFreqInput(num);
+                }
+              } else {
+                // try again to find the toggle raw key
+                auto it1=noteKeys.find(ev.key.keysym.scancode);
+                if (it1!=noteKeys.cend()) {
+                  int key=it1->second;
+                  if (edit && key==GUI_NOTE_RAW) {
+                    noteInput(0,key,-1,chordInputOffset);
+                  }
                 }
               }
             } else {
@@ -4035,6 +4046,18 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           // fall-through
         default: {
           if (warnIsOpen && !settings.warnNotePassthrough) break;
+          if (curRawNoteState==GUI_RAWNOTE_PENDING) break;
+          if (curRawNoteState==GUI_RAWNOTE_READY) {
+            auto it=valueKeys.find(ev->key.keysym.sym);
+            if (it!=valueKeys.cend()) {
+              int num=it->second;
+              if (!e->autoNoteOn(-1,curIns,(curRawNote<<4)|num|DIV_NOTE_RAW_FLAG)) failedNoteOn=true;
+              pendingRawNote=(curRawNote<<4)|num;
+              pendingRawNoteKey=ev->key.keysym.sym;
+            }
+            break;
+          }
+          // normal keys
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -4044,7 +4067,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (num>119) num=119; // B-9
 
             if (key!=100 && key!=101 && key!=102 && key!=103) {
-              previewNote(cursor.xCoarse,num);
+              previewNote(cursor.xCoarse,num+60);
             }
           }
           break;
@@ -4053,6 +4076,14 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
     }
   } else if (ev->type==SDL_KEYUP) {
     stopPreviewNote(ev->key.keysym.scancode,true);
+    if (pendingRawNoteKey==ev->key.keysym.sym) {
+      e->synchronized([this]() {
+        e->autoNoteOff(-1,pendingRawNote|DIV_NOTE_RAW_FLAG);
+        pendingRawNote=-1;
+        pendingRawNoteKey=(SDL_Keycode)0;
+        failedNoteOn=false;
+      });
+    }
     if (wavePreviewOn) {
       if (ev->key.keysym.scancode==wavePreviewKey) {
         wavePreviewOn=false;
@@ -4246,6 +4277,12 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   if (dragMobileEditButton) {
     dragMobileEditButton=false;
+  }
+  if (pendingRawNote>=0) {
+    e->autoNoteOff(-1,pendingRawNote|DIV_NOTE_RAW_FLAG);
+    pendingRawNote=-1;
+    pendingRawNoteKey=(SDL_Keycode)0;
+    failedNoteOn=false;
   }
 }
 
@@ -5708,6 +5745,31 @@ bool FurnaceGUI::loop() {
           }
         }
       }
+    }
+
+    // update raw note ztate
+    if (curWindow==GUI_WINDOW_PATTERN && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && curOrder>=0 && curOrder<DIV_MAX_PATTERNS && cursor.y>=0 && cursor.y<DIV_MAX_ROWS) {
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
+
+      if (pat->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+        unsigned int val=(
+          pat->newData[cursor.y][DIV_PAT_RAW0]|
+          (pat->newData[cursor.y][DIV_PAT_RAW1]<<8)|
+          (pat->newData[cursor.y][DIV_PAT_RAW2]<<16)|
+          (pat->newData[cursor.y][DIV_PAT_RAW3]<<24)
+        );
+        unsigned int valMax=e->getMaxFreqChan(cursor.xCoarse);
+        unsigned int valNibbles=(bsr32(valMax)+3)>>2;
+        if (valMax==0) valNibbles=0;
+
+        curRawNoteState=((unsigned int)(curNibble+1)>=valNibbles)?GUI_RAWNOTE_READY:GUI_RAWNOTE_PENDING;
+        curRawNote=val;
+      } else {
+        curRawNoteState=GUI_RAWNOTE_NORMAL;
+      }
+    } else {
+      curRawNoteState=GUI_RAWNOTE_NORMAL;
+      // we don't clear curRawNote because the key down event handler may still need it.
     }
 
     updateKeyHitPost();
@@ -8007,11 +8069,76 @@ bool FurnaceGUI::init() {
   syncSettings();
   syncTutorial();
 
+  // sync the recent files list
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
     String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
     if (!r.empty()) {
       recentFile.push_back(r);
+    }
+  }
+
+  // dev249 introduces raw note input key (default is hyphen).
+  // check whether we should add it to the current map.
+  if (e->getConfInt("configVersion",DIV_ENGINE_VERSION)<249) {
+    // find whether the user already assigned a raw note key
+    logV("adding raw note key.");
+    bool shouldMapRawNoteKey=true;
+    for (std::map<int,int>::value_type& i: noteKeys) {
+      if (i.second==GUI_NOTE_RAW) {
+        shouldMapRawNoteKey=false;
+        break;
+      }
+    }
+    if (shouldMapRawNoteKey) {
+      // we'll try with two keys: hyphen and backslash (if hyphen is already bound)
+      bool isHyphenAvailable=true;
+      bool isBackslashAvailable=true;
+
+      // check availability in the note keys
+      for (std::map<int,int>::value_type& i: noteKeys) {
+        if (i.first==SDL_SCANCODE_MINUS) {
+          isHyphenAvailable=false;
+        }
+        if (i.first==SDL_SCANCODE_BACKSLASH) {
+          isBackslashAvailable=false;
+        }
+      }
+
+      // now check in action binds
+      for (int i=0; i<GUI_ACTION_MAX; i++) {
+        for (int j: actionKeys[i]) {
+          if (j==SDL_SCANCODE_MINUS) {
+            isHyphenAvailable=false;
+          }
+          if (j==SDL_SCANCODE_BACKSLASH) {
+            isBackslashAvailable=false;
+          }
+        }
+      }
+
+      // try to bind the first available key
+      if (isHyphenAvailable) {
+        noteKeys[SDL_SCANCODE_MINUS]=GUI_NOTE_RAW;
+        decompileNoteKeys();
+        e->setConf("noteKeys",encodeKeyMap(noteKeys));
+      } else if (isBackslashAvailable) {
+        noteKeys[SDL_SCANCODE_BACKSLASH]=GUI_NOTE_RAW;
+        decompileNoteKeys();
+        e->setConf("noteKeys",encodeKeyMap(noteKeys));
+      } else {
+        // we couldn't map a key for raw note...
+        // warn the user
+        showError(_(
+          "a new feature has arrived: raw frequency notes!\n"
+          "these allow you to address frequency/period registers directly for exact pitch control or accessing notes outside the nominal note range.\n\n"
+          "unfortunately I could not map a key for toggling between raw notes and normal ones.\n"
+          "by default it's Minus (-), but I see you've bound that key to a different action.\n"
+          "please go into Settings > Keyboard > Note input and assign a different key.\n\n"
+          "this may be the only time you see this warning."
+        ));
+        logW("couldn't add raw note key!");
+      }
     }
   }
 
@@ -9245,6 +9372,10 @@ FurnaceGUI::FurnaceGUI():
   curPaletteChoice(0),
   curPaletteType(0),
   soloTimeout(0.0f),
+  curRawNote(0),
+  curRawNoteState(GUI_RAWNOTE_NORMAL),
+  pendingRawNote(-1),
+  pendingRawNoteKey((SDL_Keycode)0),
   mobileMultiInsToggle(false),
   purgeYear(2021),
   purgeMonth(4),

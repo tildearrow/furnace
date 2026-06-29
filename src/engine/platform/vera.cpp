@@ -199,7 +199,9 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       rWrite(i,0,chan[i].freq&0xff);
       rWrite(i,1,(chan[i].freq>>8)&0xff);
       chan[i].freqChanged=false;

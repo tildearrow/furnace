@@ -80,9 +80,12 @@ void DivPlatformPV1000::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=0x3f-chan[i].calcFreq();
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>62) chan[i].freq=62;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq=0x3f-chan[i].freq;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>62) chan[i].freq=62;
+      }
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
         rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0x3f : chan[i].freq);

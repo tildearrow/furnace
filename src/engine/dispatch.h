@@ -585,7 +585,7 @@ struct SharedChannel {
    * @return the frequency.
    */
   int calcFreq(int pitchMult=1) {
-    if (rawFreq) return baseFreq;
+    if (rawFreq) return baseFreq+pitch2;
     if (pitchTable==NULL) return 0;
     if (!pitchTable->linearity) {
       return pitchTable->get(baseFreq,pitch*pitchMult,pitch2);

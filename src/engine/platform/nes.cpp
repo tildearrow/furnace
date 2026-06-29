@@ -363,7 +363,7 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         if (chan[i].rawFreq) {
-          chan[i].freq=chan[i].baseFreq&15;
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&15;
         } else {
           int ntPos=chan[i].baseFreq-60;
           if (NEW_ARP_STRAT) {
@@ -386,9 +386,11 @@ void DivPlatformNES::tick(bool sysTick) {
         }
       } else {
         chan[i].freq=chan[i].calcFreq();
-        if (!chan[i].rawFreq) chan[i].freq--;
-        if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (!chan[i].rawFreq) {
+          chan[i].freq--;
+          if (chan[i].freq>2047) chan[i].freq=2047;
+          if (chan[i].freq<0) chan[i].freq=0;
+        }
       }
       if (chan[i].keyOn) {
         // retrigger if sweep is on

@@ -278,11 +278,13 @@ void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=snCalcFreq(i);
-      if (chan[i].freq>1023) chan[i].freq=1023;
-      if (parent->song.compatFlags.snNoLowPeriods) {
-        if (chan[i].freq<8) chan[i].freq=1;
-      } else {
-        if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>1023) chan[i].freq=1023;
+        if (parent->song.compatFlags.snNoLowPeriods) {
+          if (chan[i].freq<8) chan[i].freq=1;
+        } else {
+          if (chan[i].freq<0) chan[i].freq=0;
+        }
       }
       //if (chan[i].actualNote>153) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
@@ -297,11 +299,13 @@ void DivPlatformSMS::tick(bool sysTick) {
   }
   if (chan[3].freqChanged || updateSNMode) {
     chan[3].freq=snCalcFreq(3);
-    if (chan[3].freq>1023) chan[3].freq=1023;
-    if (parent->song.compatFlags.snNoLowPeriods) {
-      if (chan[3].actualNote>153) chan[3].freq=0x01;
+    if (!chan[3].rawFreq) {
+      if (chan[3].freq>1023) chan[3].freq=1023;
+      if (parent->song.compatFlags.snNoLowPeriods) {
+        if (chan[3].actualNote>153) chan[3].freq=0x01;
+      }
+      if (chan[3].freq<0) chan[3].freq=0;
     }
-    if (chan[3].freq<0) chan[3].freq=0;
     if (snNoiseMode&2) { // take period from channel 3
       if (updateSNMode || resetPhase) {
         if (snNoiseMode&1) {

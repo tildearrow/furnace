@@ -208,9 +208,11 @@ void DivPlatformK007232::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       chan[i].freq=chan[i].calcFreq();
-      if (!chan[i].rawFreq) chan[i].freq=0x1000-chan[i].freq;
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        chan[i].freq=0x1000-chan[i].freq;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOn) {
         unsigned int bank=0;
         unsigned int start=0;

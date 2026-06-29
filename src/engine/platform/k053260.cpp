@@ -146,9 +146,11 @@ void DivPlatformK053260::tick(bool sysTick) {
       unsigned char loopoff=regPool[0x2a]&~(0x11<<i);
       unsigned char loopon=loopoff|(s->isLoopable()?(1<<i):0)|(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K?(0x10<<i):0);
       chan[i].freq=chan[i].calcFreq();
-      if (!chan[i].rawFreq) chan[i].freq=0x1000-chan[i].freq;
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        chan[i].freq=0x1000-chan[i].freq;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOn) {
         unsigned int start=0;
         unsigned int length=0;

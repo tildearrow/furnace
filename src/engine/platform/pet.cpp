@@ -127,9 +127,11 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (chan[0].freqChanged || chan[0].keyOn || chan[0].keyOff) {
     chan[0].freq=chan[0].calcFreq();
-    if (!chan[0].rawFreq) chan[0].freq-=2;
-    if (chan[0].freq>65535) chan[0].freq=65535;
-    if (chan[0].freq<0) chan[0].freq=0;
+    if (!chan[0].rawFreq) {
+      chan[0].freq-=2;
+      if (chan[0].freq>65535) chan[0].freq=65535;
+      if (chan[0].freq<0) chan[0].freq=0;
+    }
     rWrite(8,chan[0].freq&0xff);
     rWrite(9,chan[0].freq>>8);
     if (chan[0].keyOn) {

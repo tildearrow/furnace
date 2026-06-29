@@ -327,7 +327,7 @@ void DivPlatformGB::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         if (chan[i].rawFreq) {
-          chan[i].freq=chan[i].baseFreq&0xf7;
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&0xf7;
         } else {
           int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
           if (ntPos<0) ntPos=0;
@@ -336,8 +336,10 @@ void DivPlatformGB::tick(bool sysTick) {
         }
       } else {
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<1) chan[i].freq=1;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq>2047) chan[i].freq=2047;
+          if (chan[i].freq<1) chan[i].freq=1;
+        }
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
