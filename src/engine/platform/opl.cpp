@@ -3233,6 +3233,11 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 }
 
+int DivPlatformOPL::getMaxSamples(int index) {
+  return (index==0 && pcmChanOffs>=0)?(PCM_IN_RAM?128:512):
+          (index==0 && adpcmChan>=0)?32768:0;
+}
+
 const void* DivPlatformOPL::getSampleMem(int index) {
   return (index==0 && pcmChanOffs>=0)?pcmMem:
           (index==0 && adpcmChan>=0)?adpcmBMem:NULL;
@@ -3259,7 +3264,7 @@ size_t DivPlatformOPL::getSampleMemOffset(int index) {
 
 bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 
@@ -3274,7 +3279,7 @@ const DivMemoryComposition* DivPlatformOPL::getMemCompo(int index) {
 // instruments in ROM.
 void DivPlatformOPL::renderInstruments() {
   if (pcmChanOffs>=0) {
-    const int maxSample=PCM_IN_RAM?128:512;
+    const int maxSample=getMaxSamples(0);
     int sampleCount=parent->song.sampleLen;
     if (sampleCount>maxSample) {
       sampleCount=maxSample;
@@ -3338,7 +3343,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
 
   if (pcmChanOffs>=0) { // OPL4 PCM
     size_t memPos=(PCM_IN_RAM?0x200600:0x1800);
-    const int maxSample=PCM_IN_RAM?128:512;
+    const int maxSample=getMaxSamples(0);
     int sampleCount=parent->song.sampleLen;
     if (sampleCount>maxSample) {
       // mark the rest as unavailable
