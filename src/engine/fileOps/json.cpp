@@ -221,8 +221,15 @@ JSON serializePattern(DivPattern* pat, int rows, int effectCols) {
   for (int i=0; i<rows; i++) {
     JSON row;
     bool isEmpty=true;
-    // TODO: raw note
-    if (pat->newData[i][DIV_PAT_NOTE]!=-1) {
+    if (pat->newData[i][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+      unsigned int freq=
+        pat->newData[i][DIV_PAT_RAW0]|
+        (pat->newData[i][DIV_PAT_RAW1]<<8)|
+        (pat->newData[i][DIV_PAT_RAW1]<<16)|
+        (pat->newData[i][DIV_PAT_RAW1]<<24);
+      row["rawFreq"]=freq;
+      isEmpty=false;
+    } else if (pat->newData[i][DIV_PAT_NOTE]!=-1) {
       row["note"]=pat->newData[i][DIV_PAT_NOTE];
       isEmpty=false;
     }
@@ -282,7 +289,6 @@ JSON serializeInstrument(DivInstrument* ins) {
   bool featureGB=false;
   bool featureSM=false;
   bool featureOx[4]={false,false,false,false};
-  bool featureLD=false;
   bool featureSN=false;
   bool featureN1=false;
   bool featureFD=false;
@@ -313,11 +319,9 @@ JSON serializeInstrument(DivInstrument* ins) {
     case DIV_INS_VRC6: featureSM=true; break;
     case DIV_INS_OPLL:
       featureFM=true;
-      if (ins->fm.fixedDrums) featureLD=true;
       break;
     case DIV_INS_OPL:
       featureFM=true;
-      if (ins->fm.fixedDrums) featureLD=true;
       break;
     case DIV_INS_FDS:
       featureFD=true;
@@ -371,7 +375,6 @@ JSON serializeInstrument(DivInstrument* ins) {
       break;
     case DIV_INS_OPL_DRUMS:
       featureFM=true;
-      if (ins->fm.fixedDrums) featureLD=true;
       break;
     case DIV_INS_OPM: featureFM=true; break;
     case DIV_INS_NES:
@@ -623,12 +626,26 @@ JSON serializeInstrument(DivInstrument* ins) {
         JSON map;
         map["freq"]=ins->amiga.noteMap[i].freq;
         map["map"]=ins->amiga.noteMap[i].map;
-        map["dpcmFreq"]=ins->amiga.noteMap[i].dpcmFreq;
-        map["dpcmDelta"]=ins->amiga.noteMap[i].dpcmDelta;
+        // map["dpcmFreq"]=ins->amiga.noteMap[i].dpcmFreq;
+        // map["dpcmDelta"]=ins->amiga.noteMap[i].dpcmDelta;
         amiga["sampleMap"].push_back(map);
       }
     }
     json["amiga"]=amiga;
+  }
+  if (featureNE) {
+    JSON nesMap;
+    nesMap["useNoteMap"]=ins->amiga.useNoteMap;
+    if (ins->amiga.useNoteMap) {
+      nesMap["sampleMap"]={};
+      for (int i=0; i<180; i++) {
+        JSON map;
+        map["dpcmFreq"]=ins->amiga.noteMap[i].dpcmFreq;
+        map["dpcmDelta"]=ins->amiga.noteMap[i].dpcmDelta;
+        nesMap["sampleMap"].push_back(map);
+      }
+    }
+    json["nes"]=nesMap;
   }
   if (featureX1) {
     JSON x1_010;
@@ -746,6 +763,93 @@ JSON serializeInstrument(DivInstrument* ins) {
     JSON powernoise;
     SET_VALUE(powernoise,octave);
     json["powernoise"]=powernoise;
+  }
+  if (featureWS) {
+    JSON ws;
+    SET_VALUE(ws,wave1);
+    SET_VALUE(ws,wave2);
+    SET_VALUE(ws,rateDivider);
+    SET_VALUE(ws,effect);
+    SET_VALUE(ws,oneShot);
+    SET_VALUE(ws,enabled);
+    SET_VALUE(ws,global);
+    SET_VALUE(ws,speed);
+    SET_VALUE(ws,param1);
+    SET_VALUE(ws,param2);
+    SET_VALUE(ws,param3);
+    SET_VALUE(ws,param4);
+    json["waveSynth"]=ws;
+  }
+  if (featureS2) {
+    JSON sid2;
+    SET_VALUE(sid2,volume);
+    SET_VALUE(sid2,mixMode);
+    SET_VALUE(sid2,noiseMode);
+    json["sid2"]=sid2;
+  }
+  if (featureS3) {
+    JSON sid3;
+    // oh my god
+    SET_VALUE(sid3,dutyIsAbs);
+    SET_VALUE(sid3,noiseOn);
+    SET_VALUE(sid3,pulseOn);
+    SET_VALUE(sid3,sawOn);
+    SET_VALUE(sid3,triOn);
+
+    SET_VALUE(sid3,a);
+    SET_VALUE(sid3,d);
+    SET_VALUE(sid3,s);
+    SET_VALUE(sid3,sr);
+    SET_VALUE(sid3,r);
+
+    SET_VALUE(sid3,mixMode);
+    SET_VALUE(sid3,duty);
+    SET_VALUE(sid3,phase_mod);
+    SET_VALUE(sid3,specialWaveOn);
+    SET_VALUE(sid3,oneBitNoise);
+    SET_VALUE(sid3,separateNoisePitch);
+    SET_VALUE(sid3,doWavetable);
+    SET_VALUE(sid3,resetDuty);
+    SET_VALUE(sid3,oscSync);
+    SET_VALUE(sid3,ringMod);
+
+    SET_VALUE(sid3,phase_mod_source);
+    SET_VALUE(sid3,ring_mod_source);
+    SET_VALUE(sid3,sync_source);
+    SET_VALUE(sid3,special_wave);
+    SET_VALUE(sid3,phaseInv);
+    SET_VALUE(sid3,feedback);
+
+    for (int i=0; i<4; i++) {
+      JSON filter;
+      filter["enabled"]=ins->sid3.filt[i].enabled;
+      filter["init"]=ins->sid3.filt[i].init;
+      filter["absoluteCutoff"]=ins->sid3.filt[i].absoluteCutoff;
+      filter["bindCutoffOnNote"]=ins->sid3.filt[i].bindCutoffOnNote;
+      filter["bindCutoffToNote"]=ins->sid3.filt[i].bindCutoffToNote;
+      filter["bindCutoffToNoteDir"]=ins->sid3.filt[i].bindCutoffToNoteDir;
+      filter["bindResonanceOnNote"]=ins->sid3.filt[i].bindResonanceOnNote;
+      filter["bindResonanceToNote"]=ins->sid3.filt[i].bindResonanceToNote;
+      filter["bindResonanceToNoteDir"]=ins->sid3.filt[i].bindResonanceToNoteDir;
+
+      filter["cutoff"]=ins->sid3.filt[i].cutoff;
+      filter["resonance"]=ins->sid3.filt[i].resonance;
+      filter["output_volume"]=ins->sid3.filt[i].output_volume;
+      filter["distortion_level"]=ins->sid3.filt[i].distortion_level;
+      filter["mode"]=ins->sid3.filt[i].mode;
+      filter["filter_matrix"]=ins->sid3.filt[i].filter_matrix;
+      filter["bindCutoffToNoteStrength"]=ins->sid3.filt[i].bindCutoffToNoteStrength;
+      filter["bindCutoffToNoteCenter"]=ins->sid3.filt[i].bindCutoffToNoteCenter;
+      filter["bindResonanceToNoteStrength"]=ins->sid3.filt[i].bindResonanceToNoteStrength;
+      filter["bindResonanceToNoteCenter"]=ins->sid3.filt[i].bindResonanceToNoteCenter;
+      sid3["filters"].push_back(filter);
+    }
+    json["sid3"]=sid3;
+  }
+  for (int i=0; i<4; i++) {
+    if (featureOx[i]) {
+      // aaaaaaaaaaaaaa
+    }
   }
 
   return json;
