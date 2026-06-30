@@ -6433,74 +6433,15 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_EXPORT_COMPILED_INS: {
-              romExportPath=copyOfName;
-              SafeWriter* w=e->compileAllIns(insCompileType);
-              if (w!=NULL) {
-                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
-                if (f!=NULL) {
-                  fwrite(w->getFinalBuf(),1,w->size(),f);
-                  fclose(f);
-                  pushRecentSys(copyOfName.c_str());
-                } else {
-                  showError(_("could not open file!"));
-                }
-                w->finish();
-                delete w;
-              } else {
-                showError(fmt::sprintf(_("could not export compiled instruments! (%s)"),e->getLastError()));
-              }
+              showError("D I S A B L E D - until I build the bakery.");
               break;
             }
             case GUI_FILE_EXPORT_COMPILED_INS_ONE: {
-              if (curIns<0 || curIns>=(int)e->song.ins.size()) {
-                showError(_("I'm sure you can see why that's not the best idea right now..."));
-                break;
-              }
-              romExportPath=copyOfName;
-              SafeWriter* w=new SafeWriter;
-              w->init();
-
-              DivInstrument* ins=e->song.ins[curIns];
-
-              if (ins->compile(w,(DivInstrumentType)insCompileType)) {
-                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
-                if (f!=NULL) {
-                  fwrite(w->getFinalBuf(),1,w->size(),f);
-                  fclose(f);
-                  pushRecentSys(copyOfName.c_str());
-                } else {
-                  showError(_("could not open file!"));
-                }
-              } else {
-                showError(fmt::sprintf(_("could not compile instrument! (%s)"),e->getLastError()));
-              }
-              w->finish();
-              delete w;
+              showError("D I S A B L E D - until I build the bakery.");
               break;
             }
             case GUI_FILE_EXPORT_COMPILED_SAMPLE: {
-              romExportPath=copyOfName;
-              DivDispatch* dis=e->getDispatch(sampleCompileDispatch);
-              if (dis==NULL) {
-                showError(_("invalid chip index!"));
-                break;
-              }
-              const unsigned char* compiledMem=(const unsigned char*)dis->compileROMData(sampleCompileIndex,sampleCompileSize);
-              if (compiledMem!=NULL) {
-                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
-                if (f!=NULL) {
-                  if (fwrite(compiledMem,1,sampleCompileSize,f)!=sampleCompileSize) {
-                    showWarning(_("did not write entire file!"),GUI_WARN_GENERIC);
-                  }
-                  fclose(f);
-                  pushRecentSys(copyOfName.c_str());
-                } else {
-                  showError(_("could not open file!"));
-                }
-                delete[] compiledMem;
-              } else {
-                showError(_("couldn't compile memory. check whether the chip's dispatch supports doing so, and that the memory index is in range."));
-              }
+              showError("D I S A B L E D - until I build the bakery.");
               break;
             }
             case GUI_FILE_EXPORT_TEXT: {

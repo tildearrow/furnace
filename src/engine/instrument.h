@@ -22,6 +22,7 @@
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "defines.h"
+#include "object.h"
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
@@ -316,13 +317,13 @@ struct DivInstrumentMacro {
 
   /**
    * compile a macro. for use with ROM export.
-   * @param w a SafeWriter where the compiled macro will be written to.
+   * @param w a DivObjectPool where the compiled macro will be inserted into.
    * @param format a format hint. this is ignored for ADSR/LFO macros.
    * @param min minimum value.
    * @param max maximum value.
    * @return whether compilation was successful.
    */
-  bool compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
+  bool compile(DivObjectPool& w, DivCompiledMacroFormat format, int min, int max);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),
@@ -1200,18 +1201,17 @@ struct DivInstrument: DivInstrumentPOD {
   void convertC64SpecialMacro();
   void convertOldADSRLFO();
 
-  bool compileWaveSynth(SafeWriter* w);
-  bool compileSampleMap(SafeWriter* w, bool nes);
-  bool compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start);
+  bool compileWaveSynth(DivObjectPool& pool);
+  bool compileSampleMap(DivObjectPool& pool, DivObject& insObj, SafeWriter* w, bool nes);
+  bool compileMacros(DivObjectPool& pool, DivObject& insObj, SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start);
 
   /**
    * compile the instrument for ROM export.
-   * addresses must be relocated when placed in ROM!
-   * @param w a SafeWriter where the compiled instrument will be written to.
+   * @param pool a DivObjectPool where the compiled instrument (and its dependencies) will be inserted into.
    * @param insType instrument type. we don't use the type set in this instrument because it may be different from the desired type.
    * @return whether compilation was successful.
    */
-  bool compile(SafeWriter* w, DivInstrumentType insType);
+  bool compile(DivObjectPool& pool, DivInstrumentType insType);
 
   /**
    * save the instrument to a SafeWriter.

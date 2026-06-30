@@ -58,7 +58,9 @@ const DivInstrument defaultIns;
 #define LFO_LOOP val[14]
 #define LFO_GLOBAL val[15]
 
-bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max) {
+bool DivInstrumentMacro::compile(DivObjectPool& ww, DivCompiledMacroFormat format, int min, int max) {
+  SafeWriter* w=new SafeWriter;
+  w->init();
   unsigned char compFlags=0;
   if (open&2) {
     // ADSR
@@ -75,6 +77,8 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
         break;
       default:
         logE("compile(): invalid format!");
+        w->finish();
+        delete w;
         return false;
     }
 
@@ -117,6 +121,8 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
         break;
       default:
         logE("compile(): the hell!");
+        w->finish();
+        delete w;
         return false;
     }
   } else if (open&4) {
@@ -134,6 +140,8 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
         break;
       default:
         logE("compile(): invalid format!");
+        w->finish();
+        delete w;
         return false;
     }
 
@@ -207,6 +215,8 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
         break;
       default:
         logE("compile(): the hell!");
+        w->finish();
+        delete w;
         return false;
     }
   } else {
@@ -261,19 +271,19 @@ bool DivInstrumentMacro::compile(SafeWriter* w, DivCompiledMacroFormat format, i
         break;
       default:
         logE("compile(): invalid format!");
+        w->finish();
+        delete w;
         return false;
     }
   }
+  ww.push_back(DivObject(w->getFinalBuf(),w->size(),DIV_OBJECT_MACRO));
+  w->disown();
+  delete w;
   return true;
 }
 
-bool DivInstrument::compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start) {
+bool DivInstrument::compileMacros(DivObjectPool& pool, DivObject& insObj, SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start) {
   // this function compiles all macros in the provided list.
-  // the current seek position must be the list of pointers.
-  // start indicates the starting position of instrument data.
-  std::vector<unsigned int> macroPtr;
-
-  size_t macroPtrPos=w->tell();
 
   // check which macros are used
   for (DivCompileMacroDef i: which) {
@@ -288,39 +298,19 @@ bool DivInstrument::compileMacros(SafeWriter* w, std::initializer_list<DivCompil
       logV("empty macro");
       continue;
     }
-    macroPtr.push_back(0);
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
     w->writeS(0);
+    if (!macro->compile(pool,i.format,i.minRange,i.maxRange)) return false;
   }
   // "end of list" marker
   w->writeS(0);
 
-  // compile macros
-  size_t index=0;
-  for (DivCompileMacroDef i: which) {
-    DivInstrumentMacro* macro=std.macroByType((DivMacroType)i.type);
-    // skip non-existent macros
-    if (macro==NULL) {
-      continue;
-    }
-    // skip unused macros
-    if (macro->len==0) {
-      continue;
-    }
-    macroPtr[index++]=w->tell();
-    if (!macro->compile(w,i.format,i.minRange,i.maxRange)) return false;
-  }
-
-  // write macro pointers
-  size_t finalPos=w->tell();
-  w->seek(macroPtrPos,SEEK_SET);
-  for (unsigned int i: macroPtr) {
-    w->writeS(i);
-  }
-  w->seek(finalPos,SEEK_SET);
   return true;
 }
 
-bool DivInstrument::compileWaveSynth(SafeWriter* w) {
+bool DivInstrument::compileWaveSynth(DivObjectPool& pool) {
+  SafeWriter* w=new SafeWriter;
+  w->init();
   w->writeC((ws.enabled?1:0)|(ws.global?64:0));
   w->writeC(ws.effect);
   w->writeS(ws.wave1);
@@ -329,12 +319,23 @@ bool DivInstrument::compileWaveSynth(SafeWriter* w) {
   w->writeC(ws.speed);
   w->writeC(ws.param1);
   w->writeC(ws.param2);
+  pool.push_back(DivObject(w->getFinalBuf(),w->size(),DIV_OBJECT_WAVE_SYNTH));
+  w->disown();
+  delete w;
   return true;
 }
 
-bool DivInstrument::compileSampleMap(SafeWriter* w, bool nes) {
+bool DivInstrument::compileSampleMap(DivObjectPool& pool, DivObject& insObj, SafeWriter* w, bool nes) {
   // don't compile sample map if disabled
-  if (!amiga.useNoteMap) return false;
+  if (!amiga.useNoteMap) {
+    w->writeC(0);
+    w->writeC(0);
+    w->writeS(0);
+    w->writeS(0);
+    w->writeS(0);
+    if (nes) w->writeS(0);
+    return false;
+  }
 
   int low=180;
   int high=0;
@@ -353,46 +354,62 @@ bool DivInstrument::compileSampleMap(SafeWriter* w, bool nes) {
     }
   }
 
-  // write pointers
+  // write boundaries
+  w->writeC(low);
+  w->writeC(high);
+
+  // write pointers and objects
   int count=high-low+1;
-  int ptrCount=nes?8:6;
 
-  w->writeS(w->tell()+ptrCount); // map low
-  w->writeS(w->tell()+ptrCount-2+count); // map high
-  w->writeS(w->tell()+ptrCount-4+count*2); // note
-  if (nes) {
-    w->writeS(w->tell()+ptrCount-6+count*3); // DPCM delta
+  insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+  w->writeS(0); // map low
+  unsigned char* mapLow=new unsigned char[count];
+  for (int i=low; i<=high; i++) {
+    mapLow[i-low]=amiga.noteMap[i].map&0xff;
   }
+  pool.push_back(DivObject(mapLow,count,DIV_OBJECT_SAMPLE_MAP));
 
-  // write tables
-  // map low
+  insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+  w->writeS(0); // map high
+  unsigned char* mapHigh=new unsigned char[count];
   for (int i=low; i<=high; i++) {
-    w->writeC(amiga.noteMap[i].map&0xff);
+    mapHigh[i-low]=(amiga.noteMap[i].map>>8)&0xff;
   }
-  // map high
-  for (int i=low; i<=high; i++) {
-    w->writeC((amiga.noteMap[i].map>>8)&0xff);
-  }
+  pool.push_back(DivObject(mapHigh,count,DIV_OBJECT_SAMPLE_MAP));
+
   if (nes) {
-    // DPCM freq
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+    w->writeS(0); // DPCM freq
+    unsigned char* dpcmFreq=new unsigned char[count];
     for (int i=low; i<=high; i++) {
-      w->writeC(amiga.noteMap[i].dpcmFreq);
+      dpcmFreq[i-low]=amiga.noteMap[i].dpcmFreq;
     }
-    // DPCM delta
+    pool.push_back(DivObject(dpcmFreq,count,DIV_OBJECT_SAMPLE_MAP));
+
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+    w->writeS(0); // DPCM delta
+    unsigned char* dpcmDelta=new unsigned char[count];
     for (int i=low; i<=high; i++) {
-      w->writeC(amiga.noteMap[i].dpcmDelta);
+      dpcmDelta[i-low]=amiga.noteMap[i].dpcmDelta;
     }
+    pool.push_back(DivObject(dpcmDelta,count,DIV_OBJECT_SAMPLE_MAP));
   } else {
-    // note
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+    w->writeS(0); // note
+    unsigned char* noteTable=new unsigned char[count];
     for (int i=low; i<=high; i++) {
-      w->writeC(amiga.noteMap[i].freq);
+      noteTable[i-low]=amiga.noteMap[i].freq;
     }
+    pool.push_back(DivObject(noteTable,count,DIV_OBJECT_SAMPLE_MAP));
   }
 
   return true;
 }
 
-bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
+bool DivInstrument::compile(DivObjectPool& pool, DivInstrumentType insType) {
+  DivObject insObj;
+  SafeWriter* w=new SafeWriter;
+  w->init();
   switch (insType) {
     case DIV_INS_C64:
       w->writeC(
@@ -425,7 +442,7 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
       w->writeC((c64.res<<4)|(c64.cut&7));
       w->writeC(c64.cut>>3);
 
-      compileMacros(w,{
+      compileMacros(pool,insObj,w,{
         DivCompileMacroDef(DIV_MACRO_VOL,DIV_COMPILED_MACRO_U4,0,15),
         DivCompileMacroDef(DIV_MACRO_ARP,DIV_COMPILED_MACRO_BIT30,-256,256),
         DivCompileMacroDef(DIV_MACRO_DUTY,DIV_COMPILED_MACRO_S16,c64.dutyIsAbs?0:-4095,4095),
@@ -444,8 +461,6 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
       break;
     case DIV_INS_SNES: {
       // SNES data
-      size_t specialPtrLoc=0;
-      size_t specialPtr=0;
       w->writeC(
         (snes.useEnv?0x80:0x00)|
         ((snes.d&7)<<4)|
@@ -488,22 +503,23 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
       if (amiga.useWave) {
         w->writeC(2);
         w->writeS(amiga.waveLen+1);
-        // pointer
-        specialPtrLoc=w->tell();
-        w->writeS(0);
       } else if (amiga.useNoteMap) {
         w->writeC(1);
-        // pointer
-        specialPtrLoc=w->tell();
-        w->writeS(0);
-        w->writeS(0);
+        w->writeS(amiga.initSample);
       } else {
         w->writeC(0);
         w->writeS(amiga.initSample);
-        w->writeS(0);
       }
+      // pointer to wave synth
+      if (amiga.useWave && ws.enabled) {
+        insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+        compileWaveSynth(pool);
+      }
+      w->writeS(0);
+      // write sample map
+      compileSampleMap(pool,insObj,w,false);
       // macros
-      compileMacros(w,{
+      compileMacros(pool,insObj,w,{
         DivCompileMacroDef(DIV_MACRO_VOL,DIV_COMPILED_MACRO_U8,0,127),
         DivCompileMacroDef(DIV_MACRO_ARP,DIV_COMPILED_MACRO_BIT30,-256,256),
         DivCompileMacroDef(DIV_MACRO_DUTY,DIV_COMPILED_MACRO_U8,0,31),
@@ -514,59 +530,62 @@ bool DivInstrument::compile(SafeWriter* w, DivInstrumentType insType) {
         DivCompileMacroDef(DIV_MACRO_EX1,DIV_COMPILED_MACRO_U8,0,31), // special
         DivCompileMacroDef(DIV_MACRO_EX2,DIV_COMPILED_MACRO_U8,0,255), // gain
       },0);
-      // wave synth and sample map
-      if (amiga.useWave) {
-        if (ws.enabled) {
-          specialPtr=w->tell();
-          compileWaveSynth(w);
-          w->seek(specialPtrLoc,SEEK_SET);
-          w->writeS(specialPtr);
-          w->seek(0,SEEK_END);
-        }
-      } else if (amiga.useNoteMap) {
-        specialPtr=w->tell();
-        compileSampleMap(w,false);
-        w->seek(specialPtrLoc,SEEK_SET);
-        w->writeS(specialPtr);
-        w->seek(0,SEEK_END);
-      }
       break;
     }
     default:
       logE("compile(): not implemented!");
+      w->finish();
+      delete w;
       return false;
   }
+  insObj.data=w->getFinalBuf();
+  insObj.len=w->size();
+  insObj.type=DIV_OBJECT_INS;
+  pool.push_back(insObj);
+  w->disown();
+  delete w;
   return true;
 }
 
-SafeWriter* DivEngine::compileAllIns(int insType) {
-  SafeWriter* w=new SafeWriter;
-  w->init();
-
-  std::vector<unsigned short> ptrs;
-
-  // pointers
-  for (size_t i=0; i<song.ins.size(); i++) {
-    w->writeS(0);
-  }
+bool DivEngine::compileAllIns(DivObjectPool& pool, int insType) {
+  DivObject insListLow;
+  DivObject insListHigh;
+  SafeWriter* wLow=new SafeWriter;
+  SafeWriter* wHigh=new SafeWriter;
+  wLow->init();
+  wHigh->init();
 
   // compile instruments
   for (DivInstrument* i: song.ins) {
-    ptrs.push_back(w->tell());
-    if (!i->compile(w,(DivInstrumentType)insType)) {
+    insListLow.reloc.push_back(DivRelocInfo(wLow->tell(),pool.size(),DIV_RELOC_PTR_U16LSB));
+    insListHigh.reloc.push_back(DivRelocInfo(wHigh->tell(),pool.size(),DIV_RELOC_PTR_U16MSB));
+    wLow->writeC(0);
+    wHigh->writeC(0);
+    if (!i->compile(pool,(DivInstrumentType)insType)) {
       logE("Compilation Error. Prepare for unforeseen consequences...");
-      delete w;
-      return NULL;
+      wLow->finish();
+      wHigh->finish();
+      delete wLow;
+      delete wHigh;
+      return false;
     }
   }
 
-  w->seek(0,SEEK_SET);
-  for (unsigned short i: ptrs) {
-    w->writeS(i);
-  }
-  w->seek(0,SEEK_END);
+  insListLow.data=wLow->getFinalBuf();
+  insListLow.len=wLow->size();
+  insListLow.type=DIV_OBJECT_INS_LIST_LOW;
+  pool.push_back(insListLow);
+  wLow->disown();
 
-  return w;
+  insListHigh.data=wHigh->getFinalBuf();
+  insListHigh.len=wHigh->size();
+  insListHigh.type=DIV_OBJECT_INS_LIST_HIGH;
+  pool.push_back(insListHigh);
+  wHigh->disown();
+
+  delete wLow;
+  delete wHigh;
+  return true;
 }
 
 /// the rest

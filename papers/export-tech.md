@@ -44,22 +44,6 @@ size | description
   1  | power
 ```
 
-### sample map
-
-```
-size | description
------|----------------------------------
-  1  | lower boundary
-  1  | upper boundary
- 2?? | pointers to byte tables, offset by lower boundary
-     | - the following four tables are present, in this order:
-     |   - sample number (low)
-     |   - sample number (high)
-     |   - note/DPCM freq
-     |   - DPCM delta (NES only)
-     | - I know it's weird, but it paves the way for a 6502 optimization.
-```
-
 ## instrument data
 
 ### C64
@@ -134,11 +118,14 @@ size | description
      | - 0: sample
      | - 1: sample map
      | - 2: wavetable
-  2  | value
-     | - sample: sample index
-     | - sample map: pointer to sample map
-     | - wavetable: wave width
+  2  | sample index/wave width
   2  | pointer to wave synth data (0 = disabled)
+  1  | sample map lower boundary
+  1  | sample map upper boundary
+ 2?? | pointers to byte tables, offset by lower boundary:
+     | - sample number (low)
+     | - sample number (high)
+     | - note
 -----|----------------------------------
  2?? | macro pointers... (0 = end of list)
 ```

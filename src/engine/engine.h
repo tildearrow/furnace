@@ -29,6 +29,7 @@
 #include "safeWriter.h"
 #include "sysDef.h"
 #include "cmdStream.h"
+#include "object.h"
 #include "filePlayer.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
@@ -67,12 +68,21 @@ class DivWorkPool;
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
 
+/**
+ * DivStatusView is used by the CLI for the status visualizer.
+ */
 enum DivStatusView {
+  // nothing (other than playback position)
   DIV_STATUS_NOTHING=0,
+  // dump patterns to stdout
   DIV_STATUS_PATTERN,
+  // dump commands to stdout
   DIV_STATUS_COMMANDS
 };
 
+/**
+ * this enum defines audio backends.
+ */
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1,
@@ -84,9 +94,15 @@ enum DivAudioEngines {
   DIV_AUDIO_DUMMY=127
 };
 
+/**
+ * I don't have to explain this one.
+ */
 enum DivAudioExportModes {
+  // export one file
   DIV_EXPORT_MODE_ONE=0,
+  // export one file per chip
   DIV_EXPORT_MODE_MANY_SYS,
+  // export one file per channel
   DIV_EXPORT_MODE_MANY_CHAN
 };
 
@@ -124,6 +140,9 @@ enum DivAudioExportWavFormats {
   DIV_EXPORT_WAV_F32
 };
 
+/**
+ * defines options to be used when exporting an audio file.
+ */
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
   DivAudioExportFormats format;
@@ -644,7 +663,7 @@ class DivEngine {
     // return a ROM exporter.
     DivROMExport* buildROM(DivROMExportOptions sys);
     // compile instruments.
-    SafeWriter* compileAllIns(int insType);
+    bool compileAllIns(DivObjectPool& pool, int insType);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing

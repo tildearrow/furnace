@@ -1010,6 +1010,9 @@ const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
       return ret;
       break;
     }
+    // SCREW THIS
+    // until I can adapt this function to the new pool stuff
+    /*
     case 1: { // pitch tables and config
       bool isWaveSizeUsed[16];
       unsigned int wavePitchTablePtr[16];
@@ -1022,7 +1025,7 @@ const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
       }
 
       // we don't need delta in non-linear pitch. save 24 bytes if so.
-      const size_t pitchTableSize=parent->song.linearPitch?48:24;
+      const size_t pitchTableSize=parent->song.compatFlags.linearPitch?48:24;
       memset(isWaveSizeUsed,0,16*sizeof(bool));
 
       // check which wave sizes are used (so we can skip unused pitch tables)
@@ -1071,6 +1074,7 @@ const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
       return ret;
       break;
     }
+    */
   }
   return NULL;
 }
