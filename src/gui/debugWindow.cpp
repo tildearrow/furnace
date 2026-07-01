@@ -79,6 +79,30 @@ static const char* getObjectTypeStr(unsigned char type) {
   return "Unknown";
 }
 
+static const char* getRelocPtrTypeStr(DivRelocPointerType type) {
+  switch (type) {
+    case DIV_RELOC_PTR_U8:
+      return "byte";
+    case DIV_RELOC_PTR_U16:
+      return "word";
+    case DIV_RELOC_PTR_U32:
+      return "dword";
+    case DIV_RELOC_PTR_U64:
+      return "qword";
+    case DIV_RELOC_PTR_U16LSB:
+      return "word LSB";
+    case DIV_RELOC_PTR_U16MSB:
+      return "word MSB";
+    case DIV_RELOC_PTR_U16BE:
+      return "word BE";
+    case DIV_RELOC_PTR_U32BE:
+      return "dword BE";
+    case DIV_RELOC_PTR_U64BE:
+      return "qword BE";
+  }
+  return "unknown";
+}
+
 #define DISPATCH_DEBUG(_label,...) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
@@ -586,28 +610,92 @@ void FurnaceGUI::drawDebug() {
       ImGui::InputInt("##DataIndex",&sampleCompileIndex);
       ImGui::SameLine();
       if (ImGui::Button("Add##AddChip")) {
-        showError("wait");
+        if (sampleCompileDispatch>=0 && sampleCompileDispatch<e->song.systemLen) {
+          DivDispatch* dis=e->getDispatch(sampleCompileDispatch);
+          if (dis==NULL) {
+            showError("dispatch is null!");
+          } else {
+            if (!dis->compileROMData(sampleCompileIndex,romObjectPool)) {
+              showError("I'll give you a second to realize why that's a bad idea...");
+            }
+          }
+        } else {
+          showError("chip index is out of range.");
+        }
       }
 
+      size_t totalSize=0;
       ImGui::Text("Dough:");
       if (romObjectPool.empty()) {
         ImGui::Text("<empty>");
       } else {
         for (size_t _i=0; _i<romObjectPool.size(); _i++) {
           DivObject& i=romObjectPool[_i];
+          totalSize+=i.len;
+
           snprintf(tempID,1023,"%d. %s (%d bytes)",(int)_i,getObjectTypeStr(i.type),(int)i.len);
           ImGui::PushID(_i);
           if (ImGui::TreeNode(tempID)) {
-            ImGui::Text("information...");
+            if (i.nameHint) {
+              ImGui::Text("name hint: %s",i.nameHint);
+            }
+            if (!i.reloc.empty()) {
+              ImGui::Text("relocation table:");
+              ImGui::Indent();
+              for (DivRelocInfo& j: i.reloc) {
+                ImGui::Text("- $%.4x (%s) = %d",j.offset,getRelocPtrTypeStr(j.type),j.objectIndex);
+              }
+              ImGui::Unindent();
+            }
+            if (i.len>0) {
+              ImGui::PushFont(patFont);
+              ImGuiListClipper hexViewClipper;
+              if (ImGui::BeginTable("ObjectHex",17,ImGuiTableFlags_ScrollY|ImGuiTableFlags_SizingStretchProp,ImVec2(ImGui::GetContentRegionAvail().x,200.0f*dpiScale))) {
+                ImGui::TableSetupScrollFreeze(0,1);
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers,ImGui::GetTextLineHeight());
+                ImGui::TableNextColumn();
+                for (int j=0; j<16; j++) {
+                  ImGui::TableNextColumn();
+                  ImGui::Text(" %X",j);
+                }
+
+                hexViewClipper.Begin((i.len+15)>>4,ImGui::GetTextLineHeight());
+
+                while (hexViewClipper.Step()) {
+                  for (int j=hexViewClipper.DisplayStart; j<hexViewClipper.DisplayEnd; j++) {
+                    ImGui::TableNextRow(0,ImGui::GetTextLineHeight());
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%.4X",j<<4);
+
+                    for (int k=0; k<16; k++) {
+                      ImGui::TableNextColumn();
+                      if ((size_t)((j<<4)|k)>=i.len) {
+                        ImGui::TextUnformatted("  ");
+                      } else {
+                        ImGui::Text("%.2X",i.data[(j<<4)|k]);
+                      }
+                    }
+                  }
+                }
+                ImGui::EndTable();
+              }
+              ImGui::PopFont();
+            }
             ImGui::TreePop();
           }
           ImGui::PopID();
         }
       }
+      ImGui::Text("weight: %d bytes",(int)totalSize);
 
-      if (ImGui::Button("Bake")) {
-        openFileDialog(GUI_FILE_EXPORT_COMPILED_INS);
+      if (ImGui::Button("Bake (assembly)")) {
+        openFileDialog(GUI_FILE_EXPORT_DOUGH_ASM);
       }
+      ImGui::SameLine();
+      if (ImGui::Button("Bake (binary)")) {
+        openFileDialog(GUI_FILE_EXPORT_DOUGH_BIN);
+      }
+      ImGui::SameLine();
       pushDestColor();
       if (ImGui::Button("Discard")) {
         for (DivObject& i: romObjectPool) {

@@ -28,6 +28,10 @@ enum DivRelocPointerType {
   // 6502 - lower/upper bytes in separate locations
   DIV_RELOC_PTR_U16LSB,
   DIV_RELOC_PTR_U16MSB,
+  // big-endian
+  DIV_RELOC_PTR_U16BE,
+  DIV_RELOC_PTR_U32BE,
+  DIV_RELOC_PTR_U64BE,
 };
 
 /**
@@ -77,6 +81,7 @@ struct DivObject {
   unsigned char type;
   std::vector<DivRelocInfo> reloc;
   DivObject(unsigned char* d, size_t l, unsigned char t):
+    nameHint(NULL),
     data(d),
     len(l),
     type(t) {}
@@ -86,6 +91,7 @@ struct DivObject {
     len(l),
     type(t) {}
   DivObject():
+    nameHint(NULL),
     data(NULL),
     len(0),
     type(0) {}

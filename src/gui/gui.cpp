@@ -2357,28 +2357,19 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         );
       }
       break;
-    case GUI_FILE_EXPORT_COMPILED_INS:
+    case GUI_FILE_EXPORT_DOUGH_ASM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
-        _("Export Compiled Instruments"),
-        {_("binary file"), "*.bin"},
+        _("Bake Dough (asm)"),
+        {_("assembly source"), "*.s"},
         workingDirROMExport,
         dpiScale
       );
       break;
-    case GUI_FILE_EXPORT_COMPILED_INS_ONE:
+    case GUI_FILE_EXPORT_DOUGH_BIN:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
-        _("Export Compiled Instrument"),
-        {_("binary file"), "*.bin"},
-        workingDirROMExport,
-        dpiScale
-      );
-      break;
-    case GUI_FILE_EXPORT_COMPILED_SAMPLE:
-      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        _("Export Compiled Memory"),
+        _("Bake Dough (binary"),
         {_("binary file"), "*.bin"},
         workingDirROMExport,
         dpiScale
@@ -5833,9 +5824,8 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
         case GUI_FILE_EXPORT_CMDSTREAM:
-        case GUI_FILE_EXPORT_COMPILED_INS:
-        case GUI_FILE_EXPORT_COMPILED_INS_ONE:
-        case GUI_FILE_EXPORT_COMPILED_SAMPLE:
+        case GUI_FILE_EXPORT_DOUGH_ASM:
+        case GUI_FILE_EXPORT_DOUGH_BIN:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
@@ -5942,10 +5932,11 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
+          if (curFileDialog==GUI_FILE_EXPORT_DOUGH_ASM) {
+            checkExtension(".s");
+          }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
-              curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
-              curFileDialog==GUI_FILE_EXPORT_COMPILED_INS_ONE ||
-              curFileDialog==GUI_FILE_EXPORT_COMPILED_SAMPLE) {
+              curFileDialog==GUI_FILE_EXPORT_DOUGH_BIN) {
             checkExtension(".bin");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
@@ -6432,16 +6423,12 @@ bool FurnaceGUI::loop() {
                 }
               }
               break;
-            case GUI_FILE_EXPORT_COMPILED_INS: {
-              showError("D I S A B L E D - until I build the bakery.");
+            case GUI_FILE_EXPORT_DOUGH_ASM: {
+              showError("the oven isn't fully assembled! hold on!");
               break;
             }
-            case GUI_FILE_EXPORT_COMPILED_INS_ONE: {
-              showError("D I S A B L E D - until I build the bakery.");
-              break;
-            }
-            case GUI_FILE_EXPORT_COMPILED_SAMPLE: {
-              showError("D I S A B L E D - until I build the bakery.");
+            case GUI_FILE_EXPORT_DOUGH_BIN: {
+              showError("the oven isn't fully assembled! hold on!");
               break;
             }
             case GUI_FILE_EXPORT_TEXT: {
