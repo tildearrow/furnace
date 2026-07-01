@@ -1040,7 +1040,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
         if (isWaveSizeUsed[i]) {
           objLow.reloc.push_back(DivRelocInfo(i,pool.size(),DIV_RELOC_PTR_U16LSB));
           objHigh.reloc.push_back(DivRelocInfo(i,pool.size(),DIV_RELOC_PTR_U16MSB));
-          wavePitchTable[i].compile(pool,DIV_PITCH_TABLE_LAYOUT_U16);
+          wavePitchTable[i].compile(pool,DIV_PITCH_TABLE_LAYOUT_U16LE);
         }
       }
 
@@ -1048,7 +1048,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
       for (int i=-1; i<(int)parent->song.sample.size(); i++) {
         objLow.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16LSB));
         objHigh.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16MSB));
-        samplePitchTable.get(i)->compile(pool,DIV_PITCH_TABLE_LAYOUT_U16,parent->song.compatFlags.linearPitch);
+        samplePitchTable.get(i)->compile(pool,DIV_PITCH_TABLE_LAYOUT_U16LE,parent->song.compatFlags.linearPitch);
       }
 
       objLow.data=pitchTablesLow;

@@ -3028,6 +3028,7 @@ class FurnaceGUI {
   int sampleCompileDispatch;
   int sampleCompileIndex;
   size_t sampleCompileSize;
+  DivObjectPool romObjectPool;
 
   // user presets window
   std::vector<int> selectedUserPreset;
