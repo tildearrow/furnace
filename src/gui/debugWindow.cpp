@@ -572,6 +572,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::AlignTextToFramePadding();
       ImGui::Text("Ins Type");
       ImGui::SameLine();
+      ImGui::SetNextItemWidth(180.0f*dpiScale);
       if (ImGui::BeginCombo("##InsType",(insCompileType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insCompileType][0]))) {
         for (int i=0; insTypes[i][0]; i++) {
           if (ImGui::Selectable(insTypes[i][0],insCompileType==i)) {
@@ -599,14 +600,12 @@ void FurnaceGUI::drawDebug() {
       }
 
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Chip Index");
+      ImGui::Text("Chip/Data Index");
       ImGui::SameLine();
-      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      ImGui::SetNextItemWidth(90.0f*dpiScale);
       ImGui::InputInt("##ChipIndex",&sampleCompileDispatch);
       ImGui::SameLine();
-      ImGui::Text("Data Index");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      ImGui::SetNextItemWidth(90.0f*dpiScale);
       ImGui::InputInt("##DataIndex",&sampleCompileIndex);
       ImGui::SameLine();
       if (ImGui::Button("Add##AddChip")) {

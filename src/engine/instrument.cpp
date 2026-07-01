@@ -557,10 +557,6 @@ bool DivEngine::compileAllIns(DivObjectPool& pool, int insType) {
 
   // compile instruments
   for (DivInstrument* i: song.ins) {
-    insListLow.reloc.push_back(DivRelocInfo(wLow->tell(),pool.size(),DIV_RELOC_PTR_U16LSB));
-    insListHigh.reloc.push_back(DivRelocInfo(wHigh->tell(),pool.size(),DIV_RELOC_PTR_U16MSB));
-    wLow->writeC(0);
-    wHigh->writeC(0);
     if (!i->compile(pool,(DivInstrumentType)insType)) {
       logE("Compilation Error. Prepare for unforeseen consequences...");
       wLow->finish();
@@ -569,6 +565,10 @@ bool DivEngine::compileAllIns(DivObjectPool& pool, int insType) {
       delete wHigh;
       return false;
     }
+    insListLow.reloc.push_back(DivRelocInfo(wLow->tell(),pool.size()-1,DIV_RELOC_PTR_U16LSB));
+    insListHigh.reloc.push_back(DivRelocInfo(wHigh->tell(),pool.size()-1,DIV_RELOC_PTR_U16MSB));
+    wLow->writeC(0);
+    wHigh->writeC(0);
   }
 
   insListLow.data=wLow->getFinalBuf();

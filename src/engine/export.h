@@ -109,4 +109,19 @@ struct DivROMExportDef {
   }
 };
 
+/**
+ * link objects and output an assembly source file.
+ * @param pool an object pool.
+ * @return a SafeWriter containing the output, or NULL on error.
+ */
+SafeWriter* bakeObjectsASM(DivObjectPool& pool);
+
+/**
+ * link objects and output a binary file.
+ * @param pool an object pool.
+ * @param addr the binary's base/load address.
+ * @return a SafeWriter containing the output, or NULL on error.
+ */
+SafeWriter* bakeObjectsBinary(DivObjectPool& pool, unsigned int addr);
+
 #endif

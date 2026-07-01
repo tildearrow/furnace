@@ -786,6 +786,7 @@ src/engine/safeWriter.cpp
 src/engine/workPool.cpp
 
 src/engine/assetDir.cpp
+src/engine/baking.cpp
 src/engine/cmdStream.cpp
 src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
