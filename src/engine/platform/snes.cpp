@@ -1001,31 +1001,22 @@ const DivMemoryComposition* DivPlatformSNES::getMemCompo(int index) {
   return &memCompo;
 }
 
-const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
+bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
   switch (index) {
     case 0: { // sample data
-      size=MIN(sampleMemLen,65536)-sampleTableBase;
+      size_t size=MIN(sampleMemLen,65536)-sampleTableBase;
       unsigned char* ret=new unsigned char[size];
       memcpy(ret,&copyOfSampleMem[sampleTableBase],size);
-      return ret;
+      pool.push_back(DivObject(ret,size,DIV_OBJECT_CHIP_DATA,"SampleData"));
+
+      return true;
       break;
     }
-    // SCREW THIS
-    // until I can adapt this function to the new pool stuff
-    /*
-    case 1: { // pitch tables and config
+    case 1: { // pitch tables
+      // two tables (one low and one high)
+      // 16 wave sizes, 1 fallback pitch table and one per sample
+      size_t size=16+1+parent->song.sample.size();
       bool isWaveSizeUsed[16];
-      unsigned int wavePitchTablePtr[16];
-      unsigned int* samplePitchTablePtr=NULL;
-      size_t start=0;
-
-      // allocate sample pointers
-      if (!parent->song.sample.empty()) {
-        samplePitchTablePtr=new unsigned int[parent->song.sample.size()];
-      }
-
-      // we don't need delta in non-linear pitch. save 24 bytes if so.
-      const size_t pitchTableSize=parent->song.compatFlags.linearPitch?48:24;
       memset(isWaveSizeUsed,0,16*sizeof(bool));
 
       // check which wave sizes are used (so we can skip unused pitch tables)
@@ -1035,48 +1026,46 @@ const void* DivPlatformSNES::compileROMData(int index, size_t& size) {
         }
       }
 
-      // allocate space for pointers
-      size=32+parent->song.sample.size()*2;
-      start=size;
-
-      // allocate space for wave pitch tables
-      for (int i=0; i<16; i++) {
-        if (isWaveSizeUsed[i]) {
-          size+=pitchTableSize;
-        }
-      }
-
-      // allocate space for sample pitch tables
-      // TODO:
-      // - skip unavailable samples
-      // - optimize (de-duplication)
-      size+=pitchTableSize*parent->song.sample.size();
-
       // allocate the actual data
-      unsigned char* ret=new unsigned char[size];
+      DivObject objLow;
+      DivObject objHigh;
+      unsigned char* pitchTablesLow=new unsigned char[size];
+      unsigned char* pitchTablesHigh=new unsigned char[size];
+
+      memset(pitchTablesLow,0,size);
+      memset(pitchTablesHigh,0,size);
       
       // fill in
       for (int i=0; i<16; i++) {
         if (isWaveSizeUsed[i]) {
-          start+=wavePitchTable[i].compile(&ret[start],DIV_PITCH_TABLE_LAYOUT_U16SPLIT,pitchTableSize==48);
-        } else {
-          wavePitchTablePtr[i]=0;
+          objLow.reloc.push_back(DivRelocInfo(i,pool.size(),DIV_RELOC_PTR_U16LSB));
+          objHigh.reloc.push_back(DivRelocInfo(i,pool.size(),DIV_RELOC_PTR_U16MSB));
+          wavePitchTable[i].compile(pool,DIV_PITCH_TABLE_LAYOUT_U16);
         }
       }
 
       // compile sample pitch tables
-      for (size_t i=0; i<parent->song.sample.size(); i++) {
-        start+=samplePitchTable.get(i)->compile(&ret[start],DIV_PITCH_TABLE_LAYOUT_U16SPLIT,pitchTableSize==48);
+      for (int i=-1; i<(int)parent->song.sample.size(); i++) {
+        objLow.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16LSB));
+        objHigh.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16MSB));
+        samplePitchTable.get(i)->compile(pool,DIV_PITCH_TABLE_LAYOUT_U16,parent->song.compatFlags.linearPitch);
       }
 
-      // what the hell man... you gotta compile one more table for fallback...
-      
-      return ret;
+      objLow.data=pitchTablesLow;
+      objLow.len=size;
+      objLow.type=DIV_OBJECT_PITCH_TABLE_LIST_LOW;
+
+      objHigh.data=pitchTablesHigh;
+      objHigh.len=size;
+      objHigh.type=DIV_OBJECT_PITCH_TABLE_LIST_HIGH;
+
+      pool.push_back(objLow);
+      pool.push_back(objHigh);
+      return true;
       break;
     }
-    */
   }
-  return NULL;
+  return false;
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {

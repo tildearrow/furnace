@@ -242,8 +242,8 @@ const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
   return NULL;
 }
 
-const void* DivDispatch::compileROMData(int index, size_t& size) {
-  return NULL;
+bool DivDispatch::compileROMData(int index, DivObjectPool& pool) {
+  return false;
 }
 
 bool DivDispatch::isSampleLoaded(int index, int sample) {

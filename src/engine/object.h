@@ -58,6 +58,10 @@ enum DivObjectType {
   DIV_OBJECT_WAVE_SYNTH,
   DIV_OBJECT_INS_LIST_LOW,
   DIV_OBJECT_INS_LIST_HIGH,
+  DIV_OBJECT_CHIP_DATA,
+  DIV_OBJECT_PITCH_TABLE,
+  DIV_OBJECT_PITCH_TABLE_LIST_LOW,
+  DIV_OBJECT_PITCH_TABLE_LIST_HIGH,
 };
 
 /**
@@ -67,11 +71,17 @@ enum DivObjectType {
  * data must be allocated and deleted manually!
  */
 struct DivObject {
+  const char* nameHint;
   unsigned char* data;
   size_t len;
   unsigned char type;
   std::vector<DivRelocInfo> reloc;
   DivObject(unsigned char* d, size_t l, unsigned char t):
+    data(d),
+    len(l),
+    type(t) {}
+  DivObject(unsigned char* d, size_t l, unsigned char t, const char* n):
+    nameHint(n),
     data(d),
     len(l),
     type(t) {}

@@ -68,17 +68,21 @@ DivPitchTableManager::~DivPitchTableManager() {
 
 // DivPitchTable
 
-size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeDelta) {
-  unsigned char* buf=(unsigned char*)ptr;
+#define MAKE_BUF(x) bufSize=(x); buf=new unsigned char[bufSize];
+
+void DivPitchTable::compile(DivObjectPool& pool, DivPitchTableLayout layout, bool writeDelta) {
+  unsigned char* buf=NULL;
+  size_t bufSize=0;
   switch (layout) {
     case DIV_PITCH_TABLE_LAYOUT_U8:
+      MAKE_BUF(writeDelta?24:12);
       for (int i=0; i<12; i++) {
         buf[i]=pitch[i];
         if (writeDelta) buf[i+12]=pitchDiff[i];
       }
-      return writeDelta?24:12;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U16LE:
+      MAKE_BUF(writeDelta?48:24);
       for (int i=0; i<12; i++) {
         buf[i<<1]=pitch[i]&0xff;
         buf[1+(i<<1)]=pitch[i]>>8;
@@ -87,9 +91,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[25+(i<<1)]=pitchDiff[i]>>8;
         }
       }
-      return writeDelta?48:24;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U24LE:
+      MAKE_BUF(writeDelta?72:36);
       for (int i=0; i<12; i++) {
         buf[i*3]=pitch[i]&0xff;
         buf[1+(i*3)]=(pitch[i]>>8)&0xff;
@@ -100,9 +104,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[38+(i*3)]=pitchDiff[i]>>16;
         }
       }
-      return writeDelta?72:36;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U32LE:
+      MAKE_BUF(writeDelta?96:48);
       for (int i=0; i<12; i++) {
         buf[i<<2]=pitch[i]&0xff;
         buf[1+(i<<2)]=(pitch[i]>>8)&0xff;
@@ -115,9 +119,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[51+(i<<2)]=pitchDiff[i]>>24;
         }
       }
-      return writeDelta?96:48;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U16BE:
+      MAKE_BUF(writeDelta?48:24);
       for (int i=0; i<12; i++) {
         buf[i<<1]=pitch[i]>>8;
         buf[1+(i<<1)]=pitch[i]&0xff;
@@ -126,9 +130,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[25+(i<<1)]=pitchDiff[i]&0xff;
         }
       }
-      return writeDelta?48:24;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U24BE:
+      MAKE_BUF(writeDelta?72:36);
       for (int i=0; i<12; i++) {
         buf[i*3]=pitch[i]>>16;
         buf[1+(i*3)]=(pitch[i]>>8)&0xff;
@@ -139,9 +143,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[38+(i*3)]=pitchDiff[i]&0xff;
         }
       }
-      return writeDelta?72:36;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U32BE:
+      MAKE_BUF(writeDelta?96:48);
       for (int i=0; i<12; i++) {
         buf[i<<2]=pitch[i]>>24;
         buf[1+(i<<2)]=(pitch[i]>>16)&0xff;
@@ -154,9 +158,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[51+(i<<2)]=pitchDiff[i]&0xff;
         }
       }
-      return writeDelta?96:48;
       break;
     case DIV_PITCH_TABLE_LAYOUT_U16SPLIT:
+      MAKE_BUF(writeDelta?48:24);
       for (int i=0; i<12; i++) {
         buf[i]=pitch[i]&0xff;
         buf[12+i]=pitch[i]>>8;
@@ -165,10 +169,9 @@ size_t DivPitchTable::compile(void* ptr, DivPitchTableLayout layout, bool writeD
           buf[36+i]=pitchDiff[i]>>8;
         }
       }
-      return writeDelta?48:24;
       break;
   }
-  return 0;
+  pool.push_back(DivObject(buf,bufSize,DIV_OBJECT_PITCH_TABLE));
 }
 
 int DivPitchTable::get(int base, int pitch1, int pitch2) {

@@ -454,14 +454,12 @@ struct DivPitchTable {
   void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
 
   /**
-   * write this pitch table to memory.
-   * this does not check memory boundaries. use with care.
-   * @param ptr pointer to memory.
+   * compile the pitch table.
+   * @param pool an object pool.
    * @param layout the data layout. see DivPitchTableLayout.
    * @param writeDelta whether to include delta values in the output.
-   * @return number of bytes written.
    */
-  size_t compile(void* ptr, DivPitchTableLayout layout, bool writeDelta=true);
+  void compile(DivObjectPool& pool, DivPitchTableLayout layout, bool writeDelta=true);
 
   DivPitchTable():
     maxFreq(0xffffffff),
@@ -1645,10 +1643,10 @@ class DivDispatch {
      * compile data for ROM export, such as sample data, pitch tables and chip flags.
      * this may be the same as getSampleMem() or not (may include extra data such as sample offsets).
      * @param index the data index.
-     * @param size the size will be stored here.
-     * @return a pointer to compiled data which must be deallocated after use (delete[]), or NULL if not implemented.
+     * @param pool a DivObjectPool where the data will be inserted into.
+     * @return whether the operation was successful.
      */
-    virtual const void* compileROMData(int index, size_t& size);
+    virtual bool compileROMData(int index, DivObjectPool& pool);
 
     /**
      * Render samples into sample memory.

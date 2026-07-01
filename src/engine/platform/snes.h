@@ -135,7 +135,7 @@ class DivPlatformSNES: public DivDispatch {
     bool hasSamplePtrHeader(int index=0);
     bool isSampleLoaded(int index, int sample);
     const DivMemoryComposition* getMemCompo(int index);
-    const void* compileROMData(int index, size_t& size);
+    bool compileROMData(int index, DivObjectPool& pool);
     void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
