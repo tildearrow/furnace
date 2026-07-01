@@ -51,6 +51,34 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
+static const char* getObjectTypeStr(unsigned char type) {
+  switch (type) {
+    case DIV_OBJECT_OTHER:
+      return "Object";
+    case DIV_OBJECT_INS:
+      return "Instrument";
+    case DIV_OBJECT_MACRO:
+      return "Macro";
+    case DIV_OBJECT_SAMPLE_MAP:
+      return "Sample Map";
+    case DIV_OBJECT_WAVE_SYNTH:
+      return "Wave Synth";
+    case DIV_OBJECT_INS_LIST_LOW:
+      return "Ins List (low)";
+    case DIV_OBJECT_INS_LIST_HIGH:
+      return "Ins List (high)";
+    case DIV_OBJECT_CHIP_DATA:
+      return "Chip Data";
+    case DIV_OBJECT_PITCH_TABLE:
+      return "Pitch Table";
+    case DIV_OBJECT_PITCH_TABLE_LIST_LOW:
+      return "Pitch Table List (low)";
+    case DIV_OBJECT_PITCH_TABLE_LIST_HIGH:
+      return "Pitch Table List (high)";
+  }
+  return "Unknown";
+}
+
 #define DISPATCH_DEBUG(_label,...) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
@@ -510,13 +538,84 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("The Bakert")) {
+    if (ImGui::TreeNode("The Bakery")) {
+      char tempID[1024];
       ImGui::PushFont(headFont);
       ImGui::TextUnformatted("Workbench");
       ImGui::PopFont();
+      ImGui::Text("Supplies:");
+
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Ins Type");
+      ImGui::SameLine();
+      if (ImGui::BeginCombo("##InsType",(insCompileType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insCompileType][0]))) {
+        for (int i=0; insTypes[i][0]; i++) {
+          if (ImGui::Selectable(insTypes[i][0],insCompileType==i)) {
+            insCompileType=i;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Add##AddIns")) {
+        if (!e->compileAllIns(romObjectPool,insCompileType)) {
+          showError("Gordon! get away from the beam!");
+        }
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Add Current")) {
+        if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+          DivInstrument* ins=e->song.ins[curIns];
+          if (!ins->compile(romObjectPool,(DivInstrumentType)insCompileType)) {
+            showError("quick! it's about to go critical!");
+          }
+        } else {
+          showError("select an instrument first.");
+        }
+      }
+
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Chip Index");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      ImGui::InputInt("##ChipIndex",&sampleCompileDispatch);
+      ImGui::SameLine();
+      ImGui::Text("Data Index");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      ImGui::InputInt("##DataIndex",&sampleCompileIndex);
+      ImGui::SameLine();
+      if (ImGui::Button("Add##AddChip")) {
+        showError("wait");
+      }
+
+      ImGui::Text("Dough:");
+      if (romObjectPool.empty()) {
+        ImGui::Text("<empty>");
+      } else {
+        for (size_t _i=0; _i<romObjectPool.size(); _i++) {
+          DivObject& i=romObjectPool[_i];
+          snprintf(tempID,1023,"%d. %s (%d bytes)",(int)_i,getObjectTypeStr(i.type),(int)i.len);
+          ImGui::PushID(_i);
+          if (ImGui::TreeNode(tempID)) {
+            ImGui::Text("information...");
+            ImGui::TreePop();
+          }
+          ImGui::PopID();
+        }
+      }
+
       if (ImGui::Button("Bake")) {
         openFileDialog(GUI_FILE_EXPORT_COMPILED_INS);
       }
+      pushDestColor();
+      if (ImGui::Button("Discard")) {
+        for (DivObject& i: romObjectPool) {
+          delete[] i.data;
+        }
+        romObjectPool.clear();
+      }
+      popDestColor();
 
       ImGui::PushFont(headFont);
       ImGui::TextUnformatted("Sequence");
