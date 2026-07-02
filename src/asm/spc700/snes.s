@@ -1,6 +1,8 @@
 ; SNES DivDispatch code.
 
 ; addresses
+; TODO: theoretically divBase could be $100...
+divTempPtr=$00
 divBase=$300
 divChans=8
 
@@ -62,6 +64,23 @@ divChanD2=divBase+(divChans*26)+1 ; unsigned char
 divGlobalBase=divBase+(divChans*28)
 divGlobalVolL=divGlobalBase ; unsigned char
 divGlobalVolR=divGlobalBase+1 ; unsigned char
+; - bit 5: echoOn
+; - bit 0-4: noiseFreq
+divNoiseFreq=divGlobalBase+2 ; unsigned char
+divEchoVolL=divGlobalBase+3 ; signed char
+divEchoVolR=divGlobalBase+4 ; signed char
+divEchoFeedback=divGlobalBase+5 ; signed char
+divEchoFIR=divGlobalBase+6 ; signed char[8]
+divEchoDelay=divGlobalBase+14 ; unsigned char
+divDryVolL=divGlobalBase+15 ; signed char
+divDryVolR=divGlobalBase+16 ; signed char
+; - bit 7: writeControl
+; - bit 6: writeNoise
+; - bit 5: writePitchMod
+; - bit 4: writeEcho
+; - bit 3: writeDryVol
+; - bit 1: antiClick
+divWriteFlags=divGlobalBase+17 ; unsigned char
 
 ;;;; ---- LOOK-UP TABLES ---- ;;;;
 divChanOffs:
@@ -97,6 +116,14 @@ divDefaultIns:
   mov spc_dspData, #\2
 .ENDM
 
+; dspWriteA <addr>
+; write the value of A into DSP register.
+.MACRO dspWriteA
+  mov spc_dspAddr, #\1
+  mov spc_dspData, a
+.ENDM
+
+; void DivPlatformSNES::tick();
 ; run a tick.
 divTick:
   ret
@@ -252,6 +279,56 @@ divWriteEnvSubTable:
   .dw divWriteEnvDirect, divWriteEnvDecLin, divWriteEnvDecExp, divWriteEnvDelayed
   .dw divWriteEnvDirect, divWriteEnvActive, divWriteEnvActive, divWriteEnvActive
 
+; void DivPlatformSNES::initEcho()
+divInitEcho:
+  mov a, !divNoiseFreq
+  and a, #$04 ; echoOn
+  bne echoIsOn ; because the code for on is too long
+  echoIsOff:
+    dspWrite $2c, #0
+    dspWrite $3c, #0
+    mov a, !divNoiseFreq ; control
+    dspWriteA $6c
+    dspWrite $7d, #0
+    dspWrite $6d, #$ff
+    ret
+  echoIsOn:
+    ; calculate ESA
+    mov a, #$1f
+    setc
+    sbc a, !divEchoDelay
+    clrc
+    rol a
+    rol a
+    rol a
+    dspWriteA $6d
+    mov a, !divEchoDelay
+    dspWriteA $7d
+    mov a, !divEchoFeedback
+    dspWriteA $0d
+    mov a, !divEchoVolL
+    dspWriteA $2c
+    mov a, !divEchoVolR
+    dspWriteA $3c
+    ; write FIR (unrolled)
+    mov a, !divEchoFIR+7
+    dspWriteA $7f
+    mov a, !divEchoFIR+6
+    dspWriteA $6f
+    mov a, !divEchoFIR+5
+    dspWriteA $5f
+    mov a, !divEchoFIR+4
+    dspWriteA $4f
+    mov a, !divEchoFIR+3
+    dspWriteA $3f
+    mov a, !divEchoFIR+2
+    dspWriteA $2f
+    mov a, !divEchoFIR+1
+    dspWriteA $1f
+    mov a, !divEchoFIR+0
+    dspWriteA $0f
+    ret
+
 ; void DivPlatformSNES::reset()
 divReset:
   ; set the sample table base
@@ -281,14 +358,18 @@ divReset:
   bpl -
 .endif
 
-  ; ins
+  ; ins/default pitch table
   ; this is slow
   mov x, #(divChans-1)*2+1 ; upper byte
 - mov a, #<divDefaultIns
   mov !divChanIns+x, a
+  mov a, !songPitchListHigh0+1 ; wavePitchTable[1]
+  mov !(divChanPitchTablePtr+1)+x, a
   dec x
   mov a, #>divDefaultIns
   mov !divChanIns+x, a
+  mov a, !songPitchListLow0+1 ; wavePitchTable[1]
+  mov !divChanPitchTablePtr+x, a
   dec x
   bpl -
 
@@ -311,15 +392,43 @@ divReset:
   dec x
   bpl -
 
+  ; writeOutVol/set source number
+  mov x, #0
+- call !divWriteOutVol
+  mov x, a
+  lsr a
+  mov a, y
+  chWriteX 4 ; source number
+  inc x
+  inc x
+  cmp x, #divChans*2
+  bne -
 
-  ; assign default pitch table
+  ; initial global state
+  mov x, #17
+- mov a, !songChipData0+x
+  mov !divGlobalBase+x, a
+  dec x
+  bpl -
 
-  ; writeOutVol
+  ; load initial echo mask
+  mov a, !songChipData0+18
+  mov x, #(divChans*2)-2
+- ror a ; test the lowest bit
+  bcc +
+  ; set echo
+  mov y, a
+  mov a, #$20
+  mov !divChanSNESFlags+x, a
+  mov a, y
++ dec x
+  dec x
+  bpl -
 
-  ; set source number
-
-  ; default global state
-
+  ; finish up
+  call !divInitEcho
   ret
 
 ; --- COMMAND HANDLERS ---
+divCmdNoteOn:
+  ret

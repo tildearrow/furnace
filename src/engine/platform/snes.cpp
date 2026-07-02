@@ -1012,12 +1012,15 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
       return true;
       break;
     }
-    case 1: { // pitch tables
+    case 1: { // chip-specific data
       // two tables (one low and one high)
       // 16 wave sizes, 1 fallback pitch table and one per sample
       size_t size=16+1+parent->song.sample.size();
       bool isWaveSizeUsed[16];
       memset(isWaveSizeUsed,0,16*sizeof(bool));
+
+      // this is the default pitch table during reset(). it must always be present.
+      isWaveSizeUsed[1]=true;
 
       // check which wave sizes are used (so we can skip unused pitch tables)
       for (DivInstrument* i: parent->song.ins) {
@@ -1061,6 +1064,25 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
 
       pool.push_back(objLow);
       pool.push_back(objHigh);
+
+      unsigned char* initialState=new unsigned char[20];
+      initialState[0]=globalVolL;
+      initialState[1]=globalVolR;
+      initialState[2]=initEchoOn?0x20:0;
+      initialState[3]=initEchoVolL;
+      initialState[4]=initEchoVolR;
+      initialState[5]=initEchoFeedback;
+      for (int i=0; i<8; i++) {
+        initialState[6+i]=initEchoFIR[i];
+      }
+      initialState[14]=initEchoDelay;
+      initialState[15]=127;
+      initialState[16]=127;
+      initialState[17]=0x10; // writeEcho on
+      initialState[18]=initEchoMask;
+      initialState[19]=0; // reserved
+      
+      pool.push_back(DivObject(initialState,20,DIV_OBJECT_CHIP_DATA,"InitState"));
       return true;
       break;
     }
