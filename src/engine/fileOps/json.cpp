@@ -24,6 +24,7 @@ using JSON = nlohmann::json;
 
 JSON serializePattern(DivPattern* pat, int rows, int effectCols);
 JSON serializeInstrument(DivInstrument* ins);
+JSON serializeMacro(DivInstrumentMacro* macro);
 JSON serializeWavetable(DivWavetable* wave);
 JSON serializeSample(DivSample* sample);
 JSON serializeCompatFlags(DivCompatFlags* flags);
@@ -466,57 +467,54 @@ JSON serializeInstrument(DivInstrument* ins) {
       ins->std.ex10Macro.len) {
     featureMA=true;
   }
+  if (featureFM || featureS3) {
+    // check FM macros
+    int opCount=4;
+    bool storeExtendedAsWell=true;
+    if (ins->type==DIV_INS_OPLL) {
+      opCount=2;
+    } else if (ins->type==DIV_INS_OPL) {
+      opCount=(ins->fm.ops==4)?4:2;
+    } else if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+      storeExtendedAsWell=false;
+    }
+    for (int i=0; i<opCount; i++) {
+      const DivInstrumentSTD::OpMacro& m=ins->std.opMacros[i];
+      if (m.amMacro.len ||
+          m.arMacro.len ||
+          m.drMacro.len ||
+          m.multMacro.len ||
+          m.rrMacro.len ||
+          m.slMacro.len ||
+          m.tlMacro.len ||
+          m.dt2Macro.len ||
+          m.rsMacro.len ||
+          m.dtMacro.len ||
+          m.d2rMacro.len ||
+          m.ssgMacro.len) {
+        featureOx[i]=true;
+      }
+      if (storeExtendedAsWell) {
+        if (m.damMacro.len ||
+            m.dvbMacro.len ||
+            m.egtMacro.len ||
+            m.kslMacro.len ||
+            m.susMacro.len ||
+            m.vibMacro.len ||
+            m.wsMacro.len ||
+            m.ksrMacro.len) {
+          featureOx[i]=true;
+        }
+      }
+    }
+  }
   if (featureMA) {
     json["macros"]={};
     DivInstrumentMacro* curMacro;
     for (DivMacroType i=DIV_MACRO_VOL; i<=DIV_MACRO_EX10; i=(DivMacroType)((int)i+1)) {
       curMacro=ins->std.macroByType(i);
       if (curMacro->len==0) continue;
-      JSON macro;
-      macro["code"]=(int)curMacro->macroType;
-      macro["length"]=(int)curMacro->len;
-      macro["loop"]=(int)curMacro->loop;
-      macro["release"]=(int)curMacro->rel;
-      macro["mode"]=curMacro->mode;
-      macro["open"]=(int)curMacro->open&1;
-      int macroType=(curMacro->open>>1)&3;
-      macro["type"]=macroType;
-      macro["instantRelease"]=(bool)(curMacro->open&(1<<3));
-      macro["wordSize"]=(int)(curMacro->open>>5)&3;
-      macro["delay"]=(int)curMacro->delay;
-      macro["speed"]=(int)curMacro->speed;
-      switch (macroType) {
-        case 0: { // normal
-          macro["data"]={};
-          for (unsigned char j=0; j<curMacro->len; j++) {
-            macro["data"].push_back((int)curMacro->val[j]);
-          }
-          break;
-        }
-        case 1: { // adsr
-          macro["data"]["bottom"]=curMacro->val[0];
-          macro["data"]["top"]=curMacro->val[1];
-          macro["data"]["attack"]=curMacro->val[2];
-          macro["data"]["hold"]=curMacro->val[3];
-          macro["data"]["decay"]=curMacro->val[4];
-          macro["data"]["sustain"]=curMacro->val[5];
-          macro["data"]["susTime"]=curMacro->val[6];
-          macro["data"]["susDecay"]=curMacro->val[7];
-          macro["data"]["release"]=curMacro->val[8];
-          break;
-        }
-        case 2: { // lfo
-          macro["data"]["bottom"]=curMacro->val[0];
-          macro["data"]["top"]=curMacro->val[1];
-          macro["data"]["speed"]=curMacro->val[11];
-          macro["data"]["shape"]=curMacro->val[12];
-          macro["data"]["phase"]=curMacro->val[13];
-          break;
-        }
-        default:
-          logW("json: invalid macro type!");
-      }
-      json["macros"].push_back(macro);
+      json["macros"].push_back(serializeMacro(curMacro));
     }
   }
 #define SET_VALUE(v,x) v[#x]=ins->v.x
@@ -790,39 +788,43 @@ JSON serializeInstrument(DivInstrument* ins) {
   if (featureS3) {
     JSON sid3;
     // oh my god
-    SET_VALUE(sid3,dutyIsAbs);
-    SET_VALUE(sid3,noiseOn);
-    SET_VALUE(sid3,pulseOn);
-    SET_VALUE(sid3,sawOn);
-    SET_VALUE(sid3,triOn);
+    sid3["waveEnable"]["noise"]=ins->sid3.noiseOn;
+    sid3["waveEnable"]["pulse"]=ins->sid3.pulseOn;
+    sid3["waveEnable"]["saw"]=ins->sid3.sawOn;
+    sid3["waveEnable"]["tri"]=ins->sid3.triOn;
+    if (ins->sid3.specialWaveOn)
+      sid3["waveEnable"]["special"]=ins->sid3.special_wave; // why snake_case now?
+    else
+      sid3["waveEnable"]["special"]=false;
 
-    SET_VALUE(sid3,a);
-    SET_VALUE(sid3,d);
-    SET_VALUE(sid3,s);
-    SET_VALUE(sid3,sr);
-    SET_VALUE(sid3,r);
+    sid3["envelope"]["attack"]=ins->sid3.a;
+    sid3["envelope"]["decay"]=ins->sid3.d;
+    sid3["envelope"]["sustain"]=ins->sid3.s;
+    sid3["envelope"]["susRate"]=ins->sid3.sr; // why "rate"? (i got rate from the docs)
+    sid3["envelope"]["release"]=ins->sid3.r;
 
+    sid3["phaseMod"]["enable"]=ins->sid3.phase_mod;
+    sid3["phaseMod"]["source"]=ins->sid3.phase_mod_source;
+    sid3["ringMod"]["enable"]=ins->sid3.ringMod; // ?!?!
+    sid3["ringMod"]["source"]=ins->sid3.ring_mod_source;
+    sid3["oscSync"]["enable"]=ins->sid3.oscSync;
+    sid3["oscSync"]["source"]=ins->sid3.sync_source;
+
+    // the rest can stay.....
     SET_VALUE(sid3,mixMode);
     SET_VALUE(sid3,duty);
-    SET_VALUE(sid3,phase_mod);
-    SET_VALUE(sid3,specialWaveOn);
     SET_VALUE(sid3,oneBitNoise);
     SET_VALUE(sid3,separateNoisePitch);
     SET_VALUE(sid3,doWavetable);
     SET_VALUE(sid3,resetDuty);
-    SET_VALUE(sid3,oscSync);
-    SET_VALUE(sid3,ringMod);
+    SET_VALUE(sid3,dutyIsAbs);
 
-    SET_VALUE(sid3,phase_mod_source);
-    SET_VALUE(sid3,ring_mod_source);
-    SET_VALUE(sid3,sync_source);
-    SET_VALUE(sid3,special_wave);
     SET_VALUE(sid3,phaseInv);
     SET_VALUE(sid3,feedback);
 
     for (int i=0; i<4; i++) {
       JSON filter;
-      filter["enabled"]=ins->sid3.filt[i].enabled;
+      filter["enable"]=ins->sid3.filt[i].enabled;
       filter["init"]=ins->sid3.filt[i].init;
       filter["absoluteCutoff"]=ins->sid3.filt[i].absoluteCutoff;
       filter["bindCutoffOnNote"]=ins->sid3.filt[i].bindCutoffOnNote;
@@ -848,7 +850,30 @@ JSON serializeInstrument(DivInstrument* ins) {
   }
   for (int i=0; i<4; i++) {
     if (featureOx[i]) {
-      // aaaaaaaaaaaaaa
+      JSON curOpMacro;
+#define WRITE_OP_MACRO(x) if (ins->std.opMacros[i]. x ## Macro .len!=0) curOpMacro[ #x ]=serializeMacro(&ins->std.opMacros[i]. x ## Macro);
+      WRITE_OP_MACRO(am)
+      WRITE_OP_MACRO(ar)
+      WRITE_OP_MACRO(dr)
+      WRITE_OP_MACRO(mult)
+      WRITE_OP_MACRO(rr)
+      WRITE_OP_MACRO(sl)
+      WRITE_OP_MACRO(tl)
+      WRITE_OP_MACRO(dt2)
+      WRITE_OP_MACRO(rs)
+      WRITE_OP_MACRO(dt)
+      WRITE_OP_MACRO(d2r)
+      WRITE_OP_MACRO(ssg)
+      WRITE_OP_MACRO(dam)
+      WRITE_OP_MACRO(dvb)
+      WRITE_OP_MACRO(egt)
+      WRITE_OP_MACRO(ksl)
+      WRITE_OP_MACRO(sus)
+      WRITE_OP_MACRO(vib)
+      WRITE_OP_MACRO(ws)
+      WRITE_OP_MACRO(ksr)
+#undef WRITE_OP_MACRO
+      json["opMacro"][i]=curOpMacro;
     }
   }
 
@@ -960,5 +985,53 @@ JSON serializeCompatFlags(DivCompatFlags* flags) {
   SET_FLAG(oldCenterRate);
   SET_FLAG(noVolSlideReset);
 #undef SET_FLAG
+  return json;
+}
+
+JSON serializeMacro(DivInstrumentMacro* macro) {
+  JSON json;
+  json["code"]=(int)macro->macroType;
+  json["length"]=(int)macro->len;
+  json["loop"]=(int)macro->loop;
+  json["release"]=(int)macro->rel;
+  json["mode"]=macro->mode;
+  json["open"]=(int)macro->open&1;
+  int macroType=(macro->open>>1)&3;
+  json["type"]=macroType;
+  json["instantRelease"]=(bool)(macro->open&(1<<3));
+  json["wordSize"]=(int)(macro->open>>5)&3;
+  json["delay"]=(int)macro->delay;
+  json["speed"]=(int)macro->speed;
+  switch (macroType) {
+    case 0: { // normal
+      json["data"]={};
+      for (unsigned char j=0; j<macro->len; j++) {
+        json["data"].push_back((int)macro->val[j]);
+      }
+      break;
+    }
+    case 1: { // adsr
+      json["data"]["bottom"]=macro->val[0];
+      json["data"]["top"]=macro->val[1];
+      json["data"]["attack"]=macro->val[2];
+      json["data"]["hold"]=macro->val[3];
+      json["data"]["decay"]=macro->val[4];
+      json["data"]["sustain"]=macro->val[5];
+      json["data"]["susTime"]=macro->val[6];
+      json["data"]["susDecay"]=macro->val[7];
+      json["data"]["release"]=macro->val[8];
+      break;
+    }
+    case 2: { // lfo
+      json["data"]["bottom"]=macro->val[0];
+      json["data"]["top"]=macro->val[1];
+      json["data"]["speed"]=macro->val[11];
+      json["data"]["shape"]=macro->val[12];
+      json["data"]["phase"]=macro->val[13];
+      break;
+    }
+    default:
+      logW("json: invalid macro type!");
+  }
   return json;
 }
