@@ -696,6 +696,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
+  GUI_FILE_EXPORT_JSON,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_EXPORT_COMPILED_INS,
   GUI_FILE_EXPORT_COMPILED_INS_ONE,
@@ -754,6 +755,7 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
+  GUI_EXPORT_JSON,
   GUI_EXPORT_DMF
 };
 
@@ -3014,6 +3016,9 @@ class FurnaceGUI {
   DivCSOptions csExportOptions;
   DivCSProgress csProgress;
 
+  // JSON export specific
+  DivJSONExportOptions jsonExportOptions;
+
   // ROM export specific
   DivROMExportOptions romTarget;
   DivConfig romConfig;
@@ -3053,6 +3058,7 @@ class FurnaceGUI {
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
   void drawExportText(bool onWindow=false);
+  void drawExportJSON(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
 
