@@ -586,28 +586,28 @@ JSON serializeInstrument(DivInstrument* ins) {
   }
   if (feature64) {
     JSON c64;
-    SET_VALUE(c64,triOn);
-    SET_VALUE(c64,sawOn);
-    SET_VALUE(c64,pulseOn);
-    SET_VALUE(c64,noiseOn);
-    SET_VALUE(c64,a);
-    SET_VALUE(c64,d);
-    SET_VALUE(c64,s);
-    SET_VALUE(c64,r);
+    c64["waveforms"]["tri"]=ins->c64.triOn;
+    c64["waveforms"]["saw"]=ins->c64.sawOn;
+    c64["waveforms"]["pulse"]=ins->c64.pulseOn;
+    c64["waveforms"]["noise"]=ins->c64.noiseOn;
+    c64["envelope"]["attack"]=ins->c64.a;
+    c64["envelope"]["decay"]=ins->c64.d;
+    c64["envelope"]["sustain"]=ins->c64.s;
+    c64["envelope"]["release"]=ins->c64.r;
+    c64["filter"]["to"]=ins->c64.toFilter;
+    c64["filter"]["init"]=ins->c64.initFilter;
+    c64["filter"]["lowPass"]=ins->c64.lp;
+    c64["filter"]["highPass"]=ins->c64.hp;
+    c64["filter"]["bandPass"]=ins->c64.bp;
+    c64["filter"]["cutoff"]=ins->c64.cut;
+    c64["filter"]["resonance"]=ins->c64.res;
+    c64["filter"]["isAbsolute"]=ins->c64.filterIsAbs;
     SET_VALUE(c64,duty);
     SET_VALUE(c64,ringMod);
     SET_VALUE(c64,oscSync);
-    SET_VALUE(c64,toFilter);
-    SET_VALUE(c64,initFilter);
     SET_VALUE(c64,dutyIsAbs);
-    SET_VALUE(c64,filterIsAbs);
     SET_VALUE(c64,noTest);
     SET_VALUE(c64,resetDuty);
-    SET_VALUE(c64,res);
-    SET_VALUE(c64,cut);
-    SET_VALUE(c64,hp);
-    SET_VALUE(c64,lp);
-    SET_VALUE(c64,bp);
     SET_VALUE(c64,ch3off);
     json["64"]=c64;
   }
@@ -897,14 +897,14 @@ JSON serializeSample(DivSample* sample) {
   JSON json;
   json["name"]=sample->name;
   json["centerRate"]=sample->centerRate;
-  json["loopStart"]=sample->loopStart;
-  json["loopEnd"]=sample->loopEnd;
+  json["loop"]["start"]=sample->loopStart;
+  json["loop"]["end"]=sample->loopEnd;
+  json["loop"]["enabled"]=sample->loop;
+  json["loop"]["mode"]=sample->loopMode;
   json["depth"]=sample->depth;
-  json["loop"]=sample->loop;
   json["brrEmphasis"]=sample->brrEmphasis;
   json["brrNoFilter"]=sample->brrNoFilter;
   json["dither"]=sample->dither;
-  json["loopMode"]=sample->loopMode;
   json["samples"]=sample->samples;
 
   json["renderOn"]={};
