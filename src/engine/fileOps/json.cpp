@@ -226,8 +226,8 @@ JSON serializePattern(DivPattern* pat, int rows, int effectCols) {
       unsigned int freq=
         pat->newData[i][DIV_PAT_RAW0]|
         (pat->newData[i][DIV_PAT_RAW1]<<8)|
-        (pat->newData[i][DIV_PAT_RAW1]<<16)|
-        (pat->newData[i][DIV_PAT_RAW1]<<24);
+        (pat->newData[i][DIV_PAT_RAW2]<<16)|
+        (pat->newData[i][DIV_PAT_RAW3]<<24);
       row["rawFreq"]=freq;
       isEmpty=false;
     } else if (pat->newData[i][DIV_PAT_NOTE]!=-1) {
