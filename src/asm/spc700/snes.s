@@ -16,6 +16,9 @@ divChanArpState=divBase+(divChans*6) ; unsigned char
 divChanSampleNoteDelta=divBase+(divChans*6)+1 ; unsigned char
 ; this is a pointer...
 divChanIns=divBase+(divChans*8) ; short
+divChanVol=divBase+(divChans*10) ; unsigned char
+divChanOutVol=divBase+(divChans*10)+1 ; unsigned char
+divChanPitchTablePtr=divBase+(divChans*12) ; short
 ; flags:
 ; - bit 7: active
 ; - bit 6: insChanged
@@ -25,9 +28,6 @@ divChanIns=divBase+(divChans*8) ; short
 ; - bit 2: keyOff
 ; - bit 1: inPorta
 ; - bit 0: rawFreq
-divChanVol=divBase+(divChans*10) ; unsigned char
-divChanOutVol=divBase+(divChans*10)+1 ; unsigned char
-divChanPitchTablePtr=divBase+(divChans*12) ; short
 divChanFlags=divBase+(divChans*14) ; unsigned char
 
 ;;;; ---- DivPlatformSNES::Channel ---- ;;;;
@@ -431,4 +431,56 @@ divReset:
 
 ; --- COMMAND HANDLERS ---
 divCmdNoteOn:
+  ; DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SNES);
+  mov a, !divChanIns+x
+  mov y, !(divChanIns+1)+x
+  movw divTempPtr, ya
+  ; if (ins->amiga.useWave)
+  mov y, #4
+  mov a, [divTempPtr]+y ; TODO: optimize by comparing here...
+  cmp a, #2
+  bne @noUseWave
+  @useWave:
+    ; chan[c.chan].useWave=true;
+    mov a, !divChanSNESFlags+x
+    or a, #$80
+    mov !divChanSNESFlags+x, a
+    ; chan[c.chan].sampleNoteDelta=0;
+    mov a, #0
+    mov !divChanSampleNoteDelta+x, a
+    ; chan[c.chan].wtLen=ins->amiga.waveLen+1;
+    mov y, #5
+    mov a, [divTempPtr]+y
+    mov !divChanWtLen+x, a
+    ; chan[c.chan].pitchTable=&wavePitchTable[((chan[c.chan].wtLen>>4)-1)&15];
+    mov y, a
+    mov a, !songPitchListLow0+y
+    mov !divChanPitchTablePtr+x, a
+    mov a, !songPitchListHigh0+y
+    mov !(divChanPitchTablePtr+1)+x, a
+    ; if (chan[c.chan].insChanged)
+    mov a, !divChanFlags+x
+    and a, #$40
+    beq @@insNotChanged
+    @@insChanged:
+      ; setWidth/changeWave1 HERE...
+    @@insNotChanged:
+      ; ws.init HERE...
+    jmp !@post1
+  @noUseWave:
+    mov a, fcsArg0+1
+    bne @@noteNotNull
+    mov a, fcsArg0
+    cmp a, #$b8 ; 180 - null
+    beq @@postNoteNotNull
+    @@noteNotNull:
+      ; assign sample and pitch table
+      
+    @@postNoteNotNull:
+    ; chan[c.chan].useWave=false;
+    mov a, !divChanSNESFlags+x
+    and a, #~$80
+    mov !divChanSNESFlags+x, a
+    ; man this is so boring...
+  @post1:
   ret
