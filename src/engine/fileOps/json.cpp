@@ -199,7 +199,7 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
       } else {
         dump=json.dump();
       }
-      w->writeString(dump,false);
+      w->writeText(dump);
       break;
     }
   }
