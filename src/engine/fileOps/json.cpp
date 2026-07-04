@@ -52,7 +52,7 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
     chip["name"]=getSystemName(song.system[i]);
     chip["volume"]=song.systemVol[i];
     chip["panning"]=song.systemPan[i];
-    chip["front/rear"]=song.systemPanFR[i];
+    chip["frontRear"]=song.systemPanFR[i];
     JSON chipFlags;
     for (auto flag:song.systemFlags[i].configMap()) {
       chipFlags[flag.first]=flag.second;
