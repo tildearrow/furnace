@@ -689,6 +689,8 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::Text("weight: %d bytes",(int)totalSize);
 
+      ImGui::InputScalar("Load Address",ImGuiDataType_U64,&romDoughAddr,NULL,NULL,"%X",ImGuiInputTextFlags_CharsHexadecimal);
+
       if (ImGui::Button("Bake (assembly)")) {
         openFileDialog(GUI_FILE_EXPORT_DOUGH_ASM);
       }
@@ -700,6 +702,7 @@ void FurnaceGUI::drawDebug() {
       pushDestColor();
       if (ImGui::Button("Discard")) {
         for (DivObject& i: romObjectPool) {
+          logV("freeing object %s (type %d)",i.nameHint,i.type);
           delete[] i.data;
         }
         romObjectPool.clear();

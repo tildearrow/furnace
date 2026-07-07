@@ -51,6 +51,7 @@ static const char* describeType(unsigned char type) {
 
 SafeWriter* bakeObjectsASM(DivObjectPool& pool) {
   std::vector<String> labels;
+  std::map<String,int> namedLabelCount;
   int labelCount[DIV_OBJECT_MAX];
 
   // make sure the pool has something
@@ -63,8 +64,18 @@ SafeWriter* bakeObjectsASM(DivObjectPool& pool) {
     unsigned char countIndex=i.type;
     if (countIndex>=DIV_OBJECT_MAX) countIndex=DIV_OBJECT_OTHER;
 
-    labels.push_back(fmt::sprintf("song%s%d",describeType(countIndex),labelCount[countIndex]));
-    labelCount[countIndex]++;
+    if (i.nameHint) {
+      int useCount=0;
+      auto useCountC=namedLabelCount.find(i.nameHint);
+      if (useCountC!=namedLabelCount.cend()) {
+        useCount=useCountC->second;
+      }
+      labels.push_back(fmt::sprintf("song%s%d",i.nameHint,useCount));
+      namedLabelCount[i.nameHint]=++useCount;
+    } else {
+      labels.push_back(fmt::sprintf("song%s%d",describeType(countIndex),labelCount[countIndex]));
+      labelCount[countIndex]++;
+    }
   }
 
   // prepare our writer
@@ -150,5 +161,62 @@ SafeWriter* bakeObjectsASM(DivObjectPool& pool) {
 }
 
 SafeWriter* bakeObjectsBinary(DivObjectPool& pool, unsigned int addr) {
-  return NULL;
+  std::vector<size_t> objLocation;
+  // prepare our writer
+  SafeWriter* w=new SafeWriter;
+  w->init();
+
+  // write objects
+  for (size_t _i=0; _i<pool.size(); _i++) {
+    // store the position of this object
+    objLocation.push_back(w->tell());
+    // write object data
+    DivObject& i=pool[_i];
+    w->write(i.data,i.len);
+  }
+
+  // perform relocation
+  for (size_t _i=0; _i<pool.size(); _i++) {
+    DivObject& i=pool[_i];
+
+    for (DivRelocInfo& j: i.reloc) {
+      // boundary check
+      if (j.objectIndex<pool.size() && j.offset<i.len) {
+        // relocate
+        w->seek(objLocation[_i]+j.offset,SEEK_SET);
+        switch (j.type) {
+          case DIV_RELOC_PTR_U8:
+            w->writeC(objLocation[j.objectIndex]+addr);
+            break;
+          case DIV_RELOC_PTR_U16:
+            w->writeS(objLocation[j.objectIndex]+addr);
+            break;
+          case DIV_RELOC_PTR_U32:
+            w->writeI(objLocation[j.objectIndex]+addr);
+            break;
+          case DIV_RELOC_PTR_U64:
+            w->writeL(objLocation[j.objectIndex]+addr);
+            break;
+          case DIV_RELOC_PTR_U16LSB:
+            w->writeC((objLocation[j.objectIndex]+addr)&0xff);
+            break;
+          case DIV_RELOC_PTR_U16MSB:
+            w->writeC(((objLocation[j.objectIndex]+addr)>>8)&0xff);
+            break;
+          case DIV_RELOC_PTR_U16BE:
+            w->writeS_BE(objLocation[j.objectIndex]+addr);
+            break;
+          case DIV_RELOC_PTR_U32BE:
+            w->writeI_BE(objLocation[j.objectIndex]+addr);
+            break;
+          case DIV_RELOC_PTR_U64BE:
+            w->writeL_BE(objLocation[j.objectIndex]+addr);
+            break;
+        }
+      }
+    }
+  }
+
+  w->seek(0,SEEK_END);
+  return w;
 }

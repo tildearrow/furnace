@@ -6442,7 +6442,21 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_DOUGH_BIN: {
-              showError("the oven isn't fully assembled! hold on!");
+              SafeWriter* w=bakeObjectsBinary(romObjectPool,romDoughAddr);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+              } else {
+                showError("baking error! is the dough there?");
+              }
               break;
             }
             case GUI_FILE_EXPORT_TEXT: {
@@ -9662,6 +9676,7 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileDispatch(0),
   sampleCompileIndex(0),
   sampleCompileSize(0),
+  romDoughAddr(0),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

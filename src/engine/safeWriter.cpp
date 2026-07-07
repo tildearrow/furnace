@@ -108,6 +108,10 @@ int SafeWriter::writeI(int val) {
   return write(bytes,4);
 }
 
+int SafeWriter::writeL_BE(int64_t val) {
+  return write(&val,8);
+}
+
 int SafeWriter::writeL(int64_t val) {
   unsigned char bytes[8];
   bytes[0]=((uint64_t)val)&0xff;
@@ -168,6 +172,19 @@ int SafeWriter::writeI_BE(int val) {
 
 int SafeWriter::writeL(int64_t val) {
   return write(&val,8);
+}
+
+int SafeWriter::writeL_BE(int64_t val) {
+  unsigned char bytes[8];
+  bytes[0]=(((uint64_t)val)>>56)&0xff;
+  bytes[1]=(((uint64_t)val)>>48)&0xff;
+  bytes[2]=(((uint64_t)val)>>40)&0xff;
+  bytes[3]=(((uint64_t)val)>>32)&0xff;
+  bytes[4]=(((uint64_t)val)>>24)&0xff;
+  bytes[5]=(((uint64_t)val)>>16)&0xff;
+  bytes[6]=(((uint64_t)val)>>8)&0xff;
+  bytes[7]=((uint64_t)val)&0xff;
+  return write(bytes,8);
 }
 
 int SafeWriter::writeF(float val) {

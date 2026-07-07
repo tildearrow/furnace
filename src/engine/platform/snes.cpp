@@ -1028,7 +1028,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
         }
       }
 
-      // allocate the actual data
+      // allocate the actual pitch tables
       DivObject objLow;
       DivObject objHigh;
       DivObject objShift;
@@ -1055,7 +1055,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
         objLow.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16LSB));
         objHigh.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16MSB));
         samplePitchTable.get(i)->compile(pool,DIV_PITCH_TABLE_LAYOUT_U16LE,parent->song.compatFlags.linearPitch);
-        pitchTablesShift[i]=samplePitchTable.get(i)->shift;
+        pitchTablesShift[i+17]=samplePitchTable.get(i)->shift;
       }
 
       objLow.data=pitchTablesLow;
@@ -1073,7 +1073,61 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
       pool.push_back(objLow);
       pool.push_back(objHigh);
       pool.push_back(objShift);
+      
+      // determine which is the highest sample we need to store in the sample table
+      size_t maxSample=parent->song.sample.size();
+      
+      // allocate sample table
+      DivObject objSampleStartLow;
+      DivObject objSampleStartHigh;
+      DivObject objSampleLoopLow;
+      DivObject objSampleLoopHigh;
+      unsigned char* sampleTableStartLow=new unsigned char[maxSample];
+      unsigned char* sampleTableStartHigh=new unsigned char[maxSample];
+      unsigned char* sampleTableLoopLow=new unsigned char[maxSample];
+      unsigned char* sampleTableLoopHigh=new unsigned char[maxSample];
+      for (size_t i=0; i<maxSample; i++) {
+        DivSample* s=parent->song.sample[i];
+        
+        int start=sampleOff[i];
+        int end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
+        int loop=MAX(start,end-1);
+        if (s->isLoopable()) {
+          loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
+        }
+    
+        sampleTableStartLow[i]=start&0xff;
+        sampleTableStartHigh[i]=start>>8;
+        sampleTableLoopLow[i]=loop&0xff;
+        sampleTableLoopHigh[i]=loop>>8;
+      }
+      
+      objSampleStartLow.data=sampleTableStartLow;
+      objSampleStartLow.len=maxSample;
+      objSampleStartLow.type=DIV_OBJECT_CHIP_DATA;
+      objSampleStartLow.nameHint="SampleStartLow";
+      
+      objSampleStartHigh.data=sampleTableStartHigh;
+      objSampleStartHigh.len=maxSample;
+      objSampleStartHigh.type=DIV_OBJECT_CHIP_DATA;
+      objSampleStartHigh.nameHint="SampleStartHigh";
+      
+      objSampleLoopLow.data=sampleTableLoopLow;
+      objSampleLoopLow.len=maxSample;
+      objSampleLoopLow.type=DIV_OBJECT_CHIP_DATA;
+      objSampleLoopLow.nameHint="SampleLoopLow";
+      
+      objSampleLoopHigh.data=sampleTableLoopHigh;
+      objSampleLoopHigh.len=maxSample;
+      objSampleLoopHigh.type=DIV_OBJECT_CHIP_DATA;
+      objSampleLoopHigh.nameHint="SampleLoopHigh";
+      
+      pool.push_back(objSampleStartLow);
+      pool.push_back(objSampleStartHigh);
+      pool.push_back(objSampleLoopLow);
+      pool.push_back(objSampleLoopHigh);
 
+      // allocate initial state
       unsigned char* initialState=new unsigned char[20];
       initialState[0]=globalVolL;
       initialState[1]=globalVolR;
@@ -1103,6 +1157,9 @@ void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,32768*sizeof(unsigned int));
   memset(sampleLoaded,0,32768*sizeof(bool));
+  
+  // set the sample table base here as well just in case
+  sampleTableBase=0x400;
 
   memCompo=DivMemoryComposition();
   memCompo.name="SPC/DSP Memory";
@@ -1111,21 +1168,8 @@ void DivPlatformSNES::renderSamples(int sysID) {
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Channel Sample Pointers",-1,sampleTableBase,sampleTableBase+8*4));
   memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_WAVE_RAM,"Wave RAM",-1,sampleTableBase+8*4,sampleTableBase+8*4+8*9*16));
 
-  // skip past sample table and wavetable buffer
+  // skip past dir and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
-  size_t sampleTablePos=memPos;
-  
-  // allocate sample table
-  int maxSample=0;
-  for (int i=0; i<parent->song.sampleLen; i++) {
-    DivSample* s=parent->song.sample[i];
-    if (!s->renderOn[0][sysID]) {
-      continue;
-    }
-    maxSample=i;
-  }
-  memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_RESERVED,"Sample Directory",-1,memPos,memPos+(maxSample+1)*4));
-  memPos+=(maxSample+1)*4;
 
   // write samples
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -1159,33 +1203,6 @@ void DivPlatformSNES::renderSamples(int sysID) {
     sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
-
-  // finish sample table
-  for (int i=0; i<=maxSample; i++) {
-    if (i>=parent->song.sampleLen) break;
-    DivSample* s=parent->song.sample[i];
-    if (!s->renderOn[0][sysID]) {
-      // unavailable
-      copyOfSampleMem[sampleTablePos+i*4]=0;
-      copyOfSampleMem[sampleTablePos+i*4+1]=0;
-      copyOfSampleMem[sampleTablePos+i*4+2]=0;
-      copyOfSampleMem[sampleTablePos+i*4+3]=0;
-      continue;
-    }
-
-    int start=sampleOff[i];
-    int end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
-    int loop=MAX(start,end-1);
-    if (s->isLoopable()) {
-      loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
-    }
-
-    // TODO: put this table somewhere else?
-    copyOfSampleMem[sampleTablePos+i*4]=start&0xff;
-    copyOfSampleMem[sampleTablePos+i*4+1]=start>>8;
-    copyOfSampleMem[sampleTablePos+i*4+2]=loop&0xff;
-    copyOfSampleMem[sampleTablePos+i*4+3]=loop>>8;
-  }
 
   // even if the delay is 0, the DSP will still operate the first buffer sample
   // so the ARAM buffer size becomes 4 bytes when the delay is 0

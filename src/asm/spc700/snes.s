@@ -54,9 +54,9 @@ divChanPanR=divBase+(divChans*20)+1 ; unsigned char
 divChanWtLen=divBase+(divChans*22) ; unsigned char
 ; flags:
 ; - bit 7: useWave
-; - bit 6: noise
-; - bit 5: echo
-; - bit 4: pitchMod
+; - bit 6: noise     ; TODO: UNIFY!
+; - bit 5: echo      ; TODO: UNIFY!
+; - bit 4: pitchModV ; TODO: UNIFY!
 ; - bit 3: shallWriteVol
 ; - bit 2: shallWriteEnv
 ; - bit 0-1: sustain mode
@@ -93,6 +93,7 @@ divDryVolR=divGlobalBase+16 ; signed char
 divWriteFlags=divGlobalBase+17 ; unsigned char
 
 ;;;; ---- LOOK-UP TABLES ---- ;;;;
+; used to determine the position of registers for a channel.
 divChanOffs:
   .db $00, $00
   .db $10, $10
@@ -112,6 +113,14 @@ divChanBits:
   .db $20, $20
   .db $40, $40
   .db $80, $80
+
+; pointers to wave memory
+divWaveAddr:
+  .dw $420, $4b0, $540, $5d0, $660, $6f0, $780, $810
+
+; pointers to dir entries (for each channel)
+divDirChanAddr:
+  .dw $400, $404, $408, $40c, $410, $414, $418, $41c
 
 divDefaultIns:
   .dsb 11, 0
@@ -213,7 +222,47 @@ divTick:
       mov a, !divChanFlags+x
       and a, #~$08
       mov !divChanFlags+x, a
-      ; TODO: process key on...
+      ; find sample dir location for this channel
+      ; X is (chan<<1) so one more shift will do
+      mov a, x
+      asl a
+      mov y, a
+      ; test whether we're using wavetables
+      mov a, !divChanSNESFlags+x
+      bmi @@@usingSample
+      @@@usingWave:
+        ; location in wave memory
+        ; lower byte
+        mov a, !divWaveAddr+x
+        mov !$400+y, a ; start
+        mov !$402+y, a ; loop
+        ; upper byte
+        mov a, !(divWaveAddr+1)+x
+        mov !$401+y, a ; start
+        mov !$403+y, a ; loop
+        bra @@@post
+      @@@usingSample:
+        ; retrieve sample pointer from sample table
+        push x
+        mov a, !divChanSample+x
+        mov x, a
+        mov a, !songSampleStartLow0+x
+        mov !$400+y, a
+        mov a, !songSampleStartHigh0+x
+        mov !$401+y, a
+        mov a, !songSampleLoopLow0+x
+        mov !$402+y, a
+        mov a, !songSampleLoopHigh0+x
+        mov !$403+y, a
+        pop x
+      @@@post:
+      ; set key on and key off
+      mov a, divTempKeyOn
+      or a, !divChanBits+x
+      mov divTempKeyOn, a
+      mov a, divTempKeyOff
+      or a, !divChanBits+x
+      mov divTempKeyOff, a
     @@checkKeyOff:
       ; check for key off
       mov a, !divChanFlags+x
@@ -251,21 +300,97 @@ divTick:
       inc x
       inc x
       cmp x, #(divChans*2)
-      beq @post1
+      beq @checkTempKeyOff
       jmp !@freqLoop
-  @post1:
-  ; check whether we should write key off
-  mov a, divTempKeyOff
-
-  ; check writeControl
-  ; check writeNoise
-  ; check writePitchMod
-  ; check writeEcho
-  ; check writeDryVol
-  ; check writeEnv
-  ; write key off zero
-  ; check shallWriteVol
-  ; check whether we should write key on
+  @checkTempKeyOff:
+    ; check whether we should write key off
+    mov a, divTempKeyOff
+    beq @checkWriteControl
+    ; TODO: anti-click...
+    ; I expect this to work. normally there should be a delay...
+    dspWriteA $5c
+  @cacheGlobalFlags:
+    ; cache global flags so we can use bbc instead of loading the
+    ; flags each time...
+    mov a, !divWriteFlags
+    mov divTempPtr, a
+  @checkWriteControl:
+    ; check writeControl
+    bbc divTempPtr.7, @checkWriteNoise
+    clr1 divTempPtr.7
+    ; write control (noise frequency + echo)
+    mov a, !divNoiseFreq
+    dspWriteA $6c
+  @checkWriteNoise:
+    ; check writeNoise
+    bbc divTempPtr.6, @checkWritePitchMod
+    clr1 divTempPtr.6
+    ; TODO...
+  @checkWritePitchMod:
+    ; check writePitchMod
+    bbc divTempPtr.5, @checkWriteEcho
+    clr1 divTempPtr.5
+    ; TODO...
+  @checkWriteEcho:
+    ; check writeEcho
+    bbc divTempPtr.4, @checkWriteDryVol
+    clr1 divTempPtr.4
+    ; TODO...
+  @checkWriteDryVol:
+    ; check writeDryVol
+    bbc divTempPtr.3, @writeCache
+    clr1 divTempPtr.3
+    mov a, !divDryVolL
+    dspWriteA $0c
+    mov a, !divDryVolR
+    dspWriteA $1c
+  @writeCache:
+    ; write the cached global write flags back
+    mov a, divTempPtr
+    mov !divWriteFlags, a
+  @checkWriteEnv:
+    ; check writeEnv (of each channel)
+    mov x, #0
+-   mov a, !divChanSNESFlags+x
+    and a, #$04
+    beq +
+    ; disable the flag
+    mov a, !divChanSNESFlags+x
+    and a, #~$04
+    mov !divChanSNESFlags+x, a
+    ; write env
+    call !divWriteEnv
++   inc x
+    inc x
+    cmp x, #divChans*2
+    bne -
+  @checkDisableKeyOff:
+    ; write key off zero (if set)
+    mov a, divTempKeyOff
+    beq @checkShallWriteVol
+    dspWrite dsp_KOF, #0
+  @checkShallWriteVol:
+    ; check shallWriteVol
+    mov x, #0
+-   mov a, !divChanSNESFlags+x
+    and a, #$08
+    beq +
+    ; disable the flag
+    mov a, !divChanSNESFlags+x
+    and a, #~$08
+    mov !divChanSNESFlags+x, a
+    ; write volume
+    call !divWriteVol
++   inc x
+    inc x
+    cmp x, #divChans*2
+    bne -
+  @checkTempKeyOn:
+    ; check whether we should write key on
+    mov a, divTempKeyOn
+    beq @theEnd
+    dspWriteA $4c
+  @theEnd:
   ; it's over
   ret
 
@@ -549,13 +674,13 @@ divReset:
 
   ; initial global state
   mov x, #17
-- mov a, !songChipData0+x
+- mov a, !songInitState0+x
   mov !divGlobalBase+x, a
   dec x
   bpl -
 
   ; load initial echo mask
-  mov a, !songChipData0+18
+  mov a, !songInitState0+18
   mov x, #(divChans*2)-2
 - ror a ; test the lowest bit
   bcc +

@@ -1,15 +1,5 @@
 ; baked with Furnace.
 
-songIns0:
-  .db $f7, $70, $7f, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,
-  .db $00, $00, $00,
-
-songInsListLow0:
-  .db <songIns0
-
-songInsListHigh0:
-  .db >songIns0
-
 songPitch0:
   .db $2f, $21, $28, $23, $3f, $25, $76, $27, $cf, $29, $4b, $2c, $ee, $2e, $b8, $31,
   .db $ad, $34, $cf, $37, $20, $3b, $a4, $3e, $f9, $01, $17, $02, $37, $02, $59, $02,
@@ -37,7 +27,33 @@ songPitchListHigh0:
   .db >songPitch1
   .db >songPitch2
 
-songChipData0:
+songShiftList0:
+  .db $00, $0c, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,
+  .db $0c, $0b,
+
+songSampleStartLow0:
+  .db $a0,
+
+songSampleStartHigh0:
+  .db $08,
+
+songSampleLoopLow0:
+  .db $c3,
+
+songSampleLoopHigh0:
+  .db $50,
+
+songInitState0:
   .db $20, $20, $00, $7f, $7f, $00, $7f, $00, $00, $00, $00, $00, $00, $00, $00, $7f,
   .db $7f, $10, $00, $00,
+
+songIns0:
+  .db $f7, $70, $7f, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00, $00,
+  .db $00, $00, $00,
+
+songInsListLow0:
+  .db <songIns0
+
+songInsListHigh0:
+  .db >songIns0
 
