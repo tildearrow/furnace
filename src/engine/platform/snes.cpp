@@ -211,7 +211,6 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   for (int i=0; i<8; i++) {
-    // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       chan[i].freq=chan[i].calcFreq();
@@ -1032,11 +1031,14 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
       // allocate the actual data
       DivObject objLow;
       DivObject objHigh;
+      DivObject objShift;
       unsigned char* pitchTablesLow=new unsigned char[size];
       unsigned char* pitchTablesHigh=new unsigned char[size];
+      unsigned char* pitchTablesShift=new unsigned char[size];
 
       memset(pitchTablesLow,0,size);
       memset(pitchTablesHigh,0,size);
+      memset(pitchTablesShift,0,size);
       
       // fill in
       for (int i=0; i<16; i++) {
@@ -1044,6 +1046,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
           objLow.reloc.push_back(DivRelocInfo(i,pool.size(),DIV_RELOC_PTR_U16LSB));
           objHigh.reloc.push_back(DivRelocInfo(i,pool.size(),DIV_RELOC_PTR_U16MSB));
           wavePitchTable[i].compile(pool,DIV_PITCH_TABLE_LAYOUT_U16LE);
+          pitchTablesShift[i]=wavePitchTable[i].shift;
         }
       }
 
@@ -1052,6 +1055,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
         objLow.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16LSB));
         objHigh.reloc.push_back(DivRelocInfo(i+17,pool.size(),DIV_RELOC_PTR_U16MSB));
         samplePitchTable.get(i)->compile(pool,DIV_PITCH_TABLE_LAYOUT_U16LE,parent->song.compatFlags.linearPitch);
+        pitchTablesShift[i]=samplePitchTable.get(i)->shift;
       }
 
       objLow.data=pitchTablesLow;
@@ -1062,8 +1066,13 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
       objHigh.len=size;
       objHigh.type=DIV_OBJECT_PITCH_TABLE_LIST_HIGH;
 
+      objShift.data=pitchTablesShift;
+      objShift.len=size;
+      objShift.type=DIV_OBJECT_OCTAVE_SHIFT_LIST;
+
       pool.push_back(objLow);
       pool.push_back(objHigh);
+      pool.push_back(objShift);
 
       unsigned char* initialState=new unsigned char[20];
       initialState[0]=globalVolL;
@@ -1171,6 +1180,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
       loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
     }
 
+    // TODO: put this table somewhere else?
     copyOfSampleMem[sampleTablePos+i*4]=start&0xff;
     copyOfSampleMem[sampleTablePos+i*4+1]=start>>8;
     copyOfSampleMem[sampleTablePos+i*4+2]=loop&0xff;

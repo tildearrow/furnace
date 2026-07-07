@@ -43,6 +43,8 @@ static const char* describeType(unsigned char type) {
       return "PitchListLow";
     case DIV_OBJECT_PITCH_TABLE_LIST_HIGH:
       return "PitchListHigh";
+    case DIV_OBJECT_OCTAVE_SHIFT_LIST:
+      return "ShiftList";
   }
   return "Obj";
 }

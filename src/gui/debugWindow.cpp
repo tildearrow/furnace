@@ -75,6 +75,8 @@ static const char* getObjectTypeStr(unsigned char type) {
       return "Pitch Table List (low)";
     case DIV_OBJECT_PITCH_TABLE_LIST_HIGH:
       return "Pitch Table List (high)";
+    case DIV_OBJECT_OCTAVE_SHIFT_LIST:
+      return "Octave Shift List";
   }
   return "Unknown";
 }
