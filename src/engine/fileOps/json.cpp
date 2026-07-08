@@ -22,7 +22,7 @@
 
 using JSON = nlohmann::json;
 
-JSON serializePattern(DivPattern* pat, int rows, int effectCols);
+JSON serializePattern(DivPattern* pat, int rows, int effectCols, bool optimize);
 JSON serializeInstrument(DivInstrument* ins);
 JSON serializeMacro(DivInstrumentMacro* macro);
 JSON serializeWavetable(DivWavetable* wave);
@@ -34,31 +34,53 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
 
   JSON json;
 
-  json["songInfo"]["version"]=song.version;
-  json["songInfo"]["name"]=song.name;
-  json["songInfo"]["author"]=song.author;
-  json["songInfo"]["album"]=song.category;
-  json["songInfo"]["system"]={song.autoSystem,song.systemName};
-  json["songInfo"]["tuning"]=song.tuning;
-  json["songInfo"]["instrumentCount"]=song.insLen;
-  json["songInfo"]["wavetableCount"]=song.waveLen;
-  json["songInfo"]["sampleCount"]=song.sampleLen;
-  json["songInfo"]["comments"]=song.notes;
+  if (options->exportMetadata) {
+    json["songInfo"]["version"]=song.version;
+    json["songInfo"]["name"]=song.name;
+    json["songInfo"]["author"]=song.author;
+    json["songInfo"]["album"]=song.category;
+    json["songInfo"]["system"]={song.autoSystem,song.systemName};
+    json["songInfo"]["tuning"]=song.tuning;
+    json["songInfo"]["instrumentCount"]=song.insLen;
+    json["songInfo"]["wavetableCount"]=song.waveLen;
+    json["songInfo"]["sampleCount"]=song.sampleLen;
+    json["songInfo"]["comments"]=song.notes;
 
-  json["chips"]={};
-  for (int i=0; i<song.systemLen; i++) {
-    JSON chip;
-    chip["id"]=song.system[i];
-    chip["name"]=getSystemName(song.system[i]);
-    chip["volume"]=song.systemVol[i];
-    chip["panning"]=song.systemPan[i];
-    chip["frontRear"]=song.systemPanFR[i];
-    JSON chipFlags;
-    for (auto flag:song.systemFlags[i].configMap()) {
-      chipFlags[flag.first]=flag.second;
+    // json["grooves"]={};
+    for (auto& g:song.grooves) {
+      JSON groove;
+      groove["len"]=g.len;
+      groove["val"]={};
+      for (int i=0; i<g.len; i++) {
+        groove["val"].push_back(g.val[i]);
+      }
+      json["grooves"].push_back(groove);
     }
-    chip["flags"]=chipFlags;
-    json["chips"].push_back(chip);
+
+    JSON patchbay;
+    patchbay["auto"]=song.patchbayAuto;
+    for (unsigned int& i:song.patchbay) {
+      patchbay["connections"].push_back(i);
+    }
+    json["patchbay"]=patchbay;
+  }
+
+  if (options->exportChips) {
+    json["chips"]={};
+    for (int i=0; i<song.systemLen; i++) {
+      JSON chip;
+      chip["id"]=song.system[i];
+      chip["name"]=getSystemName(song.system[i]);
+      chip["volume"]=song.systemVol[i];
+      chip["panning"]=song.systemPan[i];
+      chip["frontRear"]=song.systemPanFR[i];
+      JSON chipFlags;
+      for (auto flag:song.systemFlags[i].configMap()) {
+        chipFlags[flag.first]=flag.second;
+      }
+      chip["flags"]=chipFlags;
+      json["chips"].push_back(chip);
+    }
   }
 
   json["subsongs"]={};
@@ -82,24 +104,6 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
     }
   }
 
-  json["grooves"]={};
-  for (auto& g:song.grooves) {
-    JSON groove;
-    groove["len"]=g.len;
-    groove["val"]={};
-    for (int i=0; i<g.len; i++) {
-      groove["val"].push_back(g.val[i]);
-    }
-    json["grooves"].push_back(groove);
-  }
-
-  JSON patchbay;
-  patchbay["auto"]=song.patchbayAuto;
-  for (unsigned int& i:song.patchbay) {
-    patchbay["connections"].push_back(i);
-  }
-  json["patchbay"]=patchbay;
-
   for (size_t i=0; i<song.subsong.size(); i++) {
     JSON subsong;
     DivSubSong* s=song.subsong[i];
@@ -122,7 +126,7 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
       if (options->exportOrders || options->exportPatterns) {
         for (int k=0; k<s->ordersLen; k++) {
           if (options->exportOrders) order.push_back(s->orders.ord[j][k]);
-          if (options->exportPatterns) patterns.push_back(serializePattern(s->pat[j].getPattern(j,false),s->patLen,s->pat[j].effectCols));
+          if (options->exportPatterns) patterns.push_back(serializePattern(s->pat[j].getPattern(j,false),s->patLen,s->pat[j].effectCols,options->optimizePatterns));
         }
         if (options->exportOrders) subsong["orders"].push_back(order);
         if (options->exportPatterns) subsong["patterns"].push_back(patterns);
@@ -176,7 +180,7 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
     json["assetDirs"]["sample"].push_back(dir);
   }
 
-  json["compatFlags"]=serializeCompatFlags(&song.compatFlags);
+  if (options->exportCompatFlags) json["compatFlags"]=serializeCompatFlags(&song.compatFlags);
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -210,7 +214,7 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
   return w;
 }
 
-JSON serializePattern(DivPattern* pat, int rows, int effectCols) {
+JSON serializePattern(DivPattern* pat, int rows, int effectCols, bool optimize) {
   JSON json;
   if (pat->isEmpty()) {
     json={};
@@ -230,46 +234,55 @@ JSON serializePattern(DivPattern* pat, int rows, int effectCols) {
         (pat->newData[i][DIV_PAT_RAW3]<<24);
       row["rawFreq"]=freq;
       isEmpty=false;
-    } else if (pat->newData[i][DIV_PAT_NOTE]!=-1) {
+    } else if (!optimize || pat->newData[i][DIV_PAT_NOTE]!=-1) {
       row["note"]=pat->newData[i][DIV_PAT_NOTE];
       isEmpty=false;
     }
-    if (pat->newData[i][DIV_PAT_INS]!=-1) {
+    if (!optimize ||pat->newData[i][DIV_PAT_INS]!=-1) {
       row["ins"]=pat->newData[i][DIV_PAT_INS];
       isEmpty=false;
     }
-    if (pat->newData[i][DIV_PAT_VOL]!=-1) {
+    if (!optimize ||pat->newData[i][DIV_PAT_VOL]!=-1) {
       row["vol"]=pat->newData[i][DIV_PAT_VOL];
       isEmpty=false;
     }
-    std::vector<std::pair<int,int>> effects;
-    // while getting effects check for any empty cells after non-empty ones
-    // example: instead of storing
-    // [.... .... EA01 .... .... ....]
-    // only store
-    // [.... .... EA01]
-    // removing those makes the export smaller
-    int trailCount=0;
-    for (int j=0; j<effectCols; j++) {
-      std::pair<int,int> effect;
-      effect={pat->newData[i][DIV_PAT_FX(j)],pat->newData[i][DIV_PAT_FXVAL(j)]};
-      trailCount++;
-      if (pat->newData[i][DIV_PAT_FX(j)]!=-1 || pat->newData[i][DIV_PAT_FXVAL(j)]!=-1) {
-        isEmpty=false;
-        trailCount=0;
+    if (optimize) {
+      std::vector<std::pair<int,int>> effects;
+      // while getting effects check for any empty cells after non-empty ones
+      // example: instead of storing
+      // [.... .... EA01 .... .... ....]
+      // only store
+      // [.... .... EA01]
+      // removing those makes the export smaller
+      int trailCount=0;
+      for (int j=0; j<effectCols; j++) {
+        std::pair<int,int> effect;
+        effect={pat->newData[i][DIV_PAT_FX(j)],pat->newData[i][DIV_PAT_FXVAL(j)]};
+        trailCount++;
+        if (pat->newData[i][DIV_PAT_FX(j)]!=-1 || pat->newData[i][DIV_PAT_FXVAL(j)]!=-1) {
+          isEmpty=false;
+          trailCount=0;
+        }
+        effects.push_back(effect);
       }
-      effects.push_back(effect);
+      // remove trailing empty cells
+      effects.resize(effects.size()-trailCount);
+      // rewrite the vector as a json
+      for (std::pair<int,int>& effPair:effects) {
+        JSON effect;
+        effect["code"]=effPair.first;
+        effect["value"]=effPair.second;
+        row["effects"].push_back(effect);
+      }
+    } else {
+      for (int j=0; j<effectCols; j++) {
+        JSON effect;
+        effect["code"]=pat->newData[i][DIV_PAT_FX(j)];
+        effect["value"]=pat->newData[i][DIV_PAT_FXVAL(j)];
+        row["effects"].push_back(effect);
+      }
     }
-    // remove trailing empty cells
-    effects.resize(effects.size()-trailCount);
-    // rewrite the vector as a json
-    for (std::pair<int,int>& effPair:effects) {
-      JSON effect;
-      effect["code"]=effPair.first;
-      effect["value"]=effPair.second;
-      row["effects"].push_back(effect);
-    }
-    if (isEmpty)
+    if (isEmpty && optimize)
       json["rows"].push_back({});
     else
       json["rows"].push_back(row);

@@ -529,6 +529,7 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+#ifdef WITH_JSON
 void FurnaceGUI::drawExportJSON(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -550,11 +551,17 @@ void FurnaceGUI::drawExportJSON(bool onWindow) {
   ImGui::BeginDisabled(jsonExportOptions.format!=DivJSONExportOptions::EXPORT_JSON);
   ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.jsonPretty);
   ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export metadata"), &jsonExportOptions.exportMetadata);
+  ImGui::Checkbox(_("Export chips"), &jsonExportOptions.exportChips);
   ImGui::Checkbox(_("Export instruments"), &jsonExportOptions.exportInstruments);
   ImGui::Checkbox(_("Export wavetables"), &jsonExportOptions.exportWaves);
   ImGui::Checkbox(_("Export samples"), &jsonExportOptions.exportSamples);
   ImGui::Checkbox(_("Export orders"), &jsonExportOptions.exportOrders);
   ImGui::Checkbox(_("Export patterns"), &jsonExportOptions.exportPatterns);
+  ImGui::BeginDisabled(!jsonExportOptions.exportPatterns);
+  ImGui::Checkbox(_("Optimize patterns"), &jsonExportOptions.optimizePatterns);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export compatibility flags"), &jsonExportOptions.exportCompatFlags);
   if (onWindow) {
     ImGui::Separator();
     if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
@@ -565,6 +572,7 @@ void FurnaceGUI::drawExportJSON(bool onWindow) {
     ImGui::CloseCurrentPopup();
   }
 }
+#endif
 
 void FurnaceGUI::commandExportOptions() {
   ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
@@ -647,10 +655,12 @@ void FurnaceGUI::drawExport() {
         drawExportText(true);
         ImGui::EndTabItem();
       }
+#ifdef WITH_JSON
       if (ImGui::BeginTabItem(_("JSON"))) {
         drawExportJSON(true);
         ImGui::EndTabItem();
       }
+#endif
       if (ImGui::BeginTabItem(_("Command Stream"))) {
         drawExportCommand(true);
         ImGui::EndTabItem();
@@ -674,9 +684,11 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_TEXT:
       drawExportText(true);
       break;
+#ifdef WITH_JSON
     case GUI_EXPORT_JSON:
       drawExportJSON(true);
       break;
+#endif
     case GUI_EXPORT_CMD_STREAM:
       drawExportCommand(true);
       break;

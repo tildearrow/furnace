@@ -156,6 +156,7 @@ struct DivAudioExportOptions {
   }
 };
 
+#ifdef WITH_JSON
 struct DivJSONExportOptions {
   enum ExportFormat : unsigned char {
     EXPORT_JSON,
@@ -164,16 +165,22 @@ struct DivJSONExportOptions {
   };
   ExportFormat format;
   bool jsonPretty;
-  bool exportOrders, exportPatterns, exportInstruments, exportWaves, exportSamples;
+  bool exportMetadata, exportChips, exportOrders, exportPatterns, exportInstruments, exportWaves, exportSamples, exportCompatFlags;
+  bool optimizePatterns;
   DivJSONExportOptions():
     format(EXPORT_JSON),
     jsonPretty(false),
+    exportMetadata(true),
+    exportChips(true),
     exportOrders(true),
     exportPatterns(true),
     exportInstruments(true),
     exportWaves(true),
-    exportSamples(true) {}
+    exportSamples(true),
+    exportCompatFlags(false),
+    optimizePatterns(true) {}
 };
+#endif
 
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
@@ -675,8 +682,10 @@ class DivEngine {
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
+#ifdef WITH_JSON
     // export to json
     SafeWriter* saveJSON(DivJSONExportOptions* options);
+#endif
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish

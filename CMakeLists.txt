@@ -126,6 +126,7 @@ option(WITH_RENDER_OPENGL1 "Whether to build with the OpenGL 1.1 render backend.
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
 option(WITH_RENDER_DX9 "Whether to build with the DirectX 9 render backend." ${WITH_RENDER_DX9_DEFAULT})
 option(WITH_RENDER_METAL "Whether to build with the Metal render backend." ${WITH_RENDER_METAL_DEFAULT})
+option(WITH_JSON "Whether to build with JSON export support." ON)
 option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
 option(USE_FREETYPE "Use FreeType for font rendering." ON)
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
@@ -487,10 +488,13 @@ else()
   endif()
 endif()
 
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-set(JSON_Install OFF CACHE INTERNAL "")
-add_subdirectory(extern/json)
-list(APPEND DEPENDENCIES_LIBRARIES nlohmann_json::nlohmann_json)
+if (WITH_JSON)
+  list(APPEND DEPENDENCIES_DEFINES WITH_JSON)
+  set(JSON_BuildTests OFF CACHE INTERNAL "")
+  set(JSON_Install OFF CACHE INTERNAL "")
+  add_subdirectory(extern/json)
+  list(APPEND DEPENDENCIES_LIBRARIES nlohmann_json::nlohmann_json)
+endif()
 
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
@@ -771,7 +775,6 @@ src/engine/fileOps/fc.cpp
 src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/it.cpp
-src/engine/fileOps/json.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
@@ -917,6 +920,10 @@ endif()
 
 if (USE_SNDFILE)
   list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
+endif()
+
+if (WITH_JSON)
+  list(APPEND ENGINE_SOURCES src/engine/fileOps/json.cpp)
 endif()
 
 if (WIN32)

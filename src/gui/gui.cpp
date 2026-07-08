@@ -2329,6 +2329,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+#ifdef WITH_JSON
     case GUI_FILE_EXPORT_JSON: {
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       String dialogHeader;
@@ -2360,6 +2361,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     }
+#endif
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -5210,10 +5212,12 @@ bool FurnaceGUI::loop() {
             drawExportText();
             ImGui::EndMenu();
           }
+#ifdef WITH_JSON
           if (ImGui::BeginMenu(_("export JSON..."))) {
             drawExportJSON();
             ImGui::EndMenu();
           }
+#endif
           if (ImGui::BeginMenu(_("export command stream..."))) {
             drawExportCommand();
             ImGui::EndMenu();
@@ -5867,7 +5871,9 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
+#ifdef WITH_JSON
         case GUI_FILE_EXPORT_JSON:
+#endif
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_COMPILED_INS:
         case GUI_FILE_EXPORT_COMPILED_INS_ONE:
@@ -5978,6 +5984,7 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
+#ifdef WITH_JSON
           if (curFileDialog==GUI_FILE_EXPORT_JSON) {
             switch (jsonExportOptions.format) {
               case DivJSONExportOptions::EXPORT_JSON: {
@@ -5994,6 +6001,7 @@ bool FurnaceGUI::loop() {
               }
             }
           }
+#endif
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS_ONE ||
@@ -6576,6 +6584,7 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+#ifdef WITH_JSON
             case GUI_FILE_EXPORT_JSON: {
               SafeWriter* w=e->saveJSON(&jsonExportOptions);
               if (w!=NULL) {
@@ -6597,6 +6606,7 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+#endif
             case GUI_FILE_EXPORT_CMDSTREAM: {
               exportCmdStream(false,copyOfName);
               break;
