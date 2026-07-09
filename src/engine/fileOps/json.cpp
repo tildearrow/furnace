@@ -120,16 +120,21 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
     if (options->exportOrders) subsong["orders"]={};
     if (options->exportPatterns) subsong["patterns"]={};
     subsong["channelData"]={};
-    JSON order;
-    JSON patterns;
     for (int j=0; j<song.chans; j++) {
       if (options->exportOrders || options->exportPatterns) {
-        for (int k=0; k<s->ordersLen; k++) {
-          if (options->exportOrders) order.push_back(s->orders.ord[j][k]);
-          if (options->exportPatterns) patterns.push_back(serializePattern(s->pat[j].getPattern(j,false),s->patLen,s->pat[j].effectCols,options->optimizePatterns));
+        JSON order;
+        JSON patterns;
+        if (options->exportOrders) for (int k=0; k<s->ordersLen; k++) {
+           order.push_back(s->orders.ord[j][k]);
+        }
+        if (options->exportPatterns) for (int k=0; k<DIV_MAX_PATTERNS; k++) {
+          patterns.push_back(serializePattern(s->pat[j].getPattern(k,false),s->patLen,s->pat[j].effectCols,options->optimizePatterns));
         }
         if (options->exportOrders) subsong["orders"].push_back(order);
-        if (options->exportPatterns) subsong["patterns"].push_back(patterns);
+        if (options->exportPatterns) {
+          subsong["patterns"].push_back(patterns);
+          subsong["patternLength"]=s->patLen;
+        }
       }
 
       JSON chanData;
@@ -215,11 +220,10 @@ SafeWriter* DivEngine::saveJSON(DivJSONExportOptions* options) {
 }
 
 JSON serializePattern(DivPattern* pat, int rows, int effectCols, bool optimize) {
-  JSON json;
   if (pat->isEmpty()) {
-    json={};
-    return json;
+    return {};
   }
+  JSON json;
   if (!pat->name.empty())
     json["name"]=pat->name;
   json["rows"]={};
