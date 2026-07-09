@@ -157,123 +157,52 @@ as I observed the insane raster time of my SPC700 port of DivPlatformSNES, I som
 ```
 size | description
 -----|-------------------------------------------------
-     |
-```
-
-## compiled macro data
-
-```
-size | description
------|-------------------------------------------------
   1  | macro type
      | - these are the same as the macro on/off/restart effect ones.
-  1  | flags/macro data type
-     | - bit 6: release mode
-     |   - active when enabled; passive otherwise
-     | - bit 0-5: macro data type
-     |   - 0: 8-bit unsigned
-     |   - 1: 8-bit signed
-     |   - 2: 16-bit unsigned
-     |   - 3: 16-bit signed
-     |   - 4: arp macro
-     |   - 5: 4-bit unsigned (top first, bottom second)
-     |   - 6: ADSR macro (16-bit)
-     |   - 7: ADSR macro (8-bit)
-     |   - 8: LFO macro (16-bit)
-     |   - 9: LFO macro (8-bit)
-     |   - 10: ADSR macro (24-bit)
-     |   - 11: LFO macro (24-bit)
-     |     - these two are there just in case. you do not have to implement them.
-  1  | step length
-  1  | delay
+  2  | offset to active release (0 = disabled)
  ??? | macro data...
 ```
 
-interpret macro data as follows.
+macro data is pretty simple.
 
-for 4/8/16-bit macros and arp macros:
+once you have a value, process it and quit. wait a tick.
 
-```
-size | description
------|----------------------
-  1  | length
-  1  | loop point
-  1  | release point
- ??? | values...
-```
-
-arp macros are special:
-- read one byte. this will be the next (signed) value, unless it is $7F or $80.
-- if it is $80, fixed mode is on for this value.
-- if it is $7F, the value is 16-bit. read two bytes and treat that as the (signed) value.
-
-for 16-bit ADSR macros:
+read a byte. if it's between $00 and $7F, it is a 7-bit macro value (0-127).
+if it is between $80 and $FF, it means "special command":
 
 ```
-size | description
------|---------------------
-  2  | minimum value
-  2  | maximum value
-  2  | sustain level
-  1  | hold time
-  1  | sustain time
-  3  | attack rate
-  3  | decay rate
-  3  | sustain decay
-  3  | release rate
+hex | description
+----|------------------------------------
+ 80 | stop (end of macro)
+ 82 | jump (16-bit offset)
+    | - offset is negative
+ 84 | jump if not released (16-bit offset)
+    | - offset is negative
+ 86 | wait for release
+    | - quit and don't advance the pointer unless the note is released
+ 88 | init ADSR macro
+    | - UNFINISHED. do not implement yet!
+ 8a | run ADSR macro
+    | - UNFINISHED. do not implement yet!
+ 8c | init LFO macro
+    | - UNFINISHED. do not implement yet!
+ 8e | run LFO macro
+    | - UNFINISHED. do not implement yet!
+ 90 | 8-bit unsigned value
+    | - read a byte. this is your value
+ 92 | 8-bit signed value
+    | - read a byte. this is your value
+ 94 | 16-bit signed value
+    | - read a short (two bytes). this is the value
+ 96 | 32-bit value
+    | - read an int (four bytes) and that'll be the value
+ 98 | 8-bit signed value with bit 30 set
+    | - read a byte. XOR bit 30 on it
+ ax | wait $0x ticks
+ bx | wait $x0 ticks
 ```
 
-for 8-bit ADSR macros:
-
-```
-size | description
------|---------------------
-  1  | minimum value
-  1  | maximum value
-  1  | sustain level
-  1  | hold time
-  1  | sustain time
-  2  | attack rate
-  2  | decay rate
-  2  | sustain decay
-  2  | release rate
-```
-
-for 16-bit LFO macros:
-
-```
-size | description
------|---------------------
-  2  | minimum value
-  2  | maximum value
-  3  | initial accumulator value
-  3  | speed
-  1  | flags
-     | - bit 2: initial direction (set when down)
-     | - bit 0-1: shape
-     |   - 0: triangle
-     |   - 1: saw (down to up)
-     |   - 2: pulse
-     |   - 3: saw (up to down)
-```
-
-for 8-bit LFO macros:
-
-```
-size | description
------|---------------------
-  1  | minimum value
-  1  | maximum value
-  2  | initial accumulator value
-  2  | speed
-  1  | flags
-     | - bit 7: initial direction (set when down)
-     | - bit 0-1: shape
-     |   - 0: triangle
-     |   - 1: saw (down to up)
-     |   - 2: pulse
-     |   - 3: saw (up to down)
-```
+why is it in steps of two? because the 6502 likes that.
 
 ## compiled pitch table
 
