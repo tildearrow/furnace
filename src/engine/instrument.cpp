@@ -65,8 +65,10 @@ bool DivInstrumentMacro::compile(DivObjectPool& ww, int min, int max) {
   w->writeS(0); // to be filled in later
   if (open&2) {
     // TODO
+    w->writeC(0x80);
   } else if (open&4) {
     // TODO
+    w->writeC(0x80);
   } else {
     // write the macro
     short valTell[256];
@@ -79,7 +81,7 @@ bool DivInstrumentMacro::compile(DivObjectPool& ww, int min, int max) {
       } else if (val[i]>=-128 && val[i]<=127) {
         w->writeC(0x92);
         w->writeC(val[i]);
-      } else if (val[i]<=255) {
+      } else if (val[i]>=0 && val[i]<=255) {
         w->writeC(0x90);
         w->writeC(val[i]);
       } else if (val[i]>=-32768 && val[i]<=32767) {
@@ -97,8 +99,11 @@ bool DivInstrumentMacro::compile(DivObjectPool& ww, int min, int max) {
         if ((delay>>4)>0) w->writeC(0xb0|((delay>>4)<<1));
         if ((delay&15)>0) w->writeC(0xa0|((delay&15)<<1));
       } else {
-        if ((speed>>4)>0) w->writeC(0xb0|((speed>>4)<<1));
-        if ((speed&15)>0) w->writeC(0xa0|((speed&15)<<1));
+        if (speed>1) {
+          unsigned char speed1=speed-1;
+          if ((speed1>>4)>0) w->writeC(0xc0|((speed1>>4)<<1));
+          if ((speed1&15)>0) w->writeC(0xa0|((speed1&15)<<1));
+        }
       }
 
       if (i==rel) {

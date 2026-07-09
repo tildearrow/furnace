@@ -651,7 +651,7 @@ void FurnaceGUI::drawDebug() {
             if (i.len>0) {
               ImGui::PushFont(patFont);
               ImGuiListClipper hexViewClipper;
-              if (ImGui::BeginTable("ObjectHex",17,ImGuiTableFlags_ScrollY|ImGuiTableFlags_SizingStretchProp,ImVec2(ImGui::GetContentRegionAvail().x,200.0f*dpiScale))) {
+              if (ImGui::BeginTable("ObjectHex",17,ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_SizingFixedFit,ImVec2(ImGui::GetContentRegionAvail().x,200.0f*dpiScale))) {
                 ImGui::TableSetupScrollFreeze(0,1);
                 ImGui::TableNextRow(ImGuiTableRowFlags_Headers,ImGui::GetTextLineHeight());
                 ImGui::TableNextColumn();

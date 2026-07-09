@@ -199,7 +199,7 @@ hex | description
  98 | 8-bit signed value with bit 30 set
     | - read a byte. XOR bit 30 on it
  ax | wait $0x ticks
- bx | wait $x0 ticks
+ cx | wait $x0 ticks
 ```
 
 why is it in steps of two? because the 6502 likes that.
