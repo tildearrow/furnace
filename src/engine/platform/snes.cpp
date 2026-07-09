@@ -505,6 +505,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].shallWriteVol=true;
       break;
     case DIV_CMD_SNES_GAIN_MODE:
+      // TODO: remove
       if (c.value) {
         chan[c.chan].state.useEnv=false;
         switch (c.value) {
@@ -1131,7 +1132,7 @@ bool DivPlatformSNES::compileROMData(int index, DivObjectPool& pool) {
       unsigned char* initialState=new unsigned char[20];
       initialState[0]=globalVolL;
       initialState[1]=globalVolR;
-      initialState[2]=initEchoOn?0x20:0;
+      initialState[2]=initEchoOn?0:0x20;
       initialState[3]=initEchoVolL;
       initialState[4]=initEchoVolR;
       initialState[5]=initEchoFeedback;

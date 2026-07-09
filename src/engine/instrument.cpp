@@ -464,19 +464,12 @@ bool DivInstrument::compile(DivObjectPool& pool, DivInstrumentType insType) {
       w->writeC(
         (snes.useEnv?0x80:0x00)|
         ((snes.d&7)<<4)|
-        (snes.d&15)
+        (snes.a&15)
       );
-      if (snes.sus) {
-        w->writeC(
-          ((snes.s&7)<<4)|
-          (snes.d2&31)
-        );
-      } else {
-        w->writeC(
-          ((snes.s&7)<<4)|
-          (snes.r&31)
-        );
-      }
+      w->writeC(
+        ((snes.s&7)<<5)|
+        (snes.r&31)
+      );
       switch (snes.gainMode) {
         case DivInstrumentSNES::GAIN_MODE_DIRECT:
           w->writeC(snes.gain&127);
@@ -494,11 +487,7 @@ bool DivInstrument::compile(DivObjectPool& pool, DivInstrumentType insType) {
           w->writeC(0xe0|(snes.gain&31));
           break;
       }
-      if (snes.sus) {
-        w->writeC((snes.sus&3)|(snes.r<<2));
-      } else {
-        w->writeC(0);
-      }
+      w->writeC((snes.sus&3)|(snes.d2<<2));
       // sample data
       if (amiga.useWave) {
         w->writeC(2);

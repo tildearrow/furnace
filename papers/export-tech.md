@@ -150,6 +150,16 @@ size | description
 
 hardware sequence is copied from the instrument verbatim.
 
+## new motherfiretrucking compiled macro data
+
+as I observed the insane raster time of my SPC700 port of DivPlatformSNES, I somehow came up with a better macro format. here it is...
+
+```
+size | description
+-----|-------------------------------------------------
+     |
+```
+
 ## compiled macro data
 
 ```

@@ -1,5 +1,7 @@
 ; SNES DivDispatch code.
 
+.define DIV_LINEAR_FREQ
+
 ; I'm never gonna code again
 ; guilty rastertime got no demo
 
@@ -54,9 +56,6 @@ divChanPanR=divBase+(divChans*20)+1 ; unsigned char
 divChanWtLen=divBase+(divChans*22) ; unsigned char
 ; flags:
 ; - bit 7: useWave
-; - bit 6: noise     ; TODO: UNIFY!
-; - bit 5: echo      ; TODO: UNIFY!
-; - bit 4: pitchModV ; TODO: UNIFY!
 ; - bit 3: shallWriteVol
 ; - bit 2: shallWriteEnv
 ; - bit 0-1: sustain mode
@@ -74,7 +73,7 @@ divChanD2=divBase+(divChans*26)+1 ; unsigned char
 divGlobalBase=divBase+(divChans*28)
 divGlobalVolL=divGlobalBase ; unsigned char
 divGlobalVolR=divGlobalBase+1 ; unsigned char
-; - bit 5: echoOn
+; - bit 5: !echoOn
 ; - bit 0-4: noiseFreq
 divNoiseFreq=divGlobalBase+2 ; unsigned char
 divEchoVolL=divGlobalBase+3 ; signed char
@@ -91,6 +90,10 @@ divDryVolR=divGlobalBase+16 ; signed char
 ; - bit 3: writeDryVol
 ; - bit 1: antiClick
 divWriteFlags=divGlobalBase+17 ; unsigned char
+; bit fields
+divEchoState=divGlobalBase+18 ; unsigned char
+divNoiseState=divGlobalBase+19 ; unsigned char
+divPitchModState=divGlobalBase+20 ; unsigned char
 
 ;;;; ---- LOOK-UP TABLES ---- ;;;;
 ; used to determine the position of registers for a channel.
@@ -104,15 +107,16 @@ divChanOffs:
   .db $60, $60
   .db $70, $70
 
+; chan*2 - first column is positive and second is negative
 divChanBits:
-  .db $01, $01
-  .db $02, $02
-  .db $04, $04
-  .db $08, $08
-  .db $10, $10
-  .db $20, $20
-  .db $40, $40
-  .db $80, $80
+  .db $01, $fe
+  .db $02, $fd
+  .db $04, $fb
+  .db $08, $f7
+  .db $10, $ef
+  .db $20, $df
+  .db $40, $bf
+  .db $80, $7f
 
 ; pointers to wave memory
 divWaveAddr:
@@ -197,22 +201,23 @@ divTick:
     ; if (freqChanged || keyOn || keyOff)
     mov a, !divChanFlags+x
     and a, #$2c
-    beq @@outOfHere
+    bne +
+    jmp !@@outOfHere
 
     ; calculate frequency
-    call !divCalcFreq
++   call !divCalcFreq
     ; clamp frequency
     mov a, !divChanFlags+x ; raw freq check
     and a, #1
-    bne +
-    mov a, !(divChanFreq+1)+x ; >$3fff check
+    bne @@checkKeyOn
+    mov a, divTempPtr+1 ; >$3fff check
     cmp a, #$3f
-    bcc +
+    bcc @@checkKeyOn
     ; do clamp
     mov a, #$ff
-    mov !divChanFreq+x, a
+    mov divTempPtr, a
     mov a, #$3f
-    mov !(divChanFreq+1)+x, a
+    mov divTempPtr+1, a
     @@checkKeyOn:
       ; check for key on
       mov a, !divChanFlags+x
@@ -229,7 +234,7 @@ divTick:
       mov y, a
       ; test whether we're using wavetables
       mov a, !divChanSNESFlags+x
-      bmi @@@usingSample
+      bpl @@@usingSample
       @@@usingWave:
         ; location in wave memory
         ; lower byte
@@ -290,11 +295,9 @@ divTick:
       and a, #~$20
       mov !divChanFlags+x, a
       ; write frequency
-      mov a, !divChanFreq+x
-      mov y, a
+      mov y, divTempPtr
       chWriteX 2
-      mov a, !(divChanFreq+1)+x
-      mov y, a
+      mov y, divTempPtr+1
       chWriteX 3
     @@outOfHere:
       inc x
@@ -305,7 +308,7 @@ divTick:
   @checkTempKeyOff:
     ; check whether we should write key off
     mov a, divTempKeyOff
-    beq @checkWriteControl
+    beq @cacheGlobalFlags
     ; TODO: anti-click...
     ; I expect this to work. normally there should be a delay...
     dspWriteA $5c
@@ -325,17 +328,20 @@ divTick:
     ; check writeNoise
     bbc divTempPtr.6, @checkWritePitchMod
     clr1 divTempPtr.6
-    ; TODO...
+    mov a, !divNoiseState
+    dspWriteA $3d
   @checkWritePitchMod:
     ; check writePitchMod
     bbc divTempPtr.5, @checkWriteEcho
     clr1 divTempPtr.5
-    ; TODO...
+    mov a, !divPitchModState
+    dspWriteA $2d
   @checkWriteEcho:
     ; check writeEcho
     bbc divTempPtr.4, @checkWriteDryVol
     clr1 divTempPtr.4
-    ; TODO...
+    mov a, !divEchoState
+    dspWriteA $4d
   @checkWriteDryVol:
     ; check writeDryVol
     bbc divTempPtr.3, @writeCache
@@ -380,7 +386,7 @@ divTick:
     and a, #~$08
     mov !divChanSNESFlags+x, a
     ; write volume
-    call !divWriteVol
+    call !divWriteOutVol
 +   inc x
     inc x
     cmp x, #divChans*2
@@ -405,8 +411,8 @@ divWriteOutVol:
   mov a, !divChanOutVol+x
   mul ya
   ; rounding
-  and a, #$ff
-  bne +
+  and a, #$ff ; test A
+  beq +
   inc y
   ; (previousResult)*globalVolL
 + mov a, !divGlobalVolL
@@ -427,8 +433,8 @@ divWriteOutVol:
   mov a, !divChanOutVol+x
   mul ya
   ; rounding
-  and a, #$ff
-  bne +
+  and a, #$ff ; test A
+  beq +
   inc y
   ; (previousResult)*globalVolR
 + mov a, !divGlobalVolR
@@ -461,16 +467,24 @@ divWriteOutVol:
 ; void DivPlatformSNES::writeEnv(int ch);
 ; - x: ch (<<1)
 divWriteEnv:
+  ; test whether ADSR is enabled
   mov a, !divChanAD+x
   bpl notUseEnv
   useEnv:
+    mov a, !divChanFlags+x
+    bpl +
     mov a, !divChanSNESFlags+x
     and a, #3
-    mov y, !divChanFlags+x
-    bmi +
     or a, #4
     asl a
-+   push x
+    push x
+    mov x, a
+    ; implemented as a jump table depending on active and ADSR mode.
+    jmp [!divWriteEnvSubTable+x]
++   mov a, !divChanSNESFlags+x
+    and a, #3
+    asl a
+    push x
     mov x, a
     ; implemented as a jump table depending on active and ADSR mode.
     jmp [!divWriteEnvSubTable+x]
@@ -548,8 +562,8 @@ divWriteEnvSubTable:
 ; void DivPlatformSNES::initEcho()
 divInitEcho:
   mov a, !divNoiseFreq
-  and a, #$04 ; echoOn
-  bne echoIsOn ; because the code for on is too long
+  and a, #$20 ; !echoOn
+  beq echoIsOn ; because the code for on is too long
   echoIsOff:
     dspWrite $2c, #0
     dspWrite $3c, #0
@@ -563,10 +577,9 @@ divInitEcho:
     mov a, #$1f
     setc
     sbc a, !divEchoDelay
-    clrc
-    rol a
-    rol a
-    rol a
+    asl a
+    asl a
+    asl a
     dspWriteA $6d
     mov a, !divEchoDelay
     dspWriteA $7d
@@ -593,6 +606,8 @@ divInitEcho:
     dspWriteA $1f
     mov a, !divEchoFIR+0
     dspWriteA $0f
+    mov a, !divNoiseFreq ; control
+    dspWriteA $6c
     ret
 
 ; void DivPlatformSNES::reset()
@@ -602,7 +617,7 @@ divReset:
   dspWrite dsp_DIR, #$04
   dspWrite dsp_MVOL_L, #$7f
   dspWrite dsp_MVOL_R, #$7f
-  dspWrite dsp_FLG, #0
+  dspWrite dsp_FLG, #$20
   
   ; clear state memory
   mov y, #(divGlobalBase-divBase).b
@@ -627,12 +642,12 @@ divReset:
   ; ins/default pitch table
   ; this is slow
   mov x, #(divChans-1)*2+1 ; upper byte
-- mov a, #<divDefaultIns
+- mov a, #>divDefaultIns
   mov !divChanIns+x, a
   mov a, !songPitchListHigh0+1 ; wavePitchTable[1]
-  mov !(divChanPitchTablePtr+1)+x, a
+  mov !divChanPitchTablePtr+x, a
   dec x
-  mov a, #>divDefaultIns
+  mov a, #<divDefaultIns
   mov !divChanIns+x, a
   mov a, !songPitchListLow0+1 ; wavePitchTable[1]
   mov !divChanPitchTablePtr+x, a
@@ -642,6 +657,7 @@ divReset:
   bpl -
 
   ; vol/outVol/panL/panR
+  ; what????
   mov a, #$7f
   mov x, #(divChans-1)*2+1 ; upper byte
 - mov !divChanVol+x, a
@@ -660,38 +676,24 @@ divReset:
   dec x
   bpl -
 
-  ; writeOutVol/set source number
-  mov x, #0
-- call !divWriteOutVol
-  mov x, a
-  lsr a
-  mov a, y
-  chWriteX 4 ; source number
-  inc x
-  inc x
-  cmp x, #divChans*2
-  bne -
-
   ; initial global state
-  mov x, #17
+  mov x, #18
 - mov a, !songInitState0+x
   mov !divGlobalBase+x, a
   dec x
   bpl -
 
-  ; load initial echo mask
-  mov a, !songInitState0+18
-  mov x, #(divChans*2)-2
-- ror a ; test the lowest bit
-  bcc +
-  ; set echo
+  ; writeOutVol/set source number
+  mov x, #0
+- call !divWriteOutVol
+  mov a, x
+  lsr a
   mov y, a
-  mov a, #$20
-  mov !divChanSNESFlags+x, a
-  mov a, y
-+ dec x
-  dec x
-  bpl -
+  chWriteX 4 ; source number
+  inc x
+  inc x
+  cmp x, #divChans*2
+  bne -
 
   ; finish up
   call !divInitEcho
@@ -699,13 +701,13 @@ divReset:
 
 ;;;; ---- PITCH TABLE FUNCTIONS ---- ;;;;
 
-; calculate frequency and store it in divChanFreq[X].
+; calculate frequency and store it in divTempPtr.
 ; - X: channel
 ; alters A and Y.
 divCalcFreq:
   ; check whether we are in raw freq mode
   mov a, !divChanFlags+x
-  and #$01
+  and a, #$01
   beq @normalFreq
   @rawFreq:
     ; move pitch2 to direct page so we can call addw
@@ -719,9 +721,9 @@ divCalcFreq:
     mov a, !divChanBaseFreq+x
     ; add and store
     addw ya, divTempPtr
-    mov !divChanFreq+x, a
+    mov divTempPtr, a
     mov a, y
-    mov !(divChanFreq+1)+x, a
+    mov divTempPtr+1, a
     ret
   @normalFreq:
     ; prepare the offset - add base, pitch and pitch 2
@@ -752,14 +754,14 @@ divCalcFreq:
     ; divTempPtr+1 contains the note
     ; divTempPtr contains fraction
     ; split note into note/octave
-    mov a, divTempPtr
+    mov a, divTempPtr+1
     lsr a
     lsr a
     mov y, a
     mov a, !divOctaveTable+y
     mov divTempPtr3, a
     mov y, a
-    mov a, divTempPtr
+    mov a, divTempPtr+1
     setc
     sbc a, !divNoteSubTable+y
     asl a
@@ -779,7 +781,7 @@ divCalcFreq:
     ; get the delta and multiply it by the fractional part
     mov a, y
     clrc
-    adc a, #24 ; start reading from delta
+    adc a, #23 ; start reading from delta (-1 because Y was inc'd)
     mov y, a
     mov a, [divTempPtr2]+y ; low byte
     mov divTempPtr4, a
@@ -808,21 +810,27 @@ divCalcFreq:
     mov a, !divChanOctaveShift+x
     setc
     sbc a, divTempPtr3
-    bcs @doShift
-    beq @post ; if shift is zero, don't
+    bne + ; if shift is zero, don't
+    ; if we're here, don't shift - just return
+    mov a, divTempPtr1
+    mov divTempPtr, a
+    mov a, divTempPtr1+1
+    mov divTempPtr+1, a
+    ret
+    ; otherwise check whether we're out of bounds
++   bcs @doShift
     ; if we're out of bounds, write max freq
     mov a, #$ff
-    mov !divChanFreq+x, a
+    mov divTempPtr, a
     mov a, #$3f
-    mov !(divChanFreq+1)+x, a
+    mov divTempPtr+1, a
     bra @post
     @doShift:
     ; otherwise begin the shifting process
     mov y, a
     ; load the lower byte for performance
     mov a, divTempPtr1
- -  clrc
-    ror divTempPtr1+1
+ -  lsr divTempPtr1+1
     ror a
     dbnz y, -
     bcc +
@@ -830,14 +838,14 @@ divCalcFreq:
     bne +
     inc divTempPtr1+1
     ; store the frequency
-+   mov !divChanFreq+x, a
++   mov divTempPtr, a
     mov a, divTempPtr1+1
-    mov !(divChanFreq+1)+x, a
+    mov divTempPtr+1, a
 .else
     ; non-linear pitch - just store the offset
-    mov !divChanFreq+x, a
+    mov divTempPtr, a
     mov a, y
-    mov !(divChanFreq+1)+x, a
+    mov divTempPtr+1, a
 .endif
   @post:
   ret
@@ -848,14 +856,14 @@ divCalcFreq:
 ; alters A, Y and divTempPtr2.
 divCalcBaseFreq:
   ; Y is loaded and PSW contains the raw note flag.
-  bpl isNormal
+  bpl @isNormal
   @isRawFreq:
     movw divTempPtr1, ya
     clr1 (divTempPtr+1).7
     ; set the raw freq flag
-    mov a, !divChanSNESFlags+x
+    mov a, !divChanFlags+x
     or a, #$01
-    mov !divChanSNESFlags+x, a
+    mov !divChanFlags+x, a
     ret
   @isNormal:
     ; pitchTable->getBase(ya);
@@ -863,7 +871,7 @@ divCalcBaseFreq:
     ; linear pitch - store (note<<7)
     lsr a
     mov divTempPtr1+1, a
-    bcs write80
+    bcs @write80
     @write00:
       mov divTempPtr1, #$00
       bra @post
@@ -911,8 +919,7 @@ divCalcBaseFreq:
     mov y, a
     ; load the lower byte for performance
     mov a, divTempPtr1
- -  clrc
-    ror divTempPtr1+1
+ -  lsr divTempPtr1+1
     ror a
     dbnz y, -
     bcc +
@@ -925,17 +932,18 @@ divCalcBaseFreq:
 .endif
     @post:
     ; clear the raw freq flag
-    mov a, !divChanSNESFlags+x
+    mov a, !divChanFlags+x
     and a, #~$01
-    mov !divChanSNESFlags+x, a
+    mov !divChanFlags+x, a
     ret
 
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
 
 divCmdNoteOn:
   ; DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SNES);
+  mov a, !(divChanIns+1)+x
+  mov y, a
   mov a, !divChanIns+x
-  mov y, !(divChanIns+1)+x
   movw divTempPtr, ya
   ; if (ins->amiga.useWave)
   mov y, #4
@@ -980,10 +988,10 @@ divCmdNoteOn:
     @@noteNotNull:
       ; assign sample and pitch table
       mov a, fcsArg0+1 ; check for raw freq note
-      bpl useInitSample
+      bmi @@@useInitSample
       mov y, #4
       mov a, [divTempPtr]+y
-      beq useInitSample
+      beq @@@useInitSample
       ; we must read the sample map....
       @@@useSampleMap:
         ; get the sample map sample pointers
@@ -1027,7 +1035,7 @@ divCmdNoteOn:
         bra @@setPitchTable
       @@@useInitSample:
         ; just use the initial sample if we don't need sample map
-        inc y
+        mov y, #5
         mov a, [divTempPtr]+y
         mov !divChanSample+x, a
         inc y
@@ -1039,7 +1047,7 @@ divCmdNoteOn:
     @@setPitchTable:
       ; change the pitch table
       ; we don't support 16-bit index yet
-      mov !divChanSample+x, a
+      mov a, !divChanSample+x
       mov y, a
       mov a, !(songPitchListLow0+17)+y
       mov !divChanPitchTablePtr+x, a
@@ -1082,13 +1090,13 @@ divCmdNoteOn:
     ; D2/sus mode
     inc y
     mov a, [divTempPtr]+y
-    mov y, a
+    mov y, a ; make a copy so we can take sus mode
     lsr a
     lsr a
     mov !divChanD2+x, a
-    mov a, y
-    and #3
-    mov a, divTempPtr1
+    mov a, y ; retrieve sus mode and apply it
+    and a, #3
+    mov divTempPtr1, a ; so we can and later
     mov a, !divChanSNESFlags+x
     and a, #~$03
     or a, divTempPtr1
@@ -1122,21 +1130,21 @@ divCmdNoteOn:
     mov a, divTempPtr1+1
     mov !(divChanBaseFreq+1)+x, a
     ; set freqChanged
-    mov a, !divChanSNESFlags+x
+    mov a, !divChanFlags+x
     or a, #$20
-    mov !divChanSNESFlags+x, a
+    mov !divChanFlags+x, a
   @post3:
   ; set keyOn
-  mov a, !divChanSNESFlags+x
+  mov a, !divChanFlags+x
   or a, #$08
-  mov !divChanSNESFlags+x, a
+  mov !divChanFlags+x, a
   ; TODO: call macroInit here...
   ; TODO: check whether volume macro is present before calling this code
 .ifndef DIV_COMPAT_BROKEN_OUT_VOL
   ; check whether volume changed
   mov a, !divChanVol+x
   cmp a, !divChanOutVol+x
-  bne noShallWrite
+  bne @noShallWrite
   @shallWrite:
     mov a, !divChanSNESFlags+x
     or a, #$08
@@ -1196,18 +1204,17 @@ divCmdEnvRelease:
   ret
 
 divCmdInstrument:
-  ; check if the new instrument is different
-  mov a, fcsArg0
-  cmp a, !divChanIns+x
-  beq @noChange
-  @change:
-    ; change the instrument and set insChanged
-    mov !divChanIns+x, a
-    mov a, !divChanFlags+x
-    or a, #$40
-    mov !divChanFlags+x, a
-  @noChange:
-    ret
+  ; we assume this command is sent only when the instrument has actually changed
+  ; change the instrument and set insChanged
+  mov y, fcsArg0
+  mov a, !songInsListLow0+y
+  mov !divChanIns+x, a
+  mov a, !songInsListHigh0+y
+  mov !(divChanIns+1)+x, a
+  mov a, !divChanFlags+x
+  or a, #$40
+  mov !divChanFlags+x, a
+  ret
 
 divCmdVolume:
   ; check if the new volume is different
@@ -1219,7 +1226,7 @@ divCmdVolume:
     ; TODO: check whether the volume macro is not working
     mov !divChanOutVol+x, a
     ; set the shallWriteVol flag
-    mov a, !divChanSNESFlags+x, a
+    mov a, !divChanSNESFlags+x
     or a, #$08
     mov !divChanSNESFlags+x, a
   @noChange:
@@ -1227,14 +1234,18 @@ divCmdVolume:
 
 divCmdPanning:
   ; set panning
+  mov a, !divChanPanL+x
+  rol a ; store invert bit
   mov a, fcsArg0
-  lsr a
+  ror a
   mov !divChanPanL+x, a
+  mov a, !divChanPanR+x
+  rol a ; store invert bit
   mov a, fcsArg1
-  lsr a
+  ror a
   mov !divChanPanR+x, a
   ; set the shallWriteVol flag
-  mov a, !divChanSNESFlags+x, a
+  mov a, !divChanSNESFlags+x
   or a, #$08
   mov !divChanSNESFlags+x, a
   ret
@@ -1251,4 +1262,728 @@ divCmdPitch:
   mov !divChanFlags+x, a
   ret
 
-; TODO: the rest of commands...
+divCmdWave:
+  ; TODO when wave is implemented
+  ret
+
+divCmdNotePorta:
+  ; set freqChanged flag ahead of time
+  mov a, !divChanFlags+x
+  or a, #$20
+  mov !divChanFlags+x, a
+  ; calculate target frequency
+  mov a, !divChanSampleNoteDelta+x
+  mov y, #0
+  addw ya, fcsArg0
+  call !divCalcBaseFreq
+  ; divTempPtr1 is target
+  ; load the current freq and compare
+  mov a, !(divChanBaseFreq+1)+x
+  mov y, a
+  mov a, !divChanBaseFreq+x
+  cmpw ya, divTempPtr1
+  bpl @mustDecrease
+  @mustIncrease:
+    ; destFreq>baseFreq
+    ; add the speed
+    addw ya, fcsArg1
+    ; compare again, as we could have reached destination
+    cmpw ya, divTempPtr1
+    bpl @reached
+    ; not reached - write YA
+    mov !divChanBaseFreq+x, a
+    mov a, y
+    mov !(divChanBaseFreq+1)+x, a
+    ret
+  @mustDecrease:
+    ; destFreq<baseFreq
+    ; subtract the speed
+    subw ya, fcsArg1
+    ; compare again, as we could have reached destination
+    cmpw ya, divTempPtr1
+    bmi @reached
+    beq @reached
+    ; not reached - write YA
+    mov !divChanBaseFreq+x, a
+    mov a, y
+    mov !(divChanBaseFreq+1)+x, a
+    ret
+  @reached:
+    ; reached - write destFreq
+    mov a, divTempPtr1
+    mov !divChanBaseFreq+x, a
+    mov a, divTempPtr1+1
+    mov !(divChanBaseFreq+1)+x, a
+    ret
+
+divCmdLegato:
+  ; calculate new baseFreq
+  ; TODO: what about that hacky legato mess?
+  mov a, !divChanSampleNoteDelta+x
+  mov y, #0
+  addw ya, fcsArg0
+  call !divCalcBaseFreq
+  mov a, divTempPtr1
+  mov !divChanBaseFreq+x, a
+  mov a, divTempPtr1+1
+  mov !(divChanBaseFreq+1)+x, a
+  ; set freqChanged flag
+  mov a, !divChanFlags+x
+  or a, #$20
+  mov !divChanFlags+x, a
+  ret
+
+divCmdSamplePos:
+  ; TODO
+  ret
+
+divCmdStdNoiseMode:
+  ; set writeNoise flag
+  mov a, !divWriteFlags
+  or a, #$40
+  mov !divWriteFlags, a
+  ; set noise mode
+  mov a, fcsArg0
+  beq @setDisabled
+  @setEnabled:
+    mov a, !divChanBits+x
+    or a, !divNoiseState
+    mov !divNoiseState, a
+    ret
+  @setDisabled:
+    mov a, !(divChanBits+1)+x
+    and a, !divNoiseState
+    mov !divNoiseState, a
+    ret
+
+divCmdSnesPitchMod:
+  ; set writePitchMod flag
+  mov a, !divWriteFlags
+  or a, #$20
+  mov !divWriteFlags, a
+  ; set pitch mod state
+  mov a, fcsArg0
+  beq @setDisabled
+  @setEnabled:
+    mov a, !divChanBits+x
+    or a, !divPitchModState
+    mov !divPitchModState, a
+    ret
+  @setDisabled:
+    mov a, !(divChanBits+1)+x
+    and a, !divPitchModState
+    mov !divPitchModState, a
+    ret
+
+divCmdSnesInvert:
+  ; set shallWriteVol flag
+  mov a, !divChanSNESFlags+x
+  or a, #$08
+  mov !divChanSNESFlags+x, a
+  ; unpack invert bits
+  @testLeft:
+    mov a, fcsArg0
+    and a, #$f0 ; left channel
+    beq @@leftFalse
+    @@leftTrue:
+      mov a, !divChanPanL+x
+      or a, #$80
+      mov !divChanPanL+x, a
+      bra @testRight
+    @@leftFalse:
+      mov a, !divChanPanL+x
+      and a, #$7f
+      mov !divChanPanL+x, a
+  @testRight:
+    mov a, fcsArg0
+    and a, #$0f ; left channel
+    beq @@rightFalse
+    @@rightTrue:
+      mov a, !divChanPanR+x
+      or a, #$80
+      mov !divChanPanR+x, a
+      ret
+    @@rightFalse:
+      mov a, !divChanPanR+x
+      and a, #$7f
+      mov !divChanPanR+x, a
+  ret
+
+divCmdSnesGain:
+  ; set gain
+  mov a, fcsArg0
+  mov !divChanGain+x, a
+  ; set shallWriteEnv flag
+  mov a, !divChanSNESFlags+x
+  or a, #$04
+  mov !divChanSNESFlags+x, a
+  ret
+
+divCmdStdNoiseFreq:
+  ; set noise frequency
+  ; preserve echo bit
+  mov a, !divNoiseFreq
+  and a, #~$1f
+  or a, fcsArg0
+  mov !divNoiseFreq, a
+  ; set writeControl flag
+  mov a, !divWriteFlags
+  or a, #$80
+  mov !divWriteFlags, a
+  ret
+
+divCmdFmAr:
+  ; set attack
+  mov a, !divChanAD+x
+  and a, #$f0
+  or a, fcsArg0
+  mov !divChanAD+x, a
+  ; schedule an envelope update if necessary
+  bpl +
+  mov a, !divChanSNESFlags+x
+  or a, #$04
+  mov !divChanSNESFlags+x, a
++ ret
+
+divCmdFmDr:
+  ; shift up
+  mov a, fcsArg0
+  xcn a
+  mov fcsArg0, a
+  ; set decay
+  mov a, !divChanAD+x
+  and a, #$8f
+  or a, fcsArg0
+  mov !divChanAD+x, a
+  ; schedule an envelope update if necessary
+  bpl +
+  mov a, !divChanSNESFlags+x
+  or a, #$04
+  mov !divChanSNESFlags+x, a
++ ret
+
+divCmdFmSl:
+  ; shift up
+  mov a, fcsArg0
+  xcn a
+  asl a
+  mov fcsArg0, a
+  ; set sustain
+  mov a, !divChanSR+x
+  and a, #$1f
+  or a, fcsArg0
+  mov !divChanSR+x, a
+  ; schedule an envelope update if necessary
+  mov a, !divChanAD+x
+  bpl +
+  mov a, !divChanSNESFlags+x
+  or a, #$04
+  mov !divChanSNESFlags+x, a
++ ret
+
+divCmdFmRr:
+  ; set release
+  mov a, !divChanSR+x
+  and a, #$e0
+  or a, fcsArg0
+  mov !divChanSR+x, a
+  ; schedule an envelope update if necessary
+  mov a, !divChanAD+x
+  bpl +
+  mov a, !divChanSNESFlags+x
+  or a, #$04
+  mov !divChanSNESFlags+x, a
++ ret
+
+divCmdSnesEcho:
+  ; set writeEcho flag
+  mov a, !divWriteFlags
+  or a, #$10
+  mov !divWriteFlags, a
+  ; set echo state
+  mov a, fcsArg0
+  beq @setDisabled
+  @setEnabled:
+    mov a, !divChanBits+x
+    or a, !divEchoState
+    mov !divEchoState, a
+    ret
+  @setDisabled:
+    mov a, !(divChanBits+1)+x
+    and a, !divEchoState
+    mov !divEchoState, a
+    ret
+
+divCmdSnesEchoDelay:
+  ; set echo delay
+  mov a, fcsArg0
+  mov !divEchoDelay, a
+  ; check whether echo is on
+  mov a, !divNoiseFreq
+  and a, #$20
+  bne +
+  ; if we're here, echo is on.
+  ; calculate ESA
+  mov a, #$1f
+  setc
+  sbc a, !divEchoDelay
+  asl a
+  asl a
+  asl a
+  dspWriteA $6d
+  ; write echo delay
+  mov a, !divEchoDelay
+  dspWriteA $7d
++ ret
+
+divCmdSnesEchoEnable:
+  ; toggle echo (global)
+  mov a, fcsArg0
+  beq @disable
+  @enable:
+    mov a, !divNoiseFreq
+    and a, #~$20
+    mov !divNoiseFreq, a
+    call !divInitEcho
+    ret
+  @disable:
+    mov a, !divNoiseFreq
+    or a, #$20
+    mov !divNoiseFreq, a
+    call !divInitEcho
+    ret
+
+divCmdSnesEchoFeedback:
+  ; set echo feedback
+  mov a, fcsArg0
+  mov !divEchoFeedback, a
+  ; check whether echo is on
+  mov a, !divNoiseFreq
+  and a, #$20
+  bne +
+  ; if we're here, echo is on. write feedback
+  mov a, !divEchoFeedback
+  dspWriteA $0d
++ ret
+
+divCmdSnesEchoFir:
+  ; set echo filter
+  mov y, fcsArg0
+  mov a, fcsArg1
+  mov !divEchoFIR+y, a
+  ; check whether echo is on
+  mov a, !divNoiseFreq
+  and a, #$20
+  bne +
+  ; calculate tap address
+  mov a, fcsArg0
+  xcn a
+  or a, #$0f
+  mov spc_dspAddr, a
+  ; write tap
+  mov spc_dspData, fcsArg1
++ ret
+
+divCmdSnesEchoVolLeft:
+  mov a, fcsArg0
+  mov !divEchoVolL, a
+  ; check whether echo is on
+  ; TODO: do we really need to check?
+  ; how about you remove the check?
+  mov a, !divNoiseFreq
+  and a, #$20
+  bne +
+  mov a, !divEchoVolL
+  dspWriteA $2c
++ ret
+
+divCmdSnesEchoVolRight:
+  mov a, fcsArg0
+  mov !divEchoVolR, a
+  ; check whether echo is on
+  ; TODO: do we really need to check?
+  ; how about you remove the check?
+  mov a, !divNoiseFreq
+  and a, #$20
+  bne +
+  mov a, !divEchoVolR
+  dspWriteA $3c
++ ret
+
+divCmdSnesGlobalVolLeft:
+  ; set dry vol left
+  mov a, fcsArg0
+  mov !divDryVolL, a
+  ; set writeDryVol flag
+  mov a, !divWriteFlags
+  or a, #$08
+  mov !divWriteFlags, a
+  ret
+
+divCmdSnesGlobalVolRight:
+  ; set dry vol right
+  mov a, fcsArg0
+  mov !divDryVolR, a
+  ; set writeDryVol flag
+  mov a, !divWriteFlags
+  or a, #$08
+  mov !divWriteFlags, a
+  ret
+
+; TODO: macro control commands
+divCmdMacroOff:
+divCmdMacroOn:
+divCmdMacroRestart:
+  ret
+
+fcsCmdTableSNESLow:
+  .db <divCmdNoteOn
+  .db <divCmdNoteOff
+  .db <divCmdNoteOffEnv
+  .db <divCmdEnvRelease
+  .db <divCmdInstrument
+  .db <divCmdVolume
+  .db 0 ; unused (GET_VOLUME)
+  .db 0 ; unused (GET_VOLMAX)
+  .db <divCmdNotePorta ; note porta
+  .db <divCmdPitch
+  .db <divCmdPanning
+  .db <divCmdLegato ; legato
+  .db 0 ; pre porta
+  .db 0 ; unused (PRE_NOTE)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; sample mode
+  .db 0 ; sample freq
+  .db 0 ; sample bank
+  .db <divCmdSamplePos ; sample pos
+  .db 0 ; sample dir
+  .db 0 ; FM hard reset
+  .db 0 ; FM LFO
+  .db 0 ; FM LFO wave
+  .db 0 ; FM TL
+  .db 0 ; FM AM
+  .db <divCmdFmAr ; FM AR
+  .db <divCmdFmDr ; FM DR
+  .db <divCmdFmSl ; FM SL
+  .db 0 ; FM D2R
+  .db <divCmdFmRr ; FM RR
+  .db 0 ; FM_DT
+  .db 0 ; FM_DT2
+  .db 0 ; FM_RS
+  .db 0 ; FM_KSR
+  .db 0 ; FM_VIB
+  .db 0 ; FM_SUS
+  .db 0 ; FM_WS
+  .db 0 ; FM_SSG
+  .db 0 ; FM_REV
+  .db 0 ; FM_EG_SHIFT
+  .db 0 ; FM_FB
+  .db 0 ; FM_MULT
+  .db 0 ; FM_FINE
+  .db 0 ; FM_FIXFREQ
+  .db 0 ; FM_EXTCH
+  .db 0 ; FM_AM_DEPTH
+  .db 0 ; FM_PM_DEPTH
+  .db 0 ; FM_LFO2
+  .db 0 ; FM_LFO2_WAVE
+  .db <divCmdStdNoiseFreq ; STD_NOISE_FREQ
+  .db <divCmdStdNoiseMode ; STD_NOISE_MODE
+  .db <divCmdWave ; WAVE
+  .db 0 ; GB_SWEEP_TIME
+  .db 0 ; GB_SWEEP_DIR
+  .db 0 ; PCE_LFO_MODE
+  .db 0 ; PCE_LFO_SPEED
+  .db 0 ; NES_SWEEP
+  .db 0 ; NES_DMC
+  .db 0 ; C64_CUTOFF
+  .db 0 ; C64_RESONANCE
+  .db 0 ; C64_FILTER_MODE
+  .db 0 ; C64_RESET_TIME
+  .db 0 ; C64_RESET_MASK
+  .db 0 ; C64_FILTER_RESET
+  .db 0 ; C64_DUTY_RESET
+  .db 0 ; C64_EXTENDED
+  .db 0 ; C64_FINE_DUTY
+  .db 0 ; C64_FINE_CUTOFF
+  .db 0 ; AY_ENVELOPE_SET
+  .db 0 ; AY_ENVELOPE_LOW
+  .db 0 ; AY_ENVELOPE_HIGH
+  .db 0 ; AY_ENVELOPE_SLIDE
+  .db 0 ; AY_NOISE_MASK_AND
+  .db 0 ; AY_NOISE_MASK_OR
+  .db 0 ; AY_AUTO_ENVELOPE
+  .db 0 ; AY_IO_WRITE
+  .db 0 ; AY_AUTO_PWM
+  .db 0 ; FDS_MOD_DEPTH
+  .db 0 ; FDS_MOD_HIGH
+  .db 0 ; FDS_MOD_LOW
+  .db 0 ; FDS_MOD_POS
+  .db 0 ; FDS_MOD_WAVE
+  .db 0 ; SAA_ENVELOPE
+  .db 0 ; AMIGA_FILTER
+  .db 0 ; AMIGA_AM
+  .db 0 ; AMIGA_PM
+  .db 0 ; LYNX_LFSR_LOAD
+  .db 0 ; QSOUND_ECHO_FEEDBACK
+  .db 0 ; QSOUND_ECHO_DELAY
+  .db 0 ; QSOUND_ECHO_LEVEL
+  .db 0 ; QSOUND_SURROUND
+  .db 0 ; X1_010_ENVELOPE_SHAPE
+  .db 0 ; X1_010_ENVELOPE_ENABLE
+  .db 0 ; X1_010_ENVELOPE_MODE
+  .db 0 ; X1_010_ENVELOPE_PERIOD
+  .db 0 ; X1_010_ENVELOPE_SLIDE
+  .db 0 ; X1_010_AUTO_ENVELOPE
+  .db 0 ; X1_010_SAMPLE_BANK_SLOT
+  .db 0 ; WS_SWEEP_TIME
+  .db 0 ; WS_SWEEP_AMOUNT
+  .db 0 ; N163_WAVE_POSITION
+  .db 0 ; N163_WAVE_LENGTH
+  .db 0 ; N163_WAVE_UNUSED1
+  .db 0 ; N163_WAVE_UNUSED2
+  .db 0 ; N163_WAVE_LOADPOS
+  .db 0 ; N163_WAVE_LOADLEN
+  .db 0 ; N163_WAVE_UNUSED3
+  .db 0 ; N163_CHANNEL_LIMIT
+  .db 0 ; N163_GLOBAL_WAVE_LOAD
+  .db 0 ; N163_GLOBAL_WAVE_LOADPOS
+  .db 0 ; N163_UNUSED4
+  .db 0 ; N163_UNUSED5
+  .db 0 ; SU_SWEEP_PERIOD_LOW
+  .db 0 ; SU_SWEEP_PERIOD_HIGH
+  .db 0 ; SU_SWEEP_BOUND
+  .db 0 ; SU_SWEEP_ENABLE
+  .db 0 ; SU_SYNC_PERIOD_LOW
+  .db 0 ; SU_SYNC_PERIOD_HIGH
+  .db 0 ; ADPCMA_GLOBAL_VOLUME
+  .db <divCmdSnesEcho ; SNES_ECHO
+  .db <divCmdSnesPitchMod ; SNES_PITCH_MOD
+  .db <divCmdSnesInvert ; SNES_INVERT
+  .db 0 ; SNES_GAIN_MODE
+  .db <divCmdSnesGain ; SNES_GAIN
+  .db <divCmdSnesEchoEnable ; SNES_ECHO_ENABLE
+  .db <divCmdSnesEchoDelay ; SNES_ECHO_DELAY
+  .db <divCmdSnesEchoVolLeft ; SNES_ECHO_VOL_LEFT
+  .db <divCmdSnesEchoVolRight ; SNES_ECHO_VOL_RIGHT
+  .db <divCmdSnesEchoFeedback ; SNES_ECHO_FEEDBACK
+  .db <divCmdSnesEchoFir ; SNES_ECHO_FIR
+  .db 0 ; NES_ENV_MODE
+  .db 0 ; NES_LENGTH
+  .db 0 ; NES_COUNT_MODE
+  .db <divCmdMacroOff ; MACRO_OFF
+  .db <divCmdMacroOn ; MACRO_ON
+  .db 0 ; SURROUND_PANNING
+  .db 0 ; FM_AM2_DEPTH
+  .db 0 ; FM_PM2_DEPTH
+  .db 0 ; ES5506_FILTER_MODE
+  .db 0 ; ES5506_FILTER_K1
+  .db 0 ; ES5506_FILTER_K2
+  .db 0 ; ES5506_FILTER_K1_SLIDE
+  .db 0 ; ES5506_FILTER_K2_SLIDE
+  .db 0 ; ES5506_ENVELOPE_COUNT
+  .db 0 ; ES5506_ENVELOPE_LVRAMP
+  .db 0 ; ES5506_ENVELOPE_RVRAMP
+  .db 0 ; ES5506_ENVELOPE_K1RAMP
+  .db 0 ; ES5506_ENVELOPE_K2RAMP
+  .db 0 ; ES5506_PAUSE
+  .db 0 ; HINT_ARP_TIME
+  .db <divCmdSnesGlobalVolLeft ; SNES_GLOBAL_VOL_LEFT
+  .db <divCmdSnesGlobalVolRight ; SNES_GLOBAL_VOL_RIGHT
+  .db 0 ; NES_LINEAR_LENGTH
+  .db 0 ; EXTERNAL
+  .db 0 ; C64_AD
+  .db 0 ; C64_SR
+  .db 0 ; ESFM_OP_PANNING
+  .db 0 ; ESFM_OUTLVL
+  .db 0 ; ESFM_MODIN
+  .db 0 ; ESFM_ENV_DELAY
+  .db <divCmdMacroRestart ; MACRO_RESTART
+
+fcsCmdTableSNESHigh:
+  .db >divCmdNoteOn
+  .db >divCmdNoteOff
+  .db >divCmdNoteOffEnv
+  .db >divCmdEnvRelease
+  .db >divCmdInstrument
+  .db >divCmdVolume
+  .db 0 ; unused (GET_VOLUME)
+  .db 0 ; unused (GET_VOLMAX)
+  .db >divCmdNotePorta ; note porta
+  .db >divCmdPitch
+  .db >divCmdPanning
+  .db >divCmdLegato ; legato
+  .db 0 ; pre porta
+  .db 0 ; unused (PRE_NOTE)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; unused (hint)
+  .db 0 ; sample mode
+  .db 0 ; sample freq
+  .db 0 ; sample bank
+  .db >divCmdSamplePos ; sample pos
+  .db 0 ; sample dir
+  .db 0 ; FM hard reset
+  .db 0 ; FM LFO
+  .db 0 ; FM LFO wave
+  .db 0 ; FM TL
+  .db 0 ; FM AM
+  .db >divCmdFmAr ; FM AR
+  .db >divCmdFmDr ; FM DR
+  .db >divCmdFmSl ; FM SL
+  .db 0 ; FM D2R
+  .db >divCmdFmRr ; FM RR
+  .db 0 ; FM_DT
+  .db 0 ; FM_DT2
+  .db 0 ; FM_RS
+  .db 0 ; FM_KSR
+  .db 0 ; FM_VIB
+  .db 0 ; FM_SUS
+  .db 0 ; FM_WS
+  .db 0 ; FM_SSG
+  .db 0 ; FM_REV
+  .db 0 ; FM_EG_SHIFT
+  .db 0 ; FM_FB
+  .db 0 ; FM_MULT
+  .db 0 ; FM_FINE
+  .db 0 ; FM_FIXFREQ
+  .db 0 ; FM_EXTCH
+  .db 0 ; FM_AM_DEPTH
+  .db 0 ; FM_PM_DEPTH
+  .db 0 ; FM_LFO2
+  .db 0 ; FM_LFO2_WAVE
+  .db >divCmdStdNoiseFreq ; STD_NOISE_FREQ
+  .db >divCmdStdNoiseMode ; STD_NOISE_MODE
+  .db >divCmdWave ; WAVE
+  .db 0 ; GB_SWEEP_TIME
+  .db 0 ; GB_SWEEP_DIR
+  .db 0 ; PCE_LFO_MODE
+  .db 0 ; PCE_LFO_SPEED
+  .db 0 ; NES_SWEEP
+  .db 0 ; NES_DMC
+  .db 0 ; C64_CUTOFF
+  .db 0 ; C64_RESONANCE
+  .db 0 ; C64_FILTER_MODE
+  .db 0 ; C64_RESET_TIME
+  .db 0 ; C64_RESET_MASK
+  .db 0 ; C64_FILTER_RESET
+  .db 0 ; C64_DUTY_RESET
+  .db 0 ; C64_EXTENDED
+  .db 0 ; C64_FINE_DUTY
+  .db 0 ; C64_FINE_CUTOFF
+  .db 0 ; AY_ENVELOPE_SET
+  .db 0 ; AY_ENVELOPE_LOW
+  .db 0 ; AY_ENVELOPE_HIGH
+  .db 0 ; AY_ENVELOPE_SLIDE
+  .db 0 ; AY_NOISE_MASK_AND
+  .db 0 ; AY_NOISE_MASK_OR
+  .db 0 ; AY_AUTO_ENVELOPE
+  .db 0 ; AY_IO_WRITE
+  .db 0 ; AY_AUTO_PWM
+  .db 0 ; FDS_MOD_DEPTH
+  .db 0 ; FDS_MOD_HIGH
+  .db 0 ; FDS_MOD_LOW
+  .db 0 ; FDS_MOD_POS
+  .db 0 ; FDS_MOD_WAVE
+  .db 0 ; SAA_ENVELOPE
+  .db 0 ; AMIGA_FILTER
+  .db 0 ; AMIGA_AM
+  .db 0 ; AMIGA_PM
+  .db 0 ; LYNX_LFSR_LOAD
+  .db 0 ; QSOUND_ECHO_FEEDBACK
+  .db 0 ; QSOUND_ECHO_DELAY
+  .db 0 ; QSOUND_ECHO_LEVEL
+  .db 0 ; QSOUND_SURROUND
+  .db 0 ; X1_010_ENVELOPE_SHAPE
+  .db 0 ; X1_010_ENVELOPE_ENABLE
+  .db 0 ; X1_010_ENVELOPE_MODE
+  .db 0 ; X1_010_ENVELOPE_PERIOD
+  .db 0 ; X1_010_ENVELOPE_SLIDE
+  .db 0 ; X1_010_AUTO_ENVELOPE
+  .db 0 ; X1_010_SAMPLE_BANK_SLOT
+  .db 0 ; WS_SWEEP_TIME
+  .db 0 ; WS_SWEEP_AMOUNT
+  .db 0 ; N163_WAVE_POSITION
+  .db 0 ; N163_WAVE_LENGTH
+  .db 0 ; N163_WAVE_UNUSED1
+  .db 0 ; N163_WAVE_UNUSED2
+  .db 0 ; N163_WAVE_LOADPOS
+  .db 0 ; N163_WAVE_LOADLEN
+  .db 0 ; N163_WAVE_UNUSED3
+  .db 0 ; N163_CHANNEL_LIMIT
+  .db 0 ; N163_GLOBAL_WAVE_LOAD
+  .db 0 ; N163_GLOBAL_WAVE_LOADPOS
+  .db 0 ; N163_UNUSED4
+  .db 0 ; N163_UNUSED5
+  .db 0 ; SU_SWEEP_PERIOD_LOW
+  .db 0 ; SU_SWEEP_PERIOD_HIGH
+  .db 0 ; SU_SWEEP_BOUND
+  .db 0 ; SU_SWEEP_ENABLE
+  .db 0 ; SU_SYNC_PERIOD_LOW
+  .db 0 ; SU_SYNC_PERIOD_HIGH
+  .db 0 ; ADPCMA_GLOBAL_VOLUME
+  .db >divCmdSnesEcho ; SNES_ECHO
+  .db >divCmdSnesPitchMod ; SNES_PITCH_MOD
+  .db >divCmdSnesInvert ; SNES_INVERT
+  .db 0 ; SNES_GAIN_MODE
+  .db >divCmdSnesGain ; SNES_GAIN
+  .db >divCmdSnesEchoEnable ; SNES_ECHO_ENABLE
+  .db >divCmdSnesEchoDelay ; SNES_ECHO_DELAY
+  .db >divCmdSnesEchoVolLeft ; SNES_ECHO_VOL_LEFT
+  .db >divCmdSnesEchoVolRight ; SNES_ECHO_VOL_RIGHT
+  .db >divCmdSnesEchoFeedback ; SNES_ECHO_FEEDBACK
+  .db >divCmdSnesEchoFir ; SNES_ECHO_FIR
+  .db 0 ; NES_ENV_MODE
+  .db 0 ; NES_LENGTH
+  .db 0 ; NES_COUNT_MODE
+  .db >divCmdMacroOff ; MACRO_OFF
+  .db >divCmdMacroOn ; MACRO_ON
+  .db 0 ; SURROUND_PANNING
+  .db 0 ; FM_AM2_DEPTH
+  .db 0 ; FM_PM2_DEPTH
+  .db 0 ; ES5506_FILTER_MODE
+  .db 0 ; ES5506_FILTER_K1
+  .db 0 ; ES5506_FILTER_K2
+  .db 0 ; ES5506_FILTER_K1_SLIDE
+  .db 0 ; ES5506_FILTER_K2_SLIDE
+  .db 0 ; ES5506_ENVELOPE_COUNT
+  .db 0 ; ES5506_ENVELOPE_LVRAMP
+  .db 0 ; ES5506_ENVELOPE_RVRAMP
+  .db 0 ; ES5506_ENVELOPE_K1RAMP
+  .db 0 ; ES5506_ENVELOPE_K2RAMP
+  .db 0 ; ES5506_PAUSE
+  .db 0 ; HINT_ARP_TIME
+  .db >divCmdSnesGlobalVolLeft ; SNES_GLOBAL_VOL_LEFT
+  .db >divCmdSnesGlobalVolRight ; SNES_GLOBAL_VOL_RIGHT
+  .db 0 ; NES_LINEAR_LENGTH
+  .db 0 ; EXTERNAL
+  .db 0 ; C64_AD
+  .db 0 ; C64_SR
+  .db 0 ; ESFM_OP_PANNING
+  .db 0 ; ESFM_OUTLVL
+  .db 0 ; ESFM_MODIN
+  .db 0 ; ESFM_ENV_DELAY
+  .db >divCmdMacroRestart ; MACRO_RESTART
