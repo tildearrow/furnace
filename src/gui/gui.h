@@ -699,6 +699,8 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_EXPORT_COMPILED_INS,
   GUI_FILE_EXPORT_COMPILED_INS_ONE,
+  GUI_FILE_EXPORT_OSC_VIDEO,
+  GUI_FILE_OSC_VIDEO_FFMPEG,
   GUI_FILE_EXPORT_COMPILED_SAMPLE,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_HEAD_FONT,
@@ -754,7 +756,8 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
-  GUI_EXPORT_DMF
+  GUI_EXPORT_DMF,
+  GUI_EXPORT_OSC_VIDEO
 };
 
 enum FurnaceGUIFMAlgs {
@@ -1789,6 +1792,7 @@ class FurnaceGUI {
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery, sampleBankSearchQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirROMExport;
+  String workingDirOscVideoExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirMusic, workingDirTest;
   String workingDirConfig;
@@ -1819,7 +1823,7 @@ class FurnaceGUI {
   bool wantScrollListIns, wantScrollListWave, wantScrollListSample;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
-  bool displayExportingROM, displayExportingCS;
+  bool displayExportingROM, displayExportingCS, displayExportingOscVideo;
   bool quitNoSave;
   bool changeCoarse;
   bool orderLock;
@@ -2851,6 +2855,32 @@ class FurnaceGUI {
   float xyOscIntensity;
   float xyOscThickness;
 
+  // oscilloscope video export
+  struct OscVideoExportOptions {
+    int width=1280, height=720, fps=60;
+    int outputFormat=0; // 0=MKV 1=MP4
+    int targetSizeMB=0; // 0 means no limit, MP4 only
+    int sampleRate=44100, audioBitrate=192;
+    float textScale=1.0f;
+    float lineSize=1.0f;
+    int videoCRF=18;
+    String ffmpegPath;
+  } oscVideoExport;
+  bool oscVideoExporting;
+  bool oscVideoCombining;
+  bool oscVideoFfmpegFound;
+  bool oscVideoFfmpegChecked;
+  String oscVideoOutputFilterName, oscVideoOutputFilterExt;
+  std::thread* oscVideoThread;
+  std::atomic<int> oscVideoCurrentFrame;
+  std::atomic<bool> oscVideoAbort;
+  double oscVideoTotalTime; // song length in seconds, set before the export thread starts
+  FurnaceGUITexture* oscVideoPreviewTex;
+  int oscVideoPreviewTexW, oscVideoPreviewTexH;
+  std::vector<unsigned char> mainFontRawData; // raw TTF bytes from the main font
+  struct OscSoftFont* oscVideoSoftFont;
+  struct OscVideoPreviewState* oscVideoPreviewState;
+
   // register view
   int regViewColumns;
 
@@ -3055,6 +3085,11 @@ class FurnaceGUI {
   void drawExportText(bool onWindow=false);
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
+  void drawExportOscVideo(bool onWindow=false);
+  void drawOscVideoProgress();
+  void runOscVideoExport(const String& path);
+  void detectOscVideoFfmpeg();
+  void clearOscVideoSoftFont();
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -3379,6 +3414,7 @@ class FurnaceGUI {
 
   friend class SettingsCategory;
   friend class SettingEntry;
+  friend String oscVideoFormatLabel(DivEngine* e, FurnaceGUI* gui, int ch, const String& fmt);
 
   public:
     void editStr(String* which);

@@ -1104,6 +1104,14 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
 
+    // cache raw TTF bytes so oscVideoExport can use FreeType at any size
+    mainFontRawData.clear();
+    clearOscVideoSoftFont();
+    if (mainFont && mainFont->Sources.Size>0 && mainFont->Sources[0]->FontData) {
+      const unsigned char* d=(const unsigned char*)mainFont->Sources[0]->FontData;
+      mainFontRawData.assign(d,d+mainFont->Sources[0]->FontDataSize);
+    }
+
     // four fallback fonts
     if (settings.loadFallback) {
       mainFont=addFontZlib(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1);
