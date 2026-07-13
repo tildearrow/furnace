@@ -209,7 +209,7 @@ bool DivInstrument::compileSampleMap(DivObjectPool& pool, DivObject& insObj, Saf
   // write pointers and objects
   int count=high-low+1;
 
-  insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+  insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16,-low));
   w->writeS(0); // map low
   unsigned char* mapLow=new unsigned char[count];
   for (int i=low; i<=high; i++) {
@@ -217,7 +217,7 @@ bool DivInstrument::compileSampleMap(DivObjectPool& pool, DivObject& insObj, Saf
   }
   pool.push_back(DivObject(mapLow,count,DIV_OBJECT_SAMPLE_MAP));
 
-  insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+  insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16,-low));
   w->writeS(0); // map high
   unsigned char* mapHigh=new unsigned char[count];
   for (int i=low; i<=high; i++) {
@@ -226,7 +226,7 @@ bool DivInstrument::compileSampleMap(DivObjectPool& pool, DivObject& insObj, Saf
   pool.push_back(DivObject(mapHigh,count,DIV_OBJECT_SAMPLE_MAP));
 
   if (nes) {
-    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16,-low));
     w->writeS(0); // DPCM freq
     unsigned char* dpcmFreq=new unsigned char[count];
     for (int i=low; i<=high; i++) {
@@ -234,7 +234,7 @@ bool DivInstrument::compileSampleMap(DivObjectPool& pool, DivObject& insObj, Saf
     }
     pool.push_back(DivObject(dpcmFreq,count,DIV_OBJECT_SAMPLE_MAP));
 
-    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16,-low));
     w->writeS(0); // DPCM delta
     unsigned char* dpcmDelta=new unsigned char[count];
     for (int i=low; i<=high; i++) {
@@ -242,7 +242,7 @@ bool DivInstrument::compileSampleMap(DivObjectPool& pool, DivObject& insObj, Saf
     }
     pool.push_back(DivObject(dpcmDelta,count,DIV_OBJECT_SAMPLE_MAP));
   } else {
-    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
+    insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16,-low));
     w->writeS(0); // note
     unsigned char* noteTable=new unsigned char[count];
     for (int i=low; i<=high; i++) {

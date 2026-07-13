@@ -42,12 +42,15 @@ struct DivRelocInfo {
   unsigned int offset;
   // the index in an object pool to the target object.
   unsigned int objectIndex;
+  // the offset within the object.
+  int objectOffset;
   // type of the pointer.
   DivRelocPointerType type;
 
-  DivRelocInfo(unsigned int off, unsigned int objIndex, DivRelocPointerType t):
+  DivRelocInfo(unsigned int off, unsigned int objIndex, DivRelocPointerType t, int objOff=0):
     offset(off),
     objectIndex(objIndex),
+    objectOffset(objOff),
     type(t) {}
 };
 

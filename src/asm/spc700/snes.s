@@ -56,6 +56,7 @@ divChanPanR=divBase+(divChans*20)+1 ; unsigned char
 divChanWtLen=divBase+(divChans*22) ; unsigned char
 ; flags:
 ; - bit 7: useWave
+; - bit 4: released
 ; - bit 3: shallWriteVol
 ; - bit 2: shallWriteEnv
 ; - bit 0-1: sustain mode
@@ -937,6 +938,128 @@ divCalcBaseFreq:
     mov !divChanFlags+x, a
     ret
 
+;;;; ---- MACRO FUNCTIONS ---- ;;;;
+
+; this implementation of DivMacroInt only supports 16-bit values.
+
+; divTempPtr is the macro pointer.
+; divMacroCallback is a callback on value.
+; the value will be on divTempPtr2 and divTempPtr3.
+; X is (chan<<1).
+; you must assume the tick timer is 1 after this!!!!!
+divRunMacro:
+  mov y, #0
+  mov a, [!divTempPtr]+y
+  bmi divMacroIsCommand
+  divMacroIsValue:
+    ; FORTUNATELY... this instruction exists...
+    incw divTempPtr
+    mov divTempPtr2, a
+    mov divTempPtr2+1, y
+    ; FILL THIS IN BEFORE CALLING!!!!!!!!!
+    divMacroCallback:
+    jmp !$0000
+  divMacroIsCommand:
+    push x
+    mov x, a
+    jmp [!(divMacroCmdTable-128)+x]
+
+; $90
+divMacroCmdU8:
+  pop x
+  incw divTempPtr
+  mov a, [!divTempPtr]+y
+  incw divTempPtr
+  mov divTempPtr2, a
+  mov divTempPtr2+1, y
+  bra divMacroCallback
+
+; $92
+divMacroCmdS8:
+  pop x
+  incw divTempPtr
+  mov a, [!divTempPtr]+y
+  bmi @neg
+  @pos:
+    incw divTempPtr
+    mov divTempPtr2, a
+    mov divTempPtr2+1, y
+    bra divMacroCallback
+  @neg:
+    incw divTempPtr
+    mov divTempPtr2, a
+    dec y
+    mov divTempPtr2+1, y
+    bra divMacroCallback
+
+; $94
+divMacroCmdS16:
+  pop x
+  incw divTempPtr
+  mov a, [!divTempPtr]+y
+  mov divTempPtr2, a
+  incw divTempPtr
+  mov a, [!divTempPtr]+y
+  incw divTempPtr
+  mov divTempPtr2+1, a
+  bra divMacroCallback
+
+; $96 - what the hell. I am not implementing this one.
+divMacroCmdS32:
+  stop
+
+; $80
+divMacroCmdStop:
+  pop x
+  mov divTempPtr, #$80
+  mov divTempPtr+1, #0
+  ret
+
+; $82
+divMacroCmdJump:
+  pop x
+actuallyJump:
+  incw divTempPtr
+  mov a, [divTempPtr]+y
+  eor a, #$ff
+  push a
+  incw divTempPtr
+  mov a, [divTempPtr]+y
+  eor a, #$ff
+  mov y, a
+  pop a
+  addw ya, divTempPtr
+  movw divTempPtr, ya
+  jmp !divRunMacro
+
+; $84
+divMacroCmdJumpNoRel:
+  pop x
+  mov a, !divChanSNESFlags+x
+  and a, #$10
+  beq actuallyJump
+  ; released - don't jump
+  incw divTempPtr
+  jmp !divRunMacro
+
+; $86
+divMacroCmdWaitRel:
+  pop x
+  mov a, !divChanSNESFlags+x
+  and a, #$10
+  bne @hasReleased
+  ret
+  @hasReleased:
+    incw divTempPtr
+    jmp !divRunMacro
+
+; $88-$8e
+divMacroCmdNotImpl:
+  ret
+
+divMacroCmdTable:
+  .dw divMacroCmdStop
+
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
 
 divCmdNoteOn:
@@ -1274,7 +1397,7 @@ divCmdNotePorta:
   ; calculate target frequency
   mov a, !divChanSampleNoteDelta+x
   mov y, #0
-  addw ya, fcsArg0
+  addw ya, fcsArg1
   call !divCalcBaseFreq
   ; divTempPtr1 is target
   ; load the current freq and compare
@@ -1286,7 +1409,7 @@ divCmdNotePorta:
   @mustIncrease:
     ; destFreq>baseFreq
     ; add the speed
-    addw ya, fcsArg1
+    addw ya, fcsArg0
     ; compare again, as we could have reached destination
     cmpw ya, divTempPtr1
     bpl @reached
@@ -1298,7 +1421,7 @@ divCmdNotePorta:
   @mustDecrease:
     ; destFreq<baseFreq
     ; subtract the speed
-    subw ya, fcsArg1
+    subw ya, fcsArg0
     ; compare again, as we could have reached destination
     cmpw ya, divTempPtr1
     bmi @reached

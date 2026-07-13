@@ -19,6 +19,7 @@ actualDir=waveRAM+$480
 
 ; command stream player definition
 FCS_MAX_CHAN=8
+FCS_PORTA_SPEED_MULT=4
 
 fcsAddrBase=$26
 fcsZeroPage=$12

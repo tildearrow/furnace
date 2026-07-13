@@ -100,7 +100,13 @@ SafeWriter* bakeObjectsASM(DivObjectPool& pool) {
           // write label reference
           String label="error";
           if (reloc.objectIndex<pool.size()) {
-            label=labels[reloc.objectIndex];
+            if (reloc.objectOffset>0) {
+              label=fmt::sprintf("(%s+%d)",labels[reloc.objectIndex],reloc.objectOffset);
+            } else if (reloc.objectOffset<0) {
+              label=fmt::sprintf("(%s-%d)",labels[reloc.objectIndex],-reloc.objectOffset);
+            } else {
+              label=labels[reloc.objectIndex];
+            }
           }
 
           columnBytes=0;
@@ -186,31 +192,31 @@ SafeWriter* bakeObjectsBinary(DivObjectPool& pool, unsigned int addr) {
         w->seek(objLocation[_i]+j.offset,SEEK_SET);
         switch (j.type) {
           case DIV_RELOC_PTR_U8:
-            w->writeC(objLocation[j.objectIndex]+addr);
+            w->writeC(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
           case DIV_RELOC_PTR_U16:
-            w->writeS(objLocation[j.objectIndex]+addr);
+            w->writeS(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
           case DIV_RELOC_PTR_U32:
-            w->writeI(objLocation[j.objectIndex]+addr);
+            w->writeI(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
           case DIV_RELOC_PTR_U64:
-            w->writeL(objLocation[j.objectIndex]+addr);
+            w->writeL(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
           case DIV_RELOC_PTR_U16LSB:
-            w->writeC((objLocation[j.objectIndex]+addr)&0xff);
+            w->writeC((objLocation[j.objectIndex]+addr+j.objectOffset)&0xff);
             break;
           case DIV_RELOC_PTR_U16MSB:
-            w->writeC(((objLocation[j.objectIndex]+addr)>>8)&0xff);
+            w->writeC(((objLocation[j.objectIndex]+addr+j.objectOffset)>>8)&0xff);
             break;
           case DIV_RELOC_PTR_U16BE:
-            w->writeS_BE(objLocation[j.objectIndex]+addr);
+            w->writeS_BE(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
           case DIV_RELOC_PTR_U32BE:
-            w->writeI_BE(objLocation[j.objectIndex]+addr);
+            w->writeI_BE(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
           case DIV_RELOC_PTR_U64BE:
-            w->writeL_BE(objLocation[j.objectIndex]+addr);
+            w->writeL_BE(objLocation[j.objectIndex]+addr+j.objectOffset);
             break;
         }
       }

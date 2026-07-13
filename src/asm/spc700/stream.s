@@ -239,6 +239,8 @@ fcsLegato:
   fcsReadNext
   mov chanNote+x, a
   mov fcsArg0, a
+  ; TODO: support raw freq
+  mov fcsArg0+1, #0
   mov y, #11
   call !fcsDispatchCmd
   ret
@@ -726,9 +728,9 @@ fcsChannelPost:
     mov a, chanPortaSpeed+x
     beq fcsChanDoArp
     ; do portamento
-    mov fcsArg0, a
-    mov a, #0
-    mov fcsArg0+1, a
+    mov y, #FCS_PORTA_SPEED_MULT
+    mul ya
+    movw fcsArg0, ya
     mov a, chanPortaTarget+x
     mov fcsArg1, a
     mov y, #8 ; NOTE_PORTA
