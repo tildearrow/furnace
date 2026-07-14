@@ -2748,9 +2748,7 @@ void DivEngine::registerSystems() {
     _("klattsch"), NULL, 0xe7, 0, 1, 1, 16,
     false, true, 0, false, 0, 0, 0,
     _("Klatt-style parallel-formant speech synthesizer."),
-    // Keep standard instruments as a secondary type for songs made before the
-    // dedicated Klattsch voice profile existed.
-    DivChanDefFunc(simpleChanDef<DIV_CH_NOISE,DIV_INS_KLATTSCH,DIV_INS_STD>),
+    DivChanDefFunc(simpleChanDef<DIV_CH_NOISE,DIV_INS_KLATTSCH>),
     {
       {0x10, {DIV_CMD_KLATTSCH_PHONEME, _("10xx: Set phoneme (ARPABET index; type names directly in the pattern)")}},
       {0x11, {DIV_CMD_KLATTSCH_TRANSITION, _("11xx: Set spectral transition time (ticks, sticky)")}},
