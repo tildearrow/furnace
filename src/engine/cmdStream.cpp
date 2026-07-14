@@ -500,6 +500,17 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_FM_AMS:
           case DIV_CMD_FM_FMS2:
           case DIV_CMD_FM_AMS2:
+          case DIV_CMD_KLATTSCH_PHONEME:
+          case DIV_CMD_KLATTSCH_TRANSITION:
+          case DIV_CMD_KLATTSCH_VOICING:
+          case DIV_CMD_KLATTSCH_ASPIRATION:
+          case DIV_CMD_KLATTSCH_TILT:
+          case DIV_CMD_KLATTSCH_EFFORT:
+          case DIV_CMD_KLATTSCH_VIBRATO:
+          case DIV_CMD_KLATTSCH_TREMOLO:
+          case DIV_CMD_KLATTSCH_GAIN:
+          case DIV_CMD_KLATTSCH_BW_SCALE:
+          case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
             arg0=(unsigned char)stream.readC();
             break;
           // TWO BYTE COMMANDS
@@ -549,6 +560,8 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_C64_CUTOFF_SLIDE:
           case DIV_CMD_N163_WAVE_POSITION:
           case DIV_CMD_N163_WAVE_LENGTH:
+          case DIV_CMD_KLATTSCH_FORMANT:
+          case DIV_CMD_KLATTSCH_AMP:
             arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
