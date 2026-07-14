@@ -336,8 +336,27 @@ enum DivDispatchCmds {
   DIV_CMD_FM_FMS2,
   DIV_CMD_FM_AMS2,
 
+  DIV_CMD_KLATTSCH_PHONEME,
+  DIV_CMD_KLATTSCH_TRANSITION,
+  DIV_CMD_KLATTSCH_FORMANT, // (formant 0-2, freq Hz)
+  DIV_CMD_KLATTSCH_AMP, // (formant 0-2, amplitude 0-255)
+  DIV_CMD_KLATTSCH_VOICING,
+  DIV_CMD_KLATTSCH_ASPIRATION,
+  DIV_CMD_KLATTSCH_TILT,
+  DIV_CMD_KLATTSCH_EFFORT,
+  DIV_CMD_KLATTSCH_VIBRATO, // (rate Hz << 4 | depth)
+  DIV_CMD_KLATTSCH_TREMOLO, // (rate Hz << 4 | depth)
+  DIV_CMD_KLATTSCH_GAIN,
+  DIV_CMD_KLATTSCH_BW_SCALE,
+  DIV_CMD_KLATTSCH_FORMANT_SHIFT,
+
   DIV_CMD_MAX
 };
+
+// These values are part of the unversioned FCS command stream format.
+static_assert(DIV_CMD_FDS_MOD_AUTO==0xb8,"legacy FCS command IDs changed");
+static_assert(DIV_CMD_FM_AMS2==0xe2,"legacy FCS command IDs changed");
+static_assert(DIV_CMD_KLATTSCH_PHONEME==0xe3,"Klattsch FCS command IDs changed");
 
 
 /**

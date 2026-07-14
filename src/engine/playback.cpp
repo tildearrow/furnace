@@ -325,7 +325,21 @@ const char* cmdName[]={
   "FM_FMS",
   "FM_AMS",
   "FM_FMS2",
-  "FM_AMS2"
+  "FM_AMS2",
+
+  "KLATTSCH_PHONEME",
+  "KLATTSCH_TRANSITION",
+  "KLATTSCH_FORMANT",
+  "KLATTSCH_AMP",
+  "KLATTSCH_VOICING",
+  "KLATTSCH_ASPIRATION",
+  "KLATTSCH_TILT",
+  "KLATTSCH_EFFORT",
+  "KLATTSCH_VIBRATO",
+  "KLATTSCH_TREMOLO",
+  "KLATTSCH_GAIN",
+  "KLATTSCH_BW_SCALE",
+  "KLATTSCH_FORMANT_SHIFT"
 };
 
 // fail build if you forgot to update the array

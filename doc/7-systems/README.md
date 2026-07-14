@@ -81,6 +81,7 @@ this is the full list of chips that Furnace supports.
 - [Bubble System WSG](bubblesystem.md)
 - [K007232](k007232.md)
 - [K053260](k056320.md)
+- [klattsch](klattsch.md)
 - [Lynx](lynx.md)
 - [MMC5](mmc5.md)
 - [MSM5232](msm5232.md)

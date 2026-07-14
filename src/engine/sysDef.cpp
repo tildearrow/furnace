@@ -2744,6 +2744,34 @@ void DivEngine::registerSystems() {
     namcoEffectHandlerMap
   );
 
+  sysDefs[DIV_SYSTEM_KLATTSCH]=new DivSysDef(
+    _("klattsch"), NULL, 0xe7, 0, 1, 1, 16,
+    false, true, 0, false, 0, 0, 0,
+    _("Klatt-style parallel-formant speech synthesizer."),
+    // Keep standard instruments as a secondary type for songs made before the
+    // dedicated Klattsch voice profile existed.
+    DivChanDefFunc(simpleChanDef<DIV_CH_NOISE,DIV_INS_KLATTSCH,DIV_INS_STD>),
+    {
+      {0x10, {DIV_CMD_KLATTSCH_PHONEME, _("10xx: Set phoneme (ARPABET index; type names directly in the pattern)")}},
+      {0x11, {DIV_CMD_KLATTSCH_TRANSITION, _("11xx: Set spectral transition time (ticks, sticky)")}},
+      {0x12, {DIV_CMD_KLATTSCH_FORMANT, _("12xx: Set F1 frequency (xx*10 Hz)"), constVal<0>, effectVal}},
+      {0x13, {DIV_CMD_KLATTSCH_FORMANT, _("13xx: Set F2 frequency (xx*16 Hz)"), constVal<1>, effectVal}},
+      {0x14, {DIV_CMD_KLATTSCH_FORMANT, _("14xx: Set F3 frequency (xx*16 Hz)"), constVal<2>, effectVal}},
+      {0x15, {DIV_CMD_KLATTSCH_AMP, _("15xx: Set F1 amplitude (00-FF)"), constVal<0>, effectVal}},
+      {0x16, {DIV_CMD_KLATTSCH_AMP, _("16xx: Set F2 amplitude (00-FF)"), constVal<1>, effectVal}},
+      {0x17, {DIV_CMD_KLATTSCH_AMP, _("17xx: Set F3 amplitude (00-FF)"), constVal<2>, effectVal}},
+      {0x18, {DIV_CMD_KLATTSCH_VOICING, _("18xx: Set voicing (00-FE; FF: instrument default; sticky)")}},
+      {0x19, {DIV_CMD_KLATTSCH_ASPIRATION, _("19xx: Set aspiration (00-FE; FF: instrument default; sticky)")}},
+      {0x1A, {DIV_CMD_KLATTSCH_TILT, _("1Axx: Set spectral tilt (signed; 00-7F: positive, 80-FE: negative; FF: instrument default; sticky)")}},
+      {0x1B, {DIV_CMD_KLATTSCH_EFFORT, _("1Bxx: Set glottal effort (00-FE; FF: instrument default; sticky)")}},
+      {0x1C, {DIV_CMD_KLATTSCH_VIBRATO, _("1Cxy: Vibrato (x: rate in Hz; y: depth, 4 Hz steps; sticky)")}},
+      {0x1D, {DIV_CMD_KLATTSCH_TREMOLO, _("1Dxy: Tremolo (x: rate in Hz; y: depth; sticky)")}},
+      {0x1E, {DIV_CMD_KLATTSCH_GAIN, _("1Exx: Set gain (01-FF: xx/16; 00: instrument default; sticky)")}},
+      {0x1F, {DIV_CMD_KLATTSCH_BW_SCALE, _("1Fxx: Formant bandwidth scale (01-FF: xx/64; 00: instrument default; sticky)")}},
+      {0x20, {DIV_CMD_KLATTSCH_FORMANT_SHIFT, _("20xx: Formant shift (01-FF: xx/64; 00: instrument default; sticky)")}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     _("Dummy System"), NULL, 0xfd, 0, 8, 1, 128,
     false, true, 0, false, 0, 0, 0,
