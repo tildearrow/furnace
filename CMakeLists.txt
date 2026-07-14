@@ -559,6 +559,15 @@ else()
   message(STATUS "Building without RtMidi")
 endif()
 
+# Preserve the envelope behavior of the Nuked-OPL3 revision that Furnace
+# previously vendored. Its later quad-output update already included the
+# immediate 4-op routing fix, so OPL_COMPAT_DEFERRED_4OP_ALG must remain off.
+set_property(
+  SOURCE extern/opl/opl3.c
+  APPEND PROPERTY COMPILE_DEFINITIONS
+  OPL_COMPAT_OLD_EG=1
+)
+
 set(ENGINE_SOURCES
 src/log.cpp
 src/baseutils.cpp
