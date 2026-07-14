@@ -2520,6 +2520,13 @@ void DivEngine::getPlayPosTick(int& order, int& row, int& tick, int& speed) {
   playPosLock.unlock();
 }
 
+int DivEngine::getPreviewSpeed() {
+  playPosLock.lock();
+  const int speed=(playing && !freelance)?prevSpeed:curSubSong->speeds.val[0];
+  playPosLock.unlock();
+  return speed;
+}
+
 int DivEngine::getElapsedBars() {
   return elapsedBars;
 }

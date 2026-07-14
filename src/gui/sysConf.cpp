@@ -22,6 +22,7 @@
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
+#include <klattsch/banks.hpp>
 
 bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
@@ -2436,6 +2437,27 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (altered) {
         e->lockSave([&]() {
           flags.set("oldSlides",oldSlides);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_KLATTSCH: {
+      supportsCustomRate=false;
+      String bankName=flags.getString("bank","ja-mokhtari-2000");
+
+      ImGui::TextUnformatted(_("Phoneme bank:"));
+      ImGui::Indent();
+      for (const std::string& b: klattsch::builtInBanks().list()) {
+        if (ImGui::RadioButton(b.c_str(),bankName==b.c_str())) {
+          bankName=b;
+          altered=true;
+        }
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("bank",bankName);
         });
       }
       break;

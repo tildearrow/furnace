@@ -2528,6 +2528,22 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   SelectionPoint undoSelStart, undoSelEnd, undoCursor;
+  struct PendingPhonemeEntry {
+    int chan=-1;
+    int ord=-1;
+    int row=-1;
+    int col=-1;
+    bool canCoalesce=false;
+    String buffer;
+  };
+  PendingPhonemeEntry pendingPhoneme;
+  struct KlattschCell {
+    DivPattern* pat=NULL;
+    int chan=-1;
+    int ord=-1;
+    int row=-1;
+    int col=-1;
+  };
   unsigned char curNibble;
   bool selecting, selectingFull, dragging, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
@@ -3316,6 +3332,9 @@ class FurnaceGUI {
   void noteInput(int num, int key, int vol=-1, int chanOff=0);
   void rawFreqInput(int num);
   void valueInput(int num, bool direct=false, int target=-1);
+  KlattschCell klattschCellAtCursor();
+  bool writeKlattschPhoneme(const KlattschCell& cell, int phonemeIndex, bool coalesce=false);
+  bool tryArpabetInput(int sdlKeysym);
   void orderInput(int num);
 
   void doGenerateWave();

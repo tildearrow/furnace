@@ -33,6 +33,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "plot_nolerp.h"
 #include "guiConst.h"
+#include "klattschInput.h"
 #include "intConst.h"
 #include "scaling.h"
 #include "introTune.h"
@@ -1526,6 +1527,153 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
   curNibble=0;
 }
 
+// return the klattsch phoneme cell under the cursor, if any.
+FurnaceGUI::KlattschCell FurnaceGUI::klattschCellAtCursor() {
+  KlattschCell cell;
+  const int ch=cursor.xCoarse;
+  const int col=cursor.xFine;
+
+  if (col<3 || ((col-3)&1)==0) return cell; // not an effect-value column
+  if (ch<0 || ch>=e->getTotalChannelCount()) return cell;
+  if (e->song.sysOfChan[ch]!=DIV_SYSTEM_KLATTSCH) return cell;
+
+  int ord=curOrder;
+  int row=cursor.y;
+  if (e->isPlaying() && !e->isStepping() && followPattern) {
+    e->getPlayPos(ord,row);
+  }
+  DivPattern* pat=e->curPat[ch].getPattern(e->curOrders->ord[ch][ord],true);
+  if (pat->newData[row][col-1]!=0x10) return cell; // not the phoneme effect
+
+  cell.pat=pat;
+  cell.chan=ch;
+  cell.ord=ord;
+  cell.row=row;
+  cell.col=col;
+  return cell;
+}
+
+bool FurnaceGUI::writeKlattschPhoneme(const KlattschCell& cell, int phonemeIndex, bool coalesce) {
+  const short newValue=phonemeIndex&0xff;
+  if (cell.pat->newData[cell.row][cell.col]==newValue) return false;
+  if (coalesce && !undoHist.empty() &&
+      pendingPhoneme.chan==cell.chan && pendingPhoneme.ord==cell.ord &&
+      pendingPhoneme.row==cell.row && pendingPhoneme.col==cell.col) {
+    UndoStep& step=undoHist.back();
+    if (step.type==GUI_UNDO_PATTERN_EDIT && step.pat.size()==1) {
+      UndoPatternData& edit=step.pat.front();
+      const int patIndex=e->curOrders->ord[cell.chan][cell.ord];
+      if (edit.subSong==(int)e->getCurrentSubSong() && edit.chan==cell.chan &&
+          edit.pat==patIndex && edit.row==cell.row && edit.col==cell.col &&
+          edit.newVal==cell.pat->newData[cell.row][cell.col]) {
+        cell.pat->newData[cell.row][cell.col]=newValue;
+        if (edit.oldVal==newValue) {
+          undoHist.pop_back();
+        } else {
+          edit.newVal=newValue;
+        }
+        return true;
+      }
+    }
+  }
+  prepareUndo(GUI_UNDO_PATTERN_EDIT);
+  cell.pat->newData[cell.row][cell.col]=newValue;
+  makeUndo(GUI_UNDO_PATTERN_EDIT);
+  return true;
+}
+
+// let letter keys enter ARPABET names in klattsch 10xx values.
+bool FurnaceGUI::tryArpabetInput(int sdlKeysym) {
+  KlattschCell cell=klattschCellAtCursor();
+  if (cell.pat==NULL) {
+    pendingPhoneme.buffer.clear();
+    return false;
+  }
+
+  char in;
+  if (sdlKeysym>='a' && sdlKeysym<='z') in=sdlKeysym-'a'+'A';
+  else if (sdlKeysym>='A' && sdlKeysym<='Z') in=sdlKeysym;
+  else if (sdlKeysym=='.') in='_';
+  else {
+    pendingPhoneme.buffer.clear();
+    return false;
+  }
+
+  if (!pendingPhoneme.buffer.empty() &&
+      (pendingPhoneme.chan!=cell.chan || pendingPhoneme.ord!=cell.ord ||
+       pendingPhoneme.row!=cell.row || pendingPhoneme.col!=cell.col)) {
+    pendingPhoneme.buffer.clear();
+  }
+
+  const String bank=e->song.systemFlags[e->song.dispatchOfChan[cell.chan]].getString("bank","ja-mokhtari-2000");
+
+  auto setPending=[&](const KlattschCell& c, const String& buf, bool canCoalesce) {
+    pendingPhoneme.chan=c.chan;
+    pendingPhoneme.ord=c.ord;
+    pendingPhoneme.row=c.row;
+    pendingPhoneme.col=c.col;
+    pendingPhoneme.canCoalesce=canCoalesce;
+    pendingPhoneme.buffer=buf;
+  };
+  auto commit=[&](const KlattschCell& target, int phonemeIndex) {
+    writeKlattschPhoneme(target,phonemeIndex,
+      !pendingPhoneme.buffer.empty() && pendingPhoneme.canCoalesce);
+    pendingPhoneme.buffer.clear();
+    curNibble=false;
+    if (!settings.effectCursorDir) {
+      editAdvance();
+    } else if (settings.effectCursorDir==2) {
+      if (++cursor.xFine>=(3+(e->curPat[target.chan].effectCols*2))) cursor.xFine=3;
+    } else {
+      if (cursor.xFine&1) cursor.xFine++;
+      else { editAdvance(); cursor.xFine--; }
+    }
+  };
+
+  String trial=pendingPhoneme.buffer;
+  trial+=in;
+  KlattschInput::MatchResult r=KlattschInput::match(bank.c_str(),trial.c_str());
+
+  if (r.kind==KlattschInput::MatchKind::Complete) {
+    commit(cell,r.phonemeIndex);
+    return true;
+  }
+  if (r.kind==KlattschInput::MatchKind::Pending || r.kind==KlattschInput::MatchKind::Ambiguous) {
+    // write an exact prefix now; a longer match can replace it.
+    bool canCoalesce=!pendingPhoneme.buffer.empty() && pendingPhoneme.canCoalesce;
+    if (r.kind==KlattschInput::MatchKind::Ambiguous) {
+      canCoalesce=writeKlattschPhoneme(cell,r.phonemeIndex,canCoalesce);
+    }
+    setPending(cell,trial,canCoalesce);
+    return true;
+  }
+
+  // commit the short match and retry this key in the next cell.
+  if (!pendingPhoneme.buffer.empty()) {
+    KlattschInput::MatchResult prior=KlattschInput::match(bank.c_str(),pendingPhoneme.buffer.c_str());
+    if (prior.kind==KlattschInput::MatchKind::Ambiguous || prior.kind==KlattschInput::MatchKind::Complete) {
+      commit(cell,prior.phonemeIndex);
+      String fresh(1,in);
+      KlattschInput::MatchResult again=KlattschInput::match(bank.c_str(),fresh.c_str());
+      KlattschCell next=klattschCellAtCursor();
+      if (next.pat!=NULL) {
+        if (again.kind==KlattschInput::MatchKind::Complete) {
+          commit(next,again.phonemeIndex);
+        } else if (again.kind==KlattschInput::MatchKind::Pending || again.kind==KlattschInput::MatchKind::Ambiguous) {
+          bool canCoalesce=false;
+          if (again.kind==KlattschInput::MatchKind::Ambiguous) {
+            canCoalesce=writeKlattschPhoneme(next,again.phonemeIndex);
+          }
+          setPending(next,fresh,canCoalesce);
+        }
+      }
+      return true;
+    }
+  }
+  pendingPhoneme.buffer.clear();
+  return true;
+}
+
 void FurnaceGUI::valueInput(int num, bool direct, int target) {
   int ch=cursor.xCoarse;
   int ord=curOrder;
@@ -1925,10 +2073,12 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               }
             }
           } else if (edit) { // value
-            auto it=valueKeys.find(ev.key.keysym.sym);
-            if (it!=valueKeys.cend()) {
-              int num=it->second;
-              valueInput(num);
+            if (curNibble || !tryArpabetInput(ev.key.keysym.sym)) {
+              auto it=valueKeys.find(ev.key.keysym.sym);
+              if (it!=valueKeys.cend()) {
+                int num=it->second;
+                valueInput(num);
+              }
             }
           }
         }

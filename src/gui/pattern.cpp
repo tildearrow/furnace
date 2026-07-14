@@ -26,6 +26,7 @@
 #include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
+#include "klattschInput.h"
 #include "../utfutils.h"
 #include <fmt/printf.h>
 
@@ -99,6 +100,14 @@ void FurnaceGUI::drawPattern() {
         selStart=cursor;
         selEnd=cursor;
       }
+    }
+  }
+  if (!pendingPhoneme.buffer.empty()) {
+    const KlattschCell activeCell=klattschCellAtCursor();
+    if (activeCell.pat==NULL ||
+        pendingPhoneme.chan!=activeCell.chan || pendingPhoneme.ord!=activeCell.ord ||
+        pendingPhoneme.row!=activeCell.row || pendingPhoneme.col!=activeCell.col) {
+      pendingPhoneme.buffer.clear();
     }
   }
   sel1=selStart;
@@ -1299,6 +1308,12 @@ void FurnaceGUI::drawPattern() {
         int chanVolMax=e->getMaxVolumeChan(i);
         if (chanVolMax<1) chanVolMax=1;
 
+        const klattsch::PhonemeBank* klBank=NULL;
+        if (e->song.sysOfChan[i]==DIV_SYSTEM_KLATTSCH) {
+          const String bankName=e->song.systemFlags[e->song.dispatchOfChan[i]].getString("bank","ja-mokhtari-2000");
+          klBank=&KlattschInput::resolveBank(bankName.c_str());
+        }
+
         const DivPattern* pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord&0xff],true);
 
         unsigned int maxFreq=e->getMaxFreqChan(i);
@@ -1446,7 +1461,20 @@ void FurnaceGUI::drawPattern() {
 
               // effect value
               pos.x+=effectCellSize.x;
-              if (pat->newData[row][indexVal]==-1) {
+              const bool isKlattschPhoneme=(
+                e->song.sysOfChan[i]==DIV_SYSTEM_KLATTSCH &&
+                pat->newData[row][index]==0x10
+              );
+              if (isKlattschPhoneme && !pendingPhoneme.buffer.empty() &&
+                  pendingPhoneme.chan==i && pendingPhoneme.ord==ord && pendingPhoneme.row==row &&
+                  pendingPhoneme.col==indexVal &&
+                  cursor.xCoarse==i && cursor.order==ord && cursor.y==row && cursor.xFine==indexVal) {
+                snprintf(id,63,"%-2.2s",pendingPhoneme.buffer.c_str());
+                dl->AddText(pos,effectColor,id,id+2);
+              } else if (isKlattschPhoneme && pat->newData[row][indexVal]!=-1) {
+                snprintf(id,63,"%-2.2s",KlattschInput::phonemeName(*klBank,pat->newData[row][indexVal]));
+                dl->AddText(pos,effectColor,id,id+2);
+              } else if (pat->newData[row][indexVal]==-1) {
                 dl->AddText(pos,effectColor,emptyLabel2,emptyLabel2+2);
               } else {
                 snprintf(id,63,"%.2X",pat->newData[row][indexVal]);
