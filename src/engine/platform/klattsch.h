@@ -68,7 +68,7 @@ class DivPlatformKlattsch: public DivDispatch {
     bool formantOverridden[3];
     float panL, panR;
     Channel(bool linear=true):
-      SharedChannel(15,linear),
+      SharedChannel(255,linear),
       queuedEvent{},
       queuedEventKind(QueuedEventKind::None),
       phonemeIndex(6),  // AH by default

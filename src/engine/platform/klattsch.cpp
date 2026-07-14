@@ -342,7 +342,7 @@ void DivPlatformKlattsch::acquire(short** buf, size_t len) {
     oscBuf[ch]->begin(len);
     if (chan[ch].synth) {
       chan[ch].synth->process(renderScratch.data(),len);
-      const float volScale=((float)chan[ch].outVol/15.0f)*KLATTSCH_OUT_SCALE;
+      const float volScale=((float)chan[ch].outVol/255.0f)*KLATTSCH_OUT_SCALE;
       const float pl=chan[ch].panL, pr=chan[ch].panR;
       for (size_t i=0; i<len; i++) {
         float s=renderScratch[i]*volScale;
@@ -365,7 +365,7 @@ void DivPlatformKlattsch::tick(bool sysTick) {
   for (int i=0; i<chans; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=(chan[i].vol*MIN(chan[i].std.vol.val,15))/15;
+      chan[i].outVol=(chan[i].vol*MIN(chan[i].std.vol.val,255))/255;
     }
     if (!chan[i].rawFreq) {
       if (NEW_ARP_STRAT) {
@@ -555,7 +555,7 @@ int DivPlatformKlattsch::dispatch(DivCommand c) {
       chan[c.chan].panR=(float)c.value2/255.0f;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 15;
+      return 255;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
