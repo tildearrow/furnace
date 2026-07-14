@@ -322,7 +322,7 @@ TAParamResult pVersion(String) {
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
   printf("- Nuked-OPM by nukeykt (LGPLv2.1)\n");
   printf("- Nuked-OPN2 by nukeykt (LGPLv2.1)\n");
-  printf("- Nuked-OPL3 by nukeykt (LGPLv2.1)\n");
+  printf("- Nuked-OPL3-fast by nukeykt and Tony Gies (LGPLv2.1)\n");
   printf("- Nuked-OPLL by nukeykt (GPLv2)\n");
   printf("- Nuked-PSG (modified version) by nukeykt (GPLv2)\n");
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
