@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.9...3.19)
 project(klattsch-cpp
   VERSION 0.1.0
   DESCRIPTION "Klatt-style parallel-formant speech synthesizer"
