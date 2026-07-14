@@ -195,6 +195,8 @@ divTick:
   mov divTempKeyOn, #0
   mov divTempKeyOff, #0
   ; TODO: macro processing loop here...
+  ; macro processing
+  ; CRAP
 
   ; frequency processing
   mov x, #0
@@ -943,10 +945,12 @@ divCalcBaseFreq:
 ; this implementation of DivMacroInt only supports 16-bit values.
 
 ; divTempPtr is the macro pointer.
+; divTempPtr2 is the new tick timer (if the callback isn't made).
 ; divMacroCallback is a callback on value.
-; the value will be on divTempPtr2 and divTempPtr3.
+; the value will be on YA.
+; bit 30 is enabled if carry is set.
 ; X is (chan<<1).
-; you must assume the tick timer is 1 after this!!!!!
+; if your callback is run, assume the tick timer is 0 (one tick).
 divRunMacro:
   mov y, #0
   mov a, [!divTempPtr]+y
@@ -954,8 +958,8 @@ divRunMacro:
   divMacroIsValue:
     ; FORTUNATELY... this instruction exists...
     incw divTempPtr
-    mov divTempPtr2, a
-    mov divTempPtr2+1, y
+    mov divTempPtr2, #0
+    clrc
     ; FILL THIS IN BEFORE CALLING!!!!!!!!!
     divMacroCallback:
     jmp !$0000
@@ -970,39 +974,58 @@ divMacroCmdU8:
   incw divTempPtr
   mov a, [!divTempPtr]+y
   incw divTempPtr
-  mov divTempPtr2, a
-  mov divTempPtr2+1, y
+  mov divTempPtr2, #0
+  clrc
   bra divMacroCallback
 
 ; $92
 divMacroCmdS8:
   pop x
+  mov divTempPtr2, #0
   incw divTempPtr
   mov a, [!divTempPtr]+y
   bmi @neg
   @pos:
     incw divTempPtr
-    mov divTempPtr2, a
-    mov divTempPtr2+1, y
+    clrc
     bra divMacroCallback
   @neg:
     incw divTempPtr
-    mov divTempPtr2, a
     dec y
-    mov divTempPtr2+1, y
+    clrc
     bra divMacroCallback
 
 ; $94
 divMacroCmdS16:
   pop x
+  mov divTempPtr2, #0
   incw divTempPtr
   mov a, [!divTempPtr]+y
-  mov divTempPtr2, a
+  push a
   incw divTempPtr
   mov a, [!divTempPtr]+y
   incw divTempPtr
-  mov divTempPtr2+1, a
+  mov y, a
+  pop a
+  clrc
   bra divMacroCallback
+
+; $98
+divMacroCmdS8Bit30:
+  pop x
+  mov divTempPtr2, #0
+  incw divTempPtr
+  mov a, [!divTempPtr]+y
+  bmi @neg
+  @pos:
+    incw divTempPtr
+    setc
+    bra divMacroCallback
+  @neg:
+    incw divTempPtr
+    dec y
+    setc
+    bra divMacroCallback
 
 ; $96 - what the hell. I am not implementing this one.
 divMacroCmdS32:
@@ -1013,6 +1036,7 @@ divMacroCmdStop:
   pop x
   mov divTempPtr, #$80
   mov divTempPtr+1, #0
+  mov divTempPtr2, #0
   ret
 
 ; $82
@@ -1048,6 +1072,7 @@ divMacroCmdWaitRel:
   mov a, !divChanSNESFlags+x
   and a, #$10
   bne @hasReleased
+  mov divTempPtr2, #0
   ret
   @hasReleased:
     incw divTempPtr
@@ -1055,10 +1080,106 @@ divMacroCmdWaitRel:
 
 ; $88-$8e
 divMacroCmdNotImpl:
+  pop x
   ret
 
+; $a0-$be
+divMacroCmdWaitLow:
+  pop x
+  incw divTempPtr
+  and a, #$1e
+  lsr a
+  dec a
+  mov divTempPtr2, a
+  ret
+
+; $c0-$de
+divMacroCmdWaitHigh:
+  pop x
+  incw divTempPtr
+  and a, #$1e
+  asl a
+  asl a
+  asl a
+  dec a
+  mov divTempPtr2, a
+  ret
+
+; could be optimized...
 divMacroCmdTable:
   .dw divMacroCmdStop
+  .dw divMacroCmdJump
+  .dw divMacroCmdJumpNoRel
+  .dw divMacroCmdWaitRel
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdU8
+  .dw divMacroCmdS8
+  .dw divMacroCmdS16
+  .dw divMacroCmdS32
+  .dw divMacroCmdS8Bit30
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdNotImpl
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitLow
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+  .dw divMacroCmdWaitHigh
+
+;;;; ---- MACRO HANDLERS ---- ;;;;
+
+divMacroVol:
+  ; volume macro - linear volume scale
+  mov y, a
+  mov a, !divChanVol+x
+  asl a
+  mul ya
+  ; rounding
+  and a, #$ff ; test A
+  beq +
+  inc y
++ mov a, y
+  mov !divChanOutVol+x, a
+  ret
+
+divMacroArp:
+  ret
+
+divMacroDuty:
+  ret
+
+divMacroPitch:
+  ret
 
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
 
