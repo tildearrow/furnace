@@ -138,9 +138,13 @@ const char* aboutLine[]={
   _N("RtMidi by Gary P. Scavone"),
   _N("FFTW by Matteo Frigo and Steven G. Johnson"),
   _N("backward-cpp by Google"),
+#ifdef WITH_JSON
+  _N("JSON for Modern C++ by Niels Lohmann"),
+#endif
   _N("adpcm by superctr"),
   _N("adpcm-xq by David Bryant"),
-  _N("Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"),
+  _N("Nuked-OPL3-fast by nukeykt and Tony Gies"),
+  _N("Nuked-OPLL/OPM/OPN2/PSG by nukeykt"),
   _N("YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"),
   _N("ESFMu (modified version) by Kagamiin~"),
   _N("ymfm by Aaron Giles"),

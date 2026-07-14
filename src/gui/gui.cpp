@@ -2329,6 +2329,39 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+#ifdef WITH_JSON
+    case GUI_FILE_EXPORT_JSON: {
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      String dialogHeader;
+      String filter;
+      String filterExt;
+      switch (jsonExportOptions.format) {
+        case DivJSONExportOptions::EXPORT_JSON:
+          dialogHeader=_("Export JSON data");
+          filter=_("JSON file");
+          filterExt="*.json";
+          break;
+        case DivJSONExportOptions::EXPORT_BSON:
+          dialogHeader=_("Export BSON data");
+          filter=_("BSON file");
+          filterExt="*.bson";
+          break;
+        case DivJSONExportOptions::EXPORT_CBOR:
+          dialogHeader=_("Export CBOR data");
+          filter=_("CBOR file");
+          filterExt="*.cbor";
+          break;
+      }
+      hasOpened=fileDialog->openSave(
+        dialogHeader,
+        {filter,filterExt},
+        workingDirROMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
+    }
+#endif
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -5170,6 +5203,12 @@ bool FurnaceGUI::loop() {
             drawExportText();
             ImGui::EndMenu();
           }
+#ifdef WITH_JSON
+          if (ImGui::BeginMenu(_("export JSON..."))) {
+            drawExportJSON();
+            ImGui::EndMenu();
+          }
+#endif
           if (ImGui::BeginMenu(_("export command stream..."))) {
             drawExportCommand();
             ImGui::EndMenu();
@@ -5823,6 +5862,9 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
+#ifdef WITH_JSON
+        case GUI_FILE_EXPORT_JSON:
+#endif
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_DOUGH_ASM:
         case GUI_FILE_EXPORT_DOUGH_BIN:
@@ -5935,6 +5977,24 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_DOUGH_ASM) {
             checkExtension(".s");
           }
+#ifdef WITH_JSON
+          if (curFileDialog==GUI_FILE_EXPORT_JSON) {
+            switch (jsonExportOptions.format) {
+              case DivJSONExportOptions::EXPORT_JSON: {
+                checkExtension(".json");
+                break;
+              }
+              case DivJSONExportOptions::EXPORT_BSON: {
+                checkExtension(".bson");
+                break;
+              }
+              case DivJSONExportOptions::EXPORT_CBOR: {
+                checkExtension(".cbor");
+                break;
+              }
+            }
+          }
+#endif
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
               curFileDialog==GUI_FILE_EXPORT_DOUGH_BIN) {
             checkExtension(".bin");
@@ -6480,6 +6540,29 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+#ifdef WITH_JSON
+            case GUI_FILE_EXPORT_JSON: {
+              SafeWriter* w=e->saveJSON(&jsonExportOptions);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf(_("could not write JSON data! (%s)"),e->getLastError()));
+              }
+              break;
+            }
+#endif
             case GUI_FILE_EXPORT_CMDSTREAM: {
               exportCmdStream(false,copyOfName);
               break;
