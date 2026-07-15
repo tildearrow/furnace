@@ -1052,7 +1052,7 @@ int DivPlatformESFM::getRegisterPoolSize() {
 void DivPlatformESFM::reset() {
   while (!writes.empty()) writes.pop();
 
-  ESFM_init(&chip);
+  ESFM_init(&chip,isFast);
   // set chip to native mode
   ESFM_write_reg(&chip, 0x105, 0x80);
   // ensure NTS bit in register 0x408 is reset, for smooth envelope rate scaling
