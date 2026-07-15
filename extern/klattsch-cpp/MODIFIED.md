@@ -13,4 +13,6 @@ furnace build.
 missing from this klattsch-cpp revision, has been added to the compiled phoneme
 banks and registry. the text compiler is now optional in CMake so Furnace can
 omit code it does not use; standalone builds still include it by default. the
-synthesizer and text compiler source are otherwise unmodified.
+CMake compatibility range has been lowered to 3.5...3.19, with the project
+description omitted because that argument requires CMake 3.9. the synthesizer
+and text compiler source are otherwise unmodified.
