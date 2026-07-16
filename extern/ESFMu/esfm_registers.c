@@ -1109,5 +1109,5 @@ ESFM_init_with_rev (esfm_chip *chip, esfm_revision rev, uint8_t fast)
 void ESFM_init (esfm_chip *chip, uint8_t fast)
 {
 	// Init chip with default revision
-	return ESFM_init_with_rev(chip, ESFM_REV_ES16XX_ES17XX_ES1868, fast);
+	ESFM_init_with_rev(chip, ESFM_REV_ES16XX_ES17XX_ES1868, fast);
 }
