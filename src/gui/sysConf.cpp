@@ -2807,6 +2807,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_ESFM: {
       supportsCustomRate=false;
+      /*
       int revision=flags.getInt("revision",0);
 
       ImGui::Text("Chip revision:");
@@ -2826,7 +2827,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("revision",revision);
         });
-      }
+      }*/
       break;
     }
     case DIV_SYSTEM_BUBSYS_WSG:
