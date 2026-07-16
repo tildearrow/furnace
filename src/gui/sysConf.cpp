@@ -2805,6 +2805,30 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_ESFM: {
+      supportsCustomRate=false;
+      int revision=flags.getInt("revision",0);
+
+      ImGui::Text("Chip revision:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("ES16xx/ES17xx/ES1868",revision==0)) {
+        revision=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("ES1869/ES19XX/ESS Solo (broken clipping - DO NOT USE!!!!!)",revision==1)) {
+        revision=1;
+        altered=true;
+      }
+      ImGui::SetItemTooltip("unless you want your ears to bleed.");
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("revision",revision);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:
@@ -2816,7 +2840,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_MULTIPCM:
       break;
     case DIV_SYSTEM_YMU759:
-    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text(_("nothing to configure"));
       break;
