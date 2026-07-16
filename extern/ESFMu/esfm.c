@@ -1197,7 +1197,11 @@ ESFM_envelope_wavegen(uint3 waveform, int16 phase, uint10 envelope)
 }
 
 /* ------------------------------------------------------------------------- */
+#ifndef _MSC_VER
 static __attribute__((always_inline)) inline void
+#else
+static inline void
+#endif
 ESFM_envelope_calc_inner(esfm_slot *slot, const bool native)
 {
 	uint8 nonzero;
