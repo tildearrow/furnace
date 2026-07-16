@@ -35,10 +35,12 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
+      unsigned char tlRamp;
       Channel(bool linear=true):
         FMChannel(linear),
         chVolL(1),
-        chVolR(1) {}
+        chVolR(1),
+        tlRamp(0) {}
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
@@ -51,6 +53,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     DivArcadeInterface iface;
 
     bool useYMFM;
+    unsigned char chipType;
 
     bool isMuted[8];
 

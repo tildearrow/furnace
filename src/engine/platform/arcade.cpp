@@ -822,6 +822,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
+      // OPP only
+      if (chipType!=1) break;
+      chan[c.chan].tlRamp=c.value;
+      immWrite(c.chan,chan[c.chan].tlRamp);
+      break;
     case DIV_CMD_FM_OPMASK:
       switch (c.value>>4) {
         case 1:
@@ -910,6 +916,7 @@ void DivPlatformArcade::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
+    if (chipType==1) immWrite(i,chan[i].tlRamp);
   }
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
@@ -972,7 +979,7 @@ void DivPlatformArcade::reset() {
     fm_ymfm->reset();
   } else {
     memset(&fm,0,sizeof(opm_t));
-    OPM_Reset(&fm);
+    OPM_Reset(&fm,chipType?opm_flags_ym2164:0);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -1003,6 +1010,8 @@ void DivPlatformArcade::reset() {
 }
 
 void DivPlatformArcade::setFlags(const DivConfig& flags) {
+  chipType=flags.getInt("chipType",0);
+
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
