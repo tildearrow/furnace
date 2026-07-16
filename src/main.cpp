@@ -351,9 +351,9 @@ TAParamResult pVersion(String) {
   printf("- VERA core by Frank van den Hoef (BSD 2-clause)\n");
   printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
-  printf("- Mednafen PCE, WonderSwan and Virtual Boy by Mednafen Team (GPLv2)\n");
+  printf("- Mednafen PCE and Virtual Boy by Mednafen Team (GPLv2)\n");
   printf("- Mednafen T6W28 (modified version) by Blargg (GPLv2)\n");
-  printf("- WonderSwan new core by asiekierka (zlib license)\n");
+  printf("- WonderSwan core by asiekierka (zlib license)\n");
   printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
   printf("- puNES (modified version) by FHorse (GPLv2)\n");
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
