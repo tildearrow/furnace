@@ -56,6 +56,9 @@
 #include <string.h>
 #include <stdbool.h>
 
+extern int16_t ESFM_clip_sample(int32 sample);
+extern int16_t ESFM_overflow_clip_sample(int32 sample);
+extern void ESFM_lfsr_jump_init(void);
 
 /*
  * Table of KSL values extracted from OPL3 ROM; taken straight from Nuked OPL3
@@ -66,6 +69,32 @@
 static const int16 kslrom[16] = {
 	0, 32, 40, 45, 48, 51, 53, 55, 56, 58, 59, 60, 61, 62, 63, 64
 };
+
+/*
+ * Copies of esfm.c kslshift and mt tables, used for cache refresh
+ */
+static const uint8_t kslshift_regs[4] = {
+	8, 1, 2, 0
+};
+
+static const uint8_t mt_regs[16] = {
+	1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30
+};
+
+/*
+ * Refreshes the esfm_slot write-time caches (pg_inc, eg_tl_ksl, eg_ks) from
+ * the slot's register fields. Must be called whenever f_num, block, mult,
+ * t_level, ksl, ksr, in.eg_ksl_offset or in.keyscale change.
+ */
+static void
+ESFM_slot_refresh_caches(esfm_slot *slot)
+{
+	uint32 basefreq = ((uint32)slot->f_num << slot->block) >> 1;
+	slot->pg_inc = (basefreq * mt_regs[slot->mult]) >> 1;
+	slot->eg_tl_ksl = (slot->t_level << 2)
+		+ (slot->in.eg_ksl_offset >> kslshift_regs[slot->ksl]);
+	slot->eg_ks = slot->in.keyscale >> ((!slot->ksr) << 1);
+}
 
 /*
  * This maps the low 5 bits of emulation mode address to an emulation mode
@@ -101,6 +130,37 @@ static const int emu_4op_secondary_to_primary[18] =
 	-1, -1, -1, 0,  1,  2, -1, -1, -1,
 	-1, -1, -1, 9, 10, 11, -1, -1, -1
 };
+
+/* ------------------------------------------------------------------------- */
+/* Emulation slots share their channel's frequency, and a 4-op secondary uses
+ * its primary's frequency. Keep these increments separate from pg_inc so mode
+ * switches do not overwrite the native per-slot cache. */
+static void
+ESFM_emu_channel_update_phase_caches(esfm_channel *channel)
+{
+	esfm_channel *frequency_channel = channel;
+	int primary_idx = emu_4op_secondary_to_primary[channel->channel_idx];
+	uint32 basefreq;
+	int slot_idx;
+
+	if (primary_idx >= 0)
+	{
+		esfm_channel *primary = &channel->chip->channels[primary_idx];
+		if (primary->emu_mode_4op_enable)
+		{
+			frequency_channel = primary;
+		}
+	}
+
+	basefreq = ((uint32)frequency_channel->slots[0].f_num
+		<< frequency_channel->slots[0].block) >> 1;
+	for (slot_idx = 0; slot_idx < 2; slot_idx++)
+	{
+		esfm_slot *slot = &channel->slots[slot_idx];
+		channel->chip->emu_pg_inc[channel->channel_idx][slot_idx]
+			= (basefreq * mt_regs[slot->mult]) >> 1;
+	}
+}
 
 /*
  * This encodes the operator outputs to be enabled or disabled for
@@ -225,6 +285,7 @@ ESFM_native_to_emu_switch(esfm_chip *chip)
 	for (channel_idx = 0; channel_idx < 18; channel_idx++)
 	{
 		ESFM_emu_rearrange_connections(&chip->channels[channel_idx]);
+		ESFM_emu_channel_update_phase_caches(&chip->channels[channel_idx]);
 	}
 }
 
@@ -234,6 +295,9 @@ ESFM_slot_update_keyscale(esfm_slot *slot)
 {
 	if (slot->slot_idx > 0 && !slot->chip->native_mode)
 	{
+		// the caller may still have changed cache inputs (t_level, ksl,
+		// f_num, block, mult)
+		ESFM_slot_refresh_caches(slot);
 		return;
 	}
 
@@ -245,6 +309,7 @@ ESFM_slot_update_keyscale(esfm_slot *slot)
 	slot->in.eg_ksl_offset = ksl;
 	slot->in.keyscale = (slot->block << 1)
 		| ((slot->f_num >> (8 + !slot->chip->keyscale_mode)) & 0x01);
+	ESFM_slot_refresh_caches(slot);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -267,6 +332,7 @@ ESFM_emu_channel_update_keyscale(esfm_channel *channel)
 	ESFM_slot_update_keyscale(&channel->slots[0]);
 	channel->slots[1].in.eg_ksl_offset = channel->slots[0].in.eg_ksl_offset;
 	channel->slots[1].in.keyscale = channel->slots[0].in.keyscale;
+	ESFM_slot_refresh_caches(&channel->slots[1]);
 
 	if (channel->emu_mode_4op_enable && (channel->channel_idx % 9) < 3 && channel->chip->emu_newmode)
 	{
@@ -279,7 +345,15 @@ ESFM_emu_channel_update_keyscale(esfm_channel *channel)
 		{
 			secondary->slots[i].in.eg_ksl_offset = channel->slots[0].in.eg_ksl_offset;
 			secondary->slots[i].in.keyscale = channel->slots[0].in.keyscale;
+			ESFM_slot_refresh_caches(&secondary->slots[i]);
 		}
+	}
+
+	ESFM_emu_channel_update_phase_caches(channel);
+	if (channel->emu_mode_4op_enable && (channel->channel_idx % 9) < 3)
+	{
+		ESFM_emu_channel_update_phase_caches(
+			&channel->chip->channels[channel->channel_idx + 3]);
 	}
 }
 
@@ -346,6 +420,7 @@ ESFM_slot_write (esfm_slot *slot, uint8_t register_idx, uint8_t data)
 		slot->env_sustaining = (data & 0x20) != 0;
 		slot->ksr = (data & 0x10) != 0;
 		slot->mult = data & 0x0f;
+		ESFM_slot_refresh_caches(slot);
 		break;
 	case 0x01:
 		slot->ksl = data >> 6;
@@ -388,6 +463,12 @@ ESFM_slot_write (esfm_slot *slot, uint8_t register_idx, uint8_t data)
 		slot->emu_connection_typ = data & 0x01;
 		break;
 	case 0x07:
+		if (slot->slot_idx == 3)
+		{
+			slot->chip->rhy_noise_slot3_count = (uint8)
+				(slot->chip->rhy_noise_slot3_count
+				 - (slot->rhy_noise != 0) + (((data >> 3) & 0x03) != 0));
+		}
 		slot->output_level = data >> 5;
 		slot->rhy_noise = (data >> 3) & 0x03;
 		slot->waveform = data & 0x07;
@@ -453,21 +534,24 @@ ESFM_write_reg_native (esfm_chip *chip, uint16_t address, uint8_t data)
 		{
 		case TIMER1_REG:
 			chip->timer_reload[0] = data;
+			chip->timer_counter[0] = data;
 			break;
 		case TIMER2_REG:
 			chip->timer_reload[1] = data;
+			chip->timer_counter[1] = data;
 			break;
 		case TIMER_SETUP_REG:
 			if (data & 0x80)
 			{
+				chip->irq_bit = 0;
 				chip->timer_overflow[0] = 0;
 				chip->timer_overflow[1] = 0;
-				chip->irq_bit = 0;
+				break;
 			}
 			chip->timer_enable[0] = (data & 0x01) != 0;
 			chip->timer_enable[1] = (data & 0x02) != 0;
-			chip->timer_mask[0] = (data & 0x20) != 0;
-			chip->timer_mask[1] = (data & 0x40) != 0;
+			chip->timer_mask[1] = (data & 0x20) != 0;
+			chip->timer_mask[0] = (data & 0x40) != 0;
 			break;
 		case CONFIG_REG:
 			chip->keyscale_mode = (data & 0x40) != 0;
@@ -485,10 +569,14 @@ ESFM_write_reg_native (esfm_chip *chip, uint16_t address, uint8_t data)
 			}
 			break;
 		case TEST_REG:
-			chip->test_bit_eg_halt = (data & 0x01) | ((data & 0x20) != 0);
-			chip->test_bit_distort = (data & 0x02) != 0;
-			chip->test_bit_attenuate = (data & 0x10) != 0;
-			chip->test_bit_phase_stop_reset = (data & 0x40) != 0;
+			chip->test_bit_w0_r5_eg_halt = (data & 0x01) | ((data & 0x20) != 0);
+			chip->test_bit_1_distort = (data & 0x02) != 0;
+			chip->test_bit_2 = (data & 0x04) != 0;
+			chip->test_bit_3 = (data & 0x08) != 0;
+			chip->test_bit_4_attenuate = (data & 0x10) != 0;
+			chip->test_bit_w5_r0 = (data & 0x20) != 0;
+			chip->test_bit_6_phase_stop_reset = (data & 0x40) != 0;
+			chip->test_bit_7 = (data & 0x80) != 0;
 			break;
 		}
 	}
@@ -543,16 +631,16 @@ ESFM_readback_reg_native (esfm_chip *chip, uint16_t address)
 		switch (address & 0x5ff)
 		{
 		case TIMER1_REG:
-			data = chip->timer_reload[0];
+			data = chip->timer_counter[0];
 			break;
 		case TIMER2_REG:
-			data = chip->timer_reload[1];
+			data = chip->timer_counter[1];
 			break;
 		case TIMER_SETUP_REG:
 			data |= chip->timer_enable[0] != 0;
 			data |= (chip->timer_enable[1] != 0) << 1;
-			data |= (chip->timer_mask[0] != 0) << 5;
-			data |= (chip->timer_mask[1] != 0) << 6;
+			data |= (chip->timer_mask[1] != 0) << 5;
+			data |= (chip->timer_mask[0] != 0) << 6;
 			break;
 		case CONFIG_REG:
 			data |= (chip->keyscale_mode != 0) << 6;
@@ -563,11 +651,14 @@ ESFM_readback_reg_native (esfm_chip *chip, uint16_t address)
 			data |= chip->emu_tremolo_deep << 7;
 			break;
 		case TEST_REG:
-			data |= chip->test_bit_eg_halt != 0;
-			data |= (chip->test_bit_distort != 0) << 1;
-			data |= (chip->test_bit_attenuate != 0) << 4;
-			data |= (chip->test_bit_eg_halt != 0) << 5;
-			data |= (chip->test_bit_phase_stop_reset != 0) << 6;
+			data |= chip->test_bit_w5_r0 != 0;
+			data |= (chip->test_bit_1_distort != 0) << 1;
+			data |= (chip->test_bit_2 != 0) << 2;
+			data |= (chip->test_bit_3 != 0) << 3;
+			data |= (chip->test_bit_4_attenuate != 0) << 4;
+			data |= (chip->test_bit_w0_r5_eg_halt != 0) << 5;
+			data |= (chip->test_bit_6_phase_stop_reset != 0) << 6;
+			data |= (chip->test_bit_7 != 0) << 7;
 			break;
 		case FOUROP_CONN_REG:
 			for (i = 0; i < 3; i++)
@@ -577,6 +668,7 @@ ESFM_readback_reg_native (esfm_chip *chip, uint16_t address)
 			}
 			break;
 		case NATIVE_MODE_REG:
+			data |= (chip->emu_newmode != 0);
 			data |= (chip->native_mode != 0) << 7;
 			break;
 		}
@@ -639,9 +731,11 @@ ESFM_write_reg_emu (esfm_chip *chip, uint16_t address, uint8_t data)
 				break;
 			case 0x02:
 				chip->timer_reload[0] = data;
+				chip->timer_counter[0] = data;
 				break;
 			case 0x03:
 				chip->timer_reload[1] = data;
+				chip->timer_counter[1] = data;
 				break;
 			case 0x04:
 				for (i = 0; i < 3; i++)
@@ -653,6 +747,8 @@ ESFM_write_reg_emu (esfm_chip *chip, uint16_t address, uint8_t data)
 				{
 					ESFM_emu_rearrange_connections(&chip->channels[i]);
 					ESFM_emu_rearrange_connections(&chip->channels[i + 9]);
+					ESFM_emu_channel_update_phase_caches(&chip->channels[i]);
+					ESFM_emu_channel_update_phase_caches(&chip->channels[i + 9]);
 				}
 				break;
 			case 0x05:
@@ -677,19 +773,24 @@ ESFM_write_reg_emu (esfm_chip *chip, uint16_t address, uint8_t data)
 				break;
 			case 0x02:
 				chip->timer_reload[0] = data;
+				chip->timer_counter[0] = data;
 				break;
 			case 0x03:
 				chip->timer_reload[1] = data;
+				chip->timer_counter[1] = data;
 				break;
 			case 0x04:
-				chip->timer_enable[0] = data & 0x01;
-				chip->timer_enable[1] = (data & 0x02) != 0;
-				chip->timer_mask[0] = (data & 0x20) != 0;
-				chip->timer_mask[1] = (data & 0x40) != 0;
 				if (data & 0x80)
 				{
 					chip->irq_bit = 0;
+					chip->timer_overflow[0] = 0;
+					chip->timer_overflow[1] = 0;
+					break;
 				}
+				chip->timer_enable[0] = data & 0x01;
+				chip->timer_enable[1] = (data & 0x02) != 0;
+				chip->timer_mask[1] = (data & 0x20) != 0;
+				chip->timer_mask[0] = (data & 0x40) != 0;
 				break;
 			case 0x08:
 				chip->keyscale_mode = (data & 0x40) != 0;
@@ -701,6 +802,7 @@ ESFM_write_reg_emu (esfm_chip *chip, uint16_t address, uint8_t data)
 		if (emu_slot_idx >= 0)
 		{
 			ESFM_slot_write(&chip->channels[natv_chan_idx].slots[natv_slot_idx], 0x0, data);
+			ESFM_emu_channel_update_phase_caches(&chip->channels[natv_chan_idx]);
 		}
 		break;
 	case 0x40: case 0x50:
@@ -850,6 +952,7 @@ ESFM_write_port (esfm_chip *chip, uint8_t offset, uint8_t data)
 		case 0:
 			chip->native_mode = 0;
 			ESFM_native_to_emu_switch(chip);
+			// TODO: verify if the address write goes through
 			chip->addr_latch = data;
 			break;
 		case 1:
@@ -886,43 +989,30 @@ uint8_t
 ESFM_read_port (esfm_chip *chip, uint8_t offset)
 {
 	uint8_t data = 0;
-	if (chip->native_mode)
+
+	switch(offset)
 	{
-		switch(offset)
+	case 0:
+		data |= (chip->irq_bit != 0) << 7;
+		data |= (chip->timer_overflow[0] != 0) << 6;
+		data |= (chip->timer_overflow[1] != 0) << 5;
+		break;
+	case 1:
+		if (chip->native_mode)
 		{
-		case 0:
-			// TODO: actually implement timer count, trigger and reset
-			data |= (chip->irq_bit != 0) << 7;
-			data |= (chip->timer_overflow[0] != 0) << 6;
-			data |= (chip->timer_overflow[1] != 0) << 5;
-			break;
-		case 1:
 			data = ESFM_readback_reg_native(chip, chip->addr_latch);
-			break;
-		// TODO: verify what the ESFM chip actually returns when reading
-		// from the other address ports
 		}
-	}
-	else
-	{
-		switch(offset)
+		else
 		{
-		case 0:
-			data |= (chip->irq_bit != 0) << 7;
-			data |= (chip->timer_overflow[0] != 0) << 6;
-			data |= (chip->timer_overflow[1] != 0) << 5;
-			break;
-		case 1:
 			data = 0;
-			break;
-		case 2: case 3:
-			// This matches OPL3 behavior.
-			// TODO: verify what the ESFM chip actually returns when reading
-			// from address ports in emulation mode
-			data = 0xff;
-			break;
 		}
+		break;
+	case 2: case 3:
+		// This matches OPL3 behavior.
+		data = 0xff;
+		break;
 	}
+
 	return data;
 }
 
@@ -948,13 +1038,25 @@ ESFM_set_mode (esfm_chip *chip, bool native_mode)
 
 /* ------------------------------------------------------------------------- */
 void
-ESFM_init (esfm_chip *chip, uint8_t fast)
+ESFM_init_with_rev (esfm_chip *chip, esfm_revision rev, uint8_t fast)
 {
 	esfm_slot *slot;
 	esfm_channel *channel;
 	size_t channel_idx, slot_idx;
 
 	memset(chip, 0, sizeof(esfm_chip));
+	ESFM_lfsr_jump_init();
+	
+	if (rev < 0 || rev >= NUM_ESFM_REVISIONS)
+	{
+		// If the rev argument is invalid, fallback to the older chip revisions
+		chip->rev = ESFM_REV_ES16XX_ES17XX_ES1868;
+	}
+	else
+	{
+		chip->rev = rev;
+	}
+
 	for (channel_idx = 0; channel_idx < 18; channel_idx++)
 	{
 		for (slot_idx = 0; slot_idx < 4; slot_idx++)
@@ -995,10 +1097,17 @@ ESFM_init (esfm_chip *chip, uint8_t fast)
 			}
 
 			slot->out_enable[0] = slot->out_enable[1] = ~((int13) 0);
+			ESFM_slot_refresh_caches(slot);
 		}
 	}
 
 	chip->lfsr = 1;
+	// tildearrow: "fast" mode
 	chip->fast_mode = fast;
 }
 
+void ESFM_init (esfm_chip *chip, uint8_t fast)
+{
+	// Init chip with default revision
+	return ESFM_init_with_rev(chip, ESFM_REV_ES16XX_ES17XX_ES1868, fast);
+}

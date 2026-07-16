@@ -1948,7 +1948,7 @@ ESFM_process_feedback(esfm_chip *chip)
 		{
 			int32_t phase_feedback = (slot->in.fb_out0 + slot->in.fb_out1) >> 2;
 			slot->in.fb_out1 = slot->in.fb_out0;
-			uint32_t phase = phase_feedback >> (7 - slot->mod_in_level);
+			uint32_t phase = phase_feedback >> mod_in_shift;
 			phase += (uint32_t)(slot->in.phase_acc - slot->pg_inc * 28) >> 9;
 			slot->in.fb_out0 = ESFM_envelope_wavegen(waveform, phase, slot->in.eg_output);
 
