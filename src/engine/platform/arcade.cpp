@@ -22,6 +22,7 @@
 #include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
 
 const char* regCheatSheetOPM[]={
   "Test", "00",
@@ -160,8 +161,68 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
       lastSH2=fm_lle.o_sh2;
       lastSY=fm_lle.o_sy;
 
+      if (delay>0) {
+        delay--;
+        fm_lle.input.cs=0;
+        fm_lle.input.wr=1;
+        fm_lle.input.rd=0;
+        fm_lle.input.a0=1;
+      } else
+      if (isWaiting) {
+        fm_lle.input.cs=0;
+        fm_lle.input.wr=1;
+        fm_lle.input.rd=0;
+        fm_lle.input.a0=1;
+        isWaiting=2;
+      } else {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addrOrVal) {
+            regPool[w.addr&0xff]=w.val;
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+            logV("val: %x",w.val);
+            writes.pop();
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr;
+            logV("addr: %x",w.addr);
+            w.addrOrVal=true;
+          }
+          delay=20;
+
+          isWaiting=1;
+        } else {
+          fm_lle.input.cs=1;
+          fm_lle.input.rd=1;
+          fm_lle.input.wr=1;
+        }
+      }
+
       FMOPM_Clock(&fm_lle,1);
       FMOPM_Clock(&fm_lle,0);
+
+      if (!fm_lle.o_data_z) {
+        logV("%x %d %d",fm_lle.o_data,fm_lle.busy_cnt[0],fm_lle.busy_cnt[1]);
+        // temporary
+        usleep(20000);
+      } else {
+        logV("ZZ - %x %d %d",fm_lle.o_data,fm_lle.busy_cnt[0],fm_lle.busy_cnt[1]);
+      }
+
+      if (delay<=0 && isWaiting==2) {
+        if (!(fm_lle.o_data&0x80)) {
+          logV("wait over");
+          isWaiting=0;
+        }
+      }
 
       if (fm_lle.o_sy && !lastSY) {
         dacVal>>=1;
@@ -1032,7 +1093,10 @@ void DivPlatformArcade::reset() {
 
       // TODO: perform LLE reset
       fm_lle.input.ic=0;
-      for (int i=0; i<400; i++) {
+      fm_lle.input.rd=1;
+      fm_lle.input.wr=1;
+      fm_lle.input.cs=1;
+      for (int i=0; i<1200; i++) {
         FMOPM_Clock(&fm_lle,1);
         FMOPM_Clock(&fm_lle,0);
       }
@@ -1058,6 +1122,7 @@ void DivPlatformArcade::reset() {
   lastSH1=false;
   lastSH2=false;
   lastSY=false;
+  isWaiting=1;
 
   lastBusy=60;
   delay=0;

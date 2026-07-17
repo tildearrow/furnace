@@ -60,6 +60,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     unsigned int dacVal;
     int dacOut1;
     int dacOut2;
+    unsigned char isWaiting;
 
     int selCore;
     unsigned char chipType;
