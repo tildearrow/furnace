@@ -636,6 +636,7 @@ extern/emu2413/emu2413.c
 extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
+extern/YM2151-LLE/fmopm.c
 
 extern/pwrnoise/pwrnoise.c
 

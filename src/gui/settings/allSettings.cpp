@@ -89,7 +89,8 @@ static const char* specificControls[18]={
 
 static const char* arcadeCores[]={
   "ymfm",
-  "Nuked-OPM"
+  "Nuked-OPM",
+  "YM2151-LLE"
 };
 
 static const char* ym2612Cores[]={

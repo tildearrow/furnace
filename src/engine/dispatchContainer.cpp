@@ -340,9 +340,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
       if (isRender) {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCoreRender",1)==0);
+        ((DivPlatformArcade*)dispatch)->setCore(eng->getConfInt("arcadeCoreRender",1));
       } else {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
+        ((DivPlatformArcade*)dispatch)->setCore(eng->getConfInt("arcadeCore",0));
       }
       break;
     case DIV_SYSTEM_YM2610_FULL:
