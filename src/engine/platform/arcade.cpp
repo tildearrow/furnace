@@ -165,15 +165,19 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
         delay--;
         fm_lle.input.cs=0;
         fm_lle.input.wr=1;
-        fm_lle.input.rd=0;
+        fm_lle.input.rd=delay&1;
         fm_lle.input.a0=1;
       } else
       if (isWaiting) {
         fm_lle.input.cs=0;
         fm_lle.input.wr=1;
-        fm_lle.input.rd=0;
+        fm_lle.input.rd=!(isWaiting&1);
         fm_lle.input.a0=1;
-        isWaiting=2;
+        if (isWaiting==2) {
+          isWaiting=3;
+        } else {
+          isWaiting=2;
+        }
       } else {
         if (!writes.empty()) {
           QueuedWrite& w=writes.front();
@@ -196,7 +200,7 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
             logV("addr: %x",w.addr);
             w.addrOrVal=true;
           }
-          delay=20;
+          delay=16;
 
           isWaiting=1;
         } else {
@@ -209,15 +213,7 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
       FMOPM_Clock(&fm_lle,1);
       FMOPM_Clock(&fm_lle,0);
 
-      if (!fm_lle.o_data_z) {
-        logV("%x %d %d",fm_lle.o_data,fm_lle.busy_cnt[0],fm_lle.busy_cnt[1]);
-        // temporary
-        usleep(20000);
-      } else {
-        logV("ZZ - %x %d %d",fm_lle.o_data,fm_lle.busy_cnt[0],fm_lle.busy_cnt[1]);
-      }
-
-      if (delay<=0 && isWaiting==2) {
+      if (delay<=0 && isWaiting&2) {
         if (!(fm_lle.o_data&0x80)) {
           logV("wait over");
           isWaiting=0;

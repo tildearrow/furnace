@@ -2296,11 +2296,11 @@ void FMOPM_Clock(fmopm_t* chip, int clk)
 
     if (chip->read_dbg)
     {
-        chip->read_bus &= 0x83;
-        chip->read_bus |= chip->read_dbg_data;
+        chip->read_bus = chip->read_dbg_data;
     }
     else
     {
+        chip->read_bus &= ~0x83;
         chip->read_bus |= chip->busy_cnt_en[0] << 7;
         chip->read_bus |= chip->timer_b_status[0] << 1;
         chip->read_bus |= chip->timer_a_status[0] << 0;
