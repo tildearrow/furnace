@@ -154,6 +154,10 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
 }
 
 void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (true) {
       lastSH1=fm_lle.o_sh1;
@@ -196,7 +200,7 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
             fm_lle.input.data=w.addr;
             w.addrOrVal=true;
           }
-          delay=16;
+          delay=8;
 
           isWaiting=1;
         } else {
@@ -243,6 +247,10 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
 
     buf[0][h]=dacOut2;
     buf[1][h]=dacOut1;
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -1092,7 +1100,7 @@ void DivPlatformArcade::reset() {
         FMOPM_Clock(&fm_lle,0);
       }
       fm_lle.input.ic=1;
-      
+
       break;
   }
   if (dumpWrites) {
@@ -1114,6 +1122,9 @@ void DivPlatformArcade::reset() {
   lastSH2=false;
   lastSY=false;
   isWaiting=1;
+  dacOut1=0;
+  dacOut2=0;
+  dacVal=0;
 
   lastBusy=60;
   delay=0;
