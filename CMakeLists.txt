@@ -627,6 +627,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/Nuked-OPL2-Lite/opl2.c
+extern/Nuked-CQM/cqm.c
+extern/YM2203-LLE/fmopn.c
 extern/YM3812-LLE/fmopl2.c
 extern/YMF262-LLE/fmopl3.c
 extern/YMF276-LLE/fmopn2.c

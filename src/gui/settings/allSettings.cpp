@@ -129,13 +129,16 @@ static const char* opnCores[]={
 static const char* opl2Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YM3812-LLE"
+  "YM3812-LLE",
+  "Nuked-CQM",
+  "Nuked-OPL2 Lite"
 };
 
 static const char* opl3Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YMF262-LLE"
+  "YMF262-LLE",
+  "Nuked-CQM"
 };
 
 static const char* opl4Cores[]={

@@ -504,8 +504,8 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opn1Core,0,2);
   clampSetting(settings.opnaCore,0,2);
   clampSetting(settings.opnbCore,0,2);
-  clampSetting(settings.opl2Core,0,2);
-  clampSetting(settings.opl3Core,0,2);
+  clampSetting(settings.opl2Core,0,4);
+  clampSetting(settings.opl3Core,0,3);
   clampSetting(settings.opl4Core,0,1);
   clampSetting(settings.esfmCore,0,1);
   clampSetting(settings.opllCore,0,1);
