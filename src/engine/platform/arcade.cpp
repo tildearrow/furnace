@@ -22,7 +22,6 @@
 #include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
-#include <unistd.h>
 
 const char* regCheatSheetOPM[]={
   "Test", "00",
