@@ -166,8 +166,7 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
         fm_lle.input.wr=1;
         fm_lle.input.rd=delay&1;
         fm_lle.input.a0=1;
-      } else
-      if (isWaiting) {
+      } else if (isWaiting) {
         fm_lle.input.cs=0;
         fm_lle.input.wr=1;
         fm_lle.input.rd=!(isWaiting&1);
@@ -188,7 +187,6 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
             fm_lle.input.wr=0;
             fm_lle.input.a0=1;
             fm_lle.input.data=w.val;
-            logV("val: %x",w.val);
             writes.pop();
           } else {
             fm_lle.input.cs=0;
@@ -196,7 +194,6 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
             fm_lle.input.wr=0;
             fm_lle.input.a0=0;
             fm_lle.input.data=w.addr;
-            logV("addr: %x",w.addr);
             w.addrOrVal=true;
           }
           delay=16;
@@ -214,7 +211,6 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
 
       if (delay<=0 && isWaiting&2) {
         if (!(fm_lle.o_data&0x80)) {
-          logV("wait over");
           isWaiting=0;
         }
       }
@@ -245,8 +241,8 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
     if (dacOut2<-32768) dacOut2=-32768;
     if (dacOut2>32767) dacOut2=32767;
 
-    buf[0][h]=dacOut1;
-    buf[1][h]=dacOut2;
+    buf[0][h]=dacOut2;
+    buf[1][h]=dacOut1;
   }
 }
 

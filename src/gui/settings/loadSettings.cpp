@@ -494,7 +494,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
   clampSetting(settings.audioChans,1,16);
-  clampSetting(settings.arcadeCore,0,1);
+  clampSetting(settings.arcadeCore,0,2);
   clampSetting(settings.ym2612Core,0,2);
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
@@ -515,7 +515,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.gbQuality,0,5);
   clampSetting(settings.pnQuality,0,5);
   clampSetting(settings.saaQuality,0,5);
-  clampSetting(settings.arcadeCoreRender,0,1);
+  clampSetting(settings.arcadeCoreRender,0,2);
   clampSetting(settings.ym2612CoreRender,0,2);
   clampSetting(settings.snCoreRender,0,1);
   clampSetting(settings.nesCoreRender,0,1);
