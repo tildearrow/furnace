@@ -3277,6 +3277,14 @@ int DivPlatformOPL::getPortaFloor(int ch) {
 
 void DivPlatformOPL::setCore(unsigned char which) {
   emuCore=which;
+  if (chipType==1 || chipType==2 || chipType==8950) {
+    // i know this is an ugly hack but it allows me to remove the CQM option from settings for OPL1/2...
+    if (emuCore==3) {
+      emuCore=4;
+    } else if (emuCore==4) {
+      emuCore=3;
+    }
+  }
 }
 
 void DivPlatformOPL::setOPLType(int type, bool drums) {
