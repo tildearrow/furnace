@@ -3979,16 +3979,27 @@ int _processEvent(void* instance, SDL_Event* event) {
 #endif
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
-  if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
-    quit=true;
-  } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+    logD("mobile: TERMINATING");
     commitState(e->getConfObject());
+    if (userPresetsOpen) {
+      saveUserPresets(true);
+    }
+    logI("saving config.");
     e->saveConf();
+    quit=true;
+    return 0;
+  } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+    logD("mobile: will enter background");
+    commitState(e->getConfObject());
+    logI("saving config.");
+    e->saveConf();
+    return 0;
   }
 #endif
+  if (introPos<11.0 && !shortIntro) return 1;
   if (cvOpen) return 1;
   if (ev->type==SDL_KEYDOWN) {
     if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(VALID_MODS)))==0) {
@@ -4687,6 +4698,7 @@ bool FurnaceGUI::loop() {
           }
           break;
         case SDL_APP_TERMINATING:
+          logW("this shouldn't be happening. got SDL_APP_TERMINATING in main loop!");
           quit=true;
           break;
       }
@@ -8064,6 +8076,8 @@ bool FurnaceGUI::loop() {
       SDL_Delay(100);
     }
   }
+
+  logD("GUI loop is over");
   return false;
 }
 
