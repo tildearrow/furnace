@@ -159,7 +159,7 @@ jobs:
 
     - name: Configure
       run: |
-        export USE_WAE=ON
+        export USE_WAE=OFF
         export CMAKE_EXTRA_ARGS=()
         if [ '${{ matrix.config.compiler }}' == 'msvc' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_GENERATOR_PLATFORM=${{ steps.windows-identify.outputs.msvc-target }}')
