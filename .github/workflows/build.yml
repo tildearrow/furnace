@@ -174,7 +174,7 @@ jobs:
             CMAKE_EXTRA_ARGS+=('-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded')
           fi
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake' '-DCMAKE_C_FLAGS="-Wno-deprecated-declarations -O2"' '-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -O2"')
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake' '-DCMAKE_C_FLAGS="-Wno-deprecated-declarations"' '-DCMAKE_C_FLAGS="-O2"' '-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations"' '-DCMAKE_CXX_FLAGS="-O2"')
           if [ '${{ matrix.config.arch }}' == 'x86' ]; then
             CMAKE_EXTRA_ARGS+=('-DSUPPORT_XP=ON')
           fi
