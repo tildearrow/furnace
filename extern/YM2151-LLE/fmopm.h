@@ -432,6 +432,9 @@ typedef struct {
     int o_ct1;
     int o_ct2;
     int o_irq_pull;
+
+    // tildearrow: per-chan osc
+    int ch_out[8];
 } fmopm_t;
 
 // tildearrow: expose this function

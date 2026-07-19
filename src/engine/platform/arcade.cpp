@@ -247,6 +247,11 @@ void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
 
     buf[0][h]=dacOut2;
     buf[1][h]=dacOut1;
+
+    for (int i=0; i<8; i++) {
+      short chOut=fm_lle.accm_input;
+      oscBuf[i]->putSample(h,chOut);
+    }
   }
 
   for (int i=0; i<8; i++) {
