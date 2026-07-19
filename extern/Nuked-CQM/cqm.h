@@ -49,6 +49,8 @@ typedef struct
 	int32_t env;
 	uint32_t phase;
 	int32_t mod[2];
+        // tildearrow: chan osc
+        int32_t out;
 } cqmslot_t;
 
 typedef struct

@@ -449,13 +449,13 @@ void DivPlatformOPL::acquire_cqm(short** buf, size_t len) {
         if (ch==255) continue;
         if (isMuted[chMute]) continue;
         chOut=fm_cqm.ch_out[ch];
-        oscBuf[i]->putSample(h,CLAMP(chOut<<(i==melodicChans?1:2),-32768,32767));
+        oscBuf[i]->putSample(h,CLAMP(chOut<<(i==melodicChans?0:1),-32768,32767));
       }
-      // special (TODO make it proper)
-      oscBuf[melodicChans+1]->putSample(h,fm_cqm.ch_out[7]*4);
-      oscBuf[melodicChans+2]->putSample(h,fm_cqm.ch_out[8]*4);
-      oscBuf[melodicChans+3]->putSample(h,fm_cqm.ch_out[8]*4);
-      oscBuf[melodicChans+4]->putSample(h,fm_cqm.ch_out[7]*4);
+      // special
+      oscBuf[melodicChans+1]->putSample(h,fm_cqm.slotz[22].out*4);
+      oscBuf[melodicChans+2]->putSample(h,fm_cqm.slotz[23].out*4);
+      oscBuf[melodicChans+3]->putSample(h,fm_cqm.slotz[24].out*4);
+      oscBuf[melodicChans+4]->putSample(h,fm_cqm.slotz[21].out*4);
     } else {
       for (int i=0; i<chans; i++) {
         unsigned char ch=outChanMap[i];
@@ -464,7 +464,7 @@ void DivPlatformOPL::acquire_cqm(short** buf, size_t len) {
         if (ch==255) continue;
         if (isMuted[chMute]) continue;
         chOut=fm_cqm.ch_out[ch];
-        oscBuf[i]->putSample(h,CLAMP(chOut<<2,-32768,32767));
+        oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
       }
     }
 
@@ -578,13 +578,14 @@ void DivPlatformOPL::acquire_nuked2(short** buf, size_t len) {
 
     if (properDrums) {
       for (int i=0; i<melodicChans+1; i++) {
-        unsigned char ch=outChanMap[i];
-        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
+        int slot=(i/3)*6+(i%3);
         int chOut=0;
-        if (ch==255) continue;
-        if (isMuted[chMute]) continue;
-        chOut+=fm_opl2.slot[ch<<1].out;
-        oscBuf[i]->putSample(h,CLAMP(chOut<<(i==melodicChans?1:2),-32768,32767));
+        if (isMuted[i]) continue;
+        if (fm_opl2.channel[i].con) {
+          chOut+=fm_opl2.slot[slot].out;
+        }
+        chOut+=fm_opl2.slot[slot+3].out;
+        oscBuf[i]->putSample(h,CLAMP(chOut<<2,-32768,32767));
       }
       // special
       oscBuf[melodicChans+1]->putSample(h,fm_opl2.slot[16].out*4);
@@ -593,12 +594,13 @@ void DivPlatformOPL::acquire_nuked2(short** buf, size_t len) {
       oscBuf[melodicChans+4]->putSample(h,fm_opl2.slot[13].out*4);
     } else {
       for (int i=0; i<chans; i++) {
-        unsigned char ch=outChanMap[i];
-        unsigned char chMute=(i<12 && chan[i&(~1)].fourOp)?(i^1):i;
+        int slot=(i/3)*6+(i%3);
         int chOut=0;
-        if (ch==255) continue;
-        if (isMuted[chMute]) continue;
-        chOut+=fm_opl2.slot[ch<<1].out;
+        if (isMuted[i]) continue;
+        if (fm_opl2.channel[i].con) {
+          chOut+=fm_opl2.slot[slot].out;
+        }
+        chOut+=fm_opl2.slot[slot+3].out;
         oscBuf[i]->putSample(h,CLAMP(chOut<<2,-32768,32767));
       }
     }

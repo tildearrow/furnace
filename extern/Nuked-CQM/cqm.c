@@ -197,6 +197,12 @@ void CQM_Generate(cqm_t* chip, int16_t* sample)
             chip->keyl |= 1 << 6;
     }
 
+    // tildearrow: per-channel osc
+    for (idx = 0; idx < 18; idx++)
+    {
+        chip->ch_out[idx] = 0;
+    }
+
     for (idx = 0; idx < 48; idx++)
     {
         int wave, key, kon;
@@ -800,8 +806,9 @@ void CQM_Generate(cqm_t* chip, int16_t* sample)
                 int sumwave = doshifter(chip->wavesample << 5, chip->waveshift);
 
                 // tildearrow: for per-channel oscilloscope
+                slot->out = sumwave;
                 if (ch < 18)
-                    chip->ch_out[ch] = sumwave;
+                    chip->ch_out[ch] += sumwave;
 
                 if (chip->wavepan & 1)
                     accum[0] += sumwave;
