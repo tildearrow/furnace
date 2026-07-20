@@ -525,7 +525,7 @@ static const unsigned char subCycleMap[6]={
 void DivPlatformYM2610B::acquire_lle(short** buf, size_t len) {
   thread_local int fmOut[6];
 
-  fm_lle.ym2610b=1;
+  fm_lle.input.ym2610b=1;
 
   for (int i=0; i<17; i++) {
     oscBuf[i]->begin(len);

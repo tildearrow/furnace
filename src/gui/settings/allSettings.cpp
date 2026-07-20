@@ -89,7 +89,8 @@ static const char* specificControls[18]={
 
 static const char* arcadeCores[]={
   "ymfm",
-  "Nuked-OPM"
+  "Nuked-OPM",
+  "YM2151-LLE"
 };
 
 static const char* ym2612Cores[]={
@@ -128,13 +129,15 @@ static const char* opnCores[]={
 static const char* opl2Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YM3812-LLE"
+  "YM3812-LLE",
+  "Nuked-OPL2 Lite"
 };
 
 static const char* opl3Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YMF262-LLE"
+  "YMF262-LLE",
+  "Nuked-CQM"
 };
 
 static const char* opl4Cores[]={

@@ -153,11 +153,119 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
   }
 }
 
+void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    while (true) {
+      lastSH1=fm_lle.o_sh1;
+      lastSH2=fm_lle.o_sh2;
+      lastSY=fm_lle.o_sy;
+
+      if (delay>0) {
+        delay--;
+        fm_lle.input.cs=0;
+        fm_lle.input.wr=1;
+        fm_lle.input.rd=delay&1;
+        fm_lle.input.a0=1;
+      } else if (isWaiting) {
+        fm_lle.input.cs=0;
+        fm_lle.input.wr=1;
+        fm_lle.input.rd=!(isWaiting&1);
+        fm_lle.input.a0=1;
+        if (isWaiting==2) {
+          isWaiting=3;
+        } else {
+          isWaiting=2;
+        }
+      } else {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addrOrVal) {
+            regPool[w.addr&0xff]=w.val;
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+            writes.pop();
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr;
+            w.addrOrVal=true;
+          }
+          delay=8;
+
+          isWaiting=1;
+        } else {
+          fm_lle.input.cs=1;
+          fm_lle.input.rd=1;
+          fm_lle.input.wr=1;
+        }
+      }
+
+      FMOPM_Clock(&fm_lle,1);
+      FMOPM_Clock(&fm_lle,0);
+
+      if (delay<=0 && isWaiting&2) {
+        if (!(fm_lle.o_data&0x80)) {
+          isWaiting=0;
+        }
+      }
+
+      if (fm_lle.o_sy && !lastSY) {
+        dacVal>>=1;
+        dacVal|=(fm_lle.o_so&1)<<17;
+      }
+
+      if (!fm_lle.o_sh1 && lastSH1) {
+        int e=(dacVal>>15)&7;
+        int m=(dacVal>>5)&1023;
+        m-=512;
+        dacOut1=(m<<e)>>1;
+        break;
+      }
+
+      if (!fm_lle.o_sh2 && lastSH2) {
+        int e=(dacVal>>15)&7;
+        int m=(dacVal>>5)&1023;
+        m-=512;
+        dacOut2=(m<<e)>>1;
+      }
+    }
+
+    if (dacOut1<-32768) dacOut1=-32768;
+    if (dacOut1>32767) dacOut1=32767;
+    if (dacOut2<-32768) dacOut2=-32768;
+    if (dacOut2>32767) dacOut2=32767;
+
+    buf[0][h]=dacOut2;
+    buf[1][h]=dacOut1;
+
+    for (int i=0; i<8; i++) {
+      short chOut=fm_lle.accm_input;
+      oscBuf[i]->putSample(h,chOut);
+    }
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
 void DivPlatformArcade::acquire(short** buf, size_t len) {
-  if (useYMFM) {
+  if (selCore==0) {
     acquire_ymfm(buf,len);
-  } else {
+  } else if (selCore==1) {
     acquire_nuked(buf,len);
+  } else if (selCore==2) {
+    acquire_lle(buf,len);
   }
 }
 
@@ -822,6 +930,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
+      // OPP only
+      if (chipType!=1) break;
+      chan[c.chan].tlRamp=c.value;
+      immWrite(c.chan,chan[c.chan].tlRamp);
+      break;
     case DIV_CMD_FM_OPMASK:
       switch (c.value>>4) {
         case 1:
@@ -910,6 +1024,7 @@ void DivPlatformArcade::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
+    if (chipType==1) immWrite(i,chan[i].tlRamp);
   }
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
@@ -968,11 +1083,30 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformArcade::reset() {
   writes.clear();
   memset(regPool,0,256);
-  if (useYMFM) {
-    fm_ymfm->reset();
-  } else {
-    memset(&fm,0,sizeof(opm_t));
-    OPM_Reset(&fm);
+  switch (selCore) {
+    case 0: // ymfm
+      fm_ymfm->reset();
+      break;
+    case 1: // Nuked
+      memset(&fm,0,sizeof(opm_t));
+      OPM_Reset(&fm,chipType?opm_flags_ym2164:0);
+      break;
+    case 2: // LLE
+      memset(&fm_lle,0,sizeof(fmopm_t));
+      fm_lle.input.ym2164=chipType;
+
+      // TODO: perform LLE reset
+      fm_lle.input.ic=0;
+      fm_lle.input.rd=1;
+      fm_lle.input.wr=1;
+      fm_lle.input.cs=1;
+      for (int i=0; i<1200; i++) {
+        FMOPM_Clock(&fm_lle,1);
+        FMOPM_Clock(&fm_lle,0);
+      }
+      fm_lle.input.ic=1;
+
+      break;
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -989,6 +1123,14 @@ void DivPlatformArcade::reset() {
     pendingWrites[i]=-1;
   }
 
+  lastSH1=false;
+  lastSH2=false;
+  lastSY=false;
+  isWaiting=1;
+  dacOut1=0;
+  dacOut2=0;
+  dacVal=0;
+
   lastBusy=60;
   delay=0;
   amDepth=0x7f;
@@ -1003,6 +1145,8 @@ void DivPlatformArcade::reset() {
 }
 
 void DivPlatformArcade::setFlags(const DivConfig& flags) {
+  chipType=flags.getInt("chipType",0);
+
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
@@ -1024,26 +1168,36 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  if (fm_ymfm) {
+    delete fm_ymfm;
+    fm_ymfm=NULL;
+  }
+  if (chipType==1) {
+    fm_ymfm=new ymfm::ym2164(iface);
+  } else {
+    fm_ymfm=new ymfm::ym2151(iface);
+  }
 }
 
 int DivPlatformArcade::getOutputCount() {
   return 2;
 }
 
-void DivPlatformArcade::setYMFM(bool use) {
-  useYMFM=use;
+void DivPlatformArcade::setCore(int newCore) {
+  selCore=newCore;
 }
 
 int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  fm_ymfm=NULL;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  if (useYMFM) fm_ymfm=new ymfm::ym2151(iface);
   reset();
 
   return 8;
@@ -1053,8 +1207,9 @@ void DivPlatformArcade::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
-  if (useYMFM) {
+  if (fm_ymfm) {
     delete fm_ymfm;
+    fm_ymfm=NULL;
   }
 }
 

@@ -559,7 +559,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_YM2151: {
       int clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
       bool brokenPitch=flags.getBool("brokenPitch",false);
+
+      ImGui::TextUnformatted(_("Clock rate:"));
 
       ImGui::Indent();
       if (ImGui::RadioButton(_("NTSC/X16 (3.58MHz)"),clockSel==0)) {
@@ -576,6 +579,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      ImGui::TextUnformatted(_("Chip type:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("YM2151"),chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("YM2164"),chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::SetItemTooltip(_("variant of YM2151 which adds a TL ramp setting to each channel."));
+      ImGui::Unindent();
+
       if (ImGui::Checkbox(_("Broken pitch macro/slides (compatibility)"),&brokenPitch)) {
         altered=true;
       }
@@ -583,6 +599,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("chipType",chipType);
           flags.set("brokenPitch",brokenPitch);
         });
       }
@@ -2805,6 +2822,31 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_ESFM: {
+      supportsCustomRate=false;
+      /*
+      int revision=flags.getInt("revision",0);
+
+      ImGui::Text("Chip revision:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("ES16xx/ES17xx/ES1868",revision==0)) {
+        revision=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("ES1869/ES19XX/ESS Solo (broken clipping - DO NOT USE!!!!!)",revision==1)) {
+        revision=1;
+        altered=true;
+      }
+      ImGui::SetItemTooltip("unless you want your ears to bleed.");
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("revision",revision);
+        });
+      }*/
+      break;
+    }
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:
@@ -2816,7 +2858,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_MULTIPCM:
       break;
     case DIV_SYSTEM_YMU759:
-    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text(_("nothing to configure"));
       break;
