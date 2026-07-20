@@ -481,7 +481,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -616,8 +616,10 @@ void DivPlatformAY8910::tick(bool sysTick) {
         chan[i].dac.rate=((double)rate*((sunsoft||clockSel)?8.0:16.0))/(double)(MAX(1,off*chan[i].freq));
         //if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+      }
       if (chan[i].fixedFreq>4095) chan[i].fixedFreq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
@@ -1103,6 +1105,11 @@ void DivPlatformAY8910::notifyPitchTable(int sample) {
   if (sample==-1) {
     pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
   }
+}
+
+unsigned int DivPlatformAY8910::getMaxFreq(int ch) {
+  // the envelope does support going up to $FFFF. update once you implement separate envelope channel.
+  return 0xfff;
 }
 
 void DivPlatformAY8910::poke(unsigned int addr, unsigned short val) {

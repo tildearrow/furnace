@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev246"
-#define DIV_ENGINE_VERSION 246
+#define DIV_VERSION "dev250"
+#define DIV_ENGINE_VERSION 250
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -156,6 +156,32 @@ struct DivAudioExportOptions {
   }
 };
 
+#ifdef WITH_JSON
+struct DivJSONExportOptions {
+  enum ExportFormat : unsigned char {
+    EXPORT_JSON,
+    EXPORT_BSON,
+    EXPORT_CBOR
+  };
+  ExportFormat format;
+  bool jsonPretty;
+  bool exportMetadata, exportChips, exportOrders, exportPatterns, exportInstruments, exportWaves, exportSamples, exportCompatFlags;
+  bool optimizePatterns;
+  DivJSONExportOptions():
+    format(EXPORT_JSON),
+    jsonPretty(false),
+    exportMetadata(true),
+    exportChips(true),
+    exportOrders(true),
+    exportPatterns(true),
+    exportInstruments(true),
+    exportWaves(true),
+    exportSamples(true),
+    exportCompatFlags(false),
+    optimizePatterns(true) {}
+};
+#endif
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
@@ -180,7 +206,7 @@ struct DivChannelState {
     lastIns(-1),
     pitch(0),
     portaSpeed(-1),
-    portaNote(-1),
+    portaNote(0),
     volume(0x7f00),
     volSpeed(0),
     volSpeedTarget(-1),
@@ -246,7 +272,8 @@ struct DivChannelState {
 struct DivNoteEvent {
   signed char channel;
   short ins;
-  unsigned char note;
+  // we can't save space anymore now that raw notes exist.
+  int note;
   signed char volume;
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
@@ -655,6 +682,10 @@ class DivEngine {
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
+#ifdef WITH_JSON
+    // export to json
+    SafeWriter* saveJSON(DivJSONExportOptions* options);
+#endif
     // export to an audio file
     bool saveAudio(const char* path, DivAudioExportOptions options);
     // wait for audio export to finish
@@ -726,12 +757,15 @@ class DivEngine {
     void factoryReset();
 
     // calculate base frequency/period
+    // DEPRECATED. use DivPitchTable instead.
     double calcBaseFreq(double clock, double divider, int note, bool period);
 
     // calculate base frequency in f-num/block format
+    // TODO: get rid of this and use DivPitchTable...
     int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits, int fixedBlock);
 
     // calculate frequency/period
+    // DEPRECATED. use DivPitchTable instead.
     int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0, int fixedBlock=0);
 
     // calculate arpeggio
@@ -881,6 +915,9 @@ class DivEngine {
 
     // map volume to gain
     float getGain(int ch, int vol);
+
+    // get max frequency/period of a channel
+    unsigned int getMaxFreqChan(int ch);
 
     // get current order
     unsigned char getOrder();

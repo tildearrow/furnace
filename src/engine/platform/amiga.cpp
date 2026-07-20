@@ -443,7 +443,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       chan[i].freqChanged=true;
     }
@@ -497,10 +497,12 @@ void DivPlatformAmiga::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
 
-      chWrite(i,6,chan[i].freq);
+      chWrite(i,6,chan[i].freq&0xfff);
 
       if (chan[i].keyOn) {
         if (chan[i].useWave) {
@@ -893,6 +895,13 @@ void DivPlatformAmiga::notifyPitchTable(int sample) {
   if (sample==-1) {
     wavePitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
   }
+}
+
+unsigned int DivPlatformAmiga::getMaxFreq(int ch) {
+  // the actual maximum is $FFFF, but DMA does not stop instantly.
+  // it waits for a sample to be done playing, which would take ~19ms at that period.
+  // this is too long to be practical, so we limit it to $FFF.
+  return 0xfff;
 }
 
 void DivPlatformAmiga::setFlags(const DivConfig& flags) {

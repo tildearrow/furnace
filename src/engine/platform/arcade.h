@@ -22,6 +22,9 @@
 #include "fmshared_OPM.h"
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
+extern "C" {
+  #include "../../../extern/YM2151-LLE/fmopm.h"
+}
 
 class DivArcadeInterface: public ymfm::ymfm_interface {
 
@@ -35,10 +38,12 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
+      unsigned char tlRamp;
       Channel(bool linear=true):
         FMChannel(linear),
         chVolL(1),
-        chVolR(1) {}
+        chVolR(1),
+        tlRamp(0) {}
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
@@ -48,9 +53,17 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     ymfm::ym2151* fm_ymfm;
     ymfm::ym2151::output_data out_ymfm;
+    fmopm_t fm_lle;
     DivArcadeInterface iface;
 
-    bool useYMFM;
+    bool lastSH1, lastSH2, lastSY;
+    unsigned int dacVal;
+    int dacOut1;
+    int dacOut2;
+    unsigned char isWaiting;
+
+    int selCore;
+    unsigned char chipType;
 
     bool isMuted[8];
 
@@ -60,6 +73,7 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
+    void acquire_lle(short** buf, size_t len);
 
     friend void putDispatchChan(void*,int,int);
     friend void putDispatchChip(void*,int);
@@ -78,9 +92,10 @@ class DivPlatformArcade: public DivPlatformOPM {
     unsigned short getPan(int chan);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
-    void setYMFM(bool use);
+    void setCore(int newCore);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

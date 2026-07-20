@@ -123,7 +123,6 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   DivMemoryComposition memCompo;
 
   unsigned char regPool[0x2000];
-  double NoteX1_010(int ch, int note);
   void updateWave(int ch);
   void updateEnvelope(int ch);
   friend void putDispatchChip(void*,int);
@@ -149,6 +148,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const void* getSampleMem(int index = 0);

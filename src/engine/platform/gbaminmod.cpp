@@ -241,7 +241,7 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -648,6 +648,10 @@ void DivPlatformGBAMinMod::notifyInsDeletion(void* ins) {
 
 void DivPlatformGBAMinMod::notifyPitchTable(int sample) {
   samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_FREQBASE,0xfffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGBAMinMod::getMaxFreq(int ch) {
+  return 0xfffffff;
 }
 
 void DivPlatformGBAMinMod::poke(unsigned int addr, unsigned short val) {

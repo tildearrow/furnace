@@ -112,9 +112,9 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -129,9 +129,11 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>32768) chan[i].freq=32768;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<0) chan[i].freq=0;
+          if (chan[i].freq>32768) chan[i].freq=32768;
+        }
         rWrite(0+i*4,chan[i].freq&0xff);
         rWrite(1+i*4,chan[i].freq>>8);
       }
@@ -142,9 +144,9 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[4].handleArp();
-  } else if (chan[4].std.arp.had) {
+  } else if (chan[4].std.arp.had && !chan[4].rawFreq) {
     if (!chan[4].inPorta) {
-      chan[4].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[4].note,chan[4].std.arp.val));
+      chan[4].baseFreq=chan[4].calcBaseFreq(parent->calcArp(chan[4].note,chan[4].std.arp.val));
     }
     chan[4].freqChanged=true;
   }
@@ -159,12 +161,7 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   }
   if (chan[4].freqChanged || chan[4].keyOn || chan[4].keyOff) {
     if (chan[4].active) {
-      double off=CHIP_DIVIDER;
-      if (curSample>=0 && curSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(curSample);
-        off=(s->centerRate>=1)?(CHIP_DIVIDER*(double)s->centerRate/parent->getCenterRate()):CHIP_DIVIDER;
-      }
-      chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,chan[4].fixedArp?chan[4].baseNoteOverride:chan[4].arpOff,chan[4].fixedArp,true,2,chan[4].pitch2,chipClock,off);
+      chan[4].freq=chan[4].calcFreq();
       if (chan[4].freq>258) chan[4].freq=258;
       if (chan[4].freq<3) chan[4].freq=3;
       rWrite(16,(chan[4].freq-2)&255);
@@ -182,7 +179,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       if (c.chan<4) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI);
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -198,10 +195,11 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
         if (c.value!=DIV_NOTE_NULL) {
           curSample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(curSample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
           // TODO support offset commands
@@ -209,6 +207,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
           curSamplePeriod=0;
         } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
           curSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          chan[c.chan].pitchTable=samplePitchTable.get(curSample);
           c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
           // TODO support offset commands
           curSamplePos=0;
@@ -260,7 +259,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -287,7 +286,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       if (c.chan<4) rWrite(2+c.chan*4,chan[c.chan].duty^0xff);
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -295,7 +294,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -359,6 +358,11 @@ void DivPlatformZXBeeperQuadTone::reset() {
   memset(deHisser,0,8);
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformZXBeeperQuadTone::Channel(parent->song.compatFlags.linearPitch);
+    if (i<4) {
+      chan[i].pitchTable=&pitchTable;
+    } else {
+      chan[i].pitchTable=samplePitchTable.get(-1);
+    }
     chan[i].std.setEngine(parent);
     if (i<4) rWrite(2+i*4,128);
   }
@@ -384,6 +388,17 @@ void DivPlatformZXBeeperQuadTone::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformZXBeeperQuadTone::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x8000,false,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,5,parent->song.tuning,chipClock,CHIP_DIVIDER,258,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformZXBeeperQuadTone::getMaxFreq(int ch) {
+  if (ch>=4) return 0xff;
+  // it should be 32768, but then we can't and
+  return 0x7fff;
+}
+
 void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*4.0/5.0;
@@ -396,6 +411,8 @@ void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformZXBeeperQuadTone::poke(unsigned int addr, unsigned short val) {
@@ -408,6 +425,7 @@ void DivPlatformZXBeeperQuadTone::poke(std::vector<DivRegWrite>& wlist) {
 
 int DivPlatformZXBeeperQuadTone::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
@@ -424,4 +442,5 @@ void DivPlatformZXBeeperQuadTone::quit() {
 }
 
 DivPlatformZXBeeperQuadTone::~DivPlatformZXBeeperQuadTone() {
+  samplePitchTable.destroy<Channel>(chan,5);
 }

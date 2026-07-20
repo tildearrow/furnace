@@ -207,7 +207,7 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT && i!=3) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
@@ -326,14 +326,20 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
-        if (ntPos<0) ntPos=0;
-        if (ntPos>255) ntPos=255;
-        chan[i].freq=noiseTable[ntPos];
+        if (chan[i].rawFreq) {
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&0xf7;
+        } else {
+          int ntPos=chan[i].baseFreq+chan[i].pitch2-60;
+          if (ntPos<0) ntPos=0;
+          if (ntPos>255) ntPos=255;
+          chan[i].freq=noiseTable[ntPos];
+        }
       } else {
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<1) chan[i].freq=1;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq>2047) chan[i].freq=2047;
+          if (chan[i].freq<1) chan[i].freq=1;
+        }
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
@@ -401,7 +407,13 @@ int DivPlatformGB::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
       if (c.value!=DIV_NOTE_NULL) {
         if (c.chan==3) { // noise
-          chan[c.chan].baseFreq=c.value;
+          if (c.value&DIV_NOTE_RAW_FLAG) {
+            chan[c.chan].baseFreq=c.value&0xff;
+            chan[c.chan].rawFreq=true;
+          } else {
+            chan[c.chan].baseFreq=c.value;
+            chan[c.chan].rawFreq=false;
+          }
         } else {
           chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         }
@@ -702,6 +714,11 @@ void DivPlatformGB::notifyInsDeletion(void* ins) {
 
 void DivPlatformGB::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformGB::getMaxFreq(int ch) {
+  if (ch==3) return 0xff; // noise
+  return 0x7ff;
 }
 
 void DivPlatformGB::poke(unsigned int addr, unsigned short val) {

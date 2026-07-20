@@ -23,7 +23,6 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && !parent->song.compatFlags.linearPitch)?parent->calcBaseFreq(COLOR_NTSC*16,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
@@ -206,7 +205,7 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
-  for (int i=0; i<chanMax; i++) {
+  for (int i=0; i<=chanMax; i++) {
     oscBuf[i]->begin(len);
   }
   for (size_t h=0; h<len; h++) {
@@ -254,7 +253,7 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
   }
-  for (int i=0; i<chanMax; i++) {
+  for (int i=0; i<=chanMax; i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -315,14 +314,14 @@ void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
     if (chan[ch].noteChanged.offs) {
       if (chan[ch].pcm.freqOffs!=chan[ch].pcm.nextFreqOffs) {
         chan[ch].pcm.freqOffs=chan[ch].pcm.nextFreqOffs;
-        chan[ch].nextFreq=NOTE_ES5506(ch,chan[ch].currNote);
+        chan[ch].nextFreq=chan[ch].calcBaseFreq(chan[ch].currNote);
         chan[ch].noteChanged.freq=1;
         chan[ch].freqChanged=true;
       }
     }
     if (chan[ch].noteChanged.note) {
       chan[ch].currNote=chan[ch].nextNote;
-      const int nextFreq=NOTE_ES5506(ch,chan[ch].nextNote);
+      const int nextFreq=chan[ch].calcBaseFreq(chan[ch].nextNote);
       if (chan[ch].nextFreq!=nextFreq) {
         chan[ch].nextFreq=nextFreq;
         chan[ch].noteChanged.freq=1;
@@ -500,7 +499,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     // arpeggio/pitch macros, frequency related
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
@@ -752,12 +751,18 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (amigaPitch && !parent->song.compatFlags.linearPitch) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch*16,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2*16,16*COLOR_NTSC,chan[i].pcm.freqOffs);
+        // TODO: why is it 2???
+        chan[i].freq=chan[i].calcFreq(2);
+        if (chan[i].rawFreq) {
+          chan[i].freq&=65535;
+        }
         chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs);
-        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        chan[i].freq=chan[i].calcFreq(2);
+        if (!chan[i].rawFreq) {
+          chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        }
       }
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
@@ -774,6 +779,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
           chan[i].pcm.freqOffs=((amigaPitch && !parent->song.compatFlags.linearPitch)?16:PITCH_OFFSET)*off;
+          chan[i].pitchTable=samplePitchTable.get(ind); // ?????
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
@@ -923,6 +929,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       bool sampleValid=false;
       if (c.value!=DIV_NOTE_NULL) {
         int sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(sample);
         chan[c.chan].sampleNote=c.value;
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
@@ -939,6 +946,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         }
       } else {
         int sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+        chan[c.chan].pitchTable=samplePitchTable.get(sample);
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
           chan[c.chan].volMacroMax=(ins->type==DIV_INS_AMIGA || amigaVol)?64:0xfff;
@@ -1217,7 +1225,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_PORTA: {
       int nextFreq=chan[c.chan].baseFreq;
-      int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (amigaPitch && !parent->song.compatFlags.linearPitch) {
         c.value*=16;
@@ -1330,6 +1338,7 @@ void DivPlatformES5506::reset() {
   while (!hostIntf8.empty()) hostIntf8.pop();
   for (int i=0; i<32; i++) {
     chan[i]=DivPlatformES5506::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].vol=amigaVol?64:255;
     chan[i].outVol=amigaVol?64:255;
     chan[i].std.setEngine(parent);
@@ -1387,6 +1396,18 @@ void DivPlatformES5506::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformES5506::notifyPitchTable(int sample) {
+  if (amigaPitch && !parent->song.compatFlags.linearPitch) {
+    samplePitchTable.update<Channel>(chan,32,parent->song.tuning,COLOR_NTSC,1,0xffff,true,parent->song.compatFlags.linearPitch,sample);
+  } else {
+    samplePitchTable.update<Channel>(chan,32,parent->song.tuning,chipClock,PITCH_OFFSET,0x1ffff,false,parent->song.compatFlags.linearPitch,sample);
+  }
+}
+
+unsigned int DivPlatformES5506::getMaxFreq(int ch) {
+  return 0x1ffff;
+}
+
 void DivPlatformES5506::setFlags(const DivConfig& flags) {
   chipClock=16000000;
   CHECK_CUSTOM_CLOCK;
@@ -1402,6 +1423,8 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
   for (int i=0; i<32; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformES5506::poke(unsigned int addr, unsigned short val) {
@@ -1513,6 +1536,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   sampleMem=new signed short[getSampleMemCapacity()/sizeof(short)];
   sampleMemLen=0;
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   volScale=0;
@@ -1548,4 +1572,5 @@ DivPlatformES5506::DivPlatformES5506():
 DivPlatformES5506::~DivPlatformES5506() {
   delete[] sampleOffES5506;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,32);
 }

@@ -153,11 +153,119 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
   }
 }
 
+void DivPlatformArcade::acquire_lle(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    while (true) {
+      lastSH1=fm_lle.o_sh1;
+      lastSH2=fm_lle.o_sh2;
+      lastSY=fm_lle.o_sy;
+
+      if (delay>0) {
+        delay--;
+        fm_lle.input.cs=0;
+        fm_lle.input.wr=1;
+        fm_lle.input.rd=delay&1;
+        fm_lle.input.a0=1;
+      } else if (isWaiting) {
+        fm_lle.input.cs=0;
+        fm_lle.input.wr=1;
+        fm_lle.input.rd=!(isWaiting&1);
+        fm_lle.input.a0=1;
+        if (isWaiting==2) {
+          isWaiting=3;
+        } else {
+          isWaiting=2;
+        }
+      } else {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addrOrVal) {
+            regPool[w.addr&0xff]=w.val;
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+            writes.pop();
+          } else {
+            fm_lle.input.cs=0;
+            fm_lle.input.rd=1;
+            fm_lle.input.wr=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr;
+            w.addrOrVal=true;
+          }
+          delay=8;
+
+          isWaiting=1;
+        } else {
+          fm_lle.input.cs=1;
+          fm_lle.input.rd=1;
+          fm_lle.input.wr=1;
+        }
+      }
+
+      FMOPM_Clock(&fm_lle,1);
+      FMOPM_Clock(&fm_lle,0);
+
+      if (delay<=0 && isWaiting&2) {
+        if (!(fm_lle.o_data&0x80)) {
+          isWaiting=0;
+        }
+      }
+
+      if (fm_lle.o_sy && !lastSY) {
+        dacVal>>=1;
+        dacVal|=(fm_lle.o_so&1)<<17;
+      }
+
+      if (!fm_lle.o_sh1 && lastSH1) {
+        int e=(dacVal>>15)&7;
+        int m=(dacVal>>5)&1023;
+        m-=512;
+        dacOut1=(m<<e)>>1;
+        break;
+      }
+
+      if (!fm_lle.o_sh2 && lastSH2) {
+        int e=(dacVal>>15)&7;
+        int m=(dacVal>>5)&1023;
+        m-=512;
+        dacOut2=(m<<e)>>1;
+      }
+    }
+
+    if (dacOut1<-32768) dacOut1=-32768;
+    if (dacOut1>32767) dacOut1=32767;
+    if (dacOut2<-32768) dacOut2=-32768;
+    if (dacOut2>32767) dacOut2=32767;
+
+    buf[0][h]=dacOut2;
+    buf[1][h]=dacOut1;
+
+    for (int i=0; i<8; i++) {
+      short chOut=fm_lle.accm_input;
+      oscBuf[i]->putSample(h,chOut);
+    }
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
 void DivPlatformArcade::acquire(short** buf, size_t len) {
-  if (useYMFM) {
+  if (selCore==0) {
     acquire_ymfm(buf,len);
-  } else {
+  } else if (selCore==1) {
     acquire_nuked(buf,len);
+  } else if (selCore==2) {
+    acquire_lle(buf,len);
   }
 }
 
@@ -179,18 +287,18 @@ void DivPlatformArcade::tick(bool sysTick) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
     }
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -264,12 +372,12 @@ void DivPlatformArcade::tick(bool sysTick) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i] || !op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else {
           if (KVS(i,j)) {
-            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+            rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
           } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
+            rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
           }
         }
       }
@@ -325,11 +433,11 @@ void DivPlatformArcade::tick(bool sysTick) {
       if (m.tl.had) {
         op.tl=m.tl.val;
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
       if (m.rs.had) {
@@ -378,19 +486,25 @@ void DivPlatformArcade::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
-      if (!parent->song.compatFlags.oldArpStrategy) {
-        if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
-        } else {
-          chan[i].freq+=chan[i].arpOff<<7;
+      if (chan[i].rawFreq) {
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch2;
+        immWrite(i+0x28,(chan[i].freq>>6));
+        immWrite(i+0x30,(chan[i].freq&63)<<2);
+      } else {
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch-128+chan[i].pitch2;
+        if (!parent->song.compatFlags.oldArpStrategy) {
+          if (chan[i].fixedArp) {
+            chan[i].freq=(chan[i].baseNoteOverride<<7)+chan[i].pitch-128+chan[i].pitch2;
+          } else {
+            chan[i].freq+=chan[i].arpOff<<7;
+          }
         }
+        chan[i].freq+=OFFSET_LINEAR;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
+        immWrite(i+0x28,hScale(chan[i].freq>>7));
+        immWrite(i+0x30,((chan[i].freq<<1)&0xfc));
       }
-      chan[i].freq+=OFFSET_LINEAR;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>=(95<<7)) chan[i].freq=(95<<7)-1;
-      immWrite(i+0x28,hScale(chan[i].freq>>7));
-      immWrite(i+0x30,((chan[i].freq<<1)&0xfc));
       hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
@@ -445,14 +559,14 @@ void DivPlatformArcade::commitState(int ch, DivInstrument* ins) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator op=chan[ch].state.op[i];
     if (!op.enable) {
-      rWrite(baseAddr+ADDR_TL,127);
+      rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
     } else if (KVS(ch,i)) {
       if (!chan[ch].active || chan[ch].insChanged) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[ch].outVol&0x7f,127));
+        rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[ch].outVol&0x7f,127))|(op.ksr?128:0));
       }
     } else {
       if (chan[ch].insChanged) {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
       }
     }
     if (chan[ch].insChanged) {
@@ -488,6 +602,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -518,11 +633,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(c.chan,i)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
       break;
@@ -584,6 +699,7 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
       }
       chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -612,11 +728,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(c.chan,i)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
       break;
@@ -652,11 +768,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
       if (!op.enable) {
-        rWrite(baseAddr+ADDR_TL,127);
+        rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
       } else if (KVS(c.chan,c.value)) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+        rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127))|(op.ksr?128:0));
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
       }
       break;
     }
@@ -814,6 +930,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
+      // OPP only
+      if (chipType!=1) break;
+      chan[c.chan].tlRamp=c.value;
+      immWrite(c.chan,chan[c.chan].tlRamp);
+      break;
     case DIV_CMD_FM_OPMASK:
       switch (c.value>>4) {
         case 1:
@@ -880,11 +1002,11 @@ void DivPlatformArcade::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator op=chan[i].state.op[j];
       if (!op.enable) {
-        rWrite(baseAddr+ADDR_TL,127);
+        rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
       } else if (KVS(i,j)) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+        rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
@@ -902,6 +1024,7 @@ void DivPlatformArcade::forceIns() {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
     }
+    if (chipType==1) immWrite(i,chan[i].tlRamp);
   }
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
@@ -919,6 +1042,10 @@ void DivPlatformArcade::notifyInsDeletion(void* ins) {
   for (int i=0; i<8; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformArcade::getMaxFreq(int ch) {
+  return 0x1fff;
 }
 
 SharedChannel* DivPlatformArcade::getChanState(int ch) {
@@ -956,11 +1083,30 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformArcade::reset() {
   writes.clear();
   memset(regPool,0,256);
-  if (useYMFM) {
-    fm_ymfm->reset();
-  } else {
-    memset(&fm,0,sizeof(opm_t));
-    OPM_Reset(&fm);
+  switch (selCore) {
+    case 0: // ymfm
+      fm_ymfm->reset();
+      break;
+    case 1: // Nuked
+      memset(&fm,0,sizeof(opm_t));
+      OPM_Reset(&fm,chipType?opm_flags_ym2164:0);
+      break;
+    case 2: // LLE
+      memset(&fm_lle,0,sizeof(fmopm_t));
+      fm_lle.input.ym2164=chipType;
+
+      // TODO: perform LLE reset
+      fm_lle.input.ic=0;
+      fm_lle.input.rd=1;
+      fm_lle.input.wr=1;
+      fm_lle.input.cs=1;
+      for (int i=0; i<1200; i++) {
+        FMOPM_Clock(&fm_lle,1);
+        FMOPM_Clock(&fm_lle,0);
+      }
+      fm_lle.input.ic=1;
+
+      break;
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -977,6 +1123,14 @@ void DivPlatformArcade::reset() {
     pendingWrites[i]=-1;
   }
 
+  lastSH1=false;
+  lastSH2=false;
+  lastSY=false;
+  isWaiting=1;
+  dacOut1=0;
+  dacOut2=0;
+  dacVal=0;
+
   lastBusy=60;
   delay=0;
   amDepth=0x7f;
@@ -991,6 +1145,8 @@ void DivPlatformArcade::reset() {
 }
 
 void DivPlatformArcade::setFlags(const DivConfig& flags) {
+  chipType=flags.getInt("chipType",0);
+
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
@@ -1012,26 +1168,36 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  if (fm_ymfm) {
+    delete fm_ymfm;
+    fm_ymfm=NULL;
+  }
+  if (chipType==1) {
+    fm_ymfm=new ymfm::ym2164(iface);
+  } else {
+    fm_ymfm=new ymfm::ym2151(iface);
+  }
 }
 
 int DivPlatformArcade::getOutputCount() {
   return 2;
 }
 
-void DivPlatformArcade::setYMFM(bool use) {
-  useYMFM=use;
+void DivPlatformArcade::setCore(int newCore) {
+  selCore=newCore;
 }
 
 int DivPlatformArcade::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  fm_ymfm=NULL;
   for (int i=0; i<8; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  if (useYMFM) fm_ymfm=new ymfm::ym2151(iface);
   reset();
 
   return 8;
@@ -1041,8 +1207,9 @@ void DivPlatformArcade::quit() {
   for (int i=0; i<8; i++) {
     delete oscBuf[i];
   }
-  if (useYMFM) {
+  if (fm_ymfm) {
     delete fm_ymfm;
+    fm_ymfm=NULL;
   }
 }
 

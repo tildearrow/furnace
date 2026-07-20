@@ -40,6 +40,7 @@
 
 #include "fileDialog.h"
 #include "newFilePicker.h"
+#include "newSettings.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -152,6 +153,8 @@ enum FurnaceGUIRenderBackend {
 
 #define GUI_EDIT_OCTAVE_MIN -5
 #define GUI_EDIT_OCTAVE_MAX 7
+
+#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;45:103;"
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -396,6 +399,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_CHANNEL_OP,
   GUI_COLOR_CHANNEL_MUTED,
 
+  GUI_COLOR_PATTERN_BG,
   GUI_COLOR_PATTERN_PLAY_HEAD,
   GUI_COLOR_PATTERN_CURSOR,
   GUI_COLOR_PATTERN_CURSOR_HOVER,
@@ -540,6 +544,53 @@ enum FurnaceGUIColors {
   GUI_COLOR_MAX
 };
 
+/**
+ * this enum defines all windows in the Furnace GUI.
+ * to define a new window, make sure to do the following:
+ * 1. declare your new window in this enum (ideally before the SPOILER one). we'll use GUI_WINDOW_EXAMPLE as an example.
+ * 2. add your window as GUI_ACTION_WINDOW_EXAMPLE in the FurnaceGUIActions enum. preferably in the same position as you declared here.
+ * 3. add a bool to the FurnaceGUI class called exampleOpen, next to the other *Open bools.
+ * 4. add a drawExample() function to the same class, next to the other draw* functions.
+ * 5. go to doAction.cpp, and add a handler for GUI_ACTION_WINDOW_EXAMPLE to doAction():
+ * ```
+ *   case GUI_ACTION_WINDOW_EXAMPLE:
+ *     nextWindow=GUI_WINDOW_EXAMPLE;
+ *     break;
+ * ```
+ * 6. in the same file, add a handler for GUI_ACTION_CLOSE_WINDOW:
+ * ```
+ *   case GUI_WINDOW_EXAMPLE:
+ *     exampleOpen=false;
+ *     break;
+ * ```
+ * 7. go to gui.cpp and tell FurnaceGUI::loop() about your window:
+ *   - DECLARE_METRIC(example) on top
+ *   - IMPORT_CLOSE(exampleOpen) in the pendingLayoutImport handler
+ *   - MEASURE(example,drawExample()) in the area where all the draw* calls are made
+ *     - there are two of them. one is for the mobile UI and the other is for the regular UI.
+ *   - add a MenuItem for your window if desired
+ * 8. in the same file, store your window's state:
+ *   - FurnaceGUI::syncState(): exampleOpen=e->getConfBool("exampleOpen",false);
+ *   - FurnaceGUI::commitState(): conf.set("exampleOpen",exampleOpen);
+ * 9. in the same file, initialize exampleOpen in the FurnaceGUI constructor, which should be at the end.
+ * 10. create a new file (e.g. example.cpp) that contains your window's drawing code.
+ * 11. use the following skeleton:
+ * ```
+ * void FurnaceGUI::drawExample() {
+ *   if (nextWindow==GUI_WINDOW_EXAMPLE) {
+ *     exampleOpen=true;
+ *     ImGui::SetNextWindowFocus();
+ *     nextWindow=GUI_WINDOW_NOTHING;
+ *   }
+ *   if (!exampleOpen) return;
+ *   if (ImGui::Begin("Example",&exampleOpen,globalWinFlags,_("Example"))) {
+ *     // code here
+ *   }
+ *   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EXAMPLE;
+ *   ImGui::End();
+ * }
+ * ```
+ */
 enum FurnaceGUIWindows {
   GUI_WINDOW_NOTHING=0,
   GUI_WINDOW_EDIT_CONTROLS,
@@ -583,6 +634,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_USER_PRESETS,
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
+  GUI_WINDOW_BACKUPS_MANAGER,
   GUI_WINDOW_SPOILER
 };
 
@@ -644,6 +696,9 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
+#ifdef WITH_JSON
+  GUI_FILE_EXPORT_JSON,
+#endif
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_EXPORT_COMPILED_INS,
   GUI_FILE_EXPORT_COMPILED_INS_ONE,
@@ -702,6 +757,9 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
+#ifdef WITH_JSON
+  GUI_EXPORT_JSON,
+#endif
   GUI_EXPORT_DMF
 };
 
@@ -796,6 +854,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_USER_PRESETS,
   GUI_ACTION_WINDOW_REF_PLAYER,
   GUI_ACTION_WINDOW_MULTI_INS_SETUP,
+  GUI_ACTION_WINDOW_BACKUPS_MANAGER,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1035,7 +1094,8 @@ enum PasteMode {
 enum NoteCtrl {
   GUI_NOTE_OFF=100,
   GUI_NOTE_OFF_RELEASE=101,
-  GUI_NOTE_RELEASE=102
+  GUI_NOTE_RELEASE=102,
+  GUI_NOTE_RAW=103
 };
 
 #define FURKMOD_CTRL (1U<<31)
@@ -1146,7 +1206,7 @@ struct UndoStep {
   SelectionPoint newCursor, newSelStart, newSelEnd;
   float oldScroll, newScroll;
   int oldOrder, newOrder;
-  bool nibble;
+  unsigned char nibble;
   int oldOrdersLen, newOrdersLen;
   int oldPatLen, newPatLen;
   std::vector<UndoOrderData> ord;
@@ -1165,7 +1225,7 @@ struct UndoStep {
     newScroll(-1.0f),
     oldOrder(0),
     newOrder(0),
-    nibble(false),
+    nibble(0),
     oldOrdersLen(0),
     newOrdersLen(0),
     oldPatLen(0),
@@ -1698,6 +1758,16 @@ enum NoteInputModes: unsigned char {
   GUI_NOTE_INPUT_CHORD
 };
 
+enum FurnaceGUIRawNoteState {
+  // note at cursor is regular.
+  GUI_RAWNOTE_NORMAL=0,
+  // note at cursor is a raw frequency one.
+  // don't preview notes.
+  GUI_RAWNOTE_PENDING=1,
+  // note at cursor is a raw frequency one, and we're ready to preview it.
+  GUI_RAWNOTE_READY=2,
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -1756,7 +1826,6 @@ class FurnaceGUI {
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool displayPendingSamples, replacePendingSample;
   bool displayExportingROM, displayExportingCS;
-  bool newPatternRenderer;
   bool quitNoSave;
   bool changeCoarse;
   bool orderLock;
@@ -1869,11 +1938,112 @@ class FurnaceGUI {
   int totalFiles;
 
   struct Settings {
-    bool settingsChanged;
+    bool audioHiPass;
+    bool pullDeleteBehavior;
+    bool allowEditDocking;
+    bool overflowHighlight;
+    bool flatNotes;
+    bool germanNotation;
+    bool stepOnDelete;
+    bool sysSeparators;
+    bool forceMono;
+    bool viewPrevPattern;
+    bool avoidRaisingPattern;
+    bool insFocusesPattern;
+    bool stepOnInsert;
+    bool unifiedDataView;
+#ifndef FLATPAK_WORKAROUNDS
+    bool sysFileDialog;
+#endif
+    bool roundedWindows;
+    bool roundedButtons;
+    bool roundedMenus;
+    bool roundedTabs;
+    bool roundedScrollbars;
+    bool loadFallback;
+    bool loadFallbackPat;
+    bool cursorPastePos;
+    bool titleBarSys;
+    bool frameBorders;
+    bool effectDeletionAltersValue;
+    bool oscRoundedCorners;
+    bool oscTakesEntireWindow;
+    bool oscBorder;
+    bool oscEscapesBoundary;
+    bool oscMono;
+    bool oscAntiAlias;
+    bool separateFMColors;
+    bool insEditColorize;
+    bool pushNibble;
+    bool oplStandardWaveNames;
+    bool cursorMoveNoScroll;
+    bool lowLatency;
+    bool powerSave;
+    bool absorbInsInput;
+    bool eventDelay;
+    bool moveWindowTitle;
+    bool hiddenSystems;
+    bool mswEnabled;
+    bool horizontalDataView;
+    bool noMultiSystem;
+    bool oldMacroVSlider;
+    bool displayAllInsTypes;
+    bool doubleClickColumn;
+    bool blankIns;
+    bool draggableDataView;
+    bool cursorFollowsOrder;
+    bool unsignedDetune;
+    bool noThreadedInput;
+    bool saveWindowPos;
+    bool clampSamples;
+    bool saveUnusedPatterns;
+    bool channelTextCenter;
+    bool midiOutClock;
+    bool midiOutTime;
+    bool midiOutProgramChange;
+    bool centerPattern;
+    bool ordersCursor;
+    bool oneDigitEffects;
+    bool disableFadeIn;
+    bool compress;
+    bool renderClearPos;
+    bool insertBehavior;
+    bool pullDeleteRow;
+    bool noDMFCompat;
+    bool removeInsOff;
+    bool removeVolOff;
+    bool insTypeMenu;
+    bool capitalMenuBar;
+    bool centerPopup;
+    bool classicChipOptions;
+    bool wasapiEx;
+    bool writeInsNames;
+    bool readInsNames;
+    bool fontBitmap;
+    bool fontAntiAlias;
+    bool selectAssetOnLoad;
+    bool basicColors;
+    bool playbackTime;
+    bool vsync;
+    bool displayRenderTime;
+    bool inputRepeat;
+    bool glSetBS;
+    bool glDoubleBuffer;
+    bool backupEnable;
+    bool autoFillSave;
+    bool backgroundPlay;
+    bool noMaximizeWorkaround;
+    bool s3mOPL3;
+    bool songNotesWrap;
+    bool rackShowLEDs;
+    bool warnNotePassthrough;
+    bool sampleImportInstDetune;
     int mainFontSize, patFontSize, headFontSize, iconSize;
+    int headFontSize2;
+    int headFontSize3;
+    int headFontSize4;
     int audioEngine;
     int audioQuality;
-    int audioHiPass;
     int audioChans;
     int arcadeCore;
     int ym2612Core;
@@ -1918,9 +2088,6 @@ class FurnaceGUI {
     int pnQualityRender;
     int saaQualityRender;
     int pcSpeakerOutMethod;
-    String yrw801Path;
-    String tg100Path;
-    String mu5Path;
     int mainFont;
     int headFont;
     int patFont;
@@ -1930,180 +2097,77 @@ class FurnaceGUI {
     int orderRowsBase;
     int soloAction;
     int ctrlWheelModifier;
-    int pullDeleteBehavior;
     int wrapHorizontal;
     int wrapVertical;
-    int macroView;
     int fmNames;
-    int allowEditDocking;
-    int chipNames;
-    int overflowHighlight;
-    int flatNotes;
-    int germanNotation;
-    int stepOnDelete;
     int scrollStep;
-    int sysSeparators;
-    int forceMono;
     int controlLayout;
     int statusDisplay;
     float dpiScale;
-    int viewPrevPattern;
     int guiColorsBase;
     int guiColorsShading;
-    int avoidRaisingPattern;
-    int insFocusesPattern;
-    int stepOnInsert;
-    int unifiedDataView;
-#ifndef FLATPAK_WORKAROUNDS
-    int sysFileDialog;
-#endif
-    int roundedWindows;
-    int roundedButtons;
-    int roundedMenus;
-    int roundedTabs;
-    int roundedScrollbars;
-    int loadFallback;
-    int loadFallbackPat;
     int fmLayout;
-    int sampleLayout;
     int susPosition;
     int effectCursorDir;
-    int cursorPastePos;
     int titleBarInfo;
-    int titleBarSys;
-    int frameBorders;
-    int effectDeletionAltersValue;
-    int oscRoundedCorners;
-    int oscTakesEntireWindow;
-    int oscBorder;
-    int oscEscapesBoundary;
-    int oscMono;
-    int oscAntiAlias;
     float oscLineSize;
-    int separateFMColors;
-    int insEditColorize;
     int metroVol;
     int sampleVol;
-    int pushNibble;
     int scrollChangesOrder;
-    int oplStandardWaveNames;
-    int cursorMoveNoScroll;
-    int lowLatency;
     int notePreviewBehavior;
-    int powerSave;
-    int absorbInsInput;
-    int eventDelay;
-    int moveWindowTitle;
-    int hiddenSystems;
-    int mswEnabled;
-    int horizontalDataView;
-    int noMultiSystem;
-    int oldMacroVSlider;
-    int displayAllInsTypes;
     int noteCellSpacing;
     int insCellSpacing;
     int volCellSpacing;
     int effectCellSpacing;
     int effectValCellSpacing;
-    int doubleClickColumn;
-    int blankIns;
     int dragMovesSelection;
-    int draggableDataView;
-    int cursorFollowsOrder;
-    int unsignedDetune;
-    int noThreadedInput;
-    int saveWindowPos;
-    int clampSamples;
-    int saveUnusedPatterns;
     int channelColors;
     int channelTextColors;
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
     int channelFont;
-    int channelTextCenter;
-    int midiOutClock;
-    int midiOutTime;
-    int midiOutProgramChange;
     int midiOutMode;
     int midiOutTimeRate;
     int maxRecentFile;
-    int centerPattern;
-    int ordersCursor;
-    int persistFadeOut;
-    int exportLoops;
-    double exportFadeOut;
     int macroLayout;
     float doubleClickTime;
-    int oneDigitEffects;
-    int disableFadeIn;
     int alwaysPlayIntro;
-    int iCannotWait;
     int orderButtonPos;
-    int compress;
-    int renderClearPos;
-    int insertBehavior;
-    int pullDeleteRow;
     int newSongBehavior;
     int memUsageUnit;
     int cursorFollowsWheel;
-    int noDMFCompat;
-    int removeInsOff;
-    int removeVolOff;
     int playOnLoad;
-    int insTypeMenu;
-    int capitalMenuBar;
-    int centerPopup;
     int insIconsStyle;
-    int classicChipOptions;
     int exportOptionsLayout;
-    int wasapiEx;
     int chanOscThreads;
     int renderPoolThreads;
-    int writeInsNames;
-    int readInsNames;
     int fontBackend;
     int fontHinting;
-    int fontBitmap;
     int fontAutoHint;
-    int fontAntiAlias;
     int fontOversample;
-    int selectAssetOnLoad;
-    int basicColors;
-    int playbackTime;
     int shaderOsc;
     int cursorWheelStep;
-    int vsync;
     int frameRateLimit;
-    int displayRenderTime;
-    int inputRepeat;
     int glRedSize;
     int glGreenSize;
     int glBlueSize;
     int glAlphaSize;
     int glDepthSize;
-    int glSetBS;
     int glStencilSize;
     int glBufferSize;
-    int glDoubleBuffer;
-    int backupEnable;
     int backupInterval;
     int backupMaxCopies;
-    int autoFillSave;
     int autoMacroStepSize;
-    int backgroundPlay;
-    int noMaximizeWorkaround;
     unsigned int maxUndoSteps;
     float vibrationStrength;
     int vibrationLength;
-    int s3mOPL3;
-    int songNotesWrap;
-    int rackShowLEDs;
-    int warnNotePassthrough;
-    int sampleImportInstDetune;
     int mixerStyle;
     int mixerLayout;
     float channelFeedbackGamma;
+    String yrw801Path;
+    String tg100Path;
+    String mu5Path;
     String mainFontPath;
     String headFontPath;
     String patFontPath;
@@ -2124,14 +2188,114 @@ class FurnaceGUI {
     DivConfig initialSys;
 
     Settings():
-      settingsChanged(false),
+      audioHiPass(true),
+      pullDeleteBehavior(true),
+      allowEditDocking(true),
+      overflowHighlight(false),
+      flatNotes(false),
+      germanNotation(false),
+      stepOnDelete(false),
+      sysSeparators(true),
+      forceMono(false),
+      viewPrevPattern(true),
+      avoidRaisingPattern(false),
+      insFocusesPattern(true),
+      stepOnInsert(false),
+      unifiedDataView(false),
+#ifndef FLATPAK_WORKAROUNDS
+      sysFileDialog(true),
+#endif
+      roundedWindows(true),
+      roundedButtons(true),
+      roundedMenus(false),
+      roundedTabs(true),
+      roundedScrollbars(true),
+      loadFallback(true),
+      loadFallbackPat(true),
+      cursorPastePos(true),
+      titleBarSys(true),
+      frameBorders(false),
+      effectDeletionAltersValue(true),
+      oscRoundedCorners(true),
+      oscTakesEntireWindow(false),
+      oscBorder(true),
+      oscEscapesBoundary(false),
+      oscMono(true),
+      oscAntiAlias(true),
+      separateFMColors(false),
+      insEditColorize(false),
+      pushNibble(false),
+      oplStandardWaveNames(false),
+      cursorMoveNoScroll(false),
+      lowLatency(false),
+      powerSave(true),
+      absorbInsInput(false),
+      eventDelay(false),
+      moveWindowTitle(true),
+      hiddenSystems(false),
+      mswEnabled(false),
+      horizontalDataView(false),
+      noMultiSystem(false),
+      oldMacroVSlider(false),
+      displayAllInsTypes(false),
+      doubleClickColumn(true),
+      blankIns(false),
+      draggableDataView(true),
+      cursorFollowsOrder(true),
+      unsignedDetune(false),
+      noThreadedInput(false),
+      clampSamples(false),
+      saveUnusedPatterns(false),
+      channelTextCenter(true),
+      midiOutClock(false),
+      midiOutTime(false),
+      midiOutProgramChange(false),
+      centerPattern(false),
+      ordersCursor(true),
+      oneDigitEffects(false),
+      disableFadeIn(false),
+      compress(true),
+      renderClearPos(false),
+      insertBehavior(true),
+      pullDeleteRow(true),
+      noDMFCompat(false),
+      removeInsOff(false),
+      removeVolOff(false),
+      insTypeMenu(true),
+      capitalMenuBar(false),
+      centerPopup(true),
+      classicChipOptions(false),
+      wasapiEx(false),
+      writeInsNames(false),
+      readInsNames(true),
+      fontBitmap(false),
+      fontAntiAlias(true),
+      selectAssetOnLoad(true),
+      basicColors(true),
+      playbackTime(true),
+      vsync(true),
+      displayRenderTime(false),
+      inputRepeat(true),
+      glSetBS(false),
+      glDoubleBuffer(true),
+      backupEnable(true),
+      autoFillSave(false),
+      backgroundPlay(false),
+      noMaximizeWorkaround(false),
+      s3mOPL3(true),
+      songNotesWrap(false),
+      rackShowLEDs(true),
+      warnNotePassthrough(false),
+      sampleImportInstDetune(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
       iconSize(GUI_ICON_SIZE_DEFAULT),
+      headFontSize2(20),
+      headFontSize3(16),
+      headFontSize4(13),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
-      audioHiPass(1),
       audioChans(2),
       arcadeCore(0),
       ym2612Core(0),
@@ -2176,9 +2340,6 @@ class FurnaceGUI {
       pnQualityRender(3),
       saaQualityRender(3),
       pcSpeakerOutMethod(0),
-      yrw801Path(""),
-      tg100Path(""),
-      mu5Path(""),
       mainFont(0),
       patFont(0),
       audioRate(44100),
@@ -2187,178 +2348,77 @@ class FurnaceGUI {
       orderRowsBase(1),
       soloAction(0),
       ctrlWheelModifier(0),
-      pullDeleteBehavior(1),
       wrapHorizontal(0),
       wrapVertical(0),
-      macroView(0),
       fmNames(0),
-      allowEditDocking(1),
-      chipNames(0),
-      overflowHighlight(0),
-      germanNotation(0),
-      stepOnDelete(0),
       scrollStep(0),
-      sysSeparators(1),
-      forceMono(0),
       controlLayout(3),
       statusDisplay(0),
       dpiScale(0.0f),
-      viewPrevPattern(1),
       guiColorsBase(0),
       guiColorsShading(0),
-      avoidRaisingPattern(0),
-      insFocusesPattern(1),
-      stepOnInsert(0),
-      unifiedDataView(0),
-#ifndef FLATPAK_WORKAROUNDS
-      sysFileDialog(1),
-#endif
-      roundedWindows(1),
-      roundedButtons(1),
-      roundedMenus(0),
-      roundedTabs(1),
-      roundedScrollbars(1),
-      loadFallback(1),
-      loadFallbackPat(1),
       fmLayout(4),
-      sampleLayout(0),
       susPosition(0),
       effectCursorDir(1),
-      cursorPastePos(1),
       titleBarInfo(1),
-      titleBarSys(1),
-      frameBorders(0),
-      effectDeletionAltersValue(1),
-      oscRoundedCorners(1),
-      oscTakesEntireWindow(0),
-      oscBorder(1),
-      oscEscapesBoundary(0),
-      oscMono(1),
-      oscAntiAlias(1),
       oscLineSize(1.0f),
-      separateFMColors(0),
-      insEditColorize(0),
       metroVol(100),
       sampleVol(50),
-      pushNibble(0),
       scrollChangesOrder(0),
-      oplStandardWaveNames(0),
-      cursorMoveNoScroll(0),
-      lowLatency(0),
       notePreviewBehavior(1),
-      powerSave(1),
-      absorbInsInput(0),
-      eventDelay(0),
-      moveWindowTitle(1),
-      hiddenSystems(0),
-      mswEnabled(0),
-      horizontalDataView(0),
-      noMultiSystem(0),
-      oldMacroVSlider(0),
-      displayAllInsTypes(0),
       noteCellSpacing(0),
       insCellSpacing(0),
       volCellSpacing(0),
       effectCellSpacing(0),
       effectValCellSpacing(0),
-      doubleClickColumn(1),
-      blankIns(0),
       dragMovesSelection(1),
-      draggableDataView(1),
-      cursorFollowsOrder(1),
-      unsignedDetune(0),
-      noThreadedInput(0),
-      clampSamples(0),
-      saveUnusedPatterns(0),
       channelColors(1),
       channelTextColors(0),
       channelStyle(1),
       channelVolStyle(0),
       channelFeedbackStyle(1),
       channelFont(1),
-      channelTextCenter(1),
-      midiOutClock(0),
-      midiOutTime(0),
-      midiOutProgramChange(0),
       midiOutMode(1),
       midiOutTimeRate(0),
       maxRecentFile(10),
-      centerPattern(0),
-      ordersCursor(1),
-      persistFadeOut(1),
-      exportLoops(0),
-      exportFadeOut(0.0),
       macroLayout(0),
       doubleClickTime(0.3f),
-      oneDigitEffects(0),
-      disableFadeIn(0),
       alwaysPlayIntro(0),
-      iCannotWait(0),
       orderButtonPos(2),
-      compress(1),
-      renderClearPos(0),
-      insertBehavior(1),
-      pullDeleteRow(1),
       newSongBehavior(0),
       memUsageUnit(1),
       cursorFollowsWheel(0),
-      noDMFCompat(0),
-      removeInsOff(0),
-      removeVolOff(0),
       playOnLoad(0),
-      insTypeMenu(1),
-      capitalMenuBar(0),
-      centerPopup(1),
       insIconsStyle(1),
-      classicChipOptions(0),
       exportOptionsLayout(1),
-      wasapiEx(0),
       chanOscThreads(0),
       renderPoolThreads(0),
-      writeInsNames(0),
-      readInsNames(1),
       fontBackend(1),
       fontHinting(0),
-      fontBitmap(0),
       fontAutoHint(1),
-      fontAntiAlias(1),
       fontOversample(GUI_OVERSAMPLE_DEFAULT),
-      selectAssetOnLoad(1),
-      basicColors(1),
-      playbackTime(1),
       shaderOsc(1),
       cursorWheelStep(0),
-      vsync(1),
       frameRateLimit(60),
-      displayRenderTime(0),
-      inputRepeat(1),
       glRedSize(8),
       glGreenSize(8),
       glBlueSize(8),
       glAlphaSize(0),
       glDepthSize(24),
-      glSetBS(0),
       glStencilSize(0),
       glBufferSize(32),
-      glDoubleBuffer(1),
-      backupEnable(1),
       backupInterval(30),
       backupMaxCopies(5),
-      autoFillSave(0),
       autoMacroStepSize(0),
-      backgroundPlay(0),
-      noMaximizeWorkaround(0),
       maxUndoSteps(100),
       vibrationStrength(0.5f),
       vibrationLength(20),
-      s3mOPL3(1),
-      songNotesWrap(0),
-      rackShowLEDs(1),
-      warnNotePassthrough(0),
-      sampleImportInstDetune(0),
       mixerStyle(1),
       mixerLayout(0),
       channelFeedbackGamma(1.0f),
+      yrw801Path(""),
+      tg100Path(""),
+      mu5Path(""),
       mainFontPath(""),
       headFontPath(""),
       patFontPath(""),
@@ -2377,6 +2437,14 @@ class FurnaceGUI {
       defaultAuthorName(""),
       locale("") {}
   } settings;
+
+  ImGuiTextFilter settingsFilter;
+  std::vector<SettingsCategory> allSettings;
+  SettingsCategory* curCategory;
+  // when clicking on a category while the filter is active,
+  // set to false so the filter is ignored for items.
+  // otherwise set to true on filter update
+  bool settingsShowItemResults;
 
   struct Tutorial {
     bool introPlayed;
@@ -2427,6 +2495,11 @@ class FurnaceGUI {
   int curPaletteChoice, curPaletteType;
   float soloTimeout;
 
+  int curRawNote;
+  FurnaceGUIRawNoteState curRawNoteState;
+  int pendingRawNote; // you can only play a single raw note at a time...
+  SDL_Keycode pendingRawNoteKey;
+
   int multiIns[7];
   int multiInsTranspose[7];
   bool mobileMultiInsToggle;
@@ -2443,7 +2516,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
-  bool multiInsSetupOpen;
+  bool multiInsSetupOpen, backupsManagerOpen;
 
   bool cvNotSerious;
 
@@ -2455,7 +2528,8 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   SelectionPoint undoSelStart, undoSelEnd, undoCursor;
-  bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
+  unsigned char curNibble;
+  bool selecting, selectingFull, dragging, orderNibble, followOrders, followPattern, wasFollowing, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
   bool mobilePatSel;
@@ -2865,6 +2939,17 @@ class FurnaceGUI {
     PIANO_KEY_COLOR_INSTRUMENT
   };
 
+  enum PianoInputMode {
+    PIANO_INPUT_NOTE=0,
+    PIANO_INPUT_VALUE,
+    PIANO_INPUT_ORDER,
+    PIANO_INPUT_SAMPLE_MAP_NOTE,
+    PIANO_INPUT_SAMPLE_MAP_VALUE,
+    PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ,
+    PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA,
+    PIANO_INPUT_RAW_FREQ
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   struct pianoKeyState {
@@ -2935,6 +3020,11 @@ class FurnaceGUI {
   DivCSOptions csExportOptions;
   DivCSProgress csProgress;
 
+#ifdef WITH_JSON
+  // JSON export specific
+  DivJSONExportOptions jsonExportOptions;
+#endif
+
   // ROM export specific
   DivROMExportOptions romTarget;
   DivConfig romConfig;
@@ -2974,6 +3064,9 @@ class FurnaceGUI {
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
   void drawExportText(bool onWindow=false);
+#ifdef WITH_JSON
+  void drawExportJSON(bool onWindow=false);
+#endif
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
 
@@ -3050,7 +3143,6 @@ class FurnaceGUI {
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
   ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
-  void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void updateKeyHitPre();
   void updateKeyHitPost();
@@ -3138,13 +3230,13 @@ class FurnaceGUI {
   void drawUserPresets();
   void drawRefPlayer();
   void drawMultiInsSetup();
+  void drawBackupsManager();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
   void drawVolMeterInternal(ImDrawList* dl, ImRect rect, float* data, int chans, bool aspectRatio);
 
   void assignActionMap(std::map<int,int>& actionMap, int first, int last);
-  void drawKeybindSettingsTableRow(FurnaceGUIActions actionIdx);
   void parseKeybinds();
   void promptKey(int which, int bindIdx);
   void doAction(int what);
@@ -3169,6 +3261,7 @@ class FurnaceGUI {
   void readConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
   void writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups=GUI_SETTINGS_ALL);
 
+  void initSettings();
   void syncSettings();
   void commitSettings();
   void syncTutorial();
@@ -3221,6 +3314,7 @@ class FurnaceGUI {
   void editOptions(bool topMenu);
   DivSystem systemPicker(bool fullWidth);
   void noteInput(int num, int key, int vol=-1, int chanOff=0);
+  void rawFreqInput(int num);
   void valueInput(int num, bool direct=false, int target=-1);
   void orderInput(int num);
 
@@ -3296,6 +3390,9 @@ class FurnaceGUI {
   void setCurIns(int newIns);
   bool setMultiIns(int newIns);
   bool isMultiInsActive();
+
+  friend class SettingsCategory;
+  friend class SettingEntry;
 
   public:
     void editStr(String* which);

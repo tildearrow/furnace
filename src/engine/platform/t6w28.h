@@ -54,7 +54,6 @@ class DivPlatformT6W28: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
-  double NOTE_SN(int ch, int note);
   int snCalcFreq(int ch);
   
   void writeOutVol(int ch);
@@ -78,6 +77,8 @@ class DivPlatformT6W28: public DivDispatch {
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

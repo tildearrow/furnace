@@ -165,7 +165,7 @@ void DivPlatformVB::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -218,9 +218,11 @@ void DivPlatformVB::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>2047) chan[i].freq=2047;
-      chan[i].freq=2048-chan[i].freq;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>2047) chan[i].freq=2047;
+        chan[i].freq=2048-chan[i].freq;
+      }
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,chan[i].freq>>8);
       if (chan[i].keyOn) {
@@ -621,6 +623,10 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 
 void DivPlatformVB::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformVB::getMaxFreq(int ch) {
+  return 0x7ff;
 }
 
 void DivPlatformVB::setFlags(const DivConfig& flags) {

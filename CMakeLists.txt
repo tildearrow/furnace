@@ -126,6 +126,7 @@ option(WITH_RENDER_OPENGL1 "Whether to build with the OpenGL 1.1 render backend.
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
 option(WITH_RENDER_DX9 "Whether to build with the DirectX 9 render backend." ${WITH_RENDER_DX9_DEFAULT})
 option(WITH_RENDER_METAL "Whether to build with the Metal render backend." ${WITH_RENDER_METAL_DEFAULT})
+option(WITH_JSON "Whether to build with JSON export support." ON)
 option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
 option(USE_FREETYPE "Use FreeType for font rendering." ON)
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
@@ -487,6 +488,14 @@ else()
   endif()
 endif()
 
+if (WITH_JSON)
+  list(APPEND DEPENDENCIES_DEFINES WITH_JSON)
+  set(JSON_BuildTests OFF CACHE INTERNAL "")
+  set(JSON_Install OFF CACHE INTERNAL "")
+  add_subdirectory(extern/json)
+  list(APPEND DEPENDENCIES_LIBRARIES nlohmann_json::nlohmann_json)
+endif()
+
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
 src/audio/midi.cpp
@@ -550,12 +559,24 @@ else()
   message(STATUS "Building without RtMidi")
 endif()
 
+# Preserve the envelope behavior of the Nuked-OPL3 revision that Furnace
+# previously vendored. Its later quad-output update already included the
+# immediate 4-op routing fix, so OPL_COMPAT_DEFERRED_4OP_ALG must remain off.
+set_property(
+  SOURCE extern/opl/opl3.c
+  APPEND PROPERTY COMPILE_DEFINITIONS
+  OPL_COMPAT_OLD_EG=1
+)
+
 set(ENGINE_SOURCES
 src/log.cpp
 src/baseutils.cpp
 src/fileutils.cpp
 src/timeutils.cpp
 src/utfutils.cpp
+
+src/fileutils/abstract.cpp
+src/fileutils/cfile.cpp
 
 extern/itcompress/compression.c
 
@@ -606,6 +627,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/Nuked-OPL2-Lite/opl2.c
+extern/Nuked-CQM/cqm.c
+extern/YM2203-LLE/fmopn.c
 extern/YM3812-LLE/fmopl2.c
 extern/YMF262-LLE/fmopl3.c
 extern/YMF276-LLE/fmopn2.c
@@ -615,6 +639,7 @@ extern/emu2413/emu2413.c
 extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
+extern/YM2151-LLE/fmopm.c
 
 extern/pwrnoise/pwrnoise.c
 
@@ -706,7 +731,6 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 src/engine/platform/sound/qsound.c
 
 src/engine/platform/sound/swan.c
-src/engine/platform/sound/swan_mdfn.cpp
 
 src/engine/platform/sound/su.cpp
 
@@ -911,6 +935,10 @@ if (USE_SNDFILE)
   list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
 endif()
 
+if (WITH_JSON)
+  list(APPEND ENGINE_SOURCES src/engine/fileOps/json.cpp)
+endif()
+
 if (WIN32)
   list(APPEND ENGINE_SOURCES src/utfutils.cpp)
   list(APPEND ENGINE_SOURCES src/engine/winStuff.cpp)
@@ -939,9 +967,23 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 
 src/gui/plot_nolerp.cpp
 
+src/gui/presets/arcadeSystems.cpp
+src/gui/presets/computers.cpp
+src/gui/presets/defleCompat.cpp
+src/gui/presets/fm.cpp
+src/gui/presets/gameConsoles.cpp
+src/gui/presets/sample.cpp
+src/gui/presets/specialized.cpp
+src/gui/presets/square.cpp
+src/gui/presets/user.cpp
+src/gui/presets/wavetable.cpp
+
 src/gui/render.cpp
 src/gui/render/abstract.cpp
 src/gui/render/renderSoftware.cpp
+
+src/gui/settings/allSettings.cpp
+src/gui/settings/loadSettings.cpp
 
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
@@ -969,6 +1011,7 @@ src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
 src/gui/about.cpp
+src/gui/backupsManager.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
@@ -993,7 +1036,6 @@ src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/multiInsSetup.cpp
-src/gui/newPattern.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
@@ -1006,6 +1048,7 @@ src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
 src/gui/settings.cpp
+src/gui/newSettings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
 src/gui/spectrum.cpp

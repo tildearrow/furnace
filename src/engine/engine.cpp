@@ -2473,6 +2473,13 @@ int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
 
+unsigned int DivEngine::getMaxFreqChan(int ch) {
+  if (ch<0 || ch>=song.chans) return 0;
+  if (song.dispatchChanOfChan[ch]<0) return 0;
+  if (disCont[song.dispatchOfChan[ch]].dispatch==NULL) return 0;
+  return disCont[song.dispatchOfChan[ch]].dispatch->getMaxFreq(song.dispatchChanOfChan[ch]);
+}
+
 int DivEngine::mapVelocity(int ch, float vel) {
   if (ch<0) return 0;
   if (ch>=song.chans) return 0;
@@ -3584,7 +3591,7 @@ void DivEngine::noteOn(int chan, int ins, int note, int vol) {
 void DivEngine::noteOff(int chan) {
   if (chan<0 || chan>=song.chans) return;
   BUSY_BEGIN;
-  pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
+  pendingNotes.push_back(DivNoteEvent(chan,-1,0,-1,false));
   if (!playing) {
     reset();
     freelance=true;
@@ -3703,7 +3710,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol, int transpose) {
     if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
-      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note+transpose,vol,true));
+      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note+((note&DIV_NOTE_RAW_FLAG)?0:transpose),vol,true));
       return true;
     }
     if (++finalChan>=song.chans) {
@@ -3724,7 +3731,7 @@ bool DivEngine::autoNoteOn(int ch, int ins, int note, int vol, int transpose) {
 
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
-  pendingNotes.push_back(DivNoteEvent(candidate,ins,note+transpose,vol,true));
+  pendingNotes.push_back(DivNoteEvent(candidate,ins,note+((note&DIV_NOTE_RAW_FLAG)?0:transpose),vol,true));
   return true;
 }
 
@@ -3735,7 +3742,7 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   //if (ch<0 || ch>=song.chans) return;
   for (int i=0; i<song.chans; i++) {
     if (chan[i].midiNote==note) {
-      pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
+      pendingNotes.push_back(DivNoteEvent(i,-1,0,-1,false));
       chan[i].midiNote=-1;
     }
   }
@@ -3747,7 +3754,7 @@ void DivEngine::autoNoteOffAll() {
   }
   for (int i=0; i<song.chans; i++) {
     if (chan[i].midiNote!=-1) {
-      pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
+      pendingNotes.push_back(DivNoteEvent(i,-1,0,-1,false));
       chan[i].midiNote=-1;
     }
   }
@@ -3996,7 +4003,7 @@ void DivEngine::initDispatch(bool isRender) {
   if (isRender) logI("render cores set");
 
   lowQuality=getConfInt("audioQuality",0);
-  dcHiPass=getConfInt("audioHiPass",1);
+  dcHiPass=getConfBool("audioHiPass",1);
 
   if (lowQuality) {
     blip_add_delta=blip_add_delta_fast;
@@ -4090,15 +4097,15 @@ bool DivEngine::initAudioBackend() {
   }
 #endif
 
-  forceMono=getConfInt("forceMono",0);
-  clampSamples=getConfInt("clampSamples",0);
-  lowLatency=getConfInt("lowLatency",0);
+  forceMono=getConfBool("forceMono",0);
+  clampSamples=getConfBool("clampSamples",0);
+  lowLatency=getConfBool("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   previewVol=(float)(getConfInt("sampleVol",50))/100.0f;
-  midiOutClock=getConfInt("midiOutClock",0);
-  midiOutTime=getConfInt("midiOutTime",0);
+  midiOutClock=getConfBool("midiOutClock",0);
+  midiOutTime=getConfBool("midiOutTime",0);
   midiOutTimeRate=getConfInt("midiOutTimeRate",0);
-  midiOutProgramChange=getConfInt("midiOutProgramChange",0);
+  midiOutProgramChange=getConfBool("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;
@@ -4183,7 +4190,7 @@ bool DivEngine::initAudioBackend() {
   want.inChans=0;
   want.outChans=getConfInt("audioChans",2);
   want.outFormat=TA_AUDIO_FORMAT_F32;
-  want.wasapiEx=getConfInt("wasapiEx",0);
+  want.wasapiEx=getConfBool("wasapiEx",0);
   want.name="Furnace";
 
   if (want.outChans<1) want.outChans=1;
@@ -4365,7 +4372,7 @@ bool DivEngine::init() {
     }
     String sysName=getConfString("initialSysName","");
     if (sysName=="") {
-      song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
+      song.systemName=getSongSystemLegacyName(song,!getConfBool("noMultiSystem",0));
     } else {
       song.systemName=sysName;
     }

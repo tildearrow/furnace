@@ -98,6 +98,7 @@ class DivPlatformVB: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void notifyPitchTable(int sample=-1);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

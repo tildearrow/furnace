@@ -23,6 +23,8 @@
 #include "../dispatch.h"
 #include "../../fixedQueue.h"
 #include "../../../extern/opl/opl3.h"
+#include "../../../extern/Nuked-OPL2-Lite/opl2.h"
+#include "../../../extern/Nuked-CQM/cqm.h"
 extern "C" {
 #include "../../../extern/YM3812-LLE/fmopl2.h"
 #include "../../../extern/YMF262-LLE/fmopl3.h"
@@ -165,12 +167,16 @@ class DivPlatformOPL: public DivDispatch {
     ymfm::ymf278b* fm_ymfm4;
     fmopl2_t fm_lle2;
     fmopl3_t fm_lle3;
+    cqm_t fm_cqm;
+    opl2_chip fm_opl2;
+
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
 
     DivMemoryComposition memCompo;
 
     int octave(int freq, int fixedBlock);
     int toFreq(int freq, int fixedBlock);
-    double NOTE_ADPCMB(int note);
     void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
@@ -184,6 +190,8 @@ class DivPlatformOPL: public DivDispatch {
     void acquire_ymfm8950(short** buf, size_t len);
     void acquire_ymfm2(short** buf, size_t len);
     void acquire_ymfm1(short** buf, size_t len);
+    void acquire_cqm(short** buf, size_t len);
+    void acquire_nuked2(short** buf, size_t len);
   
     void renderInstruments();
   
@@ -215,6 +223,8 @@ class DivPlatformOPL: public DivDispatch {
     void notifyInsChange(int ins);
     void notifySampleChange(int sample);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

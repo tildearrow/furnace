@@ -219,6 +219,7 @@ void FurnaceGUI::drawDebug() {
           DISPATCH_DEBUG_LED("keyOff",ch->keyOff);
           DISPATCH_DEBUG_LED("portaPause",ch->portaPause);
           DISPATCH_DEBUG_LED("inPorta",ch->inPorta);
+          DISPATCH_DEBUG_LED("rawFreq",ch->rawFreq);
 
           ImGui::EndTable();
         }
@@ -309,6 +310,11 @@ void FurnaceGUI::drawDebug() {
             ImGui::TableNextColumn();
             pushToggleColors(ch->inPorta);
             ImGui::Button("in porta",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->rawFreq);
+            ImGui::Button("raw freq",ImVec2(ImGui::GetContentRegionAvail().x,0));
             popToggleColors();
 
             ImGui::EndTable();
@@ -456,7 +462,7 @@ void FurnaceGUI::drawDebug() {
       }
 
       ImGui::Checkbox("Enable row timestamps (in pattern view)",&debugRowTimestamps);
-      
+
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Macro Int Debug")) {
@@ -775,7 +781,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("no pitch table assigned to this channel.");
         } else {
           ImGui::Text("%s - %s",pt->period?"period":"frequency",pt->linearity?"linear":"non-linear");
-          ImGui::Text("shift: %d - blockBits: %d",pt->shift,pt->blockBits);
+          ImGui::Text("shift: %d",pt->shift);
           ImGui::Text("max: %x",pt->maxFreq);
 
           if (ImGui::BeginTable("PTable",3)) {
@@ -948,7 +954,7 @@ void FurnaceGUI::drawDebug() {
 
         ImGui::EndTable();
       }
-      
+
       ImGui::Text("particle count: %d",(int)particles.size());
 
       ImGui::TreePop();
@@ -995,7 +1001,7 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Clear")) {
         pgProgram.clear();
       }
-      
+
       ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
@@ -1150,7 +1156,7 @@ void FurnaceGUI::drawDebug() {
       for (int i=0; i<oscDebugLen; i++) {
         oscDebugData[i]=oscDebugMin+(oscDebugMax-oscDebugMin)*pow((float)((i*oscDebugRepeat)%oscDebugLen)/(float)oscDebugLen,oscDebugPower);
       }
-      
+
       if (rend->supportsDrawOsc()) {
         ImDrawList* dl=ImGui::GetWindowDrawList();
         ImGuiWindow* window=ImGui::GetCurrentWindow();

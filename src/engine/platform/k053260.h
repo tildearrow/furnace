@@ -80,6 +80,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
     virtual void notifyPitchTable(int sample=-1) override;
+    virtual unsigned int getMaxFreq(int ch) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;

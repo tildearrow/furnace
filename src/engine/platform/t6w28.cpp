@@ -92,25 +92,15 @@ void DivPlatformT6W28::writeOutVol(int ch) {
   }
 }
 
-double DivPlatformT6W28::NOTE_SN(int ch, int note) {
-  double CHIP_DIVIDER=16;
-  if (ch==3) CHIP_DIVIDER=15;
-  if (parent->song.compatFlags.linearPitch || !easyNoise) {
-    return NOTE_PERIODIC(note);
-  }
-  if (note>167) {
-    return MAX(0,13-(note-167));
-  }
-  return NOTE_PERIODIC(note);
-}
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
+  if (chan[ch].rawFreq) return chan[ch].calcFreq();
   if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
     int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
-  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,chan[ch].fixedArp?chan[ch].baseNoteOverride:chan[ch].arpOff,chan[ch].fixedArp,true,0,chan[ch].pitch2,chipClock,ch==3?15:16);
+  return chan[ch].calcFreq();
 }
 
 void DivPlatformT6W28::tick(bool sysTick) {
@@ -121,10 +111,10 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        chan[i].baseFreq=NOTE_SN(i,noiseSeek);
+        chan[i].baseFreq=chan[i].calcBaseFreq(noiseSeek);
       }
       chan[i].freqChanged=true;
     }
@@ -159,8 +149,10 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>1023) chan[i].freq=1023;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>1023) chan[i].freq=1023;
+      }
       if (i==3) {
         rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
         rWrite(1,chan[3].freq>>4);
@@ -180,7 +172,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -230,7 +222,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_SN(c.chan,c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -264,7 +256,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -272,7 +264,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_T6W28));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -339,6 +331,11 @@ void DivPlatformT6W28::reset() {
   memset(regPool,0,128);
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformT6W28::Channel(parent->song.compatFlags.linearPitch);
+    if (i==3) {
+      chan[i].pitchTable=&noisePitchTable;
+    } else {
+      chan[i].pitchTable=&tonePitchTable;
+    }
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -376,6 +373,15 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformT6W28::notifyPitchTable(int sample) {
+  tonePitchTable.init(parent->song.tuning,chipClock,16,0x3ff,true,parent->song.compatFlags.linearPitch);
+  noisePitchTable.init(parent->song.tuning,chipClock,15,0x3ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformT6W28::getMaxFreq(int ch) {
+  return 0x3ff;
+}
+
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   chipClock=3072000.0;
   CHECK_CUSTOM_CLOCK;
@@ -393,6 +399,8 @@ void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     t6w->osc_output(i,oscBuf[i]);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformT6W28::poke(unsigned int addr, unsigned short val) {

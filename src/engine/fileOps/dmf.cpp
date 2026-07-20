@@ -304,7 +304,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       return false;
     }
     if (ds.subsong[0]->ordersLen>127) {
-      logE("song is too long!");
+      logE("song is too long! (%d)",ds.subsong[0]->ordersLen);
       lastError="song is too long!";
       delete[] file;
       return false;

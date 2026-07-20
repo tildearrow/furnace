@@ -204,6 +204,8 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
 int DivPlatformSMS::snCalcFreq(int ch) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
+  if (chan[ch].rawFreq) return chan[ch].calcFreq();
+
   int easyStartingPeriod=16;
   int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64+60*128;
   int curFreq=chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2+(chan[ch].arpOff<<7);
@@ -230,7 +232,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
@@ -276,11 +278,13 @@ void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=snCalcFreq(i);
-      if (chan[i].freq>1023) chan[i].freq=1023;
-      if (parent->song.compatFlags.snNoLowPeriods) {
-        if (chan[i].freq<8) chan[i].freq=1;
-      } else {
-        if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>1023) chan[i].freq=1023;
+        if (parent->song.compatFlags.snNoLowPeriods) {
+          if (chan[i].freq<8) chan[i].freq=1;
+        } else {
+          if (chan[i].freq<0) chan[i].freq=0;
+        }
       }
       //if (chan[i].actualNote>153) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
@@ -295,11 +299,13 @@ void DivPlatformSMS::tick(bool sysTick) {
   }
   if (chan[3].freqChanged || updateSNMode) {
     chan[3].freq=snCalcFreq(3);
-    if (chan[3].freq>1023) chan[3].freq=1023;
-    if (parent->song.compatFlags.snNoLowPeriods) {
-      if (chan[3].actualNote>153) chan[3].freq=0x01;
+    if (!chan[3].rawFreq) {
+      if (chan[3].freq>1023) chan[3].freq=1023;
+      if (parent->song.compatFlags.snNoLowPeriods) {
+        if (chan[3].actualNote>153) chan[3].freq=0x01;
+      }
+      if (chan[3].freq<0) chan[3].freq=0;
     }
-    if (chan[3].freq<0) chan[3].freq=0;
     if (snNoiseMode&2) { // take period from channel 3
       if (updateSNMode || resetPhase) {
         if (snNoiseMode&1) {
@@ -319,7 +325,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     } else { // 3 fixed values
       unsigned char value;
       // TODO: new arp?
-      if (chan[3].std.arp.had) {
+      if (chan[3].std.arp.had && !chan[3].rawFreq) {
         value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
       } else { // pardon?
         value=chan[3].note%12;
@@ -582,6 +588,10 @@ void DivPlatformSMS::notifyInsDeletion(void* ins) {
 void DivPlatformSMS::notifyPitchTable(int sample) {
   tonePitchTable.init(parent->song.tuning,chipClock,toneDivider,0x3ff,true,parent->song.compatFlags.linearPitch);
   noisePitchTable.init(parent->song.tuning,chipClock,noiseDivider,0x3ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSMS::getMaxFreq(int ch) {
+  return 0x3ff;
 }
 
 void DivPlatformSMS::poke(unsigned int addr, unsigned short val) {

@@ -118,7 +118,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
     // TODO: arp macros on NES PCM?
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -144,9 +144,12 @@ void DivPlatformMMC5::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=chan[i].calcFreq()-1;
-      if (chan[i].freq>2047) chan[i].freq=2047;
-      if (chan[i].freq<0) chan[i].freq=0;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq>2047) chan[i].freq=2047;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
@@ -438,6 +441,11 @@ void DivPlatformMMC5::notifyInsDeletion(void* ins) {
 void DivPlatformMMC5::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x800,true,parent->song.compatFlags.linearPitch);
   samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,32000,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformMMC5::getMaxFreq(int ch) {
+  if (ch>=2) return 0x7fff;
+  return 0x7ff;
 }
 
 void DivPlatformMMC5::poke(unsigned int addr, unsigned short val) {
