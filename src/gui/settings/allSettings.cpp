@@ -1522,6 +1522,7 @@ void FurnaceGUI::initSettings() {
       // the table of doom...
       SettingEntry(_N("Emulation cores"),NULL,[this]{
         bool ret=false;
+        ImGui::TextWrapped(_("these settings will take effect after pressing OK or Apply."));
         if (ImGui::BeginTable("##Cores",3)) {
           ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
