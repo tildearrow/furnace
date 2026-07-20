@@ -674,11 +674,11 @@ void FurnaceGUI::drawPattern() {
                   break;
                 }
                 case 3: // real
-                  xRight=chanOscVol[i];
+                  xRight=chanOsc.volume[i];
                   break;
                 case 4: // real (stereo)
-                  xRight=0.5+chanOscVol[i]*0.5*(1.0+MIN(0.0,stereoPan));
-                  xLeft=0.5-chanOscVol[i]*0.5*(1.0-MAX(0.0,stereoPan));
+                  xRight=0.5+chanOsc.volume[i]*0.5*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-chanOsc.volume[i]*0.5*(1.0-MAX(0.0,stereoPan));
                   break;
               }
 
@@ -2215,10 +2215,10 @@ void FurnaceGUI::updateKeyHitPre() {
     if (e->keyHit[i]) {
       keyHit1[i]=1.0f;
 
-      if (chanOscRandomPhase) {
-        chanOscChan[i].phaseOff=(float)rand()/(float)RAND_MAX;
+      if (chanOsc.randomPhase) {
+        chanOsc.chan[i].phaseOff=(float)rand()/(float)RAND_MAX;
       } else {
-        chanOscChan[i].phaseOff=0.0f;
+        chanOsc.chan[i].phaseOff=0.0f;
       }
 
       if (settings.channelFeedbackStyle==1) {
@@ -2255,7 +2255,7 @@ void FurnaceGUI::updateKeyHitPre() {
         }
       }
     } else if (settings.channelFeedbackStyle==4 && e->isRunning()) {
-      float amount=powf(chanOscVol[i],settings.channelFeedbackGamma);
+      float amount=powf(chanOsc.volume[i],settings.channelFeedbackGamma);
       if (isnan(amount)) amount=0; // how is it nan tho??
       if (e->getChanState(i)->keyOff) amount=0.0f;
       keyHit[i]=amount*0.2f;

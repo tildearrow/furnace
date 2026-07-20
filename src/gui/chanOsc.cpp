@@ -42,6 +42,17 @@ const char* chanOscRefs[]={
   _N("Note Trigger")
 };
 
+const char* chanOscArrangeModes[]={
+  _N("columns"),
+  _N("rows")
+};
+
+const char* chanOscDCOffsetCorrModes[]={
+  _N("Off##_cocs0"),
+  _N("Normal##_cocs1"),
+  _N("High-pass##_cocs2"),
+};
+
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
@@ -50,34 +61,61 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
-float FurnaceGUI::computeGradPos(int type, int chan, int totalChans) {
+float FurnaceGUI::computeGradPos(ChanOsc::Ref type, int chan, int totalChans) {
   switch (type) {
-    case GUI_OSCREF_NONE:
+    case ChanOsc::Ref::None:
       return 0.0f;
       break;
-    case GUI_OSCREF_CENTER:
+    case ChanOsc::Ref::Center:
       return 0.5f;
       break;
-    case GUI_OSCREF_MAX:
+    case ChanOsc::Ref::Full:
       return 1.0f;
       break;
-    case GUI_OSCREF_FREQUENCY:
-      return chanOscChan[chan].pitch;
+    case ChanOsc::Ref::Frequency:
+      return chanOsc.chan[chan].pitch;
       break;
-    case GUI_OSCREF_VOLUME:
-      return chanOscVol[chan];
+    case ChanOsc::Ref::Volume:
+      return chanOsc.volume[chan];
       break;
-    case GUI_OSCREF_CHANNEL:
+    case ChanOsc::Ref::Channel:
       return (float)chan/(float)(totalChans-1);
       break;
-    case GUI_OSCREF_BRIGHT:
-      return chanOscBright[chan]; // this array is set to only 0 (???)
-      break;
-    case GUI_OSCREF_NOTE_TRIGGER:
+    // case ChanOsc::Ref::Brightness:
+    //   return chanOscBright[chan];
+    //   break;
+    case ChanOsc::Ref::NoteTrigger:
       return e->isChannelMuted(chan)?0.0f:keyHit1[chan];
       break;
+    default: return 0.0f;
   }
   return 0.0f;
+}
+
+void FurnaceGUI::ChanOsc::calcChannelMap(int totalChans) {
+  memset(displayMap,-1,sizeof(displayMap));
+  switch (arrangement) {
+    case Arrange::Columns: {
+      displayColumns=columnsRows;
+      for (int i=0; i<totalChans; i++) {
+        displayMap[i]=i;
+      }
+      break;
+    }
+    case Arrange::Rows: {
+      displayColumns=ceil((float)totalChans/(float)columnsRows);
+      int column=0;
+      for (int i=0, r=0; i<totalChans; i++, r++) {
+        displayMap[r]=columnsRows*(r%displayColumns)+column;
+        if (displayMap[r]>=totalChans) {
+          displayMap[r]=-1;
+          i--;
+        }
+        if ((r%displayColumns)==displayColumns-1) column++;
+      }
+      break;
+    }
+  }
 }
 
 void FurnaceGUI::calcChanOsc() {
@@ -105,12 +143,12 @@ void FurnaceGUI::calcChanOsc() {
         }
         float estimate=pow((float)(maxLevel-minLevel)/32768.0f,0.5f);
         if (estimate>1.0f) estimate=1.0f;
-        chanOscVol[i]=MAX(chanOscVol[i]*0.87f,estimate);
+        chanOsc.volume[i]=MAX(chanOsc.volume[i]*0.87f,estimate);
       }
     } else {
-      chanOscVol[i]=MAX(chanOscVol[i]*0.87f,0.0f);
+      chanOsc.volume[i]=MAX(chanOsc.volume[i]*0.87f,0.0f);
     }
-    if (chanOscVol[i]<0.00001f) chanOscVol[i]=0.0f;
+    if (chanOsc.volume[i]<0.00001f) chanOsc.volume[i]=0.0f;
   }
 }
 
@@ -127,36 +165,44 @@ void FurnaceGUI::drawChanOsc() {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     float availY=ImGui::GetContentRegionAvail().y;
-    if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
-      struct OscData {
-        DivDispatchOscBuffer* buf;
-        ChanOscStatus* fft;
-        int chan;
-      };
-      std::vector<OscData> oscData;
-      int chans=e->getTotalChannelCount();
+
+    const int chans=e->getTotalChannelCount();
+    struct OscData {
+      DivDispatchOscBuffer* buf;
+      ChanOsc::ChannelStatus* fft;
+      int chan;
+    };
+    std::vector<OscData> oscData;
+
+    // fill buffers
+    for (int i=0; i<chans; i++) {
+      DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+      if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
+        oscData.push_back({buf,&chanOsc.chan[i],i});
+      }
+    }
+    if (chanOsc.autoArrange) {
+      chanOsc.columnsRows=sqrt(oscData.size());
+      if (chanOsc.columnsRows>64) chanOsc.columnsRows=64;
+      if (chanOsc.columnsRows<1) chanOsc.columnsRows=1;
+    }
+
+    chanOsc.calcChannelMap(oscData.size());
+    if (ImGui::BeginTable("ChanOsc",chanOsc.displayColumns,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
       ImGuiWindow* window=ImGui::GetCurrentWindow();
 
       ImGuiStyle& style=ImGui::GetStyle();
       ImVec2 waveform[1024];
 
       // check work thread
-      if (chanOscWorkPool==NULL) {
+      if (chanOsc.workPool==NULL) {
         logV(_("creating chan osc work pool"));
-        chanOscWorkPool=new DivWorkPool(settings.chanOscThreads);
-      }
-
-      // fill buffers
-      for (int i=0; i<chans; i++) {
-        DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-        if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
-          oscData.push_back({buf,&chanOscChan[i],i});
-        }
+        chanOsc.workPool=new DivWorkPool(settings.chanOscThreads);
       }
 
       // process
       for (size_t i=0; i<oscData.size(); i++) {
-        ChanOscStatus* fft_=oscData[i].fft;
+        ChanOsc::ChannelStatus* fft_=oscData[i].fft;
 
         fft_->relatedBuf=oscData[i].buf;
         fft_->relatedCh=oscData[i].chan;
@@ -187,10 +233,10 @@ void FurnaceGUI::drawChanOsc() {
           }
 
           if (fft_->ready && e->isRunning()) {
-            fft_->windowSize=chanOscWindowSize;
-            fft_->waveCorr=chanOscWaveCorr;
-            chanOscWorkPool->push([](void* fft_v) {
-              ChanOscStatus* fft=(ChanOscStatus*)fft_v;
+            fft_->windowSize=chanOsc.windowSize;
+            fft_->waveCorr=chanOsc.waveCorr;
+            chanOsc.workPool->push([](void* fft_v) {
+              ChanOsc::ChannelStatus* fft=(ChanOsc::ChannelStatus*)fft_v;
               DivDispatchOscBuffer* buf=fft->relatedBuf;
 
               // the STRATEGY
@@ -270,7 +316,7 @@ void FurnaceGUI::drawChanOsc() {
                     fft->waveLenBottom=j;
                   }
                 }
-                  
+
                 // find highest point
                 for (int j=(FURNACE_CHANOSC_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
                   if (fft->corrBuf[j]>waveLenCandH) {
@@ -284,7 +330,7 @@ void FurnaceGUI::drawChanOsc() {
                 if (fft->waveLen<(FURNACE_CHANOSC_FFT_SIZE-32)) {
                   // we got pitch
                   fft->pitch=pow(1.0-(fft->waveLen/(double)(FURNACE_CHANOSC_FFT_SIZE>>1)),4.0);
-                    
+
                   fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_CHANOSC_FFT_SIZE;
 
                   // DFT of one period (x_1)
@@ -317,23 +363,21 @@ void FurnaceGUI::drawChanOsc() {
           }
         }
       }
-      chanOscWorkPool->wait();
-        
-      if (chanOscAutoCols) {
-        chanOscCols=sqrt(oscData.size());
-        if (chanOscCols>64) chanOscCols=64;
-        if (chanOscCols<1) chanOscCols=1;
-      }
-      int rows=(oscData.size()+(chanOscCols-1))/chanOscCols;
+      chanOsc.workPool->wait();
+
+      int rows=(oscData.size()+(chanOsc.displayColumns-1))/chanOsc.displayColumns;
+      if (chanOsc.arrangement==ChanOsc::Arrange::Rows) rows=chanOsc.columnsRows;
 
       // render
-      for (size_t i=0; i<oscData.size(); i++) {
-        if (i%chanOscCols==0) ImGui::TableNextRow();
+      for (int i=0; i<chanOsc.displayColumns*rows; i++) {
+        if (i%chanOsc.displayColumns==0) ImGui::TableNextRow();
         ImGui::TableNextColumn();
 
-        DivDispatchOscBuffer* buf=oscData[i].buf;
-        ChanOscStatus* fft=oscData[i].fft;
-        int ch=oscData[i].chan;
+        int _c=chanOsc.displayMap[i];
+        if (_c==-1) continue;
+        DivDispatchOscBuffer* buf=oscData[_c].buf;
+        ChanOsc::ChannelStatus* fft=oscData[_c].fft;
+        int ch=oscData[_c].chan;
         if (buf==NULL) {
           ImGui::Text(_("Error!"));
         } else {
@@ -368,8 +412,8 @@ void FurnaceGUI::drawChanOsc() {
                 }
               }
             } else {
-              int displaySize=65536.0f*(chanOscWindowSize/1000.0f);
-              int displaySize2=65536.0f*(chanOscWindowSize/500.0f);
+              int displaySize=65536.0f*(chanOsc.windowSize/1000.0f);
+              int displaySize2=65536.0f*(chanOsc.windowSize/500.0f);
 
               float minLevel=1.0f;
               float maxLevel=-1.0f;
@@ -440,9 +484,9 @@ void FurnaceGUI::drawChanOsc() {
                     break;
                   }
                 }
-                if (chanOscCenterStrat==0) { // DC correction off
+                if (chanOsc.centerStrat==ChanOsc::CenterStrategy::Off) { // DC correction off
                   fft->dcOff=0;
-                } else if (chanOscCenterStrat==1) { // normal DC correction
+                } else if (chanOsc.centerStrat==ChanOsc::CenterStrategy::Normal) { // normal DC correction
                   float y1=y;
                   if (minLevel>y1) minLevel=y1;
                   if (maxLevel<y1) maxLevel=y1;
@@ -468,12 +512,12 @@ void FurnaceGUI::drawChanOsc() {
                     }
                     if (j<0) continue;
                     float yOut=y-fft->dcOff;
-                    if (chanOscCenterStrat==2) {
+                    if (chanOsc.centerStrat==ChanOsc::CenterStrategy::HighPass) {
                       fft->dcOff+=(y-fft->dcOff)*0.001;
                     }
                     if (yOut<-0.5f) yOut=-0.5f;
                     if (yOut>0.5f) yOut=0.5f;
-                    yOut*=chanOscAmplify*2.0f;
+                    yOut*=chanOsc.amplitude*2.0f;
                     fft->oscTex[j]=yOut;
                   }
                 } else {
@@ -490,12 +534,12 @@ void FurnaceGUI::drawChanOsc() {
                     }
                     if (kTex<0) continue;
                     float yOut=y-fft->dcOff;
-                    if (chanOscCenterStrat==2) {
+                    if (chanOsc.centerStrat==ChanOsc::CenterStrategy::HighPass) {
                       fft->dcOff+=(y-fft->dcOff)*0.001;
                     }
                     if (yOut<-0.5f) yOut=-0.5f;
                     if (yOut>0.5f) yOut=0.5f;
-                    yOut*=chanOscAmplify*2.0f;
+                    yOut*=chanOsc.amplitude*2.0f;
                     fft->oscTex[kTex]=yOut;
                   }
                 }
@@ -509,32 +553,32 @@ void FurnaceGUI::drawChanOsc() {
               }
             }
             ImU32 color=0;
-            if (e->isChannelMuted(oscData[i].chan)) {
+            if (e->isChannelMuted(ch)) {
               color=ImGui::GetColorU32(uiColors[GUI_COLOR_CHANNEL_MUTED]);
             } else {
-              switch (chanOscColorMode) {
-                case 0:
-                  color=ImGui::GetColorU32(chanOscColor);
+              switch (chanOsc.colorMode) {
+                case ChanOsc::ColorMode::Solid:
+                  color=ImGui::GetColorU32(chanOsc.color);
                   break;
-                case 1:
-                  color=ImGui::GetColorU32(channelColor(oscData[i].chan));
+                case ChanOsc::ColorMode::Channel:
+                  color=ImGui::GetColorU32(channelColor(ch));
                   break;
                 default: break;
               }
             }
-            if (chanOscUseGrad) {
-              float xVal=computeGradPos(chanOscColorX,ch,oscData.size());
-              float yVal=computeGradPos(chanOscColorY,ch,oscData.size());
+            if (chanOsc.useGradient) {
+              float xVal=computeGradPos(chanOsc.colorX,ch,oscData.size());
+              float yVal=computeGradPos(chanOsc.colorY,ch,oscData.size());
 
               xVal=CLAMP(xVal,0.0f,1.0f);
               yVal=CLAMP(yVal,0.0f,1.0f);
 
-              switch (chanOscColorMode) {
-                case 0:
-                  color=chanOscGrad.get(xVal,1.0f-yVal);
+              switch (chanOsc.colorMode) {
+                case ChanOsc::ColorMode::Solid:
+                  color=chanOsc.gradient.get(xVal,1.0f-yVal);
                   break;
-                case 1:
-                  color=ImAlphaBlendColors(color,chanOscGrad.get(xVal,1.0f-yVal));
+                  case ChanOsc::ColorMode::Channel:
+                  color=ImAlphaBlendColors(color,chanOsc.gradient.get(xVal,1.0f-yVal));
                   break;
                 default: break;
               }
@@ -551,12 +595,12 @@ void FurnaceGUI::drawChanOsc() {
 
             if (inRect.Contains(ImGui::GetMousePos())) {
               ImGui::SetCursorPos(inRect.Min-ImGui::GetWindowPos()+ImGui::GetStyle().FramePadding);
-              ImGui::Text("%s##chanOscMute", e->isChannelMuted(oscData[i].chan)?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
+              ImGui::Text("%s##chanOscMute", e->isChannelMuted(ch)?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
               if (ImGui::IsItemClicked()) {
-                e->toggleMute(oscData[i].chan);
+                e->toggleMute(ch);
               }
               if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-                e->toggleSolo(oscData[i].chan);
+                e->toggleSolo(ch);
               }
               if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
                 ImGui::SetTooltip(_("toggle channel mute\nright click to solo"));
@@ -564,14 +608,14 @@ void FurnaceGUI::drawChanOsc() {
               ImGui::SameLine();
               ImGui::TextUnformatted(ICON_FA_CHEVRON_RIGHT "##chanOscGoTo");
               if (ImGui::IsItemClicked()) {
-                cursor.xCoarse=oscData[i].chan;
+                cursor.xCoarse=ch;
                 doAction(GUI_ACTION_WINDOW_PATTERN);
               }
               if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal)) {
                 ImGui::SetTooltip(_("go to this channel"));
               }
             }
-            if ((int)i==chanOscCols-1) { // topright cell
+            if ((int)i==chanOsc.displayColumns-1) { // topright cell
               if (ImGui::IsWindowHovered()) {
                 ImGui::SetCursorPosX(inRect.Max.x-ImGui::GetWindowPos().x-ImGui::GetStyle().FramePadding.x-ImGui::CalcTextSize(ICON_FA_BARS).x);
                 ImGui::SetCursorPosY(inRect.Min.y-ImGui::GetWindowPos().y+ImGui::GetStyle().FramePadding.y);
@@ -580,15 +624,15 @@ void FurnaceGUI::drawChanOsc() {
                   ImGui::SetTooltip(_("per-channel oscilloscope settings"));
                 }
                 if (ImGui::IsItemClicked()) {
-                  chanOscOptions=true;
+                  chanOsc.showOptions=true;
                 }
               }
             }
-            if (!chanOscTextFormat.empty()) {
+            if (!chanOsc.textFormat.empty()) {
               String text;
               bool inFormat=false;
 
-              for (char j: chanOscTextFormat) {
+              for (char j: chanOsc.textFormat) {
                 if (inFormat) {
                   switch (j) {
                     case 'c':
@@ -691,7 +735,7 @@ void FurnaceGUI::drawChanOsc() {
                 }
               }
               ImGui::PushClipRect(inRect.Min,inRect.Max,false);
-              dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
+              dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOsc.textColor),text.c_str());
               ImGui::PopClipRect();
             }
 
@@ -702,7 +746,7 @@ void FurnaceGUI::drawChanOsc() {
               fft->drawOp.pos0=inRect.Min;
               fft->drawOp.pos1=inRect.Max;
               fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
-              fft->drawOp.lineSize=dpiScale*chanOscLineSize;
+              fft->drawOp.lineSize=dpiScale*chanOsc.lineSize;
 
               dl->AddCallback(_drawOsc,&fft->drawOp);
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
@@ -710,7 +754,7 @@ void FurnaceGUI::drawChanOsc() {
               // ImGui::PushClipRect(inRect.Min,inRect.Max,false);
               //ImDrawListFlags prevFlags=dl->Flags;
               //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-              dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
+              dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOsc.lineSize);
               //dl->Flags=prevFlags;
               // ImGui::PopClipRect();
             }
@@ -721,286 +765,236 @@ void FurnaceGUI::drawChanOsc() {
 
       ImGui::PopStyleVar();
     }
-    if (chanOscOptions) ImGui::OpenPopup("chanOscSettingsPopup");
+    if (chanOsc.showOptions) ImGui::OpenPopup("chanOscSettingsPopup");
     if (ImGui::BeginPopup("chanOscSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
       ImDrawList* dl=ImGui::GetWindowDrawList();
-      chanOscOptions=false;
-      if (ImGui::BeginTable("ChanOscSettings",2)) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Columns"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::BeginDisabled(chanOscAutoCols);
-        if (ImGui::InputInt("##COSColumns",&chanOscCols,1,3)) {
-          if (chanOscCols<1) chanOscCols=1;
-          if (chanOscCols>64) chanOscCols=64;
-        }
-        ImGui::EndDisabled();
-
-        ImGui::TableNextColumn();
-        ImGui::Text(_("Size (ms)"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,10.0f)) {
-          if (chanOscWindowSize<1.0f) chanOscWindowSize=1.0f;
-          if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Checkbox(_("Automatic columns"),&chanOscAutoCols);
-
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox(_("Center waveform"),&chanOscWaveCorr)) {
-          centerSettingReset=true;
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox(_("Randomize phase on note"),&chanOscRandomPhase)) {
-        }
-
-        ImGui::TableNextColumn();
-        ImGui::Text("DC offset correction");
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Off###_cocs0",chanOscCenterStrat==0)) {
-          chanOscCenterStrat=0;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Normal###_cocs1",chanOscCenterStrat==1)) {
-          chanOscCenterStrat=1;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("High-pass###_cocs2",chanOscCenterStrat==2)) {
-          chanOscCenterStrat=2;
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Amplitude"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderFloat("##COSAmp",&chanOscAmplify,0.0f,2.0f)) {
-          if (chanOscAmplify<0.0f) chanOscAmplify=0.0f;
-          if (chanOscAmplify>2.0f) chanOscAmplify=2.0f;
-        } rightClickable
-
-        ImGui::TableNextColumn();
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Line size"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderFloat("##COSLine",&chanOscLineSize,0.25f,16.0f)) {
-          if (chanOscLineSize<0.25f) chanOscLineSize=0.26f;
-          if (chanOscLineSize>16.0f) chanOscLineSize=16.0f;
-        } rightClickable
-
-        ImGui::EndTable();
-      }
-
-      ImGui::Checkbox(_("Gradient"),&chanOscUseGrad);
-
-      if (chanOscUseGrad) {
-        if (chanOscGradTex==NULL) {
-          chanOscGradTex=rend->createTexture(true,chanOscGrad.width,chanOscGrad.height,true,bestTexFormat);
-
-          if (chanOscGradTex==NULL) {
-            logE(_("error while creating gradient texture!"));
-          } else {
-            updateChanOscGradTex=true;
+      chanOsc.showOptions=false;
+      if (ImGui::BeginTabBar("chanOscSettingsTabBar")) {
+        if (ImGui::BeginTabItem(_("Scope"))) {
+          ImGui::AlignTextToFramePadding();
+          ImGui::TextUnformatted(_("Arrange channels by"));
+          ImGui::SameLine();
+          ImGui::Combo("##chanArrange",(int*)&chanOsc.arrangement,LocalizedComboGetter,chanOscArrangeModes,2);
+          ImGui::Checkbox(_("Arange automatically"),&chanOsc.autoArrange);
+          ImGui::BeginDisabled(chanOsc.autoArrange);
+          if (ImGui::InputInt(chanOsc.arrangement==ChanOsc::Arrange::Rows?_("Rows"):_("Columns"),&chanOsc.columnsRows)) {
+            if (chanOsc.columnsRows>64) chanOsc.columnsRows=64;
+            if (chanOsc.columnsRows<1) chanOsc.columnsRows=1;
           }
+          ImGui::EndDisabled();
+          ImGui::Separator();
+          if (ImGui::SliderFloat(_("Size"),&chanOsc.windowSize,1.0f,50.0f,"%g ms")) {
+            if (chanOsc.windowSize<1.0f) chanOsc.windowSize=1.0f;
+            if (chanOsc.windowSize>50.0f) chanOsc.windowSize=50.0f;
+          } rightClickable
+          if (ImGui::SliderFloat(_("Amplitude"),&chanOsc.amplitude,0.0f,2.0f)) {
+            if (chanOsc.amplitude<0.0f) chanOsc.amplitude=0.0f;
+            if (chanOsc.amplitude>2.0f) chanOsc.amplitude=2.0f;
+          } rightClickable
+          ImGui::Separator();
+          if (ImGui::Checkbox(_("Center waveform"),&chanOsc.waveCorr)) centerSettingReset=true;
+          ImGui::Checkbox(_("Randomize phase on note"),&chanOsc.randomPhase);
+          ImGui::AlignTextToFramePadding();
+          ImGui::TextUnformatted(_("DC offset correction"));
+          ImGui::SameLine();
+          ImGui::Combo("##dcOffCorr",(int*)&chanOsc.centerStrat,LocalizedComboGetter,chanOscDCOffsetCorrModes,3);
+          ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem(_("Waveform"))) {
+          if (ImGui::SliderFloat(_("Line Size"),&chanOsc.lineSize,0.25f,16.0f)) {
+            if (chanOsc.lineSize<0.25f) chanOsc.lineSize=0.25f;
+            if (chanOsc.lineSize>16.0f) chanOsc.lineSize=16.0f;
+          } rightClickable
 
-        if (ImGui::BeginTable("ChanOscGradSet",2)) {
-          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          if (chanOscGradTex!=NULL) {
-            if (updateChanOscGradTex) {
-              chanOscGrad.render();
-              if (rend->updateTexture(chanOscGradTex,chanOscGrad.grad.get(),chanOscGrad.width*4)) {
-                updateChanOscGradTex=false;
+          ImGui::Checkbox(_("Gradient"),&chanOsc.useGradient);
+          if (chanOsc.useGradient) {
+            if (chanOsc.gradientTex==NULL) {
+              chanOsc.gradientTex=rend->createTexture(true,chanOsc.gradient.width,chanOsc.gradient.height,true,bestTexFormat);
+              if (chanOsc.gradientTex==NULL) {
+                logE(_("error while creating gradient texture!"));
               } else {
-                logE(_("error while updating gradient texture!"));
+                chanOsc.updateGradientTex=true;
               }
             }
 
-            ImVec2 gradSize=ImVec2(400.0f*dpiScale,400.0f*dpiScale);
-            int index=0;
-            int removePoint=-1;
-            // this child nonesense fixes a ErrorCheckUsingSetCursorPosToExtendParentBoundaries() assert
-            if (ImGui::BeginChild("chanOscGradArea",gradSize,0,ImGuiWindowFlags_NoScrollbar)) {
-              ImVec2 gradLeft=ImGui::GetWindowPos();
-              dl->AddImage(rend->getTextureID(chanOscGradTex),gradLeft,gradLeft+gradSize,ImVec2(0,0),ImVec2(rend->getTextureU(chanOscGradTex),rend->getTextureV(chanOscGradTex)));
-              ImVec2 gradLeftAbs=ImGui::GetItemRectMin();
-              if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-                if (chanOscGrad.points.size()<32) {
-                  chanOscGrad.points.push_back(Gradient2DPoint(
-                    (ImGui::GetMousePos().x-gradLeftAbs.x)/gradSize.x,
-                    (ImGui::GetMousePos().y-gradLeftAbs.y)/gradSize.y
-                  ));
-                  updateChanOscGradTex=true;
+            if (ImGui::BeginTable("ChanOscGradSet",2)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              if (chanOsc.gradientTex!=NULL) {
+                if (chanOsc.updateGradientTex) {
+                  chanOsc.gradient.render();
+                  if (rend->updateTexture(chanOsc.gradientTex,chanOsc.gradient.grad.get(),chanOsc.gradient.width*4)) {
+                    chanOsc.updateGradientTex=false;
+                  } else {
+                    logE(_("error while updating gradient texture!"));
+                  }
                 }
+
+                ImVec2 gradSize=ImVec2(400.0f*dpiScale,400.0f*dpiScale);
+                int index=0;
+                int removePoint=-1;
+                // this child nonesense fixes a ErrorCheckUsingSetCursorPosToExtendParentBoundaries() assert
+                if (ImGui::BeginChild("chanOscGradArea",gradSize,0,ImGuiWindowFlags_NoScrollbar)) {
+                  ImVec2 gradLeft=ImGui::GetWindowPos();
+                  dl->AddImage(rend->getTextureID(chanOsc.gradientTex),gradLeft,gradLeft+gradSize,ImVec2(0,0),ImVec2(rend->getTextureU(chanOsc.gradientTex),rend->getTextureV(chanOsc.gradientTex)));
+                  ImVec2 gradLeftAbs=ImGui::GetItemRectMin();
+                  if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+                    if (chanOsc.gradient.points.size()<32) {
+                      chanOsc.gradient.points.push_back(Gradient2DPoint(
+                        (ImGui::GetMousePos().x-gradLeftAbs.x)/gradSize.x,
+                        (ImGui::GetMousePos().y-gradLeftAbs.y)/gradSize.y
+                      ));
+                      chanOsc.updateGradientTex=true;
+                    }
+                  }
+
+                  for (Gradient2DPoint& i: chanOsc.gradient.points) {
+                    ImGui::PushID(index+16);
+                    ImGui::SetCursorPos(ImVec2(i.x*gradSize.x-8.0*dpiScale,i.y*gradSize.y-8.0*dpiScale));
+                    if (ImGui::InvisibleButton("gradPoint",ImVec2(16.0*dpiScale,16.0*dpiScale))) {
+                      if (!i.grab) {
+                        ImGui::OpenPopup("gradPointSettings");
+                      }
+                    }
+                    if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+                      ImGui::SetTooltip("(%.1f, %.1f)",i.x*100.0f,(1.0f-i.y)*100.0f);
+                    }
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+                      removePoint=index;
+                    }
+                    if (ImGui::IsItemActive()) {
+                      float mX=(ImGui::GetMousePos().x-gradLeftAbs.x)/gradSize.x;
+                      float mY=(ImGui::GetMousePos().y-gradLeftAbs.y)/gradSize.y;
+
+                      if (i.grab || (fabs(i.x-mX)>0.015 || fabs(i.y-mY)>0.015)) {
+                        i.x=mX;
+                        i.y=mY;
+                        i.grab=true;
+
+                        if (i.x<0) i.x=0;
+                        if (i.x>1) i.x=1;
+                        if (i.y<0) i.y=0;
+                        if (i.y>1) i.y=1;
+                        chanOsc.updateGradientTex=true;
+                      }
+                    } else {
+                      i.grab=false;
+                      i.prevX=i.x;
+                      i.prevY=i.y;
+                    }
+                    if (ImGui::BeginPopup("gradPointSettings",ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize)) {
+                      if (ImGui::ColorPicker4(_("Color"),(float*)&i.color)) {
+                        chanOsc.updateGradientTex=true;
+                      }
+                      ImGui::AlignTextToFramePadding();
+                      ImGui::Text(_("Distance"));
+                      ImGui::SameLine();
+                      float pDist=i.distance*100.0f;
+                      if (ImGui::SliderFloat("##PDistance",&pDist,0.0f,150.0f,"%.1f%%")) {
+                        i.distance=pDist/100.0f;
+                        chanOsc.updateGradientTex=true;
+                      }
+
+                      ImGui::AlignTextToFramePadding();
+                      ImGui::Text(_("Spread"));
+                      ImGui::SameLine();
+                      float pSpread=i.spread*100.0f;
+                      if (ImGui::SliderFloat("##PSpread",&pSpread,0.0f,150.0f,"%.1f%%")) {
+                        i.spread=pSpread/100.0f;
+                        chanOsc.updateGradientTex=true;
+                      }
+
+                      pushDestColor();
+                      if (ImGui::Button(_("Remove"))) {
+                        removePoint=index;
+                        ImGui::CloseCurrentPopup();
+                      }
+                      popDestColor();
+
+                      ImGui::EndPopup();
+                    }
+
+                    dl->AddCircle(ImVec2(gradLeftAbs.x+i.x*gradSize.x,gradLeftAbs.y+i.y*gradSize.y),8.0*dpiScale,ImGui::ColorConvertFloat4ToU32(ImVec4(0.5,0.5,0.5,1.0)),6,2.0f*dpiScale);
+                    dl->AddCircle(ImVec2(gradLeftAbs.x+i.x*gradSize.x,gradLeftAbs.y+i.y*gradSize.y),5.0*dpiScale,ImGui::ColorConvertFloat4ToU32(ImVec4(0.1,0.1,0.1,1.0)),6,2.0f*dpiScale);
+
+                    ImGui::PopID();
+                    index++;
+                  }
+                }
+                if (removePoint>=0) {
+                  chanOsc.gradient.points.erase(chanOsc.gradient.points.begin()+removePoint);
+                  chanOsc.updateGradientTex=true;
+                }
+                ImGui::EndChild();
               }
 
-              for (Gradient2DPoint& i: chanOscGrad.points) {
-                ImGui::PushID(index+16);
-                ImGui::SetCursorPos(ImVec2(i.x*gradSize.x-8.0*dpiScale,i.y*gradSize.y-8.0*dpiScale));
-                if (ImGui::InvisibleButton("gradPoint",ImVec2(16.0*dpiScale,16.0*dpiScale))) {
-                  if (!i.grab) {
-                    ImGui::OpenPopup("gradPointSettings");
-                  }
-                }
-                if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
-                  ImGui::SetTooltip("(%.1f, %.1f)",i.x*100.0f,(1.0f-i.y)*100.0f);
-                }
-                if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
-                  removePoint=index;
-                }
-                if (ImGui::IsItemActive()) {
-                  float mX=(ImGui::GetMousePos().x-gradLeftAbs.x)/gradSize.x;
-                  float mY=(ImGui::GetMousePos().y-gradLeftAbs.y)/gradSize.y;
-
-                  if (i.grab || (fabs(i.x-mX)>0.015 || fabs(i.y-mY)>0.015)) {
-                    i.x=mX;
-                    i.y=mY;
-                    i.grab=true;
-
-                    if (i.x<0) i.x=0;
-                    if (i.x>1) i.x=1;
-                    if (i.y<0) i.y=0;
-                    if (i.y>1) i.y=1;
-                    updateChanOscGradTex=true;
-                  }
-                } else {
-                  i.grab=false;
-                  i.prevX=i.x;
-                  i.prevY=i.y;
-                }
-                if (ImGui::BeginPopup("gradPointSettings",ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize)) {
-                  if (ImGui::ColorPicker4(_("Color"),(float*)&i.color)) {
-                    updateChanOscGradTex=true;
-                  }
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text(_("Distance"));
-                  ImGui::SameLine();
-                  float pDist=i.distance*100.0f;
-                  if (ImGui::SliderFloat("##PDistance",&pDist,0.0f,150.0f,"%.1f%%")) {
-                    i.distance=pDist/100.0f;
-                    updateChanOscGradTex=true;
-                  }
-
-                  ImGui::AlignTextToFramePadding();
-                  ImGui::Text(_("Spread"));
-                  ImGui::SameLine();
-                  float pSpread=i.spread*100.0f;
-                  if (ImGui::SliderFloat("##PSpread",&pSpread,0.0f,150.0f,"%.1f%%")) {
-                    i.spread=pSpread/100.0f;
-                    updateChanOscGradTex=true;
-                  }
-
-                  pushDestColor();
-                  if (ImGui::Button(_("Remove"))) {
-                    removePoint=index;
-                    ImGui::CloseCurrentPopup();
-                  }
-                  popDestColor();
-
-                  ImGui::EndPopup();
-                }
-
-                dl->AddCircle(ImVec2(gradLeftAbs.x+i.x*gradSize.x,gradLeftAbs.y+i.y*gradSize.y),8.0*dpiScale,ImGui::ColorConvertFloat4ToU32(ImVec4(0.5,0.5,0.5,1.0)),6,2.0f*dpiScale);
-                dl->AddCircle(ImVec2(gradLeftAbs.x+i.x*gradSize.x,gradLeftAbs.y+i.y*gradSize.y),5.0*dpiScale,ImGui::ColorConvertFloat4ToU32(ImVec4(0.1,0.1,0.1,1.0)),6,2.0f*dpiScale);
-
-                ImGui::PopID();
-                index++;
+              ImGui::TableNextColumn();
+              ImGui::Text(_("Background:"));
+              ImGui::Indent();
+              if (ImGui::RadioButton(_("Solid color"),chanOsc.colorMode==ChanOsc::ColorMode::Solid)) {
+                chanOsc.colorMode=ChanOsc::ColorMode::Solid;
+                chanOsc.updateGradientTex=true;
               }
-            }
-            if (removePoint>=0) {
-              chanOscGrad.points.erase(chanOscGrad.points.begin()+removePoint);
-              updateChanOscGradTex=true;
-            }
-            ImGui::EndChild();
-          }
+              if (chanOsc.colorMode==ChanOsc::ColorMode::Solid) {
+                ImGui::Indent();
+                if (ImGui::ColorEdit4(_("Color"),(float*)&chanOsc.gradient.bgColor)) {
+                  chanOsc.updateGradientTex=true;
+                }
+                ImGui::Unindent();
+              }
+              if (ImGui::RadioButton(_("Channel color"),chanOsc.colorMode==ChanOsc::ColorMode::Channel)) {
+                chanOsc.colorMode=ChanOsc::ColorMode::Channel;
+                chanOsc.gradient.bgColor.x=0.0f;
+                chanOsc.gradient.bgColor.y=0.0f;
+                chanOsc.gradient.bgColor.z=0.0f;
+                chanOsc.gradient.bgColor.w=0.0f;
+                chanOsc.updateGradientTex=true;
+              }
+              // in preparation of image texture
+              ImGui::Unindent();
 
-          ImGui::TableNextColumn();
-          ImGui::Text(_("Background:"));
-          ImGui::Indent();
-          if (ImGui::RadioButton(_("Solid color"),chanOscColorMode==0)) {
-            chanOscColorMode=0;
-            updateChanOscGradTex=true;
-          }
-          if (chanOscColorMode==0) {
-            ImGui::Indent();
-            if (ImGui::ColorEdit4(_("Color"),(float*)&chanOscGrad.bgColor)) {
-              updateChanOscGradTex=true;
+              ImGui::Combo(_("X Axis##AxisX"),(int*)&chanOsc.colorX,LocalizedComboGetter,chanOscRefs,(int)ChanOsc::Ref::Max);
+              ImGui::Combo(_("Y Axis##AxisY"),(int*)&chanOsc.colorY,LocalizedComboGetter,chanOscRefs,(int)ChanOsc::Ref::Max);
+
+              ImGui::EndTable();
             }
-            ImGui::Unindent();
           }
-          if (ImGui::RadioButton(_("Channel color"),chanOscColorMode==1)) {
-            chanOscColorMode=1;
-            chanOscGrad.bgColor.x=0.0f;
-            chanOscGrad.bgColor.y=0.0f;
-            chanOscGrad.bgColor.z=0.0f;
-            chanOscGrad.bgColor.w=0.0f;
-            updateChanOscGradTex=true;
-          }
-          // in preparation of image texture
-          ImGui::Unindent();
-
-          ImGui::Combo(_("X Axis##AxisX"),&chanOscColorX,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
-          ImGui::Combo(_("Y Axis##AxisY"),&chanOscColorY,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
-
-          ImGui::EndTable();
+          ImGui::EndTabItem();
         }
-      } else {
-        ImGui::SetNextItemWidth(400.0f*dpiScale);
-        bool chanOscColorModeB=chanOscColorMode;
-        ImGui::BeginDisabled(chanOscColorModeB);
-        ImGui::ColorEdit4(_("Color"),(float*)&chanOscColor);
-        ImGui::EndDisabled();
-        if (ImGui::Checkbox(_("Set to channel color"), &chanOscColorModeB)) {
-          chanOscColorMode=chanOscColorModeB;
+        if (ImGui::BeginTabItem(_("Text"))) {
+          ImGui::InputText(_("Format"),&chanOsc.textFormat);
+          if (ImGui::IsItemHovered()) {
+            if (ImGui::BeginTooltip()) {
+              ImGui::TextUnformatted(_(
+                "format guide:\n"
+                "- %c: channel name\n"
+                "- %C: channel short name\n"
+                "- %d: channel number (starting from 0)\n"
+                "- %D: channel number (starting from 1)\n"
+                "- %n: channel note\n"
+                "- %i: instrument name\n"
+                "- %I: instrument number (decimal)\n"
+                "- %x: instrument number (hex)\n"
+                "- %s: chip name\n"
+                "- %p: chip part number\n"
+                "- %S: chip ID\n"
+                "- %v: volume (decimal)\n"
+                "- %V: volume (percentage)\n"
+                "- %b: volume (hex)\n"
+                "- %l: new line\n"
+                "- %%: percent sign"
+              ));
+              ImGui::EndTooltip();
+            }
+          }
+          ImGui::ColorEdit4(_("Color"),(float*)&chanOsc.textColor);
+          ImGui::EndTabItem();
         }
+        ImGui::EndTabBar();
       }
-
-      ImGui::AlignTextToFramePadding();
-      ImGui::Text(_("Text format:"));
-      ImGui::SameLine();
-      ImGui::InputText("##TextFormat",&chanOscTextFormat);
-      if (ImGui::IsItemHovered()) {
-        if (ImGui::BeginTooltip()) {
-          ImGui::TextUnformatted(_(
-            "format guide:\n"
-            "- %c: channel name\n"
-            "- %C: channel short name\n"
-            "- %d: channel number (starting from 0)\n"
-            "- %D: channel number (starting from 1)\n"
-            "- %n: channel note\n"
-            "- %i: instrument name\n"
-            "- %I: instrument number (decimal)\n"
-            "- %x: instrument number (hex)\n"
-            "- %s: chip name\n"
-            "- %p: chip part number\n"
-            "- %S: chip ID\n"
-            "- %v: volume (decimal)\n"
-            "- %V: volume (percentage)\n"
-            "- %b: volume (hex)\n"
-            "- %l: new line\n"
-            "- %%: percent sign"
-          ));
-          ImGui::EndTooltip();
-        }
-      }
-
-      ImGui::ColorEdit4(_("Text color"),(float*)&chanOscTextColor);
-
       ImGui::EndPopup();
     }
   }

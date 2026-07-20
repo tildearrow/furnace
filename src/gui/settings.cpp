@@ -726,9 +726,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
   if (updateFonts) {
     // chan osc work pool
-    if (chanOscWorkPool!=NULL) {
-      delete chanOscWorkPool;
-      chanOscWorkPool=NULL;
+    if (chanOsc.workPool!=NULL) {
+      delete chanOsc.workPool;
+      chanOsc.workPool=NULL;
     }
   }
 
