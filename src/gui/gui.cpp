@@ -1322,9 +1322,9 @@ void FurnaceGUI::prepareLayout() {
   }
 
   if (mobileUI) {
-    fwrite(defaultLayout,1,strlen(defaultLayout),check);
+    fwrite(defaultMobileLayout,1,strlen(defaultMobileLayout),check);
   } else {
-    fwrite(defaultMobileLayout,1,strlen(defaultLayout),check);
+    fwrite(defaultLayout,1,strlen(defaultLayout),check);
   }
   fclose(check);
 }
@@ -3939,9 +3939,9 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
-    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+    /*if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
       reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-    }
+    }*/
     mobileUI=enable;
 
     if (mobileUI) {
@@ -8600,6 +8600,7 @@ bool FurnaceGUI::init() {
   } else {
     strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
   }
+  logV("finalLayoutPath: %s",finalLayoutPath);
   backupPath=e->getConfigPath();
   if (backupPath.size()>0) {
     if (backupPath[backupPath.size()-1]==DIR_SEPARATOR) backupPath.resize(backupPath.size()-1);
