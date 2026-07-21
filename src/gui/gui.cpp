@@ -48,6 +48,7 @@
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
+#define MOBILE_LAYOUT_INI "\\mobileLayout.ini"
 #define BACKUPS_DIR "\\backups"
 #else
 #include <sys/types.h>
@@ -56,6 +57,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
+#define MOBILE_LAYOUT_INI "/mobileLayout.ini"
 #define BACKUPS_DIR "/backups"
 #endif
 
@@ -1301,6 +1303,7 @@ DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Spl
       DockNode        ID=0x00000012 Parent=0x0000000B SizeRef=151,557 HiddenTabBar=1 Selected=0x4C07BC58\n\
     DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n";
 
+const char* defaultMobileLayout="\n";
 
 void FurnaceGUI::prepareLayout() {
   FILE* check;
@@ -1318,7 +1321,11 @@ void FurnaceGUI::prepareLayout() {
     return;
   }
 
-  fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  if (mobileUI) {
+    fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  } else {
+    fwrite(defaultMobileLayout,1,strlen(defaultLayout),check);
+  }
   fclose(check);
 }
 
@@ -3167,11 +3174,13 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
     case GUI_WARN_RESET_LAYOUT:
       warnChoices={
         {tYes,kYes,[this]{
-          if (!mobileUI) {
+          if (mobileUI) {
+            ImGui::LoadIniSettingsFromMemory(defaultMobileLayout);
+          } else {
             ImGui::LoadIniSettingsFromMemory(defaultLayout);
-            if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-              reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-            }
+          }
+          if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+            reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
           }
           settingsChanged=true;
         },true},
@@ -3930,25 +3939,30 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
-    if (!mobileUI && enable) {
-      if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-        reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-      }
+    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+      reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
     }
     mobileUI=enable;
+
     if (mobileUI) {
-      ImGui::GetIO().IniFilename=NULL;
+      strncpy(finalLayoutPath,(e->getConfigPath()+String(MOBILE_LAYOUT_INI)).c_str(),4095);
+    } else {
+      strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+    }
+
+    ImGui::GetIO().IniFilename=NULL;
+    if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
+      reportError(fmt::sprintf(_("could NOT load layout! %s"),strerror(errno)));
+      ImGui::LoadIniSettingsFromMemory(mobileUI?defaultMobileLayout:defaultLayout);
+    }
+
+    if (mobileUI) {
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
       newFilePicker->setMobile(true);
     } else {
-      ImGui::GetIO().IniFilename=NULL;
-      if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
-        reportError(fmt::sprintf(_("could NOT load layout! %s"),strerror(errno)));
-        ImGui::LoadIniSettingsFromMemory(defaultLayout);
-      }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=false;
@@ -8581,7 +8595,11 @@ bool FurnaceGUI::init() {
   }
 
   logD("preparing layout...");
-  strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  if (mobileUI) {
+    strncpy(finalLayoutPath,(e->getConfigPath()+String(MOBILE_LAYOUT_INI)).c_str(),4095);
+  } else {
+    strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  }
   backupPath=e->getConfigPath();
   if (backupPath.size()>0) {
     if (backupPath[backupPath.size()-1]==DIR_SEPARATOR) backupPath.resize(backupPath.size()-1);
@@ -8955,10 +8973,8 @@ void FurnaceGUI::syncState() {
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
-  if (!mobileUI) {
-    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-      reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-    }
+  if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+    reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
   }
 
   conf.set("configVersion",(int)DIV_ENGINE_VERSION);
