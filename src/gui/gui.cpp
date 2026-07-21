@@ -3037,12 +3037,20 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
             if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
               showError(fmt::sprintf(_("Error while saving file! (%s)"),lastError));
             } else {
-              quit=true;
+              if (settingsOpen && settingsChanged) {
+                showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+              } else {
+                quit=true;
+              }
             }
           }
         }},
         {tNo,kNo,[this]{
-          quit=true;
+          if (settingsOpen && settingsChanged) {
+            showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+          } else {
+            quit=true;
+          }
         }},
         wCancel,
       };
@@ -3283,6 +3291,19 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
         }},
       };
       break;
+    case GUI_WARN_QUIT_SETTINGS:
+        warnChoices={
+          {tYes,kYes,[this]{
+            willCommit=true;
+            settingsChanged=false;
+            quit=true;
+          }},
+          {tNo,kNo,[this]{
+            quit=true;
+          }},
+          wCancel,
+        };
+        break;
     case GUI_WARN_GENERIC:
       warnChoices={
         {tOk,kOk,[]{}},
@@ -6052,7 +6073,11 @@ bool FurnaceGUI::loop() {
               if (saveWasSuccessful && postWarnAction!=GUI_WARN_GENERIC) {
                 switch (postWarnAction) {
                   case GUI_WARN_QUIT:
-                    quit=true;
+                    if (settingsOpen && settingsChanged) {
+                      showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+                    } else {
+                      quit=true;
+                    }
                     break;
                   case GUI_WARN_NEW:
                     displayNew=true;
@@ -9195,6 +9220,8 @@ bool FurnaceGUI::finish(bool saveConfig) {
 bool FurnaceGUI::requestQuit() {
   if (modified && !cvOpen) {
     showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+  } else if (settingsOpen && settingsChanged) {
+    showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
   } else {
     quit=true;
   }

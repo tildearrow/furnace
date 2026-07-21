@@ -265,8 +265,11 @@ void FurnaceGUI::commitSettings() {
     }
   }
 
-  if (!e->switchMaster(coresChanged)) {
-    showError(_("could not initialize audio!"));
+  // if we're about to quit, don't perform an expensive output switch/core re-initialization.
+  if (!quit) {
+    if (!e->switchMaster(coresChanged)) {
+      showError(_("could not initialize audio!"));
+    }
   }
 
   ImGui::GetIO().Fonts->Clear();
