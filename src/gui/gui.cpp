@@ -3939,9 +3939,13 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
-    /*if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-      reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-    }*/
+    // the only moment force is true is during GUI init.
+    // don't save the layout because we still haven't loaded it.
+    if (!force) {
+      if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+        reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
+      }
+    }
     mobileUI=enable;
 
     if (mobileUI) {
