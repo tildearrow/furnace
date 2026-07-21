@@ -2160,6 +2160,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       // this prevents a duplicate note from being played while editing the pattern
       chan[note.channel].noteOnInhibit=true;
       chan[note.channel].lastIns=note.ins;
+      // show it in the status
+      chan[note.channel].keyOn=true;
+      chan[note.channel].keyOff=false;
+      chan[note.channel].releasing=false;
     } else {
       // note off
       DivMacroInt* macroInt=NULL;
@@ -2171,11 +2175,23 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         // volume is per-channel, send a note release instead of a note off
         if (macroInt->hasRelease && !disCont[song.dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
+          // show it in the status
+          chan[note.channel].keyOn=false;
+          chan[note.channel].keyOff=true;
+          chan[note.channel].releasing=true;
         } else {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+          // show it in the status
+          chan[note.channel].keyOn=false;
+          chan[note.channel].keyOff=true;
+          chan[note.channel].releasing=false;
         }
       } else {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+        // show it in the status
+        chan[note.channel].keyOn=false;
+        chan[note.channel].keyOff=true;
+        chan[note.channel].releasing=false;
       }
     }
     pendingNotes.pop_front();
