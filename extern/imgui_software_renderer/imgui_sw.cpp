@@ -508,13 +508,12 @@ static void paint_triangle(const PaintTarget &target,
 
       if (texture) {
         const ImVec2 uv = w0 * v0.uv + w1 * v1.uv + w2 * v2.uv;
-        int x = uv.x * (texture->width - 1.0f) + 0.5f;
-        int y = uv.y * (texture->height - 1.0f) + 0.5f;
+        int x = round(uv.x * (texture->width - 1.0f));// + 0.5f;
+        int y = round(uv.y * (texture->height - 1.0f));// + 0.5f;
         if (texture->isAlpha) {
           src_color.a = (src_color.a * sample_font_texture(*texture, x, y) + 255) >> 8;
         } else {
           src_color *= ColorInt(sample_texture(*texture, x, y * texture->width));
-          //src_color.a = (src_color.a * (sample_texture(*texture, x, y)&0xff) + 255) >> 8;
         }
       }
 
