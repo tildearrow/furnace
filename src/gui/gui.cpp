@@ -7760,6 +7760,10 @@ bool FurnaceGUI::loop() {
 
     MEASURE_END(popup);
 
+    // this is here for drawImage() to work correctly
+    introMin=ImVec2(0,0);
+    introMax=ImVec2(canvasW,canvasH);
+
 #ifdef NO_INTRO
     introPos=12.0;
 #else
