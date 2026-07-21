@@ -1339,11 +1339,11 @@ void FurnaceGUI::play(int row) {
   if (e->getStreamPlayer()) {
     e->killStream();
   }
-  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOsc.volume,0,DIV_MAX_CHANS*sizeof(float));
   for (int i=0; i<DIV_MAX_CHANS; i++) {
-    chanOscChan[i].pitch=0.0f;
+    chanOsc.chan[i].pitch=0.0f;
   }
-  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
+  // memset(chanOsc.brightness,0,DIV_MAX_CHANS*sizeof(float));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (wasFollowing) {
     followPattern=true;
@@ -4947,11 +4947,11 @@ bool FurnaceGUI::loop() {
 
     if (!e->isRunning()) {
       activeNotes.clear();
-      memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+      memset(chanOsc.volume,0,DIV_MAX_CHANS*sizeof(float));
       for (int i=0; i<DIV_MAX_CHANS; i++) {
-        chanOscChan[i].pitch=0.0f;
+        chanOsc.chan[i].pitch=0.0f;
       }
-      memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
+      // memset(chanOsc.brightness,0,DIV_MAX_CHANS*sizeof(float));
 
       e->synchronized([this]() {
         for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -4989,9 +4989,9 @@ bool FurnaceGUI::loop() {
         sampleTex=NULL;
       }
 
-      if (chanOscGradTex!=NULL) {
-        rend->destroyTexture(chanOscGradTex);
-        chanOscGradTex=NULL;
+      if (chanOsc.gradientTex!=NULL) {
+        rend->destroyTexture(chanOsc.gradientTex);
+        chanOsc.gradientTex=NULL;
       }
 
       for (auto& i: images) {
@@ -8880,33 +8880,34 @@ void FurnaceGUI::syncState() {
   pianoLabelsMode=e->getConfInt("pianoLabelsMode",pianoLabelsMode);
   pianoKeyColorMode=e->getConfInt("pianoKeyColorMode",pianoKeyColorMode);
 
-  chanOscCols=e->getConfInt("chanOscCols",3);
-  chanOscAutoCols=e->getConfBool("chanOscAutoColsType",0);
-  chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
-  chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
-  chanOscCenterStrat=e->getConfInt("chanOscCenterStrat",1);
-  chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
-  chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
-  chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
-  chanOscLineSize=e->getConfFloat("chanOscLineSize",1.0f);
-  chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
-  chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
-  chanOscOptions=e->getConfBool("chanOscOptions",false);
-  chanOscNormalize=e->getConfBool("chanOscNormalize",false);
-  chanOscRandomPhase=e->getConfBool("chanOscRandomPhase",false);
-  chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
-  chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
-  chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
-  chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
-  chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
-  chanOscTextColor.x=e->getConfFloat("chanOscTextColorR",1.0f);
-  chanOscTextColor.y=e->getConfFloat("chanOscTextColorG",1.0f);
-  chanOscTextColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
-  chanOscTextColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
-  chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
-  chanOscColorMode=e->getConfInt("chanOscColorMode",0);
-  chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
-  chanOscGrad.render();
+  chanOsc.columnsRows=e->getConfInt("chanOscCols",3);
+  chanOsc.autoArrange=e->getConfBool("chanOscAutoColsType",0); // yea im sorry....
+  chanOsc.colorX=(ChanOsc::Ref)e->getConfInt("chanOscColorX",(int)ChanOsc::Ref::Center);
+  chanOsc.colorY=(ChanOsc::Ref)e->getConfInt("chanOscColorY",(int)ChanOsc::Ref::Center);
+  chanOsc.centerStrat=(ChanOsc::CenterStrategy)e->getConfInt("chanOscCenterStrat",1);
+  // chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
+  // chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
+  chanOsc.amplitude=e->getConfFloat("chanOscAmplify",0.95f);
+  chanOsc.lineSize=e->getConfFloat("chanOscLineSize",1.0f);
+  chanOsc.windowSize=e->getConfFloat("chanOscWindowSize",20.0f);
+  chanOsc.waveCorr=e->getConfBool("chanOscWaveCorr",true);
+  chanOsc.showOptions=e->getConfBool("chanOscOptions",false);
+  // chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOsc.randomPhase=e->getConfBool("chanOscRandomPhase",false);
+  chanOsc.textFormat=e->getConfString("chanOscTextFormat","%c");
+  chanOsc.color.x=e->getConfFloat("chanOscColorR",1.0f);
+  chanOsc.color.y=e->getConfFloat("chanOscColorG",1.0f);
+  chanOsc.color.z=e->getConfFloat("chanOscColorB",1.0f);
+  chanOsc.color.w=e->getConfFloat("chanOscColorA",1.0f);
+  chanOsc.textColor.x=e->getConfFloat("chanOscTextColorR",1.0f);
+  chanOsc.textColor.y=e->getConfFloat("chanOscTextColorG",1.0f);
+  chanOsc.textColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
+  chanOsc.textColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
+  chanOsc.useGradient=e->getConfBool("chanOscUseGrad",false);
+  chanOsc.colorMode=(ChanOsc::ColorMode)e->getConfInt("chanOscColorMode",0);
+  chanOsc.arrangement=(ChanOsc::Arrange)e->getConfInt("chanOscArrange",0);
+  chanOsc.gradient.fromString(e->getConfString("chanOscGrad",""));
+  chanOsc.gradient.render();
 
   xyOscXChannel=e->getConfInt("xyOscXChannel",0);
   xyOscXInvert=e->getConfBool("xyOscXInvert",false);
@@ -9056,32 +9057,33 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("pianoKeyColorMode",pianoKeyColorMode);
 
   // commit per-chan osc state
-  conf.set("chanOscCols",chanOscCols);
-  conf.set("chanOscAutoColsType",chanOscAutoCols);
-  conf.set("chanOscColorX",chanOscColorX);
-  conf.set("chanOscColorY",chanOscColorY);
-  conf.set("chanOscCenterStrat",chanOscCenterStrat);
-  conf.set("chanOscTextX",chanOscTextX);
-  conf.set("chanOscTextY",chanOscTextY);
-  conf.set("chanOscAmplify",chanOscAmplify);
-  conf.set("chanOscLineSize",chanOscLineSize);
-  conf.set("chanOscWindowSize",chanOscWindowSize);
-  conf.set("chanOscWaveCorr",chanOscWaveCorr);
-  conf.set("chanOscOptions",chanOscOptions);
-  conf.set("chanOscNormalize",chanOscNormalize);
-  conf.set("chanOscRandomPhase",chanOscRandomPhase);
-  conf.set("chanOscTextFormat",chanOscTextFormat);
-  conf.set("chanOscColorR",chanOscColor.x);
-  conf.set("chanOscColorG",chanOscColor.y);
-  conf.set("chanOscColorB",chanOscColor.z);
-  conf.set("chanOscColorA",chanOscColor.w);
-  conf.set("chanOscTextColorR",chanOscTextColor.x);
-  conf.set("chanOscTextColorG",chanOscTextColor.y);
-  conf.set("chanOscTextColorB",chanOscTextColor.z);
-  conf.set("chanOscTextColorA",chanOscTextColor.w);
-  conf.set("chanOscUseGrad",chanOscUseGrad);
-  conf.set("chanOscGrad",chanOscGrad.toString());
-  conf.set("chanOscColorMode",chanOscColorMode);
+  conf.set("chanOscCols",chanOsc.columnsRows);
+  conf.set("chanOscAutoColsType",chanOsc.autoArrange);
+  conf.set("chanOscColorX",(int)chanOsc.colorX);
+  conf.set("chanOscColorY",(int)chanOsc.colorY);
+  conf.set("chanOscCenterStrat",(int)chanOsc.centerStrat);
+  // conf.set("chanOscTextX",chanOscTextX);
+  // conf.set("chanOscTextY",chanOscTextY);
+  conf.set("chanOscAmplify",chanOsc.amplitude);
+  conf.set("chanOscLineSize",chanOsc.lineSize);
+  conf.set("chanOscWindowSize",chanOsc.windowSize);
+  conf.set("chanOscWaveCorr",chanOsc.waveCorr);
+  conf.set("chanOscOptions",chanOsc.showOptions);
+  // conf.set("chanOscNormalize",chanOscNormalize);
+  conf.set("chanOscRandomPhase",chanOsc.randomPhase);
+  conf.set("chanOscTextFormat",chanOsc.textFormat);
+  conf.set("chanOscColorR",chanOsc.color.x);
+  conf.set("chanOscColorG",chanOsc.color.y);
+  conf.set("chanOscColorB",chanOsc.color.z);
+  conf.set("chanOscColorA",chanOsc.color.w);
+  conf.set("chanOscTextColorR",chanOsc.textColor.x);
+  conf.set("chanOscTextColorG",chanOsc.textColor.y);
+  conf.set("chanOscTextColorB",chanOsc.textColor.z);
+  conf.set("chanOscTextColorA",chanOsc.textColor.w);
+  conf.set("chanOscUseGrad",chanOsc.useGradient);
+  conf.set("chanOscGrad",chanOsc.gradient.toString());
+  conf.set("chanOscColorMode",(int)chanOsc.colorMode);
+  conf.set("chanOscArrange",(int)chanOsc.arrangement);
 
   // commit x-y osc state
   conf.set("xyOscXChannel",xyOscXChannel);
@@ -9148,8 +9150,8 @@ bool FurnaceGUI::finish(bool saveConfig) {
     backupTask.get();
   }
 
-  if (chanOscWorkPool!=NULL) {
-    delete chanOscWorkPool;
+  if (chanOsc.workPool!=NULL) {
+    delete chanOsc.workPool;
   }
 
   delete[] opTouched;
@@ -9709,29 +9711,6 @@ FurnaceGUI::FurnaceGUI():
   oscInput(0.0f),
   oscInput1(0.0f),
   oscZoomSlider(false),
-  chanOscCols(3),
-  chanOscColorX(GUI_OSCREF_CENTER),
-  chanOscColorY(GUI_OSCREF_CENTER),
-  chanOscCenterStrat(1),
-  chanOscColorMode(0),
-  chanOscWindowSize(20.0f),
-  chanOscTextX(0.0f),
-  chanOscTextY(0.0f),
-  chanOscAmplify(0.95f),
-  chanOscLineSize(1.0f),
-  chanOscWaveCorr(true),
-  chanOscOptions(false),
-  updateChanOscGradTex(true),
-  chanOscUseGrad(false),
-  chanOscNormalize(false),
-  chanOscRandomPhase(false),
-  chanOscAutoCols(false),
-  chanOscTextFormat("%c"),
-  chanOscColor(1.0f,1.0f,1.0f,1.0f),
-  chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
-  chanOscGrad(64,64),
-  chanOscGradTex(NULL),
-  chanOscWorkPool(NULL),
   xyOscPointTex(NULL),
   xyOscOptions(false),
   xyOscXChannel(0),
@@ -9867,14 +9846,14 @@ FurnaceGUI::FurnaceGUI():
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   memset(oscValues,0,sizeof(void*)*DIV_MAX_OUTPUTS);
 
-  memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
-  memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
-  memset(chanOscVol,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOsc.LP0,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOsc.LP1,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOsc.volume,0,sizeof(float)*DIV_MAX_CHANS);
   for (int i=0; i<DIV_MAX_CHANS; i++) {
-    chanOscChan[i].pitch=0.0f;
+    chanOsc.chan[i].pitch=0.0f;
   }
-  memset(chanOscBright,0,sizeof(float)*DIV_MAX_CHANS);
-  memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
+  // memset(chanOsc.brightness,0,sizeof(float)*DIV_MAX_CHANS);
+  // memset(chanOsc.lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
   memset(acedData,0,23);
 
@@ -9926,7 +9905,7 @@ FurnaceGUI::FurnaceGUI():
   memset(queryReplaceEffectDo,0,sizeof(bool)*8);
   memset(queryReplaceEffectValDo,0,sizeof(bool)*8);
 
-  chanOscGrad.bgColor=ImVec4(0.0f,0.0f,0.0f,1.0f);
+  chanOsc.gradient.bgColor=ImVec4(0.0f,0.0f,0.0f,1.0f);
 
   memset(noteOffLabel,0,32);
   memset(noteRelLabel,0,32);

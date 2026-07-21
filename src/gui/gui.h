@@ -1066,21 +1066,6 @@ enum FurnaceGUIImages {
   GUI_IMAGE_MAX
 };
 
-enum FurnaceGUIChanOscRef {
-  GUI_OSCREF_NONE=0,
-  GUI_OSCREF_CENTER,
-  GUI_OSCREF_FULL,
-
-  GUI_OSCREF_FREQUENCY,
-  GUI_OSCREF_VOLUME,
-  GUI_OSCREF_CHANNEL,
-  GUI_OSCREF_BRIGHT,
-
-  GUI_OSCREF_NOTE_TRIGGER,
-
-  GUI_OSCREF_MAX
-};
-
 enum PasteMode {
   GUI_PASTE_MODE_NORMAL=0,
   GUI_PASTE_MODE_MIX_FG,
@@ -2789,60 +2774,111 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscColorX, chanOscColorY, chanOscCenterStrat, chanOscColorMode;
-  float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify, chanOscLineSize;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
-  bool chanOscNormalize, chanOscRandomPhase, chanOscAutoCols;
-  String chanOscTextFormat;
-  ImVec4 chanOscColor, chanOscTextColor;
-  Gradient2D chanOscGrad;
-  FurnaceGUITexture* chanOscGradTex;
-  DivWorkPool* chanOscWorkPool;
-  float chanOscLP0[DIV_MAX_CHANS];
-  float chanOscLP1[DIV_MAX_CHANS];
-  float chanOscVol[DIV_MAX_CHANS];
-  float chanOscBright[DIV_MAX_CHANS];
-  unsigned short lastNeedlePos[DIV_MAX_CHANS];
-  unsigned short lastCorrPos[DIV_MAX_CHANS];
-  struct ChanOscStatus {
-    double* inBuf;
-    fftw_complex* outBuf;
-    double* corrBuf;
-    DivDispatchOscBuffer* relatedBuf;
-    size_t inBufPos;
-    double inBufPosFrac;
-    double waveLen;
-    int waveLenBottom, waveLenTop, relatedCh;
-    float pitch, windowSize, phaseOff, debugPhase, dcOff;
-    unsigned short needle;
-    bool ready, loudEnough, waveCorr;
-    fftw_plan plan;
-    fftw_plan planI;
-    PendingDrawOsc drawOp;
-    float oscTex[2048];
-    ChanOscStatus():
-      inBuf(NULL),
-      outBuf(NULL),
-      corrBuf(NULL),
-      relatedBuf(NULL),
-      inBufPos(0),
-      inBufPosFrac(0.0f),
-      waveLen(0.0),
-      waveLenBottom(0),
-      waveLenTop(0),
-      relatedCh(0),
-      pitch(0.0f),
-      windowSize(1.0f),
-      phaseOff(0.0f),
-      debugPhase(0.0f),
-      dcOff(0.0f),
-      needle(0),
-      ready(false),
-      loudEnough(false),
-      waveCorr(false),
-      plan(NULL),
-      planI(NULL) {}
-  } chanOscChan[DIV_MAX_CHANS];
+  struct ChanOsc {
+    enum class Arrange : int {
+      Columns=0,
+      Rows
+    } arrangement;
+    enum class CenterStrategy : int {
+      Off=0,
+      Normal,
+      HighPass
+    } centerStrat;
+    enum class ColorMode : int {
+      Solid=0,
+      Channel
+    } colorMode;
+    int columnsRows;
+    enum class Ref : int  {
+      None=0,
+      Center,
+      Full,
+
+      Frequency,
+      Volume,
+      Channel,
+      Brightness,
+
+      NoteTrigger,
+
+      Max
+    } colorX, colorY;
+    float windowSize, /*textX, textY, */ amplitude, lineSize;
+    bool showOptions, updateGradientTex;
+    bool waveCorr, useGradient, /*normalize, */ randomPhase, autoArrange;
+    String textFormat;
+    ImVec4 color, textColor;
+    Gradient2D gradient; FurnaceGUITexture* gradientTex;
+    DivWorkPool* workPool;
+    float LP0[DIV_MAX_CHANS], LP1[DIV_MAX_CHANS];
+    float volume[DIV_MAX_CHANS] /*, brightness[DIV_MAX_CHANS] */;
+    // unsigned short lastNeedlePos[DIV_MAX_CHANS], lastCorrPos[DIV_MAX_CHANS];
+
+    int displayColumns;
+    int displayMap[DIV_MAX_CHANS];
+
+    struct ChannelStatus {
+      double* inBuf;
+      fftw_complex* outBuf;
+      double* corrBuf;
+      DivDispatchOscBuffer* relatedBuf;
+      size_t inBufPos;
+      double inBufPosFrac;
+      double waveLen;
+      int waveLenBottom, waveLenTop, relatedCh;
+      float pitch, windowSize, phaseOff, debugPhase, dcOff;
+      unsigned short needle;
+      bool ready, loudEnough, waveCorr;
+      fftw_plan plan;
+      fftw_plan planI;
+      PendingDrawOsc drawOp;
+      float oscTex[2048];
+      ChannelStatus():
+        inBuf(NULL),
+        outBuf(NULL),
+        corrBuf(NULL),
+        relatedBuf(NULL),
+        inBufPos(0),
+        inBufPosFrac(0.0f),
+        waveLen(0.0),
+        waveLenBottom(0),
+        waveLenTop(0),
+        relatedCh(0),
+        pitch(0.0f),
+        windowSize(1.0f),
+        phaseOff(0.0f),
+        debugPhase(0.0f),
+        dcOff(0.0f),
+        needle(0),
+        ready(false),
+        loudEnough(false),
+        waveCorr(false),
+        plan(NULL),
+        planI(NULL) {}
+    } chan[DIV_MAX_CHANS];
+    ChanOsc():
+      arrangement(Arrange::Columns),
+      centerStrat(CenterStrategy::Normal),
+      colorMode(ColorMode::Solid),
+      columnsRows(3),
+      colorX(Ref::Center),
+      colorY(Ref::Center),
+      amplitude(1.0f),
+      lineSize(1.0f),
+      showOptions(false),
+      updateGradientTex(true),
+      waveCorr(true),
+      useGradient(false),
+      randomPhase(false),
+      autoArrange(false),
+      textFormat("%c"),
+      color(1.0f,1.0f,1.0f,1.0f),
+      textColor(1.0f,1.0f,1.0f,.75f),
+      gradient(64,64),
+      gradientTex(NULL),
+      workPool(NULL) {}
+      void calcChannelMap(int totalChans);
+  } chanOsc;
 
   // x-y oscilloscope
   FurnaceGUITexture* xyOscPointTex;
@@ -3250,7 +3286,7 @@ class FurnaceGUI {
   bool importConfig(String path);
   bool exportConfig(String path);
 
-  float computeGradPos(int type, int chan, int totalChans);
+  float computeGradPos(ChanOsc::Ref type, int chan, int totalChans);
 
   void resetColors();
   void resetKeybinds();
