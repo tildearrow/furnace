@@ -664,8 +664,7 @@ const char* FurnaceGUI::getSystemName(DivSystem which) {
 }
 
 void FurnaceGUI::updateScroll(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextScroll=lineHeight*amount;
+  nextScroll=patLineHeight*amount;
   haveHitBounds=false;
 }
 
@@ -675,14 +674,12 @@ void FurnaceGUI::updateScrollRaw(float amount) {
 }
 
 void FurnaceGUI::addScroll(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextAddScroll=lineHeight*amount;
+  nextAddScroll=patLineHeight*amount;
   haveHitBounds=false;
 }
 
 void FurnaceGUI::addScrollX(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextAddScrollX=lineHeight*amount;
+  nextAddScrollX=patLineHeight*amount;
   haveHitBounds=false;
 }
 
@@ -9553,6 +9550,7 @@ FurnaceGUI::FurnaceGUI():
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   failedNoteOn(false),
+  patLineHeight(24.0f),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),

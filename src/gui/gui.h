@@ -2542,6 +2542,7 @@ class FurnaceGUI {
   float peak[DIV_MAX_OUTPUTS];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
+  float patLineHeight;
   float lastPatternWidth, longThreshold;
   float buttonLongThreshold;
   String nextDesc;
