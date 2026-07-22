@@ -67,7 +67,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char rmpx, pmpx, roe, poe, rssCycle, rssSubCycle;
     unsigned int adMemAddrA;
     unsigned int adMemAddrB;
-  
+
     unsigned char* adpcmAMem;
     size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
@@ -80,7 +80,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     bool extMode, noExtMacros;
 
     bool* sampleLoaded[2];
-  
+
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
 
@@ -89,6 +89,10 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
+        chan[ch].rawFreq=note&DIV_NOTE_RAW_FLAG;
+        if (chan[ch].rawFreq) {
+          return note&(~DIV_NOTE_RAW_FLAG);
+        }
         return NOTE_ADPCMB(note);
       } else if (ch>=psgChanOffs) { // PSG
         // not used.
@@ -104,7 +108,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       return 0;
     }
-  
+
   public:
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
       ay->fillStream(stream,sRate,len);
@@ -215,7 +219,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       if (sample<0 || sample>32767) return false;
       return sampleLoaded[index][sample];
     }
-    
+
     const DivMemoryComposition* getMemCompo(int index) {
       if (index==0) return &memCompoA;
       if (index==1) return &memCompoB;

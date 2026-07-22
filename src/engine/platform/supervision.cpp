@@ -110,7 +110,7 @@ void DivPlatformSupervision::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         if (i==2 || i==3) {
@@ -153,17 +153,21 @@ void DivPlatformSupervision::tick(bool sysTick) {
         }
         chan[i].initWrite=false;
       } else if (i==3) {
-        int ntPos=chan[i].baseFreq;
-        if (NEW_ARP_STRAT) {
-          if (chan[i].fixedArp) {
-            ntPos=chan[i].baseNoteOverride;
-          } else {
-            ntPos+=chan[i].arpOff;
+        if (chan[i].rawFreq) {
+          chan[i].freq=chan[i].baseFreq&15;
+        } else {
+          int ntPos=chan[i].baseFreq;
+          if (NEW_ARP_STRAT) {
+            if (chan[i].fixedArp) {
+              ntPos=chan[i].baseNoteOverride;
+            } else {
+              ntPos+=chan[i].arpOff;
+            }
           }
+          ntPos+=chan[i].pitch2;
+          ntPos-=60;
+          chan[i].freq=15-(ntPos&15);
         }
-        ntPos+=chan[i].pitch2;
-        ntPos-=60;
-        chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
         rWrite(0x28,r);
         noiseReg[0]=r;
@@ -214,28 +218,33 @@ void DivPlatformSupervision::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
 
+    // why is this code here twice?
     if (chan[i].kon) {
       if (i<2) {
         rWrite(0x12|(i<<2),(chan[i].outVol&0xf)|((chan[i].duty&3)<<4));
         rWrite(0x13|(i<<2),0xc8);
-      } else if (i == 3) {
-        int ntPos=chan[i].baseFreq;
-        if (NEW_ARP_STRAT) {
-          if (chan[i].fixedArp) {
-            ntPos=chan[i].baseNoteOverride;
-          } else {
-            ntPos+=chan[i].arpOff;
+      } else if (i==3) {
+        if (chan[i].rawFreq) {
+          chan[i].freq=chan[i].baseFreq&15;
+        } else {
+          int ntPos=chan[i].baseFreq;
+          if (NEW_ARP_STRAT) {
+            if (chan[i].fixedArp) {
+              ntPos=chan[i].baseNoteOverride;
+            } else {
+              ntPos+=chan[i].arpOff;
+            }
           }
+          ntPos+=chan[i].pitch2;
+          ntPos-=60;
+          chan[i].freq=15-(ntPos&15);
         }
-        ntPos+=chan[i].pitch2;
-        ntPos-=60;
-        chan[i].freq=15-(ntPos&15);
         unsigned char r=(chan[i].freq<<4)|(chan[i].outVol&0xf);
-        if (noiseReg[0] != r) rWrite(0x28,r);
+        if (noiseReg[0]!=r) rWrite(0x28,r);
         noiseReg[0]=r;
         rWrite(0x29,0xc8);
         r=((chan[i].duty&1)^dutySwap)|(0x02|0x10)|(chan[i].pan<<2);
-        if (noiseReg[2] != r) rWrite(0x2A,r);
+        if (noiseReg[2]!=r) rWrite(0x2A,r);
         noiseReg[2]=r;
       } else if (i==2) {
         if (chan[i].pcm) {
@@ -297,7 +306,12 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
         chan[c.chan].sampleNoteDelta=0;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=c.chan==3?c.value:chan[c.chan].calcBaseFreq(c.value);
+        if (c.chan==3) {
+          chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+          chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
+        } else {
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
+        }
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -386,7 +400,12 @@ int DivPlatformSupervision::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      if (c.chan==3) {
+        chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
+      } else {
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;

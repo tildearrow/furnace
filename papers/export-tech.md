@@ -317,6 +317,9 @@ hex | description
  b6 | note off env
  b7 | env release
  b8 | instrument (b)
+ b9 | note on: raw frequency (i)
+ ba | raw freq porta (ib) // target, speed
+ bb | raw freq note (i)
  c0 | pre porta (X)
     | - bit 7: inPorta
     | - bit 6: isPortaOrSlide

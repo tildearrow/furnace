@@ -228,7 +228,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
               if (p->newData[j][k]!=op->newData[j][k]) {
                 s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][h],j,k,op->newData[j][k],p->newData[j][k]));
 
-                if (k>=DIV_PAT_FX(0)) {
+                if (k>=DIV_PAT_FX(0) && k<DIV_PAT_NOTE_BUFFER) {
                   int fxCol=(k&1)?k:(k-1);
                   if (op->newData[j][fxCol]==0x09 ||
                       op->newData[j][fxCol]==0x0b ||
@@ -383,6 +383,11 @@ void FurnaceGUI::doDelete() {
           touch(jOrder,j);
           if (iFine==0) {
             if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_INS]=-1;
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
           }
           pat->newData[j][iFine]=-1;
 
@@ -458,8 +463,22 @@ void FurnaceGUI::doPullDelete() {
         //       more than one order.
         if (j<e->curSubSong->patLen-1) {
           pat->newData[j][iFine]=pat->newData[j+1][iFine];
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=pat->newData[j+1][DIV_PAT_NOTE_BUFFER];
+            pat->newData[j][DIV_PAT_RAW0]=pat->newData[j+1][DIV_PAT_RAW0];
+            pat->newData[j][DIV_PAT_RAW1]=pat->newData[j+1][DIV_PAT_RAW1];
+            pat->newData[j][DIV_PAT_RAW2]=pat->newData[j+1][DIV_PAT_RAW2];
+            pat->newData[j][DIV_PAT_RAW3]=pat->newData[j+1][DIV_PAT_RAW3];
+          }
         } else {
           pat->newData[j][iFine]=-1;
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
+          }
         }
       }
     }
@@ -498,8 +517,22 @@ void FurnaceGUI::doInsert() {
       for (int j=e->curSubSong->patLen-1; j>=sStart.y; j--) {
         if (j==sStart.y) {
           pat->newData[j][iFine]=-1;
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
+          }
         } else {
           pat->newData[j][iFine]=pat->newData[j-1][iFine];
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=pat->newData[j-1][DIV_PAT_NOTE_BUFFER];
+            pat->newData[j][DIV_PAT_RAW0]=pat->newData[j-1][DIV_PAT_RAW0];
+            pat->newData[j][DIV_PAT_RAW1]=pat->newData[j-1][DIV_PAT_RAW1];
+            pat->newData[j][DIV_PAT_RAW2]=pat->newData[j-1][DIV_PAT_RAW2];
+            pat->newData[j][DIV_PAT_RAW3]=pat->newData[j-1][DIV_PAT_RAW3];
+          }
         }
       }
     }
@@ -1444,10 +1477,21 @@ void FurnaceGUI::doInterpolate() {
           DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
           for (; j<e->curSubSong->patLen && (j<=selEnd.y || jOrder<selEnd.order); j++) {
             touch(jOrder,j);
-            // TODO: raw frequency interpolation
             if (pat->newData[j][DIV_PAT_NOTE]!=-1) {
-              if (pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_MACRO_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_RAW) {
-                points.emplace(points.end(),j|(jOrder<<8),pat->newData[j][DIV_PAT_NOTE]);
+              if (pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
+                if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+                  points.emplace(
+                    points.end(),
+                    j|(jOrder<<8),
+                    pat->newData[j][DIV_PAT_RAW0]|
+                    (pat->newData[j][DIV_PAT_RAW1]<<8)|
+                    (pat->newData[j][DIV_PAT_RAW2]<<16)|
+                    (pat->newData[j][DIV_PAT_RAW3]<<24)|
+                    DIV_NOTE_RAW_FLAG
+                  );
+                } else {
+                  points.emplace(points.end(),j|(jOrder<<8),pat->newData[j][DIV_PAT_NOTE]);
+                }
               }
             }
           }
@@ -1457,14 +1501,24 @@ void FurnaceGUI::doInterpolate() {
         if (points.size()>1) for (size_t j=0; j<points.size()-1; j++) {
           std::pair<int,int>& curPoint=points[j];
           std::pair<int,int>& nextPoint=points[j+1];
+          // check whether we can interpolate (both notes must be either normal or raw)
+          if ((curPoint.second&DIV_NOTE_RAW_FLAG)!=(nextPoint.second&DIV_NOTE_RAW_FLAG)) continue;
           int distance=(
             ((nextPoint.first&0xff)+((nextPoint.first>>8)*e->curSubSong->patLen))-
             ((curPoint.first&0xff)+((curPoint.first>>8)*e->curSubSong->patLen))
           );
           for (int k=0, k_p=curPoint.first; k<distance; k++) {
             DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][(k_p>>8)&0xff],true);
-            int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/(double)distance);
-            pat->newData[k_p&0xff][DIV_PAT_NOTE]=val;
+            unsigned int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/(double)distance);
+            if (curPoint.second&DIV_NOTE_RAW_FLAG) {
+              pat->newData[k_p&0xff][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+              pat->newData[k_p&0xff][DIV_PAT_RAW0]=(val&0xff);
+              pat->newData[k_p&0xff][DIV_PAT_RAW1]=((val>>8)&0xff);
+              pat->newData[k_p&0xff][DIV_PAT_RAW2]=((val>>16)&0xff);
+              pat->newData[k_p&0xff][DIV_PAT_RAW3]=((val>>24)&0x7f);
+            } else {
+              pat->newData[k_p&0xff][DIV_PAT_NOTE]=val;
+            }
             k_p++;
             if ((k_p&0xff)>=e->curSubSong->patLen) {
               k_p&=~0xff;

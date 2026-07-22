@@ -67,7 +67,7 @@ void DivPlatformSCV::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int f=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=chan[i].calcBaseFreq(f);
@@ -118,11 +118,11 @@ void DivPlatformSCV::tick(bool sysTick) {
           if (chan[i].keyOn) kon[i]=1;
           if (chan[i].keyOff) kon[i]=0;
         }
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (!chan[i].rawFreq && chan[i].freq<0) chan[i].freq=0;
       } else {
-        if (chan[i].freq<1) chan[i].freq=1;
+        if (!chan[i].rawFreq && chan[i].freq<1) chan[i].freq=1;
       }
-      if (chan[i].freq>255) chan[i].freq=255;
+      if (!chan[i].rawFreq && chan[i].freq>255) chan[i].freq=255;
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;

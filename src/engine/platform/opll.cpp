@@ -172,7 +172,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -346,10 +346,14 @@ void DivPlatformOPLL::tick(bool sysTick) {
       }
       chan[i].freq=chan[i].calcFreq(mul);
       if (chan[i].fixedFreq>0 && properDrums) chan[i].freq=chan[i].fixedFreq;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       int freqt=chan[i].rawFreq?chan[i].freq:toFreq(chan[i].freq,fixedBlock);
-      if (freqt>4095) freqt=4095;
+      if (!chan[i].rawFreq) {
+        if (freqt>4095) freqt=4095;
+      }
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums && (i<9 || !noTopHatFreq)) {
         immWrite(0x10+drumSlot[i],freqt&0xff);

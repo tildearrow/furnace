@@ -131,7 +131,7 @@ void DivPlatformSM8521::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -411,7 +411,7 @@ unsigned int DivPlatformSM8521::getMaxFreq(int ch) {
 }
 
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
-  chipClock=11059200;
+  chipClock=10000000;
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/2; // CKIN -> fCLK(/2) -> Function blocks (/2)

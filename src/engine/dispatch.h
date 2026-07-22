@@ -132,7 +132,7 @@ enum DivDispatchCmds {
   DIV_CMD_STD_NOISE_MODE, // (mode)
 
   DIV_CMD_WAVE, // (waveform)
-  
+
   DIV_CMD_GB_SWEEP_TIME, // (time)
   DIV_CMD_GB_SWEEP_DIR, // (direction)
 
@@ -176,7 +176,7 @@ enum DivDispatchCmds {
   DIV_CMD_AMIGA_PM, // (enabled)
 
   DIV_CMD_LYNX_LFSR_LOAD, // (value)
-  
+
   DIV_CMD_QSOUND_ECHO_FEEDBACK,
   DIV_CMD_QSOUND_ECHO_DELAY,
   DIV_CMD_QSOUND_ECHO_LEVEL,
@@ -272,7 +272,7 @@ enum DivDispatchCmds {
 
   DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
-  
+
   DIV_CMD_DAVE_HIGH_PASS,
   DIV_CMD_DAVE_RING_MOD,
   DIV_CMD_DAVE_SWAP_COUNTERS,
@@ -303,7 +303,7 @@ enum DivDispatchCmds {
   DIV_CMD_MULTIPCM_PSEUDO_REVERB, // (value)
   DIV_CMD_MULTIPCM_LFO_RESET, // (value)
   DIV_CMD_MULTIPCM_LEVEL_DIRECT, // (value)
-  
+
   DIV_CMD_SID3_SPECIAL_WAVE,
   DIV_CMD_SID3_RING_MOD_SRC,
   DIV_CMD_SID3_HARD_SYNC_SRC,
@@ -585,7 +585,7 @@ struct SharedChannel {
    * @return the frequency.
    */
   int calcFreq(int pitchMult=1) {
-    if (rawFreq) return baseFreq;
+    if (rawFreq) return baseFreq+pitch2;
     if (pitchTable==NULL) return 0;
     if (!pitchTable->linearity) {
       return pitchTable->get(baseFreq,pitch*pitchMult,pitch2);
@@ -624,7 +624,7 @@ struct SharedChannel {
     vol(initVol),
     outVol(initVol),
     std(),
-    pitchTable(NULL) {} 
+    pitchTable(NULL) {}
 };
 
 /**
@@ -1202,7 +1202,7 @@ class DivDispatch {
      * you have to initialize this one during init() or setFlags().
      */
     int rate;
-    
+
     /**
      * the actual chip's clock.
      * you have to initialize this one during init() or setFlags().
@@ -1292,7 +1292,7 @@ class DivDispatch {
      * @return a DivChannelModeHints.
      */
     virtual DivChannelModeHints getModeHints(int chan);
-    
+
 
     /**
      * get currently playing sample (and its position).
@@ -1308,7 +1308,7 @@ class DivDispatch {
      * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
      */
     virtual DivDispatchOscBuffer* getOscBuffer(int chan);
-    
+
     /**
      * get the register pool of this dispatch.
      * @return a pointer, or NULL.
@@ -1577,7 +1577,7 @@ class DivDispatch {
      * @return whether it did.
      */
     virtual bool isSampleLoaded(int index, int sample);
-    
+
     /**
      * get memory composition.
      * @param index the memory index.
@@ -1635,7 +1635,7 @@ class DivDispatch {
   }
 
 // NOTE: these definitions are deprecated. see DivPitchTable.
-#define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,(x)&(~DIV_NOTE_RAW_FLAG),bits,blk)
+#define NOTE_FNUM_BLOCK(x,bits,blk) ((x)&DIV_NOTE_RAW_FLAG)?(x):parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,(x)&(~DIV_NOTE_RAW_FLAG),bits,blk)
 
 // this is for volume scaling calculation.
 #define VOL_SCALE_LINEAR(x,y,range) ((parent->song.compatFlags.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))
@@ -1661,6 +1661,6 @@ class DivDispatch {
 
 // this is used by DIV_CMD_LEGATO handling code in some dispatches for compatibility.
 // it checks whether the current arp macro step is relative. if so, the arp macro value must be applied.
-#define HACKY_LEGATO_MESS (chan[c.chan].std.arp.will && ((chan[c.chan].std.arp.val&0xc0000000)==0 || (chan[c.chan].std.arp.val&0xc0000000)==0xc0000000) && !NEW_ARP_STRAT)
+#define HACKY_LEGATO_MESS (!chan[c.chan].rawFreq && chan[c.chan].std.arp.will && ((chan[c.chan].std.arp.val&0xc0000000)==0 || (chan[c.chan].std.arp.val&0xc0000000)==0xc0000000) && !NEW_ARP_STRAT)
 
 #endif

@@ -90,14 +90,10 @@ void FurnaceGUI::drawSettings() {
   } else {
     ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags,_("Settings"))) {
-    if (!settingsOpen) {
-      if (settingsChanged) {
-        settingsOpen=true;
-        showWarning(_("Do you want to save your settings?"),GUI_WARN_CLOSE_SETTINGS);
-      } else {
-        settingsOpen=false;
-      }
+  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags,settingsChanged?_("Settings (unsaved changes)"):_("Settings"))) {
+    if (!settingsOpen && settingsChanged) {
+      settingsOpen=true;
+      showWarning(_("Do you want to save your settings?"),GUI_WARN_CLOSE_SETTINGS);
     }
     const float buttonsHeight=ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*4.0f;
     const bool vertical=ImGui::GetWindowHeight()>ImGui::GetWindowWidth();
@@ -269,8 +265,11 @@ void FurnaceGUI::commitSettings() {
     }
   }
 
-  if (!e->switchMaster(coresChanged)) {
-    showError(_("could not initialize audio!"));
+  // if we're about to quit, don't perform an expensive output switch/core re-initialization.
+  if (!quit) {
+    if (!e->switchMaster(coresChanged)) {
+      showError(_("could not initialize audio!"));
+    }
   }
 
   ImGui::GetIO().Fonts->Clear();

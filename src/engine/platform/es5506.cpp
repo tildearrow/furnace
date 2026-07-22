@@ -205,7 +205,7 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
-  for (int i=0; i<chanMax; i++) {
+  for (int i=0; i<=chanMax; i++) {
     oscBuf[i]->begin(len);
   }
   for (size_t h=0; h<len; h++) {
@@ -253,7 +253,7 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
   }
-  for (int i=0; i<chanMax; i++) {
+  for (int i=0; i<=chanMax; i++) {
     oscBuf[i]->end(len);
   }
 }
@@ -499,7 +499,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     // arpeggio/pitch macros, frequency related
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
@@ -753,11 +753,16 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (amigaPitch && !parent->song.compatFlags.linearPitch) {
         // TODO: why is it 2???
         chan[i].freq=chan[i].calcFreq(2);
+        if (chan[i].rawFreq) {
+          chan[i].freq&=65535;
+        }
         chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
         chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
         chan[i].freq=chan[i].calcFreq(2);
-        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        if (!chan[i].rawFreq) {
+          chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        }
       }
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {

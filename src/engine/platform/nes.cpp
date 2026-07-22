@@ -167,7 +167,7 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
+
     nes1_NP->Tick(8);
     nes2_NP->TickFrameSequence(8);
     nes2_NP->Tick(8);
@@ -211,7 +211,7 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
+
     e1_NP->Tick(8);
     e2_NP->TickFrameSequence(8);
     e2_NP->Tick(8);
@@ -311,7 +311,7 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         // this is awkward
@@ -363,7 +363,7 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         if (chan[i].rawFreq) {
-          chan[i].freq=chan[i].baseFreq&15;
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&15;
         } else {
           int ntPos=chan[i].baseFreq-60;
           if (NEW_ARP_STRAT) {
@@ -386,9 +386,11 @@ void DivPlatformNES::tick(bool sysTick) {
         }
       } else {
         chan[i].freq=chan[i].calcFreq();
-        if (!chan[i].rawFreq) chan[i].freq--;
-        if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (!chan[i].rawFreq) {
+          chan[i].freq--;
+          if (chan[i].freq>2047) chan[i].freq=2047;
+          if (chan[i].freq<0) chan[i].freq=0;
+        }
       }
       if (chan[i].keyOn) {
         // retrigger if sweep is on
@@ -529,6 +531,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
           } else {
             if (c.value==DIV_NOTE_NULL) {
               nextDPCMFreq=lastDPCMFreq;
+            } else if (c.value&DIV_NOTE_RAW_FLAG) {
+              nextDPCMFreq=(c.value)&15;
             } else {
               nextDPCMFreq=(c.value-60)&15;
             }
@@ -563,7 +567,13 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
         dacPeriod=0;
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+          if (c.value&DIV_NOTE_RAW_FLAG) {
+            chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+            chan[c.chan].rawFreq=true;
+          } else {
+            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+            chan[c.chan].rawFreq=false;
+          }
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -946,7 +956,7 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->setRate(rate);
   }
-  
+
   dpcmModeDefault=flags.getBool("dpcmMode",true);
   resetSweep=flags.getBool("resetSweep",false);
 

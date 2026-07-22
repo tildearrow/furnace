@@ -48,6 +48,7 @@
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
+#define MOBILE_LAYOUT_INI "\\mobileLayout.ini"
 #define BACKUPS_DIR "\\backups"
 #else
 #include <sys/types.h>
@@ -56,6 +57,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
+#define MOBILE_LAYOUT_INI "/mobileLayout.ini"
 #define BACKUPS_DIR "/backups"
 #endif
 
@@ -662,8 +664,7 @@ const char* FurnaceGUI::getSystemName(DivSystem which) {
 }
 
 void FurnaceGUI::updateScroll(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextScroll=lineHeight*amount;
+  nextScroll=patLineHeight*amount;
   haveHitBounds=false;
 }
 
@@ -673,14 +674,12 @@ void FurnaceGUI::updateScrollRaw(float amount) {
 }
 
 void FurnaceGUI::addScroll(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextAddScroll=lineHeight*amount;
+  nextAddScroll=patLineHeight*amount;
   haveHitBounds=false;
 }
 
 void FurnaceGUI::addScrollX(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextAddScrollX=lineHeight*amount;
+  nextAddScrollX=patLineHeight*amount;
   haveHitBounds=false;
 }
 
@@ -1301,6 +1300,7 @@ DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Spl
       DockNode        ID=0x00000012 Parent=0x0000000B SizeRef=151,557 HiddenTabBar=1 Selected=0x4C07BC58\n\
     DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n";
 
+const char* defaultMobileLayout="\n";
 
 void FurnaceGUI::prepareLayout() {
   FILE* check;
@@ -1318,7 +1318,11 @@ void FurnaceGUI::prepareLayout() {
     return;
   }
 
-  fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  if (mobileUI) {
+    fwrite(defaultMobileLayout,1,strlen(defaultMobileLayout),check);
+  } else {
+    fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  }
   fclose(check);
 }
 
@@ -1398,10 +1402,10 @@ void FurnaceGUI::stop() {
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
   e->setMidiBaseChan(refChan);
   e->synchronized([this,note]() {
-    if (!e->autoNoteOn(-1,curIns,note+60)) failedNoteOn=true;
+    if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
     for (int mi=0; mi<7; mi++) {
       if (multiIns[mi]!=-1) {
-        e->autoNoteOn(-1,multiIns[mi],note+60,-1,multiInsTranspose[mi]);
+        e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
       }
     }
   });
@@ -1479,8 +1483,10 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
     if (pat->newData[y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
       // restore previous note
       pat->newData[y][DIV_PAT_NOTE]=pat->newData[y][DIV_PAT_NOTE_BUFFER];
+      logV("Out.....");
     } else {
       // store note in buffer and set raw frequency
+      logV("In......");
       pat->newData[y][DIV_PAT_NOTE_BUFFER]=pat->newData[y][DIV_PAT_NOTE];
       pat->newData[y][DIV_PAT_NOTE]=DIV_NOTE_RAW;
       // check for invalid bytes
@@ -1896,6 +1902,15 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
                 if (edit) {
                   rawFreqInput(num);
+                }
+              } else {
+                // try again to find the toggle raw key
+                auto it1=noteKeys.find(ev.key.keysym.scancode);
+                if (it1!=noteKeys.cend()) {
+                  int key=it1->second;
+                  if (edit && key==GUI_NOTE_RAW) {
+                    noteInput(0,key,-1,chordInputOffset);
+                  }
                 }
               }
             } else {
@@ -2318,6 +2333,39 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         (settings.autoFillSave)?shortName:""
       );
       break;
+#ifdef WITH_JSON
+    case GUI_FILE_EXPORT_JSON: {
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      String dialogHeader;
+      String filter;
+      String filterExt;
+      switch (jsonExportOptions.format) {
+        case DivJSONExportOptions::EXPORT_JSON:
+          dialogHeader=_("Export JSON data");
+          filter=_("JSON file");
+          filterExt="*.json";
+          break;
+        case DivJSONExportOptions::EXPORT_BSON:
+          dialogHeader=_("Export BSON data");
+          filter=_("BSON file");
+          filterExt="*.bson";
+          break;
+        case DivJSONExportOptions::EXPORT_CBOR:
+          dialogHeader=_("Export CBOR data");
+          filter=_("CBOR file");
+          filterExt="*.cbor";
+          break;
+      }
+      hasOpened=fileDialog->openSave(
+        dialogHeader,
+        {filter,filterExt},
+        workingDirROMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
+    }
+#endif
     case GUI_FILE_EXPORT_CMDSTREAM:
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -2993,12 +3041,20 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
             if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
               showError(fmt::sprintf(_("Error while saving file! (%s)"),lastError));
             } else {
-              quit=true;
+              if (settingsOpen && settingsChanged) {
+                showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+              } else {
+                quit=true;
+              }
             }
           }
         }},
         {tNo,kNo,[this]{
-          quit=true;
+          if (settingsOpen && settingsChanged) {
+            showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+          } else {
+            quit=true;
+          }
         }},
         wCancel,
       };
@@ -3115,11 +3171,13 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
     case GUI_WARN_RESET_LAYOUT:
       warnChoices={
         {tYes,kYes,[this]{
-          if (!mobileUI) {
+          if (mobileUI) {
+            ImGui::LoadIniSettingsFromMemory(defaultMobileLayout);
+          } else {
             ImGui::LoadIniSettingsFromMemory(defaultLayout);
-            if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-              reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-            }
+          }
+          if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+            reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
           }
           settingsChanged=true;
         },true},
@@ -3239,6 +3297,19 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
         }},
       };
       break;
+    case GUI_WARN_QUIT_SETTINGS:
+        warnChoices={
+          {tYes,kYes,[this]{
+            willCommit=true;
+            settingsChanged=false;
+            quit=true;
+          }},
+          {tNo,kNo,[this]{
+            quit=true;
+          }},
+          wCancel,
+        };
+        break;
     case GUI_WARN_GENERIC:
       warnChoices={
         {tOk,kOk,[]{}},
@@ -3865,25 +3936,34 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
-    if (!mobileUI && enable) {
+    // the only moment force is true is during GUI init.
+    // don't save the layout because we still haven't loaded it.
+    if (!force) {
       if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
         reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
       }
     }
     mobileUI=enable;
+
     if (mobileUI) {
-      ImGui::GetIO().IniFilename=NULL;
+      strncpy(finalLayoutPath,(e->getConfigPath()+String(MOBILE_LAYOUT_INI)).c_str(),4095);
+    } else {
+      strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+    }
+
+    ImGui::GetIO().IniFilename=NULL;
+    if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
+      reportError(fmt::sprintf(_("could NOT load layout! %s"),strerror(errno)));
+      ImGui::LoadIniSettingsFromMemory(mobileUI?defaultMobileLayout:defaultLayout);
+    }
+
+    if (mobileUI) {
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
       newFilePicker->setMobile(true);
     } else {
-      ImGui::GetIO().IniFilename=NULL;
-      if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
-        reportError(fmt::sprintf(_("could NOT load layout! %s"),strerror(errno)));
-        ImGui::LoadIniSettingsFromMemory(defaultLayout);
-      }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=false;
@@ -3935,16 +4015,27 @@ int _processEvent(void* instance, SDL_Event* event) {
 #endif
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
-  if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
-    quit=true;
-  } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+    logD("mobile: TERMINATING");
     commitState(e->getConfObject());
+    if (userPresetsOpen) {
+      saveUserPresets(true);
+    }
+    logI("saving config.");
     e->saveConf();
+    quit=true;
+    return 0;
+  } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+    logD("mobile: will enter background");
+    commitState(e->getConfObject());
+    logI("saving config.");
+    e->saveConf();
+    return 0;
   }
 #endif
+  if (introPos<11.0 && !shortIntro) return 1;
   if (cvOpen) return 1;
   if (ev->type==SDL_KEYDOWN) {
     if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(VALID_MODS)))==0) {
@@ -4004,6 +4095,18 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           // fall-through
         default: {
           if (warnIsOpen && !settings.warnNotePassthrough) break;
+          if (curRawNoteState==GUI_RAWNOTE_PENDING) break;
+          if (curRawNoteState==GUI_RAWNOTE_READY) {
+            auto it=valueKeys.find(ev->key.keysym.sym);
+            if (it!=valueKeys.cend()) {
+              int num=it->second;
+              if (!e->autoNoteOn(-1,curIns,(curRawNote<<4)|num|DIV_NOTE_RAW_FLAG)) failedNoteOn=true;
+              pendingRawNote=(curRawNote<<4)|num;
+              pendingRawNoteKey=ev->key.keysym.sym;
+            }
+            break;
+          }
+          // normal keys
           auto it=noteKeys.find(ev->key.keysym.scancode);
           if (it!=noteKeys.cend()) {
             int key=it->second;
@@ -4013,7 +4116,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (num>119) num=119; // B-9
 
             if (key!=100 && key!=101 && key!=102 && key!=103) {
-              previewNote(cursor.xCoarse,num);
+              previewNote(cursor.xCoarse,num+60);
             }
           }
           break;
@@ -4022,6 +4125,14 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
     }
   } else if (ev->type==SDL_KEYUP) {
     stopPreviewNote(ev->key.keysym.scancode,true);
+    if (pendingRawNoteKey==ev->key.keysym.sym) {
+      e->synchronized([this]() {
+        e->autoNoteOff(-1,pendingRawNote|DIV_NOTE_RAW_FLAG);
+        pendingRawNote=-1;
+        pendingRawNoteKey=(SDL_Keycode)0;
+        failedNoteOn=false;
+      });
+    }
     if (wavePreviewOn) {
       if (ev->key.keysym.scancode==wavePreviewKey) {
         wavePreviewOn=false;
@@ -4215,6 +4326,12 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   if (dragMobileEditButton) {
     dragMobileEditButton=false;
+  }
+  if (pendingRawNote>=0) {
+    e->autoNoteOff(-1,pendingRawNote|DIV_NOTE_RAW_FLAG);
+    pendingRawNote=-1;
+    pendingRawNoteKey=(SDL_Keycode)0;
+    failedNoteOn=false;
   }
 }
 
@@ -4617,6 +4734,7 @@ bool FurnaceGUI::loop() {
           }
           break;
         case SDL_APP_TERMINATING:
+          logW("this shouldn't be happening. got SDL_APP_TERMINATING in main loop!");
           quit=true;
           break;
       }
@@ -5142,6 +5260,12 @@ bool FurnaceGUI::loop() {
             drawExportText();
             ImGui::EndMenu();
           }
+#ifdef WITH_JSON
+          if (ImGui::BeginMenu(_("export JSON..."))) {
+            drawExportJSON();
+            ImGui::EndMenu();
+          }
+#endif
           if (ImGui::BeginMenu(_("export command stream..."))) {
             drawExportCommand();
             ImGui::EndMenu();
@@ -5675,6 +5799,31 @@ bool FurnaceGUI::loop() {
       }
     }
 
+    // update raw note ztate
+    if (curWindow==GUI_WINDOW_PATTERN && cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && curOrder>=0 && curOrder<DIV_MAX_PATTERNS && cursor.y>=0 && cursor.y<DIV_MAX_ROWS) {
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
+
+      if (pat->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+        unsigned int val=(
+          pat->newData[cursor.y][DIV_PAT_RAW0]|
+          (pat->newData[cursor.y][DIV_PAT_RAW1]<<8)|
+          (pat->newData[cursor.y][DIV_PAT_RAW2]<<16)|
+          (pat->newData[cursor.y][DIV_PAT_RAW3]<<24)
+        );
+        unsigned int valMax=e->getMaxFreqChan(cursor.xCoarse);
+        unsigned int valNibbles=(bsr32(valMax)+3)>>2;
+        if (valMax==0) valNibbles=0;
+
+        curRawNoteState=((unsigned int)(curNibble+1)>=valNibbles)?GUI_RAWNOTE_READY:GUI_RAWNOTE_PENDING;
+        curRawNote=val;
+      } else {
+        curRawNoteState=GUI_RAWNOTE_NORMAL;
+      }
+    } else {
+      curRawNoteState=GUI_RAWNOTE_NORMAL;
+      // we don't clear curRawNote because the key down event handler may still need it.
+    }
+
     updateKeyHitPost();
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
@@ -5770,6 +5919,9 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
+#ifdef WITH_JSON
+        case GUI_FILE_EXPORT_JSON:
+#endif
         case GUI_FILE_EXPORT_CMDSTREAM:
         case GUI_FILE_EXPORT_COMPILED_INS:
         case GUI_FILE_EXPORT_COMPILED_INS_ONE:
@@ -5880,6 +6032,24 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_EXPORT_TEXT) {
             checkExtension(".txt");
           }
+#ifdef WITH_JSON
+          if (curFileDialog==GUI_FILE_EXPORT_JSON) {
+            switch (jsonExportOptions.format) {
+              case DivJSONExportOptions::EXPORT_JSON: {
+                checkExtension(".json");
+                break;
+              }
+              case DivJSONExportOptions::EXPORT_BSON: {
+                checkExtension(".bson");
+                break;
+              }
+              case DivJSONExportOptions::EXPORT_CBOR: {
+                checkExtension(".cbor");
+                break;
+              }
+            }
+          }
+#endif
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS ||
               curFileDialog==GUI_FILE_EXPORT_COMPILED_INS_ONE ||
@@ -5918,7 +6088,11 @@ bool FurnaceGUI::loop() {
               if (saveWasSuccessful && postWarnAction!=GUI_WARN_GENERIC) {
                 switch (postWarnAction) {
                   case GUI_WARN_QUIT:
-                    quit=true;
+                    if (settingsOpen && settingsChanged) {
+                      showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+                    } else {
+                      quit=true;
+                    }
                     break;
                   case GUI_WARN_NEW:
                     displayNew=true;
@@ -6462,6 +6636,29 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+#ifdef WITH_JSON
+            case GUI_FILE_EXPORT_JSON: {
+              SafeWriter* w=e->saveJSON(&jsonExportOptions);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf(_("could not write JSON data! (%s)"),e->getLastError()));
+              }
+              break;
+            }
+#endif
             case GUI_FILE_EXPORT_CMDSTREAM: {
               exportCmdStream(false,copyOfName);
               break;
@@ -7578,6 +7775,10 @@ bool FurnaceGUI::loop() {
 
     MEASURE_END(popup);
 
+    // this is here for drawImage() to work correctly
+    introMin=ImVec2(0,0);
+    introMax=ImVec2(canvasW,canvasH);
+
 #ifdef NO_INTRO
     introPos=12.0;
 #else
@@ -7919,6 +8120,8 @@ bool FurnaceGUI::loop() {
       SDL_Delay(100);
     }
   }
+
+  logD("GUI loop is over");
   return false;
 }
 
@@ -7934,11 +8137,76 @@ bool FurnaceGUI::init() {
   syncSettings();
   syncTutorial();
 
+  // sync the recent files list
   recentFile.clear();
   for (int i=0; i<settings.maxRecentFile; i++) {
     String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
     if (!r.empty()) {
       recentFile.push_back(r);
+    }
+  }
+
+  // dev249 introduces raw note input key (default is hyphen).
+  // check whether we should add it to the current map.
+  if (e->getConfInt("configVersion",DIV_ENGINE_VERSION)<249) {
+    // find whether the user already assigned a raw note key
+    logV("adding raw note key.");
+    bool shouldMapRawNoteKey=true;
+    for (std::map<int,int>::value_type& i: noteKeys) {
+      if (i.second==GUI_NOTE_RAW) {
+        shouldMapRawNoteKey=false;
+        break;
+      }
+    }
+    if (shouldMapRawNoteKey) {
+      // we'll try with two keys: hyphen and backslash (if hyphen is already bound)
+      bool isHyphenAvailable=true;
+      bool isBackslashAvailable=true;
+
+      // check availability in the note keys
+      for (std::map<int,int>::value_type& i: noteKeys) {
+        if (i.first==SDL_SCANCODE_MINUS) {
+          isHyphenAvailable=false;
+        }
+        if (i.first==SDL_SCANCODE_BACKSLASH) {
+          isBackslashAvailable=false;
+        }
+      }
+
+      // now check in action binds
+      for (int i=0; i<GUI_ACTION_MAX; i++) {
+        for (int j: actionKeys[i]) {
+          if (j==SDL_SCANCODE_MINUS) {
+            isHyphenAvailable=false;
+          }
+          if (j==SDL_SCANCODE_BACKSLASH) {
+            isBackslashAvailable=false;
+          }
+        }
+      }
+
+      // try to bind the first available key
+      if (isHyphenAvailable) {
+        noteKeys[SDL_SCANCODE_MINUS]=GUI_NOTE_RAW;
+        decompileNoteKeys();
+        e->setConf("noteKeys",encodeKeyMap(noteKeys));
+      } else if (isBackslashAvailable) {
+        noteKeys[SDL_SCANCODE_BACKSLASH]=GUI_NOTE_RAW;
+        decompileNoteKeys();
+        e->setConf("noteKeys",encodeKeyMap(noteKeys));
+      } else {
+        // we couldn't map a key for raw note...
+        // warn the user
+        showError(_(
+          "a new feature has arrived: raw frequency notes!\n"
+          "these allow you to address frequency/period registers directly for exact pitch control or accessing notes outside the nominal note range.\n\n"
+          "unfortunately I could not map a key for toggling between raw notes and normal ones.\n"
+          "by default it's Minus (-), but I see you've bound that key to a different action.\n"
+          "please go into Settings > Keyboard > Note input and assign a different key.\n\n"
+          "this may be the only time you see this warning."
+        ));
+        logW("couldn't add raw note key!");
+      }
     }
   }
 
@@ -8328,7 +8596,12 @@ bool FurnaceGUI::init() {
   }
 
   logD("preparing layout...");
-  strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  if (mobileUI) {
+    strncpy(finalLayoutPath,(e->getConfigPath()+String(MOBILE_LAYOUT_INI)).c_str(),4095);
+  } else {
+    strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  }
+  logV("finalLayoutPath: %s",finalLayoutPath);
   backupPath=e->getConfigPath();
   if (backupPath.size()>0) {
     if (backupPath[backupPath.size()-1]==DIR_SEPARATOR) backupPath.resize(backupPath.size()-1);
@@ -8702,10 +8975,8 @@ void FurnaceGUI::syncState() {
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
-  if (!mobileUI) {
-    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-      reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-    }
+  if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+    reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
   }
 
   conf.set("configVersion",(int)DIV_ENGINE_VERSION);
@@ -8971,6 +9242,8 @@ bool FurnaceGUI::finish(bool saveConfig) {
 bool FurnaceGUI::requestQuit() {
   if (modified && !cvOpen) {
     showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+  } else if (settingsOpen && settingsChanged) {
+    showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
   } else {
     quit=true;
   }
@@ -9172,6 +9445,10 @@ FurnaceGUI::FurnaceGUI():
   curPaletteChoice(0),
   curPaletteType(0),
   soloTimeout(0.0f),
+  curRawNote(0),
+  curRawNoteState(GUI_RAWNOTE_NORMAL),
+  pendingRawNote(-1),
+  pendingRawNoteKey((SDL_Keycode)0),
   mobileMultiInsToggle(false),
   purgeYear(2021),
   purgeMonth(4),
@@ -9273,6 +9550,7 @@ FurnaceGUI::FurnaceGUI():
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   failedNoteOn(false),
+  patLineHeight(24.0f),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),

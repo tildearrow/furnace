@@ -147,7 +147,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -416,7 +416,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
       if (chan[i].rawFreq) {
-        chan[i].freq=chan[i].baseFreq;
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch2;
         immWrite(i+0x28,(chan[i].freq>>6));
         immWrite(i+0x30,((chan[i].freq&63)<<2)|(chan[i].chVolL==chan[i].chVolR));
       } else {
@@ -538,6 +538,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].note=c.value;
         chan[c.chan].freqChanged=true;
       }
@@ -633,7 +634,9 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
+      // do we need the hacky legato mess?
       chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+      chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       chan[c.chan].freqChanged=true;
       break;
     }

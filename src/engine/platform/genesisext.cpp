@@ -98,6 +98,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
+        opChan[ch].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
@@ -211,6 +212,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         opChan[ch].insChanged=false;
       }
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
+      opChan[ch].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       opChan[ch].freqChanged=true;
       break;
     }
@@ -527,7 +529,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       opChan[i].handleArp();
-    } else if (opChan[i].std.arp.had) {
+    } else if (opChan[i].std.arp.had && !opChan[i].rawFreq) {
       if (!opChan[i].inPorta) {
         opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
       }
@@ -650,7 +652,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (opChan[i].rawFreq) {
-        opChan[i].freq=opChan[i].baseFreq&0x3fff;
+        opChan[i].freq=(opChan[i].baseFreq+opChan[i].pitch2)&0x3fff;
       } else if (parent->song.compatFlags.linearPitch) {
         opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,2,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
       } else {
@@ -666,7 +668,9 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
         }
         opChan[i].freq=(block<<11)|fNum;
       }
-      if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      if (!chan[i].rawFreq) {
+        if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      }
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
       opChan[i].freqChanged=false;

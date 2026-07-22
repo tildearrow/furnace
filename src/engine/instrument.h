@@ -158,6 +158,7 @@ enum DivMacroTypeOp: unsigned char {
 //   - AM, AR, DR, MULT, RR, SL, TL, RS, DT, D2R, SSG-EG
 // - OPM:
 //   - AM, AR, DR, MULT, RR, SL, TL, DT2, RS, DT, D2R
+//   - KSR = OPP TL Ramp
 // - OPLL:
 //   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
 //   - KSL, VIB, KSR
@@ -166,7 +167,7 @@ enum DivMacroTypeOp: unsigned char {
 //   - KSL, VIB, WS (OPL2/3), KSR
 // - OPZ:
 //   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
-//   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
+//   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed, KSR = TL Ramp
 
 struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset, block;

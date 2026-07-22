@@ -529,6 +529,51 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+#ifdef WITH_JSON
+void FurnaceGUI::drawExportJSON(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text(
+    _("this option exports the song in the JSON format.\n")
+  );
+  ImGui::Text(_("Export format:"));
+  ImGui::Indent();
+  if (ImGui::RadioButton("JSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_JSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_JSON;
+  }
+  if (ImGui::RadioButton("BSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_BSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_BSON;
+  }
+  if (ImGui::RadioButton("CBOR",jsonExportOptions.format==DivJSONExportOptions::EXPORT_CBOR)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_CBOR;
+  }
+  ImGui::Unindent();
+  ImGui::BeginDisabled(jsonExportOptions.format!=DivJSONExportOptions::EXPORT_JSON);
+  ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.jsonPretty);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export metadata"), &jsonExportOptions.exportMetadata);
+  ImGui::Checkbox(_("Export chips"), &jsonExportOptions.exportChips);
+  ImGui::Checkbox(_("Export instruments"), &jsonExportOptions.exportInstruments);
+  ImGui::Checkbox(_("Export wavetables"), &jsonExportOptions.exportWaves);
+  ImGui::Checkbox(_("Export samples"), &jsonExportOptions.exportSamples);
+  ImGui::Checkbox(_("Export orders"), &jsonExportOptions.exportOrders);
+  ImGui::Checkbox(_("Export patterns"), &jsonExportOptions.exportPatterns);
+  ImGui::BeginDisabled(!jsonExportOptions.exportPatterns);
+  ImGui::Checkbox(_("Optimize patterns"), &jsonExportOptions.optimizePatterns);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export compatibility flags"), &jsonExportOptions.exportCompatFlags);
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_JSON);
+    ImGui::CloseCurrentPopup();
+  }
+}
+#endif
+
 void FurnaceGUI::commandExportOptions() {
   ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
   ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
@@ -610,6 +655,12 @@ void FurnaceGUI::drawExport() {
         drawExportText(true);
         ImGui::EndTabItem();
       }
+#ifdef WITH_JSON
+      if (ImGui::BeginTabItem(_("JSON"))) {
+        drawExportJSON(true);
+        ImGui::EndTabItem();
+      }
+#endif
       if (ImGui::BeginTabItem(_("Command Stream"))) {
         drawExportCommand(true);
         ImGui::EndTabItem();
@@ -633,6 +684,11 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_TEXT:
       drawExportText(true);
       break;
+#ifdef WITH_JSON
+    case GUI_EXPORT_JSON:
+      drawExportJSON(true);
+      break;
+#endif
     case GUI_EXPORT_CMD_STREAM:
       drawExportCommand(true);
       break;

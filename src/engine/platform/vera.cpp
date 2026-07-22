@@ -169,7 +169,7 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -199,7 +199,9 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       rWrite(i,0,chan[i].freq&0xff);
       rWrite(i,1,(chan[i].freq>>8)&0xff);
       chan[i].freqChanged=false;
@@ -213,7 +215,7 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[16].handleArp();
-  } else if (chan[16].std.arp.had) {
+  } else if (chan[16].std.arp.had && !chan[16].rawFreq) {
     if (!chan[16].inPorta) {
       chan[16].baseFreq=chan[16].calcBaseFreq(parent->calcArp(chan[16].note,chan[16].std.arp.val));
     }

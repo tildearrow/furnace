@@ -159,7 +159,7 @@ void DivPlatformNDS::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -211,9 +211,11 @@ void DivPlatformNDS::tick(bool sysTick) {
           default: ctrl=0x00; break;
         }
         chan[i].freq=chan[i].calcFreq();
-        if (!chan[i].rawFreq) chan[i].freq=0x10000-chan[i].freq;
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>65535) chan[i].freq=65535;
+        if (!chan[i].rawFreq) {
+          chan[i].freq=0x10000-chan[i].freq;
+          if (chan[i].freq<0) chan[i].freq=0;
+          if (chan[i].freq>65535) chan[i].freq=65535;
+        }
         if ((!chan[i].keyOn) && ((rRead8(0x03+i*16)&0x80)==0))
           chan[i].busy=false;
         ctrl|=(chan[i].busy?0x80:0)|((s->isLoopable())?0x08:0x10);
