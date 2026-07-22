@@ -711,6 +711,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       bool no1EUpdate=flags.getBool("no1EUpdate",false);
       bool multiplyRel=flags.getBool("multiplyRel",false);
       bool macroRace=flags.getBool("macroRace",false);
+      bool filterOld=flags.getBool("filterOld",false);
       int testAttack=flags.getInt("testAttack",0);
       int testDecay=flags.getInt("testDecay",0);
       int testSustain=flags.getInt("testSustain",0);
@@ -796,6 +797,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
 
+  
+      if (ImGui::Checkbox(_("Use old cutoff macro implementation (compatibility)"),&filterOld)) {
+        altered=true;
+      }
+
 
       if (altered) {
         e->lockSave([&]() {
@@ -804,6 +810,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("no1EUpdate",no1EUpdate);
           flags.set("multiplyRel",multiplyRel);
           flags.set("macroRace",macroRace);
+          flags.set("filterOld",filterOld);
           flags.set("testAttack",testAttack);
           flags.set("testDecay",testDecay);
           flags.set("testSustain",testSustain);
