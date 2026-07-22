@@ -81,7 +81,7 @@ public:
       //logD("one char RLE decompressed, tag left: %d, char: %d",tagLenLeft,tagChar);
       return tagChar;
     }
-    if (curSeek>len) throw TFMEndOfFileException(this,len);
+    if (curSeek>=len) throw TFMEndOfFileException(this,len);
 
     unsigned char ret=buf[curSeek++];
 
@@ -94,6 +94,7 @@ public:
     // TFM music maker actually uses double 0x80 to escape the 0x80
     // for example: 0xDA 0x80 0x80 0x00 0x23 = 0xDA 0x80 0x00 0x23)
     if (ret==0x80) {
+      if (curSeek<2) throw TFMEndOfFileException(this,len);
       decodeRLE(buf[curSeek-2]);
       tagLenLeft--;
       return tagChar;
@@ -102,7 +103,7 @@ public:
   }
 
   signed char readCNoRLE() {
-    if (curSeek>len) throw TFMEndOfFileException(this,len);
+    if (curSeek>=len) throw TFMEndOfFileException(this,len);
     return buf[curSeek++];
   }
 
@@ -118,8 +119,8 @@ public:
   void readNoRLE(unsigned char *b, size_t l) {
     int i=0;
     while (l--) {
+      if (curSeek>=len) throw TFMEndOfFileException(this,len);
       b[i++]=buf[curSeek++];
-      if (curSeek>len) throw TFMEndOfFileException(this,len);
     }
   }
 
