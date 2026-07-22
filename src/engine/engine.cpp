@@ -437,6 +437,11 @@ void DivEngine::renderSamples(int whichSample) {
       disCont[i].dispatch->renderSamples(i);
     }
   }
+
+  // step 3: notify pitch table
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPitchTable(whichSample);
+  }
 }
 
 String DivEngine::decodeSysDesc(String desc) {

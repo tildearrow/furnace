@@ -630,6 +630,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/Nuked-OPL2-Lite/opl2.c
+extern/Nuked-CQM/cqm.c
+extern/YM2203-LLE/fmopn.c
 extern/YM3812-LLE/fmopl2.c
 extern/YMF262-LLE/fmopl3.c
 extern/YMF276-LLE/fmopn2.c
@@ -639,6 +642,7 @@ extern/emu2413/emu2413.c
 extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
+extern/YM2151-LLE/fmopm.c
 
 extern/pwrnoise/pwrnoise.c
 
