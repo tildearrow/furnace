@@ -245,7 +245,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
 
     logD("parsing pattern %d",i);
     for (int j=0; j<6; j++) {
-      DivPattern* pat = info.ds->subsong[0]->pat[j].data[i];
+      DivPattern* pat = info.ds->subsong[0]->pat[j].getPattern(i,true);
 
       // notes
       info.reader->read(patDataBuf,256);
@@ -464,7 +464,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
     }
     for (int j=0; j<6; j++) {
       for (int l=0; l<usedEffectsCol; l++) {
-        DivPattern* pat = info.ds->subsong[0]->pat[j].data[info.orderList[i]];
+        DivPattern* pat = info.ds->subsong[0]->pat[j].getPattern(info.orderList[i],true);
         unsigned char truePatLen=(info.patLens[info.orderList[i]]<info.ds->subsong[0]->patLen) ? info.patLens[info.orderList[i]] : info.ds->subsong[0]->patLen;
 
         // default instrument
@@ -516,6 +516,7 @@ void TFMParsePattern(struct TFMParsePatternInfo info) {
 
   if (lastPatSeen>1) {
     // clone the last pattern
+    // TODO: this is very error-prone. check for memory corruption.
     info.maxPat++;
     for (int i=0;i<6;i++) {
       int lastPatNum=info.ds->subsong[0]->orders.ord[i][info.ds->subsong[0]->ordersLen - 1];
