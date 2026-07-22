@@ -22,6 +22,8 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2026-03-25: Added support for WGVK native backend via IMGUI_IMPL_WEBGPU_BACKEND_WGVK define, with SPIRV shaders if WGSL is not available. (#9316, #9246, #9257)
+//  2026-03-09: Removed support for Emscripten < 4.0.10. (#9281)
 //  2025-10-16: Update to compile with Dawn and Emscripten's 4.0.10+ '--use-port=emdawnwebgpu' ports. (#8381, #8898)
 //  2025-09-18: Call platform_io.ClearRendererHandlers() on shutdown.
 //  2025-06-12: Added support for ImGuiBackendFlags_RendererHasTextures, for dynamic font atlas. (#8465)
@@ -57,17 +59,14 @@
 #include <stdio.h>
 
 // One of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be provided. See imgui_impl_wgpu.h for more details.
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) == defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-#error Exactly one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN or IMGUI_IMPL_WEBGPU_BACKEND_WGPU must be defined!
+#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) && !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU) && !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGVK)
+#error Exactly one of IMGUI_IMPL_WEBGPU_BACKEND_DAWN, IMGUI_IMPL_WEBGPU_BACKEND_WGPU or IMGUI_IMPL_WEBGPU_BACKEND_WGVK must be defined!
 #endif
-
-// This condition is true when it's built with EMSCRIPTEN using -sUSE_WEBGPU=1 flag  (deprecated from 4.0.10)
-// This condition is false for all other 3 cases: WGPU-Native, DAWN-Native or DAWN-EMSCRIPTEN (using --use-port=emdawnwebgpu flag)
 #if defined(__EMSCRIPTEN__) && defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-#define IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN
+#error Emscripten <4.0.10 with '-sUSE_WEBGPU=1' is not supported anymore.
 #endif
 
-#ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
+#if defined IMGUI_IMPL_WEBGPU_BACKEND_DAWN || defined IMGUI_IMPL_WEBGPU_BACKEND_WGVK
 // Dawn renamed WGPUProgrammableStageDescriptor to WGPUComputeState (see: https://github.com/webgpu-native/webgpu-headers/pull/413)
 // Using type alias until WGPU adopts the same naming convention (#8369)
 using WGPUProgrammableStageDescriptor = WGPUComputeState;
@@ -189,6 +188,60 @@ fn main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 )";
 
+// Same shader as __shader_vert_wgsl[] but compiled as SPIRV.
+// 'wgslc -o vert.spv vert.wgsl' + 'binary_to_compressed_c -u8 -nocompress vert.spv'
+static const unsigned char __shader_vert_spirv[1996] =
+{
+    3,2,35,7,0,3,1,0,1,0,23,0,90,0,0,0,0,0,0,0,17,0,2,0,1,0,0,0,14,0,3,0,0,0,0,0,1,0,0,0,15,0,12,0,0,0,0,0,78,0,0,0,109,97,105,110,0,0,0,0,8,0,0,0,12,0,0,0,13,0,0,0,16,0,0,0,18,0,0,0,19,
+    0,0,0,21,0,0,0,71,0,4,0,4,0,0,0,6,0,0,0,16,0,0,0,72,0,5,0,3,0,0,0,0,0,0,0,35,0,0,0,0,0,0,0,71,0,3,0,3,0,0,0,2,0,0,0,71,0,4,0,1,0,0,0,34,0,0,0,0,0,0,0,71,0,4,0,1,0,0,0,33,0,0,0,0,0,
+    0,0,71,0,3,0,1,0,0,0,24,0,0,0,71,0,4,0,8,0,0,0,30,0,0,0,0,0,0,0,71,0,4,0,12,0,0,0,30,0,0,0,1,0,0,0,71,0,4,0,13,0,0,0,30,0,0,0,2,0,0,0,71,0,4,0,16,0,0,0,11,0,0,0,0,0,0,0,71,0,4,0,18,
+    0,0,0,30,0,0,0,0,0,0,0,71,0,4,0,19,0,0,0,30,0,0,0,1,0,0,0,71,0,4,0,21,0,0,0,11,0,0,0,1,0,0,0,21,0,4,0,6,0,0,0,32,0,0,0,0,0,0,0,23,0,4,0,5,0,0,0,6,0,0,0,4,0,0,0,43,0,4,0,6,0,0,0,7,0,
+    0,0,5,0,0,0,28,0,4,0,4,0,0,0,5,0,0,0,7,0,0,0,30,0,3,0,3,0,0,0,4,0,0,0,32,0,4,0,2,0,0,0,2,0,0,0,3,0,0,0,59,0,4,0,2,0,0,0,1,0,0,0,2,0,0,0,22,0,3,0,11,0,0,0,32,0,0,0,23,0,4,0,10,0,0,0,
+    11,0,0,0,2,0,0,0,32,0,4,0,9,0,0,0,1,0,0,0,10,0,0,0,59,0,4,0,9,0,0,0,8,0,0,0,1,0,0,0,59,0,4,0,9,0,0,0,12,0,0,0,1,0,0,0,23,0,4,0,15,0,0,0,11,0,0,0,4,0,0,0,32,0,4,0,14,0,0,0,1,0,0,0,15,
+    0,0,0,59,0,4,0,14,0,0,0,13,0,0,0,1,0,0,0,32,0,4,0,17,0,0,0,3,0,0,0,15,0,0,0,59,0,4,0,17,0,0,0,16,0,0,0,3,0,0,0,59,0,4,0,17,0,0,0,18,0,0,0,3,0,0,0,32,0,4,0,20,0,0,0,3,0,0,0,10,0,0,0,
+    59,0,4,0,20,0,0,0,19,0,0,0,3,0,0,0,32,0,4,0,22,0,0,0,3,0,0,0,11,0,0,0,59,0,4,0,22,0,0,0,21,0,0,0,3,0,0,0,30,0,5,0,24,0,0,0,15,0,0,0,15,0,0,0,10,0,0,0,30,0,5,0,25,0,0,0,10,0,0,0,10,
+    0,0,0,15,0,0,0,33,0,4,0,27,0,0,0,24,0,0,0,25,0,0,0,32,0,4,0,30,0,0,0,7,0,0,0,24,0,0,0,46,0,3,0,24,0,0,0,31,0,0,0,32,0,4,0,33,0,0,0,7,0,0,0,15,0,0,0,43,0,4,0,6,0,0,0,34,0,0,0,0,0,0,
+    0,24,0,4,0,36,0,0,0,15,0,0,0,4,0,0,0,43,0,4,0,11,0,0,0,40,0,0,0,0,0,0,0,43,0,4,0,11,0,0,0,41,0,0,0,0,0,128,63,43,0,4,0,6,0,0,0,44,0,0,0,1,0,0,0,32,0,4,0,47,0,0,0,7,0,0,0,10,0,0,0,43,
+    0,4,0,6,0,0,0,48,0,0,0,2,0,0,0,33,0,4,0,52,0,0,0,36,0,0,0,6,0,0,0,43,0,4,0,6,0,0,0,55,0,0,0,16,0,0,0,32,0,4,0,57,0,0,0,2,0,0,0,5,0,0,0,43,0,4,0,6,0,0,0,66,0,0,0,32,0,0,0,43,0,4,0,6,
+    0,0,0,72,0,0,0,48,0,0,0,19,0,2,0,79,0,0,0,33,0,3,0,80,0,0,0,79,0,0,0,54,0,5,0,24,0,0,0,23,0,0,0,0,0,0,0,27,0,0,0,55,0,3,0,25,0,0,0,26,0,0,0,248,0,2,0,28,0,0,0,59,0,5,0,30,0,0,0,29,
+    0,0,0,7,0,0,0,31,0,0,0,65,0,5,0,33,0,0,0,32,0,0,0,29,0,0,0,34,0,0,0,57,0,5,0,36,0,0,0,35,0,0,0,37,0,0,0,34,0,0,0,81,0,5,0,10,0,0,0,38,0,0,0,26,0,0,0,0,0,0,0,80,0,6,0,15,0,0,0,39,0,
+    0,0,38,0,0,0,40,0,0,0,41,0,0,0,145,0,5,0,15,0,0,0,42,0,0,0,35,0,0,0,39,0,0,0,62,0,4,0,32,0,0,0,42,0,0,0,0,0,0,0,65,0,5,0,33,0,0,0,43,0,0,0,29,0,0,0,44,0,0,0,81,0,5,0,15,0,0,0,45,0,
+    0,0,26,0,0,0,2,0,0,0,62,0,4,0,43,0,0,0,45,0,0,0,0,0,0,0,65,0,5,0,47,0,0,0,46,0,0,0,29,0,0,0,48,0,0,0,81,0,5,0,10,0,0,0,49,0,0,0,26,0,0,0,1,0,0,0,62,0,4,0,46,0,0,0,49,0,0,0,0,0,0,0,
+    61,0,5,0,24,0,0,0,50,0,0,0,29,0,0,0,0,0,0,0,254,0,2,0,50,0,0,0,56,0,1,0,54,0,5,0,36,0,0,0,37,0,0,0,0,0,0,0,52,0,0,0,55,0,3,0,6,0,0,0,51,0,0,0,248,0,2,0,53,0,0,0,134,0,5,0,6,0,0,0,54,
+    0,0,0,51,0,0,0,55,0,0,0,65,0,6,0,57,0,0,0,56,0,0,0,1,0,0,0,34,0,0,0,54,0,0,0,61,0,5,0,5,0,0,0,58,0,0,0,56,0,0,0,0,0,0,0,124,0,4,0,15,0,0,0,59,0,0,0,58,0,0,0,128,0,5,0,6,0,0,0,60,0,
+    0,0,55,0,0,0,51,0,0,0,134,0,5,0,6,0,0,0,61,0,0,0,60,0,0,0,55,0,0,0,65,0,6,0,57,0,0,0,62,0,0,0,1,0,0,0,34,0,0,0,61,0,0,0,61,0,5,0,5,0,0,0,63,0,0,0,62,0,0,0,0,0,0,0,124,0,4,0,15,0,0,
+    0,64,0,0,0,63,0,0,0,128,0,5,0,6,0,0,0,65,0,0,0,66,0,0,0,51,0,0,0,134,0,5,0,6,0,0,0,67,0,0,0,65,0,0,0,55,0,0,0,65,0,6,0,57,0,0,0,68,0,0,0,1,0,0,0,34,0,0,0,67,0,0,0,61,0,5,0,5,0,0,0,
+    69,0,0,0,68,0,0,0,0,0,0,0,124,0,4,0,15,0,0,0,70,0,0,0,69,0,0,0,128,0,5,0,6,0,0,0,71,0,0,0,72,0,0,0,51,0,0,0,134,0,5,0,6,0,0,0,73,0,0,0,71,0,0,0,55,0,0,0,65,0,6,0,57,0,0,0,74,0,0,0,
+    1,0,0,0,34,0,0,0,73,0,0,0,61,0,5,0,5,0,0,0,75,0,0,0,74,0,0,0,0,0,0,0,124,0,4,0,15,0,0,0,76,0,0,0,75,0,0,0,80,0,7,0,36,0,0,0,77,0,0,0,59,0,0,0,64,0,0,0,70,0,0,0,76,0,0,0,254,0,2,0,77,
+    0,0,0,56,0,1,0,54,0,5,0,79,0,0,0,78,0,0,0,0,0,0,0,80,0,0,0,248,0,2,0,81,0,0,0,61,0,5,0,10,0,0,0,82,0,0,0,8,0,0,0,0,0,0,0,61,0,5,0,10,0,0,0,83,0,0,0,12,0,0,0,0,0,0,0,61,0,5,0,15,0,0,
+    0,84,0,0,0,13,0,0,0,0,0,0,0,80,0,6,0,25,0,0,0,85,0,0,0,82,0,0,0,83,0,0,0,84,0,0,0,57,0,5,0,24,0,0,0,86,0,0,0,23,0,0,0,85,0,0,0,81,0,5,0,15,0,0,0,87,0,0,0,86,0,0,0,0,0,0,0,62,0,4,0,
+    16,0,0,0,87,0,0,0,0,0,0,0,81,0,5,0,15,0,0,0,88,0,0,0,86,0,0,0,1,0,0,0,62,0,4,0,18,0,0,0,88,0,0,0,0,0,0,0,81,0,5,0,10,0,0,0,89,0,0,0,86,0,0,0,2,0,0,0,62,0,4,0,19,0,0,0,89,0,0,0,0,0,
+    0,0,62,0,4,0,21,0,0,0,41,0,0,0,0,0,0,0,253,0,1,0,56,0,1,0,
+};
+
+// Same shader as __shader_frag_wgsl[] but compiled as SPIRV.
+// 'wgslc -o frag.spv frag.wgsl' + 'binary_to_compressed_c -u8 -nocompress frag.spv'
+static const unsigned char __shader_frag_spirv[1392] =
+{
+    3,2,35,7,0,3,1,0,1,0,23,0,60,0,0,0,0,0,0,0,17,0,2,0,1,0,0,0,11,0,6,0,48,0,0,0,71,76,83,76,46,115,116,100,46,52,53,48,0,0,0,0,14,0,3,0,0,0,0,0,1,0,0,0,15,0,9,0,4,0,0,0,51,0,0,0,109,
+    97,105,110,0,0,0,0,15,0,0,0,18,0,0,0,19,0,0,0,22,0,0,0,16,0,3,0,51,0,0,0,7,0,0,0,71,0,4,0,4,0,0,0,6,0,0,0,16,0,0,0,72,0,5,0,3,0,0,0,0,0,0,0,35,0,0,0,0,0,0,0,71,0,3,0,3,0,0,0,2,0,0,
+    0,71,0,4,0,1,0,0,0,34,0,0,0,0,0,0,0,71,0,4,0,1,0,0,0,33,0,0,0,0,0,0,0,71,0,3,0,1,0,0,0,24,0,0,0,71,0,4,0,8,0,0,0,34,0,0,0,0,0,0,0,71,0,4,0,8,0,0,0,33,0,0,0,1,0,0,0,71,0,4,0,11,0,0,
+    0,34,0,0,0,1,0,0,0,71,0,4,0,11,0,0,0,33,0,0,0,0,0,0,0,71,0,4,0,15,0,0,0,11,0,0,0,15,0,0,0,71,0,4,0,18,0,0,0,30,0,0,0,0,0,0,0,71,0,4,0,19,0,0,0,30,0,0,0,1,0,0,0,71,0,4,0,22,0,0,0,30,
+    0,0,0,0,0,0,0,21,0,4,0,6,0,0,0,32,0,0,0,0,0,0,0,23,0,4,0,5,0,0,0,6,0,0,0,4,0,0,0,43,0,4,0,6,0,0,0,7,0,0,0,5,0,0,0,28,0,4,0,4,0,0,0,5,0,0,0,7,0,0,0,30,0,3,0,3,0,0,0,4,0,0,0,32,0,4,0,
+    2,0,0,0,2,0,0,0,3,0,0,0,59,0,4,0,2,0,0,0,1,0,0,0,2,0,0,0,26,0,2,0,10,0,0,0,32,0,4,0,9,0,0,0,0,0,0,0,10,0,0,0,59,0,4,0,9,0,0,0,8,0,0,0,0,0,0,0,22,0,3,0,14,0,0,0,32,0,0,0,25,0,9,0,13,
+    0,0,0,14,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,32,0,4,0,12,0,0,0,0,0,0,0,13,0,0,0,59,0,4,0,12,0,0,0,11,0,0,0,0,0,0,0,23,0,4,0,17,0,0,0,14,0,0,0,4,0,0,0,32,0,4,0,16,
+    0,0,0,1,0,0,0,17,0,0,0,59,0,4,0,16,0,0,0,15,0,0,0,1,0,0,0,59,0,4,0,16,0,0,0,18,0,0,0,1,0,0,0,23,0,4,0,21,0,0,0,14,0,0,0,2,0,0,0,32,0,4,0,20,0,0,0,1,0,0,0,21,0,0,0,59,0,4,0,20,0,0,0,
+    19,0,0,0,1,0,0,0,32,0,4,0,23,0,0,0,3,0,0,0,17,0,0,0,59,0,4,0,23,0,0,0,22,0,0,0,3,0,0,0,30,0,5,0,25,0,0,0,17,0,0,0,17,0,0,0,21,0,0,0,33,0,4,0,27,0,0,0,17,0,0,0,25,0,0,0,27,0,3,0,34,
+    0,0,0,13,0,0,0,23,0,4,0,38,0,0,0,14,0,0,0,3,0,0,0,32,0,4,0,40,0,0,0,2,0,0,0,5,0,0,0,43,0,4,0,6,0,0,0,41,0,0,0,0,0,0,0,43,0,4,0,6,0,0,0,42,0,0,0,4,0,0,0,19,0,2,0,52,0,0,0,33,0,3,0,53,
+    0,0,0,52,0,0,0,54,0,5,0,17,0,0,0,24,0,0,0,0,0,0,0,27,0,0,0,55,0,3,0,25,0,0,0,26,0,0,0,248,0,2,0,28,0,0,0,81,0,5,0,17,0,0,0,29,0,0,0,26,0,0,0,1,0,0,0,61,0,5,0,13,0,0,0,30,0,0,0,11,0,
+    0,0,0,0,0,0,61,0,5,0,10,0,0,0,31,0,0,0,8,0,0,0,0,0,0,0,81,0,5,0,21,0,0,0,32,0,0,0,26,0,0,0,2,0,0,0,86,0,5,0,34,0,0,0,33,0,0,0,30,0,0,0,31,0,0,0,87,0,6,0,17,0,0,0,35,0,0,0,33,0,0,0,
+    32,0,0,0,0,0,0,0,133,0,5,0,17,0,0,0,36,0,0,0,29,0,0,0,35,0,0,0,79,0,8,0,38,0,0,0,37,0,0,0,36,0,0,0,36,0,0,0,0,0,0,0,1,0,0,0,2,0,0,0,65,0,6,0,40,0,0,0,39,0,0,0,1,0,0,0,41,0,0,0,42,0,
+    0,0,61,0,5,0,5,0,0,0,43,0,0,0,39,0,0,0,0,0,0,0,81,0,5,0,6,0,0,0,44,0,0,0,43,0,0,0,0,0,0,0,124,0,4,0,14,0,0,0,45,0,0,0,44,0,0,0,80,0,6,0,38,0,0,0,46,0,0,0,45,0,0,0,45,0,0,0,45,0,0,0,
+    12,0,7,0,38,0,0,0,47,0,0,0,48,0,0,0,26,0,0,0,37,0,0,0,46,0,0,0,81,0,5,0,14,0,0,0,49,0,0,0,36,0,0,0,3,0,0,0,80,0,5,0,17,0,0,0,50,0,0,0,47,0,0,0,49,0,0,0,254,0,2,0,50,0,0,0,56,0,1,0,
+    54,0,5,0,52,0,0,0,51,0,0,0,0,0,0,0,53,0,0,0,248,0,2,0,54,0,0,0,61,0,5,0,17,0,0,0,55,0,0,0,15,0,0,0,0,0,0,0,61,0,5,0,17,0,0,0,56,0,0,0,18,0,0,0,0,0,0,0,61,0,5,0,21,0,0,0,57,0,0,0,19,
+    0,0,0,0,0,0,0,80,0,6,0,25,0,0,0,58,0,0,0,55,0,0,0,56,0,0,0,57,0,0,0,57,0,5,0,17,0,0,0,59,0,0,0,24,0,0,0,58,0,0,0,62,0,4,0,22,0,0,0,59,0,0,0,0,0,0,0,253,0,1,0,56,0,1,0,
+};
+
 static void SafeRelease(ImDrawIdx*& res)
 {
     if (res)
@@ -259,19 +312,13 @@ static void SafeRelease(FrameResources& res)
     SafeRelease(res.VertexBufferHost);
 }
 
-static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModule(const char* wgsl_source)
+static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModuleWGSL(const char* wgsl_source)
 {
     ImGui_ImplWGPU_Data* bd = ImGui_ImplWGPU_GetBackendData();
 
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
     WGPUShaderSourceWGSL wgsl_desc = {};
     wgsl_desc.chain.sType = WGPUSType_ShaderSourceWGSL;
     wgsl_desc.code = { wgsl_source, WGPU_STRLEN };
-#else
-    WGPUShaderModuleWGSLDescriptor wgsl_desc = {};
-    wgsl_desc.chain.sType = WGPUSType_ShaderModuleWGSLDescriptor;
-    wgsl_desc.code = wgsl_source;
-#endif
 
     WGPUShaderModuleDescriptor desc = {};
     desc.nextInChain = (WGPUChainedStruct*)&wgsl_desc;
@@ -279,11 +326,26 @@ static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModule(const c
     WGPUProgrammableStageDescriptor stage_desc = {};
     stage_desc.module = wgpuDeviceCreateShaderModule(bd->wgpuDevice, &desc);
 
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
     stage_desc.entryPoint = { "main", WGPU_STRLEN };
-#else
-    stage_desc.entryPoint = "main";
-#endif
+    return stage_desc;
+}
+
+static WGPUProgrammableStageDescriptor ImGui_ImplWGPU_CreateShaderModuleSPIRV(const void* spirv_binary, size_t spirv_length)
+{
+    ImGui_ImplWGPU_Data* bd = ImGui_ImplWGPU_GetBackendData();
+
+    WGPUShaderSourceSPIRV spirv_desc = {};
+    spirv_desc.chain.sType = WGPUSType_ShaderSourceSPIRV;
+    spirv_desc.code = (const uint32_t *)spirv_binary;
+    spirv_desc.codeSize = ((uint32_t)(spirv_length / 4));
+
+    WGPUShaderModuleDescriptor desc = {};
+    desc.nextInChain = (WGPUChainedStruct*)&spirv_desc;
+
+    WGPUProgrammableStageDescriptor stage_desc = {};
+    stage_desc.module = wgpuDeviceCreateShaderModule(bd->wgpuDevice, &desc);
+
+    stage_desc.entryPoint = { "main", WGPU_STRLEN };
     return stage_desc;
 }
 
@@ -402,11 +464,7 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
         WGPUBufferDescriptor vb_desc =
         {
             nullptr,
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
             { "Dear ImGui Vertex buffer", WGPU_STRLEN, },
-#else
-            "Dear ImGui Vertex buffer",
-#endif
             WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             MEMALIGN(fr->VertexBufferSize * sizeof(ImDrawVert), 4),
             false
@@ -430,11 +488,7 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
         WGPUBufferDescriptor ib_desc =
         {
             nullptr,
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
             { "Dear ImGui Index buffer", WGPU_STRLEN, },
-#else
-            "Dear ImGui Index buffer",
-#endif
             WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index,
             MEMALIGN(fr->IndexBufferSize * sizeof(ImDrawIdx), 4),
             false
@@ -458,8 +512,8 @@ void ImGui_ImplWGPU_RenderDrawData(ImDrawData* draw_data, WGPURenderPassEncoder 
     }
     int64_t vb_write_size = MEMALIGN((char*)vtx_dst - (char*)fr->VertexBufferHost, 4);
     int64_t ib_write_size = MEMALIGN((char*)idx_dst - (char*)fr->IndexBufferHost, 4);
-    wgpuQueueWriteBuffer(bd->defaultQueue, fr->VertexBuffer, 0, fr->VertexBufferHost, vb_write_size);
-    wgpuQueueWriteBuffer(bd->defaultQueue, fr->IndexBuffer,  0, fr->IndexBufferHost,  ib_write_size);
+    wgpuQueueWriteBuffer(bd->defaultQueue, fr->VertexBuffer, 0, fr->VertexBufferHost, (size_t)vb_write_size);
+    wgpuQueueWriteBuffer(bd->defaultQueue, fr->IndexBuffer,  0, fr->IndexBufferHost, (size_t)ib_write_size);
 
     // Setup desired render state
     ImGui_ImplWGPU_SetupRenderState(draw_data, pass_encoder, fr);
@@ -566,11 +620,7 @@ void ImGui_ImplWGPU_UpdateTexture(ImTextureData* tex)
 
         // Create texture
         WGPUTextureDescriptor tex_desc = {};
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         tex_desc.label = { "Dear ImGui Texture", WGPU_STRLEN };
-#else
-        tex_desc.label = "Dear ImGui Texture";
-#endif
         tex_desc.dimension = WGPUTextureDimension_2D;
         tex_desc.size.width = tex->Width;
         tex_desc.size.height = tex->Height;
@@ -611,20 +661,12 @@ void ImGui_ImplWGPU_UpdateTexture(ImTextureData* tex)
 
         // Update full texture or selected blocks. We only ever write to textures regions which have never been used before!
         // This backend choose to use tex->UpdateRect but you can use tex->Updates[] to upload individual regions.
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         WGPUTexelCopyTextureInfo dst_view = {};
-#else
-        WGPUImageCopyTexture dst_view = {};
-#endif
         dst_view.texture = backend_tex->Texture;
         dst_view.mipLevel = 0;
         dst_view.origin = { (uint32_t)upload_x, (uint32_t)upload_y, 0 };
         dst_view.aspect = WGPUTextureAspect_All;
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         WGPUTexelCopyBufferLayout layout = {};
-#else
-        WGPUTextureDataLayout layout = {};
-#endif
         layout.offset = 0;
         layout.bytesPerRow = tex->Width * tex->BytesPerPixel;
         layout.rowsPerImage = upload_h;
@@ -642,11 +684,7 @@ static void ImGui_ImplWGPU_CreateUniformBuffer()
     WGPUBufferDescriptor ub_desc =
     {
         nullptr,
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
         { "Dear ImGui Uniform buffer", WGPU_STRLEN, },
-#else
-        "Dear ImGui Uniform buffer",
-#endif
         WGPUBufferUsage_CopyDst | WGPUBufferUsage_Uniform,
         MEMALIGN(sizeof(Uniforms), 16),
         false
@@ -703,14 +741,15 @@ bool ImGui_ImplWGPU_CreateDeviceObjects()
     graphics_pipeline_desc.layout = wgpuDeviceCreatePipelineLayout(bd->wgpuDevice, &layout_desc);
 
     // Create the vertex shader
-    WGPUProgrammableStageDescriptor vertex_shader_desc = ImGui_ImplWGPU_CreateShaderModule(__shader_vert_wgsl);
+    WGPUProgrammableStageDescriptor vertex_shader_desc = ImGui_ImplWGPU_CreateShaderModuleWGSL(__shader_vert_wgsl);
+    if (!vertex_shader_desc.module) vertex_shader_desc = ImGui_ImplWGPU_CreateShaderModuleSPIRV(__shader_vert_spirv, sizeof(__shader_vert_spirv));
     graphics_pipeline_desc.vertex.module = vertex_shader_desc.module;
     graphics_pipeline_desc.vertex.entryPoint = vertex_shader_desc.entryPoint;
 
     // Vertex input configuration
     WGPUVertexAttribute attribute_desc[] =
     {
-#ifdef IMGUI_IMPL_WEBGPU_BACKEND_DAWN
+#if defined IMGUI_IMPL_WEBGPU_BACKEND_DAWN || defined IMGUI_IMPL_WEBGPU_BACKEND_WGVK
         { nullptr, WGPUVertexFormat_Float32x2, (uint64_t)offsetof(ImDrawVert, pos), 0 },
         { nullptr, WGPUVertexFormat_Float32x2, (uint64_t)offsetof(ImDrawVert, uv),  1 },
         { nullptr, WGPUVertexFormat_Unorm8x4,  (uint64_t)offsetof(ImDrawVert, col), 2 },
@@ -731,7 +770,8 @@ bool ImGui_ImplWGPU_CreateDeviceObjects()
     graphics_pipeline_desc.vertex.buffers = buffer_layouts;
 
     // Create the pixel shader
-    WGPUProgrammableStageDescriptor pixel_shader_desc = ImGui_ImplWGPU_CreateShaderModule(__shader_frag_wgsl);
+    WGPUProgrammableStageDescriptor pixel_shader_desc = ImGui_ImplWGPU_CreateShaderModuleWGSL(__shader_frag_wgsl);
+    if (!pixel_shader_desc.module)  pixel_shader_desc = ImGui_ImplWGPU_CreateShaderModuleSPIRV(__shader_frag_spirv, sizeof(__shader_frag_spirv));
 
     // Create the blending setup
     WGPUBlendState blend_state = {};
@@ -758,11 +798,7 @@ bool ImGui_ImplWGPU_CreateDeviceObjects()
     // Create depth-stencil State
     WGPUDepthStencilState depth_stencil_state = {};
     depth_stencil_state.format = bd->depthStencilFormat;
-#if !defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU_EMSCRIPTEN)
     depth_stencil_state.depthWriteEnabled = WGPUOptionalBool_False;
-#else
-    depth_stencil_state.depthWriteEnabled = false;
-#endif
     depth_stencil_state.depthCompare = WGPUCompareFunction_Always;
     depth_stencil_state.stencilFront.compare = WGPUCompareFunction_Always;
     depth_stencil_state.stencilFront.failOp = WGPUStencilOperation_Keep;
@@ -847,11 +883,9 @@ bool ImGui_ImplWGPU_Init(ImGui_ImplWGPU_InitInfo* init_info)
     io.BackendRendererName = "imgui_impl_wgpu (Dawn, Native)";
 #endif
 #elif defined(IMGUI_IMPL_WEBGPU_BACKEND_WGPU)
-#if defined(__EMSCRIPTEN__)
-    io.BackendRendererName = "imgui_impl_wgpu (WGPU, Emscripten)"; // linked using EMSCRIPTEN with "-sUSE_WEBGPU=1" flag, deprecated from EMSCRIPTEN 4.0.10
-#else
     io.BackendRendererName = "imgui_impl_wgpu (WGPU, Native)";
-#endif
+#elif defined(IMGUI_IMPL_WEBGPU_BACKEND_WGVK)
+    io.BackendRendererName = "imgui_impl_wgpu (WGVK, Native)";
 #endif
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
     io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;   // We can honor ImGuiPlatformIO::Textures[] requests during render.
@@ -923,7 +957,7 @@ void ImGui_ImplWGPU_NewFrame()
 
 bool ImGui_ImplWGPU_IsSurfaceStatusError(WGPUSurfaceGetCurrentTextureStatus status)
 {
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
+#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGVK)
     return (status == WGPUSurfaceGetCurrentTextureStatus_Error);
 #else
     return (status == WGPUSurfaceGetCurrentTextureStatus_OutOfMemory || status == WGPUSurfaceGetCurrentTextureStatus_DeviceLost);
@@ -940,7 +974,7 @@ bool ImGui_ImplWGPU_IsSurfaceStatusSubOptimal(WGPUSurfaceGetCurrentTextureStatus
 }
 
 // Helpers to obtain a string
-#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN)
+#if defined(IMGUI_IMPL_WEBGPU_BACKEND_DAWN) || defined(IMGUI_IMPL_WEBGPU_BACKEND_WGVK)
 const char* ImGui_ImplWGPU_GetErrorTypeName(WGPUErrorType type)
 {
     switch (type)
@@ -1022,15 +1056,18 @@ void ImGui_ImplWGPU_DebugPrintAdapterInfo(const WGPUAdapter& adapter)
 #if defined(__APPLE__)
 // MacOS specific: is necessary to compile with "-x objective-c++" flags
 // (e.g. using cmake: set_source_files_properties(${IMGUI_DIR}/backends/imgui_impl_wgpu.cpp PROPERTIES COMPILE_FLAGS "-x objective-c++") )
+#include <TargetConditionals.h>
+#if TARGET_OS_OSX
 #include <Cocoa/Cocoa.h>
 #include <QuartzCore/CAMetalLayer.h>
+#endif
 #endif
 
 WGPUSurface ImGui_ImplWGPU_CreateWGPUSurfaceHelper(ImGui_ImplWGPU_CreateSurfaceInfo* info)
 {
     WGPUSurfaceDescriptor surface_descriptor = {};
     WGPUSurface surface = {};
-#if defined(__APPLE__)
+#if defined(__APPLE__) && TARGET_OS_OSX
     if (strcmp(info->System, "cocoa") == 0)
     {
         IM_ASSERT(info->RawWindow != nullptr);
@@ -1077,7 +1114,7 @@ WGPUSurface ImGui_ImplWGPU_CreateWGPUSurfaceHelper(ImGui_ImplWGPU_CreateSurfaceI
         surface = wgpuInstanceCreateSurface(info->Instance, &surface_descriptor);
     }
 #else
-#error "Unsupported WebGPU native platform!"
+    IM_ASSERT(0 && "Unsupported WebGPU native platform!");
 #endif
     return surface;
 }

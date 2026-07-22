@@ -112,9 +112,9 @@ Barycentric operator+(const Barycentric &a, const Barycentric &b)
 // ----------------------------------------------------------------------------
 // Useful operators on ImGui vectors:
 
-ImVec2 operator*(const float f, const ImVec2 &v) { return ImVec2{ f * v.x, f * v.y }; }
+//ImVec2 operator*(const float f, const ImVec2 &v) { return ImVec2{ f * v.x, f * v.y }; }
 
-ImVec4 operator*(const float f, const ImVec4 &v) { return ImVec4{ f * v.x, f * v.y, f * v.z, f * v.w }; }
+//ImVec4 operator*(const float f, const ImVec4 &v) { return ImVec4{ f * v.x, f * v.y, f * v.z, f * v.w }; }
 
 
 ColorInt operator*(const float other, const ColorInt& that)

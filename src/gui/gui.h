@@ -3095,7 +3095,7 @@ class FurnaceGUI {
   void VerticalText(float maxSize, bool centered, const char* fmt, ...);
 
   // combo with locale
-  static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
+  static const char* LocalizedComboGetter(void* data, int idx);
 
   // these ones offer ctrl-wheel fine value changes.
   bool isCtrlWheelModifierHeld() const;
