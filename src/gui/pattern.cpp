@@ -565,6 +565,7 @@ void FurnaceGUI::drawPattern() {
               rMin.y+=3.0f*dpiScale;
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
+              // whaaaaa?
               dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -586,7 +587,7 @@ void FurnaceGUI::drawPattern() {
               rMin.y+=3.0f*dpiScale;
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
-              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
+              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,2.0*dpiScale,ImDrawFlags_RoundCornersAll);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
@@ -2115,7 +2116,7 @@ void FurnaceGUI::drawPattern() {
               arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.37));
               arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0-1.0));
               arrowPoints[6]=arrowPoints[0];
-              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),5.0f*dpiScale,ImDrawFlags_None);
             } else {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,0.0));
@@ -2124,7 +2125,7 @@ void FurnaceGUI::drawPattern() {
               arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,0.37));
               arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0));
               arrowPoints[6]=arrowPoints[0];
-              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),5.0f*dpiScale,ImDrawFlags_None);
             }
           }
           patChanSlideY[i]+=((portaDirection)?-8:8)*dpiScale*frameTime;

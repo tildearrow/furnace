@@ -898,7 +898,7 @@ void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 c
   ImVec2 pt[2];
   pt[0]=p1;
   pt[1]=p2;
-  dl->AddPolyline(pt,2,color,ImDrawFlags_None,thickness);
+  dl->AddPolyline(pt,2,color,thickness,ImDrawFlags_None);
 }
 
 void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
@@ -1150,7 +1150,7 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
           break;
       }
     }
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    dl->AddPolyline(waveform,waveformLen+1,color,dpiScale,ImDrawFlags_None);
   }
 }
 
@@ -1258,7 +1258,7 @@ void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size) {
       }
     }
 
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    dl->AddPolyline(waveform,waveformLen+1,color,dpiScale,ImDrawFlags_None);
   }
 }
 
