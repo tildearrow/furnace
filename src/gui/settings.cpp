@@ -180,6 +180,7 @@ void FurnaceGUI::drawSettings() {
       settingsOpen=false;
       audioEngineChanged=false;
       syncSettings();
+      applyUISettings(false);
       settingsChanged=false;
     }
     ImGui::SameLine();
@@ -839,6 +840,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
     sty.Colors[ImGuiCol_TitleBgActive]=primary;
     sty.Colors[ImGuiCol_CheckMark]=primaryActive;
+    sty.Colors[ImGuiCol_CheckboxSelectedBg]=ImLerp(secondary,secondaryHover,0.65f);
     sty.Colors[ImGuiCol_TextLink]=secondaryActive;
     sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
     sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_BORDER];
@@ -868,6 +870,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=uiColors[GUI_COLOR_SLIDER_GRAB_ACTIVE];
     sty.Colors[ImGuiCol_TitleBgActive]=uiColors[GUI_COLOR_TITLE_BACKGROUND_ACTIVE];
     sty.Colors[ImGuiCol_CheckMark]=uiColors[GUI_COLOR_CHECK_MARK];
+    sty.Colors[ImGuiCol_CheckboxSelectedBg]=uiColors[GUI_COLOR_CHECKBOX_BACKGROUND_ACTIVE];
     sty.Colors[ImGuiCol_TextLink]=uiColors[GUI_COLOR_TEXT_LINK];
     sty.Colors[ImGuiCol_TextSelectedBg]=uiColors[GUI_COLOR_TEXT_SELECTION];
     sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_TREE_LINES];

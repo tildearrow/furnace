@@ -942,6 +942,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_SLIDER_GRAB_ACTIVE,_N("Slider grab (active)"),ImVec4(0.06f,0.53f,0.98f,1.0f)),
   D(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,_N("Title background (active)"),ImVec4(0.085f,0.216f,0.343f,1.0f)),
   D(GUI_COLOR_CHECK_MARK,_N("Checkbox/radio button mark"),ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_CHECKBOX_BACKGROUND_ACTIVE,_N("Checkbox background (selected)"),ImVec4(0.1363f,0.25805f,0.40425f,1.0f)), // extern/imgui_patched/imgui_draw.cpp:211
   D(GUI_COLOR_TEXT_SELECTION,_N("Text selection"),ImVec4(0.165f,0.313f,0.49f,1.0f)),
   D(GUI_COLOR_TABLE_ROW_EVEN,_N("Table row (even)"),ImVec4(0.0f,0.0f,0.0f,0.0f)),
   D(GUI_COLOR_TABLE_ROW_ODD,_N("Table row (odd)"),ImVec4(1.0f,1.0f,1.0f,0.06f)),
