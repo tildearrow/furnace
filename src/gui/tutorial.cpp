@@ -1154,36 +1154,36 @@ void FurnaceGUI::drawTutorial() {
           chevron[0]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.4,0.65));
           chevron[1]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.5,0.35));
           chevron[2]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.6,0.65));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // left
           chevron[0]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.4));
           chevron[1]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.35,0.5));
           chevron[2]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.6));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // down
           chevron[0]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.4,0.35));
           chevron[1]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.5,0.65));
           chevron[2]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.6,0.35));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // right
           chevron[0]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.4));
           chevron[1]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.65,0.5));
           chevron[2]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.6));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // A/B
           dl->AddRectFilled(buttonBStart,buttonBEnd,(touchControls&1)?0x4040ffff:0x2040ffff,0,0);
           dl->AddRectFilled(buttonAStart,buttonAEnd,(touchControls&2)?0x4040ffff:0x2040ffff,0,0);
-          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,0,dpiScale);
-          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,0,dpiScale);
+          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,dpiScale);
+          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,dpiScale);
           dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonBStart,buttonBEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"B")*0.5f),0xff00ffff,"B");
           dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonAStart,buttonAEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"A")*0.5f),0xff00ffff,"A");
 
           // quit
-          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,0,dpiScale);
+          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,dpiScale);
         }
       }
     }

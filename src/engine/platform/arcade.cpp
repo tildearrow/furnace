@@ -287,11 +287,11 @@ void DivPlatformArcade::tick(bool sysTick) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
     }
@@ -372,12 +372,12 @@ void DivPlatformArcade::tick(bool sysTick) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i] || !op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else {
           if (KVS(i,j)) {
-            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+            rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
           } else {
-            rWrite(baseAddr+ADDR_TL,op.tl);
+            rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
           }
         }
       }
@@ -433,11 +433,11 @@ void DivPlatformArcade::tick(bool sysTick) {
       if (m.tl.had) {
         op.tl=m.tl.val;
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
       if (m.rs.had) {
@@ -559,14 +559,14 @@ void DivPlatformArcade::commitState(int ch, DivInstrument* ins) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator op=chan[ch].state.op[i];
     if (!op.enable) {
-      rWrite(baseAddr+ADDR_TL,127);
+      rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
     } else if (KVS(ch,i)) {
       if (!chan[ch].active || chan[ch].insChanged) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[ch].outVol&0x7f,127));
+        rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[ch].outVol&0x7f,127))|(op.ksr?128:0));
       }
     } else {
       if (chan[ch].insChanged) {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
       }
     }
     if (chan[ch].insChanged) {
@@ -633,11 +633,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(c.chan,i)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
       break;
@@ -728,11 +728,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
         if (!op.enable) {
-          rWrite(baseAddr+ADDR_TL,127);
+          rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
         } else if (KVS(c.chan,i)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+          rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127))|(op.ksr?128:0));
         } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
+          rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
         }
       }
       break;
@@ -768,11 +768,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
       if (!op.enable) {
-        rWrite(baseAddr+ADDR_TL,127);
+        rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
       } else if (KVS(c.chan,c.value)) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
+        rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127))|(op.ksr?128:0));
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
       }
       break;
     }
@@ -1002,11 +1002,11 @@ void DivPlatformArcade::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator op=chan[i].state.op[j];
       if (!op.enable) {
-        rWrite(baseAddr+ADDR_TL,127);
+        rWrite(baseAddr+ADDR_TL,127|(op.ksr?128:0));
       } else if (KVS(i,j)) {
-        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
+        rWrite(baseAddr+ADDR_TL,(127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127))|(op.ksr?128:0));
       } else {
-        rWrite(baseAddr+ADDR_TL,op.tl);
+        rWrite(baseAddr+ADDR_TL,op.tl|(op.ksr?128:0));
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));

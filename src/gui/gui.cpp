@@ -48,6 +48,7 @@
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
+#define MOBILE_LAYOUT_INI "\\mobileLayout.ini"
 #define BACKUPS_DIR "\\backups"
 #else
 #include <sys/types.h>
@@ -56,6 +57,7 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
+#define MOBILE_LAYOUT_INI "/mobileLayout.ini"
 #define BACKUPS_DIR "/backups"
 #endif
 
@@ -639,10 +641,9 @@ bool FurnaceGUI::NoteSelector(int* value, bool showOffRel, int octaveMin, int oc
   return ret;
 }
 
-bool FurnaceGUI::LocalizedComboGetter(void* data, int idx, const char** out_text) {
+const char* FurnaceGUI::LocalizedComboGetter(void* data, int idx) {
   const char* const* items=(const char* const*)data;
-  if (out_text) *out_text=_(items[idx]);
-  return true;
+  return _(items[idx]);
 }
 
 void FurnaceGUI::sameLineMaybe(float width) {
@@ -662,8 +663,7 @@ const char* FurnaceGUI::getSystemName(DivSystem which) {
 }
 
 void FurnaceGUI::updateScroll(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextScroll=lineHeight*amount;
+  nextScroll=patLineHeight*amount;
   haveHitBounds=false;
 }
 
@@ -673,14 +673,12 @@ void FurnaceGUI::updateScrollRaw(float amount) {
 }
 
 void FurnaceGUI::addScroll(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextAddScroll=lineHeight*amount;
+  nextAddScroll=patLineHeight*amount;
   haveHitBounds=false;
 }
 
 void FurnaceGUI::addScrollX(int amount) {
-  float lineHeight=round(PAT_FONT_SIZE+2*dpiScale);
-  nextAddScrollX=lineHeight*amount;
+  nextAddScrollX=patLineHeight*amount;
   haveHitBounds=false;
 }
 
@@ -1301,6 +1299,7 @@ DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Spl
       DockNode        ID=0x00000012 Parent=0x0000000B SizeRef=151,557 HiddenTabBar=1 Selected=0x4C07BC58\n\
     DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n";
 
+const char* defaultMobileLayout="\n";
 
 void FurnaceGUI::prepareLayout() {
   FILE* check;
@@ -1318,7 +1317,11 @@ void FurnaceGUI::prepareLayout() {
     return;
   }
 
-  fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  if (mobileUI) {
+    fwrite(defaultMobileLayout,1,strlen(defaultMobileLayout),check);
+  } else {
+    fwrite(defaultLayout,1,strlen(defaultLayout),check);
+  }
   fclose(check);
 }
 
@@ -3028,12 +3031,20 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
             if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
               showError(fmt::sprintf(_("Error while saving file! (%s)"),lastError));
             } else {
-              quit=true;
+              if (settingsOpen && settingsChanged) {
+                showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+              } else {
+                quit=true;
+              }
             }
           }
         }},
         {tNo,kNo,[this]{
-          quit=true;
+          if (settingsOpen && settingsChanged) {
+            showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+          } else {
+            quit=true;
+          }
         }},
         wCancel,
       };
@@ -3150,11 +3161,13 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
     case GUI_WARN_RESET_LAYOUT:
       warnChoices={
         {tYes,kYes,[this]{
-          if (!mobileUI) {
+          if (mobileUI) {
+            ImGui::LoadIniSettingsFromMemory(defaultMobileLayout);
+          } else {
             ImGui::LoadIniSettingsFromMemory(defaultLayout);
-            if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-              reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-            }
+          }
+          if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+            reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
           }
           settingsChanged=true;
         },true},
@@ -3274,6 +3287,19 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
         }},
       };
       break;
+    case GUI_WARN_QUIT_SETTINGS:
+        warnChoices={
+          {tYes,kYes,[this]{
+            willCommit=true;
+            settingsChanged=false;
+            quit=true;
+          }},
+          {tNo,kNo,[this]{
+            quit=true;
+          }},
+          wCancel,
+        };
+        break;
     case GUI_WARN_GENERIC:
       warnChoices={
         {tOk,kOk,[]{}},
@@ -3900,25 +3926,34 @@ void FurnaceGUI::editOptions(bool topMenu) {
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
-    if (!mobileUI && enable) {
+    // the only moment force is true is during GUI init.
+    // don't save the layout because we still haven't loaded it.
+    if (!force) {
       if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
         reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
       }
     }
     mobileUI=enable;
+
     if (mobileUI) {
-      ImGui::GetIO().IniFilename=NULL;
+      strncpy(finalLayoutPath,(e->getConfigPath()+String(MOBILE_LAYOUT_INI)).c_str(),4095);
+    } else {
+      strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+    }
+
+    ImGui::GetIO().IniFilename=NULL;
+    if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
+      reportError(fmt::sprintf(_("could NOT load layout! %s"),strerror(errno)));
+      ImGui::LoadIniSettingsFromMemory(mobileUI?defaultMobileLayout:defaultLayout);
+    }
+
+    if (mobileUI) {
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=true;
       fileDialog->mobileUI=true;
       newFilePicker->setMobile(true);
     } else {
-      ImGui::GetIO().IniFilename=NULL;
-      if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
-        reportError(fmt::sprintf(_("could NOT load layout! %s"),strerror(errno)));
-        ImGui::LoadIniSettingsFromMemory(defaultLayout);
-      }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       ImGui::GetIO().AlwaysScrollText=false;
@@ -6043,7 +6078,11 @@ bool FurnaceGUI::loop() {
               if (saveWasSuccessful && postWarnAction!=GUI_WARN_GENERIC) {
                 switch (postWarnAction) {
                   case GUI_WARN_QUIT:
-                    quit=true;
+                    if (settingsOpen && settingsChanged) {
+                      showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
+                    } else {
+                      quit=true;
+                    }
                     break;
                   case GUI_WARN_NEW:
                     displayNew=true;
@@ -7691,6 +7730,10 @@ bool FurnaceGUI::loop() {
 
     MEASURE_END(popup);
 
+    // this is here for drawImage() to work correctly
+    introMin=ImVec2(0,0);
+    introMax=ImVec2(canvasW,canvasH);
+
 #ifdef NO_INTRO
     introPos=12.0;
 #else
@@ -8508,7 +8551,12 @@ bool FurnaceGUI::init() {
   }
 
   logD("preparing layout...");
-  strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  if (mobileUI) {
+    strncpy(finalLayoutPath,(e->getConfigPath()+String(MOBILE_LAYOUT_INI)).c_str(),4095);
+  } else {
+    strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
+  }
+  logV("finalLayoutPath: %s",finalLayoutPath);
   backupPath=e->getConfigPath();
   if (backupPath.size()>0) {
     if (backupPath[backupPath.size()-1]==DIR_SEPARATOR) backupPath.resize(backupPath.size()-1);
@@ -8882,10 +8930,8 @@ void FurnaceGUI::syncState() {
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
-  if (!mobileUI) {
-    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
-      reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
-    }
+  if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+    reportError(fmt::sprintf(_("could NOT save layout! %s"),strerror(errno)));
   }
 
   conf.set("configVersion",(int)DIV_ENGINE_VERSION);
@@ -9151,6 +9197,8 @@ bool FurnaceGUI::finish(bool saveConfig) {
 bool FurnaceGUI::requestQuit() {
   if (modified && !cvOpen) {
     showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+  } else if (settingsOpen && settingsChanged) {
+    showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
   } else {
     quit=true;
   }
@@ -9457,6 +9505,7 @@ FurnaceGUI::FurnaceGUI():
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   failedNoteOn(false),
+  patLineHeight(24.0f),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
   buttonLongThreshold(0.20f),
@@ -9612,9 +9661,10 @@ FurnaceGUI::FurnaceGUI():
   silenceSize(1024),
   resampleTarget(32000),
   resampleStrat(5),
+  sampleFixLoopTarget(0),
   amplifyVol(100.0),
   amplifyOff(0.0),
-  noiseGateThreshold(-60.0f),
+  trimSideNoiseThreshold(-60.0f),
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
@@ -9648,7 +9698,7 @@ FurnaceGUI::FurnaceGUI():
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
   openSampleCrossFadeOpt(false),
-  openSampleNoiseGateOpt(false),
+  openTrimSideNoiseOpt(false),
   selectedPortSet(0x1fff),
   selectedSubPort(-1),
   hoveredPortSet(0x1fff),

@@ -1524,7 +1524,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
-    _("SegaPCM"), NULL, 0x9b, 0, 16, 16, 16,
+    _("SegaPCM"), NULL, 0x9b, 0, 16, 8, 16,
     false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("used in some Sega arcade boards (like OutRun), and usually paired with a YM2151."),
     DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_SEGAPCM,DIV_INS_AMIGA>),

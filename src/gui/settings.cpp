@@ -90,14 +90,10 @@ void FurnaceGUI::drawSettings() {
   } else {
     ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
-  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags,_("Settings"))) {
-    if (!settingsOpen) {
-      if (settingsChanged) {
-        settingsOpen=true;
-        showWarning(_("Do you want to save your settings?"),GUI_WARN_CLOSE_SETTINGS);
-      } else {
-        settingsOpen=false;
-      }
+  if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags,settingsChanged?_("Settings (unsaved changes)"):_("Settings"))) {
+    if (!settingsOpen && settingsChanged) {
+      settingsOpen=true;
+      showWarning(_("Do you want to save your settings?"),GUI_WARN_CLOSE_SETTINGS);
     }
     const float buttonsHeight=ImGui::GetFontSize()+ImGui::GetStyle().FramePadding.y*4.0f;
     const bool vertical=ImGui::GetWindowHeight()>ImGui::GetWindowWidth();
@@ -184,6 +180,7 @@ void FurnaceGUI::drawSettings() {
       settingsOpen=false;
       audioEngineChanged=false;
       syncSettings();
+      applyUISettings(false);
       settingsChanged=false;
     }
     ImGui::SameLine();
@@ -269,8 +266,11 @@ void FurnaceGUI::commitSettings() {
     }
   }
 
-  if (!e->switchMaster(coresChanged)) {
-    showError(_("could not initialize audio!"));
+  // if we're about to quit, don't perform an expensive output switch/core re-initialization.
+  if (!quit) {
+    if (!e->switchMaster(coresChanged)) {
+      showError(_("could not initialize audio!"));
+    }
   }
 
   ImGui::GetIO().Fonts->Clear();
@@ -574,13 +574,14 @@ void FurnaceGUI::pushAccentColors(const ImVec4& one, const ImVec4& two, const Im
   ImGui::PushStyleColor(ImGuiCol_SliderGrabActive,primaryActive);
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive,primary);
   ImGui::PushStyleColor(ImGuiCol_CheckMark,primaryActive);
+  ImGui::PushStyleColor(ImGuiCol_CheckboxSelectedBg,ImLerp(secondary,secondaryHover,0.65f));
   ImGui::PushStyleColor(ImGuiCol_TextSelectedBg,secondaryHover);
   ImGui::PushStyleColor(ImGuiCol_Border,border);
   ImGui::PushStyleColor(ImGuiCol_BorderShadow,borderShadow);
 }
 
 void FurnaceGUI::popAccentColors() {
-  ImGui::PopStyleColor(24);
+  ImGui::PopStyleColor(25);
 }
 
 void FurnaceGUI::pushDestColor() {
@@ -840,6 +841,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
     sty.Colors[ImGuiCol_TitleBgActive]=primary;
     sty.Colors[ImGuiCol_CheckMark]=primaryActive;
+    sty.Colors[ImGuiCol_CheckboxSelectedBg]=ImLerp(secondary,secondaryHover,0.65f);
     sty.Colors[ImGuiCol_TextLink]=secondaryActive;
     sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
     sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_BORDER];
@@ -869,6 +871,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.Colors[ImGuiCol_SliderGrabActive]=uiColors[GUI_COLOR_SLIDER_GRAB_ACTIVE];
     sty.Colors[ImGuiCol_TitleBgActive]=uiColors[GUI_COLOR_TITLE_BACKGROUND_ACTIVE];
     sty.Colors[ImGuiCol_CheckMark]=uiColors[GUI_COLOR_CHECK_MARK];
+    sty.Colors[ImGuiCol_CheckboxSelectedBg]=uiColors[GUI_COLOR_CHECKBOX_BACKGROUND_ACTIVE];
     sty.Colors[ImGuiCol_TextLink]=uiColors[GUI_COLOR_TEXT_LINK];
     sty.Colors[ImGuiCol_TextSelectedBg]=uiColors[GUI_COLOR_TEXT_SELECTION];
     sty.Colors[ImGuiCol_TreeLines]=uiColors[GUI_COLOR_TREE_LINES];
@@ -887,7 +890,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameRounding=6.0f;
     sty.GrabRounding=6.0f;
   }
-  if (settings.roundedMenus) sty.PopupRounding=8.0f;
+  if (settings.roundedMenus) {
+    sty.PopupRounding=8.0f;
+  } else {
+    sty.PopupRounding=0.0f;
+  }
   if (settings.roundedTabs) {
     sty.TabRounding=4.0f;
   } else {

@@ -165,8 +165,8 @@ void FurnaceGUI::drawPattern() {
     }*/
 
     ImGui::PushFont(patFont);
-    float lineHeight=round(ImGui::GetTextLineHeight()+2*dpiScale);
-    dummyRows=(ImGui::GetWindowSize().y/lineHeight)/2;
+    patLineHeight=round(ImGui::GetTextLineHeight()+2*dpiScale);
+    dummyRows=(ImGui::GetWindowSize().y/patLineHeight)/2;
     int totalRows=e->curSubSong->patLen+dummyRows*2;
     int firstRow=-dummyRows+1;
     while (firstRow<0) {
@@ -177,10 +177,10 @@ void FurnaceGUI::drawPattern() {
     // calculate sizes
     // this could be moved somewhere else for performance...
     float oneCharSize=ImGui::CalcTextSize("A").x;
-    fourChars=ImVec2(oneCharSize*4.0f,lineHeight);
-    threeChars=ImVec2(oneCharSize*3.0f,lineHeight);
-    twoChars=ImVec2(oneCharSize*2.0f,lineHeight);
-    oneChar=ImVec2(oneCharSize,lineHeight);
+    fourChars=ImVec2(oneCharSize*4.0f,patLineHeight);
+    threeChars=ImVec2(oneCharSize*3.0f,patLineHeight);
+    twoChars=ImVec2(oneCharSize*2.0f,patLineHeight);
+    oneChar=ImVec2(oneCharSize,patLineHeight);
 
     noteCellSize=threeChars;
     noteCellSize.x+=(float)settings.noteCellSpacing*dpiScale;
@@ -221,8 +221,8 @@ void FurnaceGUI::drawPattern() {
     };
 
     // starting positions
-    ImVec2 size=ImVec2(0.0f,lineHeight*totalRows);
-    ImVec2 sizeRows=ImVec2(threeChars.x+oneChar.x+PAT_BORDER_SIZE,lineHeight*totalRows);
+    ImVec2 size=ImVec2(0.0f,patLineHeight*totalRows);
+    ImVec2 sizeRows=ImVec2(threeChars.x+oneChar.x+PAT_BORDER_SIZE,patLineHeight*totalRows);
 
     for (int i=0; i<chans; i++) {
       patChanX[i]=size.x;
@@ -311,7 +311,7 @@ void FurnaceGUI::drawPattern() {
 
     // top left button
     ImGui::SetCursorScreenPos(ImVec2(topRows.x,topHeaders.y));
-    if (ImGui::Selectable(" ++###ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeRows.x,lineHeight+1.0f*dpiScale))) {
+    if (ImGui::Selectable(" ++###ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeRows.x,patLineHeight+1.0f*dpiScale))) {
       ImGui::OpenPopup("PatternOpt");
     }
     if (ImGui::IsItemHovered() && !mobileUI) {
@@ -406,7 +406,7 @@ void FurnaceGUI::drawPattern() {
         ImGuiWindow* window=ImGui::GetCurrentWindow();
         ImVec2 sizeHeader=ImVec2(
           patChanX[i+1]-patChanX[i],
-          lineHeight+1.0f*dpiScale
+          patLineHeight+1.0f*dpiScale
         );
 
         if (settings.channelStyle!=0) {
@@ -565,6 +565,7 @@ void FurnaceGUI::drawPattern() {
               rMin.y+=3.0f*dpiScale;
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
+              // whaaaaa?
               dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -586,7 +587,7 @@ void FurnaceGUI::drawPattern() {
               rMin.y+=3.0f*dpiScale;
               rMax.x-=3.0f*dpiScale;
               rMax.y-=3.0f*dpiScale;
-              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
+              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,2.0*dpiScale,ImDrawFlags_RoundCornersAll);
               dl->AddTextNoHashHide(ImVec2(minLabelArea.x,rectHeader.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
             break;
@@ -735,7 +736,7 @@ void FurnaceGUI::drawPattern() {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
           ImGui::PushFont(mainFont);
           snprintf(chanID,2048," %s###PatName%d",pat->name.c_str(),i);
-          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeHeader.x,lineHeight+1.0f*dpiScale))) {
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeHeader.x,patLineHeight+1.0f*dpiScale))) {
             editStr(&pat->name);
           }
           ImGui::PopFont();
@@ -958,8 +959,8 @@ void FurnaceGUI::drawPattern() {
 
     // pattern view
     // calculate drawing range (TODO: consider settings and invalid orders)
-    int rowsBegin=(int)((winRect.Min.y-top.y)/lineHeight);
-    int rowsEnd=ceil((winRect.Max.y-top.y)/lineHeight);
+    int rowsBegin=(int)((winRect.Min.y-top.y)/patLineHeight);
+    int rowsEnd=ceil((winRect.Max.y-top.y)/patLineHeight);
     if (rowsBegin<0) rowsBegin=0;
     if (rowsEnd>totalRows) rowsEnd=totalRows;
 
@@ -1062,9 +1063,9 @@ void FurnaceGUI::drawPattern() {
         int ord=firstOrd;
         int row=firstRow;
         pos=top;
-        pos.y+=lineHeight*rowsBegin;
+        pos.y+=patLineHeight*rowsBegin;
         for (int j=rowsBegin; j<rowsEnd; j++) {
-          if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+lineHeight)) {
+          if (pointerPos.y>=pos.y && pointerPos.y<(pos.y+patLineHeight)) {
             pointer.order=ord;
             pointer.y=row;
             break;
@@ -1073,7 +1074,7 @@ void FurnaceGUI::drawPattern() {
             row=0;
             ord++;
           }
-          pos.y+=lineHeight;
+          pos.y+=patLineHeight;
         }
       }
 
@@ -1105,7 +1106,7 @@ void FurnaceGUI::drawPattern() {
         int row=firstRow;
         bool isPlaying=e->isPlaying();
         pos=top;
-        pos.y+=lineHeight*rowsBegin;
+        pos.y+=patLineHeight*rowsBegin;
         if (settings.overflowHighlight) {
           dl->PushClipRect(ImVec2(prevClipRect.Min.x,topHeaders.y+sizeHeaders.y),prevClipRect.Max);
         }
@@ -1136,13 +1137,13 @@ void FurnaceGUI::drawPattern() {
             if (settings.overflowHighlight) {
               dl->AddRectFilled(
                 ImVec2(winRect.Min.x,pos.y),
-                ImVec2(winRect.Max.x,pos.y+lineHeight),
+                ImVec2(winRect.Max.x,pos.y+patLineHeight),
                 thisRowBg
               );
             } else {
               dl->AddRectFilled(
                 ImVec2(top.x+patChanX[0],pos.y),
-                ImVec2(top.x+patChanX[chans],pos.y+lineHeight),
+                ImVec2(top.x+patChanX[chans],pos.y+patLineHeight),
                 thisRowBg
               );
             }
@@ -1152,7 +1153,7 @@ void FurnaceGUI::drawPattern() {
             row=0;
             ord++;
           }
-          pos.y+=lineHeight;
+          pos.y+=patLineHeight;
         }
         if (settings.overflowHighlight) {
           dl->PopClipRect();
@@ -1167,7 +1168,7 @@ void FurnaceGUI::drawPattern() {
         int curSelFindStage=0;
         ImRect selRect;
         pos=top;
-        pos.y+=lineHeight*rowsBegin;
+        pos.y+=patLineHeight*rowsBegin;
         // we find the selection's Y position.
         for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
@@ -1182,14 +1183,14 @@ void FurnaceGUI::drawPattern() {
           // stage 2: find selection end
           if (curSelFindStage==1) {
             if (sel2.order==ord && sel2.y==row) {
-              selRect.Max.y=pos.y+lineHeight;
+              selRect.Max.y=pos.y+patLineHeight;
               curSelFindStage=2;
             }
             // if this is the last row, check whether the end is ahead of our current view
             if (j==rowsEnd-1) {
               if (sel2.order>ord || (sel2.order==ord && sel2.y>row)) {
                 // pretend we found it
-                selRect.Max.y=pos.y+lineHeight;
+                selRect.Max.y=pos.y+patLineHeight;
                 curSelFindStage=2;
               }
             }
@@ -1212,7 +1213,7 @@ void FurnaceGUI::drawPattern() {
             row=0;
             ord++;
           }
-          pos.y+=lineHeight;
+          pos.y+=patLineHeight;
         }
       }
 
@@ -1221,7 +1222,7 @@ void FurnaceGUI::drawPattern() {
         int ord=firstOrd;
         int row=firstRow;
         pos=top;
-        pos.y+=lineHeight*rowsBegin;
+        pos.y+=patLineHeight*rowsBegin;
         for (int j=rowsBegin; j<rowsEnd; j++) {
           SETUP_ORDER_ALPHA;
           bool hoverOverCursor=false;
@@ -1231,7 +1232,7 @@ void FurnaceGUI::drawPattern() {
                 hoverOverCursor=(hovered && pointer.xCoarse==cursor.xCoarse && pointer.xFine==cursor.xFine && pointer.y==cursor.y && pointer.order==cursor.order);
                 dl->AddRectFilled(
                   ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)],pos.y),
-                  ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,1+cursor.xFine)],pos.y+lineHeight),
+                  ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,1+cursor.xFine)],pos.y+patLineHeight),
                   hoverOverCursor?
                     ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR_HOVER]):
                     ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_CURSOR])
@@ -1243,8 +1244,8 @@ void FurnaceGUI::drawPattern() {
                   float blinkPos=(cursor.xFine>0)?1.0f:2.0f;
                   if (fmod(secondTimer,blinkTime)<blinkTime*0.5f) {
                     dl->AddLine(
-                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+blinkPos*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
-                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+(blinkPos+1.0f)*oneCharSize,pos.y+lineHeight-2.0*dpiScale),
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+blinkPos*oneCharSize,pos.y+patLineHeight-2.0*dpiScale),
+                      ImVec2(top.x+patChanX[cursor.xCoarse]+patFineOffsets[calcMaxFine(cursor.xCoarse,cursor.xFine)]+(blinkPos+1.0f)*oneCharSize,pos.y+patLineHeight-2.0*dpiScale),
                       ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_TEXT]),
                       dpiScale
                     );
@@ -1258,7 +1259,7 @@ void FurnaceGUI::drawPattern() {
             if (e->curSubSong->chanShow[pointer.xCoarse]) {
               dl->AddRectFilled(
                 ImVec2(top.x+patChanX[pointer.xCoarse]+patFineOffsets[calcMaxFine(pointer.xCoarse,pointer.xFine)],pos.y),
-                ImVec2(top.x+patChanX[pointer.xCoarse]+patFineOffsets[calcMaxFine(pointer.xCoarse,1+pointer.xFine)],pos.y+lineHeight),
+                ImVec2(top.x+patChanX[pointer.xCoarse]+patFineOffsets[calcMaxFine(pointer.xCoarse,1+pointer.xFine)],pos.y+patLineHeight),
                 ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER])
               );
             }
@@ -1268,7 +1269,7 @@ void FurnaceGUI::drawPattern() {
             row=0;
             ord++;
           }
-          pos.y+=lineHeight;
+          pos.y+=patLineHeight;
         }
       }
 
@@ -1281,7 +1282,7 @@ void FurnaceGUI::drawPattern() {
 
         ImVec2 thisTop=ImVec2(top.x+patChanX[i],top.y);
         pos=thisTop;
-        pos.y+=lineHeight*rowsBegin;
+        pos.y+=patLineHeight*rowsBegin;
 
         // check bounds
         if (thisTop.x>=winRect.Max.x) break;
@@ -1347,21 +1348,21 @@ void FurnaceGUI::drawPattern() {
               snprintf(id,63,"%.4X",(freq&maxFreq)>>16);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos,activeColor,id);
               snprintf(id,63,"%.4X",(freq&maxFreq)&0xffff);
-              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.5f),activeColor,id);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,patLineHeight*0.5f),activeColor,id);
             } else if (maxFreq>=0x100000) {
               // 6 chars (isn't this too small?)
               snprintf(id,63,"%.3X",((freq&maxFreq)&0xfff000)>>24);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,0),activeColor,id);
               snprintf(id,63,"%.3X",(freq&maxFreq)&0xfff);
-              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,lineHeight*0.5f),activeColor,id);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,patLineHeight*0.5f),activeColor,id);
             } else if (maxFreq>=0x10000) {
               // 5 chars
               snprintf(id,63,"%.5X",(freq&maxFreq));
-              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos+ImVec2(0,lineHeight*0.2f),activeColor,id);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/5.0f,pos+ImVec2(0,patLineHeight*0.2f),activeColor,id);
             } else if (maxFreq>=0x1000) {
               // 4 chars
               snprintf(id,63,"%.4X",(freq&maxFreq));
-              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,lineHeight*0.125f),activeColor,id);
+              dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,patLineHeight*0.125f),activeColor,id);
             } else if (maxFreq>=0x100) {
               // 3 chars
               snprintf(id,63,"%.3X",(freq&maxFreq));
@@ -1462,7 +1463,7 @@ void FurnaceGUI::drawPattern() {
             pat=e->curSubSong->pat[i].getPattern(e->curOrders->ord[i][ord&0xff],true);
           }
           pos.x=thisTop.x;
-          pos.y+=lineHeight;
+          pos.y+=patLineHeight;
         }
 
         isFirstChan=false;
@@ -1511,14 +1512,14 @@ void FurnaceGUI::drawPattern() {
       int ord=firstOrd;
       int row=firstRow;
       pos=topRows;
-      pos.y+=lineHeight*rowsBegin;
+      pos.y+=patLineHeight*rowsBegin;
       for (int j=rowsBegin; j<rowsEnd; j++) {
         SETUP_ORDER_ALPHA;
         // test cursor pos (so many comparisons!)
-        if (hoveredRow && (!orderLock || ord==curOrder) && ImRect(pos,pos+ImVec2(sizeRows.x,lineHeight)).Contains(ImGui::GetMousePos()) && selOrd<0 && selRow<0) {
+        if (hoveredRow && (!orderLock || ord==curOrder) && ImRect(pos,pos+ImVec2(sizeRows.x,patLineHeight)).Contains(ImGui::GetMousePos()) && selOrd<0 && selRow<0) {
           dl->AddRectFilled(
             pos,
-            pos+ImVec2(sizeRows.x,lineHeight),
+            pos+ImVec2(sizeRows.x,patLineHeight),
             ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER])
           );
 
@@ -1544,7 +1545,7 @@ void FurnaceGUI::drawPattern() {
           row=0;
           ord++;
         }
-        pos.y+=lineHeight;
+        pos.y+=patLineHeight;
       }
 
       ImGui::GetStyle().Alpha=origAlpha;
@@ -2115,7 +2116,7 @@ void FurnaceGUI::drawPattern() {
               arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.37));
               arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0-1.0));
               arrowPoints[6]=arrowPoints[0];
-              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),5.0f*dpiScale,ImDrawFlags_None);
             } else {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,0.0));
@@ -2124,7 +2125,7 @@ void FurnaceGUI::drawPattern() {
               arrowPoints[4]=ImLerp(tMin,tMax,ImVec2(0.5,0.37));
               arrowPoints[5]=ImLerp(tMin,tMax,ImVec2(0.2,1.0));
               arrowPoints[6]=arrowPoints[0];
-              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),ImDrawFlags_None,5.0f*dpiScale);
+              dl->AddPolyline(arrowPoints,7,ImGui::GetColorU32(col),5.0f*dpiScale,ImDrawFlags_None);
             }
           }
           patChanSlideY[i]+=((portaDirection)?-8:8)*dpiScale*frameTime;
@@ -2143,7 +2144,7 @@ void FurnaceGUI::drawPattern() {
 
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
-            playheadY+randRange(lineHeight*0.5,lineHeight*1.5)
+            playheadY+randRange(patLineHeight*0.5,patLineHeight*1.5)
           );
 
           if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {

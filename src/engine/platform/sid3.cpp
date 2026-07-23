@@ -721,16 +721,7 @@ void DivPlatformSID3::tick(bool sysTick)
       }
 
       if (chan[i].pcm && i == SID3_NUM_CHANNELS - 1) {
-        double off=1.0;
-        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=(double)s->centerRate/parent->getCenterRate();
-          }
-        }
-        chan[i].dacRate=chan[i].freq*(off / 32.0)*(double)chipClock/1000000.0;
+        chan[i].dacRate=chan[i].freq;//*(off / 32.0)*(double)chipClock/1000000.0;
       }
 
       chan[i].noiseFreqChanged = true;
@@ -1257,7 +1248,8 @@ void DivPlatformSID3::notifyInsDeletion(void* ins) {
 
 void DivPlatformSID3::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch);
-  samplePitchTable.update<Channel>(chan,SID3_NUM_CHANNELS,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
+  // why? just why?
+  samplePitchTable.update<Channel>(chan,SID3_NUM_CHANNELS,parent->song.tuning,1,1,0xffffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 unsigned int DivPlatformSID3::getMaxFreq(int ch) {

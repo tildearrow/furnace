@@ -42,6 +42,7 @@ static int getGainVol=0;
 static int ptDebugChan=0;
 static int disDebugChan=0;
 static bool disMultiChannel=false;
+static float rotAngle=0.0f;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -482,6 +483,14 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("GUI Status")) {
       ImGui::Text("patScroll: %f",patScroll);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Rotation Test")) {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImGui::Text("Rotating...........");
+      drawImage(dl,GUI_IMAGE_ICON,ImVec2(0.5f,0.5f),ImVec2(1.0f,1.0f),rotAngle,ImVec2(0.0f,0.0f),ImVec2(1.0f,1.0f),ImVec4(1.0f,1.0f,1.0f,1.0f));
+      rotAngle+=0.05f;
+      if (rotAngle>2.0*M_PI) rotAngle-=2.0*M_PI;
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Song Timestamps")) {

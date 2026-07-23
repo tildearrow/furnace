@@ -49,10 +49,10 @@ const char* ssgEnvTypes[8]={
   _N("Up DOWN")
 };
 
-const char* fmParamNames[3][33]={
-  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp"), _N("Octave")},
-  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block"},
-  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block"}
+const char* fmParamNames[3][34]={
+  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp"), _N("Octave"), _N("TL Ramp")},
+  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp"},
+  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp"}
 };
 
 const char* esfmParamLongNames[9]={
@@ -83,10 +83,10 @@ const char* esfmParamShortNames[9]={
   "NOI", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
 };
 
-const char* fmParamShortNames[3][32]={
-  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "SUS", "SUS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2"},
-  {"ALG", "FB", "FMS", "AMS", "A", "D", "SR", "R", "S", "TL", "KS", "ML", "DT", "DT2", "SSG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2"},
-  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2"}
+const char* fmParamShortNames[3][33]={
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "SUS", "SUS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "TLR"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "SR", "R", "S", "TL", "KS", "ML", "DT", "DT2", "SSG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "TLR"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "TLR"}
 };
 
 const char* opllVariants[4]={
@@ -389,7 +389,8 @@ enum FMParams {
   FM_FINE=29,
   FM_FMS2=30,
   FM_AMS2=31,
-  FM_BLOCK=32
+  FM_BLOCK=32,
+  FM_TLRAMP=33
 };
 
 enum ESFMParams {
@@ -897,7 +898,7 @@ void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 c
   ImVec2 pt[2];
   pt[0]=p1;
   pt[1]=p2;
-  dl->AddPolyline(pt,2,color,ImDrawFlags_None,thickness);
+  dl->AddPolyline(pt,2,color,thickness,ImDrawFlags_None);
 }
 
 void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
@@ -1149,7 +1150,7 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
           break;
       }
     }
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    dl->AddPolyline(waveform,waveformLen+1,color,dpiScale,ImDrawFlags_None);
   }
 }
 
@@ -1257,7 +1258,7 @@ void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size) {
       }
     }
 
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    dl->AddPolyline(waveform,waveformLen+1,color,dpiScale,ImDrawFlags_None);
   }
 }
 
@@ -4208,6 +4209,39 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
   if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
   bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM);
 
+  // this determines which features are hidden from the OPL editor.
+  int oplType=0;
+  for (int i=0; i<e->song.systemLen; i++) {
+    switch (e->song.system[i]) {
+      case DIV_SYSTEM_OPL:
+      case DIV_SYSTEM_OPL_DRUMS:
+      case DIV_SYSTEM_Y8950:
+      case DIV_SYSTEM_Y8950_DRUMS:
+        if (oplType<1) oplType=1;
+        break;
+      case DIV_SYSTEM_OPL2:
+      case DIV_SYSTEM_OPL2_DRUMS:
+        if (oplType<2) oplType=2;
+        break;
+      case DIV_SYSTEM_OPL3:
+      case DIV_SYSTEM_OPL3_DRUMS:
+      case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
+      case DIV_SYSTEM_YMU759:
+      case DIV_SYSTEM_ESFM: // to assist in porting
+        if (oplType<3) oplType=3;
+        break;
+      default:
+        break;
+    }
+  }
+  // expose all features if no OPL chips are present
+  if (oplType==0) oplType=3;
+
+  int wsMax=7;
+  if (oplType==2) wsMax=3;
+  if (oplType==1) wsMax=0;
+
   if (ImGui::BeginTabItem("FM")) {
     DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
 
@@ -4314,8 +4348,15 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
           if (ins->type==DIV_INS_OPL) {
             ImGui::BeginDisabled(ins->fm.opllPreset==16);
-            if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
-              ins->fm.ops=fourOp?4:2;
+            if (fourOp || oplType>=3) {
+              pushWarningColor(oplType<3);
+              if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
+                ins->fm.ops=fourOp?4:2;
+              }
+              if (oplType<3 && ImGui::IsItemHovered()) {
+                ImGui::SetTooltip(_("4-op mode is not available in OPL1/2!"));
+              }
+              popWarningColor();
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
@@ -4513,7 +4554,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
     }
 
     ImGui::BeginDisabled(!willDisplayOps);
-    if (settings.fmLayout==0 || settings.fmLayout==7) {
+    if (settings.fmLayout==0 || settings.fmLayout==7) { // modern (why didn't I comment this?!)
       int numCols=15;
       if (ins->type==DIV_INS_OPL ||ins->type==DIV_INS_OPL_DRUMS) numCols=13;
       if (ins->type==DIV_INS_OPLL) numCols=12;
@@ -4892,9 +4933,34 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
               }
             } else {
-              ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()));
-              if (ImGui::Checkbox("##AM",&amOn)) { PARAMETER
-                op.am=amOn;
+              // disappoint me!!!
+              bool displayTLRamp=false;
+              if (ins->type==DIV_INS_OPM) {
+                displayTLRamp=false;
+                for (int i=0; i<e->song.systemLen; i++) {
+                  if (e->song.system[i]==DIV_SYSTEM_YM2151) {
+                    // test for YM2164 (OPP)
+                    if (e->song.systemFlags[i].getInt("chipType",0)==1) {
+                      displayTLRamp=true;
+                      break;
+                    }
+                  }
+                }
+              }
+              if (displayTLRamp) {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*2.0-ImGui::GetStyle().ItemSpacing.y*1.0));
+                if (ImGui::Checkbox("AM##AM",&amOn)) { PARAMETER
+                  op.am=amOn;
+                }
+                // why does the text run away?!
+                if (ImGui::Checkbox(_("TL Ramp##TLRamp"),&ksrOn)) { PARAMETER
+                  op.ksr=ksrOn;
+                }
+              } else {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()));
+                if (ImGui::Checkbox("##AM",&amOn)) { PARAMETER
+                  op.am=amOn;
+                }
               }
             }
 
@@ -5057,12 +5123,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
             ImGui::TableNextColumn();
 
-            drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
+            drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-            if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-            }
+            P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
             if (ins->type==DIV_INS_ESFM && fixedOn) {
               if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
                 op.vib=vibOn;
@@ -5377,6 +5440,26 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_RS));
                 P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE,tempID)); rightClickable
+
+                // OPP TL ramp
+                bool displayTLRamp=false;
+                if (ins->type==DIV_INS_OPM) {
+                  displayTLRamp=false;
+                  for (int i=0; i<e->song.systemLen; i++) {
+                    if (e->song.system[i]==DIV_SYSTEM_YM2151) {
+                      // test for YM2164 (OPP)
+                      if (e->song.systemFlags[i].getInt("chipType",0)==1) {
+                        displayTLRamp=true;
+                        break;
+                      }
+                    }
+                  }
+                }
+                if (displayTLRamp) {
+                  if (ImGui::Checkbox(_("TL Ramp##TLRamp"),&ksrOn)) { PARAMETER
+                    op.ksr=ksrOn;
+                  }
+                }
                 break;
               }
               case DIV_INS_OPLL:
@@ -5422,12 +5505,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               case DIV_INS_OPL:
               case DIV_INS_OPL_DRUMS: {
                 // waveform
-                drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-                if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-                }
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5479,12 +5559,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               case DIV_INS_OPZ: {
                 // waveform
-                drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-                if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-                }
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5542,9 +5619,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               case DIV_INS_ESFM:
                 // waveform
-                drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5817,7 +5894,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
         ImGui::EndTable();
       }
       ImGui::PopStyleVar();
-    } else { // classic
+    } else { // classic...... erm COMPACT
       int columns=2;
       switch (settings.fmLayout) {
         case 1: // 2x2
@@ -5917,6 +5994,28 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           bool amOn=op.am;
           if (ImGui::Checkbox(FM_NAME(FM_AM),&amOn)) { PARAMETER
             op.am=amOn;
+          }
+
+          // OPP TL ramp
+          bool displayTLRamp=false;
+          if (ins->type==DIV_INS_OPM) {
+            displayTLRamp=false;
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (e->song.system[i]==DIV_SYSTEM_YM2151) {
+                // test for YM2164 (OPP)
+                if (e->song.systemFlags[i].getInt("chipType",0)==1) {
+                  displayTLRamp=true;
+                  break;
+                }
+              }
+            }
+          }
+          if (displayTLRamp) {
+            ImGui::SameLine();
+            bool ksrOn=op.ksr; // why is this not defined?!?!?!?
+            if (ImGui::Checkbox(_("TL Ramp##TLRamp"),&ksrOn)) { PARAMETER
+              op.ksr=ksrOn;
+            }
           }
 
           int maxTl=127;
@@ -6237,10 +6336,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-              if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-              }
+              P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
               ImGui::TableNextColumn();
               ImGui::Text("%s",FM_NAME(FM_WS));
             }

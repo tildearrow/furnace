@@ -112,9 +112,9 @@ Barycentric operator+(const Barycentric &a, const Barycentric &b)
 // ----------------------------------------------------------------------------
 // Useful operators on ImGui vectors:
 
-ImVec2 operator*(const float f, const ImVec2 &v) { return ImVec2{ f * v.x, f * v.y }; }
+//ImVec2 operator*(const float f, const ImVec2 &v) { return ImVec2{ f * v.x, f * v.y }; }
 
-ImVec4 operator*(const float f, const ImVec4 &v) { return ImVec4{ f * v.x, f * v.y, f * v.z, f * v.w }; }
+//ImVec4 operator*(const float f, const ImVec4 &v) { return ImVec4{ f * v.x, f * v.y, f * v.z, f * v.w }; }
 
 
 ColorInt operator*(const float other, const ColorInt& that)
@@ -507,12 +507,14 @@ static void paint_triangle(const PaintTarget &target,
       }
 
       if (texture) {
-        if (!texture->isAlpha) { printf("warning: different texture\n"); }
-
         const ImVec2 uv = w0 * v0.uv + w1 * v1.uv + w2 * v2.uv;
-        int x = uv.x * (texture->width - 1.0f) + 0.5f;
-        int y = uv.y * (texture->height - 1.0f) + 0.5f;
-        src_color.a = (src_color.a * sample_font_texture(*texture, x, y) + 255) >> 8;
+        int x = round(uv.x * (texture->width - 1.0f));// + 0.5f;
+        int y = round(uv.y * (texture->height - 1.0f));// + 0.5f;
+        if (texture->isAlpha) {
+          src_color.a = (src_color.a * sample_font_texture(*texture, x, y) + 255) >> 8;
+        } else {
+          src_color *= ColorInt(sample_texture(*texture, x, y * texture->width));
+        }
       }
 
       if (!src_color.a) { continue; }// Transparent.
@@ -566,7 +568,9 @@ static void paint_draw_cmd(const PaintTarget &target,
 
     // A lot of the big stuff are uniformly colored rectangles,
     // so we can save a lot of CPU by detecting them:
-    if (i + 6 <= pcmd.ElemCount) {
+    // 
+    const bool has_texture = (v0.uv != white_uv || v1.uv != white_uv || v2.uv != white_uv);
+    if (i + 6 <= pcmd.ElemCount && !has_texture) {
       ImDrawVert v3 = vertices[idx_buffer[i + 3]];
       ImDrawVert v4 = vertices[idx_buffer[i + 4]];
       ImDrawVert v5 = vertices[idx_buffer[i + 5]];
@@ -608,7 +612,6 @@ static void paint_draw_cmd(const PaintTarget &target,
       }
     }
 
-    const bool has_texture = (v0.uv != white_uv || v1.uv != white_uv || v2.uv != white_uv);
     paint_triangle(target, has_texture ? texture : nullptr, pcmd.ClipRect, v0, v1, v2);
     i += 3;
   }

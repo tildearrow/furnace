@@ -67,7 +67,10 @@ class DivPlatformSegaPCM: public DivDispatch {
     DivPitchTableManager samplePitchTable;
     int delay;
     int pcmL, pcmR, pcmCycles;
-    bool oldSlides;
+    int maxChans;
+    bool oldSlides, isDiscrete;
+    unsigned int sampleMemSize;
+    unsigned char bankShift;
     unsigned char lastBusy;
 
     unsigned char regPool[256];

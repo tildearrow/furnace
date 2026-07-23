@@ -3297,6 +3297,15 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     convertOldADSRLFO();
   }
 
+  // <250 disable OPP TL ramp if it was silently enabled
+  if (version<250) {
+    if (type==DIV_INS_OPM || type==DIV_INS_OPZ) {
+      for (int i=0; i<4; i++) {
+        fm.op[i].ksr=0;
+      }
+    }
+  }
+
   return DIV_DATA_SUCCESS;
 }
 
@@ -4059,6 +4068,15 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   // <245 old ADSR/LFO macro behavior
   if (version<245) {
     convertOldADSRLFO();
+  }
+
+  // <250 disable OPP TL ramp if it was silently enabled
+  if (version<250) {
+    if (type==DIV_INS_OPM || type==DIV_INS_OPZ) {
+      for (int i=0; i<4; i++) {
+        fm.op[i].ksr=0;
+      }
+    }
   }
 
   return DIV_DATA_SUCCESS;
