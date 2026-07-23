@@ -3047,6 +3047,10 @@ class FurnaceGUI {
   int sampleCompileIndex;
   size_t sampleCompileSize;
 
+  // speed window specific
+  Uint64 lastTapTime;
+  float grooveTargetBPM;
+
   // user presets window
   std::vector<int> selectedUserPreset;
 
@@ -3148,6 +3152,7 @@ class FurnaceGUI {
   void sameLineMaybe(float width=-1.0f);
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
+  void calcGrooveBPM(float targetBPM, DivGroovePattern& groove, float hz, int hilightA);
 
   ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
 

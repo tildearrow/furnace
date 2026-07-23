@@ -9867,6 +9867,8 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileDispatch(0),
   sampleCompileIndex(0),
   sampleCompileSize(0),
+  lastTapTime(0),
+  grooveTargetBPM(150.0f),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

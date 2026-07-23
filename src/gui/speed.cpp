@@ -21,6 +21,21 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
+#include <IconsFontAwesome4.h>
+
+void FurnaceGUI::calcGrooveBPM(float targetBPM, DivGroovePattern& groove, float hz, int hilightA) {
+  float targetSpeed=60.0f*hz/(targetBPM*hilightA);
+  float actualBPM=0;
+  for (groove.len=0; groove.len<16 && fabs(targetBPM-actualBPM)>0.0001; ) {
+    if (groove.len==0) {
+      groove.val[0]=round(targetSpeed);
+    } else {
+      groove.val[groove.len]=(targetBPM>actualBPM)?floor(targetSpeed):ceil(targetSpeed);
+    }
+    groove.len++;
+    actualBPM=calcBPM(groove,hz,1,1);
+  }
+}
 
 void FurnaceGUI::drawSpeed(bool asChild) {
   if (nextWindow==GUI_WINDOW_SPEED) {
@@ -31,9 +46,10 @@ void FurnaceGUI::drawSpeed(bool asChild) {
   if (!speedOpen && !asChild) return;
   bool began=asChild?ImGui::BeginChild("Speed"):ImGui::Begin("Speed",&speedOpen,globalWinFlags,_("Speed"));
   if (began) {
-    if (ImGui::BeginTable("Props",2,ImGuiTableFlags_SizingStretchProp)) {
+    if (ImGui::BeginTable("Props",3,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -63,6 +79,22 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (tempoView) {
         ImGui::SameLine();
         ImGui::Text("= %gHz",e->curSubSong->hz);
+        ImGui::TableNextColumn();
+        if (ImGui::Button(ICON_FA_STOP "##tapTempoPad")) {
+          Uint64 tapTime=SDL_GetTicks64();
+          if (!(lastTapTime==0 || tapTime-lastTapTime>10000)) {
+            setHz=1000.0/(tapTime-lastTapTime)*60/2.5;
+            if (setHz<1) setHz=1;
+            if (setHz>999) setHz=999;
+            e->setSongRate(setHz);
+            recalcTimestamps=true;
+            MARK_MODIFIED
+          }
+          lastTapTime=tapTime;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Tap Tempo"));
+        }
       } else {
         if (e->curSubSong->hz>=49.98 && e->curSubSong->hz<=50.02) {
           ImGui::SameLine();
@@ -171,6 +203,24 @@ void FurnaceGUI::drawSpeed(bool asChild) {
             recalcTimestamps=true;
           }
         }
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_FA_CALCULATOR)) {
+        ImGui::OpenPopup("grooveCalc");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Groove Calculator"));
+      }
+      if (ImGui::BeginPopupContextItem("grooveCalc")) {
+        ImGui::InputFloat(_("Target BPM"),&grooveTargetBPM);
+        ImGui::SameLine();
+        if (ImGui::Button(_("OK"))) { MARK_MODIFIED;
+          e->lockEngine([this]{calcGrooveBPM(grooveTargetBPM,e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->hilightA);});
+          if (e->isPlaying()) play();
+          recalcTimestamps=true;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
       }
 
       ImGui::TableNextRow();
