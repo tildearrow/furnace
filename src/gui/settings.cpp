@@ -574,13 +574,14 @@ void FurnaceGUI::pushAccentColors(const ImVec4& one, const ImVec4& two, const Im
   ImGui::PushStyleColor(ImGuiCol_SliderGrabActive,primaryActive);
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive,primary);
   ImGui::PushStyleColor(ImGuiCol_CheckMark,primaryActive);
+  ImGui::PushStyleColor(ImGuiCol_CheckboxSelectedBg,ImLerp(secondary,secondaryHover,0.65f));
   ImGui::PushStyleColor(ImGuiCol_TextSelectedBg,secondaryHover);
   ImGui::PushStyleColor(ImGuiCol_Border,border);
   ImGui::PushStyleColor(ImGuiCol_BorderShadow,borderShadow);
 }
 
 void FurnaceGUI::popAccentColors() {
-  ImGui::PopStyleColor(24);
+  ImGui::PopStyleColor(25);
 }
 
 void FurnaceGUI::pushDestColor() {
