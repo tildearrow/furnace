@@ -886,7 +886,11 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameRounding=6.0f;
     sty.GrabRounding=6.0f;
   }
-  if (settings.roundedMenus) sty.PopupRounding=8.0f;
+  if (settings.roundedMenus) {
+    sty.PopupRounding=8.0f;
+  } else {
+    sty.PopupRounding=0.0f;
+  }
   if (settings.roundedTabs) {
     sty.TabRounding=4.0f;
   } else {

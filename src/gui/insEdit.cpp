@@ -4215,12 +4215,12 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
     switch (e->song.system[i]) {
       case DIV_SYSTEM_OPL:
       case DIV_SYSTEM_OPL_DRUMS:
+      case DIV_SYSTEM_Y8950:
+      case DIV_SYSTEM_Y8950_DRUMS:
         if (oplType<1) oplType=1;
         break;
       case DIV_SYSTEM_OPL2:
       case DIV_SYSTEM_OPL2_DRUMS:
-      case DIV_SYSTEM_Y8950:
-      case DIV_SYSTEM_Y8950_DRUMS:
         if (oplType<2) oplType=2;
         break;
       case DIV_SYSTEM_OPL3:
