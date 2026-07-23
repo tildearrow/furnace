@@ -1678,6 +1678,7 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
   BUSY_END;
 }
 
+#ifdef HAVE_SNDFILE
 DivFilePlayer* DivEngine::getFilePlayer() {
   if (curFilePlayer==NULL) {
     BUSY_BEGIN_SOFT;
@@ -1708,6 +1709,7 @@ void DivEngine::syncFilePlayer() {
   if (curFilePlayer==NULL) return;
   curFilePlayer->setPosSeconds(totalTime+filePlayerCue);
 }
+#endif
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
   logV("playSub() called");
@@ -2060,12 +2062,14 @@ bool DivEngine::play() {
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   bool didItPlay=playing;
+#ifdef HAVE_SNDFILE
   if (didItPlay) {
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
       curFilePlayer->play();
     }
   }
+#endif
   BUSY_END;
   return didItPlay;
 }
@@ -2082,28 +2086,33 @@ bool DivEngine::playToRow(int row) {
     keyHit[i]=false;
   }
   bool didItPlay=playing;
+#ifdef HAVE_SNDFILE
   if (didItPlay) {
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
       curFilePlayer->play();
     }
   }
+#endif
   BUSY_END;
   return didItPlay;
 }
 
 void DivEngine::stepOne(int row) {
+#ifdef HAVE_SNDFILE
   if (curFilePlayer && filePlayerSync) {
     curFilePlayer->stop();
   }
-
+#endif
   if (!isPlaying()) {
     BUSY_BEGIN_SOFT;
     freelance=false;
     playSub(false,row);
+#ifdef HAVE_SNDFILE
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
     }
+#endif
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       keyHit[i]=false;
     }
@@ -2150,9 +2159,11 @@ void DivEngine::stop() {
     }
   }
 
+#ifdef HAVE_SNDFILE
   if (curFilePlayer && filePlayerSync) {
     curFilePlayer->stop();
   }
+#endif
 
   // reset all chan oscs
   for (int i=0; i<song.chans; i++) {
@@ -3153,10 +3164,12 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
+#ifdef HAVE_SNDFILE
       if (curFilePlayer && filePlayerSync) {
         syncFilePlayer();
         curFilePlayer->play();
       }
+#endif
     }
   }
   BUSY_END;
@@ -3209,10 +3222,12 @@ void DivEngine::deepCloneOrder(int pos, bool where) {
     if (pos<=curOrder) curOrder++;
     if (playing && !freelance) {
       playSub(false);
+#ifdef HAVE_SNDFILE
       if (curFilePlayer && filePlayerSync) {
         syncFilePlayer();
         curFilePlayer->play();
       }
+#endif
     }
   }
   BUSY_END;
@@ -3233,10 +3248,12 @@ void DivEngine::deleteOrder(int pos) {
   if (curOrder>=curSubSong->ordersLen) curOrder=curSubSong->ordersLen-1;
   if (playing && !freelance) {
     playSub(false);
+#ifdef HAVE_SNDFILE
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
       curFilePlayer->play();
     }
+#endif
   }
   BUSY_END;
 }
@@ -3260,10 +3277,12 @@ void DivEngine::moveOrderUp(int& pos) {
   pos--;
   if (playing && !freelance) {
     playSub(false);
+#ifdef HAVE_SNDFILE
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
       curFilePlayer->play();
     }
+#endif
   }
   BUSY_END;
 }
@@ -3287,10 +3306,12 @@ void DivEngine::moveOrderDown(int& pos) {
   pos++;
   if (playing && !freelance) {
     playSub(false);
+#ifdef HAVE_SNDFILE
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
       curFilePlayer->play();
     }
+#endif
   }
   BUSY_END;
 }
@@ -3776,11 +3797,12 @@ void DivEngine::setOrder(unsigned char order) {
   prevOrder=curOrder;
   if (playing && !freelance) {
     playSub(false);
-
+#ifdef HAVE_SNDFILE
     if (curFilePlayer && filePlayerSync) {
       syncFilePlayer();
       curFilePlayer->play();
     }
+#endif
   }
   BUSY_END;
 }
@@ -3801,10 +3823,12 @@ void DivEngine::updateSysFlags(int system, bool restart, bool render) {
   if (restart) {
     if (isPlaying()) {
       playSub(false);
+#ifdef HAVE_SNDFILE
       if (curFilePlayer && filePlayerSync) {
         syncFilePlayer();
         curFilePlayer->play();
       }
+#endif
     } else if (freelance) {
       reset();
     }
@@ -3867,9 +3891,11 @@ bool DivEngine::switchMaster(bool full) {
       disCont[i].setRates(got.rate);
       disCont[i].setQuality(lowQuality,dcHiPass);
     }
+#ifdef HAVE_SNDFILE
     if (curFilePlayer!=NULL) {
       curFilePlayer->setOutputRate(got.rate);
     }
+#endif
     if (!output->setRun(true)) {
       logE("error while activating audio!");
       return false;
@@ -4065,9 +4091,11 @@ void DivEngine::quitDispatch() {
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
+#ifdef HAVE_SNDFILE
   if (filePlayerSync) {
     if (curFilePlayer!=NULL) curFilePlayer->stop();
   }
+#endif
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     isMuted[i]=0;
   }
@@ -4430,9 +4458,11 @@ bool DivEngine::init() {
   reset();
   active=true;
 
+#ifdef HAVE_SNDFILE
   if (curFilePlayer!=NULL) {
     curFilePlayer->setOutputRate(got.rate);
   }
+#endif
 
   if (!haveAudio) {
     return false;
@@ -4465,10 +4495,12 @@ bool DivEngine::quit(bool saveConfig) {
     metroBuf=NULL;
     metroBufLen=0;
   }
+#ifdef HAVE_SNDFILE
   if (curFilePlayer!=NULL) {
     delete curFilePlayer;
     curFilePlayer=NULL;
   }
+#endif
   if (yrw801ROM!=NULL) delete[] yrw801ROM;
   if (tg100ROM!=NULL) delete[] tg100ROM;
   if (mu5ROM!=NULL) delete[] mu5ROM;

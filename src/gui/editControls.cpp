@@ -651,10 +651,12 @@ void FurnaceGUI::drawMobileControls() {
         if (ImGui::Button(_("EffectList"))) {
           effectListOpen=!effectListOpen;
         }
+#ifdef HAVE_SNDFILE
         ImGui::SameLine();
         if (ImGui::Button(_("RefPlayer"))) {
           refPlayerOpen=!refPlayerOpen;
         }
+#endif
         if (ImGui::Button(_("Tuner"))) {
           tunerOpen=!tunerOpen;
         }
