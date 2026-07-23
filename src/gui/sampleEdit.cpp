@@ -1017,6 +1017,7 @@ void FurnaceGUI::drawSampleEdit() {
                   }
 
                   ImGui::PushStyleColor(ImGuiCol_FrameBg,color);
+                  ImGui::PushStyleColor(ImGuiCol_CheckboxSelectedBg,color);
                   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,colorHovered);
                   ImGui::PushStyleColor(ImGuiCol_FrameBgActive,colorActive);
                   ImGui::PushStyleColor(ImGuiCol_CheckMark,baseColor);
@@ -1025,7 +1026,7 @@ void FurnaceGUI::drawSampleEdit() {
                     e->renderSamplesP(curSample);
                   }
 
-                  ImGui::PopStyleColor(4);
+                  ImGui::PopStyleColor(5);
 
                   if (ImGui::IsItemHovered()) {
                     const char* memName=NULL;
