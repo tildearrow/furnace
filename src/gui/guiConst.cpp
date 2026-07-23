@@ -857,7 +857,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_COPY_NEW", _N("Sample editor: Copy selection to new sample"), 0),
   D("SAMPLE_TRIM_AFTER_LOOP", _N("Sample editor: Trim to the end of the loop"), 0),
   D("SAMPLE_TRIM_TO_LOOP", _N("Sample editor: Trim around loop points"), 0),
-  D("SAMPLE_SELECT_LOOP", _N("Sample editor: Set selection to loop length"), 0),
+  D("SAMPLE_SELECT_LOOP", _N("Sample editor: Select loop region"), 0),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", _N("---Orders"), NOT_AN_ACTION),

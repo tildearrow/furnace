@@ -55,9 +55,9 @@ const char* sampleFixLoopTargets[]={
   _N("Amiga"),
   _N("SNES"),
   _N("Namco C219"),
-  _N("Nintendo DS PCM16"),
-  _N("Nintendo DS PCM8"),
-  _N("Nintendo DS IMA"),
+  _N("NDS 16-bit"),
+  _N("NDS 8-bit"),
+  _N("NDS IMA"),
   _N("GBA DMA Sound")
 };
 
@@ -2073,7 +2073,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("set loop to selection"),BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
-          if (ImGui::MenuItem(_("set selection to loop length"),BIND_FOR(GUI_ACTION_SAMPLE_SELECT_LOOP))) {
+          if (ImGui::MenuItem(_("select loop region"),BIND_FOR(GUI_ACTION_SAMPLE_SELECT_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SELECT_LOOP);
           }
           ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
