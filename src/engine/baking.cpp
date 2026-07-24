@@ -45,6 +45,8 @@ static const char* describeType(unsigned char type) {
       return "PitchListHigh";
     case DIV_OBJECT_OCTAVE_SHIFT_LIST:
       return "ShiftList";
+    case DIV_OBJECT_SEQUENCE_DATA:
+      return "CmdStream";
   }
   return "Obj";
 }

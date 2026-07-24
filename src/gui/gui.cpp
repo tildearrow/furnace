@@ -6982,7 +6982,7 @@ bool FurnaceGUI::loop() {
 
           if (csExportTarget==2) { // bakery
             // do nothing
-          } if (csExportTarget==1) { // command stream player
+          } else if (csExportTarget==1) { // command stream player
             csExportResult=bakeObjectsBinary(csDough,0);
             if (csExportResult!=NULL) {
               if (!e->playStream(csExportResult->getFinalBuf(),csExportResult->size())) {

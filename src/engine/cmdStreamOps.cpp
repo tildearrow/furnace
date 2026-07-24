@@ -1949,6 +1949,6 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
     if (sortedCmdPopularity[i]) logD("- %s ($%.2x): %d",cmdName[sortedCmd[i]],sortedCmd[i],sortedCmdPopularity[i]);
   }
 
-  pool.push_back(DivObject(w->getFinalBuf(),w->size(),DIV_OBJECT_OTHER,"CmdStream"));
+  pool.push_back(DivObject(w->getFinalBuf(),w->size(),DIV_OBJECT_SEQUENCE_DATA));
   w->disown();
 }

@@ -78,6 +78,8 @@ static const char* getObjectTypeStr(unsigned char type) {
       return "Pitch Table List (high)";
     case DIV_OBJECT_OCTAVE_SHIFT_LIST:
       return "Octave Shift List";
+    case DIV_OBJECT_SEQUENCE_DATA:
+      return "Sequence Data";
   }
   return "Unknown";
 }
