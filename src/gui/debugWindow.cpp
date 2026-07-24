@@ -634,6 +634,13 @@ void FurnaceGUI::drawDebug() {
         }
       }
 
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Sequence");
+      ImGui::SameLine();
+      if (ImGui::Button("Prepare Current Song")) {
+        exportCmdStream(2,"");
+      }
+
       size_t totalSize=0;
       ImGui::Text("Dough:");
       if (romObjectPool.empty()) {

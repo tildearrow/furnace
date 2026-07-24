@@ -2981,7 +2981,7 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   displayExporting=true;
 }
 
-void FurnaceGUI::exportCmdStream(bool target, String path) {
+void FurnaceGUI::exportCmdStream(unsigned char target, String path) {
   csExportPath=path;
   csExportTarget=target;
   csExportDone=false;
@@ -2990,8 +2990,7 @@ void FurnaceGUI::exportCmdStream(bool target, String path) {
       delete[] i.data;
     }
     csDough.clear();
-    e->saveCommand(csDough,&csProgress,csExportOptions);
-    csExportResult=bakeObjectsBinary(csDough,0);
+    e->saveCommand((csExportTarget==2)?romObjectPool:csDough,&csProgress,csExportOptions);
     csExportDone=true;
   });
   displayExportingCS=true;
@@ -6981,7 +6980,10 @@ bool FurnaceGUI::loop() {
           delete csExportThread;
           csExportThread=NULL;
 
-          if (csExportTarget) { // command stream player
+          if (csExportTarget==2) { // bakery
+            // do nothing
+          } if (csExportTarget==1) { // command stream player
+            csExportResult=bakeObjectsBinary(csDough,0);
             if (csExportResult!=NULL) {
               if (!e->playStream(csExportResult->getFinalBuf(),csExportResult->size())) {
                 showError(e->getLastError());
@@ -6996,6 +6998,7 @@ bool FurnaceGUI::loop() {
             }
             csExportResult=NULL;
           } else { // command stream export
+            csExportResult=bakeObjectsBinary(csDough,0);
             if (csExportResult!=NULL) {
               FILE* f=ps_fopen(csExportPath.c_str(),"wb");
               if (f!=NULL) {
@@ -9812,7 +9815,7 @@ FurnaceGUI::FurnaceGUI():
   csDisAsmAddr(0),
   csExportThread(NULL),
   csExportResult(NULL),
-  csExportTarget(false),
+  csExportTarget(0),
   csExportDone(false),
   audioExportFilterName("???"),
   audioExportFilterExt("*"),

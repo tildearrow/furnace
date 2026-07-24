@@ -3015,7 +3015,11 @@ class FurnaceGUI {
   std::vector<CSDisAsmIns> csDisAsm;
   std::thread* csExportThread;
   SafeWriter* csExportResult;
-  bool csExportTarget, csExportDone;
+  // 0: file > export
+  // 1: csPlayer > Burn Current Song
+  // 2: bakery > Prepare Current Song
+  unsigned char csExportTarget;
+  bool csExportDone;
   String csExportPath;
   DivObjectPool csDough;
 
@@ -3370,7 +3374,7 @@ class FurnaceGUI {
   void pushRecentFile(String path);
   void pushRecentSys(const char* path);
   void exportAudio(String path, DivAudioExportModes mode);
-  void exportCmdStream(bool target, String path);
+  void exportCmdStream(unsigned char target, String path);
   void delFirstBackup(String name);
 
   bool parseSysEx(unsigned char* data, size_t len);
