@@ -455,6 +455,7 @@ JSON serializeInstrument(DivInstrument* ins) {
     case DIV_INS_BIFURCATOR:
     case DIV_INS_TED:
     case DIV_INS_UPD1771C:
+    case DIV_INS_KLATTSCH:
     case DIV_INS_MAX:
     case DIV_INS_NULL:
       break;
