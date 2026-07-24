@@ -9828,6 +9828,8 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileIndex(0),
   sampleCompileSize(0),
   romDoughAddr(0),
+  lastTapTime(0),
+  grooveTargetBPM(150.0f),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

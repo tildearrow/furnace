@@ -3014,6 +3014,7 @@ class FurnaceGUI {
   unsigned int csDisAsmAddr;
   std::vector<CSDisAsmIns> csDisAsm;
   std::thread* csExportThread;
+  SafeWriter* csExportResult;
   bool csExportTarget, csExportDone;
   String csExportPath;
   DivObjectPool csDough;
@@ -3047,6 +3048,10 @@ class FurnaceGUI {
   size_t sampleCompileSize;
   DivObjectPool romObjectPool;
   size_t romDoughAddr;
+
+  // speed window specific
+  Uint64 lastTapTime;
+  float grooveTargetBPM;
 
   // user presets window
   std::vector<int> selectedUserPreset;
@@ -3149,6 +3154,7 @@ class FurnaceGUI {
   void sameLineMaybe(float width=-1.0f);
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
+  void calcGrooveBPM(float targetBPM, DivGroovePattern& groove, float hz, int hilightA);
 
   ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
 
