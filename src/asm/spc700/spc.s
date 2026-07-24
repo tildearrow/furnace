@@ -21,7 +21,7 @@ actualDir=waveRAM+$480
 FCS_MAX_CHAN=8
 FCS_PORTA_SPEED_MULT=4
 
-fcsAddrBase=$26
+fcsAddrBase=$24
 fcsZeroPage=$12
 fcsGlobalStack=$200
 fcsPtr=cmdStream

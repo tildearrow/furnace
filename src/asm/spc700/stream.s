@@ -28,6 +28,7 @@
 fcsDelays=fcsPtr+8
 fcsSpeedDial=fcsPtr+24
 fcsStackSize=fcsPtr+40+(FCS_MAX_CHAN*2)
+fcsChanBase=fcsAddrBase+16
 
 ; variables
 ; these may be read by your command handling routines
@@ -39,28 +40,27 @@ fcsTicks=fcsAddrBase+8 ; short
 fcsSendVolume=fcsAddrBase+10 ; char
 fcsSendPitch=fcsAddrBase+11 ; char
 fcsArpSpeed=fcsAddrBase+12 ; char
-fcsCmd=fcsAddrBase+16 ; char[8]
 fcsTempPtr=fcsZeroPage ; short
 ; channel state
 chanPC=fcsZeroPage+2 ; short
-chanTicks=fcsAddrBase+24 ; short
-chanStackPtr=fcsAddrBase+24+(FCS_MAX_CHAN*2) ; char
-chanNote=fcsAddrBase+24+(FCS_MAX_CHAN*2)+1 ; char
-chanVibratoPos=fcsAddrBase+24+(FCS_MAX_CHAN*4) ; char
-chanVibrato=fcsAddrBase+24+(FCS_MAX_CHAN*4)+1 ; char
-chanPitch=fcsAddrBase+24+(FCS_MAX_CHAN*6) ; char
-chanArp=fcsAddrBase+24+(FCS_MAX_CHAN*6)+1 ; char
-chanPortaSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*8) ; char
-chanPortaTarget=fcsAddrBase+24+(FCS_MAX_CHAN*8)+1 ; char
-chanVol=fcsAddrBase+24+(FCS_MAX_CHAN*10) ; short
-chanVolSpeed=fcsAddrBase+24+(FCS_MAX_CHAN*12) ; short
-chanPan=fcsAddrBase+24+(FCS_MAX_CHAN*14) ; short
-chanArpStage=fcsAddrBase+24+(FCS_MAX_CHAN*16) ; char
-chanArpTicks=fcsAddrBase+24+(FCS_MAX_CHAN*16)+1 ; char
-chanTremoloPos=fcsAddrBase+24+(FCS_MAX_CHAN*18) ; char
-chanTremolo=fcsAddrBase+24+(FCS_MAX_CHAN*18)+1 ; char
-chanPanbrelloPos=fcsAddrBase+24+(FCS_MAX_CHAN*20) ; char
-chanPanbrello=fcsAddrBase+24+(FCS_MAX_CHAN*20)+1 ; char
+chanTicks=fcsChanBase ; short
+chanStackPtr=fcsChanBase+(FCS_MAX_CHAN*2) ; char
+chanNote=fcsChanBase+(FCS_MAX_CHAN*2)+1 ; char
+chanVibratoPos=fcsChanBase+(FCS_MAX_CHAN*4) ; char
+chanVibrato=fcsChanBase+(FCS_MAX_CHAN*4)+1 ; char
+chanPitch=fcsChanBase+(FCS_MAX_CHAN*6) ; char
+chanArp=fcsChanBase+(FCS_MAX_CHAN*6)+1 ; char
+chanPortaSpeed=fcsChanBase+(FCS_MAX_CHAN*8) ; char
+chanPortaTarget=fcsChanBase+(FCS_MAX_CHAN*8)+1 ; char
+chanVol=fcsChanBase+(FCS_MAX_CHAN*10) ; short
+chanVolSpeed=fcsChanBase+(FCS_MAX_CHAN*12) ; short
+chanPan=fcsChanBase+(FCS_MAX_CHAN*14) ; short
+chanArpStage=fcsChanBase+(FCS_MAX_CHAN*16) ; char
+chanArpTicks=fcsChanBase+(FCS_MAX_CHAN*16)+1 ; char
+chanTremoloPos=fcsChanBase+(FCS_MAX_CHAN*18) ; char
+chanTremolo=fcsChanBase+(FCS_MAX_CHAN*18)+1 ; char
+chanPanbrelloPos=fcsChanBase+(FCS_MAX_CHAN*20) ; char
+chanPanbrello=fcsChanBase+(FCS_MAX_CHAN*20)+1 ; char
 
 ; may be used for driver detection
 fcsDriverInfo:
@@ -845,9 +845,7 @@ fcsTick:
   bne -
 
   ; increase tick counter
-  inc fcsTicks
-  bne +
-  inc fcsTicks+1
+  incw fcsTicks
 
   ; end
 + ret

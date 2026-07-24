@@ -14,7 +14,7 @@ divTempPtr3=$06
 divTempPtr4=$08
 divTempKeyOn=$0a
 divTempKeyOff=$0b
-divBase=$300
+divBase=$100
 divChans=8
 
 ;;;; ---- SharedChannel ---- ;;;;
@@ -69,9 +69,10 @@ divChanSR=divBase+(divChans*24)+1 ; unsigned char
 ; dang it.
 divChanGain=divBase+(divChans*26) ; unsigned char
 divChanD2=divBase+(divChans*26)+1 ; unsigned char
+divBaseEnd=divBase+(divChans*28)
 
 ;;;; ---- DivPlatformSNES (global state) ---- ;;;;
-divGlobalBase=divBase+(divChans*28)
+divGlobalBase=$300
 divGlobalVolL=divGlobalBase ; unsigned char
 divGlobalVolR=divGlobalBase+1 ; unsigned char
 ; - bit 5: !echoOn
@@ -623,7 +624,7 @@ divReset:
   dspWrite dsp_FLG, #$20
   
   ; clear state memory
-  mov y, #(divGlobalBase-divBase).b
+  mov y, #(divBaseEnd-divBase).b
   mov a, #0
 - mov !divBase+y, a
   dbnz y, -
