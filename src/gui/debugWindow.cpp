@@ -661,8 +661,16 @@ void FurnaceGUI::drawDebug() {
             if (!i.reloc.empty()) {
               ImGui::Text("relocation table:");
               ImGui::Indent();
+              unsigned int prevOffset=0;
               for (DivRelocInfo& j: i.reloc) {
-                ImGui::Text("- $%.4x (%s) = %d",j.offset,getRelocPtrTypeStr(j.type),j.objectIndex);
+                if (j.offset<prevOffset) {
+                  ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ERROR]);
+                }
+                ImGui::Text("- $%.4x (%s) = %d (offset %d)",j.offset,getRelocPtrTypeStr(j.type),j.objectIndex,j.objectOffset);
+                if (j.offset<prevOffset) {
+                  ImGui::PopStyleColor();
+                }
+                prevOffset=j.offset;
               }
               ImGui::Unindent();
             }

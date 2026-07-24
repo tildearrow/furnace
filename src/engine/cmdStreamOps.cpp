@@ -729,7 +729,7 @@ void reloc8(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned in
   }
 }
 
-void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial, bool bigEndian) {
+static void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int destAddr, unsigned char* speedDial, bool bigEndian, DivObject& obj, size_t objIndex) {
   unsigned int delta=destAddr-sourceAddr;
   for (size_t i=0; i<len;) {
     int insLen=getInsLength(buf[i],_EXT(buf,i,len),speedDial);
@@ -747,11 +747,13 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
           buf[i+2]=(addr>>16)&0xff;
           buf[i+3]=(addr>>8)&0xff;
           buf[i+4]=addr&0xff;
+          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U32BE,addr));
         } else {
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
           buf[i+3]=(addr>>16)&0xff;
           buf[i+4]=(addr>>24)&0xff;
+          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U32,addr));
         }
         break;
       }
@@ -761,9 +763,11 @@ void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsigned int
         if (bigEndian) {
           buf[i+1]=(addr>>8)&0xff;
           buf[i+2]=addr&0xff;
+          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U16BE,addr));
         } else {
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
+          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U16,addr));
         }
         break;
       }
@@ -1328,6 +1332,8 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
   memset(sortedCmd,0,4);
   memset(sortedDelay,0,16);
 
+  DivObject obj;
+
   SafeWriter* w=new SafeWriter;
   w->init();
 
@@ -1831,12 +1837,21 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
   // also find new offsets
   globalStream=stripNopsPacked(globalStream,sortedCmd,chanStreamOff);
 
+  // offset channel pointers and add relocation info
   for (int h=0; h<song.chans; h++) {
     chanStreamOff[h]+=w->tell();
+    if (options.longPointers) {
+      obj.reloc.push_back(DivRelocInfo(40+h*4,pool.size(),options.bigEndian?DIV_RELOC_PTR_U32BE:DIV_RELOC_PTR_U32,chanStreamOff[h]));
+    } else {
+      obj.reloc.push_back(DivRelocInfo(40+h*2,pool.size(),options.bigEndian?DIV_RELOC_PTR_U16BE:DIV_RELOC_PTR_U16,chanStreamOff[h]));
+    }
   }
 
-  // write results (convert addresses to big-endian if necessary)
-  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd,options.bigEndian);
+  // write results:
+  // - offset addresses to their actual positions within the final command stream data
+  // - convert addresses to big-endian if necessary
+  // - prepare relocation info
+  reloc(globalStream->getFinalBuf(),globalStream->size(),0,w->tell(),sortedCmd,options.bigEndian,obj,pool.size());
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
   // calculate max stack sizes
@@ -1949,6 +1964,10 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
     if (sortedCmdPopularity[i]) logD("- %s ($%.2x): %d",cmdName[sortedCmd[i]],sortedCmd[i],sortedCmdPopularity[i]);
   }
 
-  pool.push_back(DivObject(w->getFinalBuf(),w->size(),DIV_OBJECT_SEQUENCE_DATA));
+  obj.data=w->getFinalBuf();
+  obj.len=w->size();
+  obj.type=DIV_OBJECT_SEQUENCE_DATA;
+
+  pool.push_back(obj);
   w->disown();
 }
