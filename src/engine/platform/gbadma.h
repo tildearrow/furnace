@@ -88,6 +88,7 @@ class DivPlatformGBADMA: public DivDispatch {
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
     unsigned int getMaxFreq(int ch);
+    size_t getSampleMemNum();
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
