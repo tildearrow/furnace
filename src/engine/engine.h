@@ -698,7 +698,7 @@ class DivEngine {
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
     // dump command stream.
-    SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
+    void saveCommand(DivObjectPool& pool, DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
     SafeWriter* saveText(bool separatePatterns=true);
 #ifdef WITH_JSON

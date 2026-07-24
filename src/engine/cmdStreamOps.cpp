@@ -1279,7 +1279,7 @@ SafeWriter* packStream(SafeWriter* s, unsigned char* speedDial) {
   return s;
 }
 
-SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options) {
+void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSOptions options) {
   stop();
   repeatPattern=false;
   shallStop=false;
@@ -1949,5 +1949,6 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     if (sortedCmdPopularity[i]) logD("- %s ($%.2x): %d",cmdName[sortedCmd[i]],sortedCmd[i],sortedCmdPopularity[i]);
   }
 
-  return w;
+  pool.push_back(DivObject(w->getFinalBuf(),w->size(),DIV_OBJECT_OTHER,"CmdStream"));
+  w->disown();
 }

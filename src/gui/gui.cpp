@@ -2986,8 +2986,12 @@ void FurnaceGUI::exportCmdStream(bool target, String path) {
   csExportTarget=target;
   csExportDone=false;
   csExportThread=new std::thread([this]() {
-    SafeWriter* w=e->saveCommand(&csProgress,csExportOptions);
-    csExportResult=w;
+    for (DivObject& i: csDough) {
+      delete[] i.data;
+    }
+    csDough.clear();
+    e->saveCommand(csDough,&csProgress,csExportOptions);
+    csExportResult=bakeObjectsBinary(csDough,0);
     csExportDone=true;
   });
   displayExportingCS=true;

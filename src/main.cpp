@@ -1049,7 +1049,9 @@ int main(int argc, char** argv) {
 
   if (outputMode) {
     if (cmdOutName!="") {
-      SafeWriter* w=e.saveCommand(NULL);
+      DivObjectPool cmdPool;
+      e.saveCommand(cmdPool,NULL);
+      SafeWriter* w=bakeObjectsBinary(cmdPool,0);
       if (w!=NULL) {
         FILE* f=ps_fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {

@@ -3014,9 +3014,9 @@ class FurnaceGUI {
   unsigned int csDisAsmAddr;
   std::vector<CSDisAsmIns> csDisAsm;
   std::thread* csExportThread;
-  SafeWriter* csExportResult;
   bool csExportTarget, csExportDone;
   String csExportPath;
+  DivObjectPool csDough;
 
   // export options
   DivAudioExportOptions audioExportOptions;
