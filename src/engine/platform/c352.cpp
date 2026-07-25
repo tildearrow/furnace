@@ -133,8 +133,8 @@ void DivPlatformC352::tick(bool sysTick) {
   
   // If the user changed the duty settings in the tracker, update the voice state
   if (chan[i].std.duty.had) {
-  // Pull the 3 lowest bits from the .val field
-  unsigned char incomingFlags = chan[i].std.duty.val & 7;
+    // Pull the 3 lowest bits from the .val field
+    unsigned char incomingFlags = chan[i].std.duty.val & 7;
     chan[i].noise       = (incomingFlags & 1) != 0;
     chan[i].invert      = (incomingFlags & 2) != 0;
     chan[i].surround    = (incomingFlags & 4) != 0;
@@ -209,28 +209,16 @@ void DivPlatformC352::tick(bool sysTick) {
   // 3. Clean clamping replacement instead of individual if statements
   chan[i].freq = std::clamp(chan[i].freq, 0, 65535);
 
-  if (is352) {
-    ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable() || chan[i].noise) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_C352) ? 1 : 0) | (chan[i].invert ? 0x40 : 0) | (chan[i].surround ? 8 : 0) | (chan[i].noise ? 4 : 0);
-  }
-  else {
-    ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable()) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_MULAW) ? 0x08 : 0);
-  }
+  ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable() || chan[i].noise) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_C352) ? 1 : 0) | (chan[i].invert ? 0x40 : 0) | (chan[i].surround ? 8 : 0) | (chan[i].noise ? 4 : 0);
   if (chan[i].keyOn) {
     unsigned int bank = 0;
     unsigned int start = 0;
     unsigned int loop = 0;
     unsigned int end = 0;
     if (chan[i].sample >= 0 && chan[i].sample < parent->song.sampleLen) {
-      if (is352) {
-        bank = (sampleOff[chan[i].sample] >> 32) & 4;
-        start = sampleOff[chan[i].sample] & 0xffff;
-        end = MIN(start + (s->length8 >> 1) - 1, 65535);
-      }
-      else {
-        bank = (sampleOff[chan[i].sample] >> 32) & 0xff;
-        start = sampleOff[chan[i].sample] & 0xffff;
-        end = MIN(start + s->length8 - 1, 65535);
-      }
+       bank = (sampleOff[chan[i].sample] >> 32) & 4;
+       start = sampleOff[chan[i].sample] & 0xffff;
+       end = MIN(start + (s->length8 >> 1) - 1, 65535);
     }
     else if (chan[i].noise) {
       bank = groupBank[i >> 2];
@@ -241,37 +229,13 @@ void DivPlatformC352::tick(bool sysTick) {
       start = MIN(start + (MIN(chan[i].audPos, s->length8) >> 1), 65535);
     }
     if (chan[i].sample >= 0 && chan[i].sample < parent->song.sampleLen && s->isLoopable()) {
-      if (is352) {
-        loop = MIN(start + (s->loopStart >> 1), 65535);
-        end = MIN(start + (s->loopEnd >> 1), 65535);
-      }
-      else {
-        loop = MIN(start + s->loopStart + 1, 65535);
-        end = MIN(start + s->loopEnd + 1, 65535);
-      }
+       loop = MIN(start + (s->loopStart >> 1), 65535);
+       end = MIN(start + (s->loopEnd >> 1), 65535);
     }
     else if (chan[i].noise) {
       loop = 0;
     }
     rWrite(0x05 + (i << 4), 0); // force keyoff first
-    if (is352) {
-      if (groupBank[i >> 2] != bank) {
-        groupBank[i >> 2] = bank;
-        rWrite(0x1f1 + (((3 + (i >> 2)) & 3) << 1), groupBank[i >> 2]);
-        // shut everyone else up
-        for (int j = 0; j < 4; j++) {
-          int ch = (i & (~3)) | j;
-          if (chan[ch].active && !chan[ch].keyOn && (i & 3) != j) {
-            chan[ch].sample = -1;
-            chan[ch].active = false;
-            chan[ch].keyOff = true;
-            chan[ch].macroInit(NULL);
-            rWrite(0x05 + (ch << 4), ctrl);
-          }
-        }
-      }
-    }
-    else {
       switch (bankType) {
       case 0:
         bank = ((bank & 8) << 2) | (bank & 7);
@@ -281,7 +245,6 @@ void DivPlatformC352::tick(bool sysTick) {
         break;
       }
       rWrite(0x04 + (i << 4), bank);
-    }
     rWrite(0x06 + (i << 4), (start >> 8) & 0xff);
     rWrite(0x07 + (i << 4), start & 0xff);
     rWrite(0x08 + (i << 4), (end >> 8) & 0xff);
@@ -379,12 +342,10 @@ int DivPlatformC352::dispatch(DivCommand c) {
     return chan[c.chan].outVol;
     break;
   case DIV_CMD_STD_NOISE_MODE:
-    if (!is352) break;
     chan[c.chan].noise = c.value;
     chan[c.chan].writeCtrl = true;
     break;
-  case DIV_CMD_SNES_INVERT:
-    if (!is352) break;
+  case DIV_CMD_STD_DUTY:
     chan[c.chan].invert = c.value & 15;
     chan[c.chan].surround = c.value >> 4;
     chan[c.chan].writeCtrl = true;
@@ -481,11 +442,8 @@ void DivPlatformC352::forceIns() {
     chan[i].volChangedR = true;
     chan[i].sample = -1;
   }
-  if (is352) {
-    // restore banks
     for (int i = 0; i < 4; i++) {
       rWrite(0x1f1 + (((3 + i) & 3) << 1), groupBank[i]);
-    }
   }
 }
 
@@ -503,11 +461,6 @@ unsigned short DivPlatformC352::getPan(int ch) {
 
 DivDispatchOscBuffer* DivPlatformC352::getOscBuffer(int ch) {
   return oscBuf[ch];
-}
-
-if (chan[i].std.dutyCycle.had) {  // Double-check if your channel struct uses duty or dutyCycle
-  unsigned char incomingFlags = chan[i].std.dutyCycle.val & 7;
-  // ... rest of your bitmask code
 }
 
 void DivPlatformC352::reset() {
@@ -579,7 +532,6 @@ float DivPlatformC352::getPostAmp() {
 }
 
 void DivPlatformC352::getPaired(int ch, std::vector<DivChannelPair>& ret) {
-  if (!is352) return;
   if ((ch & 3) == 0) {
     ret.push_back(DivChannelPair(bankLabel[ch >> 2], ch + 1, ch + 2, ch + 3, -1, -1, -1, -1, -1));
   }
@@ -591,7 +543,6 @@ const void* DivPlatformC352::getSampleMem(int index) {
 
 size_t DivPlatformC352::getSampleMemCapacity(int index) {
   if (index != 0) return 0;
-  if (is352) return 524288;
   switch (bankType) {
   case 0:
     return 2097152;
@@ -632,8 +583,6 @@ void DivPlatformC352::renderSamples(int sysID) {
       sampleOff[sidx] = 0;
       continue;
     }
-
-    if (is352) { // C352 (8-bit)
       unsigned int length = s->length8 + 4;
       // fit sample size to single bank size
       if (length > 131072) {
@@ -667,75 +616,15 @@ void DivPlatformC352::renderSamples(int sysID) {
           sampleMem[(memPos + j) ^ 1] = next;
         }
       }
-      else {
-        signed char next = 0;
-        unsigned int sPos = 0;
-        for (unsigned int j = 0; j < length; j++) {
-          if (sPos < s->length8) {
-            next = s->data8[sPos++];
-            if (s->isLoopable()) {
-              if ((int)sPos >= s->loopEnd) {
-                sPos = s->loopStart;
-              }
-            }
-          }
-          sampleMem[(memPos + j) ^ 1] = next;
-        }
-      }
+      
       sampleOff[sidx] = memPos >> 1;
       sampleLoaded[sidx] = true;
       memCompo.entries.push_back(DivMemoryEntry((DivMemoryEntryType)(DIV_MEMORY_BANK0 + ((memPos >> 17) & 3)), "Sample", sidx, memPos, memPos + length));
       memPos += length;
+
+      
     }
-    else { // C352 (16-bit)
-      unsigned int length = s->length16 + 4;
-      // fit sample size to single bank size
-      if (length > (131072)) {
-        length = 131072;
-      }
-      if ((memPos & 0xfe0000) != ((memPos + length) & 0xfe0000)) {
-        memPos = ((memPos + 0x1ffff) & 0xfe0000);
-      }
-      if (memPos >= capacity) {
-        logW("out of C352 memory for sample %d!", sidx);
-        break;
-      }
-      if (memPos + length >= capacity) {
-        length = static_cast<unsigned int>(capacity - memPos);
-        logW("out of C352 memory for sample %d!", sidx);
-      }
-      if (s->depth == DIV_SAMPLE_DEPTH_MULAW) {
-        for (unsigned int j = 0; j < length; j += 2) {
-          if ((j >> 1) >= s->lengthMuLaw) break;
-          unsigned char x = s->dataMuLaw[j >> 1] ^ 0xff;
-          if (x & 0x80) x ^= 15;
-          unsigned char c352Mu = (x & 0x80) | ((x & 15) << 3) | ((x & 0x70) >> 4);
-          sampleMem[j + memPos] = 0;
-          sampleMem[1 + j + memPos] = c352Mu;
-        }
-      }
-      else {
-        short next = 0;
-        unsigned int sPos = 0;
-        for (unsigned int j = 0; j < length; j += 2) {
-          if (sPos < s->samples) {
-            next = s->data16[sPos++];
-            if (s->isLoopable()) {
-              if ((int)sPos >= s->loopEnd) {
-                sPos = s->loopStart;
-              }
-            }
-          }
-          sampleMem[memPos + j] = ((unsigned short)next);
-          sampleMem[memPos + j + 1] = ((unsigned short)next) >> 8;
-        }
-      }
-      sampleOff[sidx] = memPos >> 1;
-      sampleLoaded[sidx] = true;
-      memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE, "Sample", sidx, memPos, memPos + length));
-      memPos += length;
-    }
-  }
+  
   sampleMemLen = memPos + 256;
 
   memCompo.used = sampleMemLen;
@@ -743,35 +632,23 @@ void DivPlatformC352::renderSamples(int sysID) {
 }
 
 void DivPlatformC352::set352(bool is_352) {
-  is352 = is_352;
-  totalChans = is352 ? 32;
+  totalChans = 32;
 }
 
 int DivPlatformC352::getClockRangeMin() {
-  if (is352) return 1000000;
   return MIN_CUSTOM_CLOCK;
 }
 
 int DivPlatformC352::getClockRangeMax() {
-  if (is352) return 100000000;
   return MAX_CUSTOM_CLOCK;
 }
 
 void DivPlatformC352::setFlags(const DivConfig& flags) {
-  if (is352) {
     chipClock = 50113000; // 50.113MHz clock input in Namco NA-1/NA-2 PCB
     CHECK_CUSTOM_CLOCK;
     rate = chipClock / 1136; // assumed as ~44100hz
-  }
-  else {
-    chipClock = 32000 * 256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
-    CHECK_CUSTOM_CLOCK;
-    rate = chipClock / 192;
-  }
   bankType = flags.getInt("bankType", 0);
-  if (!is352) {
     c352_bank_type;
-  }
   for (int i = 0; i < totalChans; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -802,12 +679,7 @@ int DivPlatformC352::init(DivEngine* p, int channels, int sugRate, const DivConf
   sampleMemLen = 0;
 
   c352_init;
-  if (is352) {
-    c352.sample_mem = reinterpret_cast<signed char*>(sampleMem);
-  }
-  else {
-    c352.sample_mem = reinterpret_cast<signed char*>(sampleMem);
-  }
+  c352.sample_mem = reinterpret_cast<signed char*>(sampleMem);
 
   reset();
 
@@ -823,14 +695,25 @@ void DivPlatformC352::quit() {
 
 // initialization of important arrays
 DivPlatformC352::DivPlatformC352() {
-  sampleOff = new unsigned int[32768];
-  sampleLoaded = new bool[32768];
+  sampleOff = new unsigned int[32768]();
+  sampleLoaded = new bool[32768]();
   // sensible defaults
-  totalChans = 0;
-  is352 = true;
+  totalChans = 32;
+  sampleMem = nullptr;
+  sampleMemLen = 0;
+  for (int i = 0; i < 4; i++) {
+    groupBank[i] = 0;
+  }
+  bankType = 0;
+  memset(regPool, 0, sizeof(regPool));
 }
-
 DivPlatformC352::~DivPlatformC352() {
+  // CRITICAL CLEANUP: Prevents leaking memory when the chip is unloaded
   delete[] sampleOff;
   delete[] sampleLoaded;
+
+  // Clean up your custom sample memory buffer if it was allocated during initialization
+  if (sampleMem != nullptr) {
+    delete[] sampleMem;
+  }
 }
