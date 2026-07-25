@@ -2524,6 +2524,18 @@ void DivEngine::registerSystems() {
     }
   );
 
+  sysDefs[DIV_SYSTEM_C352]=new DivSysDef(
+    _("Namco C352"), nullptr, 0xcf, 0, 32, 32, 32,
+    false, true, 4, false, (1U<<DIV_SAMPLE_DEPTH_C352)|(1U<<DIV_SAMPLE_DEPTH_8BIT), 0, 0,
+    _("Namco's 32-voice quadraphonic PCM sound chip used in Tekken 1-3, Ridge Racer, and Soulcalibur."),
+    DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_C352,DIV_INS_AMIGA>),
+    {},
+    {
+      {0x11, {DIV_CMD_STD_NOISE_MODE, _("11xx: Set noise mode")}},
+      {0x12, {DIV_CMD_STD_DUTY, _("12xy: Set invert & surround flags (x: surround; y: invert)")}},
+    }
+  );
+
   sysDefs[DIV_SYSTEM_ESFM]=new DivSysDef(
     _("ESS ES1xxx series (ESFM)"), NULL, 0xd1, 0, 18, 18, 18,
     true, false, 0, false, 0, 0, 0, 
