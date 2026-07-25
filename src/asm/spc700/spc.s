@@ -11,7 +11,7 @@ dir:
 waveRAM=dir+$20
 actualDir=waveRAM+$480
 
-; song data (instruments, tables and system config)
+; song data (instruments, sequence, tables and system config)
 .include "songData.s"
 
 ; SNES dispatch code
@@ -24,7 +24,7 @@ FCS_PORTA_SPEED_MULT=4
 fcsAddrBase=$24
 fcsZeroPage=$12
 fcsGlobalStack=$200
-fcsPtr=cmdStream
+fcsPtr=songCmdStream0
 fcsVolMax=volMaxArray
 
 fcsCmdTableLow=fcsCmdTableSNESLow
@@ -77,9 +77,6 @@ loop:
   call !fcsTick
   call !divTick
   bra loop
-
-cmdStream:
-  .incbin "seq.bin"
 
 .BANK 0 SLOT 3
 .ORGA $10000

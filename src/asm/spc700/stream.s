@@ -290,13 +290,10 @@ fcsOptPlaceholder:
   ret
 
 fcsCallI:
-  ; get address and relocate it
+  ; get address
   fcsReadNext
-  clrc
-  adc a, #<fcsPtr
   push a
   fcsReadNext
-  adc a, #>fcsPtr
   push a
   ; ignore next two bytes
   call !fcsIgnoreNext
@@ -370,29 +367,25 @@ fcsPresetIns:
   ret
 
 fcsCall:
-  ; get address and relocate it
-  fcsReadNext
-  clrc
-  adc a, #<fcsPtr
-  push a
-  fcsReadNext
-  adc a, #>fcsPtr
-  push a
-  ; fcsPushCall BEGIN
+  ; faster version
+  ; we know this command is two bytes long, so we may as well start pushing our address now
   ; push channel PC to stack
   mov y, chanStackPtr+x
   mov a, chanPC+x
+  clrc
+  adc a, #2
   mov !fcsGlobalStack+y, a
   inc y
   mov a, chanPC+1+x
+  adc a, #0
   mov !fcsGlobalStack+y, a
   inc y
   mov chanStackPtr+x, y
-  ; fcsPushCall END
-  pop a
-  mov chanPC+1+x, a
-  pop a
+  ; get address
+  fcsReadNext
   mov chanPC+x, a
+  fcsPeekNext
+  mov chanPC+1+x, a
   ret
 
 ; retrieve channel PC from stack
@@ -408,15 +401,10 @@ fcsRet:
   ret
 
 fcsJump:
-  ; get address and relocate it
+  ; get address
   fcsReadNext
-  clrc
-  adc a, #<fcsPtr
-  push a
-  fcsPeekNext
-  adc a, #>fcsPtr
   mov chanPC+1+x, a
-  pop a
+  fcsPeekNext
   mov chanPC+x, a
   ret
 
@@ -867,20 +855,6 @@ fcsInit:
   mov a, !(fcsPtr+40)+x
   mov chanPC+x, a
   cmp x, #0
-  bne -
-
-  ; relocate program counters
-  mov x, #0
-- clrc
-  mov a, chanPC+x
-  adc a, #<fcsPtr
-  mov chanPC+x, a
-  inc x
-  mov a, chanPC+x
-  adc a, #>fcsPtr
-  mov chanPC+x, a
-  inc x
-  cmp x, #(FCS_MAX_CHAN*2)
   bne -
 
   ; initialize channel stacks
