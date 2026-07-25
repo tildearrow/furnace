@@ -35,19 +35,20 @@ inline T clamp_val(T v, T lo, T hi) {
 #define CHIP_FREQBASE 74448896
 
 const char* regCheatSheetC352[] = {
-  "CHx_RVol", "00+x*10",
-  "CHx_LVol", "01+x*10",
-  "CHx_FreqH", "02+x*10",
-  "CHx_FreqL", "03+x*10",
-  "CHx_Ctrl", "05+x*10",
-  "CHx_StartH", "06+x*10",
-  "CHx_StartL", "07+x*10",
-  "CHx_EndH", "08+x*10",
-  "CHx_EndL", "09+x*10",
-  "CHx_LoopH", "0A+x*10",
-  "CHx_LoopL", "0B+x*10",
-  NULL
+  "CHx_RVol",   "0x00",
+  "CHx_LVol",   "0x01",
+  "CHx_FreqH",  "0x02",
+  "CHx_FreqL",  "0x03",
+  "CHx_Ctrl",   "0x05",
+  "CHx_StartH", "0x06",
+  "CHx_StartL", "0x07",
+  "CHx_EndH",   "0x08",
+  "CHx_EndL",   "0x09",
+  "CHx_LoopH",  "0x0A",
+  "CHx_LoopL",  "0x0B",
+  nullptr // Use nullptr instead of NULL in standard modern C++
 };
+
 
 
 
