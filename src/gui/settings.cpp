@@ -47,7 +47,7 @@
 
 #include "newSettings.h"
 
-const ImWchar mainFontExcludeRange[2]={ICON_MIN_FA,ICON_MAX_FA};
+const ImWchar mainFontExcludeRange[3]={ICON_MIN_FA,ICON_MAX_FA,0};
 
 static String stripName(String what) {
   String ret;
