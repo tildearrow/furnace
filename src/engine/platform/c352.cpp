@@ -73,12 +73,18 @@ void DivPlatformC352::acquire_352(short** buf, size_t len) {
     // use locals and scale to 16-bit range (do not mutate c352.lout/rout)
     int lout = c352.lout >> 10;
     int rout = c352.rout >> 10;
+    int rlout = c352.rlout >> 10;
+    int rrout = c352.rrout >> 10;
 
     if (lout > 32767) lout = 32767; else if (lout < -32768) lout = -32768;
     if (rout > 32767) rout = 32767; else if (rout < -32768) rout = -32768;
+    if (rlout > 32767) rlout = 32767; else if (rlout < -32768) rlout = -32768;
+    if (rrout > 32767) rrout = 32767; else if (rrout < -32768) rrout = -32768;
 
     buf[0][h] = static_cast<short>(lout);
     buf[1][h] = static_cast<short>(rout);
+    buf[2][h] = static_cast<short>(rlout);
+    buf[3][h] = static_cast<short>(rrout);
 
     for (int i = 0; i < totalChans; i++) {
       if (c352.voice[i].inv_lout) {
