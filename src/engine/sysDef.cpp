@@ -2532,7 +2532,7 @@ void DivEngine::registerSystems() {
     {},
     {
       {0x11, {DIV_CMD_STD_NOISE_MODE, _("11xx: Set noise mode")}},
-      {0x12, {DIV_CMD_STD_DUTY, _("12xy: Set invert & surround flags (x: surround; y: invert)")}},
+      {0x12, {DIV_CMD_STD_DUTY_CYCLE, _("12xy: Set invert & surround flags (x: surround; y: invert)")}},
     }
   );
 
