@@ -115,6 +115,7 @@ enum DivDispatchCmds {
 
   DIV_CMD_STD_NOISE_FREQ, // (freq)
   DIV_CMD_STD_NOISE_MODE, // (mode)
+  DIV_CMD_STD_DUTY, // (duty)
 
   DIV_CMD_WAVE, // (waveform)
   
