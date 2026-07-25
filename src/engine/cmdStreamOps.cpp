@@ -747,13 +747,13 @@ static void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsig
           buf[i+2]=(addr>>16)&0xff;
           buf[i+3]=(addr>>8)&0xff;
           buf[i+4]=addr&0xff;
-          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U32BE,addr));
+          obj.reloc.push_back(DivRelocInfo(i+delta+1,objIndex,DIV_RELOC_PTR_U32BE,addr));
         } else {
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
           buf[i+3]=(addr>>16)&0xff;
           buf[i+4]=(addr>>24)&0xff;
-          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U32,addr));
+          obj.reloc.push_back(DivRelocInfo(i+delta+1,objIndex,DIV_RELOC_PTR_U32,addr));
         }
         break;
       }
@@ -763,11 +763,11 @@ static void reloc(unsigned char* buf, size_t len, unsigned int sourceAddr, unsig
         if (bigEndian) {
           buf[i+1]=(addr>>8)&0xff;
           buf[i+2]=addr&0xff;
-          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U16BE,addr));
+          obj.reloc.push_back(DivRelocInfo(i+delta+1,objIndex,DIV_RELOC_PTR_U16BE,addr));
         } else {
           buf[i+1]=addr&0xff;
           buf[i+2]=(addr>>8)&0xff;
-          obj.reloc.push_back(DivRelocInfo(i+delta,objIndex,DIV_RELOC_PTR_U16,addr));
+          obj.reloc.push_back(DivRelocInfo(i+delta+1,objIndex,DIV_RELOC_PTR_U16,addr));
         }
         break;
       }

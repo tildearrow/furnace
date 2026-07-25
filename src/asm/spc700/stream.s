@@ -383,9 +383,10 @@ fcsCall:
   mov chanStackPtr+x, y
   ; get address
   fcsReadNext
-  mov chanPC+x, a
+  mov y, a
   fcsPeekNext
   mov chanPC+1+x, a
+  mov chanPC+x, y
   ret
 
 ; retrieve channel PC from stack
@@ -403,9 +404,10 @@ fcsRet:
 fcsJump:
   ; get address
   fcsReadNext
-  mov chanPC+1+x, a
+  mov y, a
   fcsPeekNext
-  mov chanPC+x, a
+  mov chanPC+1+x, a
+  mov chanPC+x, y
   ret
 
 ; TODO
