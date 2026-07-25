@@ -75,7 +75,8 @@ class DivPlatformC352: public DivDispatch {
   FixedQueue<QueuedWrite,2048> writes;
   
   // NOTE: This instantiates the core chip state struct layout
-  c352_t c352; 
+  struct c352_t;
+  c352_t* c352;
   
   DivMemoryComposition memCompo;
   unsigned char regPool[512];
