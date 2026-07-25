@@ -20,8 +20,10 @@
 #include "c352.h"
 #include "../engine.h"
 #include "../../ta-log.h"
+#include <algorithm>
 #include <math.h>
 #include <cstring>
+#include <cstdint>
 
 namespace {
 template<typename T>
@@ -72,8 +74,8 @@ void DivPlatformC352::acquire_352(short** buf, size_t len) {
     int lout = c352.lout >> 10;
     int rout = c352.rout >> 10;
 
-    lout = clamp_val(lout, -32768, 32767);
-    rout = clamp_val(rout, -32768, 32767);
+    if (lout > 32767) lout = 32767; else if (lout < -32768) lout = -32768;
+    if (rout > 32767) rout = 32767; else if (rout < -32768) rout = -32768;
 
     buf[0][h] = static_cast<short>(lout);
     buf[1][h] = static_cast<short>(rout);
@@ -81,7 +83,7 @@ void DivPlatformC352::acquire_352(short** buf, size_t len) {
     for (int i = 0; i < totalChans; i++) {
       if (c352.voice[i].inv_lout) {
         int v = (c352.voice[i].lout - c352.voice[i].rout) >> 10;
-        v = clamp_val(v, -32768, 32767);
+        if (v > 32767) v = 32767; else if (v < -32768) v = -32768;
         oscBuf[i]->putSample(h, static_cast<short>(v));
       }
     }
