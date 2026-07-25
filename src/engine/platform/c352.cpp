@@ -631,10 +631,6 @@ void DivPlatformC352::renderSamples(int sysID) {
   memCompo.capacity = capacity;
 }
 
-void DivPlatformC352::set352(bool is_352) {
-  totalChans = 32;
-}
-
 int DivPlatformC352::getClockRangeMin() {
   return MIN_CUSTOM_CLOCK;
 }
