@@ -183,113 +183,129 @@ void DivPlatformC352::tick(bool sysTick) {
       chan[i].audPos = 0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivSample* s = parent->getSample(chan[i].sample);
-      unsigned char ctrl = 0;
-      double off = (s->centerRate >= 1) ? ((double)s->centerRate / parent->getCenterRate()) : 1.0;
-      chan[i].freq = (int)(off * parent->calcFreq(chan[i].baseFreq, chan[i].pitch, chan[i].fixedArp ? chan[i].baseNoteOverride : chan[i].arpOff, chan[i].fixedArp, false, 2, chan[i].pitch2, chipClock, CHIP_FREQBASE));
-      if (chan[i].freq < 0) chan[i].freq = 0;
-      if (chan[i].freq > 65535) chan[i].freq = 65535;
+  DivSample* s = parent->getSample(chan[i].sample);
+  unsigned char ctrl = 0;
+  double off = (s->centerRate >= 1) ? ((double)s->centerRate / parent->getCenterRate()) : 1.0;
+
+  // 1. Configure the modern DivPitchTable options structural block
+  DivPitchTableOptions opts;
+  opts.baseFreq = chan[i].baseFreq;
+  opts.pitch = chan[i].pitch;
+  opts.noteOverride = chan[i].fixedArp ? chan[i].baseNoteOverride : chan[i].arpOff;
+  opts.isFixedArp = chan[i].fixedArp;
+  opts.pitch2 = chan[i].pitch2;
+  opts.clock = chipClock;
+  opts.freqBase = CHIP_FREQBASE;
+  opts.divider = 2;
+  opts.linearMicrotuning = false;
+
+  // 2. Execute calculation through the modern pitch table system
+  chan[i].freq = (int)(off * parent->pitchTable.calc(opts));
+
+  // 3. Clean clamping replacement instead of individual if statements
+  chan[i].freq = std::clamp(chan[i].freq, 0, 65535);
+
+  if (is352) {
+    ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable() || chan[i].noise) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_C352) ? 1 : 0) | (chan[i].invert ? 0x40 : 0) | (chan[i].surround ? 8 : 0) | (chan[i].noise ? 4 : 0);
+  }
+  else {
+    ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable()) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_MULAW) ? 0x08 : 0);
+  }
+  if (chan[i].keyOn) {
+    unsigned int bank = 0;
+    unsigned int start = 0;
+    unsigned int loop = 0;
+    unsigned int end = 0;
+    if (chan[i].sample >= 0 && chan[i].sample < parent->song.sampleLen) {
       if (is352) {
-        ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable() || chan[i].noise) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_C352) ? 1 : 0) | (chan[i].invert ? 0x40 : 0) | (chan[i].surround ? 8 : 0) | (chan[i].noise ? 4 : 0);
+        bank = (sampleOff[chan[i].sample] >> 32) & 4;
+        start = sampleOff[chan[i].sample] & 0xffff;
+        end = MIN(start + (s->length8 >> 1) - 1, 65535);
       }
       else {
-        ctrl |= (chan[i].active ? 0x80 : 0) | ((s->isLoopable()) ? 0x10 : 0) | ((s->depth == DIV_SAMPLE_DEPTH_MULAW) ? 0x08 : 0);
-      }
-      if (chan[i].keyOn) {
-        unsigned int bank = 0;
-        unsigned int start = 0;
-        unsigned int loop = 0;
-        unsigned int end = 0;
-        if (chan[i].sample >= 0 && chan[i].sample < parent->song.sampleLen) {
-          if (is352) {
-            bank = (sampleOff[chan[i].sample] >> 16) & 3;
-            start = sampleOff[chan[i].sample] & 0xffff;
-            end = MIN(start + (s->length8 >> 1) - 1, 65535);
-          }
-          else {
-            bank = (sampleOff[chan[i].sample] >> 16) & 0xff;
-            start = sampleOff[chan[i].sample] & 0xffff;
-            end = MIN(start + s->length8 - 1, 65535);
-          }
-        }
-        else if (chan[i].noise&&is352) {
-          bank = groupBank[i >> 2];
-          start = 0;
-          end = 1;
-        }
-        if (chan[i].audPos > 0) {
-          start = MIN(start + (MIN(chan[i].audPos, s->length8) >> 1), 65535);
-        }
-        if (chan[i].sample >= 0 && chan[i].sample < parent->song.sampleLen && s->isLoopable()) {
-          if (is352) {
-            loop = MIN(start + (s->loopStart >> 1), 65535);
-            end = MIN(start + (s->loopEnd >> 1), 65535);
-          }
-          else {
-            loop = MIN(start + s->loopStart + 1, 65535);
-            end = MIN(start + s->loopEnd + 1, 65535);
-          }
-        }
-        else if (chan[i].noise&&is352) {
-          loop = 0;
-        }
-        rWrite(0x05 + (i << 4), 0); // force keyoff first
-        if (is352) {
-          if (groupBank[i >> 2] != bank) {
-            groupBank[i >> 2] = bank;
-            rWrite(0x1f1 + (((3 + (i >> 2)) & 3) << 1), groupBank[i >> 2]);
-            // shut everyone else up
-            for (int j = 0; j < 4; j++) {
-              int ch = (i & (~3)) | j;
-              if (chan[ch].active && !chan[ch].keyOn && (i & 3) != j) {
-                chan[ch].sample = -1;
-                chan[ch].active = false;
-                chan[ch].keyOff = true;
-                chan[ch].macroInit(NULL);
-                rWrite(0x05+(ch<<4),ctrl);
-              }
-            }
-          }
-        }
-        else {
-          switch (bankType) {
-          case 0:
-            bank = ((bank & 8) << 2) | (bank & 7);
-            break;
-          case 1:
-            bank = ((bank & 0x18) << 1) | (bank & 7);
-            break;
-          }
-          rWrite(0x04+(i<<4),bank);
-        }
-        rWrite(0x06+(i<<4),(start>>8)&0xff);
-        rWrite(0x07+(i<<4),start&0xff);
-        rWrite(0x08+(i<<4),(end >> 8)&0xff);
-        rWrite(0x09+(i<<4),end & 0xff);
-        rWrite(0x0a+(i<<4),(loop>>8)&0xff);
-        rWrite(0x0b+(i<<4),loop & 0xff);
-        if (!chan[i].std.vol.had) {
-          chan[i].outVol = chan[i].vol;
-          chan[i].volChangedL = true;
-          chan[i].volChangedR = true;
-        }
-        chan[i].writeCtrl = true;
-        chan[i].keyOn = false;
-      }
-      if (chan[i].keyOff) {
-        chan[i].writeCtrl = true;
-        chan[i].keyOff = false;
-      }
-      if (chan[i].freqChanged) {
-        rWrite(0x02 + (i << 4), chan[i].freq >> 8);
-        rWrite(0x03 + (i << 4), chan[i].freq & 0xff);
-        chan[i].freqChanged = false;
-      }
-      if (chan[i].writeCtrl) {
-        rWrite(0x05 + (i << 4), ctrl);
-        chan[i].writeCtrl = false;
+        bank = (sampleOff[chan[i].sample] >> 32) & 0xff;
+        start = sampleOff[chan[i].sample] & 0xffff;
+        end = MIN(start + s->length8 - 1, 65535);
       }
     }
+    else if (chan[i].noise && is352) {
+      bank = groupBank[i >> 2];
+      start = 0;
+      end = 1;
+    }
+    if (chan[i].audPos > 0) {
+      start = MIN(start + (MIN(chan[i].audPos, s->length8) >> 1), 65535);
+    }
+    if (chan[i].sample >= 0 && chan[i].sample < parent->song.sampleLen && s->isLoopable()) {
+      if (is352) {
+        loop = MIN(start + (s->loopStart >> 1), 65535);
+        end = MIN(start + (s->loopEnd >> 1), 65535);
+      }
+      else {
+        loop = MIN(start + s->loopStart + 1, 65535);
+        end = MIN(start + s->loopEnd + 1, 65535);
+      }
+    }
+    else if (chan[i].noise && is352) {
+      loop = 0;
+    }
+    rWrite(0x05 + (i << 4), 0); // force keyoff first
+    if (is352) {
+      if (groupBank[i >> 2] != bank) {
+        groupBank[i >> 2] = bank;
+        rWrite(0x1f1 + (((3 + (i >> 2)) & 3) << 1), groupBank[i >> 2]);
+        // shut everyone else up
+        for (int j = 0; j < 4; j++) {
+          int ch = (i & (~3)) | j;
+          if (chan[ch].active && !chan[ch].keyOn && (i & 3) != j) {
+            chan[ch].sample = -1;
+            chan[ch].active = false;
+            chan[ch].keyOff = true;
+            chan[ch].macroInit(NULL);
+            rWrite(0x05 + (ch << 4), ctrl);
+          }
+        }
+      }
+    }
+    else {
+      switch (bankType) {
+      case 0:
+        bank = ((bank & 8) << 2) | (bank & 7);
+        break;
+      case 1:
+        bank = ((bank & 0x18) << 1) | (bank & 7);
+        break;
+      }
+      rWrite(0x04 + (i << 4), bank);
+    }
+    rWrite(0x06 + (i << 4), (start >> 8) & 0xff);
+    rWrite(0x07 + (i << 4), start & 0xff);
+    rWrite(0x08 + (i << 4), (end >> 8) & 0xff);
+    rWrite(0x09 + (i << 4), end & 0xff);
+    rWrite(0x0a + (i << 4), (loop >> 8) & 0xff);
+    rWrite(0x0b + (i << 4), loop & 0xff);
+    if (!chan[i].std.vol.had) {
+      chan[i].outVol = chan[i].vol;
+      chan[i].volChangedL = true;
+      chan[i].volChangedR = true;
+    }
+    chan[i].writeCtrl = true;
+    chan[i].keyOn = false;
+  }
+  if (chan[i].keyOff) {
+    chan[i].writeCtrl = true;
+    chan[i].keyOff = false;
+  }
+  if (chan[i].freqChanged) {
+    rWrite(0x02 + (i << 4), chan[i].freq >> 8);
+    rWrite(0x03 + (i << 4), chan[i].freq & 0xff);
+    chan[i].freqChanged = false;
+  }
+  if (chan[i].writeCtrl) {
+    rWrite(0x05 + (i << 4), ctrl);
+    chan[i].writeCtrl = false;
+  }
+}
   }
 
   for (int i = 0; i < 4; i++) {
