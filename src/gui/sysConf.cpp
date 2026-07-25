@@ -2733,6 +2733,35 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_C352: {
+      int bankType=flags.getInt("bankType",0);
+
+      ImGui::Text(_("Banking style:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("Namco System 11/12 (512KB)"),bankType==0)) {
+        bankType=0;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("Namco NB-1/2/FL/ND-1 (4MB)"),bankType==1)) {
+        bankType=1;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("Namco System 22/Super 22/23/Super 23 (16MB; no VGM export!)"),bankType==2)) {
+        bankType=2;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("bankType",bankType);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_VIC20: {
       bool sysPal=flags.getInt("clockSel",0);
       bool filterOff=flags.getBool("filterOff",false);
