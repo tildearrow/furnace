@@ -132,7 +132,9 @@ void DivPlatformC352::tick(bool sysTick) {
                                (chan[i].surround ? 4 : 0);
   
   // If the user changed the duty settings in the tracker, update the voice state
-  if (incomingFlags != currentFlags) {
+  if (chan[i].std.duty.had) {
+  // Pull the 3 lowest bits from the .val field
+  unsigned char incomingFlags = chan[i].std.duty.val & 7;
     chan[i].noise       = (incomingFlags & 1) != 0;
     chan[i].invert      = (incomingFlags & 2) != 0;
     chan[i].surround    = (incomingFlags & 4) != 0;
