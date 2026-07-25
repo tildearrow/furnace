@@ -122,22 +122,24 @@ void DivPlatformC352::tick(bool sysTick) {
       }
       chan[i].freqChanged = true;
     }
-    if (is352){
       if (chan[i].std.duty.had) {
-        unsigned char singleByte = (
-          (chan[i].noise ? 1 : 0) |
-          (chan[i].invert ? 2 : 0) |
-          (chan[i].surround ? 4 : 0)
-          );
-        if (singleByte != (chan[i].std.duty.val & 7)) {
-          chan[i].noise = chan[i].std.duty.val & 1;
-          chan[i].invert = chan[i].std.duty.val & 2;
-          chan[i].surround = chan[i].std.duty.val & 4;
-          chan[i].freqChanged = true;
-          chan[i].writeCtrl = true;
-        }
-      }
-    }
+  // Extract the lowest 3 bits directly from the duty value
+  unsigned char incomingFlags = chan[i].std.duty.val & 7;
+  
+  // Calculate what the current flags are right now
+  unsigned char currentFlags = (chan[i].noise ? 1 : 0) |
+                               (chan[i].invert ? 2 : 0) |
+                               (chan[i].surround ? 4 : 0);
+  
+  // If the user changed the duty settings in the tracker, update the voice state
+  if (incomingFlags != currentFlags) {
+    chan[i].noise       = (incomingFlags & 1) != 0;
+    chan[i].invert      = (incomingFlags & 2) != 0;
+    chan[i].surround    = (incomingFlags & 4) != 0;
+    chan[i].freqChanged = true;
+    chan[i].writeCtrl   = true;
+  }
+}
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2 += chan[i].std.pitch.val;
