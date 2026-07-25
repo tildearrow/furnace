@@ -503,6 +503,11 @@ DivDispatchOscBuffer* DivPlatformC352::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+if (chan[i].std.dutyCycle.had) {  // Double-check if your channel struct uses duty or dutyCycle
+  unsigned char incomingFlags = chan[i].std.dutyCycle.val & 7;
+  // ... rest of your bitmask code
+}
+
 void DivPlatformC352::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool, 0, 512);
