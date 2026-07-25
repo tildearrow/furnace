@@ -228,7 +228,7 @@ void DivPlatformC352::tick(bool sysTick) {
         end = MIN(start + s->length8 - 1, 65535);
       }
     }
-    else if (chan[i].noise && is352) {
+    else if (chan[i].noise) {
       bank = groupBank[i >> 2];
       start = 0;
       end = 1;
@@ -246,7 +246,7 @@ void DivPlatformC352::tick(bool sysTick) {
         end = MIN(start + s->loopEnd + 1, 65535);
       }
     }
-    else if (chan[i].noise && is352) {
+    else if (chan[i].noise) {
       loop = 0;
     }
     rWrite(0x05 + (i << 4), 0); // force keyoff first
