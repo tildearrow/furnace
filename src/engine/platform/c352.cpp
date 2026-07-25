@@ -718,7 +718,7 @@ void DivPlatformC352::renderSamples(int sysID) {
 
 void DivPlatformC352::set352(bool is_352) {
   is352 = is_352;
-  totalChans = is352 ? 16 : 24;
+  totalChans = is352 ? 32;
 }
 
 int DivPlatformC352::getClockRangeMin() {
