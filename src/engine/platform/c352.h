@@ -73,7 +73,10 @@ class DivPlatformC352: public DivDispatch {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
   FixedQueue<QueuedWrite,2048> writes;
-  struct c352_t c352;
+  
+  // NOTE: This instantiates the core chip state struct layout
+  c352_t c352; 
+  
   DivMemoryComposition memCompo;
   unsigned char regPool[512];
   char bankLabel[4][4];
