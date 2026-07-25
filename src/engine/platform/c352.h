@@ -21,7 +21,7 @@
 #define _C352_H
 
 #include "../dispatch.h"
-#include "sound/c140_c219.h"
+#include "sound/c352.h"
 #include "../../fixedQueue.h"
 
 class DivPlatformC352: public DivDispatch {
