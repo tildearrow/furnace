@@ -25,7 +25,7 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformC352: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     DivMacroInt std;
     unsigned int audPos;
     int sample, wave;
@@ -35,7 +35,7 @@ class DivPlatformC352: public DivDispatch {
     int macroVolMul;
     int macroPanMul;
     Channel():
-      SharedChannel<int>(255),
+      SharedChannel(255),
       std(),
       audPos(0),
       sample(-1),
