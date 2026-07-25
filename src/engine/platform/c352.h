@@ -26,6 +26,7 @@
 
 class DivPlatformC352: public DivDispatch {
   struct Channel: public SharedChannel<int> {
+    DivMacroInt std;
     unsigned int audPos;
     int sample, wave;
     bool setPos, invert, surround, noise, volChangedL, volChangedR, writeCtrl;
@@ -35,6 +36,7 @@ class DivPlatformC352: public DivDispatch {
     int macroPanMul;
     Channel():
       SharedChannel<int>(255),
+      std(),
       audPos(0),
       sample(-1),
       wave(-1),
