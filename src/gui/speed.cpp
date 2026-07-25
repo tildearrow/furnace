@@ -24,14 +24,24 @@
 #include <IconsFontAwesome4.h>
 
 void FurnaceGUI::calcGrooveBPM(float targetBPM, DivGroovePattern& groove, float hz, int hilightA) {
+  // get the speed value which will result in the target BPM.
+  // the groove sequence will alternate around that number to approximate it
   float targetSpeed=60.0f*hz/(targetBPM*hilightA);
+  if (targetSpeed<1.0f) { // only possible groove value is 1
+    groove.val[0]=1;
+    groove.len=1;
+    return;
+  }
   float actualBPM=0;
-  for (groove.len=0; groove.len<16 && fabs(targetBPM-actualBPM)>0.0001; ) {
-    if (groove.len==0) {
-      groove.val[0]=round(targetSpeed);
-    } else {
-      groove.val[groove.len]=(targetBPM>actualBPM)?floor(targetSpeed):ceil(targetSpeed);
-    }
+  groove.len=0;
+  // iterate until the approximation is close enough, or we can't add more values to the groove
+  while (groove.len<16 && fabs(targetBPM-actualBPM)>0.0001) {
+    // start with the lower possible groove value
+    // otherwise:
+    //   if groove result is slower, add smaller value to groove
+    //   else (if faster), add larger value to groove
+    int speed=(targetBPM>actualBPM || groove.len==0)?floor(targetSpeed):ceil(targetSpeed);
+    groove.val[groove.len]=CLAMP(speed,1,512);
     groove.len++;
     actualBPM=calcBPM(groove,hz,1,1);
   }
@@ -212,7 +222,11 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         ImGui::SetTooltip(_("Groove Calculator"));
       }
       if (ImGui::BeginPopupContextItem("grooveCalc")) {
-        ImGui::InputFloat(_("Target BPM"),&grooveTargetBPM);
+        ImGui::TextUnformatted(_("use the calculator to approximate BPM values using speed/grooves"));
+        if (ImGui::InputFloat(_("Target BPM"),&grooveTargetBPM,1.0f,5.0f,"%g")) {
+          if (grooveTargetBPM<2.5f) grooveTargetBPM=2.5f;
+          if (grooveTargetBPM>2400.f) grooveTargetBPM=2400.f;
+        }
         ImGui::SameLine();
         if (ImGui::Button(_("OK"))) { MARK_MODIFIED;
           e->lockEngine([this]{calcGrooveBPM(grooveTargetBPM,e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->hilightA);});
