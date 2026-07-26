@@ -93,7 +93,7 @@ void C352_write(C352 *c, uint16_t addr, uint16_t data)
 
     if(addr < 0x100)
     {
-        *(uint16_t*)((void*)&c->v[addr/8]+C352RegMap[addr%8]) = data;
+        *(uint16_t*)((char*)&c->v[addr/8]+C352RegMap[addr%8]) = data;
         if((addr%8) == C352_FLAGS && !(data & C352_FLG_KEYON))
         ;
     }
@@ -133,7 +133,7 @@ void C352_write(C352 *c, uint16_t addr, uint16_t data)
 uint16_t C352_read(C352 *c, uint16_t addr)
 {
     if(addr < 0x100)
-        return *(uint16_t*)((void*)&c->v[addr/8]+C352RegMap[addr%8]);
+        return *(uint16_t*)((char*)&c->v[addr/8]+C352RegMap[addr%8]);
     else
         return 0;
 }
