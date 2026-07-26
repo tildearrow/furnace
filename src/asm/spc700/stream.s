@@ -809,8 +809,7 @@ fcsDoChannel:
   dec y
   mov chanTicks+1+x, y
   ; process channel stuff
-  call !fcsChannelPost
-  ret
+  jmp !fcsChannelPost
 
   ; ticks is zero... read commands until chanTicks is set
   fcsDoChannelLoop:
@@ -820,19 +819,17 @@ fcsDoChannel:
     call !fcsChannelCmd ; read next command
     jmp !fcsDoChannelLoop
 
-+ call !fcsChannelPost
   ; end
-  ret
++ jmp !fcsChannelPost
 
 fcsTick:
   ; update channel state
   ; for (x=0; x<FCS_MAX_CHAN; x++)
-  mov x, #0
-- call !fcsDoChannel
-  inc x
-  inc x
-  cmp x, #FCS_MAX_CHAN*2
-  bne -
+  ; this little optimization will cost me 5 bytes per channel.
+.repeat FCS_MAX_CHAN step 2 index ch
+  mov x, #ch
+  call !fcsDoChannel
+.endr
 
   ; increase tick counter
   incw fcsTicks
