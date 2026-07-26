@@ -1621,14 +1621,6 @@ void DivSample::render(unsigned int formatMask) {
       short targetSample =data16[i];
       int bestIndex = 0;
     int minDifference = 999999; // Initialize with a massive error delta
-    
-    for (int tableIdx = 0; tableIdx < 256; tableIdx++) {
-      int difference = abs(targetSample - c352_mulaw_table[tableIdx]);
-      if (difference < minDifference) {
-        minDifference = difference;
-        bestIndex = tableIdx;
-      }
-    }
       dataC352[i] = static_cast<unsigned char>(bestIndex);
     }
   }
