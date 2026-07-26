@@ -1386,6 +1386,11 @@ void DivSample::render(unsigned int formatMask) {
           if (dataC219[i]&0x80) data16[i]=-data16[i];
         }
         break;
+      case DIV_SAMPLE_DEPTH_C352: // 8-bit C352 PCM
+        for (unsigned int i=0; i<samples; i++) {
+          data16[i]=c352_mulaw_table[dataC352[i]];
+        }
+        break;
       case DIV_SAMPLE_DEPTH_IMA_ADPCM: // IMA ADPCM
         if (adpcm_decode_block(data16,dataIMA,lengthIMA,samples)==0) logE("oh crap!");
         break;
@@ -1406,11 +1411,6 @@ void DivSample::render(unsigned int formatMask) {
             nibble=data4[i>>1]>>4;
           }
           data16[i]=((nibble<<12)|(nibble<<8)|(nibble<<4)|nibble)^0x8000;
-        }
-        break;
-        case DIV_SAMPLE_DEPTH_C352: // 8-bit C352 PCM
-        for (unsigned int i=0; i<samples; i++) {
-          data16[i]=c352_mulaw_table[dataC352[i]];
         }
         break;
       }
