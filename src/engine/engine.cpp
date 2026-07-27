@@ -577,13 +577,14 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   changeSong(0);
   if (description!=NULL) {
     initSongWithDesc(description,inBase64);
+  } else {
+    song.initDefaultSystemChans();
   }
   if (sysName=="") {
     song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
   } else {
     song.systemName=sysName;
   }
-  song.initDefaultSystemChans();
   song.recalcChans();
   saveLock.unlock();
   BUSY_END;
