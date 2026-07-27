@@ -1301,7 +1301,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Button(_("Fix channel count"))) {
           if (chan>=0) {
             if (e->setSystemChans(chan,channels,preserveChanPos)) {
-              MARK_MODIFIED;
               recalcTimestamps=true;
               if (e->song.autoSystem) {
                 autoDetectSystem();
@@ -3006,7 +3005,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Button(_("click here to fix it."))) {
           if (chan>=0) {
             if (e->setSystemChans(chan,sysDef->channels,preserveChanPos)) {
-              MARK_MODIFIED;
+              altered=true;
               recalcTimestamps=true;
               if (e->song.autoSystem) {
                 autoDetectSystem();
@@ -3018,7 +3017,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
                 e->lockSave([&]() {
                   flags.set("channels",e->song.systemChans[chan]-1);
                 });
-                altered=true;
               }
             } else {
               showError(e->getLastError());
@@ -3052,9 +3050,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
     }
     if (ImGui::IsItemDeactivatedAfterEdit() && chCount!=systemChans) {
+      altered=true;
       if (chan>=0) {
         if (e->setSystemChans(chan,chCount,preserveChanPos)) {
-          MARK_MODIFIED;
           recalcTimestamps=true;
           if (e->song.autoSystem) {
             autoDetectSystem();
@@ -3066,14 +3064,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
             e->lockSave([&]() {
               flags.set("channels",e->song.systemChans[chan]-1);
             });
-            altered=true;
           }
         } else {
           showError(e->getLastError());
         }
       } else {
         systemChans=chCount;
-        altered=true;
 
         if (type==DIV_SYSTEM_N163) {
           e->lockSave([&]() {
@@ -3124,7 +3120,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       updateWindowTitle();
     }
-    MARK_MODIFIED;
   }
 
   return altered;

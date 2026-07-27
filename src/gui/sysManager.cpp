@@ -161,7 +161,7 @@ void FurnaceGUI::drawSysManager() {
         if (opened) {
           ImGui::Separator();
           ImGui::Indent();
-          drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],e->song.systemChans[i],true);
+          if (drawSysConf(i,i,e->song.system[i],e->song.systemFlags[i],e->song.systemChans[i],true)) MARK_MODIFIED
           ImGui::Unindent();
         }
       }
