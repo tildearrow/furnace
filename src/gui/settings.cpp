@@ -47,6 +47,8 @@
 
 #include "newSettings.h"
 
+const ImWchar mainFontExcludeRange[3]={ICON_MIN_FA,ICON_MAX_FA,0};
+
 static String stripName(String what) {
   String ret;
   for (char& i: what) {
@@ -1033,6 +1035,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     fontConf.OversampleV=1;
     fontConf.OversampleH=settings.fontOversample;
+    fontConf.GlyphExcludeRanges=mainFontExcludeRange;
     fontConfP.OversampleV=1;
     fontConfP.OversampleH=settings.fontOversample;
     fontConfB.OversampleV=1;
