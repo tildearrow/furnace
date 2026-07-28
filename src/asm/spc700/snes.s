@@ -15,6 +15,7 @@ divTempPtr4=$08
 divTempKeyOn=$0a
 divTempKeyOff=$0b
 divBase=$100
+divMacroBase=$300
 divChans=8
 
 ;;;; ---- SharedChannel ---- ;;;;
@@ -96,6 +97,28 @@ divWriteFlags=divGlobalBase+17 ; unsigned char
 divEchoState=divGlobalBase+18 ; unsigned char
 divNoiseState=divGlobalBase+19 ; unsigned char
 divPitchModState=divGlobalBase+20 ; unsigned char
+
+;;;; ---- DivPlatformSNES::Channel::std (macro state) ---- ;;;;
+; pointers to macro addresses (short)
+divMacroVolPtr=divMacroBase
+divMacroArpPtr=divMacroBase+(divChans*2)
+divMacroDutyPtr=divMacroBase+(divChans*4)
+divMacroWavePtr=divMacroBase+(divChans*6)
+divMacroPanLPtr=divMacroBase+(divChans*8)
+divMacroPanRPtr=divMacroBase+(divChans*10)
+divMacroPitchPtr=divMacroBase+(divChans*12)
+divMacroSpecialPtr=divMacroBase+(divChans*14)
+divMacroGainPtr=divMacroBase+(divChans*16)
+; tick counters (char)
+divMacroVolC=divMacroBase+(divChans*18)
+divMacroArpC=divMacroBase+(divChans*18)+1
+divMacroDutyC=divMacroBase+(divChans*20)
+divMacroWaveC=divMacroBase+(divChans*20)+1
+divMacroPanLC=divMacroBase+(divChans*22)
+divMacroPanRC=divMacroBase+(divChans*22)+1
+divMacroPitchC=divMacroBase+(divChans*24)
+divMacroSpecialC=divMacroBase+(divChans*24)+1
+divMacroGainC=divMacroBase+(divChans*26)
 
 ;;;; ---- LOOK-UP TABLES ---- ;;;;
 ; used to determine the position of registers for a channel.
@@ -187,6 +210,47 @@ divOctaveTable:
   mov spc_dspData, a
 .ENDM
 
+; runMacro <callback> <pointer> <time>
+; run macros on all channels.
+.MACRO runMacro
+  ; prepare the macro callback
+  mov a, #<\1
+  mov !divMacroCallback+1, a
+  mov a, #>\1
+  mov !divMacroCallback+2, a
+  ; run on all channels
+  mov x, #((divChans-1)*2)
+- ; check whether we have a macro
+  ; (we do if the pointer is not $0000)
+  ; we only check the upper byte for performance
+  mov a, !(\2+1)+x
+  beq ++
+  ; tick counter and run macro if needed
+  mov a, !\3+x
+  dec a
+  bmi +
+  ; we don't have to run - store counter and proceed with next channel
+  mov !\3+x, a
+  dec x
+  dec x
+  bpl -
++ ; we have to run the macro
+  ; prepare macro pointer
+  mov a, !(\2+1)+x
+  mov y, a
+  mov a, !\2+x
+  movw divTempPtr, ya
+  ; run
+  call !divRunMacro
+  ; set the tick timer
+  mov a, divTempPtr2
+  mov !\3+x, a
+++ ; next channel
+  dec x
+  dec x
+  bpl -
+.ENDM
+
 ;;;; ---- DISPATCH FUNCTIONS ---- ;;;;
 
 ; void DivPlatformSNES::tick();
@@ -195,10 +259,8 @@ divTick:
   ; temporary variables
   mov divTempKeyOn, #0
   mov divTempKeyOff, #0
-  ; TODO: macro processing loop here...
   ; macro processing
-  ; CRAP
-
+  runMacro divMacroVol, divMacroVolPtr, divMacroVolC
   ; frequency processing
   mov x, #0
   @freqLoop:
@@ -977,7 +1039,7 @@ divMacroCmdU8:
   incw divTempPtr
   mov divTempPtr2, #0
   clrc
-  bra divMacroCallback
+  jmp !divMacroCallback
 
 ; $92
 divMacroCmdS8:
@@ -989,12 +1051,12 @@ divMacroCmdS8:
   @pos:
     incw divTempPtr
     clrc
-    bra divMacroCallback
+    jmp !divMacroCallback
   @neg:
     incw divTempPtr
     dec y
     clrc
-    bra divMacroCallback
+    jmp !divMacroCallback
 
 ; $94
 divMacroCmdS16:
@@ -1009,7 +1071,7 @@ divMacroCmdS16:
   mov y, a
   pop a
   clrc
-  bra divMacroCallback
+  jmp !divMacroCallback
 
 ; $98
 divMacroCmdS8Bit30:
@@ -1021,12 +1083,12 @@ divMacroCmdS8Bit30:
   @pos:
     incw divTempPtr
     setc
-    bra divMacroCallback
+    jmp !divMacroCallback
   @neg:
     incw divTempPtr
     dec y
     setc
-    bra divMacroCallback
+    jmp !divMacroCallback
 
 ; $96 - what the hell. I am not implementing this one.
 divMacroCmdS32:
@@ -1157,6 +1219,23 @@ divMacroCmdTable:
   .dw divMacroCmdWaitHigh
   .dw divMacroCmdWaitHigh
 
+; init/reset macros
+divMacroInit:
+  ret
+
+divMacroReset:
+  mov a, #0
+  mov !(divMacroVolPtr+1)+x, a
+  mov !(divMacroArpPtr+1)+x, a
+  mov !(divMacroDutyPtr+1)+x, a
+  mov !(divMacroWavePtr+1)+x, a
+  mov !(divMacroPanLPtr+1)+x, a
+  mov !(divMacroPanRPtr+1)+x, a
+  mov !(divMacroPitchPtr+1)+x, a
+  mov !(divMacroSpecialPtr+1)+x, a
+  mov !(divMacroGainPtr+1)+x, a
+  ret
+
 ;;;; ---- MACRO HANDLERS ---- ;;;;
 
 divMacroVol:
@@ -1171,6 +1250,10 @@ divMacroVol:
   inc y
 + mov a, y
   mov !divChanOutVol+x, a
+  ; set the shallWriteVol flag
+  mov a, !divChanSNESFlags+x
+  or a, #$08
+  mov !divChanSNESFlags+x, a
   ret
 
 divMacroArp:
@@ -1383,7 +1466,8 @@ divCmdNoteOn:
   mov a, !divChanFlags+x
   or a, #$08
   mov !divChanFlags+x, a
-  ; TODO: call macroInit here...
+  ; call macroInit
+  call !divMacroInit
   ; TODO: check whether volume macro is present before calling this code
 .ifndef DIV_COMPAT_BROKEN_OUT_VOL
   ; check whether volume changed
@@ -1420,7 +1504,7 @@ divCmdNoteOff:
     mov !divChanSNESFlags+x, a
     ret
   @shouldEndMacro:
-    ; TODO: macroInit(NULL) here...
+    call !divMacroReset
     ret
 
 divCmdNoteOffEnv:
