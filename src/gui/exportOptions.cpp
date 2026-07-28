@@ -669,6 +669,10 @@ void FurnaceGUI::drawExport() {
         drawExportDMF(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("Osc Video"))) {
+        drawExportOscVideo(true);
+        ImGui::EndTabItem();
+      }
       ImGui::EndTabBar();
     }
   } else switch (curExportType) {
@@ -694,6 +698,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_DMF:
       drawExportDMF(true);
+      break;
+    case GUI_EXPORT_OSC_VIDEO:
+      drawExportOscVideo(true);
       break;
     default:
       ImGui::Text(_("congratulations! you've unlocked a secret panel."));
