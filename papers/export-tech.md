@@ -320,6 +320,7 @@ hex | description
  da | jump (address follows)
  db | set tick rate (4 bytes)
  dc | wait (16-bit)
+    | - the maximum wait time is 32767.
  dd | wait (8-bit)
  de | wait one tick
  df | stop

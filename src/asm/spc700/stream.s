@@ -101,11 +101,10 @@ fcsNoArgDispatchB4:
   sbc a, #$b4
   mov y, a
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsOneByteDispatchB4:
-  mov a, y
-  push a
+  push y
   fcsReadNext
   mov fcsArg0, a
   pop a
@@ -118,21 +117,19 @@ fcsOneByteDispatchB4:
 ; dispatch subroutines for full commands
 fcsNoArgDispatch:
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsOneByteDispatch:
-  mov a, y
-  push a
+  push y
   fcsReadNext
   mov fcsArg0, a
   pop a
   mov y, a
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsTwoByteDispatch:
-  mov a, y
-  push a
+  push y
   fcsReadNext
   mov fcsArg0, a
   fcsReadNext
@@ -140,11 +137,10 @@ fcsTwoByteDispatch:
   pop a
   mov y, a
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsOneShortDispatch:
-  mov a, y
-  push a
+  push y
   fcsReadNext
   mov fcsArg0, a
   fcsReadNext
@@ -152,11 +148,10 @@ fcsOneShortDispatch:
   pop a
   mov y, a
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsTwoShortDispatch:
-  mov a, y
-  push a
+  push y
   fcsReadNext
   mov fcsArg0, a
   fcsReadNext
@@ -168,7 +163,7 @@ fcsTwoShortDispatch:
   pop a
   mov y, a
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsPrePorta:
   fcsReadNext
@@ -180,37 +175,37 @@ fcsPrePorta:
   mov fcsArg1, a
   mov y, #$0c
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsArpTime:
   fcsReadNext
   mov fcsArpSpeed, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsVibrato:
   fcsReadNext
   mov chanVibrato+x, a
   mov a, #1
   mov fcsSendPitch, a
-  ret
+  jmp !fcsDoChannelLoop
 
 ; TODO
 fcsVibRange:
 fcsVibShape:
   fcsReadNext
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsPitch:
   fcsReadNext
   mov chanPitch+x, a
   mov a, #1
   mov fcsSendPitch, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsArpeggio:
   fcsReadNext
   mov chanArp+x, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsVolume:
   fcsReadNext
@@ -219,21 +214,21 @@ fcsVolume:
   mov chanVol+x, a
   mov a, #1
   mov fcsSendVolume, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsVolSlide:
   fcsReadNext
   mov chanVolSpeed+x, a
   fcsReadNext
   mov (chanVolSpeed+1)+x, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsPorta:
   fcsReadNext
   mov chanPortaTarget+x, a
   fcsReadNext
   mov chanPortaSpeed+x, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsLegato:
   fcsReadNext
@@ -243,7 +238,7 @@ fcsLegato:
   mov fcsArg0+1, #0
   mov y, #11
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsVolSlideTarget:
   fcsReadNext
@@ -253,24 +248,24 @@ fcsVolSlideTarget:
   ; TODO: we don't support this yet...
   fcsReadNext
   fcsReadNext
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsNoOpOneByte:
 fcsPanSlide: ; TODO
   fcsReadNext
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsTremolo:
   fcsReadNext
   mov chanTremolo+x, a
   mov a, #1
   mov fcsSendVolume, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsPanbrello:
   fcsReadNext
   mov chanPanbrello+x, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsPan:
   fcsReadNext
@@ -281,13 +276,13 @@ fcsPan:
   mov fcsArg1, a
   mov y, #10
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsOptPlaceholder:
   fcsReadNext
   fcsReadNext
   fcsReadNext
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsCallI:
   ; get address
@@ -312,7 +307,7 @@ fcsCallI:
   mov chanPC+1+x, a
   pop a
   mov chanPC+x, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsOffWait:
   mov y, #0
@@ -320,7 +315,8 @@ fcsOffWait:
   inc y
   mov chanTicks+x, y
   call !fcsDispatchCmd
-  ret
+  ; get out of here
+  jmp !fcsDoChannelLoopEnd
 
 fcsFullCmd:
   ; read command
@@ -345,7 +341,6 @@ fcsSpeedDialCmd:
   mov !fcsSpeedDialCmdJ+1, a
   mov a, !fcsCmdReadTableHigh+y
   mov !fcsSpeedDialCmdJ+2, a
-  pop a
   mov y, a
   fcsSpeedDialCmdJ:
   jmp !$0000 ; modified by previous instructions
@@ -357,14 +352,14 @@ fcsPresetVol:
   mov chanVol+x, a
   mov a, #1
   mov fcsSendVolume, a
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsPresetIns:
   mov a, !(fcsSpeedDial-224)+y
   mov fcsArg0, a
   mov y, #4
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsCall:
   ; faster version
@@ -387,7 +382,7 @@ fcsCall:
   fcsPeekNext
   mov chanPC+1+x, a
   mov chanPC+x, y
-  ret
+  jmp !fcsDoChannelLoop
 
 ; retrieve channel PC from stack
 fcsRet:
@@ -399,7 +394,7 @@ fcsRet:
   mov a, !fcsGlobalStack+y
   mov chanPC+x, a
   mov chanStackPtr+x, y
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsJump:
   ; get address
@@ -408,46 +403,41 @@ fcsJump:
   fcsPeekNext
   mov chanPC+1+x, a
   mov chanPC+x, y
-  ret
+  jmp !fcsDoChannelLoop
 
 ; TODO
 fcsTickRate:
-  ret
+  jmp !fcsDoChannelLoop
 
 fcsWaitS:
-  setc
   fcsReadNext
-  and a, #$ff
   mov chanTicks+x, a
-  bne +
-  clrc
-+ fcsReadNext
-  adc a, #$ff
+  fcsReadNext
   mov chanTicks+1+x, a
-  ret
+  jmp !fcsDoChannelLoopEnd
 
 fcsWaitC:
   fcsReadNext
   mov chanTicks+x, a
   mov a, #0
   mov chanTicks+1+x, a
-  ret
+  jmp !fcsDoChannelLoopEnd
 
 fcsWait1:
   mov y, #1
   mov chanTicks+x, y
   dec y
   mov chanTicks+1+x, y
-  ret
+  jmp !fcsDoChannelLoopEnd
 
 fcsStop:
   mov a, #0
   mov chanPC+x, a
   mov chanPC+1+x, a
-  ret
+  jmp !fcsDoChannelLoopEnd
 
 fcsNoOp:
-  ret
+  jmp !fcsDoChannelLoop
 
 ; x: channel*2
 ; y: command
@@ -474,58 +464,6 @@ fcsIgnoreNext:
   bne +
   inc chanPC+1+x
 + ret
-
-; x: channel*2 (for speed... char variables are interleaved)
-; read commands
-fcsChannelCmd:
-  ; read next byte
-  fcsReadNext
-  and a, #$ff ; touch flags
-
-  ; process and read arguments
-  ; if (a<0xb3)
-  bpl fcsNote ; handle $00-$7f
-  cmp a, #$b4
-  bpl fcsCheckOther
-
-  ; this is a note
-  fcsNote:
-    mov fcsArg0+1, #0
-    mov fcsArg0, a
-    mov chanNote+x, a
-    mov a, #0
-    mov y, a
-    mov chanVibratoPos+x, a
-    ; call DIV_CMD_NOTE_ON
-    call !fcsDispatchCmd
-    ret
-
-  ; check other instructions
-  fcsCheckOther:
-    ; check for preset delays
-    cmp a, #$f0
-    bmi fcsOther
-
-  ; handler for preset delays
-  fcsPresetDelay:
-    ; load preset delay and store it
-    mov y, a
-    mov a, !(fcsPtr+8-240)+y
-    mov chanTicks+x, a
-    mov a, #0
-    mov chanTicks+1+x, a
-    ret
-
-  ; other instructions
-  fcsOther:
-    ; call respective handler
-    mov y, a
-    mov a, !(fcsInsTableLow-180)+y
-    mov !fcsOtherJ+1, a
-    mov a, !(fcsInsTableHigh-180)+y
-    mov !fcsOtherJ+2, a
-    fcsOtherJ:
-    jmp !$0000 ; modified by previous instructions
 
 ; this is called when vibrato depth is zero
 fcsChanPitchShortcut:
@@ -796,31 +734,75 @@ fcsDoChannel:
 
   ; begin processing
   ; chanTicks--
-+ mov a, chanTicks+x
-  setc
-  sbc a, #1
-  mov chanTicks+x, a
+  dec chanTicks+x
   bne + ; skip if our counter isn't zero
 
   ; ticks lower is zero; check upper byte
   mov y, chanTicks+1+x
-  beq fcsDoChannelLoop ; go to read commands if it's zero as well
+  beq fcsDoChannelLoopBegin ; go to read commands if it's zero as well
   ; decrease ticks upper
   dec y
   mov chanTicks+1+x, y
   ; process channel stuff
-  jmp !fcsChannelPost
++ jmp !fcsChannelPost
 
-  ; ticks is zero... read commands until chanTicks is set
+  ; ticks is zero... prepare to read commands
+  fcsDoChannelLoopBegin:
+  ; read commands until chanTicks is set
   fcsDoChannelLoop:
-    mov a, chanTicks+x
-    or a, chanTicks+1+x
-    bne + ; get out if chanTicks is no longer zero
-    call !fcsChannelCmd ; read next command
-    jmp !fcsDoChannelLoop
+    ; read next byte
+    fcsReadNext
+    and a, #$ff ; touch flags
+
+    ; process and read arguments
+    ; if (a<0xb3)
+    bpl fcsNote ; handle $00-$7f
+    cmp a, #$b4
+    bpl fcsCheckOther
+
+    ; this is a note
+    fcsNote:
+      mov fcsArg0+1, #0
+      mov fcsArg0, a
+      mov chanNote+x, a
+      mov a, #0
+      mov y, a
+      mov chanVibratoPos+x, a
+      ; call DIV_CMD_NOTE_ON
+      call !fcsDispatchCmd
+      jmp !fcsDoChannelLoop
+
+    ; check other instructions
+    fcsCheckOther:
+      ; check for preset delays
+      cmp a, #$f0
+      bmi fcsOther
+
+    ; handler for preset delays
+    fcsPresetDelay:
+      ; load preset delay and store it
+      mov y, a
+      mov a, !(fcsPtr+8-240)+y
+      mov chanTicks+x, a
+      mov a, #0
+      mov chanTicks+1+x, a
+      ; get out of here
+      jmp !fcsDoChannelLoopEnd
+
+    ; other instructions
+    fcsOther:
+      ; call respective handler
+      mov y, a
+      mov a, !(fcsInsTableLow-180)+y
+      mov !fcsOtherJ+1, a
+      mov a, !(fcsInsTableHigh-180)+y
+      mov !fcsOtherJ+2, a
+      fcsOtherJ:
+      jmp !$0000 ; modified by previous instructions
 
   ; end
-+ jmp !fcsChannelPost
+  fcsDoChannelLoopEnd:
+    jmp !fcsChannelPost
 
 fcsTick:
   ; update channel state
