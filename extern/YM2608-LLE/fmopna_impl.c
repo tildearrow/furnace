@@ -118,14 +118,23 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 #endif
 #ifdef FMOPNA_YM2612
         prescaler_of = (chip->prescaler_latch[1] & 0x1f) == 0;
-#endif
-        chip->ic_latch1[0] = chip->ic;
 
+        int ic_check1 = chip->ic && (chip->ic_latch2[1] & 0x800) == 0;
+
+        chip->ic_latch2[0] = (chip->ic_latch2[1] << 1) | chip->ic;
+        chip->ic_latch3[0] = (chip->ic_latch3[1] << 1) | ic_check1;
+
+        chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
+        chip->prescaler_latch[0] |= !ic_check1 && prescaler_of;
+
+#else
+        chip->ic_latch1[0] = chip->ic;
         chip->ic_latch2[0] = (chip->ic_latch2[1] << 1) | chip->ic_latch1[1];
         chip->ic_latch3[0] = (chip->ic_latch3[1] << 1) | chip->ic_check1;
 
         chip->prescaler_latch[0] = chip->prescaler_latch[1] << 1;
         chip->prescaler_latch[0] |= !chip->ic_check1 && prescaler_of;
+#endif
 
 #ifdef FMOPNA_YM2608
         chip->pssel_l[0][0] = (chip->prescaler_latch[1] & 0x861) != 0;
@@ -167,15 +176,15 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
     }
     if (chip->mclk2)
     {
+#ifndef FMOPNA_YM2612
         chip->ic_latch1[1] = chip->ic_latch1[0];
+#endif
         chip->ic_latch2[1] = chip->ic_latch2[0];
         chip->ic_latch3[1] = chip->ic_latch3[0];
 
 #ifndef FMOPNA_YM2612
         chip->ic_check1 = chip->ic_latch1[1] && (chip->ic_latch2[1] & 0x20000) == 0;
         chip->ic_check2 = (chip->ic_latch3[1] & 4) != 0;
-#else
-        chip->ic_check1 = chip->ic_latch1[1] && (chip->ic_latch2[1] & 0x800) == 0;
 #endif
         chip->ic_check3 = (chip->ic_latch3[1] & 8) != 0;
 
@@ -268,7 +277,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 #endif
     }
 
-    // if (clk)
+    // if (!clk)
     //     return;
 
     {
@@ -466,8 +475,6 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                 chip->reg_timer_b_load[0] = 0;
                 chip->reg_timer_a_enable[0] = 0;
                 chip->reg_timer_b_enable[0] = 0;
-                chip->reg_timer_a_reset[0] = 0;
-                chip->reg_timer_b_reset[0] = 0;
                 chip->reg_kon_operator[0] = 0;
                 chip->reg_kon_channel[0] = 0;
 #ifdef FMOPNA_YM2608
@@ -573,8 +580,6 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                     chip->reg_timer_b_load[0] = (chip->data_bus1 >> 1) & 1;
                     chip->reg_timer_a_enable[0] = (chip->data_bus1 >> 2) & 1;
                     chip->reg_timer_b_enable[0] = (chip->data_bus1 >> 3) & 1;
-                    chip->reg_timer_a_reset[0] = (chip->data_bus1 >> 4) & 1;
-                    chip->reg_timer_b_reset[0] = (chip->data_bus1 >> 5) & 1;
                 }
                 else
                 {
@@ -583,8 +588,6 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                     chip->reg_timer_b_load[0] = chip->reg_timer_b_load[1];
                     chip->reg_timer_a_enable[0] = chip->reg_timer_a_enable[1];
                     chip->reg_timer_b_enable[0] = chip->reg_timer_b_enable[1];
-                    chip->reg_timer_a_reset[0] = 0;
-                    chip->reg_timer_b_reset[0] = 0;
                 }
                 if (chip->addr_28[1] && (chip->data_bus1 & 0x100) == 0 && chip->write1_en)
                 {
@@ -635,6 +638,8 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                 }
 #endif
             }
+            chip->reg_timer_a_reset[0] = chip->addr_27[1] && (chip->data_bus1 & 0x100) == 0 && chip->write1_en && ((chip->data_bus1 >> 4) & 1) != 0;
+            chip->reg_timer_b_reset[0] = chip->addr_27[1] && (chip->data_bus1 & 0x100) == 0 && chip->write1_en && ((chip->data_bus1 >> 5) & 1) != 0;
 
             int rst1 = chip->reg_cnt_sync || chip->ic;
             int of = (chip->reg_cnt1[1] & 2) != 0;
@@ -939,8 +944,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
 #endif
                     )
 #ifdef FMOPNA_YM2610
-                // tildearrow: changed to allow YM2610B emulation
-                && (chip->ym2610b || (chip->reg_kon_channel[0] & 3) != 0)
+                && ((chip->reg_kon_channel[0] & 3) != 0 || chip->input.ym2610b)
 #endif
                 ;
 
@@ -1333,7 +1337,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
             chip->pg_add[4] = chip->pg_add[3];
 
             chip->pg_reset[1] = chip->pg_reset[0];
-            chip->pg_reset[3] = chip->pg_reset[2];
+            chip->pg_reset[3] = chip->pg_reset[2] || (chip->reg_test_21[1] & 8) != 0;
 
             memcpy(&chip->pg_phase[0][1], &chip->pg_phase[1][0], 22 * sizeof(int));
 
@@ -2256,8 +2260,8 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
                     break;
 #ifdef FMOPNA_YM2608
                 case 0xe:
-                    chip->data_bus1 &= ~15;
-                    chip->data_bus1 |= chip->input.gpio_a & 15;
+                    chip->data_bus1 &= ~255;
+                    chip->data_bus1 |= chip->input.gpio_a & 255;
                     break;
                 case 0xf:
                     chip->data_bus1 &= ~255;
@@ -2436,6 +2440,10 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
         chip->o_analog += chip->o_analog_ch[0] = volume_lut[sign_a ? 0 : vol_a];
         chip->o_analog += chip->o_analog_ch[1] = volume_lut[sign_b ? 0 : vol_b];
         chip->o_analog += chip->o_analog_ch[2] = volume_lut[sign_c ? 0 : vol_c];
+
+        // tildearrow: build fails if I enable these.
+        //chip->o_gpio_a_d = (chip->ssg_mode & 64) == 0;
+        //chip->o_gpio_b_d = (chip->ssg_mode & 128) == 0;
     }
 
     {
@@ -5781,7 +5789,7 @@ void FMOPNA_2612_Clock(fmopna_2612_t* chip, int clk)
         {
             chip->ch_op_output = (chip->op_output[2] >> 5) & 0x1ff;
             chip->ch_op_add = chip->alg_output_l;
-            chip->ch_accm_load = chip->alg_mod_op1_1_l;
+            chip->ch_accm_load = chip->alg_load_fb;
             memcpy(&chip->ch_accm[1][0], &chip->ch_accm[0][0], 6 * sizeof(short));
             memcpy(&chip->ch_buf[1][0], &chip->ch_buf[0][0], 6 * sizeof(short));
 

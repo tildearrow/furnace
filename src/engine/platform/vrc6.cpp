@@ -170,7 +170,7 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -214,9 +214,11 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=chan[i].calcFreq()-1;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq--;
       } else { // pulse
-        chan[i].freq=chan[i].calcFreq()-1;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) chan[i].freq--;
         if (chan[i].pcm) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -231,8 +233,10 @@ void DivPlatformVRC6::tick(bool sysTick) {
           if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
         }
       }
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOff) {
         chWrite(i,2,0);
       } else if (chan[i].active) {

@@ -42,6 +42,7 @@ static int getGainVol=0;
 static int ptDebugChan=0;
 static int disDebugChan=0;
 static bool disMultiChannel=false;
+static float rotAngle=0.0f;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -219,6 +220,7 @@ void FurnaceGUI::drawDebug() {
           DISPATCH_DEBUG_LED("keyOff",ch->keyOff);
           DISPATCH_DEBUG_LED("portaPause",ch->portaPause);
           DISPATCH_DEBUG_LED("inPorta",ch->inPorta);
+          DISPATCH_DEBUG_LED("rawFreq",ch->rawFreq);
 
           ImGui::EndTable();
         }
@@ -309,6 +311,11 @@ void FurnaceGUI::drawDebug() {
             ImGui::TableNextColumn();
             pushToggleColors(ch->inPorta);
             ImGui::Button("in porta",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->rawFreq);
+            ImGui::Button("raw freq",ImVec2(ImGui::GetContentRegionAvail().x,0));
             popToggleColors();
 
             ImGui::EndTable();
@@ -424,6 +431,14 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("patScroll: %f",patScroll);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Rotation Test")) {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImGui::Text("Rotating...........");
+      drawImage(dl,GUI_IMAGE_ICON,ImVec2(0.5f,0.5f),ImVec2(1.0f,1.0f),rotAngle,ImVec2(0.0f,0.0f),ImVec2(1.0f,1.0f),ImVec4(1.0f,1.0f,1.0f,1.0f));
+      rotAngle+=0.05f;
+      if (rotAngle>2.0*M_PI) rotAngle-=2.0*M_PI;
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Song Timestamps")) {
       if (ImGui::Button("Recalculate")) {
         e->calcSongTimestamps();
@@ -456,7 +471,7 @@ void FurnaceGUI::drawDebug() {
       }
 
       ImGui::Checkbox("Enable row timestamps (in pattern view)",&debugRowTimestamps);
-      
+
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Macro Int Debug")) {
@@ -948,7 +963,7 @@ void FurnaceGUI::drawDebug() {
 
         ImGui::EndTable();
       }
-      
+
       ImGui::Text("particle count: %d",(int)particles.size());
 
       ImGui::TreePop();
@@ -995,7 +1010,7 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Clear")) {
         pgProgram.clear();
       }
-      
+
       ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
@@ -1150,7 +1165,7 @@ void FurnaceGUI::drawDebug() {
       for (int i=0; i<oscDebugLen; i++) {
         oscDebugData[i]=oscDebugMin+(oscDebugMax-oscDebugMin)*pow((float)((i*oscDebugRepeat)%oscDebugLen)/(float)oscDebugLen,oscDebugPower);
       }
-      
+
       if (rend->supportsDrawOsc()) {
         ImDrawList* dl=ImGui::GetWindowDrawList();
         ImGuiWindow* window=ImGui::GetCurrentWindow();

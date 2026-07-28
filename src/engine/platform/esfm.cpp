@@ -132,7 +132,7 @@ void DivPlatformESFM::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -343,34 +343,41 @@ void DivPlatformESFM::tick(bool sysTick) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
       chan[i].freq=chan[i].calcFreq(mul);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>131071) chan[i].freq=131071;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>131071) chan[i].freq=131071;
+      }
 
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=i*32+o*8;
         DivInstrumentESFM::Operator& opE=chan[i].state.esfm.op[o];
-        int ct=(int)opE.ct;
-        int dt=(int)opE.dt;
-        if (opE.fixed) {
-          chan[i].freqL[o]=opE.dt;
-          chan[i].freqH[o]=opE.ct&0x1f;
+        if (chan[i].rawFreq) {
+          chan[i].freqL[o]=chan[i].freq&0xff;
+          chan[i].freqH[o]=chan[i].freq>>8;
         } else {
-          int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
-          int pitch2=chan[i].pitch2+dt;
-          int fixedArp=chan[i].fixedArp;
-          if(chan[i].opsState[o].hasOpArp) {
-            arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
-            fixedArp=chan[i].opsState[o].fixedArp;
+          int ct=(int)opE.ct;
+          int dt=(int)opE.dt;
+          if (opE.fixed) {
+            chan[i].freqL[o]=opE.dt;
+            chan[i].freqH[o]=opE.ct&0x1f;
+          } else {
+            int arp=chan[i].fixedArp?chan[i].baseNoteOverride+ct:chan[i].arpOff+ct;
+            int pitch2=chan[i].pitch2+dt;
+            int fixedArp=chan[i].fixedArp;
+            if (chan[i].opsState[o].hasOpArp) {
+              arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride+ct:chan[i].opsState[o].arpOff+ct;
+              fixedArp=chan[i].opsState[o].fixedArp;
+            }
+            if (chan[i].opsState[o].hasOpPitch) {
+              pitch2=chan[i].opsState[o].pitch2+dt;
+            }
+            int opFreq=chan[i].esfmCalcOpFreq(arp,fixedArp,mul,pitch2);
+            if (opFreq<0) opFreq=0;
+            if (opFreq>131071) opFreq=131071;
+            int freqt=toFreq(opFreq,fixedBlock);
+            chan[i].freqL[o]=freqt&0xff;
+            chan[i].freqH[o]=freqt>>8;
           }
-          if(chan[i].opsState[o].hasOpPitch) {
-            pitch2=chan[i].opsState[o].pitch2+dt;
-          }
-          int opFreq=chan[i].esfmCalcOpFreq(arp,fixedArp,mul,pitch2);
-          if (opFreq<0) opFreq=0;
-          if (opFreq>131071) opFreq=131071;
-          int freqt=toFreq(opFreq,fixedBlock);
-          chan[i].freqL[o]=freqt&0xff;
-          chan[i].freqH[o]=freqt>>8;
         }
         immWrite(baseAddr+ADDR_FREQL,chan[i].freqL[o]);
         immWrite(baseAddr+ADDR_FREQH_BLOCK_DELAY,chan[i].freqH[o]|(opE.delay<<5));
@@ -1044,8 +1051,18 @@ int DivPlatformESFM::getRegisterPoolSize() {
 
 void DivPlatformESFM::reset() {
   while (!writes.empty()) writes.pop();
+  
+  esfm_revision rev=ESFM_REV_ES16XX_ES17XX_ES1868;
+  switch (revision) {
+    case 1: // clip
+      rev=ESFM_REV_ES1869_ES19XX_ESSSOLO;
+      break;
+    default: // no clip
+      rev=ESFM_REV_ES16XX_ES17XX_ES1868;
+      break;
+  }
 
-  ESFM_init(&chip,isFast?1:0);
+  ESFM_init_with_rev(&chip,rev,isFast);
   // set chip to native mode
   ESFM_write_reg(&chip, 0x105, 0x80);
   // ensure NTS bit in register 0x408 is reset, for smooth envelope rate scaling
@@ -1139,6 +1156,7 @@ void DivPlatformESFM::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 
   // guess what. that didn't fix it.
+  revision=flags.getInt("revision",0);
 }
 
 void DivPlatformESFM::setFast(bool fast) {

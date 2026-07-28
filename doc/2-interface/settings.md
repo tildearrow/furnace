@@ -2,8 +2,16 @@
 
 the Settings window allows you to change Furnace settings.
 
-settings are saved when clicking the **OK** or **Apply** buttons at the bottom of the window, and when closing the program. several backups are kept in the Furnace settings directory.
+one side of the window contains setting categories. the other displays these settings.
 
+the search bar filters visible settings to only those that match the search term.
+click on the adjacent button to see additional options:
+
+- **import**: select a Furnace config file (`.cfg`) to overwrite current settings.
+- **export**: export the current settings to a Furnace config file (`.cfg`).
+- **factory reset**: resets all settings and the workspace layout to default.
+
+click on either the **OK** or **Apply** button to save your settings.
 
 ## General
 
@@ -31,10 +39,6 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - may cause issues under Mesa drivers!
 - **Disable threaded input (restart after changing!)**: processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
 - **Enable event delay**: may cause issues with high-polling-rate mice when previewing notes.
-- **Per-channel oscilloscope threads**: runs the per-channel oscilloscope in separate threads for a performance boost when there are lots of channels.
-- **Oscilloscope rendering engine**: allows you to select between the following rendering engines for oscilloscope views (master and per-channel):
-  - **ImGui line plot**: the default engine. uses Dear ImGui line plotting functions for rendering.
-  - **GLSL**: uses OpenGL shaders for rendering. higher quality, but very GPU-intensive! only available in OpenGL 3.0 backend.
 
 ### File
 
@@ -42,17 +46,11 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Number of recent files**: number of files that will be remembered in the _open recent..._ menu.
 - **Compress when saving**: uses zlib to compress saved songs.
 - **Save unused patterns**: stores unused patterns in a saved song.
-- **Use new pattern format when saving**: stores patterns in the new, optimized and smaller format. only disable if you need to work with older versions of Furnace.
 - **Don't apply compatibility flags when loading .dmf**: does exactly what the option says. your .dmf songs may not play correctly after enabled.
 - **Play after opening song:**
   - No
   - Only if already playing
   - Yes
-- **Audio export loop/fade out time:**
-  - **Set to these values on start-up:**
-    - **Loops**: number of additional times to play through `0Bxx` song loop.
-    - **Fade out (seconds)**: length of fade out after final loop.
-  - **Remember last values**
 - **Store instrument name in .fui**: when enabled, saving an instrument will store its name. this may increase file size.
 - **Load instrument name from .fui**: when enabled, loading an instrument will use the stored name (if present). otherwise, it will use the file name.
 - **Auto-fill file name when saving**: pre-fill the file name field when saving or exporting.
@@ -81,16 +79,12 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - **Full (short when loading song)**: shows animated musical intro unless started with a song (command line, double-clicking a .fur file, etc.)
   - **Full (always)**: always shows animated musical intro.
 - **Disable fade-in during start-up**
+- **Do not maximize on startup when the Furnace window is too big**
 
 ### Behavior
 
 - **New instruments are blank**: when enabled, adding FM instruments will make them blank (rather than loading the default one).
-
-### Configuration
-
-- **Import**: select an exported `.ini` config file to overwrite current settings.
-- **Export**: select an `.ini` file to save current settings.
-- **Factory Reset**: resets all settings to default and purges settings backups.
+- **Allow note input with open warning**: allows keyboard passthrough while modal warning dialogs are open; the only key intercepted is the `Escape` key to close the dialog.
 
 ### Import
 
@@ -124,6 +118,8 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
 - **Buffer size**: size of buffer in both samples and milliseconds.
   - setting this to a low value may cause stuttering/glitches in playback (known as "underruns" or "xruns").
   - setting this to a high value increases latency.
+- **Multi-threaded (EXPERIMENTAL)**: runs chip emulation cores on separate threads, which may increase performance with heavy emulation cores.
+  - **Number of threads**: maximum number of threads to use in multi-threaded mode.
 - **Exclusive mode**: enables Exclusive Mode, which may offer latency improvements.
   - only available on WASAPI devices in the PortAudio backend!
 - **Low-latency mode**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
@@ -139,14 +135,8 @@ settings are saved when clicking the **OK** or **Apply** buttons at the bottom o
   - this avoids activating Windows' built-in limiter.
   - this option shall be enabled when using PortAudio backend with a DirectSound device.
 - **DC offset correction**: apply a filter to remove DC bias, where the output is overall above or below zero. default is on.
-
-### Metronome
-
-- **Volume**: sets volume of metronome.
-
-### Sample preview
-
-- **Volume**: sets volume of sample preview.
+- **Metronome volume**: sets volume of metronome.
+- **Sample preview volume**: sets volume of sample preview.
 
 ## MIDI
 
@@ -237,29 +227,14 @@ the available quality settings are:
 
 - **PC Speaker strategy**: this is covered in the [PC speaker page](../7-systems/pcspkr.md).
 
-## Keyboard
+<!--
+### Sample ROMs
 
-### Keyboard
+certain sample-based chips (in particular OPL4 and MultiPCM) may use external ROMs for sample data.
+you may enter a path to appropriate ROM files here.
 
-- **Import**: imports keyboard layout in `.cfgk` format.
-- **Export**: exports keyboard layout in `.cfgk` format.
-- **Reset defaults**: resets all keybinds to default values.
-
-a list of keybinds is displayed.
-- click on a keybind. then enter a key or key combination to change it.
-- right-click to clear the keybind.
-- the full list is in the [keyboard](keyboard.md) page.
-
-#### note input
-
-the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
-- **Key**: key assignment.
-- **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", and "Macro release".
-  - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
-- **Value**: number of semitones above C at the current octave. only appears for note type binds.
-- **Remove**: removes the keybind from the list.
-
-below all the binds, select a key from the dropdown list to add it. it will appear at or near the top of the list as a note with value 0.
+these files are not distributed with Furnace as they are under copyright. you shall only acquire these files using legal methods.
+-->
 
 ## Interface
 
@@ -297,7 +272,10 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Allow dragging selection:**
   - **No**: don't allow drag-and-drop.
   - **Yes**: allow drag-and-drop.
-  - **Yes (while holding Ctrl only)**: allow drag-and-drop but only when holding Control (Command on macOS).
+  - **Yes (while holding Ctrl only)**: allow drag-and-drop but only when holding the Control key (Command on macOS).
+  - **Yes (copy)**: allow drag-and-drop to copy data.
+  - **Yes (while holding Ctrl only and copy)**: allow drag-and-drop with copy but only when holding Control.
+  - **Yes (holding Ctrl copies)**: allow drag-and-drop, with data copied when holding Control.
 - **Toggle channel solo on:** selects which interactions with a channel header will toggle solo for that channel.
   - **Right-click or double click**
   - **Right-click**
@@ -383,7 +361,7 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Font renderer**: this allows you to select which font renderer library to use. there are two choices:
   - **stb_truetype**: the original font renderer used in Furnace 0.6 and before.
-  - **FreeType**: this font renderer has support for more font formats and provides more settings. introduced in Furnace 0.6.1.
+  - **FreeType**: this font renderer has support for more font formats and provides more settings.
 - **Main font**: font for the user interface.
 - **Header font**: font for section headers.
 - **Pattern font** font for the pattern view, the order list, and related.
@@ -446,21 +424,22 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 - **Pattern row number format:**
   - **Decimal**
   - **Hexadecimal**
-- **Pattern view labels:**
-  - **Note off (3-char)**: default is `OFF`
-  - **Note release (3-char)**: default is `===`.
-  - **Macro release (3-char)**: default is `REL`.
-  - **Empty field (3-char)**: default is `...`.
-  - **Empty field (2-char)**: default is `..`.
-- **Pattern view spacing after:** number of pixels of space between columns.
-  - **Note**
-  - **Instrument**
-  - **Volume**
-  - **Effect**
-  - **Effect value**
 - **Single-digit effects for 00-0F**
 - **Use flats instead of sharps**
 - **Use German notation**: display `B` notes as `H`, and `A#` notes as `B`.
+#### Pattern view labels
+- **Note off (3-char)**: default is `OFF`
+- **Note release (3-char)**: default is `===`.
+- **Macro release (3-char)**: default is `REL`.
+- **Empty field (3-char)**: default is `...`.
+- **Empty field (2-char)**: default is `..`.
+#### Pattern view spacing after:
+- these set the number of pixels of space between columns.
+- **Note**
+- **Instrument**
+- **Volume**
+- **Effect**
+- **Effect value**
 
 ### Channel
 
@@ -477,11 +456,12 @@ below all the binds, select a key from the dropdown list to add it. it will appe
   - **Stereo**
   - **Real**
   - **Real (stereo)**
-- **Channel feedback style:**
-  - **Off**
-  - **Note**
-  - **Volume**
-  - **Active**
+- **Channel feedback style:** sets how channel headers and piano keys highlight.
+  - **Off**: no indicator.
+  - **Note**: flash at the start of a note, then fades.
+  - **Volume**: change intensity with channel volume.
+  - **Active**: stay fully on while a note is playing.
+  - **Volume (real)**: change intensity with output loudness.
 - **Channel font:**
   - **Regular**
   - **Monospace**
@@ -513,17 +493,15 @@ below all the binds, select a key from the dropdown list to add it. it will appe
 
 - **Macro editor layout:**
   - **Unified**
+  - **Tabs**
   - **Grid**
   - **Single (with list)**
+  - **Single (combo box)**
 - **Use classic macro editor vertical slider**
 - **Macro step size/horizontal zoom:**
   - **Manual**
   - **Automatic per macro**
   - **Automatic (use longest macro)**
-
-### Wave Editor
-
-- **Use compact wave editor**
 
 ### FM Editor
 
@@ -617,18 +595,33 @@ below all the binds, select a key from the dropdown list to add it. it will appe
     - **Secondary**
 - several more categories...
 
-## Backup
+## Keyboard
 
-### Configuration
+### Keyboard
+
+- **Import**: imports keyboard layout in `.cfgk` format.
+- **Export**: exports keyboard layout in `.cfgk` format.
+- **Reset defaults**: resets all keybinds to default values.
+
+a list of keybinds is displayed.
+- click on a keybind. then enter a key or key combination to change it.
+- right-click to clear the keybind.
+- the full list is in the [keyboard](keyboard.md) page.
+
+#### note input
+
+the settings for note input keybinds operate differently. each entry in the list of keybinds is made of the following:
+- **Key**: key assignment.
+- **Type**: type of note input. left-click cycles through "Note", "Note off", "Note release", "Macro release", and "Toggle raw note".
+  - note: the list is sorted by type. on changing a key's type, it will instantly move to its new sorting position!
+- **Value**: number of semitones above C at the current octave. only appears for note type binds.
+- **Remove**: removes the keybind from the list.
+
+below all the binds, select a key from the dropdown list to add it. it will appear at or near the top of the list as a note with value 0.
+
+## Backup Configuration
 
 - **Enable backup system**: turn on automatic backups of the current open file.
 - **Interval (in seconds)**: time between automatic backups.
 - **Backups per file**: maximum number of backups to store for each file. oldest backups are deleted first.
-
-### Backup Management
-
-- **Purge before**:
-  - **Go**: purge all backups from before the selected date.
-- total space used by all backups:
-  - **Refresh**: recalculate space.
-  - **Delete All**: purge all backups.
+- **Open backup management...**: opens [the Backup Management window](backup.md).

@@ -278,7 +278,11 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xda: // jmp
     case 0xdb: // rate
     case 0xcb: // volporta
+    case 0xb9: // note raw
+    case 0xbb: // legato raw
       return 5;
+    case 0xba: // porta raw
+      return 6;
   }
   return 1;
 }
@@ -288,6 +292,13 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_NOTE_ON:
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xb4);
+      } else if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xb9);
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
       } else {
         w->writeC(CLAMP(c.value,0,0xb3));
       }
@@ -332,10 +343,18 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(0xc8);
       break;
     case DIV_CMD_HINT_PORTA:
-      w->writeC(0xc9);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xba);
+      } else {
+        w->writeC(0xc9);
+      }
       break;
     case DIV_CMD_HINT_LEGATO:
-      w->writeC(0xca);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xbb);
+      } else {
+        w->writeC(0xca);
+      }
       break;
     case DIV_CMD_HINT_VOL_SLIDE_TARGET:
       w->writeC(0xcb);
@@ -361,6 +380,12 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_HINT_LEGATO:
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xff);
+      } else if (c.value&DIV_NOTE_RAW_FLAG) {
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
       } else {
         w->writeC(c.value);
       }
@@ -388,8 +413,16 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(c.value2);
       break;
     case DIV_CMD_HINT_PORTA: {
-      unsigned char val=CLAMP(c.value,0,255);
-      w->writeC(val);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
+      } else {
+        unsigned char val=CLAMP(c.value,0,179);
+        w->writeC(val);
+      }
       w->writeC(c.value2);
       break;
     }

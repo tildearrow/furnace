@@ -100,7 +100,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -145,7 +145,9 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       unsigned char keyoff=keyon|(1<<i);
       DivSample* s=parent->getSample(chan[i].sample);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       if (chan[i].keyOn) {
         unsigned int start=0;
         unsigned int loop=0;

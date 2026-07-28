@@ -116,12 +116,12 @@ void FurnaceGUI::drawTuner() {
       //   plot[i].x=origin.x+size.x*(float)i/FURNACE_TUNER_FFT_SIZE;
       //   plot[i].y=origin.y+size.y-size.y*(tunerFFTInBuf[i]+1.0f)/2.0f;
       // }
-      // dl->AddPolyline(plot, FURNACE_TUNER_FFT_SIZE, 0xff00ff00, 0, 1.0f);
+      // dl->AddPolyline(plot, FURNACE_TUNER_FFT_SIZE, 0xff00ff00, 1.0f);
       // for (size_t i=0; i<mag.size(); i++) {
       //   plot[i].x=origin.x+size.x*scaleFuncLog((float)i/mag.size());
       //   plot[i].y=origin.y+size.y-size.y*(mag[i]/FURNACE_TUNER_FFT_SIZE);
       // }
-      // dl->AddPolyline(plot, mag.size(), 0xffffffff, 0, 1.0f);
+      // dl->AddPolyline(plot, mag.size(), 0xffffffff, 1.0f);
       // dl->AddLine(origin+ImVec2(size.x*scaleFuncLog((double)peakIndex/(mag.size()-1)),0),origin+ImVec2(size.x*scaleFuncLog((double)peakIndex/(mag.size()-1)),size.y), 0xff000fff);
       // delete[] plot;
       const float boxHeight=20.0f*dpiScale;

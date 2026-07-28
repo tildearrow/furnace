@@ -117,7 +117,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -215,7 +215,9 @@ void DivPlatformSNES::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq>16383) chan[i].freq=16383;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>16383) chan[i].freq=16383;
+      }
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
         unsigned short tabAddr=sampleTableAddr(i);

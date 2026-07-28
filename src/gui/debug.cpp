@@ -356,7 +356,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- amDepth: %d",ch->amDepth);
       ImGui::Text("- pmDepth: %d",ch->pmDepth);
       FM_CHIP_DEBUG_BOOL;
-      ImGui::TextColored(ch->useYMFM?colorOn:colorOff,">> UseYMFM");
       break;
     }
     case DIV_SYSTEM_SEGAPCM: {

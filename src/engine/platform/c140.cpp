@@ -159,7 +159,7 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -227,8 +227,10 @@ void DivPlatformC140::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
       chan[i].freq=chan[i].calcFreq();
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       if (is219) {
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable() || chan[i].noise)?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
       } else {

@@ -94,6 +94,7 @@ void DivPlatformT6W28::writeOutVol(int ch) {
 
 
 int DivPlatformT6W28::snCalcFreq(int ch) {
+  if (chan[ch].rawFreq) return chan[ch].calcFreq();
   if (parent->song.compatFlags.linearPitch && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(167<<7)) {
     int ret=(((13<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(167<<7)))>>7;
     if (ret<0) ret=0;
@@ -110,7 +111,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=chan[i].calcBaseFreq(noiseSeek);
@@ -148,8 +149,10 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>1023) chan[i].freq=1023;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>1023) chan[i].freq=1023;
+      }
       if (i==3) {
         rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
         rWrite(1,chan[3].freq>>4);
