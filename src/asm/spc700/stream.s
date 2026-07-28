@@ -112,7 +112,7 @@ fcsOneByteDispatchB4:
   sbc a, #$b4
   mov y, a
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 ; dispatch subroutines for full commands
 fcsNoArgDispatch:
@@ -808,10 +808,23 @@ fcsTick:
   ; update channel state
   ; for (x=0; x<FCS_MAX_CHAN; x++)
   ; this little optimization will cost me 5 bytes per channel.
-.repeat FCS_MAX_CHAN step 2 index ch
-  mov x, #ch
+  ; dang it...... repeat step/index is a new feature.....
+  mov x, #0
   call !fcsDoChannel
-.endr
+  mov x, #2
+  call !fcsDoChannel
+  mov x, #4
+  call !fcsDoChannel
+  mov x, #6
+  call !fcsDoChannel
+  mov x, #8
+  call !fcsDoChannel
+  mov x, #10
+  call !fcsDoChannel
+  mov x, #12
+  call !fcsDoChannel
+  mov x, #14
+  call !fcsDoChannel
 
   ; increase tick counter
   incw fcsTicks
