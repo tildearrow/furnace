@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 
 #include "gif_load.h"
+#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -1145,7 +1146,13 @@ void FurnaceGUI::drawTutorial() {
 
         dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
 
+        if (ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest!=NULL) {
+          dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest);
+        }
         dl->AddImage(rend->getTextureID(cvTex),p0,p1,ImVec2(0,0),ImVec2(rend->getTextureU(cvTex),rend->getTextureV(cvTex)));
+        if (ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear!=NULL) {
+          dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear);
+        }
 
         if (mobileUI) {
           ImVec2 chevron[3];
