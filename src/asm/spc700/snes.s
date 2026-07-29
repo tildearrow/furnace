@@ -73,7 +73,7 @@ divChanD2=divBase+(divChans*26)+1 ; unsigned char
 divBaseEnd=divBase+(divChans*28)
 
 ;;;; ---- DivPlatformSNES (global state) ---- ;;;;
-divGlobalBase=$300
+divGlobalBase=$3ea
 divGlobalVolL=divGlobalBase ; unsigned char
 divGlobalVolR=divGlobalBase+1 ; unsigned char
 ; - bit 5: !echoOn
@@ -245,6 +245,11 @@ divOctaveTable:
   ; set the tick timer
   mov a, divTempPtr2
   mov !\3+x, a
+  ; set the macro pointer
+  mov a, divTempPtr
+  mov !\2+x, a
+  mov a, divTempPtr+1
+  mov !(\2+1)+x, a
 ++ ; next channel
   dec x
   dec x
@@ -1016,7 +1021,7 @@ divCalcBaseFreq:
 ; if your callback is run, assume the tick timer is 0 (one tick).
 divRunMacro:
   mov y, #0
-  mov a, [!divTempPtr]+y
+  mov a, [divTempPtr]+y
   bmi divMacroIsCommand
   divMacroIsValue:
     ; FORTUNATELY... this instruction exists...
@@ -1269,9 +1274,9 @@ divMacroInit:
       adc a, #3 ; skip 3 bytes
     @putOneMacroLow:
       mov !divMacroBase+x, a
-    @putOneMacroHigh:
       mov a, !@readOneMacroPtr+2
       adc a, #0
+    @putOneMacroHigh:
       mov !(divMacroBase+1)+x, a
     jmp !@prepareOneMacro
   @endOfList:
