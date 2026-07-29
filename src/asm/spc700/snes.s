@@ -1220,8 +1220,62 @@ divMacroCmdTable:
   .dw divMacroCmdWaitHigh
 
 ; init/reset macros
+; TODO: optimize. this is horrible.
 divMacroInit:
-  ret
+  ; reset macro counters
+  mov a, #0
+  mov !divMacroVolC+x, a
+  mov !divMacroArpC+x, a
+  mov !divMacroDutyC+x, a
+  mov !divMacroWaveC+x, a
+  mov !divMacroPanLC+x, a
+  mov !divMacroPanRC+x, a
+  mov !divMacroPitchC+x, a
+  mov !divMacroSpecialC+x, a
+  mov !divMacroGainC+x, a
+  ; reset macros
+  mov !(divMacroVolPtr+1)+x, a
+  mov !(divMacroArpPtr+1)+x, a
+  mov !(divMacroDutyPtr+1)+x, a
+  mov !(divMacroWavePtr+1)+x, a
+  mov !(divMacroPanLPtr+1)+x, a
+  mov !(divMacroPanRPtr+1)+x, a
+  mov !(divMacroPitchPtr+1)+x, a
+  mov !(divMacroSpecialPtr+1)+x, a
+  mov !(divMacroGainPtr+1)+x, a
+  ; initialize the macros
+  mov y, #17 ; macro list
+  @prepareOneMacro:
+    mov a, [divTempPtr]+y
+    mov !@readOneMacroPtr+1, a
+    inc y
+    mov a, [divTempPtr]+y
+    beq @endOfList
+  @readOneMacro:
+    mov !@readOneMacroPtr+2, a
+    inc y
+    ; divTempPtr1 contains pointer to macro
+    ; check macro type
+    @readOneMacroPtr:
+      mov a, !$0000 ; written by previous instructions
+      ; transform it and put it in next addresses
+      xcn a
+      mov !@putOneMacroLow+1, a
+      inc a
+      mov !@putOneMacroHigh+1, a
+      ; insert the macro
+      mov a, !@readOneMacroPtr+1
+      clrc
+      adc a, #3 ; skip 3 bytes
+    @putOneMacroLow:
+      mov !divMacroBase+x, a
+    @putOneMacroHigh:
+      mov a, !@readOneMacroPtr+2
+      adc a, #0
+      mov !(divMacroBase+1)+x, a
+    jmp !@prepareOneMacro
+  @endOfList:
+    ret
 
 divMacroReset:
   mov a, #0

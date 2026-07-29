@@ -265,10 +265,11 @@ struct DivInstrumentFM {
 
 struct DivCompileMacroDef {
   unsigned char type;
+  unsigned char mappedType;
   int minRange, maxRange;
 
-  DivCompileMacroDef(unsigned char t, int x1, int x2):
-    type(t), minRange(x1), maxRange(x2) {}
+  DivCompileMacroDef(unsigned char t, unsigned char mt, int x1, int x2):
+    type(t), mappedType(mt), minRange(x1), maxRange(x2) {}
 };
 
 // this is getting out of hand
@@ -292,9 +293,10 @@ struct DivInstrumentMacro {
    * @param w a DivObjectPool where the compiled macro will be inserted into.
    * @param min minimum value.
    * @param max maximum value.
+   * @param mappedType the mapped macro type.
    * @return whether compilation was successful.
    */
-  bool compile(DivObjectPool& w, int min, int max);
+  bool compile(DivObjectPool& w, int min, int max, unsigned char mappedType);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),

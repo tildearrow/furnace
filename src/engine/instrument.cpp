@@ -58,10 +58,10 @@ const DivInstrument defaultIns;
 #define LFO_LOOP val[14]
 #define LFO_GLOBAL val[15]
 
-bool DivInstrumentMacro::compile(DivObjectPool& ww, int min, int max) {
+bool DivInstrumentMacro::compile(DivObjectPool& ww, int min, int max, unsigned char mappedType) {
   SafeWriter* w=new SafeWriter;
   w->init();
-  w->writeC(macroType);
+  w->writeC(mappedType);
   w->writeS(0); // to be filled in later
   if (open&2) {
     // TODO
@@ -148,7 +148,7 @@ bool DivInstrument::compileMacros(DivObjectPool& pool, DivObject& insObj, SafeWr
     }
     insObj.reloc.push_back(DivRelocInfo(w->tell(),pool.size(),DIV_RELOC_PTR_U16));
     w->writeS(0);
-    if (!macro->compile(pool,i.minRange,i.maxRange)) return false;
+    if (!macro->compile(pool,i.minRange,i.maxRange,i.mappedType)) return false;
   }
   // "end of list" marker
   w->writeS(0);
@@ -291,20 +291,20 @@ bool DivInstrument::compile(DivObjectPool& pool, DivInstrumentType insType) {
       w->writeC(c64.cut>>3);
 
       compileMacros(pool,insObj,w,{
-        DivCompileMacroDef(DIV_MACRO_VOL,0,15),
-        DivCompileMacroDef(DIV_MACRO_ARP,-256,256),
-        DivCompileMacroDef(DIV_MACRO_DUTY,c64.dutyIsAbs?0:-4095,4095),
-        DivCompileMacroDef(DIV_MACRO_WAVE,0,15),
-        DivCompileMacroDef(DIV_MACRO_PITCH,-2048,2047),
-        DivCompileMacroDef(DIV_MACRO_ALG,c64.filterIsAbs?0:-2047,2047), // cutoff
-        DivCompileMacroDef(DIV_MACRO_EX2,0,15), // resonance
-        DivCompileMacroDef(DIV_MACRO_EX1,0,15), // filter mode
-        DivCompileMacroDef(DIV_MACRO_EX3,0,1), // filter toggle
-        DivCompileMacroDef(DIV_MACRO_EX4,0,15), // special
-        DivCompileMacroDef(DIV_MACRO_EX5,0,15), // attack
-        DivCompileMacroDef(DIV_MACRO_EX6,0,15), // decay
-        DivCompileMacroDef(DIV_MACRO_EX7,0,15), // sustain
-        DivCompileMacroDef(DIV_MACRO_EX8,0,15) // release
+        DivCompileMacroDef(DIV_MACRO_VOL,0,0,15),
+        DivCompileMacroDef(DIV_MACRO_ARP,1,-256,256),
+        DivCompileMacroDef(DIV_MACRO_DUTY,2,c64.dutyIsAbs?0:-4095,4095),
+        DivCompileMacroDef(DIV_MACRO_WAVE,3,0,15),
+        DivCompileMacroDef(DIV_MACRO_PITCH,4,-2048,2047),
+        DivCompileMacroDef(DIV_MACRO_ALG,5,c64.filterIsAbs?0:-2047,2047), // cutoff
+        DivCompileMacroDef(DIV_MACRO_EX2,6,0,15), // resonance
+        DivCompileMacroDef(DIV_MACRO_EX1,7,0,15), // filter mode
+        DivCompileMacroDef(DIV_MACRO_EX3,8,0,1), // filter toggle
+        DivCompileMacroDef(DIV_MACRO_EX4,9,0,15), // special
+        DivCompileMacroDef(DIV_MACRO_EX5,10,0,15), // attack
+        DivCompileMacroDef(DIV_MACRO_EX6,11,0,15), // decay
+        DivCompileMacroDef(DIV_MACRO_EX7,12,0,15), // sustain
+        DivCompileMacroDef(DIV_MACRO_EX8,13,0,15) // release
       },0);
       break;
     case DIV_INS_SNES: {
@@ -357,15 +357,15 @@ bool DivInstrument::compile(DivObjectPool& pool, DivInstrumentType insType) {
       compileSampleMap(pool,insObj,w,false);
       // macros
       compileMacros(pool,insObj,w,{
-        DivCompileMacroDef(DIV_MACRO_VOL,0,127),
-        DivCompileMacroDef(DIV_MACRO_ARP,-256,256),
-        DivCompileMacroDef(DIV_MACRO_DUTY,0,31),
-        DivCompileMacroDef(DIV_MACRO_WAVE,0,32767),
-        DivCompileMacroDef(DIV_MACRO_PAN_LEFT,0,127),
-        DivCompileMacroDef(DIV_MACRO_PAN_RIGHT,0,127),
-        DivCompileMacroDef(DIV_MACRO_PITCH,-2048,2047),
-        DivCompileMacroDef(DIV_MACRO_EX1,0,31), // special
-        DivCompileMacroDef(DIV_MACRO_EX2,0,255), // gain
+        DivCompileMacroDef(DIV_MACRO_VOL,0,0,127),
+        DivCompileMacroDef(DIV_MACRO_ARP,1,-256,256),
+        DivCompileMacroDef(DIV_MACRO_DUTY,2,0,31),
+        DivCompileMacroDef(DIV_MACRO_WAVE,3,0,32767),
+        DivCompileMacroDef(DIV_MACRO_PAN_LEFT,4,0,127),
+        DivCompileMacroDef(DIV_MACRO_PAN_RIGHT,5,0,127),
+        DivCompileMacroDef(DIV_MACRO_PITCH,6,-2048,2047),
+        DivCompileMacroDef(DIV_MACRO_EX1,7,0,31), // special
+        DivCompileMacroDef(DIV_MACRO_EX2,8,0,255), // gain
       },0);
       break;
     }
