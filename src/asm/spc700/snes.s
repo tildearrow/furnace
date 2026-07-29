@@ -266,9 +266,9 @@ divTick:
   mov divTempKeyOff, #0
   ; macro processing
   runMacro divMacroVol, divMacroVolPtr, divMacroVolC
-  ;runMacro divMacroArp, divMacroArpPtr, divMacroArpC
-  ;runMacro divMacroDuty, divMacroDutyPtr, divMacroDutyC
-  ;runMacro divMacroPitch, divMacroPitchPtr, divMacroPitchC
+  runMacro divMacroArp, divMacroArpPtr, divMacroArpC
+  runMacro divMacroDuty, divMacroDutyPtr, divMacroDutyC
+  runMacro divMacroPitch, divMacroPitchPtr, divMacroPitchC
   ; frequency processing
   mov x, #0
   @freqLoop:
@@ -1371,7 +1371,8 @@ divMacroArp:
   @noFixedArp:
     mov !divChanArpState+x, a
     mov a, !divChanFlags+x
-    and a, #~$10
+    and a, #~$10 ; fixedArp
+    or a, #$20 ; freqChanged
     mov !divChanFlags+x, a
     ret
   @fixedArp:
@@ -1380,7 +1381,7 @@ divMacroArp:
     adc a, #60
     mov !divChanArpState+x, a
     mov a, !divChanFlags+x
-    or a, #$10
+    or a, #$30 ; fixedArp|freqChanged
     mov !divChanFlags+x, a
     ret
 .else
@@ -1408,6 +1409,10 @@ divMacroPitch:
   mov a, !divChanPitch2+x
   mov a, y
   mov a, !(divChanPitch2+1)+x
+  ; set freqChanged
+  mov a, !divChanFlags+x
+  or a, #$20 ; freqChanged
+  mov !divChanFlags+x, a
   ret
 
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
