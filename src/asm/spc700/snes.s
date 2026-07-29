@@ -1248,6 +1248,15 @@ divMacroInit:
   mov !(divMacroPitchPtr+1)+x, a
   mov !(divMacroSpecialPtr+1)+x, a
   mov !(divMacroGainPtr+1)+x, a
+  ; reset pitch2
+  mov !divChanPitch2+x, a
+  mov !(divChanPitch2+1)+x, a
+  ; reset arpOff
+  mov !divChanArpState+x, a
+  ; reset fixedArp
+  mov a, !divChanFlags+x
+  and a, #~$10
+  mov !divChanFlags+x, a
   ; initialize the macros
   mov y, #17 ; macro list
   @prepareOneMacro:
