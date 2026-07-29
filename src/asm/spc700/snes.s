@@ -266,6 +266,9 @@ divTick:
   mov divTempKeyOff, #0
   ; macro processing
   runMacro divMacroVol, divMacroVolPtr, divMacroVolC
+  ;runMacro divMacroArp, divMacroArpPtr, divMacroArpC
+  ;runMacro divMacroDuty, divMacroDutyPtr, divMacroDutyC
+  ;runMacro divMacroPitch, divMacroPitchPtr, divMacroPitchC
   ; frequency processing
   mov x, #0
   @freqLoop:
@@ -807,10 +810,47 @@ divCalcFreq:
     mov y, a
     mov a, !divChanPitch2+x
     movw divTempPtr1, ya
-    ; load baseFreq and add everything
+.ifdef DIV_LINEAR_FREQ
+    ; TODO: optimize.
+    ; - instead of working on 7-bit fixed point, pre-shift everything...
+
+    ; linear pitch - test whether we have fixed arp
+    mov a, !divChanFlags+x
+    and a, #$10
+    beq @doNotFixedArp
+    @doFixedArp:
+      ; load the fixed arp value
+      mov a, !divChanArpState+x
+      lsr a
+      mov y, a
+      mov a, #0
+      bcc @doArpPost
+      mov a, #$80
+      jmp !@doArpPost
+    @doNotFixedArp:
+      ; load baseFreq
+      mov a, !(divChanBaseFreq+1)+x
+      mov y, a
+      mov a, !divChanBaseFreq+x
+      movw divTempPtr2, ya
+      ; load arpOff and add baseFreq
+      mov a, !divChanArpState+x
+      lsr a
+      mov y, a
+      mov a, #0
+      bcc @@not80
+      mov a, #$80
+      @@not80:
+      addw ya, divTempPtr2
+    @doArpPost:
+.else
+    ; non-linear pitch - arp is calculated in arp macro code
+    ; load baseFreq
     mov a, !(divChanBaseFreq+1)+x
     mov y, a
     mov a, !divChanBaseFreq+x
+.endif
+    ; add pitch and pitch2
     addw ya, divTempPtr
     addw ya, divTempPtr1
     ; YA contains the offset
@@ -1325,12 +1365,49 @@ divMacroVol:
   ret
 
 divMacroArp:
+.ifdef DIV_LINEAR_FREQ
+  ; arp macro - set arpOff/baseNoteOverride
+  bcs @fixedArp
+  @noFixedArp:
+    mov !divChanArpState+x, a
+    mov a, !divChanFlags+x
+    and a, #~$10
+    mov !divChanFlags+x, a
+    ret
+  @fixedArp:
+    ; TODO: make this unnecessary
+    clrc
+    adc a, #60
+    mov !divChanArpState+x, a
+    mov a, !divChanFlags+x
+    or a, #$10
+    mov !divChanFlags+x, a
+    ret
+.else
+  ; TODO: recalculate frequency in non-linear pitch
   ret
+.endif
 
 divMacroDuty:
+  ; duty macro - set noise frequency
+  ; temporarily move it away
+  mov fcsArg0, a
+  ; now set noise freq (preserve echo on flag)
+  mov a, !divNoiseFreq
+  and a, #~$1f
+  or a, fcsArg0
+  mov !divNoiseFreq, a
+  ; set writeControl flag
+  mov a, !divWriteFlags
+  or a, #$80
+  mov !divWriteFlags, a
   ret
 
 divMacroPitch:
+  ; TODO: support relative mode
+  mov a, !divChanPitch2+x
+  mov a, y
+  mov a, !(divChanPitch2+1)+x
   ret
 
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
