@@ -92,7 +92,7 @@ fcsNoteOnNull:
   mov chanVibratoPos+x, a
   mov y, #$00
   call !fcsDispatchCmd
-  ret
+  jmp !fcsDoChannelLoop
 
 ; note off, note off env, env release
 fcsNoArgDispatchB4:
@@ -341,7 +341,7 @@ fcsSpeedDialCmd:
   mov !fcsSpeedDialCmdJ+1, a
   mov a, !fcsCmdReadTableHigh+y
   mov !fcsSpeedDialCmdJ+2, a
-  mov y, a
+  pop y
   fcsSpeedDialCmdJ:
   jmp !$0000 ; modified by previous instructions
 
