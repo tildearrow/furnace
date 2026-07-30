@@ -268,6 +268,8 @@ divTick:
   runMacro divMacroVol, divMacroVolPtr, divMacroVolC
   runMacro divMacroArp, divMacroArpPtr, divMacroArpC
   runMacro divMacroDuty, divMacroDutyPtr, divMacroDutyC
+  runMacro divMacroPanL, divMacroPanLPtr, divMacroPanLC
+  runMacro divMacroPanR, divMacroPanRPtr, divMacroPanRC
   runMacro divMacroPitch, divMacroPitchPtr, divMacroPitchC
   ; frequency processing
   mov x, #0
@@ -1406,14 +1408,54 @@ divMacroDuty:
 
 divMacroPitch:
   ; TODO: support relative mode
-  mov a, !divChanPitch2+x
+  mov !divChanPitch2+x, a
   mov a, y
-  mov a, !(divChanPitch2+1)+x
+  mov !(divChanPitch2+1)+x, a
   ; set freqChanged
   mov a, !divChanFlags+x
   or a, #$20 ; freqChanged
   mov !divChanFlags+x, a
   ret
+
+divMacroPanL:
+  ; temporarily move it away
+  mov fcsArg0, a
+  ; set the shallWriteVol flag
+  mov a, !divChanSNESFlags+x
+  or a, #$08
+  mov !divChanSNESFlags+x, a
+  ; preserve invert bit
+  mov a, !divChanPanL+x
+  bmi @panInvert
+  @panNoInvert:
+    mov a, fcsArg0
+    mov !divChanPanL+x, a
+    ret
+  @panInvert:
+    mov a, fcsArg0
+    or a, #$80
+    mov !divChanPanL+x, a
+    ret
+
+divMacroPanR:
+  ; temporarily move it away
+  mov fcsArg0, a
+  ; set the shallWriteVol flag
+  mov a, !divChanSNESFlags+x
+  or a, #$08
+  mov !divChanSNESFlags+x, a
+  ; preserve invert bit
+  mov a, !divChanPanR+x
+  bmi @panInvert
+  @panNoInvert:
+    mov a, fcsArg0
+    mov !divChanPanR+x, a
+    ret
+  @panInvert:
+    mov a, fcsArg0
+    or a, #$80
+    mov !divChanPanR+x, a
+    ret
 
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
 

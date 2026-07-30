@@ -76,7 +76,7 @@ loop:
 + mov spc_timer0, a
   call !fcsTick
   call !divTick
-  bra loop
+  jmp !loop
 
 .BANK 0 SLOT 3
 .ORGA $10000
