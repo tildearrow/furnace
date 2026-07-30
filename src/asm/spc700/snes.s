@@ -268,9 +268,12 @@ divTick:
   runMacro divMacroVol, divMacroVolPtr, divMacroVolC
   runMacro divMacroArp, divMacroArpPtr, divMacroArpC
   runMacro divMacroDuty, divMacroDutyPtr, divMacroDutyC
+  runMacro divMacroWave, divMacroWavePtr, divMacroWaveC
   runMacro divMacroPanL, divMacroPanLPtr, divMacroPanLC
   runMacro divMacroPanR, divMacroPanRPtr, divMacroPanRC
   runMacro divMacroPitch, divMacroPitchPtr, divMacroPitchC
+  runMacro divMacroSpecial, divMacroSpecialPtr, divMacroSpecialC
+  runMacro divMacroGain, divMacroGainPtr, divMacroGainC
   ; frequency processing
   mov x, #0
   @freqLoop:
@@ -1406,6 +1409,10 @@ divMacroDuty:
   mov !divWriteFlags, a
   ret
 
+divMacroWave:
+  ; TODO: implement once wavetables are implemented
+  ret
+
 divMacroPitch:
   ; TODO: support relative mode
   mov !divChanPitch2+x, a
@@ -1456,6 +1463,81 @@ divMacroPanR:
     or a, #$80
     mov !divChanPanR+x, a
     ret
+
+divMacroSpecial:
+  ; place value in direct page so we can compare
+  mov fcsArg0, a
+  ; for now we enable all change bits
+  mov a, !divWriteFlags
+  or a, #$70
+  mov !divWriteFlags, a
+  ; set the shallWriteVol flag
+  mov a, !divChanSNESFlags+x
+  or a, #$08
+  mov !divChanSNESFlags+x, a
+  @checkNoise:
+    bbc fcsArg0.0, @@isNot
+    @@isSet:
+      mov a, !divChanBits+x
+      or a, !divNoiseState
+      mov !divNoiseState, a
+      jmp !@checkEcho
+    @@isNot:
+      mov a, !(divChanBits+1)+x
+      and a, !divNoiseState
+      mov !divNoiseState, a
+  @checkEcho:
+    bbc fcsArg0.1, @@isNot
+    @@isSet:
+      mov a, !divChanBits+x
+      or a, !divEchoState
+      mov !divEchoState, a
+      jmp !@checkPitchMod
+    @@isNot:
+      mov a, !(divChanBits+1)+x
+      and a, !divEchoState
+      mov !divEchoState, a
+  @checkPitchMod:
+    bbc fcsArg0.2, @@isNot
+    @@isSet:
+      mov a, !divChanBits+x
+      or a, !divPitchModState
+      mov !divPitchModState, a
+      jmp !@checkInvertL
+    @@isNot:
+      mov a, !(divChanBits+1)+x
+      and a, !divPitchModState
+      mov !divPitchModState, a
+  @checkInvertL:
+    bbc fcsArg0.3, @@isNot
+    @@isSet:
+      mov a, !divChanPanL+x
+      or a, #$80
+      mov !divChanPanL+x, a
+      jmp !@checkInvertR
+    @@isNot:
+      mov a, !divChanPanL+x
+      and a, #~$80
+      mov !divChanPanL+x, a
+  @checkInvertR:
+    bbc fcsArg0.4, @@isNot
+    @@isSet:
+      mov a, !divChanPanR+x
+      or a, #$80
+      mov !divChanPanR+x, a
+      ret
+    @@isNot:
+      mov a, !divChanPanR+x
+      and a, #~$80
+      mov !divChanPanR+x, a
+      ret
+
+divMacroGain:
+  mov !divChanGain+x, a
+  mov a, !divChanSNESFlags+x
+  or a, #4
+  mov !divChanSNESFlags+x, a
+  ret
 
 ;;;; ---- COMMAND HANDLERS ---- ;;;;
 
