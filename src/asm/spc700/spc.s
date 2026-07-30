@@ -3,6 +3,11 @@
 .BANK 2 SLOT 1
 .ORGA $0400
 
+; tick rate (*1000)
+.include "songSpeed.s"
+tickRateTimer=8000000/initTickRate
+tickRateFraction=(256*(8000000#initTickRate))/initTickRate
+
 ; sample data goes here...
 sampleData:
 dir:
@@ -58,7 +63,7 @@ main:
   call !fcsInit
 
   ; TODO: set the right tempo
-  mov spc_timer0, #133
+  mov spc_timer0, #tickRateTimer
   mov spc_ctrl, #$01
 
 loop:
@@ -68,9 +73,9 @@ loop:
   ; interpolate the timer
   mov a, !tempoAccum
   clrc
-  adc a, #85
+  adc a, #tickRateFraction
   mov !tempoAccum, a
-  mov a, #133
+  mov a, #tickRateTimer
   bcc +
   inc a
 + mov spc_timer0, a
