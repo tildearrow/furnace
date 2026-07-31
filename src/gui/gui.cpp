@@ -2529,12 +2529,10 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
-    case GUI_FILE_YRW801_ROM_OPEN:
-    case GUI_FILE_TG100_ROM_OPEN:
-    case GUI_FILE_MU5_ROM_OPEN:
+    case GUI_FILE_ROM_OPEN:
       if (!dirExists(workingDirROM)) workingDirROM=getHomeDir();
       hasOpened=fileDialog->openLoad(
-        _("Load ROM"),
+        _("Select ROM"),
         {_("compatible files"), "*.rom *.bin",
          _("all files"), "*"},
         workingDirROM,
@@ -2544,7 +2542,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_EXEC_PATH_OPEN:
       if (!dirExists(workingDirROM)) workingDirROM=getHomeDir();
       hasOpened=fileDialog->openLoad(
-        _("Set Path"),
+        _("Select Executable"),
         {
 #ifdef _WIN32
           _("executable files"), "*.exe *.com *.bat *.cmd",
@@ -5958,9 +5956,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_CONFIG:
           workingDirConfig=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
-        case GUI_FILE_YRW801_ROM_OPEN:
-        case GUI_FILE_TG100_ROM_OPEN:
-        case GUI_FILE_MU5_ROM_OPEN:
+        case GUI_FILE_ROM_OPEN:
         case GUI_FILE_EXEC_PATH_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -6678,9 +6674,7 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_LOAD_MAIN_FONT:
             case GUI_FILE_LOAD_HEAD_FONT:
             case GUI_FILE_LOAD_PAT_FONT:
-            case GUI_FILE_YRW801_ROM_OPEN:
-            case GUI_FILE_TG100_ROM_OPEN:
-            case GUI_FILE_MU5_ROM_OPEN:
+            case GUI_FILE_ROM_OPEN:
             case GUI_FILE_EXEC_PATH_OPEN:
               if (pendingPath!=NULL) {
                 *pendingPath=copyOfName;

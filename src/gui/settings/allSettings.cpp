@@ -1624,18 +1624,18 @@ void FurnaceGUI::initSettings() {
       SettingEntry::Path(
         _N("OPL4 YRW801 path"),
         "yrw801Path",&settings.yrw801Path,
-        GUI_FILE_YRW801_ROM_OPEN
+        GUI_FILE_ROM_OPEN
       ),
       /*
       SettingEntry::Path(
         _N("MultiPCM TG100 path"),
         "tg100Path",&settings.tg100Path,
-        GUI_FILE_TG100_ROM_OPEN
+        GUI_FILE_ROM_OPEN
       ),
       SettingEntry::Path(
         _N("MultiPCM MU5 path"),
         "mu5Path",&settings.mu5Path,
-        GUI_FILE_MU5_ROM_OPEN
+        GUI_FILE_ROM_OPEN
       ),
       */
     })
