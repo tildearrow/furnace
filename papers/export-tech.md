@@ -181,13 +181,30 @@ hex | description
  86 | wait for release
     | - quit and don't advance the pointer unless the note is released
  88 | init ADSR macro
-    | - UNFINISHED. do not implement yet!
+    | - 88 xx xx
+    | - xxxx: initial phase
+    | - this may be followed by a wait command.
  8a | run ADSR macro
-    | - UNFINISHED. do not implement yet!
+    | - 8a bb tt aa aa dd dd DD DD rr rr hh ss TT
+    | - bb: bottom
+    | - tt: top
+    | - aaaa: attack
+    | - dddd: decay
+    | - DDDD: sus decay
+    | - rrrr: release
+    | - hh: hold time
+    | - ss: sustain level
+    | - TT: sustain time
  8c | init LFO macro
-    | - UNFINISHED. do not implement yet!
+    | - 8c xx xx dd
+    | - xxxx: initial phase
+    | - dd: initial direction (1 is down)
  8e | run LFO macro
-    | - UNFINISHED. do not implement yet!
+    | - 8e bb tt ss ss ww
+    | - bb: bottom
+    | - tt: top
+    | - ss ss: speed
+    | - ww: waveform
  90 | 8-bit unsigned value
     | - read a byte. this is your value
  92 | 8-bit signed value
