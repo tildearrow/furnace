@@ -2532,11 +2532,25 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
     case GUI_FILE_YRW801_ROM_OPEN:
     case GUI_FILE_TG100_ROM_OPEN:
     case GUI_FILE_MU5_ROM_OPEN:
-      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      if (!dirExists(workingDirROM)) workingDirROM=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Load ROM"),
         {_("compatible files"), "*.rom *.bin",
          _("all files"), "*"},
+        workingDirROM,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_EXEC_PATH_OPEN:
+      if (!dirExists(workingDirROM)) workingDirROM=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Set Path"),
+        {
+#ifdef _WIN32
+          _("executable files"), "*.exe *.com *.bat *.cmd",
+#endif
+          _("all files"), "*"
+        },
         workingDirROM,
         dpiScale
       );
@@ -5947,6 +5961,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_YRW801_ROM_OPEN:
         case GUI_FILE_TG100_ROM_OPEN:
         case GUI_FILE_MU5_ROM_OPEN:
+        case GUI_FILE_EXEC_PATH_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_CMDSTREAM_OPEN:
@@ -6621,15 +6636,6 @@ bool FurnaceGUI::loop() {
               exportCmdStream(false,copyOfName);
               break;
             }
-            case GUI_FILE_LOAD_MAIN_FONT:
-              settings.mainFontPath=copyOfName;
-              break;
-            case GUI_FILE_LOAD_HEAD_FONT:
-              settings.headFontPath=copyOfName;
-              break;
-            case GUI_FILE_LOAD_PAT_FONT:
-              settings.patFontPath=copyOfName;
-              break;
             case GUI_FILE_IMPORT_COLORS:
               importColors(copyOfName);
               break;
@@ -6669,14 +6675,20 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_CONFIG:
               exportConfig(copyOfName);
               break;
+            case GUI_FILE_LOAD_MAIN_FONT:
+            case GUI_FILE_LOAD_HEAD_FONT:
+            case GUI_FILE_LOAD_PAT_FONT:
             case GUI_FILE_YRW801_ROM_OPEN:
-              settings.yrw801Path=copyOfName;
-              break;
             case GUI_FILE_TG100_ROM_OPEN:
-              settings.tg100Path=copyOfName;
-              break;
             case GUI_FILE_MU5_ROM_OPEN:
-              settings.mu5Path=copyOfName;
+            case GUI_FILE_EXEC_PATH_OPEN:
+              if (pendingPath!=NULL) {
+                *pendingPath=copyOfName;
+                pendingPath=NULL;
+              } else {
+                logE("pendingPath is NULL!");
+                showError(_("Congratz! pendingPath is NULL!"));
+              }
               break;
             case GUI_FILE_CMDSTREAM_OPEN:
               if (loadStream(copyOfName)>0) {
@@ -9833,7 +9845,8 @@ FurnaceGUI::FurnaceGUI():
   romDoughAddr(0),
   lastTapTime(0),
   grooveTargetBPM(150.0f),
-  warnIsOpen(false) {
+  warnIsOpen(false),
+  pendingPath(NULL) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

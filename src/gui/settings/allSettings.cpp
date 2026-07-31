@@ -3292,5 +3292,20 @@ void FurnaceGUI::initSettings() {
     })
   }
   CATEGORY_END
+  CATEGORY_BEGIN(_N("Export")) {},{
+    SUBCATEGORY(_N("Assemblers"),{
+      SettingEntry::Path(
+        _N("Path to wla-spc700"),
+        "wlaspcPath",&settings.wlaspcPath,
+        GUI_FILE_EXEC_PATH_OPEN
+      ),
+      SettingEntry::Path(
+        _N("Path to wlalink"),
+        "wlalinkPath",&settings.wlalinkPath,
+        GUI_FILE_EXEC_PATH_OPEN
+      ),
+    })
+  }
+  CATEGORY_END
   curCategory=&allSettings[0];
 }

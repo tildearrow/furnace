@@ -481,6 +481,11 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.mu5Path=conf.getString("mu5Path","");
   }
 
+  if (groups&GUI_SETTINGS_EXPORT) {
+    settings.wlaspcPath=conf.getString("wlaspcPath","");
+    settings.wlalinkPath=conf.getString("wlalinkPath","");
+  }
+
   /// CLAMPING
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -977,5 +982,11 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("yrw801Path",settings.yrw801Path);
     conf.set("tg100Path",settings.tg100Path);
     conf.set("mu5Path",settings.mu5Path);
+  }
+
+  // export
+  if (groups&GUI_SETTINGS_EXPORT) {
+    conf.set("wlaspcPath",settings.wlaspcPath);
+    conf.set("wlalinkPath",settings.wlalinkPath);
   }
 }

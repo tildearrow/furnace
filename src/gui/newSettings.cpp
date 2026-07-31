@@ -193,6 +193,7 @@ bool SettingEntry::draw(FurnaceGUI* gui) {
         if (data->dialogNum!=-1) {
           ImGui::PushID(label);
           if (ImGui::Button(ICON_FA_FOLDER "##SettingPathButton")) {
+            gui->pendingPath=(String*)value;
             gui->openFileDialog((FurnaceGUIFileDialogs)data->dialogNum);
             ret=true;
           }

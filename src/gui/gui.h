@@ -663,6 +663,7 @@ enum FurnaceGUISettingGroups: unsigned int {
   GUI_SETTINGS_LAYOUTS=128,
   GUI_SETTINGS_COLOR=256,
   GUI_SETTINGS_EMULATION=512,
+  GUI_SETTINGS_EXPORT=1024,
 
   GUI_SETTINGS_ALL=0xffffffff
 };
@@ -722,6 +723,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_MU5_ROM_OPEN,
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
+  GUI_FILE_EXEC_PATH_OPEN,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -2189,6 +2191,8 @@ class FurnaceGUI {
     String sdlAudioDriver;
     String defaultAuthorName;
     String locale;
+    String wlaspcPath;
+    String wlalinkPath;
     DivConfig initialSys;
 
     Settings():
@@ -2439,7 +2443,9 @@ class FurnaceGUI {
       emptyLabel2(".."),
       sdlAudioDriver(""),
       defaultAuthorName(""),
-      locale("") {}
+      locale(""),
+      wlaspcPath(""),
+      wlalinkPath("") {}
   } settings;
 
   ImGuiTextFilter settingsFilter;
@@ -3074,6 +3080,8 @@ class FurnaceGUI {
   };
   bool warnIsOpen; // workaround for ImGui::IsPopupOpen crashing if not used in the right place
   std::vector<WarnChoice> warnChoices;
+
+  String* pendingPath;
 
   void commandExportOptions();
 
