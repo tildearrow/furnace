@@ -2261,9 +2261,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               if (rowTS.seconds!=-1) {
                 totalTime=rowTS;
               }
+#ifdef HAVE_SNDFILE
               if (curFilePlayer && filePlayerSync) {
                 syncFilePlayer();
               }
+#endif
             }
             // ...and now process the next row!
             nextRow();
@@ -3206,6 +3208,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           lastLoopPos=size-runLeftG;
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
           // if file player is synchronized then set its position to that of the loop row
+#ifdef HAVE_SNDFILE
           if (curFilePlayer && filePlayerSync) {
             if (curFilePlayer->isPlaying()) {
               TimeMicros rowTS=curSubSong->ts.loopStartTime;
@@ -3217,6 +3220,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
               curFilePlayer->setPosSeconds(rowTS+filePlayerCue,lastLoopPos);
             }
           }
+#endif
           // increase total loop count
           totalLoops++;
           // stop playing once we hit a specific number of loops (set during audio export)
@@ -3353,6 +3357,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     renderPool->wait();
   }
 
+#ifdef HAVE_SNDFILE
   // process file player
   // resize file player audio buffer if necessary
   if (filePlayerBufLen<size) {
@@ -3369,6 +3374,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       memset(filePlayerBuf[i],0,size*sizeof(float));
     }
   }
+#endif
 
   // process metronome
   // resize the metronome's audio buffer if necessary
@@ -3407,6 +3413,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     }
   }
 
+#ifdef HAVE_SNDFILE
   // calculate volume of reference file player (so we can attenuate the rest according to the mix slider)
   // -1 to 0: player volume goes from 0% to 100%
   // 0 to +1: tracker volume goes from 100% to 0%
@@ -3419,6 +3426,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       if (refPlayerVol>1.0f) refPlayerVol=1.0f;
     }
   }
+#endif
 
   // now mix everything (resolve patchbay)
   for (unsigned int i: song.patchbay) {
@@ -3441,7 +3449,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // chip outputs
       if (srcPortSet<song.systemLen && playing && !halted) {
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
+#ifdef HAVE_SNDFILE
           float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol*refPlayerVol;
+#else
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+#endif
 
           // apply volume and panning
           switch (destSubPort&3) {
@@ -3464,10 +3476,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           }
         }
       } else if (srcPortSet==0xffc) {
+#ifdef HAVE_SNDFILE
         // file player
         for (size_t j=0; j<size; j++) {
           out[destSubPort][j]+=filePlayerBuf[srcSubPort][j];
         }
+#endif
       } else if (srcPortSet==0xffd) {
         // sample preview
         for (size_t j=0; j<size; j++) {
