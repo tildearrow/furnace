@@ -27,11 +27,106 @@
 #include <vector>
 
 void DivExportSNES::run() {
-  SafeWriter* w;
+  DivObjectPool pool;
+
+  int chipIndex=conf.getInt("sysToExport",-1);
+  if (chipIndex<0 || chipIndex>=e->song.systemLen) {
+    chipIndex=-1;
+    for (int i=0; i<e->song.systemLen; i++) {
+      if (e->song.system[i]==DIV_SYSTEM_SNES) {
+        chipIndex=i;
+        break;
+      }
+    }
+    if (chipIndex<0) {
+      logAppend("ERROR: SNES not found!");
+      failed=true;
+      running=false;
+      return;
+    }
+  } else if (e->song.system[chipIndex]!=DIV_SYSTEM_SNES) {
+    logAppend("ERROR: selected chip is not an SNES!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  DivDispatch* dispatch=e->getDispatch(chipIndex);
+
+  if (dispatch==NULL) {
+    logAppend("ERROR: dispatch is NULL!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  // export chip data
+  logAppend("compiling system data...");
+  if (!dispatch->compileROMData(1,pool)) {
+    logAppend("ERROR: couldn't compile system data!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  // export ins
+  logAppend("compiling instruments...");
+  if (!e->compileAllIns(pool,DIV_INS_SNES)) {
+    logAppend("ERROR: couldn't compile instruments!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  // export seq
+  logAppend("compiling sequence data...");
+  e->saveCommand(pool);
+
+  // bake
+  logAppend("baking song data...");
+  SafeWriter* w=bakeObjectsASM(pool);
+  if (w==NULL) {
+    logAppend("ERROR: couldn't bake song data!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  delete w;
+  w=NULL;
+
+  // destroy current pool
+
+  // export sample
+  logAppend("compiling sample data...");
+  if (!dispatch->compileROMData(0,pool)) {
+    logAppend("ERROR: couldn't compile system data!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  // bake
+  logAppend("baking sample data...");
+  w=bakeObjectsBinary(pool);
+  if (w==NULL) {
+    logAppend("ERROR: couldn't bake song data!");
+    failed=true;
+    running=false;
+    return;
+  }
+
+  // write song info and speed
+  logAppend("writing song info...");
+
+  // compile
+  logAppend("building ROM...");
+
+  logAppend("linking ROM...");
 
   w=new SafeWriter;
   w->init();
-  output.push_back(DivROMExportOutput("export.asm",w));
+  output.push_back(DivROMExportOutput("export.spc",w));
 
   logAppend("finished!");
 

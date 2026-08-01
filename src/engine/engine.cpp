@@ -2475,6 +2475,10 @@ String DivEngine::getConfigPath() {
   return configPath;
 }
 
+String DivEngine::getTempDir() {
+  return tempDir;
+}
+
 int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }

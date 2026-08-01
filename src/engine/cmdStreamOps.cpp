@@ -953,6 +953,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   if (progress!=NULL) {
     progress->findTotal=stream->size();
     progress->optStage=0;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
   }
 
   // fast match algorithm
@@ -960,7 +963,12 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   logD("finding possible matches");
   for (size_t i=0; i<stream->size(); i+=8) {
     if (!(i&2047)) {
-      if (progress!=NULL) progress->findCurrent=i;
+      if (progress!=NULL) {
+        progress->findCurrent=i;
+        if (progress->callback!=NULL) {
+          progress->callback(progress);
+        }
+      }
     }
     bool storedOrig=false;
     for (size_t j=i+matchSize; j<stream->size(); j+=8) {
@@ -985,6 +993,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     progress->origCount=origs.size();
     progress->findCurrent=stream->size();
     progress->optStage=1;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
   }
 
   // quit if there isn't anything
@@ -996,7 +1007,12 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
       logV("match %d of %d",i,(int)matches.size());
     }
     if ((i&1023)==0) {
-      if (progress!=NULL) progress->expandCurrent=i;
+      if (progress!=NULL) {
+        progress->expandCurrent=i;
+        if (progress->callback!=NULL) {
+          progress->callback(progress);
+        }
+      }
     }
     BlockMatch& b=matches[i];
 
@@ -1024,6 +1040,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   if (progress!=NULL) {
     progress->expandCurrent=matches.size();
     progress->optStage=2;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
   }
 
   // new code MAN... WHY...
@@ -1043,7 +1062,12 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
     size_t minSize=MIN_MATCH_SIZE;
     std::vector<BlockMatch> testLenMatches;
 
-    if (progress!=NULL) progress->origCurrent=origIndex;
+    if (progress!=NULL) {
+      progress->origCurrent=origIndex;
+      if (progress->callback!=NULL) {
+        progress->callback(progress);
+      }
+    }
 
     origIndex++;
 
@@ -1141,6 +1165,9 @@ SafeWriter* findSubBlocks(SafeWriter* stream, std::vector<SafeWriter*>& subBlock
   if (progress!=NULL) {
     progress->optStage=3;
     progress->origCurrent=origs.size();
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
   }
 
   // make sub-block
@@ -1366,6 +1393,13 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
     w->writeC(0);
   }
 
+  if (progress!=NULL) {
+    progress->stage=0;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
+
   // play the song ourselves
   bool done=false;
   playSub(false);
@@ -1508,6 +1542,12 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
   BUSY_END;
 
   // PASS 1: optimize command calls and volume/instrument changes
+  if (progress!=NULL) {
+    progress->stage=1;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   if (!options.noCmdCallOpt) {
     /// 1. instruments
     // calculate instrument usage
@@ -1638,6 +1678,12 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
   }
 
   // PASS 2: condense delays
+  if (progress!=NULL) {
+    progress->stage=2;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   if (!options.noDelayCondense) {
     // calculate delay usage
     for (int h=0; h<song.chans; h++) {
@@ -1732,6 +1778,12 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
 
   // PASS 3: note off + one-tick wait
   // optimize one-tick gaps sometimes used in songs
+  if (progress!=NULL) {
+    progress->stage=3;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   for (int h=0; h<song.chans; h++) {
     unsigned char* buf=chanStream[h]->getFinalBuf();
     if (chanStream[h]->size()<8) continue;
@@ -1753,11 +1805,23 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
 
   // PASS 4: remove nop's
   // this includes modifying call addresses to compensate
+  if (progress!=NULL) {
+    progress->stage=4;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   for (int h=0; h<song.chans; h++) {
     chanStream[h]=stripNops(chanStream[h]);
   }
 
   // PASS 5: put all channels together
+  if (progress!=NULL) {
+    progress->stage=5;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   for (int i=0; i<song.chans; i++) {
     chanStreamOff[i]=globalStream->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
@@ -1768,6 +1832,12 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
   }
 
   // PASS 6: find sub-blocks and isolate them
+  if (progress!=NULL) {
+    progress->stage=6;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   if (!options.noSubBlock) {
     std::vector<SafeWriter*> subBlocks;
     size_t beforeSize=globalStream->size();
@@ -1831,10 +1901,22 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
   }
 
   // PASS 7: pack stream
+  if (progress!=NULL) {
+    progress->stage=7;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   globalStream=packStream(globalStream,sortedCmd);
 
   // PASS 8: remove nop's which may be produced by 32-bit call conversion
   // also find new offsets
+  if (progress!=NULL) {
+    progress->stage=8;
+    if (progress->callback!=NULL) {
+      progress->callback(progress);
+    }
+  }
   globalStream=stripNopsPacked(globalStream,sortedCmd,chanStreamOff);
 
   // offset channel pointers and add relocation info

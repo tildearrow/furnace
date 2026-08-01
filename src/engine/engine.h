@@ -462,6 +462,7 @@ class DivEngine {
   unsigned char walked[8192];
   bool isMuted[DIV_MAX_CHANS];
   std::mutex isBusy, saveLock, playPosLock;
+  String tempDir;
   String configPath;
   String configFile;
   String lastError;
@@ -843,6 +844,9 @@ class DivEngine {
 
     // get config path
     String getConfigPath();
+
+    // get path to temporary dir
+    String getTempDir();
 
     // get sys channel count
     int getChannelCount(DivSystem sys);

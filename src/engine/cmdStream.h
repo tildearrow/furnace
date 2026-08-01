@@ -150,6 +150,7 @@ struct DivCSProgress {
   int optCurrent, optTotal;
   int findCurrent, expandCurrent;
   int origCurrent, origCount;
+  std::function<void(const DivCSProgress*)> callback;
   DivCSProgress():
     stage(0),
     count(0),
@@ -161,7 +162,8 @@ struct DivCSProgress {
     findCurrent(0),
     expandCurrent(0),
     origCurrent(0),
-    origCount(0) {}
+    origCount(0),
+    callback(NULL) {}
 };
 
 struct DivCSOptions {
