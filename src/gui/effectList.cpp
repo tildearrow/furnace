@@ -18,7 +18,8 @@ void FurnaceGUI::drawEffectList() {
       ImGui::TextWrapped(_("Chip at cursor: %s"),e->getSystemName(e->song.sysOfChan[cursor.xCoarse]));
       ImGui::PopTextWrapPos();
     }
-    effectSearch.Draw(_("Search"));
+    if (ImGui::InputTextWithHint("##effectsSearch",_("Search..."),effectSearch.InputBuf,IM_ARRAYSIZE(effectSearch.InputBuf)))
+      effectSearch.Build();
     ImGui::SameLine();
     ImGui::Button(ICON_FA_BARS "##SortEffects");
     if (ImGui::BeginPopupContextItem("effectSort",ImGuiPopupFlags_MouseButtonLeft)) {
@@ -60,6 +61,11 @@ void FurnaceGUI::drawEffectList() {
             int outputs=dispatch->getOutputCount();
             if (outputs<2) {
               continue;
+            }
+            if (!dispatch->hasSoftPan(e->song.dispatchChanOfChan[cursor.xCoarse])) {
+              if (i==0x80) continue;
+              if (i==0x83) continue;
+              if (i==0x84) continue;
             }
             if (outputs<3) {
               if (i>=0x88 && i<=0x8f) {

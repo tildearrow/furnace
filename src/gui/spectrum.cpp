@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -207,7 +207,7 @@ void FurnaceGUI::drawSpectrum() {
           spectrum.plot[z][i].y=origin.y+size.y*(y-spectrum.yOffset);
         }
         ImGui::PushClipRect(origin,origin+size,true);
-        dl->AddPolyline(spectrum.plot[z],count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,dpiScale);
+        dl->AddPolyline(spectrum.plot[z],count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),dpiScale);
         dl->PathFillConcave(ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]));
         ImGui::PopClipRect();
       }
@@ -248,6 +248,7 @@ void FurnaceGUI::drawSpectrum() {
       ImGui::Checkbox(_("Show Y Grid##spec"),&spectrum.showYGrid);
       ImGui::Checkbox(_("Show X Scale##spec"),&spectrum.showXScale);
       ImGui::Checkbox(_("Show Y Scale##spec"),&spectrum.showYScale);
+      ImGui::EndPopup();
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SPECTRUM;

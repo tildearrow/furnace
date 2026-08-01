@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,31 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
+#include <IconsFontAwesome4.h>
+
+void FurnaceGUI::calcGrooveBPM(float targetBPM, DivGroovePattern& groove, float hz, int hilightA) {
+  // get the speed value which will result in the target BPM.
+  // the groove sequence will alternate around that number to approximate it
+  float targetSpeed=60.0f*hz/(targetBPM*hilightA);
+  if (targetSpeed<1.0f) { // only possible groove value is 1
+    groove.val[0]=1;
+    groove.len=1;
+    return;
+  }
+  float actualBPM=0;
+  groove.len=0;
+  // iterate until the approximation is close enough, or we can't add more values to the groove
+  while (groove.len<16 && fabs(targetBPM-actualBPM)>0.0001) {
+    // start with the lower possible groove value
+    // otherwise:
+    //   if groove result is slower, add smaller value to groove
+    //   else (if faster), add larger value to groove
+    int speed=(targetBPM>actualBPM || groove.len==0)?floor(targetSpeed):ceil(targetSpeed);
+    groove.val[groove.len]=CLAMP(speed,1,512);
+    groove.len++;
+    actualBPM=calcBPM(groove,hz,1,1);
+  }
+}
 
 void FurnaceGUI::drawSpeed(bool asChild) {
   if (nextWindow==GUI_WINDOW_SPEED) {
@@ -31,9 +56,10 @@ void FurnaceGUI::drawSpeed(bool asChild) {
   if (!speedOpen && !asChild) return;
   bool began=asChild?ImGui::BeginChild("Speed"):ImGui::Begin("Speed",&speedOpen,globalWinFlags,_("Speed"));
   if (began) {
-    if (ImGui::BeginTable("Props",2,ImGuiTableFlags_SizingStretchProp)) {
+    if (ImGui::BeginTable("Props",3,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -63,6 +89,22 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (tempoView) {
         ImGui::SameLine();
         ImGui::Text("= %gHz",e->curSubSong->hz);
+        ImGui::TableNextColumn();
+        if (ImGui::Button(ICON_FA_STOP "##tapTempoPad")) {
+          Uint64 tapTime=SDL_GetTicks64();
+          if (!(lastTapTime==0 || tapTime-lastTapTime>10000)) {
+            setHz=1000.0/(tapTime-lastTapTime)*60/2.5;
+            if (setHz<1) setHz=1;
+            if (setHz>999) setHz=999;
+            e->setSongRate(setHz);
+            recalcTimestamps=true;
+            MARK_MODIFIED
+          }
+          lastTapTime=tapTime;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Tap Tempo"));
+        }
       } else {
         if (e->curSubSong->hz>=49.98 && e->curSubSong->hz<=50.02) {
           ImGui::SameLine();
@@ -171,6 +213,28 @@ void FurnaceGUI::drawSpeed(bool asChild) {
             recalcTimestamps=true;
           }
         }
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_FA_CALCULATOR)) {
+        ImGui::OpenPopup("grooveCalc");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Groove Calculator"));
+      }
+      if (ImGui::BeginPopupContextItem("grooveCalc")) {
+        ImGui::TextUnformatted(_("use the calculator to approximate BPM values using speed/grooves"));
+        if (ImGui::InputFloat(_("Target BPM"),&grooveTargetBPM,1.0f,5.0f,"%g")) {
+          if (grooveTargetBPM<2.5f) grooveTargetBPM=2.5f;
+          if (grooveTargetBPM>2400.f) grooveTargetBPM=2400.f;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("OK"))) { MARK_MODIFIED;
+          e->lockEngine([this]{calcGrooveBPM(grooveTargetBPM,e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->hilightA);});
+          if (e->isPlaying()) play();
+          recalcTimestamps=true;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
       }
 
       ImGui::TableNextRow();

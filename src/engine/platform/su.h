@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "sound/su.h"
 
 class DivPlatformSoundUnit: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int cutoff, baseCutoff, res, control, hasOffset, sample;
     signed char pan;
     unsigned char duty;
@@ -41,8 +41,8 @@ class DivPlatformSoundUnit: public DivDispatch {
     short cutoff_slide;
     short pw_slide;
     short virtual_duty;
-    Channel():
-      SharedChannel<signed char>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       cutoff(16383),
       baseCutoff(16380),
       res(0),
@@ -89,6 +89,10 @@ class DivPlatformSoundUnit: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
+  DivPitchTable roleSwitchedPitchTable;
+  DivPitchTableManager roleSwitchedSamplePitchTable;
   unsigned char lastPan;
   bool sampleMemSize;
   unsigned char ilCtrl, ilSize, fil1;
@@ -115,7 +119,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -126,9 +130,12 @@ class DivPlatformSoundUnit: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

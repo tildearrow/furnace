@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,6 +106,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
         if (tune<220.0f) tune=220.0f;
         if (tune>880.0f) tune=880.0f;
         e->song.tuning=tune;
+        e->notifyPitchTable();
       }
       ImGui::EndTable();
     }

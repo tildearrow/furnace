@@ -196,11 +196,13 @@ check_cpu_arch_x64(ARCH_IS_X64)
 check_cpu_arch_arm32(ARCH_IS_ARM32)
 check_cpu_arch_arm64(ARCH_IS_ARM64)
 
-if(WIN32 OR (ARCH_IS_ARM64 AND APPLE))
-    set(HAVE_FPU 1)
-else()
-    cmake_host_system_information(RESULT HAVE_FPU QUERY HAS_FPU)
-endif()
+# tildearrow: assume we always have FPU. Furnace requires one.
+set(HAVE_FPU 1)
+#if(WIN32 OR (ARCH_IS_ARM64 AND APPLE))
+#    set(HAVE_FPU 1)
+#else()
+#    cmake_host_system_information(RESULT HAVE_FPU QUERY HAS_FPU)
+#endif()
 
 if(NOT HAVE_FPU)
     set(NO_SYNTH32 ON)

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
     // label
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
-    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((selectedPortSet==portSetID)?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
+    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((selectedPortSet==portSetID)?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,dpiScale);
     dl->AddText(ImGui::GetFont(),ImGui::GetFontSize(),textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str(),NULL,ImGui::GetWindowSize().x*0.6f);
   }
 
@@ -152,6 +152,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     if (visible) {
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
         dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32((i<activeIns)?portColor:portColorH),0.0f);
+        // ???????
         dl->AddRect(portMin,portMax,ImGui::GetColorU32((i<activeIns)?portBorderColor:portBorderColorH),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
       }
@@ -192,6 +193,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     if (visible) {
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
         dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32((i<activeOuts)?portColor:portColorH),0.0f);
+        // ???????
         dl->AddRect(portMin,portMax,ImGui::GetColorU32((i<activeOuts)?portBorderColor:portBorderColorH),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
       }
@@ -329,7 +331,7 @@ void FurnaceGUI::drawMixer() {
         hoveredPortSet=0x1fff;
         hoveredSubPort=-1;
 
-        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),ImGuiChildFlags_Border)) {
+        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),ImGuiChildFlags_Borders)) {
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 topPos=ImGui::GetCursorPos();
           ImVec2 sysSize=calcPortSetSize(_("System"),displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);

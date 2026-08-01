@@ -3,7 +3,7 @@
 Furnace is amazingly versatile, but it can also be intimidating, even for those already familiar with trackers. this quick start guide will get you on the road to making the chiptunes of your dreams! if you're a beginner, it will probably take about an hour from start to finish.
 
 this guide makes a few assumptions:
-* you've already installed Furnace and know where to find the demo files that come with it. look for `quickstart.fur` but don't open it yet.
+* you've already installed Furnace and know where to find the `demos` directory that comes with it. look for `quickstart.fur` but don't open it yet.
 * you haven't changed any configuration or layout yet. it should start up with the default Sega Genesis system.
 * you're working with a PC keyboard, US English, QWERTY layout. Mac users should already know the equivalents to the `Ctrl` and `Alt` keys.
 * you're comfortable with keyboard shortcuts. if not, a lot of this can also be done using buttons or menus, but please try the keyboard first. it's worth it to smooth out the tracking workflow.
@@ -30,7 +30,7 @@ let's play a little! notes are arranged on the keyboard rather like a piano. sta
 
 ![keyboard note entry](../3-pattern/keyboard.png)
 
-to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard](../2-interface/keyboard.md) doc explains how.) as an alternative, there's an octave selector at the top of the interface, a third of the way in from the left.
+to change which octaves are represented on the keyboard, use the `/` and `*` keys on the numeric pad. (if you don't have a numeric pad, these keys can be remapped; the [keyboard documentation](../2-interface/keyboard.md) explains how.) as an alternative, there's an octave selector at the top of the interface, a third of the way in from the left.
 
 now press the space bar to change from play to edit mode. the row the cursor is on will change to dark red – the playhead mentioned earlier. another way to tell what mode we're in is via the play/edit controls just above the pattern view in the center; make sure the "record" button is on.
 
@@ -64,7 +64,7 @@ at the top of the interface, just right of center, is the **instrument** list. t
 
 ![empty instrument list](qs-instlist-empty.png)
 
-click the `+` button to add a new instrument. a list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
+click the `+` button to add a new instrument. a list of instrument types will pop up, one for each type supported by the chips in use. select "FM (OPN)", and the new instrument will appear in the list as "00: Instrument 0". this will sound the same as the default instrument (listed as "- None -").
 
 we still need something new and different, so let's pull from another module. open up a second instance of Furnace and use `Ctrl-O` to open the `quickstart.fur` file included with Furnace in its `demos` directory. the instrument list will contain "00: horn"; select it, then use the floppy-disk save icon above it to save it wherever you like. Furnace instrument filenames end with the `.fui` extension.
 
@@ -110,7 +110,7 @@ on row 20, add a different note without a volume. play from the start, and you'l
 
 ## how do I make the song longer?
 
-right now, our track is only about six and a half seconds long. this is because we only have one **order**. see, the term "pattern view" is slightly misleading in that a **pattern** is just one channel's worth of data; the pattern view shows all the patterns in an order at once. this can get confusing because sometimes both terms are both used to mean what we call an **order**, sometimes even within Furnace itself.
+right now, our track is only about six and a half seconds long. this is because we only have one **order**. see, the term "pattern view" is slightly misleading in that a **pattern** is just one channel's worth of data; the pattern view shows all the patterns in an order at once. this can get confusing because sometimes "pattern" is used to mean "order", even within Furnace itself.
 
 ![default order view](qs-order-default.png)
 
@@ -139,7 +139,7 @@ if we click on the "Speed" tab at the top-right of the interface, we'll see the 
 
 ![speed tab](qs-speed.png)
 
-beneath Base Tempo is "Speed", set to 6. right now, each row takes 6 ticks to complete before moving to the next row. let's say we want things to be a little faster. play the current set of notes to hear their tempo first. then, change speed to 5; the tempo after "Divider" will now show "180.00 BPM". play our notes back, and they're definitely faster... perhaps faster than desired. it's possible to get tempos in between by alternating speeds; if you're interested, check out the documentation on [speeds and grooves](../8-advanced/grooves.md) later on.
+beneath Base Tempo is "Speed", set to 6. right now, each row takes 6 ticks to complete before moving to the next row. let's say we want things to be a little faster. play the current set of notes to hear their tempo first. then, change speed to 5; the tempo shown below "Virtual Tempo" will now read "180.00 BPM". play our notes back, and they're definitely faster... perhaps faster than desired. it's possible to get tempos in between by alternating speeds; if you're interested, check out the documentation on [speeds](../2-interface/song-info.md) and [grooves](../8-advanced/grooves.md) later on.
 
 ## what about those other channels?
 
@@ -211,12 +211,16 @@ in the pattern view, add a few notes spaced far enough apart that the whole rise
 
 ![volume macro with release](qs-macro-release.png)
 
-about ten rows after the last note in our song, place a note off. the final note rises to maximum, then is suddenly cut off! to get the rest of the macro to play, move your cursor over the note off and use the `~` key to replace it with a **macro release** instead, which will appear as `REL`. now when the song is played back, the final note will rise and hold steady until it reaches the macro release, then we'll hear the rest of the macro play out.
+about ten rows after the last note in our song, place a note off. the final note rises to maximum, then is suddenly cut off! to get the rest of the macro to play, move your cursor over the note off and use the `` ` `` key ("backtick") to replace it with a **macro release** instead, which will appear as `REL`. now when the song is played back, the final note will rise and hold steady until it reaches the macro release, then we'll hear the rest of the macro play out.
 
 macros are absurdly powerful tools. read the [macro documentation](../4-instrument/README.md) to make the most of them!
 
 ## what's next?
 
 now you know the basics of how to make music with Furnace. from here, the rest of the documentation should make more sense, and it should be your primary reference. if you have questions that aren't answered there, feel free to ask in the [Discussions section](https://github.com/tildearrow/furnace/discussions) on Furnace's GitHub repository.
+
+a great way to learn how to make your own music is to study how others have done it. try the demo modules! not only do they sound good and show off Furnace's capabilities, but they're also great for learning tracking techniques. one recommended method is this: open a demo track you like, open a second copy, save it to a new file, use the menu option "edit > clear..." and click "clear all subsongs", and remake the track by transcribing from the original.
+
+remember that everything in the `instruments` directory is free for you to use in your own music, as well as instruments found in the demo songs.
 
 most of all, don't be afraid to experiment. go play!

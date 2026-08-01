@@ -9,6 +9,7 @@ the instrument editor for Sega PSG, SMS, and other TI SN76489 derivatives consis
   - `1`: long noise; preset frequencies.
   - `2`: short noise; use channel 3 for frequency.
   - `3`: long noise; use channel 3 for frequency.
+  -  for more info on these, see the [chip documentation](../7-systems/sms.md#info).
 - **Panning**: output for left and right channels.
   - only on Game Gear!
 - **Pitch**: fine pitch.

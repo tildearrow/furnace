@@ -7,7 +7,7 @@
     This driver handles the four known types of NAMCO wavetable sounds:
 
         - 3-voice mono (PROM-based design: Pac-Man, Pengo, Dig Dug, etc)
-        - 8-voice quadrophonic (Pole Position 1, Pole Position 2)
+        - 8-voice quadraphonic (Pole Position 1, Pole Position 2)
         - 8-voice mono (custom 15XX: Mappy, Dig Dug 2, etc)
         - 8-voice stereo (System 1)
 
@@ -99,7 +99,7 @@ void namco_audio_device::device_start(unsigned char* wavePtr)
 	for (sound_channel *voice = m_channel_list; voice < m_last_channel; voice++)
 	{
 		voice->frequency = 0;
-		voice->volume[0] = voice->volume[1] = 0;
+		voice->volume[0] = voice->volume[1] = voice->volume[2] = voice->volume[3] = 0;
 		voice->waveform_select = 0;
 		voice->counter = 0;
 		voice->noise_sw = 0;
@@ -172,12 +172,12 @@ void namco_audio_device::build_decoded_waveform(uint8_t *rgnbase)
 
 
 /* generate sound by oversampling */
-uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq, int16_t& last_out)
+uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq, int32_t& last_out)
 {
 	for (int sampindex = 0; sampindex < size; sampindex++)
 	{
-    last_out=wave[WAVEFORM_POSITION(counter)];
-		buffer[sampindex]+=wave[WAVEFORM_POSITION(counter)];
+		last_out += wave[WAVEFORM_POSITION(counter)];
+		buffer[sampindex] += wave[WAVEFORM_POSITION(counter)];
 		counter += freq;
 	}
 
@@ -396,20 +396,16 @@ void namco_device::polepos_sound_w(int offset, uint8_t data)
 		// fall through
 	case 0x02:
 	case 0x03:
-		voice->volume[0] = voice->volume[1] = 0;
 		// front speakers ?
-		voice->volume[0] += m_soundregs[ch * 4 + 0x03] >> 4;
-		voice->volume[1] += m_soundregs[ch * 4 + 0x03] & 0x0f;
+		voice->volume[0] = m_soundregs[ch * 4 + 0x03] >> 4;
+		voice->volume[1] = m_soundregs[ch * 4 + 0x03] & 0x0f;
 		// rear speakers ?
-		voice->volume[0] += m_soundregs[ch * 4 + 0x23] >> 4;
-		voice->volume[1] += m_soundregs[ch * 4 + 0x02] >> 4;
-
-		voice->volume[0] /= 2;
-		voice->volume[1] /= 2;
+		voice->volume[2] = m_soundregs[ch * 4 + 0x23] >> 4;
+		voice->volume[3] = m_soundregs[ch * 4 + 0x02] >> 4;
 
 		/* if 54XX or 52XX selected, silence this voice */
 		if (m_soundregs[ch * 4 + 0x23] & 8)
-			voice->volume[0] = voice->volume[1] = 0;
+			voice->volume[0] = voice->volume[1] = voice->volume[2] = voice->volume[3] = 0;
 		break;
 	}
 }
@@ -617,11 +613,12 @@ void namco_15xx_device::sharedram_w(int offset, uint8_t data)
 
 void namco_audio_device::sound_stream_update(short** outputs, int len)
 {
-	if (m_stereo)
+	if (m_quadraphonic)
 	{
-		/* zap the contents of the buffers */
-		memset(outputs[0],0,len*sizeof(short));
-		memset(outputs[1],0,len*sizeof(short));
+		memset(outputs[0], 0, len * sizeof(short));
+		memset(outputs[1], 0, len * sizeof(short));
+		memset(outputs[2], 0, len * sizeof(short));
+		memset(outputs[3], 0, len * sizeof(short));
 
 		/* if no sound, we're done */
 		if (!m_sound_enable)
@@ -630,6 +627,140 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 		/* loop over each voice and add its contribution */
 		for (sound_channel *voice = m_channel_list; voice < m_last_channel; voice++)
 		{
+			voice->last_out = 0;
+			short* flmix = outputs[0];
+			short* frmix = outputs[1];
+			short* rlmix = outputs[2];
+			short* rrmix = outputs[3];
+			int flv = voice->volume[0];
+			int frv = voice->volume[1];
+			int rlv = voice->volume[2];
+			int rrv = voice->volume[3];
+
+			if (voice->noise_sw)
+			{
+				int f = voice->frequency & 0xff;
+
+				/* only update if we have non-zero volume */
+				if (flv || frv || rlv || rrv)
+				{
+					int hold_time = 1 << (m_f_fracbits - 16);
+					int hold = voice->noise_hold;
+					uint32_t delta = f << 4;
+					uint32_t c = voice->noise_counter;
+					int16_t fl_noise_data = OUTPUT_LEVEL(0x07 * (flv >> 1));
+					int16_t fr_noise_data = OUTPUT_LEVEL(0x07 * (frv >> 1));
+					int16_t rl_noise_data = OUTPUT_LEVEL(0x07 * (rlv >> 1));
+					int16_t rr_noise_data = OUTPUT_LEVEL(0x07 * (rrv >> 1));
+					int i;
+
+					/* add our contribution */
+					for (i = 0; i < len; i++)
+					{
+						int cnt;
+
+						if (voice->noise_state)
+						{
+							flmix[i] += fl_noise_data;
+							frmix[i] += fr_noise_data;
+							rlmix[i] += rl_noise_data;
+							rrmix[i] += rr_noise_data;
+							voice->last_out=(fl_noise_data + fr_noise_data + rl_noise_data + rr_noise_data)>>2;
+						}
+						else
+						{
+							flmix[i] += -fl_noise_data;
+							frmix[i] += -fr_noise_data;
+							rlmix[i] += -rl_noise_data;
+							rrmix[i] += -rr_noise_data;
+							voice->last_out=-((fl_noise_data + fr_noise_data + rl_noise_data + rr_noise_data)>>1);
+						}
+
+						if (hold)
+						{
+							hold--;
+							continue;
+						}
+
+						hold = hold_time;
+
+						c += delta;
+						cnt = (c >> 12);
+						c &= (1 << 12) - 1;
+						for( ;cnt > 0; cnt--)
+						{
+							if ((voice->noise_seed + 1) & 2) voice->noise_state ^= 1;
+							if (voice->noise_seed & 1) voice->noise_seed ^= 0x28000;
+							voice->noise_seed >>= 1;
+						}
+					}
+
+					/* update the counter and hold time for this voice */
+					voice->noise_counter = c;
+					voice->noise_hold = hold;
+				}
+			}
+			else
+			{
+				/* save the counter for this voice */
+				uint32_t c = voice->counter;
+
+				/* only update if we have non-zero front left volume */
+				if (flv)
+				{
+					const int16_t *flw = &m_waveform[flv][voice->waveform_select * 32];
+
+					/* generate sound into the buffer */
+					c = namco_update_one(flmix, len, flw, voice->counter, voice->frequency, voice->last_out);
+				}
+
+				/* only update if we have non-zero front right volume */
+				if (frv)
+				{
+					const int16_t *frw = &m_waveform[frv][voice->waveform_select * 32];
+
+					/* generate sound into the buffer */
+					c = namco_update_one(frmix, len, frw, voice->counter, voice->frequency, voice->last_out);
+				}
+
+				/* only update if we have non-zero rear left volume */
+				if (rlv)
+				{
+					const int16_t *rlw = &m_waveform[rlv][voice->waveform_select * 32];
+
+					/* generate sound into the buffer */
+					c = namco_update_one(rlmix, len, rlw, voice->counter, voice->frequency, voice->last_out);
+				}
+
+				/* only update if we have non-zero rear right volume */
+				if (rrv)
+				{
+					const int16_t *rrw = &m_waveform[rrv][voice->waveform_select * 32];
+
+					/* generate sound into the buffer */
+					c = namco_update_one(rrmix, len, rrw, voice->counter, voice->frequency, voice->last_out);
+				}
+				voice->last_out >>= 2;
+
+				/* update the counter for this voice */
+				voice->counter = c;
+			}
+		}
+	}
+	else if (m_stereo)
+	{
+		/* zap the contents of the buffers */
+		memset(outputs[0], 0, len * sizeof(short));
+		memset(outputs[1], 0, len * sizeof(short));
+
+		/* if no sound, we're done */
+		if (!m_sound_enable)
+			return;
+
+		/* loop over each voice and add its contribution */
+		for (sound_channel *voice = m_channel_list; voice < m_last_channel; voice++)
+		{
+			voice->last_out = 0;
 			short* lmix = outputs[0];
 			short* rmix = outputs[1];
 			int lv = voice->volume[0];
@@ -657,15 +788,15 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 
 						if (voice->noise_state)
 						{
-							lmix[i]+=l_noise_data;
-							rmix[i]+=r_noise_data;
-             voice->last_out=(l_noise_data+r_noise_data)>>1;
+							lmix[i] += l_noise_data;
+							rmix[i] += r_noise_data;
+							voice->last_out = (l_noise_data + r_noise_data) >> 1;
 						}
 						else
 						{
-							lmix[i]+=-l_noise_data;
-							rmix[i]+=-r_noise_data;
-             voice->last_out=-((l_noise_data+r_noise_data)>>1);
+							lmix[i] += -l_noise_data;
+							rmix[i] += -r_noise_data;
+							voice->last_out=-((l_noise_data + r_noise_data) >> 1);
 						}
 
 						if (hold)
@@ -714,6 +845,7 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 					/* generate sound into the buffer */
 					c = namco_update_one(rmix, len, rw, voice->counter, voice->frequency, voice->last_out);
 				}
+				voice->last_out >>= 1;
 
 				/* update the counter for this voice */
 				voice->counter = c;
@@ -722,19 +854,18 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 	}
 	else
 	{
-		sound_channel *voice;
-
 		short* buffer = outputs[0];
 		/* zap the contents of the buffer */
-    memset(buffer,0,len*sizeof(short));
+		memset(buffer, 0, len * sizeof(short));
 
 		/* if no sound, we're done */
 		if (!m_sound_enable)
 			return;
 
 		/* loop over each voice and add its contribution */
-		for (voice = m_channel_list; voice < m_last_channel; voice++)
+		for (sound_channel *voice = m_channel_list; voice < m_last_channel; voice++)
 		{
+			voice->last_out = 0;
 			int v = voice->volume[0];
 			if (voice->noise_sw)
 			{
@@ -756,15 +887,15 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 						int cnt;
 
 						if (voice->noise_state)
-							{
-buffer[i]+=noise_data;
-                        voice->last_out=noise_data;
-}
-						else {
-							buffer[i]+=-noise_data;
-                        voice->last_out=-noise_data;
-
-}
+						{
+							buffer[i] += noise_data;
+							voice->last_out = noise_data;
+						}
+						else
+						{
+							buffer[i] += -noise_data;
+							voice->last_out = -noise_data;
+						}
 
 						if (hold)
 						{
