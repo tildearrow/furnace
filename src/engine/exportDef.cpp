@@ -145,7 +145,9 @@ void DivEngine::registerROMExports() {
   
   romExportDefs[DIV_ROM_SNES]=new DivROMExportDef(
     "SNES SPC700 sound data", "tildearrow",
-    "I am not done...",
+    "export your song for playback on an SNES or emulators.\n"
+    ".spc files can be converted to a ROM using spc2rom, available at:\n"
+    "https://www.alpha-ii.com/Download/MainOld.html",
     "SPC700 sound data", ".spc",
     {
       DIV_SYSTEM_SNES

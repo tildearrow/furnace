@@ -20,3 +20,4 @@
 #include "../ta-utils.h"
 
 String getWinConfigPath();
+String getWinTempDir();

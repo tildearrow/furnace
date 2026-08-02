@@ -2479,6 +2479,25 @@ String DivEngine::getTempDir() {
   return tempDir;
 }
 
+static const char* validRandChars="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+String DivEngine::createTempDir() {
+  char randChar[7];
+
+  for (int i=0; i<6; i++) {
+    randChar[i]=validRandChars[rand()%62];
+  }
+  randChar[6]=0;
+
+  String dirPath=fmt::sprintf("%s%sfurnace-%s",tempDir,DIR_SEPARATOR_STR,randChar);
+
+  if (!makeDir(dirPath.c_str())) {
+    logE("could not create temp dir at %s! %s",dirPath,strerror(errno));
+    return "";
+  }
+  return dirPath;
+}
+
 int DivEngine::getMaxVolumeChan(int ch) {
   return chan[ch].volMax>>8;
 }
@@ -4291,6 +4310,7 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
 bool DivEngine::prePreInit() {
   // init config
   initConfDir();
+  initTempDir();
   logD("config path: %s",configPath.c_str());
 
   configLoaded=true;

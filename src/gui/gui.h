@@ -2191,6 +2191,7 @@ class FurnaceGUI {
     String locale;
     String wlaspcPath;
     String wlalinkPath;
+    String exportSourcePath;
     DivConfig initialSys;
 
     Settings():
@@ -2443,7 +2444,8 @@ class FurnaceGUI {
       defaultAuthorName(""),
       locale(""),
       wlaspcPath(""),
-      wlalinkPath("") {}
+      wlalinkPath(""),
+      exportSourcePath("") {}
   } settings;
 
   ImGuiTextFilter settingsFilter;

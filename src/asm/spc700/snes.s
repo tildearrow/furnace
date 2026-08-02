@@ -1,7 +1,5 @@
 ; SNES DivDispatch code.
 
-.define DIV_LINEAR_FREQ
-
 ; I'm never gonna code again
 ; guilty rastertime got no demo
 

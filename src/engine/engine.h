@@ -745,6 +745,9 @@ class DivEngine {
 
     // determine and setup config dir
     void initConfDir();
+    
+    // determine and setup temporary dir
+    void initTempDir();
 
     // save config
     bool saveConf();
@@ -847,6 +850,10 @@ class DivEngine {
 
     // get path to temporary dir
     String getTempDir();
+
+    // create a temporary directory and return its path
+    // returns an empty string on failure
+    String createTempDir();
 
     // get sys channel count
     int getChannelCount(DivSystem sys);

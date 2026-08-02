@@ -24,6 +24,7 @@
 
 #include "defines.h"
 #include "safeReader.h"
+#include <functional>
 
 // size of the trace log (per channel)
 #define DIV_MAX_CSTRACE 64

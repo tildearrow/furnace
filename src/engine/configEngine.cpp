@@ -47,6 +47,28 @@
 #endif
 #endif
 
+void DivEngine::initTempDir() {
+#ifdef _WIN32
+  tempDir=getWinTempDir();
+#elif defined(IS_MOBILE)
+  // shared with config dir
+  configPath=SDL_GetPrefPath("tildearrow","furnace");
+#elif defined(__HAIKU__)
+  char systemTempDir[PATH_MAX];
+  status_t findSystemDir = find_directory(B_SYSTEM_TEMP_DIRECTORY,0,false,systemTempDir,PATH_MAX);
+  if (findSystemDir==B_OK) {
+    tempDir=systemTempDir;
+  } else {
+    logW("unable to find system temp directory (%s)!",strerror(findSystemDir));
+    tempDir=".";
+    return;
+  }
+#else
+  // this is the case for Linux. not sure about macOS.
+  tempDir="/tmp";
+#endif
+}
+
 void DivEngine::initConfDir() {
 #ifdef _WIN32
   // maybe move this function in here instead?

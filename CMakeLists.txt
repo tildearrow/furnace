@@ -571,6 +571,7 @@ set_property(
 set(ENGINE_SOURCES
 src/log.cpp
 src/baseutils.cpp
+src/executils.cpp
 src/fileutils.cpp
 src/timeutils.cpp
 src/utfutils.cpp

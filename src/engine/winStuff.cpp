@@ -46,3 +46,18 @@ String getWinConfigPath() {
   }
   return utf16To8(configPath.c_str());
 }
+
+String getWinTempDir() {
+  wchar_t path[4096];
+  WString configPath;
+  HRESULT configHR;
+  if ((configHR=SHGetFolderPathW(NULL,CSIDL_LOCAL_APPDATA,NULL,0,path))==S_OK) {
+    configPath=path;
+    configPath+=L"\\Temp";
+    // I don't attempt to create this directory. I expect it to exist.
+  } else {
+    logW("unable to determine temp directory! (%.8x)",configHR);
+    configPath=L".";
+  }
+  return utf16To8(configPath.c_str());
+}

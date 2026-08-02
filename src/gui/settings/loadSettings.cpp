@@ -482,6 +482,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   }
 
   if (groups&GUI_SETTINGS_EXPORT) {
+    settings.exportSourcePath=conf.getString("exportSourcePath","." DIR_SEPARATOR_STR "drivers");
     settings.wlaspcPath=conf.getString("wlaspcPath","");
     settings.wlalinkPath=conf.getString("wlalinkPath","");
   }
@@ -986,6 +987,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
 
   // export
   if (groups&GUI_SETTINGS_EXPORT) {
+    conf.set("exportSourcePath",settings.exportSourcePath);
     conf.set("wlaspcPath",settings.wlaspcPath);
     conf.set("wlalinkPath",settings.wlalinkPath);
   }

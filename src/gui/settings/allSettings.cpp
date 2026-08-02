@@ -3304,6 +3304,13 @@ void FurnaceGUI::initSettings() {
         "wlalinkPath",&settings.wlalinkPath,
         GUI_FILE_EXEC_PATH_OPEN
       ),
+    }),
+    SUBCATEGORY(_N("Sources"),{
+      SettingEntry::Path(
+        _N("Path to driver sources"),
+        "exportSourcePath",&settings.exportSourcePath,
+        GUI_FILE_TEST_OPEN
+      )
     })
   }
   CATEGORY_END
