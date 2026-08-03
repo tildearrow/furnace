@@ -7303,6 +7303,51 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    // script dialog
+    const char* scriptDialogTitle=scriptDialog.title.c_str();
+    if (scriptDialog.dialogOpen) {
+      scriptDialog.dialogOpen=false;
+      ImGui::OpenPopup(scriptDialog.title.c_str());
+    }
+    centerNextWindow(scriptDialogTitle,canvasW,canvasH);
+    if (ImGui::BeginPopupModal(scriptDialogTitle,NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      for (ScriptDialog::Item& i:scriptDialog.items) {
+        switch (i.type) {
+          case ScriptDialog::Item::Type::Checkbox: {
+            ImGui::Checkbox(i.label.c_str(),&i.valueInt.b);
+            break;
+          }
+          case ScriptDialog::Item::Type::Int: {
+            if (ImGui::InputInt(i.label.c_str(),&i.valueInt.i)) {
+              if (i.valueInt.i>i.max.i) i.valueInt.i=i.max.i;
+              if (i.valueInt.i<i.min.i) i.valueInt.i=i.min.i;
+            }
+            break;
+          }
+          case ScriptDialog::Item::Type::Float: {
+            if (ImGui::InputFloat(i.label.c_str(),&i.valueInt.f)) {
+              if (i.valueInt.f>i.max.f) i.valueInt.f=i.max.f;
+              if (i.valueInt.f<i.min.f) i.valueInt.f=i.min.f;
+            }
+            break;
+          }
+          case ScriptDialog::Item::Type::String: {
+            ImGui::InputText(i.label.c_str(),&i.valueS);
+            break;
+          }
+        }
+      }
+      if (ImGui::Button(_("OK"))) {
+        runScriptFunction(scriptDialog.state,scriptDialog.callbackFunction);
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Cancel"))) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
     warnIsOpen=ImGui::IsPopupOpen(_("Warning"));
 
     if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {

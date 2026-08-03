@@ -3078,6 +3078,39 @@ class FurnaceGUI {
   int playgroundRet;
   String playgroundData;
   String playgroundStatus;
+  struct ScriptDialog {
+    struct Item {
+      String label;
+      enum class Type {
+        Checkbox,
+        Int,
+        Float,
+        String
+      } type;
+      union {
+        int i; float f;
+      } min, max;
+      union {
+        bool b;
+        int i;
+        float f;
+      } valueInt;
+      String valueS;
+      Item():
+        label(""),
+        type(Type::Int) {
+        min.i=0;
+        max.i=0;
+        valueInt.i=0;
+        valueS="";
+      }
+    };
+    lua_State* state;
+    String title;
+    int callbackFunction;
+    std::vector<Item> items;
+    bool dialogOpen;
+  } scriptDialog;
 
   std::vector<String> randomDemoSong;
 
@@ -3596,6 +3629,23 @@ class FurnaceGUI {
     // pat, chan, row, pos, val
     // subsong, pat, chan, row, pos, val
     int sc_setPatternDirect(lua_State* s);
+
+    /// DIALOGS
+    // name
+    int sc_dialogNew(lua_State* s);
+    // label
+    // label, default
+    int sc_dialogItemString(lua_State* s);
+    int sc_dialogItemCheckbox(lua_State* s);
+    // label
+    // label, default
+    // label, default, min, max
+    int sc_dialogItemInt(lua_State* s);
+    int sc_dialogItemFloat(lua_State* s);
+
+    int sc_dialogShow(lua_State* s);
+    // probably dont do this
+    int sc_dialogGetItems(lua_State* s);
 
     /// other
     void editStr(String* which);

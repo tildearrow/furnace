@@ -1,3 +1,10 @@
+# scripting
+
+- "loaded scripts" tab
+- documentation
+- dialog api
+- raw freq
+
 # to-do for 0.7?
 
 - CSM macros

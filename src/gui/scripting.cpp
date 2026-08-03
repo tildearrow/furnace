@@ -89,6 +89,12 @@ static FurnaceGUI* externGUI;
   lua_setfield(s,-2,#x); \
   lua_pop(s,1);
 
+#define REG_ENUM(x,l) \
+  lua_getglobal(s,"fur"); \
+  lua_pushinteger(s,x); \
+  lua_setfield(s,-2,#l); \
+  lua_pop(s,1);
+
 /// FUNCTIONS
 
 _CF(version) {
@@ -1387,30 +1393,16 @@ _CF(getPattern) {
 
   DivPattern* p=sub->pat[chan].getPattern(sub->orders.ord[chan][order],false);
 
-  if (pos==0) { // map note/octave to a single value
-    if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_OFF) {
-      lua_pushinteger(s,120);
-    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_REL) {
-      lua_pushinteger(s,121);
-    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_MACRO_REL) {
-      lua_pushinteger(s,122);
-    } else if (p->newData[row][DIV_PAT_NOTE]==0) {
-      lua_pushnil(s);
-    } else {
-      lua_pushinteger(s,p->newData[row][DIV_PAT_NOTE]-60);
-    }
+  if (p->newData[row][pos]==-1) {
+    lua_pushnil(s);
   } else {
-    if (p->newData[row][pos]==-1) {
-      lua_pushnil(s);
-    } else {
-      lua_pushinteger(s,p->newData[row][pos]);
-    }
+    lua_pushinteger(s,p->newData[row][pos]);
   }
 
   return 1;
 }
 
-_CF(setPattern) {
+_CF(setPattern) { // TODO: raw freq
   CHECK_ARGS_RANGE(4,6);
   CHECK_TYPE_NUMBER(-4);
   CHECK_TYPE_NUMBER(-3);
@@ -1456,11 +1448,14 @@ _CF(setPattern) {
   } else if (lua_isinteger(s,-1)) {
     int val=lua_tointeger(s,-1);
 
-    if (pos==0) { // map single value to a note/octave
-      if (val<-60 || val>122) {
-        SC_ERROR("value out of range (-60 to 122)");
+    if (pos==0) {
+      if (val==DIV_NOTE_OFF || val==DIV_NOTE_REL || val==DIV_MACRO_REL) {
+        p->newData[row][DIV_PAT_NOTE]=val;
+      } else if (val>=0 && val<=180) {
+        p->newData[row][DIV_PAT_NOTE]=val;
+      } else {
+        SC_ERROR("value out of range (0 to 180)");
       }
-      p->newData[row][DIV_PAT_NOTE]=val+60;
     } else {
       if (val<0 || val>255) {
         SC_ERROR("value out of range (0-255)");
@@ -1511,24 +1506,10 @@ _CF(getPatternDirect) {
 
   DivPattern* p=sub->pat[chan].getPattern(pat,false);
 
-  if (pos==0) { // map note/octave to a single value
-    if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_OFF) {
-      lua_pushinteger(s,120);
-    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_NOTE_REL) {
-      lua_pushinteger(s,121);
-    } else if (p->newData[row][DIV_PAT_NOTE]==DIV_MACRO_REL) {
-      lua_pushinteger(s,122);
-    } else if (p->newData[row][DIV_PAT_NOTE]==0) {
-      lua_pushnil(s);
-    } else {
-      lua_pushinteger(s,p->newData[row][DIV_PAT_NOTE]-60);
-    }
+  if (p->newData[row][pos]==-1) {
+    lua_pushnil(s);
   } else {
-    if (p->newData[row][pos]==-1) {
-      lua_pushnil(s);
-    } else {
-      lua_pushinteger(s,p->newData[row][pos]);
-    }
+    lua_pushinteger(s,p->newData[row][pos]);
   }
 
   return 1;
@@ -1577,22 +1558,154 @@ _CF(setPatternDirect) {
   } else if (lua_isinteger(s,-1)) {
     int val=lua_tointeger(s,-1);
 
-    if (pos==0) { // map single value to a note/octave
-      if (val<-60 || val>122) {
-        SC_ERROR("value out of range (-60 to 122)");
+    if (pos==0) {
+      if (val==DIV_NOTE_OFF || val==DIV_NOTE_REL || val==DIV_MACRO_REL) {
+        p->newData[row][DIV_PAT_NOTE]=val;
+      } else if (val>=0 && val<=180) {
+        p->newData[row][DIV_PAT_NOTE]=val;
+      } else {
+        SC_ERROR("value out of range (0 to 180)");
       }
-      p->newData[row][DIV_PAT_NOTE]=val+60;
-    } else {
-      if (val<0 || val>255) {
-        SC_ERROR("value out of range (0-255)");
-      }
-      p->newData[row][pos]=val;
     }
   } else {
     SC_ERROR("value is not a number or nil");
   }
 
   return 0;
+}
+
+_CF(dialogNew) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  const char* title=lua_tostring(s,1);
+  scriptDialog.title=title;
+  scriptDialog.items.clear();
+  return 0;
+}
+
+_CF(dialogItemInt) {
+  CHECK_ARGS_RANGE(1,4)
+  CHECK_TYPE_STRING(-1)
+  ScriptDialog::Item item;
+  item.type=ScriptDialog::Item::Type::Int;
+  item.valueInt.i=0;
+  item.min.i=0;
+  item.max.i=100;
+  if (lua_gettop(s)>3) {
+    CHECK_TYPE_STRING(-4)
+    CHECK_TYPE_NUMBER(-3)
+    CHECK_TYPE_NUMBER(-2)
+    CHECK_TYPE_NUMBER(-1)
+    item.max.i=lua_tointeger(s,-1);
+    item.min.i=lua_tointeger(s,-2);
+    item.valueInt.i=lua_tointeger(s,-3);
+    item.label=lua_tostring(s,-4);
+  } else if (lua_gettop(s)>1) {
+    CHECK_TYPE_STRING(-2)
+    CHECK_TYPE_NUMBER(-1)
+    item.valueInt.i=lua_tointeger(s,-1);
+    item.label=lua_tostring(s,-2);
+  } else {
+    CHECK_TYPE_STRING(-1)
+    item.label=lua_tostring(s,-1);
+  }
+  scriptDialog.items.push_back(item);
+  return 0;
+}
+
+_CF(dialogItemFloat) {
+  CHECK_ARGS_RANGE(1,4)
+  ScriptDialog::Item item;
+  item.type=ScriptDialog::Item::Type::Float;
+  item.valueInt.f=0;
+  item.min.f=0;
+  item.max.f=100;
+  if (lua_gettop(s)>3) {
+    CHECK_TYPE_STRING(-4)
+    CHECK_TYPE_NUMBER(-3)
+    CHECK_TYPE_NUMBER(-2)
+    CHECK_TYPE_NUMBER(-1)
+    item.max.f=lua_tonumber(s,-1);
+    item.min.f=lua_tonumber(s,-2);
+    item.valueInt.f=lua_tonumber(s,-3);
+    item.label=lua_tostring(s,-4);
+  } else if (lua_gettop(s)>1) {
+    CHECK_TYPE_STRING(-2)
+    CHECK_TYPE_NUMBER(-1)
+    item.valueInt.f=lua_tonumber(s,-1);
+    item.label=lua_tostring(s,-2);
+  } else {
+    CHECK_TYPE_STRING(-1)
+    item.label=lua_tostring(s,-1);
+  }
+  scriptDialog.items.push_back(item);
+  return 0;
+}
+
+_CF(dialogItemString) {
+  CHECK_ARGS_RANGE(1,2)
+  ScriptDialog::Item item;
+  item.type=ScriptDialog::Item::Type::String;
+  if (lua_gettop(s)>1) {
+    CHECK_TYPE_STRING(-2)
+    CHECK_TYPE_STRING(-1)
+    const char* defaultValue=lua_tostring(s,-1);
+    item.valueS=defaultValue;
+    item.label=lua_tostring(s,-2);
+  } else {
+    CHECK_TYPE_STRING(-1)
+    item.label=lua_tostring(s,-1);
+  }
+  scriptDialog.items.push_back(item);
+  return 0;
+}
+
+_CF(dialogItemCheckbox) {
+  CHECK_ARGS_RANGE(1,2)
+  ScriptDialog::Item item;
+  item.type=ScriptDialog::Item::Type::Checkbox;
+  if (lua_gettop(s)>1) {
+    CHECK_TYPE_STRING(-2)
+    CHECK_TYPE_BOOLEAN(-1)
+    bool defaultValue=lua_toboolean(s,-1);
+    item.valueInt.b=defaultValue;
+    item.label=lua_tostring(s,-2);
+  } else {
+    CHECK_TYPE_STRING(-1)
+    item.label=lua_tostring(s,-1);
+  }
+  scriptDialog.items.push_back(item);
+  return 0;
+}
+
+_CF(dialogShow) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_FUNCTION(1)
+  int funcID=luaL_ref(s,LUA_REGISTRYINDEX);
+  scriptDialog.callbackFunction=funcID;
+  scriptDialog.state=s;
+  scriptDialog.dialogOpen=true;
+  return 0;
+}
+
+_CF(dialogGetItems) {
+  for (ScriptDialog::Item& i:scriptDialog.items) {
+    switch (i.type) {
+      case ScriptDialog::Item::Type::Checkbox:
+        lua_pushboolean(s, i.valueInt.b);
+        break;
+      case ScriptDialog::Item::Type::Int:
+        lua_pushinteger(s, i.valueInt.i);
+        break;
+      case ScriptDialog::Item::Type::Float:
+        lua_pushnumber(s, i.valueInt.f);
+        break;
+      case ScriptDialog::Item::Type::String:
+        lua_pushstring(s, i.valueS.c_str());
+        break;
+    }
+  }
+  return scriptDialog.items.size();
 }
 
 /// INTERNAL
@@ -1724,6 +1837,17 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(setPattern);
   REG_FUNC(getPatternDirect);
   REG_FUNC(setPatternDirect);
+  REG_FUNC(dialogNew);
+  REG_FUNC(dialogItemInt);
+  REG_FUNC(dialogItemFloat);
+  REG_FUNC(dialogItemString);
+  REG_FUNC(dialogItemCheckbox);
+  REG_FUNC(dialogShow);
+  REG_FUNC(dialogGetItems);
+  // constants/enums
+  REG_ENUM(DIV_NOTE_OFF,NOTE_OFF)
+  REG_ENUM(DIV_NOTE_REL,NOTE_REL)
+  REG_ENUM(DIV_MACRO_REL,MACRO_REL)
 }
 
 void FurnaceGUI::initScriptEngine() {
@@ -1792,6 +1916,7 @@ void FurnaceGUI::drawScripting() {
                 if (error==NULL) {
                   playgroundStatus+="NULL!";
                 } else {
+                  luaL_traceback(playgroundState,playgroundState,error,16);
                   playgroundStatus+=error;
                 }
                 break;
@@ -1814,8 +1939,13 @@ void FurnaceGUI::drawScripting() {
             }
           }
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Stop")) {
+          resetScriptState(playgroundState);
+          playgroundStatus.clear();
+        }
         ImGui::PushFont(patFont);
-        ImGui::InputTextMultiline("##ScriptPlayground",&playgroundData,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()));
+        ImGui::InputTextMultiline("##ScriptPlayground",&playgroundData,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_AllowTabInput);
         ImGui::PopFont();
 
         ImGui::TextUnformatted(playgroundStatus.c_str());
