@@ -24,6 +24,7 @@
 #include "SDL_events.h"
 #endif
 #include "ta-log.h"
+#include "executils.h"
 #include "fileutils.h"
 #include "engine/engine.h"
 
@@ -716,6 +717,7 @@ int main(int argc, char** argv) {
   srand(time(NULL));
 
   initLog(stdout);
+  taInstallExecHandler();
 #ifdef _WIN32
   // set DPI awareness
   HMODULE shcore=LoadLibraryW(L"shcore.dll");

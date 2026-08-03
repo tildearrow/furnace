@@ -22,27 +22,35 @@
 static bool execHandlerReady=false;
 
 #ifdef _WIN32
+#include <windows.h>
 #else
 #include <sys/wait.h>
 #include <unistd.h>
 struct sigaction chldsa;
 #endif
 
+#ifdef _WIN32
+int taExec(String path, const std::vector<String>& args, TAExecConsole* con) {
+  // CreateProcess
+  return -1;
+}
+
+int taWaitProcess(int pid) {
+  // ?????????
+  return -1;
+}
+
+void taInstallExecHandler() {
+  // ?????????????????
+  execHandlerReady=true;
+}
+#else
+
 struct TAProcessInfo {
   char** argv;
 };
 
 std::map<int,TAProcessInfo> procInfoMap;
-
-#ifdef _WIN32
-int taExec(String path, const std::vector<String>& args, TAExecConsole* con) {
-  return -1;
-}
-
-void taInstallExecHandler() {
-
-}
-#else
 
 #define CRAP \
   for (int i=0; newArgv[i]; i++) { \
