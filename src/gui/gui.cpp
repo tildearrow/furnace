@@ -1522,6 +1522,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
       pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
+  if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
   if ((!e->isPlaying() || !followPattern) && (chanOff<1 || noteInputMode!=GUI_NOTE_INPUT_CHORD) && !doNotAdvance) {
     editAdvance();
   }
@@ -1571,11 +1572,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     } else {
       if (e->song.ins.size()<16) {
         curNibble=0;
+        if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
         editAdvance();
       } else {
         curNibble++;
         if (curNibble>=2) {
           curNibble=0;
+          if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
           editAdvance();
         }
       }
@@ -1593,11 +1596,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       if (e->getMaxVolumeChan(ch)<16) {
         curNibble=0;
         if (pat->newData[y][target]>e->getMaxVolumeChan(ch)) pat->newData[y][target]=e->getMaxVolumeChan(ch);
+        if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
         editAdvance();
       } else {
         curNibble++;
         if (curNibble>=2) {
           curNibble=0;
+          if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
           editAdvance();
         }
       }
@@ -1610,6 +1615,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       curNibble++;
       if (curNibble>=2) {
         curNibble=0;
+        if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
         if (!settings.effectCursorDir) {
           editAdvance();
         } else {
@@ -1671,6 +1677,7 @@ void FurnaceGUI::rawFreqInput(int num) {
   curNibble++;
   if (curNibble>=valNibbles) {
     curNibble=0;
+    if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
     editAdvance();
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -9962,6 +9969,7 @@ FurnaceGUI::FurnaceGUI():
   grooveTargetBPM(150.0f),
   playgroundState(NULL),
   playgroundRet(-1),
+  patternCallback(-1),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

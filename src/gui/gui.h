@@ -39,6 +39,7 @@
 #include "../pch.h"
 
 #include <lua.hpp>
+typedef int luaFunction;
 
 #include "fileDialog.h"
 #include "newFilePicker.h"
@@ -1782,7 +1783,7 @@ struct FurnaceCV;
 
 struct FurnaceGUIScriptAction {
   String name;
-  int function;
+  luaFunction function;
   lua_State* state;
   FurnaceGUIScriptAction():
     state(NULL) {}
@@ -3122,10 +3123,11 @@ class FurnaceGUI {
     };
     lua_State* state;
     String title;
-    int callbackFunction;
+    luaFunction callbackFunction;
     std::vector<Item> items;
     bool dialogOpen;
   } scriptDialog;
+  luaFunction patternCallback;
 
   std::vector<String> randomDemoSong;
 
@@ -3468,7 +3470,7 @@ class FurnaceGUI {
   bool initRender();
   bool quitRender();
 
-  void runScriptFunction(lua_State* s, int id);
+  void runScriptFunction(lua_State* s, luaFunction id);
   void resetScriptState(lua_State* s);
   void bindScriptFunctions(lua_State* s);
   void initScriptEngine();
@@ -3644,6 +3646,8 @@ class FurnaceGUI {
     // pat, chan, row, pos, val
     // subsong, pat, chan, row, pos, val
     int sc_setPatternDirect(lua_State* s);
+    // func
+    int sc_setPatternInputCallback(lua_State* s);
 
     /// DIALOGS
     // name

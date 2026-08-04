@@ -244,7 +244,7 @@ _CF(registerMenuEntry) {
 
   const char* menuName=lua_tostring(s,1);
   const char* menuEntry=lua_tostring(s,2);
-  int funcID=luaL_ref(s,LUA_REGISTRYINDEX);
+  luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
 
   FurnaceGUIScriptMenu* menu=NULL;
   for (FurnaceGUIScriptMenu& i: scriptMenus) {
@@ -1631,6 +1631,23 @@ _CF(setPatternDirect) {
   return 0;
 }
 
+_CF(setPatternInputCallback) {
+  CHECK_ARGS(1)
+  switch (lua_type(s,1)) {
+    case LUA_TFUNCTION:
+      patternCallback=luaL_ref(s,LUA_REGISTRYINDEX);
+      break;
+    case LUA_TNIL:
+      patternCallback=-1;
+      break;
+    default:
+      lua_pushstring(s,"invalid argument type");
+      lua_error(s);
+      break;
+  }
+  return 0;
+}
+
 _CF(dialogNew) {
   CHECK_ARGS(1)
   CHECK_TYPE_STRING(1)
@@ -1738,7 +1755,7 @@ _CF(dialogItemCheckbox) {
 _CF(dialogShow) {
   CHECK_ARGS(1)
   CHECK_TYPE_FUNCTION(1)
-  int funcID=luaL_ref(s,LUA_REGISTRYINDEX);
+  luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
   scriptDialog.callbackFunction=funcID;
   scriptDialog.state=s;
   scriptDialog.dialogOpen=true;
@@ -1767,12 +1784,60 @@ _CF(dialogGetItems) {
 
 /// INTERNAL
 
-void FurnaceGUI::runScriptFunction(lua_State* s, int id) {
+static String getScriptError(lua_State* s, int result) {
+  String ret="";
+  switch (result) {
+    case LUA_OK: {
+      ret="OK";
+      int stackTop=lua_gettop(s);
+      if (stackTop>0) {
+        const char* val=lua_tostring(s,stackTop);
+        ret+=" (";
+        if (val==NULL) {
+          ret+="unknown value";
+        } else {
+          ret+=val;
+        }
+        ret+=")";
+      }
+      break;
+    }
+    case LUA_ERRMEM:
+      ret="memory error";
+      break;
+    case LUA_ERRSYNTAX:
+      ret="syntax error";
+      break;
+    case LUA_ERRERR:
+      ret="error calling error handler";
+      break;
+    case LUA_ERRFILE:
+      ret="file error";
+      break;
+    case LUA_ERRRUN: {
+      ret="runtime error: ";
+      const char* error=lua_tostring(s,lua_gettop(s));
+      if (error==NULL) {
+        ret+="NULL!";
+      } else {
+        luaL_traceback(s,s,error,16);
+        ret+=error;
+      }
+      break;
+    }
+    default:
+      ret="what?";
+      break;
+  }
+  return ret;
+}
+
+void FurnaceGUI::runScriptFunction(lua_State* s, luaFunction id) {
   logD("calling script function %d",id);
   lua_rawgeti(s,LUA_REGISTRYINDEX,id);
   int result=lua_pcall(s,0,LUA_MULTRET,0);
   if (result!=LUA_OK) {
-    showError("WE GOT A PROBLEM...");
+    showError("runScriptFunction error!\n"+getScriptError(s,result));
   }
 }
 
@@ -1793,6 +1858,9 @@ void FurnaceGUI::resetScriptState(lua_State* s) {
       i--;
     }
   }
+  scriptDialog.title.clear();
+  scriptDialog.items.clear();
+  patternCallback=-1;
 }
 
 void FurnaceGUI::bindScriptFunctions(lua_State* s) {
@@ -1894,6 +1962,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(setPattern);
   REG_FUNC(getPatternDirect);
   REG_FUNC(setPatternDirect);
+  REG_FUNC(setPatternInputCallback);
   REG_FUNC(dialogNew);
   REG_FUNC(dialogItemInt);
   REG_FUNC(dialogItemFloat);
@@ -1999,49 +2068,7 @@ void FurnaceGUI::drawScripting() {
           playgroundRet=luaL_loadstring(playgroundState,playgroundData.c_str());
           if (playgroundRet==LUA_OK) {
             playgroundRet=lua_pcall(playgroundState,0,LUA_MULTRET,0);
-            switch (playgroundRet) {
-              case LUA_OK: {
-                playgroundStatus="OK";
-                int stackTop=lua_gettop(playgroundState);
-                if (stackTop>0) {
-                  const char* val=lua_tostring(playgroundState,stackTop);
-                  playgroundStatus+=" (";
-                  if (val==NULL) {
-                    playgroundStatus+="unknown value";
-                  } else {
-                    playgroundStatus+=val;
-                  }
-                  playgroundStatus+=")";
-                }
-                break;
-              }
-              case LUA_ERRMEM:
-                playgroundStatus="memory error";
-                break;
-              case LUA_ERRSYNTAX:
-                playgroundStatus="syntax error";
-                break;
-              case LUA_ERRERR:
-                playgroundStatus="error calling error handler";
-                break;
-              case LUA_ERRFILE:
-                playgroundStatus="file error";
-                break;
-              case LUA_ERRRUN: {
-                playgroundStatus="runtime error: ";
-                const char* error=lua_tostring(playgroundState,lua_gettop(playgroundState));
-                if (error==NULL) {
-                  playgroundStatus+="NULL!";
-                } else {
-                  luaL_traceback(playgroundState,playgroundState,error,16);
-                  playgroundStatus+=error;
-                }
-                break;
-              }
-              default:
-                playgroundStatus="what?";
-                break;
-            }
+            playgroundStatus=getScriptError(playgroundState,playgroundRet);
           } else {
             switch (playgroundRet) {
               case LUA_ERRSYNTAX:
