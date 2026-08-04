@@ -23,6 +23,8 @@
 
 static FurnaceGUI* externGUI;
 
+#define DIV_PAT_RAW (DIV_PAT_FXVAL(DIV_MAX_EFFECTS)+1)
+
 #define _CF(x) \
   static int _ ## x(lua_State* s) { \
     return externGUI->sc_ ## x(s); \
@@ -1387,16 +1389,29 @@ _CF(getPattern) {
   if (row<0 || row>=DIV_MAX_ROWS) {
     SC_ERROR("row out of range");
   }
-  if (pos<0 || pos>2+DIV_MAX_EFFECTS*2) {
+  if (pos<0 || pos>DIV_PAT_RAW) {
     SC_ERROR("position out of range");
   }
 
   DivPattern* p=sub->pat[chan].getPattern(sub->orders.ord[chan][order],false);
 
-  if (p->newData[row][pos]==-1) {
-    lua_pushnil(s);
+  if (pos==DIV_PAT_RAW) {
+    if (p->newData[row][DIV_PAT_NOTE]!=DIV_NOTE_RAW) {
+      lua_pushnil(s);
+    } else {
+      unsigned int rawFreq=
+         p->newData[row][DIV_PAT_RAW0]|
+        (p->newData[row][DIV_PAT_RAW1]<<8)|
+        (p->newData[row][DIV_PAT_RAW2]<<16)|
+        (p->newData[row][DIV_PAT_RAW3]<<24);
+      lua_pushinteger(s,rawFreq);
+    }
   } else {
-    lua_pushinteger(s,p->newData[row][pos]);
+    if (p->newData[row][pos]==-1) {
+      lua_pushnil(s);
+    } else {
+      lua_pushinteger(s,p->newData[row][pos]);
+    }
   }
 
   return 1;
@@ -1436,7 +1451,7 @@ _CF(setPattern) { // TODO: raw freq
   if (row<0 || row>=DIV_MAX_ROWS) {
     SC_ERROR("row out of range");
   }
-  if (pos<0 || pos>2+DIV_MAX_EFFECTS*2) {
+  if (pos<0 || pos>DIV_PAT_RAW) {
     SC_ERROR("position out of range");
   }
 
@@ -1444,11 +1459,25 @@ _CF(setPattern) { // TODO: raw freq
 
   if (lua_isnil(s,-1)) {
     // clear out
-    p->newData[row][pos]=-1;
+    if (row==DIV_PAT_RAW) {
+      p->newData[row][DIV_PAT_RAW0]=-1;
+      p->newData[row][DIV_PAT_RAW1]=-1;
+      p->newData[row][DIV_PAT_RAW2]=-1;
+      p->newData[row][DIV_PAT_RAW3]=-1;
+      p->newData[row][DIV_PAT_NOTE]=-1;
+    } else {
+      p->newData[row][pos]=-1;
+    }
   } else if (lua_isinteger(s,-1)) {
     int val=lua_tointeger(s,-1);
 
-    if (pos==0) {
+    if (pos==DIV_PAT_RAW) {
+      p->newData[row][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+      p->newData[row][DIV_PAT_RAW0]=val&0xff;
+      p->newData[row][DIV_PAT_RAW1]=(val>>8)&0xff;
+      p->newData[row][DIV_PAT_RAW2]=(val>>16)&0xff;
+      p->newData[row][DIV_PAT_RAW3]=(val>>24)&0xff;
+    } else if (pos==DIV_PAT_NOTE) {
       if (val==DIV_NOTE_OFF || val==DIV_NOTE_REL || val==DIV_MACRO_REL) {
         p->newData[row][DIV_PAT_NOTE]=val;
       } else if (val>=0 && val<=180) {
@@ -1506,10 +1535,23 @@ _CF(getPatternDirect) {
 
   DivPattern* p=sub->pat[chan].getPattern(pat,false);
 
-  if (p->newData[row][pos]==-1) {
-    lua_pushnil(s);
+  if (pos==DIV_PAT_RAW) {
+    if (p->newData[row][DIV_PAT_NOTE]!=DIV_NOTE_RAW) {
+      lua_pushnil(s);
+    } else {
+      unsigned int rawFreq=
+         p->newData[row][DIV_PAT_RAW0]|
+        (p->newData[row][DIV_PAT_RAW1]<<8)|
+        (p->newData[row][DIV_PAT_RAW2]<<16)|
+        (p->newData[row][DIV_PAT_RAW3]<<24);
+      lua_pushinteger(s,rawFreq);
+    }
   } else {
-    lua_pushinteger(s,p->newData[row][pos]);
+    if (p->newData[row][pos]==-1) {
+      lua_pushnil(s);
+    } else {
+      lua_pushinteger(s,p->newData[row][pos]);
+    }
   }
 
   return 1;
@@ -1554,11 +1596,25 @@ _CF(setPatternDirect) {
 
   if (lua_isnil(s,-1)) {
     // clear out
-    p->newData[row][pos]=-1;
+    if (row==DIV_PAT_RAW) {
+      p->newData[row][DIV_PAT_RAW0]=-1;
+      p->newData[row][DIV_PAT_RAW1]=-1;
+      p->newData[row][DIV_PAT_RAW2]=-1;
+      p->newData[row][DIV_PAT_RAW3]=-1;
+      p->newData[row][DIV_PAT_NOTE]=-1;
+    } else {
+      p->newData[row][pos]=-1;
+    }
   } else if (lua_isinteger(s,-1)) {
     int val=lua_tointeger(s,-1);
 
-    if (pos==0) {
+    if (pos==DIV_PAT_RAW) {
+      p->newData[row][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+      p->newData[row][DIV_PAT_RAW0]=val&0xff;
+      p->newData[row][DIV_PAT_RAW1]=(val>>8)&0xff;
+      p->newData[row][DIV_PAT_RAW2]=(val>>16)&0xff;
+      p->newData[row][DIV_PAT_RAW3]=(val>>24)&0xff;
+    } else if (pos==DIV_PAT_NOTE) {
       if (val==DIV_NOTE_OFF || val==DIV_NOTE_REL || val==DIV_MACRO_REL) {
         p->newData[row][DIV_PAT_NOTE]=val;
       } else if (val>=0 && val<=180) {
@@ -1848,6 +1904,12 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_ENUM(DIV_NOTE_OFF,NOTE_OFF)
   REG_ENUM(DIV_NOTE_REL,NOTE_REL)
   REG_ENUM(DIV_MACRO_REL,MACRO_REL)
+  REG_ENUM(DIV_NOTE_RAW,NOTE_RAW)
+
+  REG_ENUM(DIV_PAT_NOTE,PAT_NOTE)
+  REG_ENUM(DIV_PAT_INS,PAT_INS)
+  REG_ENUM(DIV_PAT_VOL,PAT_VOL)
+  REG_ENUM(DIV_PAT_RAW,PAT_RAW)
 }
 
 void FurnaceGUI::initScriptEngine() {
