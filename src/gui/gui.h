@@ -726,6 +726,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_MU5_ROM_OPEN,
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
+  GUI_FILE_LOAD_SCRIPT,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -1818,7 +1819,7 @@ class FurnaceGUI {
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirROMExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
-  String workingDirLayout, workingDirROM, workingDirMusic, workingDirTest;
+  String workingDirLayout, workingDirROM, workingDirMusic, workingDirScript, workingDirTest;
   String workingDirConfig;
   String mmlString[32];
   String mmlStringW, grooveString, grooveListString, mmlStringModTable;
@@ -2060,6 +2061,8 @@ class FurnaceGUI {
     bool rackShowLEDs;
     bool warnNotePassthrough;
     bool sampleImportInstDetune;
+    bool scriptingAllowIO;
+    bool scriptingAllowOS;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int headFontSize2;
     int headFontSize3;
@@ -2309,6 +2312,8 @@ class FurnaceGUI {
       rackShowLEDs(true),
       warnNotePassthrough(false),
       sampleImportInstDetune(false),
+      scriptingAllowIO(false),
+      scriptingAllowOS(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
@@ -3073,8 +3078,18 @@ class FurnaceGUI {
 
   // scripting
   std::vector<FurnaceGUIScriptMenu> scriptMenus;
+  struct LoadedScript {
+    String path;
+    bool enabled;
+    LoadedScript():
+      path(""),
+      enabled(false) {}
+    LoadedScript(String p):
+      path(p),
+      enabled(false) {}
+  };
+  std::vector<LoadedScript> loadedScripts;
   lua_State* playgroundState;
-  std::vector<lua_State*> scriptStates;
   int playgroundRet;
   String playgroundData;
   String playgroundStatus;

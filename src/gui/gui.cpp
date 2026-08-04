@@ -2571,6 +2571,17 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         false
       );
       break;
+    case GUI_FILE_LOAD_SCRIPT:
+      if (!dirExists(workingDirScript)) workingDirScript=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Load Lua Script"),
+        {_("Lua script"), "*.lua"},
+        workingDirScript,
+        dpiScale,
+        NULL,
+        false
+      );
+      break;
     case GUI_FILE_TEST_OPEN:
       if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -5978,6 +5989,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_MUSIC_OPEN:
           workingDirMusic=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_LOAD_SCRIPT:
+          workingDirScript=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_TEST_OPEN:
         case GUI_FILE_TEST_OPEN_MULTI:
         case GUI_FILE_TEST_SAVE:
@@ -6751,6 +6765,11 @@ bool FurnaceGUI::loop() {
                 }
               });
               break;
+            case GUI_FILE_LOAD_SCRIPT: {
+              LoadedScript script(copyOfName);
+              loadedScripts.push_back(script);
+              break;
+            }
             case GUI_FILE_TEST_OPEN:
               showWarning(fmt::sprintf(_("You opened: %s"),copyOfName),GUI_WARN_GENERIC);
               break;
@@ -9296,6 +9315,11 @@ bool FurnaceGUI::finish(bool saveConfig) {
       delete[] spectrum.plot[i];
       spectrum.plot[i]=NULL;
     }
+  }
+
+  if (playgroundState) {
+    lua_close(playgroundState);
+    playgroundState=NULL;
   }
 
   for (size_t i=0; i<allSettings.size(); i++)

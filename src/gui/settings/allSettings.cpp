@@ -931,6 +931,16 @@ void FurnaceGUI::initSettings() {
       )
     }),
 #endif
+    SUBCATEGORY(_N("Scripting"),{
+      SETTING_CHECKBOX(
+        _N("Allow io library"),
+        scriptingAllowIO
+      ),
+      SETTING_CHECKBOX(
+        _N("Allow os library"),
+        scriptingAllowOS
+      )
+    })
   }
   CATEGORY_END
   CATEGORY_BEGIN(_N("Audio")) {},{

@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <IconsFontAwesome4.h>
 
 static FurnaceGUI* externGUI;
 
@@ -1912,14 +1913,29 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_ENUM(DIV_PAT_RAW,PAT_RAW)
 }
 
+#define LOAD_LIB(_n,_f) luaL_requiref(playgroundState,_n,_f,1); lua_pop(playgroundState,1);
+
 void FurnaceGUI::initScriptEngine() {
   externGUI=this;
 
+  if (playgroundState) {
+    lua_close(playgroundState);
+    playgroundState=NULL;
+  }
   playgroundState=luaL_newstate();
   if (playgroundState==NULL) {
     logE("could not create script playground state!");
   } else {
-    luaL_openlibs(playgroundState);
+    LOAD_LIB(LUA_GNAME,luaopen_base)
+    LOAD_LIB(LUA_LOADLIBNAME,luaopen_package)
+    LOAD_LIB(LUA_COLIBNAME,luaopen_coroutine)
+    LOAD_LIB(LUA_TABLIBNAME,luaopen_table)
+    if (settings.scriptingAllowIO) {LOAD_LIB(LUA_IOLIBNAME,luaopen_io)}
+    if (settings.scriptingAllowOS) {LOAD_LIB(LUA_OSLIBNAME,luaopen_os)}
+    LOAD_LIB(LUA_STRLIBNAME,luaopen_string)
+    LOAD_LIB(LUA_MATHLIBNAME,luaopen_math)
+    LOAD_LIB(LUA_UTF8LIBNAME,luaopen_utf8)
+    LOAD_LIB(LUA_DBLIBNAME,luaopen_debug)
     bindScriptFunctions(playgroundState);
   }
 }
@@ -1936,6 +1952,45 @@ void FurnaceGUI::drawScripting() {
   if (ImGui::Begin("Scripts",&scriptingOpen,globalWinFlags,_("Scripts"))) {
     if (ImGui::BeginTabBar("ScriptsTab")) {
       if (ImGui::BeginTabItem("Loaded Scripts")) {
+        if (loadedScripts.empty()) {
+          ImGui::TextUnformatted(_("no scripts loaded"));
+        } else if (ImGui::BeginTable("loadedScriptTable",4)) {
+          const float width=ImGui::CalcTextSize(_("Remove")).x;
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,width);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,width);
+          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,width);
+          ImGui::TableSetupScrollFreeze(4,1);
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(_("Path"));
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(_("Enable"));
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(_("Edit"));
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(_("Remove"));
+          for (size_t i=0; i<loadedScripts.size(); i++) {
+            ImGui::PushID(i);
+            LoadedScript& s=loadedScripts[i];
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(s.path.c_str());
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("##scriptEnable",&loadedScripts[i].enabled);
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_PENCIL "##scriptEdit")) SDL_OpenURL(s.path.c_str());
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_TIMES "##scriptRemove")) {
+              loadedScripts.erase(i+loadedScripts.begin());
+            }
+            ImGui::PopID();
+          }
+          ImGui::EndTable();
+        }
+        if (ImGui::Button(ICON_FA_PLUS "##scriptAdd")) {
+          openFileDialog(GUI_FILE_LOAD_SCRIPT);
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem("Playground")) {

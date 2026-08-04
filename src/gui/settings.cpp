@@ -249,6 +249,11 @@ void FurnaceGUI::commitSettings() {
     settings.audioHiPass!=e->getConfBool("audioHiPass",1)
   );
 
+  bool scriptSettingsChanged=(
+    settings.scriptingAllowIO!=e->getConfBool("scriptingAllowIO",0) ||
+    settings.scriptingAllowOS!=e->getConfBool("scriptingAllowOS",0)
+  );
+
   writeConfig(e->getConfObject());
 
   parseKeybinds();
@@ -266,6 +271,11 @@ void FurnaceGUI::commitSettings() {
     if (e->loadSampleROMs()) {
       showError(e->getLastError());
     }
+  }
+  
+  if (scriptSettingsChanged) {
+    resetScriptState(playgroundState);
+    initScriptEngine();
   }
 
   // if we're about to quit, don't perform an expensive output switch/core re-initialization.
