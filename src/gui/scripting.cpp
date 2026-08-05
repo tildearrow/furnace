@@ -21,6 +21,7 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <IconsFontAwesome4.h>
+#include <fmt/printf.h>
 #include "util.h"
 
 static FurnaceGUI* externGUI;
@@ -1635,18 +1636,9 @@ _CF(setPatternDirect) {
 
 _CF(setPatternInputCallback) {
   CHECK_ARGS(1)
-  switch (lua_type(s,1)) {
-    case LUA_TFUNCTION:
-      patternCallback=luaL_ref(s,LUA_REGISTRYINDEX);
-      break;
-    case LUA_TNIL:
-      patternCallback=-1;
-      break;
-    default:
-      lua_pushstring(s,"invalid argument type");
-      lua_error(s);
-      break;
-  }
+  CHECK_TYPE_FUNCTION(1)
+  luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
+  scriptCallbacks.pattern.push_back({s,funcID});
   return 0;
 }
 
@@ -1768,16 +1760,16 @@ _CF(dialogGetItems) {
   for (ScriptDialog::Item& i:scriptDialog.items) {
     switch (i.type) {
       case ScriptDialog::Item::Type::Checkbox:
-        lua_pushboolean(s, i.valueInt.b);
+        lua_pushboolean(s,i.valueInt.b);
         break;
       case ScriptDialog::Item::Type::Int:
-        lua_pushinteger(s, i.valueInt.i);
+        lua_pushinteger(s,i.valueInt.i);
         break;
       case ScriptDialog::Item::Type::Float:
-        lua_pushnumber(s, i.valueInt.f);
+        lua_pushnumber(s,i.valueInt.f);
         break;
       case ScriptDialog::Item::Type::String:
-        lua_pushstring(s, i.valueS.c_str());
+        lua_pushstring(s,i.valueS.c_str());
         break;
     }
   }
@@ -1796,7 +1788,7 @@ String FurnaceGUI::getScriptError(lua_State* s, int result) {
         const char* val=lua_tostring(s,stackTop);
         ret+=" (";
         if (val==NULL) {
-          ret+="unknown value";
+          ret+=_("unknown value");
         } else {
           ret+=val;
         }
@@ -1805,19 +1797,19 @@ String FurnaceGUI::getScriptError(lua_State* s, int result) {
       break;
     }
     case LUA_ERRMEM:
-      ret="memory error";
+      ret=_("memory error");
       break;
     case LUA_ERRSYNTAX:
-      ret="syntax error";
+      ret=_("syntax error");
       break;
     case LUA_ERRERR:
-      ret="error calling error handler";
+      ret=_("error calling error handler");
       break;
     case LUA_ERRFILE:
-      ret="file error";
+      ret=_("file error");
       break;
     case LUA_ERRRUN: {
-      ret="runtime error: ";
+      ret=_("runtime error: ");
       const char* error=lua_tostring(s,lua_gettop(s));
       if (error==NULL) {
         ret+="NULL!";
@@ -1834,12 +1826,21 @@ String FurnaceGUI::getScriptError(lua_State* s, int result) {
   return ret;
 }
 
+int FurnaceGUI::runScript(lua_State* s, const char* script) {
+  int ret=luaL_loadstring(s,script);
+  if (ret==LUA_OK) {
+    return lua_pcall(s,0,LUA_MULTRET,0);
+  } else {
+    return ret;
+  }
+}
+
 void FurnaceGUI::runScriptFunction(lua_State* s, luaFunction id) {
   logD("calling script function %d",id);
   lua_rawgeti(s,LUA_REGISTRYINDEX,id);
   int result=lua_pcall(s,0,LUA_MULTRET,0);
   if (result!=LUA_OK) {
-    showError("runScriptFunction error!\n"+getScriptError(s,result));
+    showError(fmt::sprintf(_("runScriptFunction error!\n%s"),getScriptError(s,result)));
   }
 }
 
@@ -1862,7 +1863,12 @@ void FurnaceGUI::resetScriptState(lua_State* s) {
   }
   scriptDialog.title.clear();
   scriptDialog.items.clear();
-  patternCallback=-1;
+  for (size_t i=0; i<scriptCallbacks.pattern.size(); i++) {
+    if (scriptCallbacks.pattern[i].first==s) {
+      scriptCallbacks.pattern.erase(scriptCallbacks.pattern.begin()+i);
+      i--;
+    }
+  }
 }
 
 void FurnaceGUI::bindScriptFunctions(lua_State* s) {
@@ -1989,47 +1995,53 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
 void FurnaceGUI::initScriptEngine(bool initGlobal) {
   externGUI=this;
 
-  if (playgroundState) {
-    lua_close(playgroundState);
-    playgroundState=NULL;
+  if (playground.state) {
+    lua_close(playground.state);
+    playground.state=NULL;
   }
-  playgroundState=luaL_newstate();
-  if (playgroundState==NULL) {
+  playground.state=luaL_newstate();
+  if (playground.state==NULL) {
     logE("could not create script playground state!");
   } else {
-    LOAD_LIB(playgroundState,LUA_GNAME,luaopen_base)
-    LOAD_LIB(playgroundState,LUA_LOADLIBNAME,luaopen_package)
-    LOAD_LIB(playgroundState,LUA_COLIBNAME,luaopen_coroutine)
-    LOAD_LIB(playgroundState,LUA_TABLIBNAME,luaopen_table)
-    if (settings.scriptingAllowIO) {LOAD_LIB(playgroundState,LUA_IOLIBNAME,luaopen_io)}
-    if (settings.scriptingAllowOS) {LOAD_LIB(playgroundState,LUA_OSLIBNAME,luaopen_os)}
-    LOAD_LIB(playgroundState,LUA_STRLIBNAME,luaopen_string)
-    LOAD_LIB(playgroundState,LUA_MATHLIBNAME,luaopen_math)
-    LOAD_LIB(playgroundState,LUA_UTF8LIBNAME,luaopen_utf8)
-    LOAD_LIB(playgroundState,LUA_DBLIBNAME,luaopen_debug)
-    bindScriptFunctions(playgroundState);
+    LOAD_LIB(playground.state,LUA_GNAME,luaopen_base)
+    LOAD_LIB(playground.state,LUA_LOADLIBNAME,luaopen_package)
+    LOAD_LIB(playground.state,LUA_COLIBNAME,luaopen_coroutine)
+    LOAD_LIB(playground.state,LUA_TABLIBNAME,luaopen_table)
+    if (settings.scriptingAllowIO) {LOAD_LIB(playground.state,LUA_IOLIBNAME,luaopen_io)}
+    if (settings.scriptingAllowOS) {LOAD_LIB(playground.state,LUA_OSLIBNAME,luaopen_os)}
+    LOAD_LIB(playground.state,LUA_STRLIBNAME,luaopen_string)
+    LOAD_LIB(playground.state,LUA_MATHLIBNAME,luaopen_math)
+    LOAD_LIB(playground.state,LUA_UTF8LIBNAME,luaopen_utf8)
+    LOAD_LIB(playground.state,LUA_DBLIBNAME,luaopen_debug)
+    bindScriptFunctions(playground.state);
   }
   if (initGlobal) {
-    if (globalState) {
-      lua_close(globalState);
-      globalState=NULL;
+    if (globalState.state) {
+      lua_close(globalState.state);
+      globalState.state=NULL;
     }
-    globalState=luaL_newstate();
-    if (globalState==NULL) {
+    globalState.state=luaL_newstate();
+    if (globalState.state==NULL) {
       logE("could not create script state!");
     } else {
-      LOAD_LIB(globalState,LUA_GNAME,luaopen_base)
-      LOAD_LIB(globalState,LUA_LOADLIBNAME,luaopen_package)
-      LOAD_LIB(globalState,LUA_COLIBNAME,luaopen_coroutine)
-      LOAD_LIB(globalState,LUA_TABLIBNAME,luaopen_table)
-      if (settings.scriptingAllowIO) {LOAD_LIB(globalState,LUA_IOLIBNAME,luaopen_io)}
-      if (settings.scriptingAllowOS) {LOAD_LIB(globalState,LUA_OSLIBNAME,luaopen_os)}
-      LOAD_LIB(globalState,LUA_STRLIBNAME,luaopen_string)
-      LOAD_LIB(globalState,LUA_MATHLIBNAME,luaopen_math)
-      LOAD_LIB(globalState,LUA_UTF8LIBNAME,luaopen_utf8)
-      LOAD_LIB(globalState,LUA_DBLIBNAME,luaopen_debug)
-      bindScriptFunctions(globalState);
+      LOAD_LIB(globalState.state,LUA_GNAME,luaopen_base)
+      LOAD_LIB(globalState.state,LUA_LOADLIBNAME,luaopen_package)
+      LOAD_LIB(globalState.state,LUA_COLIBNAME,luaopen_coroutine)
+      LOAD_LIB(globalState.state,LUA_TABLIBNAME,luaopen_table)
+      if (settings.scriptingAllowIO) {LOAD_LIB(globalState.state,LUA_IOLIBNAME,luaopen_io)}
+      if (settings.scriptingAllowOS) {LOAD_LIB(globalState.state,LUA_OSLIBNAME,luaopen_os)}
+      LOAD_LIB(globalState.state,LUA_STRLIBNAME,luaopen_string)
+      LOAD_LIB(globalState.state,LUA_MATHLIBNAME,luaopen_math)
+      LOAD_LIB(globalState.state,LUA_UTF8LIBNAME,luaopen_utf8)
+      LOAD_LIB(globalState.state,LUA_DBLIBNAME,luaopen_debug)
+      bindScriptFunctions(globalState.state);
     }
+  }
+}
+
+void FurnaceGUI::runCallbacks(scriptCallbackList* which) {
+  for (auto f=which->begin(); f<which->end(); f++) {
+    if (f->second!=-1) runScriptFunction(f->first,f->second);
   }
 }
 
@@ -2047,20 +2059,30 @@ void FurnaceGUI::drawScripting() {
       if (ImGui::BeginTabItem("Loaded Scripts")) {
         if (loadedScripts.empty()) {
           ImGui::TextUnformatted(_("no scripts loaded"));
-        } else if (ImGui::BeginTable("loadedScriptTable",5)) {
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
-          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed);
+        } else if (ImGui::BeginTable("loadedScriptTable",8,ImGuiTableFlags_Resizable)) {
+          // enable, name, auth, desc, path, run, edit, remove
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.1f);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.1f);
+          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.3f);
           ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupScrollFreeze(4,1);
+          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupScrollFreeze(7,1);
           ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
           if (ImGui::Button(ICON_FA_REFRESH)) {
-            resetScriptState(globalState);
-            // TODO: run scripts
+            logD("scripting: resetting global state...");
+            resetScriptState(globalState.state);
+            readLoadedScripts();
           }
+          ImGui::SetItemTooltip(_("Refresh scripts"));
           // ImGui::TextUnformatted(_("Enable"));
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(_("Name"));
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(_("Author"));
           ImGui::TableNextColumn();
           ImGui::TextUnformatted(_("Path"));
           // ImGui::TableNextColumn();
@@ -2070,21 +2092,21 @@ void FurnaceGUI::drawScripting() {
           for (size_t i=0; i<loadedScripts.size(); i++) {
             ImGui::PushID(i);
             LoadedScript& s=loadedScripts[i];
+            LoadedScript::Metadata* meta=&s.metadata;
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Checkbox("##scriptEnable",&loadedScripts[i].enabled);
             ImGui::SetItemTooltip(_("Run on startup"));
             ImGui::TableNextColumn();
+            if (!meta->title.empty()) ImGui::TextUnformatted(meta->title.c_str());
+            ImGui::TableNextColumn();
+            if (!meta->author.empty()) ImGui::TextUnformatted(meta->author.c_str());
+            ImGui::TableNextColumn();
             ImGui::TextUnformatted(s.path.c_str());
-            LoadedScript::Metadata* meta=&s.metadata;
-            bool hasMeta=!(meta->title.empty() && meta->author.empty() && meta->description.empty());
-            if (hasMeta && ImGui::IsItemHovered()) {
-              if (ImGui::BeginTooltip()) {
-                if (!meta->title.empty()) ImGui::TextUnformatted(meta->title.c_str());
-                if (!meta->author.empty()) ImGui::Text(_("by %s"),meta->author.c_str());
-                if (!meta->description.empty()) ImGui::TextWrapped("%s",meta->description.c_str());
-                ImGui::EndTooltip();
-              }
+            ImGui::TableNextColumn();
+            if (!meta->description.empty()) {
+              ImGui::TextUnformatted(ICON_FA_INFO_CIRCLE);
+              ImGui::SetItemTooltip("%s",meta->description.c_str());
             }
             ImGui::TableNextColumn();
             if (ImGui::Button(ICON_FA_PLAY "##scriptRun")) {
@@ -2092,24 +2114,9 @@ void FurnaceGUI::drawScripting() {
               if (!readTextFile(s.path.c_str(),script)) {
                 showError("failed to read script file!");
               } else {
-                int ret=luaL_loadstring(globalState,script.c_str());
-                if (ret==LUA_OK) {
-                  ret=lua_pcall(globalState,0,LUA_MULTRET,0);
-                  if (ret!=LUA_OK) {
-                    showError("failed to run script! "+getScriptError(globalState,ret));
-                  }
-                } else {
-                  switch (ret) {
-                    case LUA_ERRSYNTAX:
-                      showError("failed to load loaded script syntax error");
-                      break;
-                    case LUA_ERRMEM:
-                      showError("failed to load loaded script out of memory");
-                      break;
-                    default:
-                      showError("failed to load loaded script");
-                      break;
-                  }
+                int ret=runScript(globalState.state,script.c_str());
+                if (ret!=LUA_OK) {
+                  showError(fmt::sprintf(_("failed to run script!\n%s"),getScriptError(globalState.state,ret)));
                 }
               }
             }
@@ -2135,29 +2142,14 @@ void FurnaceGUI::drawScripting() {
       }
       if (ImGui::BeginTabItem("Playground")) {
         if (ImGui::Button("Run")) {
-          resetScriptState(playgroundState);
-          playgroundRet=luaL_loadstring(playgroundState,playgroundData.c_str());
-          if (playgroundRet==LUA_OK) {
-            playgroundRet=lua_pcall(playgroundState,0,LUA_MULTRET,0);
-            playgroundStatus=getScriptError(playgroundState,playgroundRet);
-          } else {
-            switch (playgroundRet) {
-              case LUA_ERRSYNTAX:
-                playgroundStatus="compile: syntax error";
-                break;
-              case LUA_ERRMEM:
-                playgroundStatus="compile: out of memory";
-                break;
-              default:
-                playgroundStatus="compile: unknown error";
-                break;
-            }
-          }
+          resetScriptState(playground.state);
+          playground.lastRet=runScript(playground.state,playgroundData.c_str());
+          playground.lastError=getScriptError(playground.state,playground.lastRet);
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset")) {
-          resetScriptState(playgroundState);
-          playgroundStatus.clear();
+          resetScriptState(playground.state);
+          playground.lastError.clear();
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##playgroundLoad")) {
@@ -2174,7 +2166,7 @@ void FurnaceGUI::drawScripting() {
         ImGui::InputTextMultiline("##ScriptPlayground",&playgroundData,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_AllowTabInput);
         ImGui::PopFont();
 
-        ImGui::TextUnformatted(playgroundStatus.c_str());
+        ImGui::TextUnformatted(playground.lastError.c_str());
 
         ImGui::EndTabItem();
       }

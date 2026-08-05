@@ -1522,7 +1522,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
       pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
-  if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+  runCallbacks(&scriptCallbacks.pattern);
   if ((!e->isPlaying() || !followPattern) && (chanOff<1 || noteInputMode!=GUI_NOTE_INPUT_CHORD) && !doNotAdvance) {
     editAdvance();
   }
@@ -1572,13 +1572,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     } else {
       if (e->song.ins.size()<16) {
         curNibble=0;
-        if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+        runCallbacks(&scriptCallbacks.pattern);
         editAdvance();
       } else {
         curNibble++;
         if (curNibble>=2) {
           curNibble=0;
-          if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+          runCallbacks(&scriptCallbacks.pattern);
           editAdvance();
         }
       }
@@ -1596,13 +1596,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       if (e->getMaxVolumeChan(ch)<16) {
         curNibble=0;
         if (pat->newData[y][target]>e->getMaxVolumeChan(ch)) pat->newData[y][target]=e->getMaxVolumeChan(ch);
-        if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+        runCallbacks(&scriptCallbacks.pattern);
         editAdvance();
       } else {
         curNibble++;
         if (curNibble>=2) {
           curNibble=0;
-          if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+          runCallbacks(&scriptCallbacks.pattern);
           editAdvance();
         }
       }
@@ -1615,7 +1615,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       curNibble++;
       if (curNibble>=2) {
         curNibble=0;
-        if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+        runCallbacks(&scriptCallbacks.pattern);
         if (!settings.effectCursorDir) {
           editAdvance();
         } else {
@@ -1677,7 +1677,7 @@ void FurnaceGUI::rawFreqInput(int num) {
   curNibble++;
   if (curNibble>=valNibbles) {
     curNibble=0;
-    if (patternCallback!=-1) runScriptFunction(playgroundState,patternCallback);
+    runCallbacks(&scriptCallbacks.pattern);
     editAdvance();
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -8906,6 +8906,13 @@ bool FurnaceGUI::init() {
 
   initSettings();
 
+  readLoadedScripts();
+
+  logI("done!");
+  return true;
+}
+
+void FurnaceGUI::readLoadedScripts() {
   String script;
   for (size_t i=0; i<loadedScripts.size(); i++) {
     logV("reading script %d",i);
@@ -8916,10 +8923,6 @@ bool FurnaceGUI::init() {
       bool writingString=false;
       for (char& c:script) {
         switch (c) {
-          case '-':
-            if (parseState<2) parseState++;
-            else parseState=0;
-            break;
           case ':':
             if (parseState==2) {
               parseState=3;
@@ -8939,6 +8942,12 @@ bool FurnaceGUI::init() {
             parseState=0;
             writingString=false;
             break;
+          case '-':
+            if (parseState<2) {
+              parseState++;
+              break;
+            }
+            // fall through
           case ' ':
             if (!writingString) {
               break;
@@ -8959,30 +8968,14 @@ bool FurnaceGUI::init() {
             break;
         }
       }
-      int ret=luaL_loadstring(globalState,script.c_str());
-      if (ret==LUA_OK) {
-        ret=lua_pcall(globalState,0,LUA_MULTRET,0);
-        if (ret!=LUA_OK) {
-          logE("failed to run loaded script %d! (%s)",i,getScriptError(globalState,ret).c_str());
-        }
-      } else {
-        switch (ret) {
-          case LUA_ERRSYNTAX:
-            logE("failed to load loaded script %d! syntax error",i);
-            break;
-          case LUA_ERRMEM:
-            logE("failed to load loaded script %d! out of memory",i);
-            break;
-          default:
-            logE("failed to load loaded script %d!",i);
-            break;
+      if (loadedScripts[i].enabled) {
+        int ret=runScript(globalState.state,script.c_str());
+        if (ret==LUA_OK) {
+          logE("failed to run loaded script %d! (%s)",i,getScriptError(globalState.state,ret).c_str());
         }
       }
     }
   }
-
-  logI("done!");
-  return true;
 }
 
 void FurnaceGUI::syncState() {
@@ -9452,13 +9445,13 @@ bool FurnaceGUI::finish(bool saveConfig) {
     }
   }
 
-  if (playgroundState) {
-    lua_close(playgroundState);
-    playgroundState=NULL;
+  if (playground.state) {
+    lua_close(playground.state);
+    playground.state=NULL;
   }
-  if (globalState) {
-    lua_close(globalState);
-    globalState=NULL;
+  if (globalState.state) {
+    lua_close(globalState.state);
+    globalState.state=NULL;
   }
 
   for (size_t i=0; i<allSettings.size(); i++)
@@ -10099,10 +10092,6 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileSize(0),
   lastTapTime(0),
   grooveTargetBPM(150.0f),
-  globalState(NULL),
-  playgroundState(NULL),
-  playgroundRet(-1),
-  patternCallback(-1),
   warnIsOpen(false) {
   // value keys
   valueKeys[SDLK_0]=0;

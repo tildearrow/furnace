@@ -274,7 +274,8 @@ void FurnaceGUI::commitSettings() {
   }
 
   if (scriptSettingsChanged) {
-    resetScriptState(playgroundState);
+    resetScriptState(globalState.state);
+    resetScriptState(playground.state);
     initScriptEngine();
   }
 

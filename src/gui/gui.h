@@ -40,6 +40,7 @@
 
 #include <lua.hpp>
 typedef int luaFunction;
+typedef std::vector<std::pair<lua_State*,luaFunction>> scriptCallbackList;
 
 #include "fileDialog.h"
 #include "newFilePicker.h"
@@ -3101,11 +3102,19 @@ class FurnaceGUI {
       enabled(false) {}
   };
   std::vector<LoadedScript> loadedScripts;
-  lua_State* globalState;
-  lua_State* playgroundState;
-  int playgroundRet;
+  struct ScriptCallbacks { // future-proofing
+    scriptCallbackList pattern;
+  } scriptCallbacks;
+  struct ScriptingData {
+    lua_State* state;
+    int lastRet;
+    String lastError;
+    ScriptingData():
+      state(NULL),
+      lastRet(LUA_OK),
+      lastError("") {}
+  } globalState, playground;
   String playgroundData;
-  String playgroundStatus;
   struct ScriptDialog {
     struct Item {
       String label;
@@ -3139,7 +3148,6 @@ class FurnaceGUI {
     std::vector<Item> items;
     bool dialogOpen;
   } scriptDialog;
-  luaFunction patternCallback;
 
   std::vector<String> randomDemoSong;
 
@@ -3482,7 +3490,10 @@ class FurnaceGUI {
   bool initRender();
   bool quitRender();
 
+  void readLoadedScripts();
+  int runScript(lua_State* s, const char* script);
   void runScriptFunction(lua_State* s, luaFunction id);
+  void runCallbacks(scriptCallbackList* which);
   void resetScriptState(lua_State* s);
   void bindScriptFunctions(lua_State* s);
   void initScriptEngine(bool initGlobal=true);
