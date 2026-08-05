@@ -155,14 +155,23 @@ int taWaitProcess(int pid) {
   return ret;
 }
 
-static void handleChild(int) {
-  // TODO: this...
+static void handleChild(int sig, siginfo_t* info, void* data) {
+  auto val=procInfoMap.find(info->si_pid);
+  if (val!=procInfoMap.cend()) {
+    TAProcessInfo pinfo=val->second;
+    // delete the entry
+    for (int i=0; pinfo.argv[i]; i++) {
+      delete[] pinfo.argv[i];
+    }
+    delete[] pinfo.argv;
+  }
+  procInfoMap.erase(info->si_pid);
 }
 
 void taInstallExecHandler() {
   sigemptyset(&chldsa.sa_mask);
-  chldsa.sa_flags=0;
-  chldsa.sa_handler=handleChild;
+  chldsa.sa_flags=SA_SIGINFO;
+  chldsa.sa_sigaction=handleChild;
   sigaction(SIGCHLD,&chldsa,NULL);
   execHandlerReady=true;
 }
