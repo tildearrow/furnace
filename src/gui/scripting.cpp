@@ -21,6 +21,7 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <IconsFontAwesome4.h>
+#include "util.h"
 
 static FurnaceGUI* externGUI;
 
@@ -253,6 +254,7 @@ _CF(registerMenuEntry) {
       break;
     }
   }
+  // TODO: check for duplicates
   if (menu==NULL) {
     scriptMenus.push_back(FurnaceGUIScriptMenu());
     menu=&scriptMenus[scriptMenus.size()-1];
@@ -665,7 +667,7 @@ _CF(setSongSpeeds) {
 
   sub->speeds.len=1;
   memset(sub->speeds.val,6,sizeof(sub->speeds.val));
-  
+
   int tablePos=lua_gettop(s);
   lua_pushnil(s);
   while (lua_next(s,tablePos)) {
@@ -1784,7 +1786,7 @@ _CF(dialogGetItems) {
 
 /// INTERNAL
 
-static String getScriptError(lua_State* s, int result) {
+String FurnaceGUI::getScriptError(lua_State* s, int result) {
   String ret="";
   switch (result) {
     case LUA_OK: {
@@ -1982,9 +1984,9 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_ENUM(DIV_PAT_RAW,PAT_RAW)
 }
 
-#define LOAD_LIB(_n,_f) luaL_requiref(playgroundState,_n,_f,1); lua_pop(playgroundState,1);
+#define LOAD_LIB(_s,_n,_f) luaL_requiref(_s,_n,_f,1); lua_pop(_s,1);
 
-void FurnaceGUI::initScriptEngine() {
+void FurnaceGUI::initScriptEngine(bool initGlobal) {
   externGUI=this;
 
   if (playgroundState) {
@@ -1995,17 +1997,39 @@ void FurnaceGUI::initScriptEngine() {
   if (playgroundState==NULL) {
     logE("could not create script playground state!");
   } else {
-    LOAD_LIB(LUA_GNAME,luaopen_base)
-    LOAD_LIB(LUA_LOADLIBNAME,luaopen_package)
-    LOAD_LIB(LUA_COLIBNAME,luaopen_coroutine)
-    LOAD_LIB(LUA_TABLIBNAME,luaopen_table)
-    if (settings.scriptingAllowIO) {LOAD_LIB(LUA_IOLIBNAME,luaopen_io)}
-    if (settings.scriptingAllowOS) {LOAD_LIB(LUA_OSLIBNAME,luaopen_os)}
-    LOAD_LIB(LUA_STRLIBNAME,luaopen_string)
-    LOAD_LIB(LUA_MATHLIBNAME,luaopen_math)
-    LOAD_LIB(LUA_UTF8LIBNAME,luaopen_utf8)
-    LOAD_LIB(LUA_DBLIBNAME,luaopen_debug)
+    LOAD_LIB(playgroundState,LUA_GNAME,luaopen_base)
+    LOAD_LIB(playgroundState,LUA_LOADLIBNAME,luaopen_package)
+    LOAD_LIB(playgroundState,LUA_COLIBNAME,luaopen_coroutine)
+    LOAD_LIB(playgroundState,LUA_TABLIBNAME,luaopen_table)
+    if (settings.scriptingAllowIO) {LOAD_LIB(playgroundState,LUA_IOLIBNAME,luaopen_io)}
+    if (settings.scriptingAllowOS) {LOAD_LIB(playgroundState,LUA_OSLIBNAME,luaopen_os)}
+    LOAD_LIB(playgroundState,LUA_STRLIBNAME,luaopen_string)
+    LOAD_LIB(playgroundState,LUA_MATHLIBNAME,luaopen_math)
+    LOAD_LIB(playgroundState,LUA_UTF8LIBNAME,luaopen_utf8)
+    LOAD_LIB(playgroundState,LUA_DBLIBNAME,luaopen_debug)
     bindScriptFunctions(playgroundState);
+  }
+  if (initGlobal) {
+    if (globalState) {
+      lua_close(globalState);
+      globalState=NULL;
+    }
+    globalState=luaL_newstate();
+    if (globalState==NULL) {
+      logE("could not create script state!");
+    } else {
+      LOAD_LIB(globalState,LUA_GNAME,luaopen_base)
+      LOAD_LIB(globalState,LUA_LOADLIBNAME,luaopen_package)
+      LOAD_LIB(globalState,LUA_COLIBNAME,luaopen_coroutine)
+      LOAD_LIB(globalState,LUA_TABLIBNAME,luaopen_table)
+      if (settings.scriptingAllowIO) {LOAD_LIB(globalState,LUA_IOLIBNAME,luaopen_io)}
+      if (settings.scriptingAllowOS) {LOAD_LIB(globalState,LUA_OSLIBNAME,luaopen_os)}
+      LOAD_LIB(globalState,LUA_STRLIBNAME,luaopen_string)
+      LOAD_LIB(globalState,LUA_MATHLIBNAME,luaopen_math)
+      LOAD_LIB(globalState,LUA_UTF8LIBNAME,luaopen_utf8)
+      LOAD_LIB(globalState,LUA_DBLIBNAME,luaopen_debug)
+      bindScriptFunctions(globalState);
+    }
   }
 }
 
@@ -2023,36 +2047,83 @@ void FurnaceGUI::drawScripting() {
       if (ImGui::BeginTabItem("Loaded Scripts")) {
         if (loadedScripts.empty()) {
           ImGui::TextUnformatted(_("no scripts loaded"));
-        } else if (ImGui::BeginTable("loadedScriptTable",4)) {
-          const float width=ImGui::CalcTextSize(_("Remove")).x;
+        } else if (ImGui::BeginTable("loadedScriptTable",5)) {
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,width);
-          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,width);
-          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed,width);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthFixed);
+          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupScrollFreeze(4,1);
           ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
           ImGui::TableNextColumn();
+          if (ImGui::Button(ICON_FA_REFRESH)) {
+            resetScriptState(globalState);
+            // TODO: run scripts
+          }
+          // ImGui::TextUnformatted(_("Enable"));
+          ImGui::TableNextColumn();
           ImGui::TextUnformatted(_("Path"));
-          ImGui::TableNextColumn();
-          ImGui::TextUnformatted(_("Enable"));
-          ImGui::TableNextColumn();
-          ImGui::TextUnformatted(_("Edit"));
-          ImGui::TableNextColumn();
-          ImGui::TextUnformatted(_("Remove"));
+          // ImGui::TableNextColumn();
+          // ImGui::TextUnformatted(_("Edit"));
+          // ImGui::TableNextColumn();
+          // ImGui::TextUnformatted(_("Remove"));
           for (size_t i=0; i<loadedScripts.size(); i++) {
             ImGui::PushID(i);
             LoadedScript& s=loadedScripts[i];
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(s.path.c_str());
-            ImGui::TableNextColumn();
             ImGui::Checkbox("##scriptEnable",&loadedScripts[i].enabled);
+            ImGui::SetItemTooltip(_("Run on startup"));
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(s.path.c_str());
+            LoadedScript::Metadata* meta=&s.metadata;
+            bool hasMeta=!(meta->title.empty() && meta->author.empty() && meta->description.empty());
+            if (hasMeta && ImGui::IsItemHovered()) {
+              if (ImGui::BeginTooltip()) {
+                if (!meta->title.empty()) ImGui::TextUnformatted(meta->title.c_str());
+                if (!meta->author.empty()) ImGui::Text(_("by %s"),meta->author.c_str());
+                if (!meta->description.empty()) ImGui::TextWrapped("%s",meta->description.c_str());
+                ImGui::EndTooltip();
+              }
+            }
+            ImGui::TableNextColumn();
+            if (ImGui::Button(ICON_FA_PLAY "##scriptRun")) {
+              String script;
+              if (!readTextFile(s.path.c_str(),script)) {
+                showError("failed to read script file!");
+              } else {
+                int ret=luaL_loadstring(globalState,script.c_str());
+                if (ret==LUA_OK) {
+                  ret=lua_pcall(globalState,0,LUA_MULTRET,0);
+                  if (ret!=LUA_OK) {
+                    showError("failed to run script! "+getScriptError(globalState,ret));
+                  }
+                } else {
+                  switch (ret) {
+                    case LUA_ERRSYNTAX:
+                      showError("failed to load loaded script syntax error");
+                      break;
+                    case LUA_ERRMEM:
+                      showError("failed to load loaded script out of memory");
+                      break;
+                    default:
+                      showError("failed to load loaded script");
+                      break;
+                  }
+                }
+              }
+            }
+            ImGui::SetItemTooltip(_("Run"));
             ImGui::TableNextColumn();
             if (ImGui::Button(ICON_FA_PENCIL "##scriptEdit")) SDL_OpenURL(s.path.c_str());
+            ImGui::SetItemTooltip(_("Edit"));
             ImGui::TableNextColumn();
+            pushDestColor();
             if (ImGui::Button(ICON_FA_TIMES "##scriptRemove")) {
               loadedScripts.erase(i+loadedScripts.begin());
             }
+            popDestColor();
+            ImGui::SetItemTooltip(_("Remove"));
             ImGui::PopID();
           }
           ImGui::EndTable();
@@ -2084,10 +2155,21 @@ void FurnaceGUI::drawScripting() {
           }
         }
         ImGui::SameLine();
-        if (ImGui::Button("Stop")) {
+        if (ImGui::Button("Reset")) {
           resetScriptState(playgroundState);
           playgroundStatus.clear();
         }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FOLDER_OPEN "##playgroundLoad")) {
+          openFileDialog(GUI_FILE_LOAD_SCRIPT_PLAYGROUND);
+        }
+        ImGui::SetItemTooltip(_("Open"));
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FLOPPY_O "##playgroundSave")) {
+          openFileDialog(GUI_FILE_SAVE_SCRIPT_PLAYGROUND);
+        }
+        ImGui::SetItemTooltip(_("Save"));
+
         ImGui::PushFont(patFont);
         ImGui::InputTextMultiline("##ScriptPlayground",&playgroundData,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_AllowTabInput);
         ImGui::PopFont();

@@ -272,7 +272,7 @@ void FurnaceGUI::commitSettings() {
       showError(e->getLastError());
     }
   }
-  
+
   if (scriptSettingsChanged) {
     resetScriptState(playgroundState);
     initScriptEngine();

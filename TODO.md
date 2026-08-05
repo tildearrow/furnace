@@ -1,9 +1,7 @@
 # scripting
 
-- "loaded scripts" tab
 - documentation
-- dialog api
-- raw freq
+- more functions
 
 # to-do for 0.7?
 

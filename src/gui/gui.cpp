@@ -1662,7 +1662,7 @@ void FurnaceGUI::rawFreqInput(int num) {
     (pat->newData[y][DIV_PAT_RAW2]<<16)|
     (pat->newData[y][DIV_PAT_RAW3]<<24)
   );
-  
+
   unsigned int valNibbles=(bsr32(valMax)+3)>>2;
   if (!settings.pushNibble && !curNibble) {
     val=num;
@@ -1893,7 +1893,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         // pattern input otherwise
         if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
         if (warnIsOpen && !settings.warnNotePassthrough) break;
-        if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && 
+        if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() &&
             curOrder>=0 && curOrder<DIV_MAX_PATTERNS &&
             cursor.y>=0 && cursor.y<DIV_MAX_ROWS &&
             (!ev.key.repeat || settings.inputRepeat)) {
@@ -2584,9 +2584,25 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         _("Load Lua Script"),
         {_("Lua script"), "*.lua"},
         workingDirScript,
-        dpiScale,
-        NULL,
-        false
+        dpiScale
+      );
+      break;
+    case GUI_FILE_LOAD_SCRIPT_PLAYGROUND:
+      if (!dirExists(workingDirScript)) workingDirScript=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Open Lua Script"),
+        {_("Lua script"), "*.lua"},
+        workingDirScript,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_SAVE_SCRIPT_PLAYGROUND:
+      if (!dirExists(workingDirScript)) workingDirScript=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Save Lua Script"),
+        {_("Lua script"), "*.lua"},
+        workingDirScript,
+        dpiScale
       );
       break;
     case GUI_FILE_TEST_OPEN:
@@ -5037,7 +5053,7 @@ bool FurnaceGUI::loop() {
       recoveringGraphics=true;
 
       logW("graphics are dead! restarting...");
-      
+
       if (sampleTex!=NULL) {
         rend->destroyTexture(sampleTex);
         sampleTex=NULL;
@@ -5545,7 +5561,7 @@ bool FurnaceGUI::loop() {
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?_("Help"):_("help"))) {
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
-        if (ImGui::MenuItem(_("online manual"))) 
+        if (ImGui::MenuItem(_("online manual")))
 #ifdef DIV_UNSTABLE
           SDL_OpenURL("https://github.com/tildearrow/furnace/tree/master/doc");
 #else
@@ -5997,6 +6013,8 @@ bool FurnaceGUI::loop() {
           workingDirMusic=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_SCRIPT:
+        case GUI_FILE_LOAD_SCRIPT_PLAYGROUND:
+        case GUI_FILE_SAVE_SCRIPT_PLAYGROUND:
           workingDirScript=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_TEST_OPEN:
@@ -6106,6 +6124,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_CONFIG) {
             checkExtension(".cfg");
+          }
+          if (curFileDialog==GUI_FILE_SAVE_SCRIPT_PLAYGROUND) {
+            checkExtension(".lua");
           }
           String copyOfName=fileName;
           switch (curFileDialog) {
@@ -6290,36 +6311,24 @@ bool FurnaceGUI::loop() {
                   if (fileDialog->getFileName().size()>1) {
                     warn=true;
                     errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                  } else {; // what the shit? a stray semicolon??????
-                    // TODO: somebody please reindent this. it looks so unreadable.
+                  } else {
                     showError(e->getLastError());
                   }
-                } 
-                else 
-                {
-                  if((int)samples.size() == 1)
-                  {
-                    if (e->addSamplePtr(samples[0]) == -1)
-                    {
-                      if (fileDialog->getFileName().size()>1)
-                      {
+                } else {
+                  if (samples.size()==1) {
+                    if (e->addSamplePtr(samples[0])==-1) {
+                      if (fileDialog->getFileName().size()>1) {
                         warn=true;
                         errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                      } 
-                      else 
-                      {
+                      } else {
                         showError(e->getLastError());
                       }
-                    } 
-                    else 
-                    {
+                    } else {
                       MARK_MODIFIED;
-              e->notifyPitchTable();
+                      e->notifyPitchTable();
                     }
-                  }
-                  else
-                  {
-                    for (DivSample* s: samples) { //ask which samples to load!
+                  } else {
+                    for (DivSample* s: samples) { // ask which samples to load!
                       pendingSamples.push_back(std::make_pair(s,false));
                     }
                     displayPendingSamples=true;
@@ -6775,6 +6784,24 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_LOAD_SCRIPT: {
               LoadedScript script(copyOfName);
               loadedScripts.push_back(script);
+              pushRecentSys(copyOfName.c_str());
+              break;
+            }
+            case GUI_FILE_LOAD_SCRIPT_PLAYGROUND: {
+              if (!readTextFile(copyOfName.c_str(),playgroundData)) {
+                showError(_("could not open file!"));
+              }
+              break;
+            }
+            case GUI_FILE_SAVE_SCRIPT_PLAYGROUND: {
+              FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+              if (f!=NULL) {
+                fputs(playgroundData.c_str(),f);
+                fclose(f);
+                pushRecentSys(copyOfName.c_str());
+              } else {
+                showError(_("could not open file!"));
+              }
               break;
             }
             case GUI_FILE_TEST_OPEN:
@@ -7750,7 +7777,7 @@ bool FurnaceGUI::loop() {
         ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
       }
       popWarningColor();
-      
+
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
@@ -7978,7 +8005,7 @@ bool FurnaceGUI::loop() {
 #endif
 
               String finalPath=backupPath+String(DIR_SEPARATOR_STR)+backupFileName;
-              
+
               FILE* outFile=ps_fopen(finalPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
@@ -8023,7 +8050,7 @@ bool FurnaceGUI::loop() {
     }
 
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
-    
+
     curWindowThreadSafe=curWindow;
 
     if (curWindow!=curWindowLast) {
@@ -8170,7 +8197,7 @@ bool FurnaceGUI::loop() {
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {
-          const char* videoBackend=SDL_GetCurrentVideoDriver();      
+          const char* videoBackend=SDL_GetCurrentVideoDriver();
           double newScale=getScaleFactor(videoBackend,sdlWin);
           if (newScale<0.1f) {
             logW("scale what?");
@@ -8879,6 +8906,81 @@ bool FurnaceGUI::init() {
 
   initSettings();
 
+  String script;
+  for (size_t i=0; i<loadedScripts.size(); i++) {
+    logV("reading script %d",i);
+    if (readTextFile(loadedScripts[i].path.c_str(),script)) {
+      // read metadata
+      String key, value;
+      int parseState=0;
+      bool writingString=false;
+      for (char& c:script) {
+        switch (c) {
+          case '-':
+            if (parseState<2) parseState++;
+            else parseState=0;
+            break;
+          case ':':
+            if (parseState==2) {
+              parseState=3;
+              writingString=false;
+            }
+            break;
+          case '\n':
+            if (key=="title") {
+              loadedScripts[i].metadata.title=value;
+            } else if (key=="author") {
+              loadedScripts[i].metadata.author=value;
+            } else if (key=="desc") {
+              loadedScripts[i].metadata.description=value;
+            }
+            key.clear();
+            value.clear();
+            parseState=0;
+            writingString=false;
+            break;
+          case ' ':
+            if (!writingString) {
+              break;
+            }
+            // fall through
+          default:
+            switch (parseState) {
+              case 2:
+                key+=c;
+                writingString=true;
+                break;
+              case 3:
+                value+=c;
+                writingString=true;
+                break;
+              default: break;
+            }
+            break;
+        }
+      }
+      int ret=luaL_loadstring(globalState,script.c_str());
+      if (ret==LUA_OK) {
+        ret=lua_pcall(globalState,0,LUA_MULTRET,0);
+        if (ret!=LUA_OK) {
+          logE("failed to run loaded script %d! (%s)",i,getScriptError(globalState,ret).c_str());
+        }
+      } else {
+        switch (ret) {
+          case LUA_ERRSYNTAX:
+            logE("failed to load loaded script %d! syntax error",i);
+            break;
+          case LUA_ERRMEM:
+            logE("failed to load loaded script %d! out of memory",i);
+            break;
+          default:
+            logE("failed to load loaded script %d!",i);
+            break;
+        }
+      }
+    }
+  }
+
   logI("done!");
   return true;
 }
@@ -8900,6 +9002,7 @@ void FurnaceGUI::syncState() {
   workingDirLayout=e->getConfString("lastDirLayout",workingDir);
   workingDirConfig=e->getConfString("lastDirConfig",workingDir);
   workingDirMusic=e->getConfString("lastDirMusic",workingDir);
+  workingDirScript=e->getConfString("lastDirScript",workingDir);
   workingDirTest=e->getConfString("lastDirTest",workingDir);
 
   editControlsOpen=e->getConfBool("editControlsOpen",true);
@@ -9062,6 +9165,20 @@ void FurnaceGUI::syncState() {
   cvHiScore=e->getConfInt("cvHiScore",25000);
 
   newFilePicker->loadSettings(e->getConfObject());
+
+  // loaded scripts
+  String path=e->getConfString("script0Path","");
+  if (!path.empty()) {
+    int i=0;
+    do {
+      LoadedScript script(path);
+      script.enabled=e->getConfBool(fmt::sprintf("script%dEnabled",i),0);
+      loadedScripts.push_back(script);
+      i++;
+      path=e->getConfString(fmt::sprintf("script%dPath",i),"");
+    } while (!path.empty());
+  }
+
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
@@ -9086,6 +9203,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirLayout",workingDirLayout);
   conf.set("lastDirConfig",workingDirConfig);
   conf.set("lastDirMusic",workingDirMusic);
+  conf.set("lastDirScript",workingDirScript);
   conf.set("lastDirTest",workingDirTest);
 
   // commit last open windows
@@ -9247,6 +9365,16 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 
   conf.set("cvHiScore",cvHiScore);
 
+  // commit loaded scripts
+  for (size_t i=0; i<loadedScripts.size(); i++) {
+    conf.set(fmt::sprintf("script%dPath",i),loadedScripts[i].path);
+    conf.set(fmt::sprintf("script%dEnabled",i),loadedScripts[i].enabled);
+  }
+  String lastScriptKey=fmt::sprintf("script%dPath",loadedScripts.size());
+  if (!(e->getConfString(lastScriptKey,"").empty())) {
+    conf.remove(lastScriptKey);
+  }
+
   newFilePicker->saveSettings(e->getConfObject());
 }
 
@@ -9327,6 +9455,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
   if (playgroundState) {
     lua_close(playgroundState);
     playgroundState=NULL;
+  }
+  if (globalState) {
+    lua_close(globalState);
+    globalState=NULL;
   }
 
   for (size_t i=0; i<allSettings.size(); i++)
@@ -9967,6 +10099,7 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileSize(0),
   lastTapTime(0),
   grooveTargetBPM(150.0f),
+  globalState(NULL),
   playgroundState(NULL),
   playgroundRet(-1),
   patternCallback(-1),

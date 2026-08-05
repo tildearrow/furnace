@@ -728,6 +728,8 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
   GUI_FILE_LOAD_SCRIPT,
+  GUI_FILE_LOAD_SCRIPT_PLAYGROUND,
+  GUI_FILE_SAVE_SCRIPT_PLAYGROUND,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -3082,6 +3084,15 @@ class FurnaceGUI {
   struct LoadedScript {
     String path;
     bool enabled;
+    struct Metadata {
+      String title;
+      String author;
+      String description;
+      Metadata():
+      title(""),
+      author(""),
+      description("") {}
+    } metadata;
     LoadedScript():
       path(""),
       enabled(false) {}
@@ -3090,6 +3101,7 @@ class FurnaceGUI {
       enabled(false) {}
   };
   std::vector<LoadedScript> loadedScripts;
+  lua_State* globalState;
   lua_State* playgroundState;
   int playgroundRet;
   String playgroundData;
@@ -3473,7 +3485,8 @@ class FurnaceGUI {
   void runScriptFunction(lua_State* s, luaFunction id);
   void resetScriptState(lua_State* s);
   void bindScriptFunctions(lua_State* s);
-  void initScriptEngine();
+  void initScriptEngine(bool initGlobal=true);
+  String getScriptError(lua_State* s, int result);
 
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
 
