@@ -1634,7 +1634,7 @@ _CF(setPatternDirect) {
   return 0;
 }
 
-_CF(setPatternInputCallback) {
+_CF(addPatternInputCallback) {
   CHECK_ARGS(1)
   CHECK_TYPE_FUNCTION(1)
   luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
@@ -1970,7 +1970,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(setPattern);
   REG_FUNC(getPatternDirect);
   REG_FUNC(setPatternDirect);
-  REG_FUNC(setPatternInputCallback);
+  REG_FUNC(addPatternInputCallback);
   REG_FUNC(dialogNew);
   REG_FUNC(dialogItemInt);
   REG_FUNC(dialogItemFloat);

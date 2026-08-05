@@ -3671,7 +3671,7 @@ class FurnaceGUI {
     // subsong, pat, chan, row, pos, val
     int sc_setPatternDirect(lua_State* s);
     // func
-    int sc_setPatternInputCallback(lua_State* s);
+    int sc_addPatternInputCallback(lua_State* s);
 
     /// DIALOGS
     // name
