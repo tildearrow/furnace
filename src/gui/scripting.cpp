@@ -1776,6 +1776,44 @@ _CF(dialogGetItems) {
   return scriptDialog.items.size();
 }
 
+// LOGGING
+// these functions dont need FurnaceGUI so theyre not members of it
+
+static int _logV(lua_State *s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  logV(lua_tostring(s,1));
+  return 0;
+}
+
+static int _logD(lua_State *s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  logD(lua_tostring(s,1));
+  return 0;
+}
+
+static int _logI(lua_State *s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  logI(lua_tostring(s,1));
+  return 0;
+}
+
+static int _logW(lua_State *s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  logW(lua_tostring(s,1));
+  return 0;
+}
+
+static int _logE(lua_State *s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  logE(lua_tostring(s,1));
+  return 0;
+}
+
 /// INTERNAL
 
 String FurnaceGUI::getScriptError(lua_State* s, int result) {
@@ -1978,6 +2016,11 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(dialogItemCheckbox);
   REG_FUNC(dialogShow);
   REG_FUNC(dialogGetItems);
+  REG_FUNC(logV);
+  REG_FUNC(logD);
+  REG_FUNC(logI);
+  REG_FUNC(logW);
+  REG_FUNC(logE);
   // constants/enums
   REG_ENUM(DIV_NOTE_OFF,NOTE_OFF)
   REG_ENUM(DIV_NOTE_REL,NOTE_REL)
@@ -2075,6 +2118,7 @@ void FurnaceGUI::drawScripting() {
           if (ImGui::Button(ICON_FA_REFRESH)) {
             logD("scripting: resetting global state...");
             resetScriptState(globalState.state);
+            initScriptEngine();
             readLoadedScripts();
           }
           ImGui::SetItemTooltip(_("Refresh scripts"));
