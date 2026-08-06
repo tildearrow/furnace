@@ -1816,6 +1816,152 @@ static int _logE(lua_State *s) {
 
 /// INTERNAL
 
+String FurnaceGUI::inspectTopValue(lua_State* s) {
+  String ret="";
+  int stackTop=lua_gettop(s);
+  if (stackTop<=0) return _("unknown value");
+  switch (lua_type(s,stackTop)) {
+    case LUA_TNIL:
+      ret+="nil";
+      break;
+    case LUA_TNUMBER: {
+      lua_pushvalue(s,lua_gettop(s)); // duplicate because lua_tostring modifies the value on the stack
+      const char* tostr=lua_tostring(s,lua_gettop(s));
+      if (tostr==NULL) {
+        ret+="what?";
+      } else {
+        ret+=tostr;
+        lua_pop(s,1);
+      }
+      break;
+    }
+    case LUA_TBOOLEAN: {
+      int v=lua_toboolean(s,stackTop);
+      ret+=(v?"true":"false");
+      break;
+    }
+    case LUA_TSTRING: {
+      const char* tostr=lua_tostring(s,stackTop);
+      if (tostr==NULL) {
+        ret+="what?";
+        break;
+      }
+      ret+="\"";
+      for (const char* sp=tostr; *sp; sp++) {
+        char c=*sp;
+        switch (c) {
+          case '\a': ret+="\\a"; break;
+          case '\b': ret+="\\b"; break;
+          case '\f': ret+="\\f"; break;
+          case '\n': ret+="\\n"; break;
+          case '\r': ret+="\\r"; break;
+          case '\t': ret+="\\t"; break;
+          case '\v': ret+="\\v"; break;
+          case '\\': ret+="\\\\"; break;
+          case '\"': ret+="\\\""; break;
+          case '\'': ret+="'"; break;
+          default:
+            if (isprint(c)) ret+=c;
+            else ret+=fmt::sprintf("\\%03d",(unsigned char)c);
+            break;
+        }
+      }
+      ret+="\"";
+      break;
+    }
+    case LUA_TTABLE: {
+      int tablePos=lua_absindex(s,stackTop);
+      bool first=true;
+      ret+="{";
+      lua_pushnil(s);
+
+      int lastArrayKey=0;
+      for (int i=1;; i++) {
+        lua_pushinteger(s,i);
+        lua_gettable(s,tablePos);
+        if (lua_isnil(s,lua_gettop(s))) {
+          lua_pop(s,1);
+          break;
+        }
+        lastArrayKey=i;
+
+        if (first) {
+          first=false;
+        } else {
+          ret+=",";
+        }
+        ret+=inspectTopValue(s);
+        lua_pop(s,1);
+      }
+
+      while (lua_next(s,tablePos)) {
+        // skip "array" keys (already handled)
+        if (lua_isinteger(s,-2)) {
+          int n=lua_tointeger(s,-2);
+          if (n>0 && n<=lastArrayKey) {
+            lua_pop(s,1);
+            continue;
+          }
+        }
+
+        if (first) {
+          first=false;
+        } else {
+          ret+=",";
+        }
+
+        String valueRepr=inspectTopValue(s);
+        lua_pop(s,1);
+
+        const auto isValidIdentifier=[](const char* s) {
+          if (*s=='\0') return false;
+          if (!isalpha(*s) && *s!='_') return false;
+          while (*s) {
+            if (!isalnum(*s) && *s!='_') return false;
+            s++;
+          }
+          return true;
+        };
+
+        // format table key field
+        if (lua_type(s,lua_gettop(s))==LUA_TSTRING) {
+          const char *tostr=lua_tostring(s,lua_gettop(s));
+          if (tostr!=NULL && isValidIdentifier(tostr)) {
+            ret+=tostr;
+          } else {
+            ret+="[";
+            ret+=inspectTopValue(s);
+            ret+="]";
+          }
+        } else {
+          ret+="[";
+          ret+=inspectTopValue(s);
+          ret+="]";
+        }
+        ret+="=";
+        ret+=valueRepr;
+      }
+      ret+="}";
+      break;
+    }
+    case LUA_TFUNCTION:
+      ret+="<function>";
+      break;
+    case LUA_TUSERDATA:
+      ret+="<userdata>";
+      break;
+    case LUA_TTHREAD:
+      ret+="<thread>";
+      break;
+    case LUA_TLIGHTUSERDATA:
+      ret+="<lightuserdata>";
+      break;
+    default:
+      ret+=_("unknown value");
+  }
+  return ret;
+}
+
 String FurnaceGUI::getScriptError(lua_State* s, int result) {
   String ret="";
   switch (result) {
@@ -1823,13 +1969,8 @@ String FurnaceGUI::getScriptError(lua_State* s, int result) {
       ret="OK";
       int stackTop=lua_gettop(s);
       if (stackTop>0) {
-        const char* val=lua_tostring(s,stackTop);
         ret+=" (";
-        if (val==NULL) {
-          ret+=_("unknown value");
-        } else {
-          ret+=val;
-        }
+        ret+=inspectTopValue(s);
         ret+=")";
       }
       break;

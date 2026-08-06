@@ -3497,6 +3497,7 @@ class FurnaceGUI {
   void resetScriptState(lua_State* s);
   void bindScriptFunctions(lua_State* s);
   void initScriptEngine(bool initGlobal=true);
+  String inspectTopValue(lua_State* s);
   String getScriptError(lua_State* s, int result);
 
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
