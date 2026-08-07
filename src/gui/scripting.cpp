@@ -2209,7 +2209,7 @@ void FurnaceGUI::initScriptEngine(bool initGlobal) {
       logE("could not create script state!");
     } else {
       LOAD_LIB(globalState.state,LUA_GNAME,luaopen_base)
-      if (settings.scriptingAllowPackage) {LOAD_LIB(playground.state,LUA_LOADLIBNAME,luaopen_package)}
+      if (settings.scriptingAllowPackage) {LOAD_LIB(globalState.state,LUA_LOADLIBNAME,luaopen_package)}
       LOAD_LIB(globalState.state,LUA_COLIBNAME,luaopen_coroutine)
       LOAD_LIB(globalState.state,LUA_TABLIBNAME,luaopen_table)
       if (settings.scriptingAllowIO) {LOAD_LIB(globalState.state,LUA_IOLIBNAME,luaopen_io)}
