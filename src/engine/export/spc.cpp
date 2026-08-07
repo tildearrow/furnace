@@ -23,10 +23,13 @@
 #include "../../fileutils.h"
 #include "../../executils.h"
 #include <fmt/printf.h>
-#include <algorithm>
-#include <map>
-#include <tuple>
 #include <vector>
+
+#ifdef _WIN32
+#else
+#include <dirent.h>
+#include <unistd.h>
+#endif
 
 static const char* snesSources[]={
   "snes.s",
@@ -480,6 +483,52 @@ void DivExportSNES::run() {
   }
   fclose(f);
   output.push_back(DivROMExportOutput("export.spc",w));
+
+  // remove temporary files
+  logAppend("cleaning up...");
+#ifdef _WIN32
+  WIN32_FIND_DATAW de;
+  String tempDirGlob=demoPath;
+  tempDirGlob+=DIR_SEPARATOR_STR;
+  tempDirGlob+="*";
+  HANDLE tempDirD=FindFirstFileW(utf8To16(tempDirGlob.c_str()).c_str(),&de);
+  if (tempDirD!=INVALID_HANDLE_VALUE) {
+    do {
+      if (wcscmp(de.cFileName,L".")==0) continue;
+      if (wcscmp(de.cFileName,L"..")==0) continue;
+      String delPath=tempDir+DIR_SEPARATOR_STR+utf16To8(de.cFileName);
+      WString delPathW=utf8To16(delPath);
+      if (!DeleteFileW(delPathW.c_str())) {
+        logAppend(fmt::sprintf("could not remove %s! (%x)",delPath,GetLastError()));
+      }
+    } while (FindNextFileW(tempDirD,&de)!=0);
+    FindClose(tempDirD);
+  } else {
+    logAppend(fmt::sprintf("could not open dir %s! (%x)",tempDir,GetLastError()));
+  }
+  if (!RemoveDirectoryW(utf8To16(tempDir.c_str()).c_str())) {
+    logAppend(fmt::sprintf("could not remove %s! (%x)",tempDir,GetLastError()));
+  }
+#else
+  DIR* tempDirD=opendir(tempDir.c_str());
+  if (tempDirD!=NULL) {
+    struct dirent* de;
+    while ((de=readdir(tempDirD))!=NULL) {
+      if (strcmp(de->d_name,".")==0) continue;
+      if (strcmp(de->d_name,"..")==0) continue;
+      String delPath=tempDir+DIR_SEPARATOR_STR+de->d_name;
+      if (unlink(delPath.c_str())<0) {
+        logAppend(fmt::sprintf("could not remove %s! (%s)",delPath,strerror(errno)));
+      }
+    }
+    closedir(tempDirD);
+  } else {
+    logAppend(fmt::sprintf("could not open dir %s! (%s)",tempDir,strerror(errno)));
+  }
+  if (rmdir(tempDir.c_str())<0) {
+    logAppend(fmt::sprintf("could not remove %s! (%s)",tempDir,strerror(errno)));
+  }
+#endif
 
   logAppend("finished!");
 
