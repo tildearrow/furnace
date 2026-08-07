@@ -23,6 +23,7 @@ static bool execHandlerReady=false;
 
 #ifdef _WIN32
 #include <windows.h>
+#include "utfutils.h"
 #else
 #include <sys/wait.h>
 #include <unistd.h>
@@ -30,14 +31,78 @@ struct sigaction chldsa;
 #endif
 
 #ifdef _WIN32
+
+struct TAProcessInfo {
+  wchar_t* exe;
+  wchar_t* cmdLine;
+  STARTUPINFOW start;
+  PROCESS_INFORMATION info;
+};
+
+std::map<int,TAProcessInfo> procInfoMap;
+
+int newPID=0;
+
 int taExec(String path, const std::vector<String>& args, TAExecConsole* con) {
+  TAProcessInfo newInfo;
+  WString pathW=utf8To16(path);
+  WString cl=L"\"";
+  for (wchar_t i: pathW) {
+    if (i==L'"') {
+      cl+=L"\\";
+    }
+    cl+=i;
+  }
+  cl+=L"\\";
+
+  for (const String& i: args) {
+    cl+=L" \\";
+    WString iW=utf8To16(i.c_str());
+    for (wchar_t j: iW) {
+      if (j==L'"') {
+        cl+=L"\\";
+      }
+      cl+=j;
+    }
+    cl+=L"\\";
+  }
+
+  newInfo.exe=new wchar_t[pathW.size()+1];
+  memcpy(newInfo.exe,pathW.c_str(),(pathW.size()+1)*sizeof(wchar_t));
+  newInfo.cmdLine=new wchar_t[32768];
+  memset(newInfo.cmdLine,0,32768*sizeof(wchar_t));
+  memcpy(newInfo.cmdLine,cl.c_str(),(cl.size()+1)*sizeof(wchar_t));
+
+  memset(&newInfo.start,0,sizeof(STARTUPINFOW));
+  memset(&newInfo.info,0,sizeof(PROCESS_INFORMATION));
+
   // CreateProcess
-  return -1;
+  if (!CreateProcessW(newInfo.exe,newInfo.cmdLine,NULL,NULL,false,0,NULL,NULL,&newInfo.start,&newInfo.info)) {
+    delete[] newInfo.exe;
+    delete[] newInfo.cmdLine;
+    return -1;
+  }
+  procInfoMap[newPID]=newInfo;
+  return (newPID++);
 }
 
 int taWaitProcess(int pid) {
-  // ?????????
-  return -1;
+  auto val=procInfoMap.find(pid);
+  if (val!=procInfoMap.cend()) {
+    TAProcessInfo pinfo=val->second;
+
+    WaitForSingleObject(pinfo.info.hProcess,INFINITE);
+    CloseHandle(pinfo.info.hProcess);
+    CloseHandle(pinfo.info.hThread);
+
+    delete[] pinfo.exe;
+    delete[] pinfo.cmdLine;
+
+    procInfoMap.erase(pid);
+  } else {
+    return -1;
+  }
+  return 0;
 }
 
 void taInstallExecHandler() {
