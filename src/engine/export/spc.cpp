@@ -26,6 +26,8 @@
 #include <vector>
 
 #ifdef _WIN32
+#include <windows.h>
+#include "../../utfutils.h"
 #else
 #include <dirent.h>
 #include <unistd.h>
@@ -488,7 +490,7 @@ void DivExportSNES::run() {
   logAppend("cleaning up...");
 #ifdef _WIN32
   WIN32_FIND_DATAW de;
-  String tempDirGlob=demoPath;
+  String tempDirGlob=tempDir;
   tempDirGlob+=DIR_SEPARATOR_STR;
   tempDirGlob+="*";
   HANDLE tempDirD=FindFirstFileW(utf8To16(tempDirGlob.c_str()).c_str(),&de);
