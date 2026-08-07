@@ -2188,7 +2188,7 @@ void FurnaceGUI::initScriptEngine(bool initGlobal) {
     logE("could not create script playground state!");
   } else {
     LOAD_LIB(playground.state,LUA_GNAME,luaopen_base)
-    LOAD_LIB(playground.state,LUA_LOADLIBNAME,luaopen_package)
+    if (settings.scriptingAllowPackage) {LOAD_LIB(playground.state,LUA_LOADLIBNAME,luaopen_package)}
     LOAD_LIB(playground.state,LUA_COLIBNAME,luaopen_coroutine)
     LOAD_LIB(playground.state,LUA_TABLIBNAME,luaopen_table)
     if (settings.scriptingAllowIO) {LOAD_LIB(playground.state,LUA_IOLIBNAME,luaopen_io)}
@@ -2209,7 +2209,7 @@ void FurnaceGUI::initScriptEngine(bool initGlobal) {
       logE("could not create script state!");
     } else {
       LOAD_LIB(globalState.state,LUA_GNAME,luaopen_base)
-      LOAD_LIB(globalState.state,LUA_LOADLIBNAME,luaopen_package)
+      if (settings.scriptingAllowPackage) {LOAD_LIB(playground.state,LUA_LOADLIBNAME,luaopen_package)}
       LOAD_LIB(globalState.state,LUA_COLIBNAME,luaopen_coroutine)
       LOAD_LIB(globalState.state,LUA_TABLIBNAME,luaopen_table)
       if (settings.scriptingAllowIO) {LOAD_LIB(globalState.state,LUA_IOLIBNAME,luaopen_io)}
@@ -2217,7 +2217,7 @@ void FurnaceGUI::initScriptEngine(bool initGlobal) {
       LOAD_LIB(globalState.state,LUA_STRLIBNAME,luaopen_string)
       LOAD_LIB(globalState.state,LUA_MATHLIBNAME,luaopen_math)
       LOAD_LIB(globalState.state,LUA_UTF8LIBNAME,luaopen_utf8)
-      LOAD_LIB(globalState.state,LUA_DBLIBNAME,luaopen_debug)
+      // LOAD_LIB(globalState.state,LUA_DBLIBNAME,luaopen_debug)
       bindScriptFunctions(globalState.state);
     }
   }
@@ -2241,6 +2241,7 @@ void FurnaceGUI::drawScripting() {
   if (ImGui::Begin("Scripts",&scriptingOpen,globalWinFlags,_("Scripts"))) {
     if (ImGui::BeginTabBar("ScriptsTab")) {
       if (ImGui::BeginTabItem("Loaded Scripts")) {
+        bool hadErrors=false;
         if (loadedScripts.empty()) {
           ImGui::TextUnformatted(_("no scripts loaded"));
         } else if (ImGui::BeginTable("loadedScriptTable",8,ImGuiTableFlags_Resizable)) {
@@ -2280,7 +2281,18 @@ void FurnaceGUI::drawScripting() {
             LoadedScript::Metadata* meta=&s.metadata;
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
+            switch (s.status) {
+              case LoadedScript::Status::RunSuccess:
+                ImGui::PushStyleColor(ImGuiCol_CheckMark,ImGui::GetColorU32(uiColors[GUI_COLOR_TOGGLE_ON]));
+                break;
+              case LoadedScript::Status::RunFail:
+                ImGui::PushStyleColor(ImGuiCol_CheckMark,ImGui::GetColorU32(uiColors[GUI_COLOR_DESTRUCTIVE]));
+                hadErrors=true;
+                break;
+              default: break;
+            }
             ImGui::Checkbox("##scriptEnable",&loadedScripts[i].enabled);
+            if (s.status!=LoadedScript::Status::Idle) ImGui::PopStyleColor();
             ImGui::SetItemTooltip(_("Run on startup"));
             ImGui::TableNextColumn();
             if (!meta->title.empty()) ImGui::TextUnformatted(meta->title.c_str());
@@ -2299,9 +2311,13 @@ void FurnaceGUI::drawScripting() {
               if (!readTextFile(s.path.c_str(),script)) {
                 showError("failed to read script file!");
               } else {
-                int ret=runScript(globalState.state,script.c_str());
-                if (ret!=LUA_OK) {
-                  showError(fmt::sprintf(_("failed to run script!\n%s"),getScriptError(globalState.state,ret)));
+                globalState.lastRet=runScript(globalState.state,script.c_str());
+                if (globalState.lastRet!=LUA_OK) {
+                  globalState.lastError=getScriptError(globalState.state,globalState.lastRet);
+                  showError("failed to run loaded script!\n"+globalState.lastError);
+                  loadedScripts[i].status=LoadedScript::Status::RunFail;
+                } else {
+                  loadedScripts[i].status=LoadedScript::Status::RunSuccess;
                 }
               }
             }
@@ -2322,6 +2338,14 @@ void FurnaceGUI::drawScripting() {
         }
         if (ImGui::Button(ICON_FA_PLUS "##scriptAdd")) {
           openFileDialog(GUI_FILE_LOAD_SCRIPT);
+        }
+        if (hadErrors) {
+          ImGui::SetCursorPosY(ImGui::GetWindowHeight()-ImGui::GetFrameHeightWithSpacing());
+          ImGui::TextUnformatted(_("there were errors while trying to run the scripts. check##scriptError1"));
+          ImGui::SameLine();
+          if (ImGui::SmallButton(_("Log Viewer"))) nextWindow=GUI_WINDOW_LOG;
+          ImGui::SameLine();
+          ImGui::TextUnformatted(_("for details.##scriptError2"));
         }
         ImGui::EndTabItem();
       }

@@ -8969,10 +8969,16 @@ void FurnaceGUI::readLoadedScripts() {
         }
       }
       if (loadedScripts[i].enabled) {
-        int ret=runScript(globalState.state,script.c_str());
-        if (ret==LUA_OK) {
-          logE("failed to run loaded script %d! (%s)",i,getScriptError(globalState.state,ret).c_str());
+        globalState.lastRet=runScript(globalState.state,script.c_str());
+        if (globalState.lastRet!=LUA_OK) {
+          globalState.lastError=getScriptError(globalState.state,globalState.lastRet);
+          logE("failed to run %s! (%s)",loadedScripts[i].path.c_str(),globalState.lastError.c_str());
+          loadedScripts[i].status=LoadedScript::Status::RunFail;
+        } else {
+          loadedScripts[i].status=LoadedScript::Status::RunSuccess;
         }
+      } else {
+        loadedScripts[i].status=LoadedScript::Status::Idle;
       }
     }
   }

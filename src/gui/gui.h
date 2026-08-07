@@ -2067,6 +2067,7 @@ class FurnaceGUI {
     bool sampleImportInstDetune;
     bool scriptingAllowIO;
     bool scriptingAllowOS;
+    bool scriptingAllowPackage;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int headFontSize2;
     int headFontSize3;
@@ -2318,6 +2319,7 @@ class FurnaceGUI {
       sampleImportInstDetune(false),
       scriptingAllowIO(false),
       scriptingAllowOS(false),
+      scriptingAllowPackage(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
@@ -3085,6 +3087,11 @@ class FurnaceGUI {
   struct LoadedScript {
     String path;
     bool enabled;
+    enum class Status {
+      Idle,
+      RunSuccess,
+      RunFail,
+    } status;
     struct Metadata {
       String title;
       String author;
@@ -3096,10 +3103,12 @@ class FurnaceGUI {
     } metadata;
     LoadedScript():
       path(""),
-      enabled(false) {}
+      enabled(false),
+      status(Status::Idle) {}
     LoadedScript(String p):
       path(p),
-      enabled(false) {}
+      enabled(false),
+      status(Status::Idle) {}
   };
   std::vector<LoadedScript> loadedScripts;
   struct ScriptCallbacks { // future-proofing

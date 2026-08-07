@@ -939,7 +939,11 @@ void FurnaceGUI::initSettings() {
       SETTING_CHECKBOX(
         _N("Allow os library"),
         scriptingAllowOS
-      )
+      ),
+      SETTING_CHECKBOX(
+        _N("Allow package library"),
+        scriptingAllowPackage
+      ),
     })
   }
   CATEGORY_END
