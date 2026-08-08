@@ -3123,7 +3123,7 @@ class FurnaceGUI {
       lastRet(LUA_OK),
       lastError("") {}
   } globalState, playground;
-  String playgroundData;
+  String playgroundData, playgroundRet;
   struct ScriptDialog {
     struct Item {
       String label;

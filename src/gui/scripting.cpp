@@ -1965,16 +1965,9 @@ String FurnaceGUI::inspectTopValue(lua_State* s) {
 String FurnaceGUI::getScriptError(lua_State* s, int result) {
   String ret="";
   switch (result) {
-    case LUA_OK: {
+    case LUA_OK:
       ret="OK";
-      int stackTop=lua_gettop(s);
-      if (stackTop>0) {
-        ret+=" (";
-        ret+=inspectTopValue(s);
-        ret+=")";
-      }
       break;
-    }
     case LUA_ERRMEM:
       ret=_("memory error");
       break;
@@ -2349,34 +2342,63 @@ void FurnaceGUI::drawScripting() {
         }
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem("Playground")) {
-        if (ImGui::Button("Run")) {
-          resetScriptState(playground.state);
-          playground.lastRet=runScript(playground.state,playgroundData.c_str());
-          playground.lastError=getScriptError(playground.state,playground.lastRet);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Reset")) {
-          resetScriptState(playground.state);
-          playground.lastError.clear();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_FOLDER_OPEN "##playgroundLoad")) {
-          openFileDialog(GUI_FILE_LOAD_SCRIPT_PLAYGROUND);
-        }
-        ImGui::SetItemTooltip(_("Open"));
-        ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_FLOPPY_O "##playgroundSave")) {
-          openFileDialog(GUI_FILE_SAVE_SCRIPT_PLAYGROUND);
-        }
-        ImGui::SetItemTooltip(_("Save"));
+      if (ImGui::BeginTabItem(_("Playground"))) {
+        if (ImGui::BeginTable("playgroundTable",2,ImGuiTableFlags_Resizable)) {
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (ImGui::Button("Run")) {
+            resetScriptState(playground.state);
+            playgroundRet.clear();
+            playground.lastRet=runScript(playground.state,playgroundData.c_str());
+            playground.lastError=getScriptError(playground.state,playground.lastRet);
+            if (playground.lastRet==LUA_OK) {
+              int stackTop=lua_gettop(playground.state);
+              if (stackTop>0) {
+                playgroundRet=inspectTopValue(playground.state);
+              }
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Reset")) {
+            resetScriptState(playground.state);
+            playground.lastError.clear();
+            playgroundRet.clear();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FOLDER_OPEN "##playgroundLoad")) {
+            openFileDialog(GUI_FILE_LOAD_SCRIPT_PLAYGROUND);
+          }
+          ImGui::SetItemTooltip(_("Open"));
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FLOPPY_O "##playgroundSave")) {
+            openFileDialog(GUI_FILE_SAVE_SCRIPT_PLAYGROUND);
+          }
+          ImGui::SetItemTooltip(_("Save"));
 
-        ImGui::PushFont(patFont);
-        ImGui::InputTextMultiline("##ScriptPlayground",&playgroundData,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()),ImGuiInputTextFlags_AllowTabInput);
-        ImGui::PopFont();
-
-        ImGui::TextUnformatted(playground.lastError.c_str());
-
+          ImGui::PushFont(patFont);
+          ImGui::InputTextMultiline("##ScriptPlayground",&playgroundData,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_AllowTabInput);
+          ImGui::PopFont();
+          ImGui::TableNextColumn();
+          ImVec2 size=ImGui::GetContentRegionAvail();
+          size.y/=1.5f;
+          if (ImGui::BeginChild("playgroundOut",size,ImGuiChildFlags_ResizeY)) {
+            ImGui::SeparatorText(_("Output##scriptOutput"));
+            ImGui::PushFont(patFont);
+            ImGui::InputTextMultiline("##ScriptPlaygroundOutput",&playgroundRet,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_ReadOnly|ImGuiInputTextFlags_WordWrap);
+            ImGui::PopFont();
+          }
+          ImGui::EndChild();
+          if (ImGui::BeginChild("playgroundRet",ImGui::GetContentRegionAvail())) {
+            ImGui::SeparatorText(_("Status##scriptError"));
+            ImGui::PushFont(patFont);
+            ImGui::InputTextMultiline("##ScriptPlaygroundRet",&playground.lastError,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_ReadOnly|ImGuiInputTextFlags_WordWrap);
+            ImGui::PopFont();
+          }
+          ImGui::EndChild();
+          ImGui::EndTable();
+        }
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();
