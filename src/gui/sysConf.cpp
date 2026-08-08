@@ -2738,7 +2738,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       ImGui::Text(_("Banking style:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("Namco System 12 (16MB)"),bankType==0)) {
+      if (ImGui::RadioButton(_("Namco System 11 (512KB)"),bankType==0)) {
         bankType=0;
         altered=true;
         mustRender=true;
@@ -2748,7 +2748,17 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
         mustRender=true;
       }
-      if (ImGui::RadioButton(_("Raw (16MB; no VGM export!)"),bankType==2)) {
+      if (ImGui::RadioButton(_("Namco NB-1/2 (4MB)"),bankType==2)) {
+        bankType=1;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("Namco System 12 (8MB)"),bankType==3)) {
+        bankType=1;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("Namco System 22 and Super 22 + DS6000 / Namco System 12 / Namco System 23 (16MB)"),bankType==4)) {
         bankType=2;
         altered=true;
         mustRender=true;
