@@ -545,9 +545,13 @@ size_t DivPlatformC352::getSampleMemCapacity(int index) {
   if (index != 0) return 0;
   switch (bankType) {
   case 0:
-    return 16777216;
+    return 524288;
   case 1:
     return 2097152;
+  case 2:
+    return 4194304;
+  case 3:
+    return 8388608;
   }
   return 16777216;
 }
