@@ -94,6 +94,7 @@
 #include "platform/sid2.h"
 #include "platform/sid3.h"
 #include "platform/multipcm.h"
+#include "platform/c352.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -786,6 +787,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_MULTIPCM:
       dispatch=new DivPlatformMultiPCM;
+      break;
+    case DIV_SYSTEM_C352:
+      dispatch=new DivPlatformC352;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;
