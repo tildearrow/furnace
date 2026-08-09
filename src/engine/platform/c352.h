@@ -25,7 +25,7 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformC352: public DivDispatch {
-  struct Channel: public SharedChannel {
+  struct Channel : public SharedChannel<int> {
     DivMacroInt std;
     unsigned int audPos;
     int sample, wave;
@@ -34,8 +34,8 @@ class DivPlatformC352: public DivDispatch {
     int chVolL, chVolR;
     int macroVolMul;
     int macroPanMul;
-    Channel(bool linear = true):
-      SharedChannel(255,linear),
+    Channel(bool linear = true) :
+      SharedChannel<int>(255),
       std(),
       audPos(0),
       sample(-1),
@@ -89,7 +89,7 @@ class DivPlatformC352: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    SharedChannel* getChanState(int chan);
+    void* getChanState(int chan) override;
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
