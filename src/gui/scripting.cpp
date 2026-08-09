@@ -2344,11 +2344,11 @@ void FurnaceGUI::drawScripting() {
       }
       if (ImGui::BeginTabItem(_("Playground"))) {
         if (ImGui::BeginTable("playgroundTable",2,ImGuiTableFlags_Resizable)) {
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.6f);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.3f);
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          if (ImGui::Button("Run")) {
+          if (ImGui::Button(ICON_FA_PLAY "##palygroundRun")) {
             resetScriptState(playground.state);
             playgroundRet.clear();
             playground.lastRet=runScript(playground.state,playgroundData.c_str());
@@ -2360,12 +2360,14 @@ void FurnaceGUI::drawScripting() {
               }
             }
           }
+          ImGui::SetItemTooltip(_("Reset and run"));
           ImGui::SameLine();
-          if (ImGui::Button("Reset")) {
+          if (ImGui::Button(ICON_FA_REFRESH "##playgroundReset")) {
             resetScriptState(playground.state);
             playground.lastError.clear();
             playgroundRet.clear();
           }
+          ImGui::SetItemTooltip(_("Reset state"));
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_FOLDER_OPEN "##playgroundLoad")) {
             openFileDialog(GUI_FILE_LOAD_SCRIPT_PLAYGROUND);
@@ -2382,7 +2384,7 @@ void FurnaceGUI::drawScripting() {
           ImGui::PopFont();
           ImGui::TableNextColumn();
           ImVec2 size=ImGui::GetContentRegionAvail();
-          size.y/=1.5f;
+          size.y*=4.f/5.f;
           if (ImGui::BeginChild("playgroundOut",size,ImGuiChildFlags_ResizeY)) {
             ImGui::SeparatorText(_("Output##scriptOutput"));
             ImGui::PushFont(patFont);
