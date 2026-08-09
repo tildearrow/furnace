@@ -22,6 +22,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <IconsFontAwesome4.h>
 #include <fmt/printf.h>
+#include <lua.h>
 #include "util.h"
 
 static FurnaceGUI* externGUI;
@@ -1966,34 +1967,34 @@ String FurnaceGUI::getScriptError(lua_State* s, int result) {
   String ret="";
   switch (result) {
     case LUA_OK:
-      ret="OK";
-      break;
+      return "OK";
+    case LUA_YIELD:
+      return _("yeild");
     case LUA_ERRMEM:
-      ret=_("memory error");
+      ret=_("memory error: ");
       break;
     case LUA_ERRSYNTAX:
-      ret=_("syntax error");
+      ret=_("syntax error: ");
       break;
     case LUA_ERRERR:
-      ret=_("error calling error handler");
+      ret=_("error calling error handler: ");
       break;
     case LUA_ERRFILE:
-      ret=_("file error");
+      ret=_("file error: ");
       break;
     case LUA_ERRRUN: {
       ret=_("runtime error: ");
-      const char* error=lua_tostring(s,lua_gettop(s));
-      if (error==NULL) {
-        ret+="NULL!";
-      } else {
-        luaL_traceback(s,s,error,16);
-        ret+=error;
-      }
       break;
     }
     default:
-      ret="what?";
-      break;
+      return "what?";
+  }
+  const char* error=lua_tostring(s,lua_gettop(s));
+  if (error==NULL) {
+    ret+="NULL!";
+  } else {
+    luaL_traceback(s,s,error,16);
+    ret+=error;
   }
   return ret;
 }
