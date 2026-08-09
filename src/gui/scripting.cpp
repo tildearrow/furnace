@@ -1837,6 +1837,24 @@ class StackDiffChecker {
     }
 };
 
+String FurnaceGUI::inspectValues(lua_State* s, bool indentTables) {
+  // saving the amount here so we don't get in an infinite loop in case of bad stack manipulation
+  int n=lua_gettop(s);
+  logD("n=%d",n);
+  if (n<0) return _("<no value>");
+
+  String ret="";
+  lua_pushnil(s); // slot to be replaced
+  for (int i=0, idx=-n-1; i<n; i++, idx++) {
+    if (i>0) ret+=", ";
+    lua_copy(s,idx,-1);
+    ret+=inspectTopValue(s,indentTables,0);
+  }
+  lua_pop(s,1); // pop the slot
+
+  return ret;
+}
+
 String FurnaceGUI::inspectTopValue(lua_State* s, bool indentTables, int indent) {
   int stackTop=lua_gettop(s);
   if (stackTop<=0) return _("<unknown value>");
@@ -2438,7 +2456,7 @@ void FurnaceGUI::drawScripting() {
             if (playground.lastRet==LUA_OK) {
               int stackTop=lua_gettop(playground.state);
               if (stackTop>0) {
-                playgroundRet=inspectTopValue(playground.state,true);
+                playgroundRet=inspectValues(playground.state,true);
               }
             }
           }

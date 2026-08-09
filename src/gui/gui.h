@@ -3508,6 +3508,8 @@ class FurnaceGUI {
   void initScriptEngine(bool initGlobal=true);
   String getScriptError(lua_State* s, int result);
 
+  String inspectValues(lua_State* s, bool indentTables);
+
   /**
    * inspect the value on the top of the stack, while indenting if need when encountering tbales
    *
