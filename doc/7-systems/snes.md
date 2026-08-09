@@ -27,14 +27,13 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 - `12xx`: **toggle echo on this channel.**
 - `13xx`: **toggle pitch modulation.** frequency modulation by the previous channel's output. no effect on channel 1.
 - `14xy`: **toggle inverting the left or right channels.** `x` is left, `y` is right.
-- `15xx`: **set envelope mode.** see gain chart below for `1` through `5`.
-  - `0`: ADSR mode.
-  - `1`: gain (direct). volume holds at one level.
-  - `2`: linear decrement. volume lowers by subtractions of 1/64.
-  - `3`: exponential decrement. volume lowers by multiplications of 255/256.
-  - `4`: linear increment. volume rises by additions of 1/64.
-  - `5`: bent line (inverse log) increment. volume rises by additions of 1/64 until 3/4, then additions of 1/256.
-- `16xx`: **set gain.** `00` to `7F` if direct, `00` to `1F` otherwise.
+- `16xx`: **set gain.**
+  - `00`-`7F`: gain (direct). volume holds at one level.
+  - `80`-`9F`: linear decrement. volume lowers by subtractions of 1/64.
+  - `A0`-`BF`: exponential decrement. volume lowers by multiplications of 255/256.
+  - `C0`-`DF`: linear increment. volume rises by additions of 1/64.
+  - `E0`-`FF`: bent line (inverse log) increment. volume rises by additions of 1/64 until 3/4, then additions of 1/256.
+  - if ADSR envelope is enabled, this is ineffective.
 - `18xx`: **enable echo buffer.**
 - `19xx`: **set echo delay.** range is `0` to `F`.
 - `1Axx`: **set left echo channel volume.**

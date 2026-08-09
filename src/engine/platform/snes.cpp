@@ -504,37 +504,26 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].invertR=c.value&15;
       chan[c.chan].shallWriteVol=true;
       break;
-    case DIV_CMD_SNES_GAIN_MODE:
-      // TODO: remove
-      if (c.value) {
-        chan[c.chan].state.useEnv=false;
-        switch (c.value) {
-          case 1:
-            chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
-            break;
-          case 2:
+    case DIV_CMD_SNES_GAIN:
+      if (c.value&0x80) {
+        switch (c.value&0x60) {
+          case 0x00:
             chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
             break;
-          case 3:
+          case 0x20:
             chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG;
             break;
-          case 4:
+          case 0x40:
             chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR;
             break;
-          case 5:
+          case 0x60:
             chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
             break;
         }
+        chan[c.chan].state.gain=c.value&31;
       } else {
-        chan[c.chan].state.useEnv=true;
-      }
-      chan[c.chan].shallWriteEnv=true;
-      break;
-    case DIV_CMD_SNES_GAIN:
-      if (chan[c.chan].state.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT) {
-        chan[c.chan].state.gain=c.value&0x7f;
-      } else {
-        chan[c.chan].state.gain=c.value&0x1f;
+        chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
+        chan[c.chan].state.gain=c.value&127;
       }
       if (!chan[c.chan].state.useEnv) chan[c.chan].shallWriteEnv=true;
       break;
