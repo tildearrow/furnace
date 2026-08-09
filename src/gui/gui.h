@@ -3506,8 +3506,15 @@ class FurnaceGUI {
   void resetScriptState(lua_State* s);
   void bindScriptFunctions(lua_State* s);
   void initScriptEngine(bool initGlobal=true);
-  String inspectTopValue(lua_State* s);
   String getScriptError(lua_State* s, int result);
+
+  /**
+   * inspect the value on the top of the stack, while indenting if need when encountering tbales
+   *
+   * @param indentTables if true, will indent when encountering non-array tables
+   * @param indent the indent level; messing with this parameter is not recommended
+   */
+  String inspectTopValue(lua_State* s, bool indentTables, int indent=0);
 
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
 

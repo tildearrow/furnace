@@ -1817,21 +1817,53 @@ static int _logE(lua_State *s) {
 
 /// INTERNAL
 
-String FurnaceGUI::inspectTopValue(lua_State* s) {
-  String ret="";
+// put this on a scope to expect a specific stack height difference at its end; useful for debugging, may incur overhead
+class StackDiffChecker {
+  private:
+    lua_State* s;
+    int expected, startHeight, endHeight;
+
+  public:
+    StackDiffChecker(lua_State* s, int expected=0): s(s), expected(expected) {
+      startHeight=lua_gettop(s);
+    }
+    ~StackDiffChecker() {
+      endHeight=lua_gettop(s);
+      int got=endHeight-startHeight;
+      if (got!=expected) {
+        logE("wrong stack difference detected! expected %d, got %d",expected,got);
+        assert(false);
+      }
+    }
+};
+
+String FurnaceGUI::inspectTopValue(lua_State* s, bool indentTables, int indent) {
   int stackTop=lua_gettop(s);
-  if (stackTop<=0) return _("unknown value");
+  if (stackTop<=0) return _("<unknown value>");
+
+  // figures out whether a string is a valid identifier ([a-zA-Z_][a-zA-Z0-9_]*)
+  const auto isValidIdentifier=[](const char* s) {
+    if (*s=='\0') return false;
+    if (!isalpha(*s) && *s!='_') return false;
+    while (*s) {
+      if (!isalnum(*s) && *s!='_') return false;
+      s++;
+    }
+    return true;
+  };
+
+  String ret="";
   switch (lua_type(s,stackTop)) {
     case LUA_TNIL:
       ret+="nil";
       break;
     case LUA_TNUMBER: {
       lua_pushvalue(s,lua_gettop(s)); // duplicate because lua_tostring modifies the value on the stack
-      const char* tostr=lua_tostring(s,lua_gettop(s));
-      if (tostr==NULL) {
+      const char* str=lua_tostring(s,lua_gettop(s));
+      if (str==NULL) {
         ret+="what?";
       } else {
-        ret+=tostr;
+        ret+=str;
         lua_pop(s,1);
       }
       break;
@@ -1842,13 +1874,13 @@ String FurnaceGUI::inspectTopValue(lua_State* s) {
       break;
     }
     case LUA_TSTRING: {
-      const char* tostr=lua_tostring(s,stackTop);
-      if (tostr==NULL) {
+      const char* str=lua_tostring(s,stackTop);
+      if (str==NULL) {
         ret+="what?";
         break;
       }
       ret+="\"";
-      for (const char* sp=tostr; *sp; sp++) {
+      for (const char* sp=str; *sp; sp++) {
         char c=*sp;
         switch (c) {
           case '\a': ret+="\\a"; break;
@@ -1872,11 +1904,11 @@ String FurnaceGUI::inspectTopValue(lua_State* s) {
     }
     case LUA_TTABLE: {
       int tablePos=lua_absindex(s,stackTop);
-      bool first=true;
-      ret+="{";
-      lua_pushnil(s);
 
-      int lastArrayKey=0;
+      // TODO: maybe there's a simpler way to do this that doesn't require multiple passes?
+
+      // figure out whether the table has array keys
+      int lastArrayKey=0; // if 0, there are no array keys
       for (int i=1;; i++) {
         lua_pushinteger(s,i);
         lua_gettable(s,tablePos);
@@ -1884,65 +1916,112 @@ String FurnaceGUI::inspectTopValue(lua_State* s) {
           lua_pop(s,1);
           break;
         }
-        lastArrayKey=i;
-
-        if (first) {
-          first=false;
-        } else {
-          ret+=",";
-        }
-        ret+=inspectTopValue(s);
         lua_pop(s,1);
+        lastArrayKey=i;
       }
 
-      while (lua_next(s,tablePos)) {
-        // skip "array" keys (already handled)
+      // whether there is a key-value pair on the top of the stack, where the key is one of the array keys
+      const auto isTopArrayKvPair=[s,lastArrayKey](){
         if (lua_isinteger(s,-2)) {
           int n=lua_tointeger(s,-2);
           if (n>0 && n<=lastArrayKey) {
-            lua_pop(s,1);
-            continue;
+            return true;
           }
         }
+        return false;
+      };
 
+      // figure out whether the table has non-array keys
+      bool hasNonArrayKeys=false;
+      lua_pushnil(s);
+      while (lua_next(s,tablePos)) {
+        // skip array keys
+        if (isTopArrayKvPair()) {
+          lua_pop(s,1);
+          continue;
+        }
+
+        hasNonArrayKeys=true;
+        lua_pop(s,2); // remove key-value pair from stack
+        break;
+      }
+
+      // at this point we know whether to indent or not
+      const bool doIndent=indentTables && hasNonArrayKeys;
+      const int nextIndent=doIndent?(indent + 1):indent;
+
+      ret+="{";
+
+      bool first=true;
+      const auto maybeAddSep=[doIndent,nextIndent,&first,&ret](){
         if (first) {
           first=false;
         } else {
           ret+=",";
         }
+        if (doIndent) {
+          ret+="\n";
+          for (int i=0; i<nextIndent; i++) ret+="  ";
+        }
+      };
 
-        String valueRepr=inspectTopValue(s);
+      // first show the array entries
+      for (int i=1; i<=lastArrayKey; i++) {
+        lua_pushinteger(s,i);
+        lua_gettable(s,tablePos);
+
+        if (lua_isnil(s,lua_gettop(s))) {
+          lua_pop(s,1);
+          logE("expected array key. why is there not one??? (k=%d)",i);
+          continue;
+        }
+
+        maybeAddSep();
+        ret+=inspectTopValue(s,indentTables,nextIndent);
+        lua_pop(s,1);
+      }
+
+      // gets the top value as a string pointer if it is a valid identifier; returns NULL otherwise.
+      // does not pop.
+      const auto getTopIdentStr=[isValidIdentifier,s]() -> const char* {
+        if (lua_type(s,lua_gettop(s))!=LUA_TSTRING) return NULL;
+        const char* str=lua_tostring(s,lua_gettop(s));
+        if (str==NULL) return NULL;
+        if (isValidIdentifier(str)) return str;
+        return NULL;
+      };
+
+      // then show the show the rest as k-v pairs
+      lua_pushnil(s);
+      while (lua_next(s,tablePos)) {
+        // skip "array" keys (already handled)
+        if (isTopArrayKvPair()) {
+          lua_pop(s,1);
+          continue;
+        }
+
+        String valueRepr=inspectTopValue(s,indentTables,nextIndent);
         lua_pop(s,1);
 
-        const auto isValidIdentifier=[](const char* s) {
-          if (*s=='\0') return false;
-          if (!isalpha(*s) && *s!='_') return false;
-          while (*s) {
-            if (!isalnum(*s) && *s!='_') return false;
-            s++;
-          }
-          return true;
-        };
-
-        // format table key field
-        if (lua_type(s,lua_gettop(s))==LUA_TSTRING) {
-          const char *tostr=lua_tostring(s,lua_gettop(s));
-          if (tostr!=NULL && isValidIdentifier(tostr)) {
-            ret+=tostr;
-          } else {
-            ret+="[";
-            ret+=inspectTopValue(s);
-            ret+="]";
-          }
+        maybeAddSep();
+        const char* identStr=getTopIdentStr();
+        if (identStr!=NULL) {
+          ret+=identStr;
         } else {
           ret+="[";
-          ret+=inspectTopValue(s);
+          ret+=inspectTopValue(s,indentTables,nextIndent);
           ret+="]";
         }
         ret+="=";
         ret+=valueRepr;
       }
+
+      if (doIndent) {
+        ret+="\n";
+        for (int i=0; i<indent; i++) ret+="  ";
+      }
       ret+="}";
+
       break;
     }
     case LUA_TFUNCTION:
@@ -1958,8 +2037,10 @@ String FurnaceGUI::inspectTopValue(lua_State* s) {
       ret+="<lightuserdata>";
       break;
     default:
-      ret+=_("unknown value");
+      ret+=_("<unknown value>");
+      break;
   }
+
   return ret;
 }
 
@@ -2357,7 +2438,7 @@ void FurnaceGUI::drawScripting() {
             if (playground.lastRet==LUA_OK) {
               int stackTop=lua_gettop(playground.state);
               if (stackTop>0) {
-                playgroundRet=inspectTopValue(playground.state);
+                playgroundRet=inspectTopValue(playground.state,true);
               }
             }
           }
