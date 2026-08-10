@@ -248,6 +248,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         }
 
         int paddedLen=(s->lengthA+255)&(~0xff);
+        if (paddedLen>1048576) {
+          paddedLen=1048576;
+        }
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;
         }
@@ -282,9 +285,6 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         }
 
         int paddedLen=(s->lengthB+255)&(~0xff);
-        if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-          memPos=(memPos+0xfffff)&0xf00000;
-        }
         if (memPos>=getSampleMemCapacity(1)) {
           logW("out of ADPCM-B memory for sample %d!",i);
           break;

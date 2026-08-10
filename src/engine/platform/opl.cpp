@@ -3703,9 +3703,12 @@ void DivPlatformOPL::renderSamples(int sysID) {
         continue;
       }
 
-      int paddedLen=(s->lengthB+255)&(~0xff);
-      if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-        memPos=(memPos+0xfffff)&0xf00000;
+      int paddedLen=(s->lengthB+31)&(~0x1f);
+      if (paddedLen>262144) {
+        paddedLen=262144;
+      }
+      if ((memPos&0x1c0000)!=((memPos+paddedLen)&0x1c0000)) {
+        memPos=(memPos+0x3ffff)&0x1c0000;
       }
       if (memPos>=getSampleMemCapacity(0)) {
         logW("out of ADPCM memory for sample %d!",i);

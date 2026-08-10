@@ -340,9 +340,12 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,_("YM2608: loop point ignored on ADPCM (may only loop entire sample)"));
               }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512"));
+              if (sample->samples&511) { // &63) {
+                SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512")); // 64"));
               }
+            }
+            if (sample->samples>524288) {
+              SAMPLE_WARN(warnLength,_("YM2608: maximum sample length is 524288"));
             }
             if (dispatch!=NULL) {
               MAX_RATE("YM2608",dispatch->chipClock/144);
@@ -377,13 +380,17 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_Y8950:
+          case DIV_SYSTEM_Y8950_DRUMS:
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,_("Y8950: loop point ignored on ADPCM (may only loop entire sample)"));
               }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512"));
+              if (sample->samples&511) { // &63) {
+                SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512")); // 64"));
               }
+            }
+            if (sample->samples>524288) {
+              SAMPLE_WARN(warnLength,_("Y8950: maximum sample length is 524288"));
             }
             if (dispatch!=NULL) {
               MAX_RATE("Y8950",dispatch->chipClock/72);
