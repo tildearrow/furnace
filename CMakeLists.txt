@@ -1073,6 +1073,7 @@ src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
 src/gui/scripting.cpp
+src/gui/scriptingApi.cpp
 src/gui/settings.cpp
 src/gui/newSettings.cpp
 src/gui/songInfo.cpp
