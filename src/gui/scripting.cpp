@@ -2319,111 +2319,121 @@ void FurnaceGUI::drawScripting() {
   if (ImGui::Begin("Scripts",&scriptingOpen,globalWinFlags,_("Scripts"))) {
     if (ImGui::BeginTabBar("ScriptsTab")) {
       if (ImGui::BeginTabItem("Loaded Scripts")) {
-        bool hadErrors=false;
+        LoadedScript::Status runStatus=LoadedScript::Status::Idle;
         if (loadedScripts.empty()) {
           ImGui::TextUnformatted(_("no scripts loaded"));
-        } else if (ImGui::BeginTable("loadedScriptTable",8,ImGuiTableFlags_Resizable)) {
-          // enable, name, auth, desc, path, run, edit, remove
-          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.1f);
-          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.1f);
-          ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.3f);
-          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed);
-          ImGui::TableSetupScrollFreeze(7,1);
-          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-          ImGui::TableNextColumn();
-          if (ImGui::Button(ICON_FA_REFRESH)) {
-            logD("scripting: resetting global state...");
-            resetScriptState(globalState.state);
-            initScriptEngine();
-            readLoadedScripts();
+          if (ImGui::Button(ICON_FA_PLUS "##scriptAdd")) {
+            openFileDialog(GUI_FILE_LOAD_SCRIPT);
           }
-          ImGui::SetItemTooltip(_("Refresh scripts"));
-          // ImGui::TextUnformatted(_("Enable"));
-          ImGui::TableNextColumn();
-          ImGui::TextUnformatted(_("Name"));
-          ImGui::TableNextColumn();
-          ImGui::TextUnformatted(_("Author"));
-          ImGui::TableNextColumn();
-          ImGui::TextUnformatted(_("Path"));
-          // ImGui::TableNextColumn();
-          // ImGui::TextUnformatted(_("Edit"));
-          // ImGui::TableNextColumn();
-          // ImGui::TextUnformatted(_("Remove"));
-          for (size_t i=0; i<loadedScripts.size(); i++) {
-            ImGui::PushID(i);
-            LoadedScript& s=loadedScripts[i];
-            LoadedScript::Metadata* meta=&s.metadata;
-            ImGui::TableNextRow();
+        } else {
+          ImVec2 tableSize=ImGui::GetContentRegionAvail();
+          tableSize.y-=ImGui::GetFrameHeightWithSpacing();
+          if (ImGui::BeginTable("loadedScriptTable",8,ImGuiTableFlags_Resizable|ImGuiTableFlags_NoBordersInBody|ImGuiTableFlags_RowBg,tableSize)) {
+            // enable, name, auth, path, info, run, edit, remove
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.1f);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.1f);
+            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.3f);
+            ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupScrollFreeze(1,1);
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();
-            switch (s.status) {
-              case LoadedScript::Status::RunSuccess:
-                ImGui::PushStyleColor(ImGuiCol_CheckMark,ImGui::GetColorU32(uiColors[GUI_COLOR_TOGGLE_ON]));
-                break;
-              case LoadedScript::Status::RunFail:
-                ImGui::PushStyleColor(ImGuiCol_CheckMark,ImGui::GetColorU32(uiColors[GUI_COLOR_DESTRUCTIVE]));
-                hadErrors=true;
-                break;
-              default: break;
+            if (ImGui::Button(ICON_FA_REFRESH)) {
+              logD("scripting: resetting global state...");
+              resetScriptState(globalState.state);
+              initScriptEngine();
+              readLoadedScripts();
             }
-            ImGui::Checkbox("##scriptEnable",&loadedScripts[i].enabled);
-            if (s.status!=LoadedScript::Status::Idle) ImGui::PopStyleColor();
-            ImGui::SetItemTooltip(_("Run on startup"));
+            ImGui::SetItemTooltip(_("Refresh scripts"));
             ImGui::TableNextColumn();
-            if (!meta->title.empty()) ImGui::TextUnformatted(meta->title.c_str());
+            ImGui::TextUnformatted(_("Name"));
             ImGui::TableNextColumn();
-            if (!meta->author.empty()) ImGui::TextUnformatted(meta->author.c_str());
+            ImGui::TextUnformatted(_("Author"));
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(s.path.c_str());
-            ImGui::TableNextColumn();
-            if (!meta->description.empty()) {
-              ImGui::TextUnformatted(ICON_FA_INFO_CIRCLE);
-              ImGui::SetItemTooltip("%s",meta->description.c_str());
-            }
-            ImGui::TableNextColumn();
-            if (ImGui::Button(ICON_FA_PLAY "##scriptRun")) {
-              String script;
-              if (!readTextFile(s.path.c_str(),script)) {
-                showError("failed to read script file!");
-              } else {
-                globalState.lastRet=runScript(globalState.state,script.c_str());
-                if (globalState.lastRet!=LUA_OK) {
-                  globalState.lastError=getScriptError(globalState.state,globalState.lastRet);
-                  showError("failed to run loaded script!\n"+globalState.lastError);
-                  loadedScripts[i].status=LoadedScript::Status::RunFail;
+            ImGui::TextUnformatted(_("Path"));
+            for (size_t i=0; i<loadedScripts.size(); i++) {
+              ImGui::PushID(i);
+              LoadedScript& s=loadedScripts[i];
+              LoadedScript::Metadata* meta=&s.metadata;
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              switch (s.status) {
+                case LoadedScript::Status::RunSuccess:
+                  ImGui::PushStyleColor(ImGuiCol_CheckMark,ImGui::GetColorU32(uiColors[GUI_COLOR_TOGGLE_ON]));
+                  if (runStatus==LoadedScript::Status::Idle) runStatus=LoadedScript::Status::RunSuccess;
+                  break;
+                case LoadedScript::Status::RunFail:
+                  ImGui::PushStyleColor(ImGuiCol_CheckMark,ImGui::GetColorU32(uiColors[GUI_COLOR_DESTRUCTIVE]));
+                  if (runStatus!=LoadedScript::Status::RunFail) runStatus=LoadedScript::Status::RunFail;
+                  break;
+                default: break;
+              }
+              ImGui::Checkbox("##scriptEnable",&loadedScripts[i].enabled);
+              if (s.status!=LoadedScript::Status::Idle) ImGui::PopStyleColor();
+              ImGui::SetItemTooltip(_("Run on startup"));
+              ImGui::TableNextColumn();
+              if (!meta->title.empty()) ImGui::TextUnformatted(meta->title.c_str());
+              ImGui::TableNextColumn();
+              if (!meta->author.empty()) ImGui::TextUnformatted(meta->author.c_str());
+              ImGui::TableNextColumn();
+              ImGui::TextUnformatted(s.path.c_str());
+              ImGui::TableNextColumn();
+              if (!meta->description.empty()) {
+                ImGui::TextUnformatted(ICON_FA_INFO_CIRCLE);
+                ImGui::SetItemTooltip("%s",meta->description.c_str());
+              }
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_PLAY "##scriptRun")) {
+                String script;
+                if (!readTextFile(s.path.c_str(),script)) {
+                  showError("failed to read script file!");
                 } else {
-                  loadedScripts[i].status=LoadedScript::Status::RunSuccess;
+                  globalState.lastRet=runScript(globalState.state,script.c_str());
+                  if (globalState.lastRet!=LUA_OK) {
+                    globalState.lastError=getScriptError(globalState.state,globalState.lastRet);
+                    showError("failed to run loaded script!\n"+globalState.lastError);
+                    loadedScripts[i].status=LoadedScript::Status::RunFail;
+                  } else {
+                    loadedScripts[i].status=LoadedScript::Status::RunSuccess;
+                  }
                 }
               }
+              ImGui::SetItemTooltip(_("Run"));
+              ImGui::TableNextColumn();
+              if (ImGui::Button(ICON_FA_PENCIL "##scriptEdit")) SDL_OpenURL(s.path.c_str());
+              ImGui::SetItemTooltip(_("Edit"));
+              ImGui::TableNextColumn();
+              pushDestColor();
+              if (ImGui::Button(ICON_FA_TIMES "##scriptRemove")) {
+                loadedScripts.erase(i+loadedScripts.begin());
+              }
+              popDestColor();
+              ImGui::SetItemTooltip(_("Remove"));
+              ImGui::PopID();
             }
-            ImGui::SetItemTooltip(_("Run"));
+            ImGui::TableNextRow();
+            ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,0);
             ImGui::TableNextColumn();
-            if (ImGui::Button(ICON_FA_PENCIL "##scriptEdit")) SDL_OpenURL(s.path.c_str());
-            ImGui::SetItemTooltip(_("Edit"));
-            ImGui::TableNextColumn();
-            pushDestColor();
-            if (ImGui::Button(ICON_FA_TIMES "##scriptRemove")) {
-              loadedScripts.erase(i+loadedScripts.begin());
+            if (ImGui::Button(ICON_FA_PLUS "##scriptAdd")) {
+              openFileDialog(GUI_FILE_LOAD_SCRIPT);
             }
-            popDestColor();
-            ImGui::SetItemTooltip(_("Remove"));
-            ImGui::PopID();
+            ImGui::EndTable();
           }
-          ImGui::EndTable();
-        }
-        if (ImGui::Button(ICON_FA_PLUS "##scriptAdd")) {
-          openFileDialog(GUI_FILE_LOAD_SCRIPT);
-        }
-        if (hadErrors) {
-          ImGui::SetCursorPosY(ImGui::GetWindowHeight()-ImGui::GetFrameHeightWithSpacing());
-          ImGui::TextUnformatted(_("there were errors while trying to run the scripts. check##scriptError1"));
-          ImGui::SameLine();
-          if (ImGui::SmallButton(_("Log Viewer"))) nextWindow=GUI_WINDOW_LOG;
-          ImGui::SameLine();
-          ImGui::TextUnformatted(_("for details.##scriptError2"));
+          switch (runStatus) {
+            case LoadedScript::Status::RunFail:
+              ImGui::TextUnformatted(_("there were errors while trying to run the scripts. check##scriptError1"));
+              ImGui::SameLine();
+              if (ImGui::SmallButton(_("Log Viewer"))) nextWindow=GUI_WINDOW_LOG;
+              ImGui::SameLine();
+              ImGui::TextUnformatted(_("for details.##scriptError2"));
+              break;
+            case LoadedScript::Status::RunSuccess:
+              ImGui::TextUnformatted(_("scripts were run successfully"));
+            default: break;
+          }
         }
         ImGui::EndTabItem();
       }

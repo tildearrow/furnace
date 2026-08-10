@@ -3526,14 +3526,14 @@ class FurnaceGUI {
   friend class SettingEntry;
 
   public:
+#define API_FUNC(_f) int sc_ ## _f (lua_State* s);
+    ///// API functions
     ///// used by script engine
-    #define API_FUNC(_f) int sc_ ## _f (lua_State* s);
 
     /// GENERAL
     API_FUNC(version)
     API_FUNC(versionStr)
     API_FUNC(showError)
-    API_FUNC(test)
 
     /// CURSOR STATE
     // -> xCoarse, xFine, y
@@ -3632,6 +3632,7 @@ class FurnaceGUI {
     API_FUNC(deleteIns)
     API_FUNC(getInsName)
     API_FUNC(getInsType)
+    API_FUNC(getInsCount)
 
     /// WAVETABLE MANIPULATION
     API_FUNC(createWave)
@@ -3642,10 +3643,12 @@ class FurnaceGUI {
     API_FUNC(setWaveHeight)
     API_FUNC(getWaveData)
     API_FUNC(setWaveData)
+    API_FUNC(getWaveCount)
 
     /// SAMPLE MANIPULATION
     API_FUNC(createSample)
     API_FUNC(deleteSample)
+    API_FUNC(getSampleCount)
     // in samples
     API_FUNC(getSampleLength)
     API_FUNC(setSampleLength)
@@ -3685,25 +3688,24 @@ class FurnaceGUI {
     // pat, chan, row, pos, val
     // subsong, pat, chan, row, pos, val
     API_FUNC(setPatternDirect)
-    // func
+    // function
     API_FUNC(addPatternInputCallback)
 
     /// DIALOGS
     // name
     API_FUNC(dialogNew)
-    // label
-    // label, default
+    // label, [default]
     API_FUNC(dialogItemString)
     API_FUNC(dialogItemCheckbox)
-    // label
-    // label, default
-    // label, default, min, max
+    // label, [default], [min, max]
     API_FUNC(dialogItemInt)
     API_FUNC(dialogItemFloat)
-
+    // function
     API_FUNC(dialogShow)
     // probably dont do this
     API_FUNC(dialogGetItems)
+
+#undef API_FUNC
 
     /// other
     void editStr(String* which);
