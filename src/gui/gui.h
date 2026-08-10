@@ -1785,16 +1785,11 @@ enum FurnaceGUIRawNoteState {
 struct FurnaceCV;
 
 struct FurnaceGUIScriptAction {
-  String name;
   luaFunction function;
   lua_State* state;
   FurnaceGUIScriptAction():
+    function(-1),
     state(NULL) {}
-};
-
-struct FurnaceGUIScriptMenu {
-  String name;
-  std::vector<FurnaceGUIScriptAction> entries;
 };
 
 class FurnaceGUI {
@@ -3083,7 +3078,7 @@ class FurnaceGUI {
   std::vector<int> selectedUserPreset;
 
   // scripting
-  std::vector<FurnaceGUIScriptMenu> scriptMenus;
+  std::map<String,std::map<String,FurnaceGUIScriptAction>> scriptMenus;
   struct LoadedScript {
     String path;
     bool enabled;

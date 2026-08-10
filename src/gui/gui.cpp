@@ -5582,11 +5582,11 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      for (FurnaceGUIScriptMenu& i: scriptMenus) {
-        if (ImGui::BeginMenu(i.name.c_str())) {
-          for (FurnaceGUIScriptAction& j: i.entries) {
-            if (ImGui::MenuItem(j.name.c_str())) {
-              runScriptFunction(j.state,j.function);
+      for (auto const& i: scriptMenus) {
+        if (ImGui::BeginMenu(i.first.c_str())) {
+          for (auto const& j: i.second) {
+            if (ImGui::MenuItem(j.first.c_str())) {
+              runScriptFunction(j.second.state,j.second.function);
             }
           }
           ImGui::EndMenu();

@@ -22,7 +22,6 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <IconsFontAwesome4.h>
 #include <fmt/printf.h>
-#include <lua.h>
 #include "util.h"
 
 static FurnaceGUI* externGUI;
@@ -249,24 +248,10 @@ _CF(registerMenuEntry) {
   const char* menuEntry=lua_tostring(s,2);
   luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
 
-  FurnaceGUIScriptMenu* menu=NULL;
-  for (FurnaceGUIScriptMenu& i: scriptMenus) {
-    if (i.name==menuName) {
-      menu=&i;
-      break;
-    }
-  }
-  // TODO: check for duplicates
-  if (menu==NULL) {
-    scriptMenus.push_back(FurnaceGUIScriptMenu());
-    menu=&scriptMenus[scriptMenus.size()-1];
-    menu->name=menuName;
-  }
   FurnaceGUIScriptAction action;
-  action.name=menuEntry;
   action.function=funcID;
   action.state=s;
-  menu->entries.push_back(action);
+  scriptMenus[menuName][menuEntry]=action;
 
   return 0;
 }
@@ -2118,19 +2103,14 @@ void FurnaceGUI::runScriptFunction(lua_State* s, luaFunction id) {
 
 void FurnaceGUI::resetScriptState(lua_State* s) {
   lua_settop(s,0);
-  for (size_t i=0; i<scriptMenus.size(); i++) {
-    FurnaceGUIScriptMenu& menu=scriptMenus[i];
-    for (size_t j=0; j<menu.entries.size(); j++) {
-      FurnaceGUIScriptAction& entry=menu.entries[j];
-      if (entry.state==s) {
-        luaL_unref(s,LUA_REGISTRYINDEX,entry.function);
-        menu.entries.erase(menu.entries.begin()+j);
-        j--;
+  for (auto menu=scriptMenus.begin(); menu!=scriptMenus.end(); menu++) {
+    for (auto entry=menu->second.begin(); entry!=menu->second.end();) {
+      if (entry->second.state==s) {
+        luaL_unref(s,LUA_REGISTRYINDEX,entry->second.function);
+        entry=scriptMenus.at(menu->first).erase(entry);
+      } else {
+        entry++;
       }
-    }
-    if (menu.entries.empty()) {
-      scriptMenus.erase(scriptMenus.begin()+i);
-      i--;
     }
   }
   scriptDialog.title.clear();
