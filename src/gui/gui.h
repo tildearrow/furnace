@@ -3532,182 +3532,183 @@ class FurnaceGUI {
 
   public:
     ///// used by script engine
+    #define API_FUNC(_f) int sc_ ## _f (lua_State* s);
 
     /// GENERAL
-    int sc_version(lua_State* s);
-    int sc_versionStr(lua_State* s);
-    int sc_showError(lua_State* s);
-    int sc_test(lua_State* s);
+    API_FUNC(version)
+    API_FUNC(versionStr)
+    API_FUNC(showError)
+    API_FUNC(test)
 
     /// CURSOR STATE
     // -> xCoarse, xFine, y
-    int sc_getCursor(lua_State* s);
+    API_FUNC(getCursor)
     // xCoarse, xFine, y
-    int sc_setCursor(lua_State* s);
+    API_FUNC(setCursor)
     // -> xCoarse, xFine, y
-    int sc_getSelStart(lua_State* s);
+    API_FUNC(getSelStart)
     // xCoarse, xFine, y
-    int sc_setSelStart(lua_State* s);
+    API_FUNC(setSelStart)
     // -> xCoarse, xFine, y
-    int sc_getSelEnd(lua_State* s);
+    API_FUNC(getSelEnd)
     // xCoarse, xFine, y
-    int sc_setSelEnd(lua_State* s);
+    API_FUNC(setSelEnd)
 
     /// PLAYBACK STATE
-    int sc_getCurOrder(lua_State* s);
-    int sc_getCurRow(lua_State* s);
-    int sc_getCurTick(lua_State* s);
-    int sc_getCurSpeeds(lua_State* s);
-    int sc_getPlayTimeSec(lua_State* s);
-    int sc_getPlayTimeMicro(lua_State* s);
-    int sc_getPlayTimeTicks(lua_State* s);
-    int sc_isPlaying(lua_State* s);
-    int sc_isRunning(lua_State* s);
-    int sc_isFreelance(lua_State* s);
-    int sc_resetEngine(lua_State* s);
+    API_FUNC(getCurOrder)
+    API_FUNC(getCurRow)
+    API_FUNC(getCurTick)
+    API_FUNC(getCurSpeeds)
+    API_FUNC(getPlayTimeSec)
+    API_FUNC(getPlayTimeMicro)
+    API_FUNC(getPlayTimeTicks)
+    API_FUNC(isPlaying)
+    API_FUNC(isRunning)
+    API_FUNC(isFreelance)
+    API_FUNC(resetEngine)
 
     /// ENGINE STATE
-    int sc_getChanCount(lua_State* s);
-    int sc_getCurSubSong(lua_State* s);
-    int sc_setCurSubSong(lua_State* s);
+    API_FUNC(getChanCount)
+    API_FUNC(getCurSubSong)
+    API_FUNC(setCurSubSong)
 
     /// INTERFACE STATE
-    int sc_getEditOrder(lua_State* s);
-    int sc_registerMenuEntry(lua_State* s);
-    int sc_getCurIns(lua_State* s);
-    int sc_getCurWave(lua_State* s);
-    int sc_getCurSample(lua_State* s);
-    int sc_setCurIns(lua_State* s);
-    int sc_setCurWave(lua_State* s);
-    int sc_setCurSample(lua_State* s);
-    int sc_getOctave(lua_State* s);
-    int sc_getEditStep(lua_State* s);
-    int sc_getEditStepCoarse(lua_State* s);
-    int sc_getOrderEditMode(lua_State* s);
-    int sc_getOrderCursor(lua_State* s);
-    int sc_setOctave(lua_State* s);
-    int sc_setEditStep(lua_State* s);
-    int sc_setEditStepCoarse(lua_State* s);
-    int sc_setOrderEditMode(lua_State* s);
-    int sc_setOrderCursor(lua_State* s);
+    API_FUNC(getEditOrder)
+    API_FUNC(registerMenuEntry)
+    API_FUNC(getCurIns)
+    API_FUNC(getCurWave)
+    API_FUNC(getCurSample)
+    API_FUNC(setCurIns)
+    API_FUNC(setCurWave)
+    API_FUNC(setCurSample)
+    API_FUNC(getOctave)
+    API_FUNC(getEditStep)
+    API_FUNC(getEditStepCoarse)
+    API_FUNC(getOrderEditMode)
+    API_FUNC(getOrderCursor)
+    API_FUNC(setOctave)
+    API_FUNC(setEditStep)
+    API_FUNC(setEditStepCoarse)
+    API_FUNC(setOrderEditMode)
+    API_FUNC(setOrderCursor)
 
     /// SONG MANIPULATION
-    int sc_createNewSong(lua_State* s);
-    int sc_getSongName(lua_State* s);
-    int sc_setSongName(lua_State* s);
-    int sc_getSongAuthor(lua_State* s);
-    int sc_setSongAuthor(lua_State* s);
-    int sc_getSongAlbum(lua_State* s);
-    int sc_setSongAlbum(lua_State* s);
-    int sc_getSongSysName(lua_State* s);
-    int sc_setSongSysName(lua_State* s);
-    int sc_getSongTuning(lua_State* s);
-    int sc_setSongTuning(lua_State* s);
-    int sc_getSongComments(lua_State* s);
-    int sc_setSongComments(lua_State* s);
+    API_FUNC(createNewSong)
+    API_FUNC(getSongName)
+    API_FUNC(setSongName)
+    API_FUNC(getSongAuthor)
+    API_FUNC(setSongAuthor)
+    API_FUNC(getSongAlbum)
+    API_FUNC(setSongAlbum)
+    API_FUNC(getSongSysName)
+    API_FUNC(setSongSysName)
+    API_FUNC(getSongTuning)
+    API_FUNC(setSongTuning)
+    API_FUNC(getSongComments)
+    API_FUNC(setSongComments)
 
     /// SUB-SONG MANIPULATION
-    int sc_getSubSongName(lua_State* s);
-    int sc_setSubSongName(lua_State* s);
-    int sc_getSubSongComments(lua_State* s);
-    int sc_setSubSongComments(lua_State* s);
-    int sc_getSongRate(lua_State* s);
-    int sc_setSongRate(lua_State* s);
-    int sc_getSongVirtualTempo(lua_State* s);
-    int sc_setSongVirtualTempo(lua_State* s);
-    int sc_getSongHighlights(lua_State* s);
-    int sc_setSongHighlights(lua_State* s);
-    int sc_getSongSpeeds(lua_State* s);
-    int sc_setSongSpeeds(lua_State* s);
-    int sc_getSongLength(lua_State* s);
-    int sc_setSongLength(lua_State* s);
-    int sc_getPatLength(lua_State* s);
-    int sc_setPatLength(lua_State* s);
+    API_FUNC(getSubSongName)
+    API_FUNC(setSubSongName)
+    API_FUNC(getSubSongComments)
+    API_FUNC(setSubSongComments)
+    API_FUNC(getSongRate)
+    API_FUNC(setSongRate)
+    API_FUNC(getSongVirtualTempo)
+    API_FUNC(setSongVirtualTempo)
+    API_FUNC(getSongHighlights)
+    API_FUNC(setSongHighlights)
+    API_FUNC(getSongSpeeds)
+    API_FUNC(setSongSpeeds)
+    API_FUNC(getSongLength)
+    API_FUNC(setSongLength)
+    API_FUNC(getPatLength)
+    API_FUNC(setPatLength)
 
     /// HIGH-LEVEL FUNCTIONS
-    int sc_exchangeIns(lua_State* s);
-    int sc_exchangeWave(lua_State* s);
-    int sc_exchangeSample(lua_State* s);
-    int sc_swapChannels(lua_State* s);
-    int sc_stompChannel(lua_State* s);
+    API_FUNC(exchangeIns)
+    API_FUNC(exchangeWave)
+    API_FUNC(exchangeSample)
+    API_FUNC(swapChannels)
+    API_FUNC(stompChannel)
 
     /// INSTRUMENT MANIPULATION (TODO)
-    int sc_createIns(lua_State* s);
-    int sc_deleteIns(lua_State* s);
-    int sc_getInsName(lua_State* s);
-    int sc_getInsType(lua_State* s);
+    API_FUNC(createIns)
+    API_FUNC(deleteIns)
+    API_FUNC(getInsName)
+    API_FUNC(getInsType)
 
     /// WAVETABLE MANIPULATION
-    int sc_createWave(lua_State* s);
-    int sc_deleteWave(lua_State* s);
-    int sc_getWaveWidth(lua_State* s);
-    int sc_setWaveWidth(lua_State* s);
-    int sc_getWaveHeight(lua_State* s);
-    int sc_setWaveHeight(lua_State* s);
-    int sc_getWaveData(lua_State* s);
-    int sc_setWaveData(lua_State* s);
+    API_FUNC(createWave)
+    API_FUNC(deleteWave)
+    API_FUNC(getWaveWidth)
+    API_FUNC(setWaveWidth)
+    API_FUNC(getWaveHeight)
+    API_FUNC(setWaveHeight)
+    API_FUNC(getWaveData)
+    API_FUNC(setWaveData)
 
     /// SAMPLE MANIPULATION
-    int sc_createSample(lua_State* s);
-    int sc_deleteSample(lua_State* s);
+    API_FUNC(createSample)
+    API_FUNC(deleteSample)
     // in samples
-    int sc_getSampleLength(lua_State* s);
-    int sc_setSampleLength(lua_State* s);
+    API_FUNC(getSampleLength)
+    API_FUNC(setSampleLength)
     // in bytes
-    int sc_getSampleSize(lua_State* s);
-    int sc_getSampleType(lua_State* s);
-    int sc_setSampleType(lua_State* s);
-    int sc_getSampleLoop(lua_State* s);
-    int sc_setSampleLoop(lua_State* s);
-    int sc_getSampleRate(lua_State* s);
-    int sc_setSampleRate(lua_State* s);
-    int sc_getSampleData(lua_State* s);
-    int sc_setSampleData(lua_State* s);
-    int sc_isSampleEditable(lua_State* s);
-    int sc_renderSamples(lua_State* s);
+    API_FUNC(getSampleSize)
+    API_FUNC(getSampleType)
+    API_FUNC(setSampleType)
+    API_FUNC(getSampleLoop)
+    API_FUNC(setSampleLoop)
+    API_FUNC(getSampleRate)
+    API_FUNC(setSampleRate)
+    API_FUNC(getSampleData)
+    API_FUNC(setSampleData)
+    API_FUNC(isSampleEditable)
+    API_FUNC(renderSamples)
 
     /// ORDER MANIPULATION
     // chan, order -> val
     // subsong, chan, order -> val
-    int sc_getOrder(lua_State* s);
+    API_FUNC(getOrder)
     // chan, order, val
     // subsong, chan, order, val
-    int sc_setOrder(lua_State* s);
+    API_FUNC(setOrder)
 
     /// PATTERN MANIPULATION
     // chan, row, pos -> val
     // order, chan, row, pos -> val
     // subsong, order, chan, row, pos -> val
-    int sc_getPattern(lua_State* s);
+    API_FUNC(getPattern)
     // chan, row, pos, val
     // order, chan, row, pos, val
     // subsong, order, chan, row, pos, val
-    int sc_setPattern(lua_State* s);
+    API_FUNC(setPattern)
     // pat, chan, row, pos -> val
     // subsong, pat, chan, row, pos -> val
-    int sc_getPatternDirect(lua_State* s);
+    API_FUNC(getPatternDirect)
     // pat, chan, row, pos, val
     // subsong, pat, chan, row, pos, val
-    int sc_setPatternDirect(lua_State* s);
+    API_FUNC(setPatternDirect)
     // func
-    int sc_addPatternInputCallback(lua_State* s);
+    API_FUNC(addPatternInputCallback)
 
     /// DIALOGS
     // name
-    int sc_dialogNew(lua_State* s);
+    API_FUNC(dialogNew)
     // label
     // label, default
-    int sc_dialogItemString(lua_State* s);
-    int sc_dialogItemCheckbox(lua_State* s);
+    API_FUNC(dialogItemString)
+    API_FUNC(dialogItemCheckbox)
     // label
     // label, default
     // label, default, min, max
-    int sc_dialogItemInt(lua_State* s);
-    int sc_dialogItemFloat(lua_State* s);
+    API_FUNC(dialogItemInt)
+    API_FUNC(dialogItemFloat)
 
-    int sc_dialogShow(lua_State* s);
+    API_FUNC(dialogShow)
     // probably dont do this
-    int sc_dialogGetItems(lua_State* s);
+    API_FUNC(dialogGetItems)
 
     /// other
     void editStr(String* which);
