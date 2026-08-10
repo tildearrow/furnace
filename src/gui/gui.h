@@ -3705,6 +3705,8 @@ class FurnaceGUI {
     // probably dont do this
     API_FUNC(dialogGetItems)
 
+    API_FUNC(inspect);
+
 #undef API_FUNC
 
     /// other

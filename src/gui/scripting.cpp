@@ -100,6 +100,31 @@ static FurnaceGUI* externGUI;
   lua_setfield(s,-2,#l); \
   lua_pop(s,1);
 
+// make category under the "fur" namespace and let it available on the top of the stack
+#define API_MAKE_CATG(_name) \
+  lua_getglobal(s,"fur"); \
+  lua_newtable(s); \
+  lua_pushnil(s); \
+  lua_copy(s,-2,-1); \
+  lua_setfield(s,-3,_name); \
+  lua_remove(s,-2);
+
+// put already-existing category under the "fur" namespace on the top of the stack; creates it if is not present
+#define API_USE_CATG(_name) \
+  lua_getglobal(s,"fur"); \
+  lua_getfield(s,-1,_name); \
+  if (lua_isnil(s,-1)) API_MAKE_CATG(_name);
+
+// assuming a table T is on the top of the stack, performs T[_name]=_value. conserves stack.
+#define API_ADD_VALUE(_name,_value,_type) \
+  lua_push##_type(s,_value); \
+  lua_setfield(s,-2,_name);
+
+// same as API_ADD_VALUE, but for functions specifically. _funcId is an identifier.
+#define API_ADD_FUNC(_name,_funcId) \
+  lua_pushcfunction(s,_##_funcId); \
+  lua_setfield(s,-2,_name);
+
 /// FUNCTIONS
 
 _CF(version) {
@@ -1762,6 +1787,13 @@ _CF(dialogGetItems) {
   return scriptDialog.items.size();
 }
 
+_CF(inspect) {
+  CHECK_ARGS(1);
+  String repr=inspectTopValue(s,false);
+  lua_pushstring(s,repr.c_str());
+  return 1;
+}
+
 // LOGGING
 // these functions dont need FurnaceGUI so theyre not members of it
 
@@ -1825,7 +1857,6 @@ class StackDiffChecker {
 String FurnaceGUI::inspectValues(lua_State* s, bool indentTables) {
   // saving the amount here so we don't get in an infinite loop in case of bad stack manipulation
   int n=lua_gettop(s);
-  logD("n=%d",n);
   if (n<0) return _("<no value>");
 
   String ret="";
@@ -2129,8 +2160,10 @@ void FurnaceGUI::resetScriptState(lua_State* s) {
 }
 
 void FurnaceGUI::bindScriptFunctions(lua_State* s) {
+  // make "fur" table
   lua_newtable(s);
   lua_setglobal(s,"fur");
+
   REG_FUNC(version);
   REG_FUNC(versionStr);
   REG_FUNC(showError);
@@ -2240,16 +2273,24 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   REG_FUNC(logI);
   REG_FUNC(logW);
   REG_FUNC(logE);
-  // constants/enums
-  REG_ENUM(DIV_NOTE_OFF,NOTE_OFF)
-  REG_ENUM(DIV_NOTE_REL,NOTE_REL)
-  REG_ENUM(DIV_MACRO_REL,MACRO_REL)
-  REG_ENUM(DIV_NOTE_RAW,NOTE_RAW)
+  REG_FUNC(inspect);
 
-  REG_ENUM(DIV_PAT_NOTE,PAT_NOTE)
-  REG_ENUM(DIV_PAT_INS,PAT_INS)
-  REG_ENUM(DIV_PAT_VOL,PAT_VOL)
-  REG_ENUM(DIV_PAT_RAW,PAT_RAW)
+  // constants/enums
+  REG_ENUM(DIV_NOTE_OFF,NOTE_OFF);
+  REG_ENUM(DIV_NOTE_REL,NOTE_REL);
+  REG_ENUM(DIV_MACRO_REL,MACRO_REL);
+  REG_ENUM(DIV_NOTE_RAW,NOTE_RAW);
+  REG_ENUM(DIV_PAT_NOTE,PAT_NOTE);
+  REG_ENUM(DIV_PAT_INS,PAT_INS);
+  REG_ENUM(DIV_PAT_VOL,PAT_VOL);
+  REG_ENUM(DIV_PAT_RAW,PAT_RAW);
+
+  API_USE_CATG("talvez");
+  API_ADD_VALUE("a",200,integer);
+  API_ADD_VALUE("b",400,integer);
+  API_ADD_VALUE("c",150,integer);
+  API_ADD_FUNC("logE",logE);
+  lua_pop(s,1);
 }
 
 #define LOAD_LIB(_s,_n,_f) luaL_requiref(_s,_n,_f,1); lua_pop(_s,1);
