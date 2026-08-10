@@ -103,7 +103,7 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -134,9 +134,9 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
       chan[i].freq=chan[i].calcFreq();
       if (!chan[i].rawFreq) {
         chan[i].freq=0x1000-chan[i].freq;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>4095) chan[i].freq=4095;
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>4095) chan[i].freq=4095;
       k005289.load(i,chan[i].freq);
       rWrite(i,chan[i].freq);
       k005289.update(i);

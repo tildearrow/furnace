@@ -154,7 +154,7 @@ enum FurnaceGUIRenderBackend {
 #define GUI_EDIT_OCTAVE_MIN -5
 #define GUI_EDIT_OCTAVE_MAX 7
 
-#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
+#define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;45:103;"
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -217,6 +217,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_SLIDER_GRAB_ACTIVE,
   GUI_COLOR_TITLE_BACKGROUND_ACTIVE,
   GUI_COLOR_CHECK_MARK,
+  GUI_COLOR_CHECKBOX_BACKGROUND_ACTIVE,
   GUI_COLOR_TEXT_SELECTION,
   GUI_COLOR_TABLE_ROW_EVEN,
   GUI_COLOR_TABLE_ROW_ODD,
@@ -696,6 +697,9 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
+#ifdef WITH_JSON
+  GUI_FILE_EXPORT_JSON,
+#endif
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_EXPORT_COMPILED_INS,
   GUI_FILE_EXPORT_COMPILED_INS_ONE,
@@ -743,6 +747,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_RESET_CONFIG,
   GUI_WARN_IMPORT,
   GUI_WARN_NPR,
+  GUI_WARN_QUIT_SETTINGS,
   GUI_WARN_GENERIC
 };
 
@@ -754,6 +759,9 @@ enum FurnaceGUIExportTypes {
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
+#ifdef WITH_JSON
+  GUI_EXPORT_JSON,
+#endif
   GUI_EXPORT_DMF
 };
 
@@ -1007,11 +1015,13 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_INSERT,
   GUI_ACTION_SAMPLE_DELETE,
   GUI_ACTION_SAMPLE_TRIM,
+  GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE,
   GUI_ACTION_SAMPLE_REVERSE,
   GUI_ACTION_SAMPLE_INVERT,
   GUI_ACTION_SAMPLE_SIGN,
   GUI_ACTION_SAMPLE_FILTER,
   GUI_ACTION_SAMPLE_CROSSFADE_LOOP,
+  GUI_ACTION_SAMPLE_FIX_LOOP,
   GUI_ACTION_SAMPLE_PREVIEW,
   GUI_ACTION_SAMPLE_STOP_PREVIEW,
   GUI_ACTION_SAMPLE_ZOOM_IN,
@@ -1023,6 +1033,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_COPY_NEW,
   GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP,
   GUI_ACTION_SAMPLE_TRIM_TO_LOOP,
+  GUI_ACTION_SAMPLE_SELECT_LOOP,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -1752,6 +1763,16 @@ enum NoteInputModes: unsigned char {
   GUI_NOTE_INPUT_CHORD
 };
 
+enum FurnaceGUIRawNoteState {
+  // note at cursor is regular.
+  GUI_RAWNOTE_NORMAL=0,
+  // note at cursor is a raw frequency one.
+  // don't preview notes.
+  GUI_RAWNOTE_PENDING=1,
+  // note at cursor is a raw frequency one, and we're ready to preview it.
+  GUI_RAWNOTE_READY=2,
+};
+
 struct FurnaceCV;
 
 class FurnaceGUI {
@@ -2479,6 +2500,11 @@ class FurnaceGUI {
   int curPaletteChoice, curPaletteType;
   float soloTimeout;
 
+  int curRawNote;
+  FurnaceGUIRawNoteState curRawNoteState;
+  int pendingRawNote; // you can only play a single raw note at a time...
+  SDL_Keycode pendingRawNoteKey;
+
   int multiIns[7];
   int multiInsTranspose[7];
   bool mobileMultiInsToggle;
@@ -2520,6 +2546,7 @@ class FurnaceGUI {
   float peak[DIV_MAX_OUTPUTS];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
+  float patLineHeight;
   float lastPatternWidth, longThreshold;
   float buttonLongThreshold;
   String nextDesc;
@@ -2726,8 +2753,9 @@ class FurnaceGUI {
   int resizeSize, silenceSize;
   double resampleTarget;
   int resampleStrat;
+  int sampleFixLoopTarget;
   float amplifyVol, amplifyOff;
-  float noiseGateThreshold;
+  float trimSideNoiseThreshold;
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
@@ -2745,7 +2773,7 @@ class FurnaceGUI {
   unsigned char sampleFilterPower;
   short* sampleClipboard;
   size_t sampleClipboardLen;
-  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt, openSampleNoiseGateOpt;
+  bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt, openSampleCrossFadeOpt, openTrimSideNoiseOpt;
 
   // mixer
   // 0xxx: output
@@ -2918,6 +2946,17 @@ class FurnaceGUI {
     PIANO_KEY_COLOR_INSTRUMENT
   };
 
+  enum PianoInputMode {
+    PIANO_INPUT_NOTE=0,
+    PIANO_INPUT_VALUE,
+    PIANO_INPUT_ORDER,
+    PIANO_INPUT_SAMPLE_MAP_NOTE,
+    PIANO_INPUT_SAMPLE_MAP_VALUE,
+    PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ,
+    PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA,
+    PIANO_INPUT_RAW_FREQ
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   struct pianoKeyState {
@@ -2988,6 +3027,11 @@ class FurnaceGUI {
   DivCSOptions csExportOptions;
   DivCSProgress csProgress;
 
+#ifdef WITH_JSON
+  // JSON export specific
+  DivJSONExportOptions jsonExportOptions;
+#endif
+
   // ROM export specific
   DivROMExportOptions romTarget;
   DivConfig romConfig;
@@ -3002,6 +3046,10 @@ class FurnaceGUI {
   int sampleCompileDispatch;
   int sampleCompileIndex;
   size_t sampleCompileSize;
+
+  // speed window specific
+  Uint64 lastTapTime;
+  float grooveTargetBPM;
 
   // user presets window
   std::vector<int> selectedUserPreset;
@@ -3027,6 +3075,9 @@ class FurnaceGUI {
   void drawExportVGM(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
   void drawExportText(bool onWindow=false);
+#ifdef WITH_JSON
+  void drawExportJSON(bool onWindow=false);
+#endif
   void drawExportCommand(bool onWindow=false);
   void drawExportDMF(bool onWindow=false);
 
@@ -3038,7 +3089,7 @@ class FurnaceGUI {
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawSID3Env(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
-  bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
+  bool drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, unsigned short& systemChans, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins, bool supportsKVS=true);
   void drawFMPreview(const ImVec2& size);
   void renderFMPreview(const DivInstrument* ins, int pos=0);
@@ -3053,7 +3104,7 @@ class FurnaceGUI {
   void VerticalText(float maxSize, bool centered, const char* fmt, ...);
 
   // combo with locale
-  static bool LocalizedComboGetter(void* data, int idx, const char** out_text);
+  static const char* LocalizedComboGetter(void* data, int idx);
 
   // these ones offer ctrl-wheel fine value changes.
   bool isCtrlWheelModifierHeld() const;
@@ -3101,6 +3152,7 @@ class FurnaceGUI {
   void sameLineMaybe(float width=-1.0f);
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
+  void calcGrooveBPM(float targetBPM, DivGroovePattern& groove, float hz, int hilightA);
 
   ImVec2 mapSelPoint(const SelectionPoint& s, float lineHeight);
 

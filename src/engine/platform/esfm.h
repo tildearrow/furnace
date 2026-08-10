@@ -135,6 +135,7 @@ class DivPlatformESFM: public DivDispatch {
   DivPitchTable pitchTable;
   short oldOut[2];
   bool isFast;
+  unsigned char revision;
 
   unsigned char regPool[ESFM_REG_POOL_SIZE];
   short oldWrites[ESFM_REG_POOL_SIZE];

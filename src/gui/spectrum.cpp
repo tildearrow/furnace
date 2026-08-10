@@ -207,7 +207,7 @@ void FurnaceGUI::drawSpectrum() {
           spectrum.plot[z][i].y=origin.y+size.y*(y-spectrum.yOffset);
         }
         ImGui::PushClipRect(origin,origin+size,true);
-        dl->AddPolyline(spectrum.plot[z],count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),0,dpiScale);
+        dl->AddPolyline(spectrum.plot[z],count,ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]),dpiScale);
         dl->PathFillConcave(ImGui::GetColorU32(uiColors[spectrum.mono?GUI_COLOR_OSC_WAVE:GUI_COLOR_OSC_WAVE_CH0+z]));
         ImGui::PopClipRect();
       }

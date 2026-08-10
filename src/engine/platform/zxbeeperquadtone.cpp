@@ -112,7 +112,7 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -130,8 +130,10 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
         chan[i].freq=chan[i].calcFreq();
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>32768) chan[i].freq=32768;
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<0) chan[i].freq=0;
+          if (chan[i].freq>32768) chan[i].freq=32768;
+        }
         rWrite(0+i*4,chan[i].freq&0xff);
         rWrite(1+i*4,chan[i].freq>>8);
       }
@@ -142,7 +144,7 @@ void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[4].handleArp();
-  } else if (chan[4].std.arp.had) {
+  } else if (chan[4].std.arp.had && !chan[4].rawFreq) {
     if (!chan[4].inPorta) {
       chan[4].baseFreq=chan[4].calcBaseFreq(parent->calcArp(chan[4].note,chan[4].std.arp.val));
     }
@@ -393,6 +395,7 @@ void DivPlatformZXBeeperQuadTone::notifyPitchTable(int sample) {
 
 unsigned int DivPlatformZXBeeperQuadTone::getMaxFreq(int ch) {
   if (ch>=4) return 0xff;
+  // it should be 32768, but then we can't and
   return 0x7fff;
 }
 

@@ -958,7 +958,7 @@ void FurnaceGUI::drawChanOsc() {
                 // ImGui::PushClipRect(inRect.Min,inRect.Max,false);
                 //ImDrawListFlags prevFlags=dl->Flags;
                 //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-                dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
+                dl->AddPolyline(waveform,precision,color,dpiScale*chanOscLineSize,ImDrawFlags_None);
                 //dl->Flags=prevFlags;
                 // ImGui::PopClipRect();
               }
