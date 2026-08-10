@@ -1,6 +1,2 @@
 # Nuked-OPM
-Cycle accurate YM2151 emulator
-
-# modified
-
-this is a slightly modified version that strips out timer and CSM emulation to slightly reduce CPU usage.
+Cycle accurate YM2151(OPM) and YM2164(OPP) emulator

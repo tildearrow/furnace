@@ -89,7 +89,8 @@ static const char* specificControls[18]={
 
 static const char* arcadeCores[]={
   "ymfm",
-  "Nuked-OPM"
+  "Nuked-OPM",
+  "YM2151-LLE"
 };
 
 static const char* ym2612Cores[]={
@@ -128,13 +129,15 @@ static const char* opnCores[]={
 static const char* opl2Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YM3812-LLE"
+  "YM3812-LLE",
+  "Nuked-OPL2 Lite"
 };
 
 static const char* opl3Cores[]={
   "Nuked-OPL3",
   "ymfm",
-  "YMF262-LLE"
+  "YMF262-LLE",
+  "Nuked-CQM"
 };
 
 static const char* opl4Cores[]={
@@ -656,6 +659,7 @@ void FurnaceGUI::initSettings() {
             settings.initialSys.set(fmt::sprintf("pan%d",i),(float)e->song.systemPan[i]);
             settings.initialSys.set(fmt::sprintf("fr%d",i),(float)e->song.systemPanFR[i]);
             settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
+            settings.initialSys.set(fmt::sprintf("chans%d",i),e->song.systemChans[i]);
           }
           settings.initialSysName=e->song.systemName;
           ret=true;
@@ -677,6 +681,7 @@ void FurnaceGUI::initSettings() {
               settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
               settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
               settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+              settings.initialSys.set(fmt::sprintf("chans%d",i),e->getChannelCount(theSystem));
             }
           } else {
             settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
@@ -684,6 +689,7 @@ void FurnaceGUI::initSettings() {
             settings.initialSys.set("pan0",0.0f);
             settings.initialSys.set("fr0",0.0f);
             settings.initialSys.set("flags0","");
+            settings.initialSys.set("chans0",e->getChannelCount(DIV_SYSTEM_DUMMY));
             howMany=1;
           }
           // randomize system name
@@ -722,11 +728,13 @@ void FurnaceGUI::initSettings() {
           settings.initialSys.set("pan0",0.0f);
           settings.initialSys.set("fr0",0.0f);
           settings.initialSys.set("flags0","");
+          settings.initialSys.set("chans0",e->getChannelCount(DIV_SYSTEM_YM2612));
           settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
           settings.initialSys.set("vol1",0.5f);
           settings.initialSys.set("pan1",0.0f);
           settings.initialSys.set("fr1",0.0f);
           settings.initialSys.set("flags1","");
+          settings.initialSys.set("chans1",e->getChannelCount(DIV_SYSTEM_SMS));
           settings.initialSysName="Sega Genesis/Mega Drive";
           ret=true;
         }
@@ -744,6 +752,8 @@ void FurnaceGUI::initSettings() {
           float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i),0);
           float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i),0);
           float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i),0);
+          unsigned short sysChans=settings.initialSys.getInt(fmt::sprintf("chans%d",i),e->getChannelCount(sysID));
+          if (sysChans==0) sysChans=e->getChannelCount(sysID);
 
           sysCount=i+1;
 
@@ -754,13 +764,14 @@ void FurnaceGUI::initSettings() {
 
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(_("Invert")).x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x*2.0);
             if (ImGui::BeginCombo("##System",getSystemName(sysID),ImGuiComboFlags_HeightLargest)) {
-
             sysID=systemPicker(true);
 
             if (sysID!=DIV_SYSTEM_NULL)
             {
               settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
               settings.initialSys.set(fmt::sprintf("flags%d",i),"");
+              settings.initialSys.set(fmt::sprintf("chans%d",i),e->getChannelCount(sysID));
+              sysChans=e->getChannelCount(sysID);
               ret=true;
 
               ImGui::CloseCurrentPopup();
@@ -815,8 +826,9 @@ void FurnaceGUI::initSettings() {
             String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
             DivConfig sysFlags;
             sysFlags.loadFromBase64(sysFlagsS.c_str());
-            if (drawSysConf(-1,i,sysID,sysFlags,false)) {
+            if (drawSysConf(-1,i,sysID,sysFlags,sysChans,false)) {
               settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags.toBase64());
+              settings.initialSys.set(fmt::sprintf("chans%d",i),sysChans);
             }
             ImGui::TreePop();
             ret=true;
@@ -832,11 +844,14 @@ void FurnaceGUI::initSettings() {
             float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i+1),0);
             float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i+1),0);
             String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
+            unsigned short sysChans=settings.initialSys.getInt(fmt::sprintf("chans%d",i+1),e->getChannelCount(e->systemFromFileFur(sysID)));
+            if (sysChans==0) sysChans=e->getChannelCount(e->systemFromFileFur(sysID));
             settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
             settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
             settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
             settings.initialSys.set(fmt::sprintf("fr%d",i),sysPanFR);
             settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
+            settings.initialSys.set(fmt::sprintf("chans%d",i),sysChans);
           }
 
           settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
@@ -844,6 +859,7 @@ void FurnaceGUI::initSettings() {
           settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
           settings.initialSys.remove(fmt::sprintf("fr%d",sysCount-1));
           settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
+          settings.initialSys.remove(fmt::sprintf("chans%d",sysCount-1));
         }
 
         if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
@@ -852,6 +868,7 @@ void FurnaceGUI::initSettings() {
           settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
           settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
           settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
+          settings.initialSys.set(fmt::sprintf("chans%d",sysCount),e->getChannelCount(DIV_SYSTEM_YM2612));
         }
 
         return ret;
@@ -1519,6 +1536,7 @@ void FurnaceGUI::initSettings() {
       // the table of doom...
       SettingEntry(_N("Emulation cores"),NULL,[this]{
         bool ret=false;
+        ImGui::TextWrapped(_("these settings will take effect after pressing OK or Apply."));
         if (ImGui::BeginTable("##Cores",3)) {
           ImGui::TableSetupColumn("##System",ImGuiTableColumnFlags_WidthFixed);
           ImGui::TableSetupColumn("##PlaybackCores",ImGuiTableColumnFlags_WidthStretch);
@@ -2487,6 +2505,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_SLIDER_GRAB_ACTIVE) GURU_MODE,
       SETTING_COLOR(GUI_COLOR_TITLE_BACKGROUND_ACTIVE) GURU_MODE,
       SETTING_COLOR(GUI_COLOR_CHECK_MARK) GURU_MODE,
+      SETTING_COLOR(GUI_COLOR_CHECKBOX_BACKGROUND_ACTIVE) GURU_MODE,
       SETTING_COLOR(GUI_COLOR_TEXT_LINK) GURU_MODE,
       SETTING_COLOR(GUI_COLOR_TEXT_SELECTION) GURU_MODE,
       SETTING_COLOR(GUI_COLOR_TREE_LINES) GURU_MODE,
@@ -3231,6 +3250,7 @@ void FurnaceGUI::initSettings() {
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_SILENCE),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_DELETE),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_TRIM),
+      SETTING_KEYBIND(GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_REVERSE),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_INVERT),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_SIGN),
@@ -3242,6 +3262,7 @@ void FurnaceGUI::initSettings() {
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_ZOOM_AUTO),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_MAKE_INS),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_SET_LOOP),
+      SETTING_KEYBIND(GUI_ACTION_SAMPLE_SELECT_LOOP),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP),
       SETTING_KEYBIND(GUI_ACTION_SAMPLE_TRIM_TO_LOOP),
     })

@@ -550,6 +550,8 @@ void DivEngine::registerSystems() {
     {0x1f, {DIV_CMD_FM_PM_DEPTH, _("1Fxx: Set PM depth (0 to 7F)"), effectValAnd<127>}},
     {0x55, {DIV_CMD_FM_DT2, _("55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
+    // I know this is the wrong command name. I don't feel like adding a new command just for this.
+    {0x64, {DIV_CMD_ES5506_ENVELOPE_LVRAMP, _("64xx: Set TL ramp time (YM2164/OPP only!)")}},
   });
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
@@ -1522,7 +1524,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
-    _("SegaPCM"), NULL, 0x9b, 0, 16, 16, 16,
+    _("SegaPCM"), NULL, 0x9b, 0, 16, 8, 16,
     false, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
     _("used in some Sega arcade boards (like OutRun), and usually paired with a YM2151."),
     DivChanDefFunc(stockChanDef<DIV_CH_PCM,DIV_INS_SEGAPCM,DIV_INS_AMIGA>),

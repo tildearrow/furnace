@@ -336,11 +336,11 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
     os[1]+=((fmout.data[1]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
-  
+
     buf[0][h]=os[0];
     buf[1][h]=os[1];
 
-    
+
     for (int i=0; i<(psgChanOffs-isCSM); i++) {
       oscBuf[i]->putSample(h,CLAMP(fm_nuked.ch_out[bchOffs[i]]<<1,-32768,32767));
     }
@@ -415,7 +415,7 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
       }
       if (delay>0) break;
     }
-    
+
     fm->generate(&fmout);
     iface.clock();
 
@@ -426,7 +426,7 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
     os[1]+=((fmout.data[1]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
-  
+
     buf[0][h]=os[0];
     buf[1][h]=os[1];
 
@@ -664,7 +664,7 @@ void DivPlatformYM2610::acquire_lle(short** buf, size_t len) {
   }
 }
 
-void DivPlatformYM2610::tick(bool sysTick) {  
+void DivPlatformYM2610::tick(bool sysTick) {
   // FM
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
     if (i==1 && extMode) continue;
@@ -689,7 +689,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11,chan[i].state.block);
       }
@@ -842,7 +842,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
   for (int i=0; i<(psgChanOffs-isCSM); i++) {
     if (i==1 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
+      if (chan[i].rawFreq) {
+        chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
@@ -857,7 +859,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
         }
         chan[i].freq=(block<<11)|fNum;
       }
-      if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
+      }
       immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
       hardResetElapsed+=2;
@@ -919,7 +923,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
 
   if (NEW_ARP_STRAT) {
     chan[adpcmBChanOffs].handleArp();
-  } else if (chan[adpcmBChanOffs].std.arp.had) {
+  } else if (chan[adpcmBChanOffs].std.arp.had && !chan[adpcmBChanOffs].rawFreq) {
     if (!chan[adpcmBChanOffs].inPorta) {
       chan[adpcmBChanOffs].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmBChanOffs].note,chan[adpcmBChanOffs].std.arp.val));
     }
@@ -952,7 +956,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
   }
 
   if (chan[adpcmBChanOffs].freqChanged || chan[adpcmBChanOffs].keyOn || chan[adpcmBChanOffs].keyOff) {
-    if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
+    if (chan[adpcmBChanOffs].rawFreq) {
+      chan[adpcmBChanOffs].freq=chan[adpcmBChanOffs].baseFreq;
+    } else if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
       double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/parent->getCenterRate();
       chan[adpcmBChanOffs].freq=parent->calcFreq(chan[adpcmBChanOffs].baseFreq,chan[adpcmBChanOffs].pitch,chan[adpcmBChanOffs].fixedArp?chan[adpcmBChanOffs].baseNoteOverride:chan[adpcmBChanOffs].arpOff,chan[adpcmBChanOffs].fixedArp,false,4,chan[adpcmBChanOffs].pitch2,(double)chipClock/144,off);
     } else {
@@ -1014,7 +1020,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
           DivInstrumentFM::Operator& op=chan[i].state.op[j];
           immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
         }
-        
+
         immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
         chan[i].opMaskChanged=false;
         chan[i].keyOn=false;
@@ -1032,7 +1038,7 @@ void DivPlatformYM2610::commitState(int ch, DivInstrument* ins) {
       (chan[ch].state.op[1].enable?4:0)|
       (chan[ch].state.op[3].enable?8:0);
   }
-  
+
   for (int i=0; i<4; i++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator& op=chan[ch].state.op[i];
@@ -1096,7 +1102,12 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
-            chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
+            chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
+            if (chan[c.chan].rawFreq) {
+              chan[c.chan].baseFreq=chan[c.chan].note&(~DIV_NOTE_RAW_FLAG);
+            } else {
+              chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
+            }
             chan[c.chan].freqChanged=true;
           }
           chan[c.chan].active=true;
@@ -1172,6 +1183,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].portaPause=false;
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -1322,6 +1334,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           commitState(c.chan,ins);
           chan[c.chan].insChanged=false;
         }
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       }
       chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value+chan[c.chan].sampleNoteDelta);
       chan[c.chan].freqChanged=true;
@@ -1667,7 +1680,7 @@ void DivPlatformYM2610::forceIns() {
   for (int i=adpcmAChanOffs; i<=adpcmBChanOffs; i++) {
     chan[i].insChanged=true;
   }
-  
+
   ay->forceIns();
   ay->flushWrites();
   for (DivRegWrite& i: ay->getRegisterWrites()) {

@@ -132,7 +132,7 @@ void DivPlatformESFM::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -343,8 +343,10 @@ void DivPlatformESFM::tick(bool sysTick) {
         mul=octave(chan[i].baseFreq,fixedBlock)*2;
       }
       chan[i].freq=chan[i].calcFreq(mul);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>131071) chan[i].freq=131071;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>131071) chan[i].freq=131071;
+      }
 
       for (int o=0; o<4; o++) {
         unsigned short baseAddr=i*32+o*8;
@@ -1049,8 +1051,18 @@ int DivPlatformESFM::getRegisterPoolSize() {
 
 void DivPlatformESFM::reset() {
   while (!writes.empty()) writes.pop();
+  
+  esfm_revision rev=ESFM_REV_ES16XX_ES17XX_ES1868;
+  switch (revision) {
+    case 1: // clip
+      rev=ESFM_REV_ES1869_ES19XX_ESSSOLO;
+      break;
+    default: // no clip
+      rev=ESFM_REV_ES16XX_ES17XX_ES1868;
+      break;
+  }
 
-  ESFM_init(&chip,isFast?1:0);
+  ESFM_init_with_rev(&chip,rev,isFast);
   // set chip to native mode
   ESFM_write_reg(&chip, 0x105, 0x80);
   // ensure NTS bit in register 0x408 is reset, for smooth envelope rate scaling
@@ -1144,6 +1156,7 @@ void DivPlatformESFM::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 
   // guess what. that didn't fix it.
+  revision=flags.getInt("revision",0);
 }
 
 void DivPlatformESFM::setFast(bool fast) {

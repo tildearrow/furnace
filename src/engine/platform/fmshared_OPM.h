@@ -22,7 +22,7 @@
 
 #include "fmsharedbase.h"
 
-#define NOTE_LINEAR(x) ((x)<<7)
+#define NOTE_LINEAR(x) (((x)&DIV_NOTE_RAW_FLAG)?((x)&(~DIV_NOTE_RAW_FLAG)):((x)<<7))
 #define OFFSET_LINEAR (baseFreqOff+(log2(parent->song.tuning/440.0)-5)*12.0*128.0)
 
 
