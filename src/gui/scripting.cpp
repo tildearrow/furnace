@@ -2103,7 +2103,7 @@ void FurnaceGUI::runScriptFunction(lua_State* s, luaFunction id) {
 
 void FurnaceGUI::resetScriptState(lua_State* s) {
   lua_settop(s,0);
-  for (auto menu=scriptMenus.begin(); menu!=scriptMenus.end(); menu++) {
+  for (auto menu=scriptMenus.begin(); menu!=scriptMenus.end();) {
     for (auto entry=menu->second.begin(); entry!=menu->second.end();) {
       if (entry->second.state==s) {
         luaL_unref(s,LUA_REGISTRYINDEX,entry->second.function);
@@ -2111,6 +2111,11 @@ void FurnaceGUI::resetScriptState(lua_State* s) {
       } else {
         entry++;
       }
+    }
+    if (menu->second.empty()) {
+      menu=scriptMenus.erase(menu);
+    } else {
+      menu++;
     }
   }
   scriptDialog.title.clear();
