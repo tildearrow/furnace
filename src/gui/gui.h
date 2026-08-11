@@ -3534,6 +3534,7 @@ class FurnaceGUI {
     API_FUNC(version)
     API_FUNC(versionStr)
     API_FUNC(showError)
+    API_FUNC(inspect)
 
     /// CURSOR STATE
     // -> xCoarse, xFine, y
@@ -3704,8 +3705,6 @@ class FurnaceGUI {
     API_FUNC(dialogShow)
     // probably dont do this
     API_FUNC(dialogGetItems)
-
-    API_FUNC(inspect);
 
 #undef API_FUNC
 

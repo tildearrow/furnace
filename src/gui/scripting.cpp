@@ -24,7 +24,6 @@
 #include <fmt/printf.h>
 #include "util.h"
 
-/// INTERNAL
 
 // put this on a scope to expect a specific stack height difference at its end; useful for debugging, may incur overhead
 class StackDiffChecker {
