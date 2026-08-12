@@ -320,6 +320,7 @@ JSON serializeInstrument(DivInstrument* ins) {
   bool featurePN=false;
   bool featureS2=false;
   bool featureS3=false;
+  bool featureKT=false;
   switch (ins->type) {
     case DIV_INS_FM: featureFM=true; break;
     case DIV_INS_GB:
@@ -421,10 +422,6 @@ JSON serializeInstrument(DivInstrument* ins) {
     case DIV_INS_SM8521:
       if (ins->ws.enabled) featureWS=true;
       break;
-      featureSM=true;
-      break;
-      featureSM=true;
-      break;
     case DIV_INS_ESFM:
       featureFM=true;
       featureEF=true;
@@ -442,6 +439,9 @@ JSON serializeInstrument(DivInstrument* ins) {
       featureSM=true;
       if (ins->ws.enabled) featureWS=true;
       break;
+    case DIV_INS_KLATTSCH:
+      featureKT=true;
+      break;
     case DIV_INS_STD:
     case DIV_INS_TIA:
     case DIV_INS_SAA1099:
@@ -455,7 +455,6 @@ JSON serializeInstrument(DivInstrument* ins) {
     case DIV_INS_BIFURCATOR:
     case DIV_INS_TED:
     case DIV_INS_UPD1771C:
-    case DIV_INS_KLATTSCH:
     case DIV_INS_MAX:
     case DIV_INS_NULL:
       break;
@@ -893,6 +892,20 @@ JSON serializeInstrument(DivInstrument* ins) {
 #undef WRITE_OP_MACRO
       json["opMacro"][i]=curOpMacro;
     }
+  }
+  if (featureKT) {
+    JSON klattsch;
+    SET_VALUE(klattsch,transition);
+    SET_VALUE(klattsch,voicing);
+    SET_VALUE(klattsch,aspiration);
+    SET_VALUE(klattsch,tilt);
+    SET_VALUE(klattsch,effort);
+    SET_VALUE(klattsch,vibrato);
+    SET_VALUE(klattsch,tremolo);
+    SET_VALUE(klattsch,gain);
+    SET_VALUE(klattsch,bandwidth);
+    SET_VALUE(klattsch,formantShift);
+    json["klattsch"]=klattsch;
   }
 
   return json;

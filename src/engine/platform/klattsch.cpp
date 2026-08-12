@@ -346,10 +346,12 @@ void DivPlatformKlattsch::acquire(short** buf, size_t len) {
       const float pl=chan[ch].panL, pr=chan[ch].panR;
       for (size_t i=0; i<len; i++) {
         float s=renderScratch[i]*volScale;
-        oscBuf[ch]->putSample(i,(short)CLAMP((int)(s*32767.0f),-32768,32767));
         if (!isMuted[ch]) {
           mixScratch[i]+=s*pl;
           mixScratchR[i]+=s*pr;
+          oscBuf[ch]->putSample(i,(short)CLAMP((int)(s*32767.0f),-32768,32767));
+        } else {
+          oscBuf[ch]->putSample(i,0);
         }
       }
     }
