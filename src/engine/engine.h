@@ -959,6 +959,9 @@ class DivEngine {
     void getPlayPos(int& order, int& row);
     void getPlayPosTick(int& order, int& row, int& tick, int& speed);
 
+    // get the row speed used for live preview timing
+    int getPreviewSpeed();
+
     // get beat/bar
     int getElapsedBars();
     int getElapsedBeats();
