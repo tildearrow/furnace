@@ -439,15 +439,14 @@ void FurnaceGUI::drawScripting() {
           ImVec2 tableSize=ImGui::GetContentRegionAvail();
           tableSize.y-=ImGui::GetFrameHeightWithSpacing();
           if (ImGui::BeginTable("loadedScriptTable",8,ImGuiTableFlags_Resizable|ImGuiTableFlags_NoBordersInBody|ImGuiTableFlags_RowBg,tableSize)) {
-            // enable, name, auth, path, info, run, edit, remove
-            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.1f);
-            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.1f);
-            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.3f);
-            ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("c6",ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("c7",ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("c8",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("cEnable",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("cName",ImGuiTableColumnFlags_WidthStretch,0.1f);
+            ImGui::TableSetupColumn("cAuthor",ImGuiTableColumnFlags_WidthStretch,0.1f);
+            ImGui::TableSetupColumn("cPath",ImGuiTableColumnFlags_WidthStretch,0.3f);
+            ImGui::TableSetupColumn("cDesc",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("cRun",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("cEdit",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("cRemove",ImGuiTableColumnFlags_WidthFixed);
             ImGui::TableSetupScrollFreeze(1,1);
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();

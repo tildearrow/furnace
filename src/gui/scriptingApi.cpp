@@ -103,7 +103,7 @@ static FurnaceGUI* externGUI;
 #define API_USE_CATG(_name) \
   lua_getglobal(s,"fur"); \
   lua_getfield(s,-1,_name); \
-  if (lua_isnil(s,-1)) API_MAKE_CATG(_name);
+  if (lua_isnil(s,-1)) {API_MAKE_CATG(_name)}
 
 // assuming a table T is on the top of the stack, performs T[_name]=_value. conserves stack.
 #define API_ADD_VALUE(_name,_value,_type) \
@@ -1824,6 +1824,30 @@ static int _logE(lua_State *s) {
   return 0;
 }
 
+// effect/value column helper functions
+// also not members of FurnaceGUI
+
+static int _patternColumnEffect(lua_State* s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_NUMBER(1)
+  int col=lua_tointeger(s,1);
+  if (col<0 || col>DIV_MAX_EFFECTS) {
+    SC_ERROR("invalid column number!");
+  }
+  lua_pushinteger(s,DIV_PAT_FX(col));
+  return 1;
+}
+
+static int _patternColumnEffectValue(lua_State* s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_NUMBER(1)
+  int col=lua_tointeger(s,1);
+  if (col<0 || col>DIV_MAX_EFFECTS) {
+    SC_ERROR("invalid column number!");
+  }
+  lua_pushinteger(s,DIV_PAT_FXVAL(col));
+  return 1;
+}
 
 void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   // make "fur" table
@@ -1952,6 +1976,18 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("getDirect",getPatternDirect);
     API_ADD_FUNC("setDirect",setPatternDirect);
     API_ADD_FUNC("addInputCallback",addPatternInputCallback);
+    // helpers
+    API_ADD_VALUE("columnNote",DIV_PAT_NOTE,integer);
+    API_ADD_VALUE("columnIns",DIV_PAT_INS,integer);
+    API_ADD_VALUE("columnVol",DIV_PAT_VOL,integer);
+    API_ADD_FUNC("columnEffect",patternColumnEffect);
+    API_ADD_FUNC("columnEffectVal",patternColumnEffectValue);
+    API_ADD_VALUE("columnNoteRaw",DIV_PAT_RAW,integer);
+    // note values
+    API_ADD_VALUE("noteOff",DIV_NOTE_OFF,integer);
+    API_ADD_VALUE("noteRel",DIV_NOTE_REL,integer);
+    API_ADD_VALUE("macroRel",DIV_MACRO_REL,integer);
+    API_ADD_VALUE("noteRaw",DIV_NOTE_RAW,integer);
   API_CATG_END;
   API_USE_CATG("dialog");
     API_ADD_FUNC("new",dialogNew);
