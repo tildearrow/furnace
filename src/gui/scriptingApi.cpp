@@ -50,35 +50,35 @@ static FurnaceGUI* externGUI;
 
 #define CHECK_TYPE_BOOLEAN(x) \
   if (!lua_isboolean(s,x)) { \
-    lua_pushliteral(s,"invalid argument type"); \
+    lua_pushliteral(s,"invalid argument type! (expected boolean)"); \
     lua_error(s); \
     return 0; \
   }
 
 #define CHECK_TYPE_FUNCTION(x) \
   if (!lua_isfunction(s,x)) { \
-    lua_pushliteral(s,"invalid argument type"); \
+    lua_pushliteral(s,"invalid argument type! (expected function)"); \
     lua_error(s); \
     return 0; \
   }
 
 #define CHECK_TYPE_NUMBER(x) \
   if (!lua_isnumber(s,x)) { \
-    lua_pushliteral(s,"invalid argument type"); \
+    lua_pushliteral(s,"invalid argument type! (expected number)"); \
     lua_error(s); \
     return 0; \
   }
 
 #define CHECK_TYPE_STRING(x) \
   if (!lua_isstring(s,x)) { \
-    lua_pushliteral(s,"invalid argument type"); \
+    lua_pushliteral(s,"invalid argument type! (expected string)"); \
     lua_error(s); \
     return 0; \
   }
 
 #define CHECK_TYPE_TABLE(x) \
   if (!lua_istable(s,x)) { \
-    lua_pushliteral(s,"invalid argument type"); \
+    lua_pushliteral(s,"invalid argument type! (expected table)"); \
     lua_error(s); \
     return 0; \
   }
@@ -785,6 +785,62 @@ _CF(deleteIns) {
 
   e->delInstrument(index);
 
+  return 0;
+}
+
+_CF(setInsFeature) {
+  CHECK_ARGS_RANGE(2,3)
+
+  int index=curIns;
+  int tableIdx;
+  int featureCode;
+  if (lua_gettop(s)>2) {
+    CHECK_TYPE_NUMBER(1)
+    CHECK_TYPE_NUMBER(2)
+    CHECK_TYPE_TABLE(3)
+    index=lua_tointeger(s,1);
+    featureCode=lua_tointeger(s,2);
+    tableIdx=3;
+  } else {
+    CHECK_TYPE_NUMBER(1)
+    CHECK_TYPE_TABLE(2)
+    featureCode=lua_tointeger(s,1);
+    tableIdx=2;
+  }
+  DivInstrument* ins=e->getIns(index);
+  // first read the table
+  std::vector<std::pair<String,int>> tableValues;
+  lua_pushnil(s);
+  while (lua_next(s,tableIdx)) {
+    int value=lua_tointeger(s,-1);
+    const char* key=lua_tostring(s,-2);
+    tableValues.push_back({key,value});
+    lua_pop(s,1);
+  }
+  lua_pop(s,1);
+  // then apply the values
+  switch (featureCode) {
+    case DIV_INS_FM: {
+      #define CHECK_PARAM(_p) if (p.first==#_p) ins->fm. _p =p.second;
+      for (auto const& p:tableValues) {
+        CHECK_PARAM(alg)
+        CHECK_PARAM(fb)
+        CHECK_PARAM(fms)
+        CHECK_PARAM(ams)
+        CHECK_PARAM(fms2)
+        CHECK_PARAM(ams2)
+        CHECK_PARAM(ops)
+        CHECK_PARAM(block)
+        // TODO: operators
+      }
+      #undef CHECK_PARAM
+      break;
+    }
+    case DIV_INS_STD: {
+      // ???
+    }
+    default: SC_ERROR("invalid feature!");
+  }
   return 0;
 }
 
@@ -1938,6 +1994,14 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   API_USE_CATG("instrument");
     API_ADD_FUNC("create",createIns);
     API_ADD_FUNC("delete",deleteIns);
+    API_ADD_FUNC("setFeature",setInsFeature);
+    // instrument types
+    API_ADD_VALUE("typeStd",DIV_INS_STD,integer)
+    API_ADD_VALUE("typeFM",DIV_INS_FM,integer)
+    API_ADD_VALUE("typeGB",DIV_INS_GB,integer)
+    API_ADD_VALUE("typeC64",DIV_INS_C64,integer)
+    API_ADD_VALUE("typeAmiga",DIV_INS_AMIGA,integer)
+    // TODO: the rest...
   API_CATG_END;
   API_USE_CATG("wave");
     API_ADD_FUNC("create",createWave);

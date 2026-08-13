@@ -990,6 +990,26 @@ all functions use 0-indexing.
 
   adds a function which shall run when a pattern is edited
 
+- `fur.pattern.columnEffect()`
+
+  arguments: effect column (integer)
+
+  return type: integer
+
+  returns the column number of an effect column
+
+  effect column may be in range 0-7 inclusive
+
+- `fur.pattern.columnEffectVal()`
+
+  arguments: effect value column (integer)
+
+  return type: integer
+
+  returns the column number of an effect value column
+
+  effect value column may be in range 0-7 inclusive
+
 #### dialogs
 
 - `fur.dialog.new()`
@@ -1055,4 +1075,71 @@ all functions use 0-indexing.
   return type: (any)
 
   returns the values from the dialog items, in order
+
+### constants
+
+- `fur.pattern.columnNote`
+
+  type: integer
+
+  value: `0`
+
+  the index of a note column
+
+- `fur.pattern.columnIns`
+
+  type: integer
+
+  value: `1`
+
+  the index of an instrument column
+
+- `fur.pattern.columnVol`
+
+  type: integer
+
+  value: `2`
+
+  the index of a volume column
+
+- `fur.pattern.columnRaw`
+
+  type: integer
+
+  value: `21`
+
+  special index for accessing raw frequency values
+
+
+- `fur.pattern.noteOff`
+
+  type: integer
+
+  value: `253`
+
+  the internal value of a `OFF` note
+
+- `fur.pattern.noteRel`
+
+  type: integer
+
+  value: `254`
+
+  the internal value of a `===` note (note release)
+
+- `fur.pattern.macroRel`
+
+  type: integer
+
+  value: `255`
+
+  the internal value of a `REL` note (macro release)
+
+- `fur.pattern.noteRaw`
+
+  type: integer
+
+  value: `251`
+
+  the internal value of a note which denotes whether the row contains a raw frequency value
 

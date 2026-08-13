@@ -3653,6 +3653,7 @@ class FurnaceGUI {
     API_FUNC(getInsName)
     API_FUNC(getInsType)
     API_FUNC(getInsCount)
+    API_FUNC(setInsFeature)
 
     /// WAVETABLE MANIPULATION
     API_FUNC(createWave)
