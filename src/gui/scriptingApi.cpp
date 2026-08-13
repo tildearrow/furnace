@@ -69,6 +69,13 @@ static FurnaceGUI* externGUI;
     return 0; \
   }
 
+#define CHECK_TYPE_INTEGER(x) \
+  if (!lua_isinteger(s,x)) { \
+    lua_pushliteral(s,"invalid argument type! (expected integer)"); \
+    lua_error(s); \
+    return 0; \
+  }
+
 #define CHECK_TYPE_STRING(x) \
   if (!lua_isstring(s,x)) { \
     lua_pushliteral(s,"invalid argument type! (expected string)"); \
@@ -147,9 +154,9 @@ _CF(getCursor) {
 _CF(setCursor) {
   CHECK_ARGS(3);
 
-  CHECK_TYPE_NUMBER(1);
-  CHECK_TYPE_NUMBER(2);
-  CHECK_TYPE_NUMBER(3);
+  CHECK_TYPE_INTEGER(1);
+  CHECK_TYPE_INTEGER(2);
+  CHECK_TYPE_INTEGER(3);
 
   cursor.xCoarse=lua_tointeger(s,1);
   cursor.xFine=lua_tointeger(s,2);
@@ -168,9 +175,9 @@ _CF(getSelStart) {
 _CF(setSelStart) {
   CHECK_ARGS(3);
 
-  CHECK_TYPE_NUMBER(1);
-  CHECK_TYPE_NUMBER(2);
-  CHECK_TYPE_NUMBER(3);
+  CHECK_TYPE_INTEGER(1);
+  CHECK_TYPE_INTEGER(2);
+  CHECK_TYPE_INTEGER(3);
 
   selStart.xCoarse=lua_tointeger(s,1);
   selStart.xFine=lua_tointeger(s,2);
@@ -189,9 +196,9 @@ _CF(getSelEnd) {
 _CF(setSelEnd) {
   CHECK_ARGS(3);
 
-  CHECK_TYPE_NUMBER(1);
-  CHECK_TYPE_NUMBER(2);
-  CHECK_TYPE_NUMBER(3);
+  CHECK_TYPE_INTEGER(1);
+  CHECK_TYPE_INTEGER(2);
+  CHECK_TYPE_INTEGER(3);
 
   selEnd.xCoarse=lua_tointeger(s,1);
   selEnd.xFine=lua_tointeger(s,2);
@@ -290,7 +297,7 @@ _CF(getCurSample) {
 
 _CF(setCurIns) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   curIns=lua_tointeger(s,1);
   wavePreviewInit=true;
@@ -300,7 +307,7 @@ _CF(setCurIns) {
 
 _CF(setCurWave) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   curWave=lua_tointeger(s,1);
   return 0;
@@ -308,7 +315,7 @@ _CF(setCurWave) {
 
 _CF(setCurSample) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   curSample=lua_tointeger(s,1);
   samplePos=0;
@@ -343,7 +350,7 @@ _CF(getOrderCursor) {
 
 _CF(setOctave) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   curOctave=lua_tointeger(s,1);
   return 0;
@@ -351,7 +358,7 @@ _CF(setOctave) {
 
 _CF(setEditStep) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   editStep=lua_tointeger(s,1);
   return 0;
@@ -359,7 +366,7 @@ _CF(setEditStep) {
 
 _CF(setEditStepCoarse) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   editStepCoarse=lua_tointeger(s,1);
   return 0;
@@ -367,7 +374,7 @@ _CF(setEditStepCoarse) {
 
 _CF(setOrderEditMode) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   orderEditMode=lua_tointeger(s,1);
   return 0;
@@ -375,7 +382,7 @@ _CF(setOrderEditMode) {
 
 _CF(setOrderCursor) {
   CHECK_ARGS(1);
-  CHECK_TYPE_NUMBER(1);
+  CHECK_TYPE_INTEGER(1);
 
   orderCursor=lua_tointeger(s,1);
   return 0;
@@ -464,6 +471,7 @@ _CF(getSubSongName) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -481,6 +489,7 @@ _CF(setSubSongName) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
     int index=lua_tointeger(s,-2);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -497,6 +506,7 @@ _CF(getSubSongComments) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -514,6 +524,7 @@ _CF(setSubSongComments) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
     int index=lua_tointeger(s,-2);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -530,6 +541,7 @@ _CF(getSongRate) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -547,6 +559,7 @@ _CF(setSongRate) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
     int index=lua_tointeger(s,-2);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -563,6 +576,7 @@ _CF(getSongVirtualTempo) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -579,8 +593,8 @@ _CF(getSongVirtualTempo) {
 
 _CF(setSongVirtualTempo) {
   CHECK_ARGS_RANGE(2,3);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>2) {
@@ -601,6 +615,7 @@ _CF(getSongHighlights) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -617,11 +632,12 @@ _CF(getSongHighlights) {
 
 _CF(setSongHighlights) {
   CHECK_ARGS_RANGE(2,3);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>2) {
+    CHECK_TYPE_INTEGER(-3)
     int index=lua_tointeger(s,-3);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -639,6 +655,7 @@ _CF(getSongSpeeds) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -662,6 +679,7 @@ _CF(setSongSpeeds) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
     int index=lua_tointeger(s,-2);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -680,7 +698,7 @@ _CF(setSongSpeeds) {
       lua_pop(s,1);
       continue;
     }
-    CHECK_TYPE_NUMBER(-1);
+    CHECK_TYPE_INTEGER(-1);
     int index=lua_tointeger(s,-2)-1;
     int speed=lua_tointeger(s,-1);
 
@@ -703,6 +721,7 @@ _CF(getSongLength) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -716,10 +735,11 @@ _CF(getSongLength) {
 
 _CF(setSongLength) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
     int index=lua_tointeger(s,-2);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -736,6 +756,7 @@ _CF(getPatLength) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
     int index=lua_tointeger(s,1);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -749,10 +770,11 @@ _CF(getPatLength) {
 
 _CF(setPatLength) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
     int index=lua_tointeger(s,-2);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -779,7 +801,7 @@ _CF(deleteIns) {
 
   int index=curIns;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -795,14 +817,14 @@ _CF(setInsFeature) {
   int tableIdx;
   int featureCode;
   if (lua_gettop(s)>2) {
-    CHECK_TYPE_NUMBER(1)
-    CHECK_TYPE_NUMBER(2)
+    CHECK_TYPE_INTEGER(1);
+    CHECK_TYPE_INTEGER(2);
     CHECK_TYPE_TABLE(3)
     index=lua_tointeger(s,1);
     featureCode=lua_tointeger(s,2);
     tableIdx=3;
   } else {
-    CHECK_TYPE_NUMBER(1)
+    CHECK_TYPE_INTEGER(1);
     CHECK_TYPE_TABLE(2)
     featureCode=lua_tointeger(s,1);
     tableIdx=2;
@@ -814,26 +836,20 @@ _CF(setInsFeature) {
   while (lua_next(s,tableIdx)) {
     int value=lua_tointeger(s,-1);
     const char* key=lua_tostring(s,-2);
+    // TODO: type checks
     tableValues.push_back({key,value});
     lua_pop(s,1);
   }
   lua_pop(s,1);
   // then apply the values
+  #define CHECK_PARAM(_l,_p,_mn,_mx) if (p.first==_l) {ins->_p =CLAMP(p.second,_mn,_mx);}
   switch (featureCode) {
     case DIV_INS_FM: {
-      #define CHECK_PARAM(_p) if (p.first==#_p) ins->fm. _p =p.second;
       for (auto const& p:tableValues) {
-        CHECK_PARAM(alg)
-        CHECK_PARAM(fb)
-        CHECK_PARAM(fms)
-        CHECK_PARAM(ams)
-        CHECK_PARAM(fms2)
-        CHECK_PARAM(ams2)
-        CHECK_PARAM(ops)
-        CHECK_PARAM(block)
+        CHECK_PARAM("alg",fm.alg,0,7)
+        CHECK_PARAM("feedback",fm.fb,0,7)
         // TODO: operators
       }
-      #undef CHECK_PARAM
       break;
     }
     case DIV_INS_STD: {
@@ -859,7 +875,7 @@ _CF(deleteWave) {
 
   int index=curWave;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -873,7 +889,7 @@ _CF(getWaveWidth) {
 
   int index=curWave;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -889,11 +905,11 @@ _CF(getWaveWidth) {
 
 _CF(setWaveWidth) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curWave;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -916,7 +932,7 @@ _CF(getWaveHeight) {
 
   int index=curWave;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -932,11 +948,11 @@ _CF(getWaveHeight) {
 
 _CF(setWaveHeight) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curWave;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -956,11 +972,11 @@ _CF(setWaveHeight) {
 
 _CF(getWaveData) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curWave;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -982,12 +998,12 @@ _CF(getWaveData) {
 
 _CF(setWaveData) {
   CHECK_ARGS_RANGE(2,3);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
 
   int index=curWave;
   if (lua_gettop(s)>2) {
-    CHECK_TYPE_NUMBER(-3);
+    CHECK_TYPE_INTEGER(-3);
     index=lua_tointeger(s,-3);
   }
 
@@ -1024,7 +1040,7 @@ _CF(deleteSample) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1038,7 +1054,7 @@ _CF(getSampleLength) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1054,11 +1070,11 @@ _CF(getSampleLength) {
 
 _CF(setSampleLength) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curSample;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -1094,7 +1110,7 @@ _CF(getSampleSize) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1113,7 +1129,7 @@ _CF(getSampleType) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1129,11 +1145,11 @@ _CF(getSampleType) {
 
 _CF(setSampleType) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curSample;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -1160,7 +1176,7 @@ _CF(getSampleLoop) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1183,13 +1199,13 @@ _CF(getSampleLoop) {
 _CF(setSampleLoop) {
   CHECK_ARGS_RANGE(4,5);
   CHECK_TYPE_BOOLEAN(-4);
-  CHECK_TYPE_NUMBER(-3);
-  CHECK_TYPE_NUMBER(-2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-3);
+  CHECK_TYPE_INTEGER(-2);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curSample;
   if (lua_gettop(s)>4) {
-    CHECK_TYPE_NUMBER(-5);
+    CHECK_TYPE_INTEGER(-5);
     index=lua_tointeger(s,-5);
   }
 
@@ -1213,7 +1229,7 @@ _CF(getSampleRate) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1229,11 +1245,11 @@ _CF(getSampleRate) {
 
 _CF(setSampleRate) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curSample;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -1249,11 +1265,11 @@ _CF(setSampleRate) {
 
 _CF(getSampleData) {
   CHECK_ARGS_RANGE(1,2);
-  CHECK_TYPE_NUMBER(-1);
+  CHECK_TYPE_INTEGER(-1);
 
   int index=curSample;
   if (lua_gettop(s)>1) {
-    CHECK_TYPE_NUMBER(-2);
+    CHECK_TYPE_INTEGER(-2);
     index=lua_tointeger(s,-2);
   }
 
@@ -1286,12 +1302,12 @@ _CF(getSampleData) {
 
 _CF(setSampleData) {
   CHECK_ARGS_RANGE(2,3);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
 
   int index=curSample;
   if (lua_gettop(s)>2) {
-    CHECK_TYPE_NUMBER(-3);
+    CHECK_TYPE_INTEGER(-3);
     index=lua_tointeger(s,-3);
   }
 
@@ -1328,7 +1344,7 @@ _CF(isSampleEditable) {
 
   int index=curSample;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1347,7 +1363,7 @@ _CF(renderSamples) {
 
   int index=-1;
   if (lua_gettop(s)>0) {
-    CHECK_TYPE_NUMBER(1);
+    CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
   }
 
@@ -1357,11 +1373,12 @@ _CF(renderSamples) {
 
 _CF(getOrder) {
   CHECK_ARGS_RANGE(2,3);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>2) {
+    CHECK_TYPE_INTEGER(-3)
     int index=lua_tointeger(s,-3);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -1386,12 +1403,13 @@ _CF(getOrder) {
 
 _CF(setOrder) {
   CHECK_ARGS_RANGE(3,4);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
-  CHECK_TYPE_NUMBER(-3);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
+  CHECK_TYPE_INTEGER(-3);
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>3) {
+    CHECK_TYPE_INTEGER(-4)
     int index=lua_tointeger(s,-4);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -1420,13 +1438,13 @@ _CF(setOrder) {
 
 _CF(getPattern) {
   CHECK_ARGS_RANGE(3,5);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
-  CHECK_TYPE_NUMBER(-3);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
+  CHECK_TYPE_INTEGER(-3);
 
   int order=curOrder;
   if (lua_gettop(s)>3) {
-    CHECK_TYPE_NUMBER(-4);
+    CHECK_TYPE_INTEGER(-4);
     order=lua_tointeger(s,-4);
     if (order<0 || order>=DIV_MAX_PATTERNS) {
       SC_ERROR("invalid order");
@@ -1435,6 +1453,7 @@ _CF(getPattern) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>4) {
+    CHECK_TYPE_INTEGER(-5)
     int index=lua_tointeger(s,-5);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -1482,13 +1501,13 @@ _CF(getPattern) {
 
 _CF(setPattern) {
   CHECK_ARGS_RANGE(4,6);
-  CHECK_TYPE_NUMBER(-4);
-  CHECK_TYPE_NUMBER(-3);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-4);
+  CHECK_TYPE_INTEGER(-3);
+  CHECK_TYPE_INTEGER(-2);
 
   int order=curOrder;
   if (lua_gettop(s)>4) {
-    CHECK_TYPE_NUMBER(-5);
+    CHECK_TYPE_INTEGER(-5);
     order=lua_tointeger(s,-5);
     if (order<0 || order>=DIV_MAX_PATTERNS) {
       SC_ERROR("invalid order");
@@ -1497,6 +1516,7 @@ _CF(setPattern) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>5) {
+    CHECK_TYPE_INTEGER(-6)
     int index=lua_tointeger(s,-6);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -1563,10 +1583,10 @@ _CF(setPattern) {
 
 _CF(getPatternDirect) {
   CHECK_ARGS_RANGE(4,5);
-  CHECK_TYPE_NUMBER(-1);
-  CHECK_TYPE_NUMBER(-2);
-  CHECK_TYPE_NUMBER(-3);
-  CHECK_TYPE_NUMBER(-4);
+  CHECK_TYPE_INTEGER(-1);
+  CHECK_TYPE_INTEGER(-2);
+  CHECK_TYPE_INTEGER(-3);
+  CHECK_TYPE_INTEGER(-4);
 
   int pat=lua_tointeger(s,-4);
   if (pat<0 || pat>=DIV_MAX_PATTERNS) {
@@ -1575,6 +1595,7 @@ _CF(getPatternDirect) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>4) {
+    CHECK_TYPE_INTEGER(-5)
     int index=lua_tointeger(s,-5);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -1622,10 +1643,10 @@ _CF(getPatternDirect) {
 
 _CF(setPatternDirect) {
   CHECK_ARGS_RANGE(5,6);
-  CHECK_TYPE_NUMBER(-5);
-  CHECK_TYPE_NUMBER(-4);
-  CHECK_TYPE_NUMBER(-3);
-  CHECK_TYPE_NUMBER(-2);
+  CHECK_TYPE_INTEGER(-5);
+  CHECK_TYPE_INTEGER(-4);
+  CHECK_TYPE_INTEGER(-3);
+  CHECK_TYPE_INTEGER(-2);
 
   int pat=lua_tointeger(s,-5);
   if (pat<0 || pat>=DIV_MAX_PATTERNS) {
@@ -1634,6 +1655,7 @@ _CF(setPatternDirect) {
 
   DivSubSong* sub=e->curSubSong;
   if (lua_gettop(s)>5) {
+    CHECK_TYPE_INTEGER(-6)
     int index=lua_tointeger(s,-6);
     if (index<0 || index>=(int)e->song.subsong.size()) {
       SC_ERROR("invalid subsong index");
@@ -1720,16 +1742,16 @@ _CF(dialogItemInt) {
   item.max.i=100;
   if (lua_gettop(s)>3) {
     CHECK_TYPE_STRING(-4)
-    CHECK_TYPE_NUMBER(-3)
-    CHECK_TYPE_NUMBER(-2)
-    CHECK_TYPE_NUMBER(-1)
+    CHECK_TYPE_INTEGER(-3)
+    CHECK_TYPE_INTEGER(-2)
+    CHECK_TYPE_INTEGER(-1)
     item.max.i=lua_tointeger(s,-1);
     item.min.i=lua_tointeger(s,-2);
     item.valueInt.i=lua_tointeger(s,-3);
     item.label=lua_tostring(s,-4);
   } else if (lua_gettop(s)>1) {
     CHECK_TYPE_STRING(-2)
-    CHECK_TYPE_NUMBER(-1)
+    CHECK_TYPE_INTEGER(-1)
     item.valueInt.i=lua_tointeger(s,-1);
     item.label=lua_tostring(s,-2);
   } else {
@@ -1885,7 +1907,7 @@ static int _logE(lua_State *s) {
 
 static int _patternColumnEffect(lua_State* s) {
   CHECK_ARGS(1)
-  CHECK_TYPE_NUMBER(1)
+  CHECK_TYPE_INTEGER(1);
   int col=lua_tointeger(s,1);
   if (col<0 || col>DIV_MAX_EFFECTS) {
     SC_ERROR("invalid column number!");
@@ -1896,7 +1918,7 @@ static int _patternColumnEffect(lua_State* s) {
 
 static int _patternColumnEffectValue(lua_State* s) {
   CHECK_ARGS(1)
-  CHECK_TYPE_NUMBER(1)
+  CHECK_TYPE_INTEGER(1);
   int col=lua_tointeger(s,1);
   if (col<0 || col>DIV_MAX_EFFECTS) {
     SC_ERROR("invalid column number!");
