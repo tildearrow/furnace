@@ -329,7 +329,7 @@ TAParamResult pVersion(String) {
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
   printf("- YMF276-LLE by nukeykt (GPLv2)\n");
   printf("- YM2608-LLE by nukeykt (GPLv2)\n");
-  printf("- ESFMu-fast (modified version) by Kagamiin~, akumanatt and Tony Gies (LGPLv2.1)\n");
+  printf("- ESFMu (modified version) by Kagamiin~, akumanatt and Tony Gies (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
   printf("- emu2413 by Digital Sound Antiques (MIT)\n");
   printf("- adpcm by superctr (public domain)\n");
@@ -375,6 +375,7 @@ TAParamResult pVersion(String) {
   printf("- SID2 emulator by LTVA (GPLv2, modification of reSID emulator)\n");
   printf("- SID3 emulator by LTVA (MIT)\n");
   printf("- openMSX YMF278 emulator (modified version) by the openMSX developers (GPLv2)\n");
+  printf("- klattsch formant speech synth by Tony Gies (MIT)\n");
 #ifdef HAVE_ASIO
   printf("\nASIO is a registered trademark of Steinberg Media Technologies GmbH.\n");
 #endif
