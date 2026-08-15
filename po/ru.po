@@ -4079,6 +4079,134 @@ msgstr "Система-болванка"
 msgid "this is a system designed for testing purposes."
 msgstr "это система, разработанная для тестирования."
 
+#: src/engine/sysDef.cpp:2750
+msgid "klattsch"
+msgstr ""
+
+#: src/engine/sysDer.cpp:2752
+msgid "Klatt-style parallel-formant speech synthesizer."
+msgstr "Klatt-style синтезатор речи с параллельными формантами"
+
+#: src/engine/sysDef.cpp:2755
+msgid "10xx: Set phoneme (ARPABET index; type names directly in the pattern)"
+msgstr "10xx: Установить фонему (индекс ARPABET; введите названия непосредственно в шаблон)"
+
+#: src/engine/sysDef.cpp:2756 
+msgid "11xx: Set spectral transition time (ticks)"
+msgstr "11xx: Установить время спектрального перехода (такты)"
+
+#: src/engine/sysDef.cpp:2757
+msgid "12xx: Set F1 frequency (xx*10 Hz)"
+msgstr "12xx: Установить частоту F1 (xx*10 Гц)"
+
+#: src/engine/sysDef.cpp:2758
+msgid "13xx: Set F2 frequency (xx*16 Hz)"
+msgstr "13xx: Установить частоту F2 (xx*16 Гц)"
+
+#: src/engine/sysDef.cpp:2759
+msgid "14xx: Set F3 frequency (xx*16 Hz)"
+msgstr "14xx: Установить частоту F3 (xx*16 Гц)"
+
+#: src/engine/sysDef.cpp:2760
+msgid "15xx: Set F1 amplitude (00-FF)"
+msgstr "15xx: Установить амплитуду F1 (00-FF)"
+
+#: src/engine/sysDef.cpp:2761
+msgid "15xx: Set F2 amplitude (00-FF)"
+msgstr "15xx: Установить амплитуду F2 (00-FF)"
+
+#: src/engine/sysDef.cpp:2762
+msgid "15xx: Set F3 amplitude (00-FF)"
+msgstr "15xx: Установить амплитуду F3 (00-FF)"
+
+#: src/engine/sysDef.cpp:2763
+msgid "18xx: Set voicing (00-FE; FF: instrument default)"
+msgstr "18xx: Установить голос (00-FE; FF: по умолчанию)"
+
+#: src/engine/sysDef.cpp:2764
+msgid "19xx: Set aspiration (00-FE; FF: instrument default)"
+msgstr "19xx: Установить аспирацию (00-FE; FF: по умолчанию)"
+
+#: src/engine/sysDef.cpp:2765
+msgid "1Axx: Set spectral tilt (signed; 00-7F: positive, 80-FE: negative; FF: instrument default)"
+msgstr "1Axx: Установка спектрального наклона (со знаком; 00-7F: полож., 80-FE: отриц.; FF: по умолчанию)"
+
+#: src/engine/sysDef.cpp:2766
+msgid "1Bxx: Set glottal effort (00-FE; FF: instrument default)"
+msgstr "1Bxx: Установка голосового усилия (00-FE; FF: по умолчанию)"
+
+#: src/engine/sysDef.cpp:2767
+msgid "1Cxy: Vibrato (x: rate in Hz; y: depth, 4 Hz steps)"
+msgstr "1Cxy: Вибрато (x: частота в Гц; y: глубина, шаг 4 Гц)"
+
+#: src/engine/sysDef.cpp:2768
+msgid "1Dxy: Tremolo (x: rate in Hz; y: depth)"
+msgstr "1Dxy: Тремоло (x: частота в Гц; y: глубина)"
+
+#: src/engine/sysDef.cpp:2769
+msgid "1Exx: Set gain (01-FF: xx/16; 00: instrument default)"
+msgstr "1Exx: Установить усиление (01-FF: xx/16; 00: по умолчанию)"
+
+#: src/engine/sysDef.cpp:2770
+msgid "1Fxx: Formant bandwidth scale (01-FF: xx/64; 00: instrument default)"
+msgstr "1Fxx: Шкала пропускной способности формант (01-FF: xx/64; 00: по умолчанию)"
+
+#: src/engine/sysDef.cpp:2771
+msgid "20xx: Formant shift (01-FF: xx/64; 00: instrument default)"
+msgstr "20xx: Сдвиг формант (01-FF: xx/64; 00: по умолчанию)"
+
+#: src/gui/insEdit.cpp:7062
+msgid "These defaults shape the phoneme-bank voice. Pattern effects override them; reset values return to this profile."
+msgstr "Эти значения по умолчанию определяют набор фонем. Эффекты шаблона переопределяют их; сброшенные значения возвращаются к этому профилю".
+
+#: src/gui/insEdit.cpp:7065
+msgid "Transition time (ticks)"
+msgstr "Время перехода (такты)"
+
+#: src/gui/insEdit.cpp:7068
+msgid "Voicing"
+msgstr "Голос"
+
+#: src/gui/insEdit.cpp:7071
+msgid "Aspiration"
+magstr "Аспирация"
+
+#: src/gui/insEdit.cpp:7079
+msgid "Spectral tilt"
+msgstr "Спектральный наклон"
+
+#: src/gui/insEdit.cpp:7082
+msgid "Glottal effort"
+msgstr "Голосовое усилие"
+
+#: src/gui/insEdit.cpp:7088
+msgid "Formant bandwidth scale"
+msgstr "Шкала пропускной способности формант"
+
+#: src/gui/insEdit.cpp:7091
+msgid "Formant shift"
+msgstr "Сдвиг формант"
+
+#: src/gui/insEdit.cpp:7093
+msgid "Modulation defaults"
+msgstr "Настройки модуляции по умолчанию"
+
+#: src/gui/insEdit.cpp:7096
+msgid "Vibrato rate (Hz)"
+msgstr "Частота вибрато (Гц)"
+
+#: src/gui/insEdit.cpp:7100
+msgid "Vibrato depth (4 Hz steps)"
+msgstr "Глубина вибрато (шаг 4 Hz)"
+
+#: src/gui/insEdit.cpp:7107
+msgid "Tremolo rate (Hz)"
+msgstr "Частота тремоло (Гц)"
+
+#: src/gui/insEdit.cpp:7111
+msgid "Tremolo depth"
+msgstr "Глубина тремоло"
+
 #: src/engine/engine.cpp:52
 msgid "00xy: Arpeggio (x: semitones; y: semitones)"
 msgstr "00xy: Арпеджио"
