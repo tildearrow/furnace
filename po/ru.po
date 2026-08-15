@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: furnace 0.6.8\n"
-"Last-Translator: LTVA\n"
+"Last-Translator: andrejkuroglo8\n"
 "Language-Team: none\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
