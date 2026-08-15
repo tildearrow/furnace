@@ -4157,7 +4157,7 @@ msgstr "20xx: Сдвиг формант (01-FF: xx/64; 00: по умолчани
 
 #: src/gui/insEdit.cpp:7062
 msgid "These defaults shape the phoneme-bank voice. Pattern effects override them; reset values return to this profile."
-msgstr "Эти значения по умолчанию определяют набор фонем. Эффекты шаблона переопределяют их; сброшенные значения возвращаются к этому профилю".
+msgstr "Эти значения по умолчанию определяют набор фонем. Эффекты шаблона переопределяют их; сброшенные значения возвращаются к этому профилю."
 
 #: src/gui/insEdit.cpp:7065
 msgid "Transition time (ticks)"
@@ -4169,7 +4169,7 @@ msgstr "Голос"
 
 #: src/gui/insEdit.cpp:7071
 msgid "Aspiration"
-magstr "Аспирация"
+msgstr "Аспирация"
 
 #: src/gui/insEdit.cpp:7079
 msgid "Spectral tilt"
