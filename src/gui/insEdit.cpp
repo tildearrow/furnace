@@ -3385,6 +3385,10 @@ void FurnaceGUI::insTabWavetable(DivInstrument* ins)
         wavePreviewLen=256;
         wavePreviewHeight=255;
         break;
+      case DIV_INS_AFTERBURNER2:
+        wavePreviewLen=32;
+        wavePreviewHeight=15;
+        break;
       default:
         wavePreviewLen=32;
         wavePreviewHeight=31;
@@ -9107,6 +9111,15 @@ void FurnaceGUI::drawInsEdit() {
               } else {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
               }
+              break;
+            case DIV_INS_AFTERBURNER2:
+              macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,2,160,uiColors[GUI_COLOR_MACRO_WAVE])); // 0=square, 1=saw, 2=noise
+              macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc(_("PSG2 Bitwise"),&ins->std.ex1Macro,0,6,64,uiColors[GUI_COLOR_MACRO_OTHER])); // 0=off, 1=AND, 2=NAND, 3=OR, 4=NOR, 5=XOR, 6=XNOR (with PSG3)
+              macroList.push_back(FurnaceGUIMacroDesc(_("Wave Enable"), &ins->std.ex2Macro, 0, 1, 32, uiColors[GUI_COLOR_MACRO_OTHER], false, NULL, NULL, true));
               break;
             case DIV_INS_MAX:
             case DIV_INS_NULL:

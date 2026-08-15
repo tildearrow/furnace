@@ -135,6 +135,11 @@ void initSystemPresetsSpecialized(std::vector<FurnaceGUISysCategory>& sysCategor
     _("klattsch"), {
       CH(DIV_SYSTEM_KLATTSCH, 1.0f, 0, "")
     }
+      );
+  ENTRY(
+    _("Afterburner II"), {
+      CH(DIV_SYSTEM_AFTERBURNERII, 1.0f, 0, "")
+    }
   );
   ENTRY(
     _("SID2"), {
