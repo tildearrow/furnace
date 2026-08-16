@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,52 +42,17 @@
      SC_ERROR("invalid argument count!") \
    }
 
-#define CHECK_TYPE(t,x)) \
+#define CHECK_TYPE(t,x) \
    if (!lua_is ## t (s,x)) { \
      SC_ERROR("invalid argument type! (expected " #t ")") \
    }
 
-#define CHECK_TYPE_BOOLEAN(x) \
-   if (!lua_isboolean(s,x)) { \
-     lua_pushliteral(s,"invalid argument type! (expected boolean)"); \
-     lua_error(s); \
-     return 0; \
-   }
-
-#define CHECK_TYPE_FUNCTION(x) \
-   if (!lua_isfunction(s,x)) { \
-     lua_pushliteral(s,"invalid argument type! (expected function)"); \
-     lua_error(s); \
-     return 0; \
-   }
-
-#define CHECK_TYPE_NUMBER(x) \
-   if (!lua_isnumber(s,x)) { \
-     lua_pushliteral(s,"invalid argument type! (expected number)"); \
-     lua_error(s); \
-     return 0; \
-   }
-
-#define CHECK_TYPE_INTEGER(x) \
-   if (!lua_isinteger(s,x)) { \
-     lua_pushliteral(s,"invalid argument type! (expected integer)"); \
-     lua_error(s); \
-     return 0; \
-   }
-
-#define CHECK_TYPE_STRING(x) \
-   if (!lua_isstring(s,x)) { \
-     lua_pushliteral(s,"invalid argument type! (expected string)"); \
-     lua_error(s); \
-     return 0; \
-   }
-
-#define CHECK_TYPE_TABLE(x) \
-   if (!lua_istable(s,x)) { \
-     lua_pushliteral(s,"invalid argument type! (expected table)"); \
-     lua_error(s); \
-     return 0; \
-   }
+#define CHECK_TYPE_BOOLEAN(x) CHECK_TYPE(boolean,x)
+#define CHECK_TYPE_FUNCTION(x) CHECK_TYPE(function,x)
+#define CHECK_TYPE_NUMBER(x) CHECK_TYPE(number,x)
+#define CHECK_TYPE_INTEGER(x) CHECK_TYPE(integer,x)
+#define CHECK_TYPE_STRING(x) CHECK_TYPE(string,x)
+#define CHECK_TYPE_TABLE(x) CHECK_TYPE(table,x)
 
 // use for functions in the "fur" table
 #define API_GLOBAL_FUNC(x) \
