@@ -2682,7 +2682,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_AFTERBURNERII]=new DivSysDef(
-    _("Afterburner II"), NULL, 0xe6, 0, 3, 3, 3,
+    _("Afterburner II"), NULL, 0xe8, 0, 3, 3, 3,
     false, true, 0, false, 0, 32, 16,
     _("The audio chip used in the NuevoAuto fantasy computer. Three PSG channels (square/saw/1-bit noise, wavetable on channel 3)."),
     DivChanDefFunc({

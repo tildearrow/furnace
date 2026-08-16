@@ -110,7 +110,6 @@ void DivPlatformAfterburner2::acquire(short** buf, size_t len) {
     float raw[3]={0.0f,0.0f,0.0f};
 
     for (int ch=0; ch<3; ch++) {
-      // silence when key is up (or period is zero)
       if (!chan[ch].active || chan[ch].freq==0) {
         raw[ch]=0.0f;
         oscBuf[ch]->putSample(i,0);
@@ -138,9 +137,7 @@ void DivPlatformAfterburner2::acquire(short** buf, size_t len) {
             raw[ch]=saw;
             break;
           }
-          default: // noise: 1-bit output, re-rolled once per cycle (clocked
-                   // by the channel's tone period like the other waveforms),
-                   // biased by duty just like the square wave's pulse width
+          default: 
             if (wrapped || i==0) {
               chan[ch].noiseBit=((float)(rand()%1000)/1000.0f<duty)?1.0f:-1.0f;
             }
@@ -152,9 +149,7 @@ void DivPlatformAfterburner2::acquire(short** buf, size_t len) {
 
     // PSG2 bitwise-with-PSG3: quantize both channels' current amplitude to
     // the chip's native 4-bit resolution and combine them with a real
-    // bitwise op, sample by sample. Using only each signal's sign (a 1-bit
-    // gate) made PSG3 act like a square wave regardless of its actual shape
-    // -- this way a saw/wavetable's full ramp of levels comes through.
+    // bitwise op, sample by sample.
     if (psg2Bitwise!=0) {
       unsigned char v2q=(unsigned char)((raw[1]*0.5f+0.5f)*15.0f+0.5f)&0x0f;
       unsigned char v3q=(unsigned char)((raw[2]*0.5f+0.5f)*15.0f+0.5f)&0x0f;
@@ -211,9 +206,6 @@ void DivPlatformAfterburner2::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.pitch.had) {
-      // "relative" pitch macro mode accumulates onto pitch2 each tick
-      // instead of overwriting it -- this was previously missing, which is
-      // why relative pitch macros had no audible effect.
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
         CLAMP_VAR(chan[i].pitch2,-32768,32767);
@@ -258,13 +250,11 @@ void DivPlatformAfterburner2::tick(bool sysTick) {
   }
 
   // Pack volume registers: $9000 = 0x0V12 (master, PSG1, PSG2), $9001 = 0x0VWO (PSG3, wave en, offset)
-  // Zero volume for inactive channels so the hardware (and acquire) stop sounding on note-off
   unsigned char master = masterVol & 0x0f;
   unsigned char v1 = (chan[0].active ? chan[0].outVol : 0) & 0x0f;
   unsigned char v2 = (chan[1].active ? chan[1].outVol : 0) & 0x0f;
   unsigned char v3 = (chan[2].active ? chan[2].outVol : 0) & 0x0f;
   unsigned char wEn = psg3WaveEnable ? 0x0f : 0;
-  // regPool is byte-oriented; acquire reads big-endian words
   rWrite(0x00, master); // high of $9000
   rWrite(0x01, (v1 << 4) | v2); // low of $9000
   rWrite(0x02, v3); // high of $9001
@@ -476,9 +466,6 @@ void DivPlatformAfterburner2::notifyWaveChange(int wave) {
 }
 
 void DivPlatformAfterburner2::getPaired(int ch, std::vector<DivChannelPair>& ret) {
-  // PSG2 shows a bubble pointing at PSG3 while a bitwise mode is active,
-  // matching how C64 (ring/sync) and POKEY (AUDCTL) hint at cross-channel
-  // coupling in the pattern view.
   if (ch==1 && psg2Bitwise!=0) {
     switch (psg2Bitwise) {
       case 1: ret.push_back(DivChannelPair(_("AND"),2)); break;
