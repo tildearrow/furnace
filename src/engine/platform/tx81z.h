@@ -36,6 +36,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
+      unsigned char tlRamp;
 
       struct {
         int baseNoteOverride;
@@ -94,7 +95,8 @@ class DivPlatformTX81Z: public DivPlatformOPM {
       Channel(bool linear=true):
         FMChannel(linear),
         chVolL(1),
-        chVolR(1) {
+        chVolR(1),
+        tlRamp(0) {
         memset(opsState,0,sizeof(opsState));
       }
     };

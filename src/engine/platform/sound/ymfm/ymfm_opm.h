@@ -312,6 +312,11 @@ protected:
 // the YM2164 is almost 100% functionally identical to the YM2151, except
 // it apparently has some mystery registers in the 00-07 range, and timer
 // B's frequency is half that of the 2151
+//
+// tildearrow: these mystery registers are part of new TL ramp functionality.
+// these set the TL ramp speed for each channel (TL ramp is a per-op
+// setting enabled using bit 7 of TL).
+// the test register is also moved to $09.
 class ym2164 : public ym2151
 {
 public:
