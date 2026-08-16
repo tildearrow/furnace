@@ -50,7 +50,6 @@ these apply to each operator:
   - 1: -12dB
   - 2: -24dB
   - 3: -48dB
-  - does not apply for OP4.
 - **Reverb (REV)**: not a true reverb. extends release time, giving a slight reverb-like effect to the operator.
 - **Fine Detune (DT)**: shifts the pitch a little (0 to 7).
 - **Waveform Select (WS)**: changes the waveform of the operator.

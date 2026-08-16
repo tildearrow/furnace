@@ -49,19 +49,24 @@ namespace ymfm
 // OPZ register map:
 //
 //      System-wide registers:
-//           08 -----xxx Load preset (not sure how it gets saved)
-//           0F x------- Noise enable
-//              ---xxxxx Noise frequency
+//           08 -x------ Key on/off operator 4
+//              --x----- Key on/off operator 3
+//              ---x---- Key on/off operator 2
+//              ----x--- Key on/off operator 1
+//              -----xxx Channel select
+//           09 xxxxxx-x Test register
+//              ------x- LFO reset
 //           10 xxxxxxxx Timer A value (upper 8 bits)
 //           11 ------xx Timer A value (lower 2 bits)
 //           12 xxxxxxxx Timer B value
-//           14 x------- CSM mode
-//              --x----- Reset timer B
+//           14 --x----- Reset timer B
 //              ---x---- Reset timer A
 //              ----x--- Enable timer B
 //              -----x-- Enable timer A
 //              ------x- Load timer B
 //              -------x Load timer A
+//           15 ------x- 2-op mode enable
+//              -------x Enter OPZ mode
 //           16 xxxxxxxx LFO #2 frequency
 //           17 0xxxxxxx AM LFO #2 depth
 //              1xxxxxxx PM LFO #2 depth
@@ -75,9 +80,9 @@ namespace ymfm
 //              ------xx LFO waveform
 //
 //     Per-channel registers (channel in address bits 0-2)
-//        00-07 xxxxxxxx Channel volume
+//        00-07 xxxxxxxx TL ramp speed
 //        20-27 x------- Pan right
-//              -x------ Key on (0)/off(1)
+//              -x------ IRQ enable
 //              --xxx--- Feedback level for operator 1 (0-7)
 //              -----xxx Operator connection algorithm (0-7)
 //        28-2F -xxxxxxx Key code
@@ -95,7 +100,8 @@ namespace ymfm
 //              0---xxxx Fix frequency (0-15)
 //              1xxx---- Oscillator waveform (0-7)
 //              1---xxxx Fine? (0-15)
-//        60-7F -xxxxxxx Total level (0-127)
+//        60-7F x------- TL ramp
+//              -xxxxxxx Total level (0-127)
 //        80-9F xx------ Key scale rate (0-3)
 //              --x----- Fix frequency mode
 //              ---xxxxx Attack rate (0-31)
@@ -277,6 +283,7 @@ protected:
 	uint8_t m_regdata[REGISTERS];         // register data
 	uint16_t m_phase_substep[OPERATORS];  // phase substep for fixed frequency
 	int16_t m_lfo_waveform[4][LFO_WAVEFORM_LENGTH]; // LFO waveforms; AM in low 8, PM in upper 8
+        // TODO: waveforms are four times wide
 	uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
 };
 
