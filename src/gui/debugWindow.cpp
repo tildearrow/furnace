@@ -116,6 +116,47 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
     } \
   }
 
+#define SCRIPTING_DEBUG(_state) { \
+  ImGui::PushID(_state); \
+  const int stackTop=lua_gettop(_state); \
+  ImGui::Text("stack top: %d",stackTop); \
+  if (ImGui::BeginTable("stackdump",3,ImGuiTableFlags_RowBg)) { \
+    ImGui::TableSetupColumn("n",ImGuiTableColumnFlags_WidthFixed); \
+    ImGui::TableSetupColumn("t",ImGuiTableColumnFlags_WidthFixed); \
+    ImGui::TableSetupColumn("v",ImGuiTableColumnFlags_WidthStretch); \
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("N"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("type"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("value"); \
+    for (int i=1; i<=stackTop; i++) { \
+      ImGui::TableNextRow(); \
+      ImGui::TableNextColumn(); \
+      ImGui::Text("%d",i); \
+      int type=lua_type(_state,i); \
+      ImGui::TableNextColumn(); \
+      ImGui::Text("%s",lua_typename(_state,type)); \
+      ImGui::TableNextColumn(); \
+      switch (type) { \
+        case LUA_TSTRING: \
+          ImGui::TextUnformatted(lua_tostring(_state,i)); \
+          break; \
+        case LUA_TBOOLEAN: \
+          ImGui::TextUnformatted(lua_toboolean(_state,i)?"true":"false"); \
+          break; \
+        case LUA_TNUMBER: \
+          ImGui::Text("%g",lua_tonumber(_state,i)); \
+          break; \
+        default: break; \
+      } \
+    } \
+    ImGui::EndTable(); \
+  } \
+  ImGui::PopID(); \
+} \
+
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
   static int bpRow;
@@ -1227,6 +1268,13 @@ void FurnaceGUI::drawDebug() {
         }
       }
       ImGui::EndChild();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Scripting")) {
+      ImGui::SeparatorText("Global state:");
+      SCRIPTING_DEBUG(globalState.state)
+      ImGui::SeparatorText("Playground state:");
+      SCRIPTING_DEBUG(playground.state)
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {

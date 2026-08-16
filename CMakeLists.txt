@@ -1077,8 +1077,10 @@ src/gui/refPlayer.cpp
 src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
-src/gui/scripting.cpp
-src/gui/scriptingApi.cpp
+src/gui/scripts.cpp
+src/gui/scripting/scriptingMisc.cpp
+src/gui/scripting/scriptingInstrument.cpp
+src/gui/scripting/scriptingApi.cpp
 src/gui/settings.cpp
 src/gui/newSettings.cpp
 src/gui/songInfo.cpp

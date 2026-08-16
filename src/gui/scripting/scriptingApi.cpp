@@ -17,112 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "gui.h"
+#include "scripting.h"
+#include "../gui.h"
+#include <cstddef>
+#include <lua.h>
 
 static FurnaceGUI* externGUI;
-
-#define DIV_PAT_RAW (DIV_PAT_FXVAL(DIV_MAX_EFFECTS)+1)
-
-#define _CF(x) \
-  static int _ ## x(lua_State* s) { \
-    return externGUI->sc_ ## x(s); \
-  } \
-  int FurnaceGUI::sc_ ## x(lua_State* s)
-
-#define CHECK_ARGS(x) \
-  if (lua_gettop(s)!=x) { \
-    lua_pushliteral(s,"invalid argument count!"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define CHECK_ARGS_RANGE(x,y) \
-  if (lua_gettop(s)<x || lua_gettop(s)>y) { \
-    lua_pushliteral(s,"invalid argument count!"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define SC_ERROR(x) \
-  lua_pushliteral(s,x); \
-  lua_error(s); \
-  return 0;
-
-#define CHECK_TYPE_BOOLEAN(x) \
-  if (!lua_isboolean(s,x)) { \
-    lua_pushliteral(s,"invalid argument type! (expected boolean)"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define CHECK_TYPE_FUNCTION(x) \
-  if (!lua_isfunction(s,x)) { \
-    lua_pushliteral(s,"invalid argument type! (expected function)"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define CHECK_TYPE_NUMBER(x) \
-  if (!lua_isnumber(s,x)) { \
-    lua_pushliteral(s,"invalid argument type! (expected number)"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define CHECK_TYPE_INTEGER(x) \
-  if (!lua_isinteger(s,x)) { \
-    lua_pushliteral(s,"invalid argument type! (expected integer)"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define CHECK_TYPE_STRING(x) \
-  if (!lua_isstring(s,x)) { \
-    lua_pushliteral(s,"invalid argument type! (expected string)"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-#define CHECK_TYPE_TABLE(x) \
-  if (!lua_istable(s,x)) { \
-    lua_pushliteral(s,"invalid argument type! (expected table)"); \
-    lua_error(s); \
-    return 0; \
-  }
-
-// use for functions in the "fur" table
-#define API_GLOBAL_FUNC(x) \
-  lua_getglobal(s,"fur"); \
-  lua_pushcfunction(s,_ ## x); \
-  lua_setfield(s,-2,#x); \
-  lua_pop(s,1);
-
-// make category under the "fur" namespace and let it available on the top of the stack
-#define API_MAKE_CATG(_name) \
-  lua_getglobal(s,"fur"); \
-  lua_newtable(s); \
-  lua_pushnil(s); \
-  lua_copy(s,-2,-1); \
-  lua_setfield(s,-3,_name); \
-  lua_remove(s,-2);
-
-// put already-existing category under the "fur" namespace on the top of the stack; creates it if is not present
-#define API_USE_CATG(_name) \
-  lua_getglobal(s,"fur"); \
-  lua_getfield(s,-1,_name); \
-  if (lua_isnil(s,-1)) {API_MAKE_CATG(_name)}
-
-// assuming a table T is on the top of the stack, performs T[_name]=_value. conserves stack.
-#define API_ADD_VALUE(_name,_value,_type) \
-  lua_push##_type(s,_value); \
-  lua_setfield(s,-2,_name);
-
-// same as API_ADD_VALUE, but for functions specifically. _funcId is an identifier.
-#define API_ADD_FUNC(_name,_funcId) \
-  lua_pushcfunction(s,_##_funcId); \
-  lua_setfield(s,-2,_name);
-
-#define API_CATG_END lua_pop(s,1);
 
 /// FUNCTIONS
 
@@ -810,7 +710,7 @@ _CF(deleteIns) {
   return 0;
 }
 
-_CF(setInsFeature) {
+_CF(setInsData) {
   CHECK_ARGS_RANGE(2,3)
 
   int index=curIns;
@@ -834,13 +734,14 @@ _CF(setInsFeature) {
   std::vector<std::pair<String,int>> tableValues;
   lua_pushnil(s);
   while (lua_next(s,tableIdx)) {
+    if (!lua_isstring(s, -2)) continue;
     int value=lua_tointeger(s,-1);
     const char* key=lua_tostring(s,-2);
     // TODO: type checks
     tableValues.push_back({key,value});
     lua_pop(s,1);
   }
-  lua_pop(s,1);
+  // lua_pop(s,1);
   // then apply the values
   #define CHECK_PARAM(_l,_p,_mn,_mx) if (p.first==_l) {ins->_p =CLAMP(p.second,_mn,_mx);}
   switch (featureCode) {
@@ -856,6 +757,73 @@ _CF(setInsFeature) {
       // ???
     }
     default: SC_ERROR("invalid feature!");
+  }
+  return 0;
+}
+
+_CF(setInsMacroData) {
+  CHECK_ARGS_RANGE(2,3)
+
+  int index=curIns;
+  int tableIdx;
+  int macroType;
+  if (lua_gettop(s)>2) {
+    CHECK_TYPE_INTEGER(1);
+    CHECK_TYPE_INTEGER(2);
+    CHECK_TYPE_TABLE(3)
+    index=lua_tointeger(s,1);
+    macroType=lua_tointeger(s,2);
+    tableIdx=3;
+  } else {
+    CHECK_TYPE_INTEGER(1);
+    CHECK_TYPE_TABLE(2)
+      macroType=lua_tointeger(s,1);
+    tableIdx=2;
+  }
+  DivInstrumentMacro* macro=e->getIns(index)->std.macroByType((DivMacroType)macroType);
+  lua_pushnil(s);
+  while (lua_next(s,tableIdx)) {
+    if (lua_isstring(s, -2)) {
+      const char* key=lua_tostring(s,-2);
+      switch (lua_type(s,-1)) {
+        case LUA_TNUMBER: {
+          int value=lua_tointeger(s,-1);
+          writeMacro(macro,key,NULL,value);
+          break;
+        }
+        case LUA_TTABLE: { // subtable
+          if (strcmp(key,"values")==0) {
+            lua_pushnil(s);
+            int count=0;
+            while (lua_next(s,-2)) {
+              if (lua_isnumber(s,-2)) {
+                if (lua_isnumber(s,-1) && count<255) {
+                  int idx=lua_tointeger(s,-2);
+                  macro->val[idx-1]=lua_tointeger(s,-1);
+                  count++;
+                }
+              }
+              lua_pop(s,1);
+            }
+            macro->open=macro->open&(~6);
+            macro->len=count;
+          }
+          lua_pushnil(s);
+          while (lua_next(s,-2)) {
+            if (lua_isstring(s,-2)) {
+              if (lua_isinteger(s,-1)) {
+                const char* subkey=lua_tostring(s,-2);
+                int value=lua_tointeger(s,-1);
+                writeMacro(macro,key,subkey,value);
+              }
+            }
+            lua_pop(s,1);
+          }
+        }
+        default: break;
+      }
+    }
+    lua_pop(s,1);
   }
   return 0;
 }
@@ -2016,7 +1984,8 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   API_USE_CATG("instrument");
     API_ADD_FUNC("create",createIns);
     API_ADD_FUNC("delete",deleteIns);
-    API_ADD_FUNC("setFeature",setInsFeature);
+    API_ADD_FUNC("setData",setInsData);
+    API_ADD_FUNC("setMacroData",setInsMacroData);
     // instrument types
     API_ADD_VALUE("typeStd",DIV_INS_STD,integer)
     API_ADD_VALUE("typeFM",DIV_INS_FM,integer)
