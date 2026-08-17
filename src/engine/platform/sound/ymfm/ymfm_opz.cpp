@@ -415,7 +415,6 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 		cache.phase_step = opdata_cache::PHASE_STEP_DYNAMIC;
 
 	// total level, scaled by 8
-	// TODO: how does ch_volume() fit into this?
 	cache.total_level = op_total_level(opoffs) << 3;
 
 	// 4-bit sustain level, but 15 means 31 so effectively 5 bits

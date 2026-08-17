@@ -176,8 +176,8 @@ public:
 	std::string log_keyon(uint32_t choffs, uint32_t opoffs);
 
 	// system-wide registers
-	uint32_t test() const                            { return byte(0x01, 0, 8); }
-	uint32_t lfo_reset() const                       { return byte(0x01, 1, 1); }
+	uint32_t test() const                            { return byte(is_opp() ? 0x09 : 0x01, 0, 8); }
+	uint32_t lfo_reset() const                       { return byte(is_opp() ? 0x09 : 0x01, 1, 1); }
 	uint32_t noise_frequency() const                 { return byte(0x0f, 0, 5); }
 	uint32_t noise_enable() const                    { return byte(0x0f, 7, 1); }
 	uint32_t timer_a_value() const                   { return word(0x10, 0, 8, 0x11, 0, 2); }
@@ -206,7 +206,7 @@ public:
 	uint32_t ch_block_freq(uint32_t choffs) const    { return word(0x28, 0, 7, 0x30, 2, 6, choffs); }
 	uint32_t ch_lfo_pm_sens(uint32_t choffs) const   { return byte(0x38, 4, 3, choffs); }
 	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0x38, 0, 2, choffs); }
-	uint32_t ch_ramp_period(uint32_t choffs) const   { return is_opp() ? byte(choffs, 0, 7) : 0; }
+	uint32_t ch_ramp_period(uint32_t choffs) const   { return is_opp() ? byte(0x00, 0, 8, choffs) : 0; }
 
 	// per-operator registers
 	uint32_t op_detune(uint32_t opoffs) const        { return byte(0x40, 4, 3, opoffs); }

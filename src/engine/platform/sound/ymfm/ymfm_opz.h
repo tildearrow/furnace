@@ -225,7 +225,6 @@ public:
 	uint32_t lfo_waveform() const                    { return byte(0x1b, 0, 2); }
 
 	// per-channel registers
-	uint32_t ch_volume(uint32_t choffs) const        { return byte(0x00, 0, 8, choffs); }
 	uint32_t ch_output_any(uint32_t choffs) const    { return 1; }
 	uint32_t ch_output_0(uint32_t choffs) const      { return byte(0x30, 0, 1, choffs) | (!byte(0x20, 7, 1, choffs)); }
 	uint32_t ch_output_1(uint32_t choffs) const      { return byte(0x20, 7, 1, choffs) | byte(0x30, 0, 1, choffs); }
@@ -239,7 +238,7 @@ public:
 	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0x38, 0, 2, choffs); }
 	uint32_t ch_lfo2_pm_sens(uint32_t choffs) const  { return byte(0x180, 4, 3, choffs); } // fake
 	uint32_t ch_lfo2_am_sens(uint32_t choffs) const  { return byte(0x180, 0, 2, choffs); } // fake
-	uint32_t ch_ramp_period(uint32_t choffs) const   { return byte(choffs, 0, 7); }
+	uint32_t ch_ramp_period(uint32_t choffs) const   { return byte(0x00, 0, 8, choffs); }
 
 	// per-operator registers
 	uint32_t op_detune(uint32_t opoffs) const        { return byte(0x40, 4, 3, opoffs); }
