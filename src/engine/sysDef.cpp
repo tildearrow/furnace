@@ -551,7 +551,7 @@ void DivEngine::registerSystems() {
     {0x55, {DIV_CMD_FM_DT2, _("55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
     // I know this is the wrong command name. I don't feel like adding a new command just for this.
-    {0x64, {DIV_CMD_ES5506_ENVELOPE_LVRAMP, _("64xx: Set TL ramp time (YM2164/OPP only!)")}},
+    {0x66, {DIV_CMD_ES5506_ENVELOPE_LVRAMP, _("66xx: Set TL ramp time (YM2164/OPP only!)")}},
   });
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
@@ -564,8 +564,11 @@ void DivEngine::registerSystems() {
     {0x2a, {DIV_CMD_FM_WS, _("2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)"), effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, _("2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x2c, {DIV_CMD_FM_FINE, _("2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
     {0x64, {DIV_CMD_FM_FMS2, _("64xx: Set LFO2 FM depth (0 to 7)")}},
     {0x65, {DIV_CMD_FM_AMS2, _("65xx: Set LFO2 AM depth (0 to 3)")}},
+    // I know this is the wrong command name. I don't feel like adding a new command just for this.
+    {0x66, {DIV_CMD_ES5506_ENVELOPE_LVRAMP, _("66xx: Set TL ramp time")}},
   });
   const EffectHandler fmOPZFixFreqHandler[4]={
     {DIV_CMD_FM_FIXFREQ, _("3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)"), constVal<0>, effectValLong<11>},

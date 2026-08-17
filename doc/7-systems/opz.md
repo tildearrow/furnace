@@ -113,11 +113,19 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `5Dxx`: **set D2R/SR of operator 2.**
 - `5Exx`: **set D2R/SR of operator 3.**
 - `5Fxx`: **set D2R/SR of operator 4.**
+- `60xy`: **set operator mask.**
+  - enables or disables operators.
+  - if `x` is `0`, `y` ranges from `0` to `F`. it is a bitfield, so `y` is the sum of the active operators' bits:
+    - OP1 is +1, OP2 is +2, OP3 is +4, and OP4 is +8.
+    - for example, having only OP2 and OP4 on would be 2 + 8 = 10, resulting in an `xy` value of `0A`.
+  - if `x` is `1` to `4`, the effect targets that operator; `y` turns it off with a value of `0` and on with a value of `1`.
+    - for example, the effect `6031` enables OP3.
 - `61xx`: **set algorithm** (0 to 7).
 - `62xx`: **set LFO FM depth** (0 to 7).
 - `63xx`: **set LFO AM depth** (0 to 3).
 - `64xx`: **set LFO2 FM depth** (0 to 7).
 - `65xx`: **set LFO2 AM depth** (0 to 3).
+- `66xx`: **set TL ramp time for this channel**.
 
 ## info
 
