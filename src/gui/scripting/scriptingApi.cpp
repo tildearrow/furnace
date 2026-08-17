@@ -783,12 +783,16 @@ _CF(setInsMacroData) {
   while (lua_next(s,tableIdx)) {
     if (lua_isstring(s, -2)) {
       const char* key=lua_tostring(s,-2);
+      int value;
       switch (lua_type(s,-1)) {
-        case LUA_TNUMBER: {
-          int value=lua_tointeger(s,-1);
+        case LUA_TBOOLEAN:
+          value=lua_toboolean(s,-1);
           writeMacro(macro,key,NULL,value);
           break;
-        }
+        case LUA_TNUMBER:
+          value=lua_tointeger(s,-1);
+          writeMacro(macro,key,NULL,value);
+          break;
         case LUA_TTABLE: { // subtable
           if (strcmp(key,"values")==0) {
             lua_pushnil(s);
@@ -1876,7 +1880,7 @@ static int _patternColumnEffect(lua_State* s) {
   CHECK_ARGS(1)
   CHECK_TYPE_INTEGER(1);
   int col=lua_tointeger(s,1);
-  if (col<0 || col>DIV_MAX_EFFECTS) {
+  if (col<0 || col>=DIV_MAX_EFFECTS) {
     SC_ERROR("invalid column number!");
   }
   lua_pushinteger(s,DIV_PAT_FX(col));
@@ -1887,12 +1891,38 @@ static int _patternColumnEffectValue(lua_State* s) {
   CHECK_ARGS(1)
   CHECK_TYPE_INTEGER(1);
   int col=lua_tointeger(s,1);
-  if (col<0 || col>DIV_MAX_EFFECTS) {
+  if (col<0 || col>=DIV_MAX_EFFECTS) {
     SC_ERROR("invalid column number!");
   }
   lua_pushinteger(s,DIV_PAT_FXVAL(col));
   return 1;
 }
+
+static const char* macroTypeValueNames[]={
+  "macroVolume",
+  "macroArp",
+  "macroDuty",
+  "macroWave",
+  "macroPitch",
+  "macroEx1",
+  "macroEx2",
+  "macroEx3",
+  "macroAlgorithm",
+  "macroFeedback",
+  "macroFMS",
+  "macroAMS",
+  "macroPanLeft",
+  "macroPanRight",
+  "macroPhaseReset",
+  "macroEx4",
+  "macroEx5",
+  "macroEx6",
+  "macroEx7",
+  "macroEx8",
+  "macroEx9",
+  "macroEx10",
+  NULL
+};
 
 void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   // make "fur" table
@@ -1987,11 +2017,10 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("setMacroData",setInsMacroData);
     // instrument types
     API_ADD_VALUE("typeStd",DIV_INS_STD,integer)
-    API_ADD_VALUE("typeFM",DIV_INS_FM,integer)
-    API_ADD_VALUE("typeGB",DIV_INS_GB,integer)
-    API_ADD_VALUE("typeC64",DIV_INS_C64,integer)
-    API_ADD_VALUE("typeAmiga",DIV_INS_AMIGA,integer)
-    // TODO: the rest...
+    // macro types
+    for (int i=0; macroTypeValueNames[i]; i++) {
+      API_ADD_VALUE(macroTypeValueNames[i],i,integer);
+    }
   API_CATG_END;
   API_USE_CATG("wave");
     API_ADD_FUNC("create",createWave);

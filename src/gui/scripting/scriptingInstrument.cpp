@@ -35,23 +35,28 @@ void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, 
   }
   #undef CHECK_PARAM
   #define CHECK_PARAM(_k,_v) if (strcmp(subkey,_k)==0) {macro->val[_v]=value;}
-  else if (strcmp(key,"envelope")==0) {
-    CHECK_PARAM("bottom",0)
-    else CHECK_PARAM("top",1)
-    else CHECK_PARAM("attack",2)
-    else CHECK_PARAM("hold",3)
-    else CHECK_PARAM("decay",4)
-    else CHECK_PARAM("sustain",5)
-    else CHECK_PARAM("susTime",6)
-    else CHECK_PARAM("susDecay",7)
-    else CHECK_PARAM("release",8)
-    macro->open=(macro->open&(~6))|2;
-  } else if (strcmp(key,"lfo")==0) {
-    CHECK_PARAM("bottom",0)
-    else CHECK_PARAM("top",1)
-    else CHECK_PARAM("speed",11)
-    else CHECK_PARAM("waveform",12)
-    else CHECK_PARAM("phase",3)
-    macro->open=(macro->open&(~6))|4;
+  if (subkey) {
+    if (strcmp(key,"envelope")==0) {
+      CHECK_PARAM("bottom",0)
+      else CHECK_PARAM("top",1)
+      else CHECK_PARAM("attack",2)
+      else CHECK_PARAM("hold",3)
+      else CHECK_PARAM("decay",4)
+      else CHECK_PARAM("sustain",5)
+      else CHECK_PARAM("susTime",6)
+      else CHECK_PARAM("susDecay",7)
+      else CHECK_PARAM("release",8)
+      macro->open=(macro->open&(~6))|2;
+    } else if (strcmp(key,"lfo")==0) {
+      CHECK_PARAM("bottom",0)
+      else CHECK_PARAM("top",1)
+      else CHECK_PARAM("speed",11)
+      else CHECK_PARAM("waveform",12)
+      else CHECK_PARAM("phase",3)
+      macro->open=(macro->open&(~6))|4;
+    }
+  } else {
+    macro->open=(macro->open&(~6));
+    macro->len=0;
   }
 }
