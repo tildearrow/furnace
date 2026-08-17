@@ -56,6 +56,11 @@ namespace ymfm
 //              -----xxx Channel select
 //           09 xxxxxx-x Test register
 //              ------x- LFO reset
+//           0A ----x--- Unknown
+//              -----x-- Key fraction mode
+//              ------xx Unknown
+//           0F x------- Noise enable
+//              ---xxxxx Noise frequency
 //           10 xxxxxxxx Timer A value (upper 8 bits)
 //           11 ------xx Timer A value (lower 2 bits)
 //           12 xxxxxxxx Timer B value
@@ -78,6 +83,10 @@ namespace ymfm
 //              ---x---- LFO sync
 //              ----xx-- LFO #2 waveform
 //              ------xx LFO waveform
+//           1C x------- LFO #3 control?
+//              -xxxxxxx LFO #3 depth
+//           1E x------- LFO #4 control?
+//              -xxxxxxx LFO #4 depth
 //
 //     Per-channel registers (channel in address bits 0-2)
 //        00-07 xxxxxxxx TL ramp speed
@@ -87,11 +96,13 @@ namespace ymfm
 //              -----xxx Operator connection algorithm (0-7)
 //        28-2F -xxxxxxx Key code
 //        30-37 xxxxxx-- Key fraction
-//              -------x Mono? mode
+//              -------x Mono mode ($0A.2 set)
+//              ------xx Key modifier ($0A.2 clear)
 //        38-3F 0xxx---- LFO PM sensitivity
 //              -----0xx LFO AM shift
 //              1xxx---- LFO #2 PM sensitivity
 //              -----1xx LFO #2 AM shift
+//              ----x--- LFO #3/#4 select
 //
 //     Per-operator registers (channel in address bits 0-2, operator in bits 3-4)
 //        40-5F 0xxx---- Detune value (0-7)
@@ -106,6 +117,7 @@ namespace ymfm
 //              --x----- Fix frequency mode
 //              ---xxxxx Attack rate (0-31)
 //        A0-BF x------- LFO AM enable
+//              -xx----- LFO #3/#4 AM depth
 //              ---xxxxx Decay rate (0-31)
 //        C0-DF xx0----- Detune 2 value (0-3)
 //              --0xxxxx Sustain rate (0-31)

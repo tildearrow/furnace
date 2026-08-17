@@ -30,9 +30,9 @@
 #define ADDR_FMS2_AMS2 0x140
 
 const char* regCheatSheetOPZ[]={
-  "Test", "00",
+  "RampPeriod", "00",
   "NoteCtl", "08",
-  "NoiseCtl", "0F",
+  "Test", "09",
   "ClockA1", "10",
   "ClockA2", "11",
   "ClockB", "12",
