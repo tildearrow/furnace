@@ -805,17 +805,18 @@ _CF(setInsMacroData) {
             }
             macro->open=macro->open&(~6);
             macro->len=count;
-          }
-          lua_pushnil(s);
-          while (lua_next(s,-2)) {
-            if (lua_isstring(s,-2)) {
-              if (lua_isinteger(s,-1)) {
-                const char* subkey=lua_tostring(s,-2);
-                int value=lua_tointeger(s,-1);
-                writeMacro(macro,key,subkey,value);
+          } else {
+            lua_pushnil(s);
+            while (lua_next(s,-2)) {
+              if (lua_isstring(s,-2)) {
+                if (lua_isinteger(s,-1)) {
+                  const char* subkey=lua_tostring(s,-2);
+                  int value=lua_tointeger(s,-1);
+                  writeMacro(macro,key,subkey,value);
+                }
               }
+              lua_pop(s,1);
             }
-            lua_pop(s,1);
           }
         }
         default: break;

@@ -22,20 +22,20 @@
 // instruments are so complicated the API helper functions are kept separate
 
 void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, int value) {
-  #define CHECK_PARAM(_k,_p,_mn,_mx) if (String(key)==_k) {macro->_p=CLAMP(value,_mn,_mx);}
+  #define CHECK_PARAM(_k,_p,_mn,_mx) if (strcmp(key,_k)==0) {macro->_p=CLAMP(value,_mn,_mx);}
   CHECK_PARAM("delay",delay,0,255)
   else CHECK_PARAM("speed",speed,0,255)
   else CHECK_PARAM("loop",loop,0,255)
   else CHECK_PARAM("release",rel,0,255)
   else CHECK_PARAM("mode",mode,0,255)
-  else if (String(key)=="open") {
+  else if (strcmp(key,"open")==0) {
     macro->open=(macro->open&(~1))|CLAMP(value,0,1);
-  } else if (String(key)=="instantRelease") {
+  } else if (strcmp(key,"instantRelease")==0) {
     macro->open=(macro->open&(~(1<<3)))|(CLAMP(value,0,1)<<3);
   }
   #undef CHECK_PARAM
-  #define CHECK_PARAM(_k,_v) if (String(subkey)==_k) {macro->val[_v]=value;}
-  else if (String(key)=="envelope") {
+  #define CHECK_PARAM(_k,_v) if (strcmp(subkey,_k)==0) {macro->val[_v]=value;}
+  else if (strcmp(key,"envelope")==0) {
     CHECK_PARAM("bottom",0)
     else CHECK_PARAM("top",1)
     else CHECK_PARAM("attack",2)
@@ -46,11 +46,11 @@ void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, 
     else CHECK_PARAM("susDecay",7)
     else CHECK_PARAM("release",8)
     macro->open=(macro->open&(~6))|2;
-  } else if (String(key)=="lfo") {
+  } else if (strcmp(key,"lfo")==0) {
     CHECK_PARAM("bottom",0)
     else CHECK_PARAM("top",1)
     else CHECK_PARAM("speed",11)
-    else CHECK_PARAM("shape",12)
+    else CHECK_PARAM("waveform",12)
     else CHECK_PARAM("phase",3)
     macro->open=(macro->open&(~6))|4;
   }
