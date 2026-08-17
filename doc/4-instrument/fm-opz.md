@@ -86,6 +86,7 @@ these macros allow you to control several parameters of FM per tick.
 - **PM Depth 2**: pitch modulation depth (second LFO).
 - **LFO2 Speed**: LFO 2 frequency.
 - **LFO2 Shape**: LFO 2 shape. choose between saw, square, triangle, and random.
+- **OpMask**: toggles each operator.
 
 ## OP1-OP4 Macros
 
