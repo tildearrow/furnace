@@ -431,26 +431,6 @@ bool fm_operator<RegisterType>::prepare()
 	// cache the data
 	m_regs.cache_operator_data(m_choffs, m_opoffs, m_cache);
 
-	// prepare total level
-	if (m_cache.tl_ramp) {
-	  if (++m_ramp_counter > m_cache.tl_ramp_period) {
-	    if (m_actual_level != m_cache.total_level) {
-              if (m_actual_level > m_cache.total_level) {
-	        m_actual_level -= 8;
-                if (m_actual_level < m_cache.total_level)
-                  m_actual_level = m_cache.total_level;
-              } else {
-	        m_actual_level += 8;
-                if (m_actual_level > m_cache.total_level)
-                  m_actual_level = m_cache.total_level;
-              }
-	    }
-	    m_ramp_counter = 0;
-	  }
-	} else {
-	  m_actual_level = m_cache.total_level;
-	}
-
 	// clock the key state
 	clock_keystate(uint32_t(m_keyon_live != 0));
         if (m_keyon_live & (1<<KEYON_CSM)) {
@@ -478,6 +458,26 @@ void fm_operator<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 		clock_ssg_eg_state();
 	else
 		m_ssg_inverted = false;
+
+	// clock TL ramp (OPP/OPZ)
+	if (m_cache.tl_ramp) {
+	  if (++m_ramp_counter > m_cache.tl_ramp_period) {
+	    if (m_actual_level != m_cache.total_level) {
+              if (m_actual_level > m_cache.total_level) {
+	        m_actual_level -= 1;
+                if (m_actual_level < m_cache.total_level)
+                  m_actual_level = m_cache.total_level;
+              } else {
+	        m_actual_level += 1;
+                if (m_actual_level > m_cache.total_level)
+                  m_actual_level = m_cache.total_level;
+              }
+	    }
+	    m_ramp_counter = 0;
+	  }
+	} else {
+	  m_actual_level = m_cache.total_level;
+	}
 
 	// clock the envelope if on an envelope cycle; env_counter is a x.2 value
 	if (bitfield(env_counter, 0, 2) == 0)
