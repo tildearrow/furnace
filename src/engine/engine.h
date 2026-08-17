@@ -382,7 +382,7 @@ class DivEngine {
   bool extValuePresent;
   bool repeatPattern;
   bool metronome;
-  bool exporting;
+  std::atomic<bool> exporting;
   bool stopExport;
   bool halted;
   bool forceMono;
@@ -631,7 +631,7 @@ class DivEngine {
     float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
 
     void runExportThread();
-    void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
+    void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size, bool calledFromExport=false);
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
