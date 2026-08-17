@@ -239,6 +239,7 @@ public:
 	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0x38, 0, 2, choffs); }
 	uint32_t ch_lfo2_pm_sens(uint32_t choffs) const  { return byte(0x180, 4, 3, choffs); } // fake
 	uint32_t ch_lfo2_am_sens(uint32_t choffs) const  { return byte(0x180, 0, 2, choffs); } // fake
+	uint32_t ch_ramp_period(uint32_t choffs) const   { return byte(choffs, 0, 7); }
 
 	// per-operator registers
 	uint32_t op_detune(uint32_t opoffs) const        { return byte(0x40, 4, 3, opoffs); }
@@ -248,6 +249,7 @@ public:
 	uint32_t op_waveform(uint32_t opoffs) const      { return byte(0x100, 4, 3, opoffs); } // fake
 	uint32_t op_fine(uint32_t opoffs) const          { return byte(0x100, 0, 4, opoffs); } // fake
 	uint32_t op_total_level(uint32_t opoffs) const   { return byte(0x60, 0, 7, opoffs); }
+	uint32_t op_tl_ramp(uint32_t opoffs) const       { return byte(0x60, 7, 1, opoffs); }
 	uint32_t op_ksr(uint32_t opoffs) const           { return byte(0x80, 6, 2, opoffs); }
 	uint32_t op_fix_mode(uint32_t opoffs) const      { return byte(0x80, 5, 1, opoffs); }
 	uint32_t op_attack_rate(uint32_t opoffs) const   { return byte(0x80, 0, 5, opoffs); }

@@ -437,6 +437,10 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 	// set the envelope shift; TX81Z manual says operator 1 (actually operator 4) shift is fixed at "off"
         // however, it is nothing more than a software constraint
 	cache.eg_shift = op_eg_shift(opoffs);
+
+	// TL ramp
+	cache.tl_ramp = op_tl_ramp(opoffs);
+	cache.tl_ramp_period = ch_ramp_period(choffs);
 }
 
 
