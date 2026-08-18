@@ -185,7 +185,12 @@ void DivPlatformSGU::tick(bool sysTick) {
     }
 
     if (chan[i].std.duty.had) {
-      chan[i].duty=chan[i].std.duty.val;
+      // DUTY is a SIGNED register now: |duty| is the low-run length and the sign places
+      // that run in the period. We author only the positive half (0..127, run at the
+      // period start), same as the 12xx effect path, so an out-of-range macro value must
+      // be brought into that domain -- left raw it would land in the mirrored half
+      // instead of the old "collapses to DC low".
+      chan[i].duty=chan[i].std.duty.val&127;
       chan[i].virtual_duty=(unsigned short)chan[i].duty<<5;
       chWrite(i,SGU1_CHN_DUTY,chan[i].duty);
     }
@@ -435,13 +440,17 @@ void DivPlatformSGU::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
 
-    // Key-on handling
+    // Key-on handling.
+    // A note-on is GATE|TRIG in ONE write: TRIG scrubs every operator envelope to
+    // silence and arms the key-on DELAY window, and the level-driven keying then
+    // attacks out of it. The old off-then-on gate dance is deliberately gone -- with
+    // level-driven keying it cost a rendered sample and, worse, re-attacked from the
+    // level the one-sample release had reached instead of from silence, so percussive
+    // patches lost their transient. Phase reset stays FLAGS1's job (TRIG owns the
+    // envelope only), which is what the phaseReset one-shot below is for.
     if (chan[i].keyOn) {
-      if (chan[i].gate) {
-        chan[i].gate=false;
-        writeControl(i);
-      }
       chan[i].gate=true;
+      chan[i].trig=true;
       chan[i].phaseReset=true;
       writeControl(i);
       writeControlUpper(i);
@@ -560,12 +569,16 @@ void DivPlatformSGU::tick(bool sysTick) {
 }
 
 void DivPlatformSGU::writeControl(int ch) {
-  // FLAGS0: [7:4]CONTROL [3]PCM [2:1]--- [0]GATE
+  // FLAGS0: [7:4]CONTROL [3]PCM [2]--- [1]TRIG [0]GATE
   unsigned char flags0 =
     ((chan[ch].active && chan[ch].gate) ? SGU1_FLAGS0_CTL_GATE : 0)
+    | (chan[ch].trig ? SGU1_FLAGS0_CTL_TRIG : 0)
     | (chan[ch].pcm << SGU1_FLAGS0_PCM_SHIFT)
     | (chan[ch].control << SGU1_FLAGS0_CONTROL_SHIFT);
   chWrite(ch, SGU1_CHN_FLAGS0, flags0);
+  // TRIG is a one-shot request: the chip self-clears it as it consumes it, so the
+  // shadow must not restate it on the next unrelated FLAGS0 write.
+  chan[ch].trig=false;
 }
 
 void DivPlatformSGU::writeControlUpper(int ch) {
@@ -1535,11 +1548,11 @@ void DivPlatformSGU::notifyInsDeletion(void* ins) {
 }
 
 const void* DivPlatformSGU::getSampleMem(int index) {
-  return (index==0)?chip.pcm:NULL;
+  return (index==0)?pcmMem:NULL;
 }
 
 size_t DivPlatformSGU::getSampleMemCapacity(int index) {
-  return (index==0)?SGU_PCM_RAM_SIZE:0;
+  return (index==0)?SGU_PCM_BANK_SIZE:0;
 }
 
 size_t DivPlatformSGU::getSampleMemUsage(int index) {
@@ -1558,7 +1571,7 @@ const DivMemoryComposition* DivPlatformSGU::getMemCompo(int index) {
 }
 
 void DivPlatformSGU::renderSamples(int sysID) {
-  memset(chip.pcm,0,SGU_PCM_RAM_SIZE);
+  memset(pcmMem,0,SGU_PCM_BANK_SIZE);
   memset(sampleOffSGU,0,32768*sizeof(unsigned int));
   memset(sampleLoaded,0,32768*sizeof(bool));
 
@@ -1580,10 +1593,10 @@ void DivPlatformSGU::renderSamples(int sysID) {
       break;
     }
     if (memPos+paddedLen>=getSampleMemCapacity(0)) {
-      memcpy(chip.pcm+memPos,s->data8,getSampleMemCapacity(0)-memPos);
+      memcpy(pcmMem+memPos,s->data8,getSampleMemCapacity(0)-memPos);
       logW("out of PCM memory for sample %d!",i);
     } else {
-      memcpy(chip.pcm+memPos,s->data8,paddedLen);
+      memcpy(pcmMem+memPos,s->data8,paddedLen);
       sampleLoaded[i]=true;
     }
     sampleOffSGU[i]=memPos;
@@ -1593,7 +1606,7 @@ void DivPlatformSGU::renderSamples(int sysID) {
   sysIDCache=sysID;
 
   memCompo.used=memPos;
-  memCompo.capacity=SGU_PCM_RAM_SIZE;
+  memCompo.capacity=SGU_PCM_BANK_SIZE;
 }
 
 int DivPlatformSGU::mapVelocity(int ch, float vel) {
@@ -1633,7 +1646,9 @@ int DivPlatformSGU::init(DivEngine* p, int channels, int sugRate, const DivConfi
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   sysIDCache=0;
-  SGU_Init(&chip, SGU_PCM_RAM_SIZE);
+  // the chip no longer owns its sample memory -- hand it ours (allocated in the ctor,
+  // so getSampleMem()/renderSamples() are safe even before init())
+  SGU_Init(&chip, pcmMem, SGU_PCM_BANK_SIZE);
   setFlags(flags);
   reset();
 
@@ -1654,9 +1669,12 @@ bool DivPlatformSGU::hasSoftPan(int ch) {
 DivPlatformSGU::DivPlatformSGU() {
   sampleOffSGU=new unsigned int[32768];
   sampleLoaded=new bool[32768];
+  pcmMem=new signed char[SGU_PCM_BANK_SIZE];
+  memset(pcmMem,0,SGU_PCM_BANK_SIZE);
 }
 
 DivPlatformSGU::~DivPlatformSGU() {
   delete[] sampleOffSGU;
   delete[] sampleLoaded;
+  delete[] pcmMem;
 }

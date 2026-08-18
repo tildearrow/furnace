@@ -425,10 +425,14 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
 #define SGU_WRITE(addr,val) \
   SGU_Write((SGU*)fmPreviewSGU,(addr),(val))
 
+// SGU_Init() takes externally owned PCM memory; there is exactly one preview chip,
+// so a single static bank serves it for the program's lifetime.
+static signed char fmPreviewSGUPCM[SGU_PCM_BANK_SIZE];
+
 void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, const DivInstrumentSGU& sguParams, int sampleIdx, int pos) {
   if (fmPreviewSGU==NULL) {
     fmPreviewSGU=new SGU;
-    SGU_Init((SGU*)fmPreviewSGU,SGU_PCM_RAM_SIZE);
+    SGU_Init((SGU*)fmPreviewSGU,fmPreviewSGUPCM,SGU_PCM_BANK_SIZE);
     pos=0;
   }
   int32_t outL=0;
@@ -519,13 +523,13 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
     }
 
     if (hasSampleWave) {
-      memset(sgu->pcm,0,SGU_PCM_RAM_SIZE);
+      memset(sgu->pcm,0,SGU_PCM_BANK_SIZE);
       if (sampleIdx>=0 && sampleIdx<e->song.sampleLen) {
         DivSample* s=e->song.sample[sampleIdx];
         if (s!=NULL && s->data8!=NULL && s->length8>0) {
           size_t copyLen=s->length8;
-          if (copyLen>(size_t)SGU_PCM_RAM_SIZE) {
-            copyLen=SGU_PCM_RAM_SIZE;
+          if (copyLen>(size_t)SGU_PCM_BANK_SIZE) {
+            copyLen=SGU_PCM_BANK_SIZE;
           }
           memcpy(sgu->pcm,s->data8,copyLen);
         }
@@ -541,7 +545,9 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
     SGU_WRITE(chRegBase+SGU1_CHN_PAN,0);
     SGU_WRITE(chRegBase+SGU1_CHN_DUTY,63);
     SGU_WRITE(chRegBase+SGU1_CHN_FLAGS1,0);
-    SGU_WRITE(chRegBase+SGU1_CHN_FLAGS0,SGU1_FLAGS0_CTL_GATE);
+    // GATE|TRIG, not bare GATE: TRIG is what arms the per-operator key-on DELAY
+    // window, so without it a patch with a nonzero DELAY previews without its delay.
+    SGU_WRITE(chRegBase+SGU1_CHN_FLAGS0,SGU1_FLAGS0_CTL_GATE|SGU1_FLAGS0_CTL_TRIG);
   }
 
   // reset operator phases each frame so the visible window is static
