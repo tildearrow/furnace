@@ -1,6 +1,6 @@
 /* sgu.c/sgu.h - SGU-1 Sound Generator Unit 1
  *
- * Copyright (C) 2025 Tomasz "smokku" Sterna
+ * Copyright (c) 2025-2026 Tomasz Sterna
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,80 @@
  *   per-channel volume control and stereo panning.
  */
 
+/*
+ * ## CHANGELOG -- chip-definition changes during sgu-tracker development
+ *
+ * The SGU-1 emulation was imported into the tracker on 2026-06-11; entries record
+ * every semantic or API change to sgu.h/sgu.c since, newest first.
+ *
+ * - 2026-08-11  DT encoding stated correctly -- DESCRIPTION ONLY, no behavior change.
+ *   The field is Yamaha sign-magnitude, as OPN/OPM DT1: bit 2 is the sign and bits
+ *   1:0 the magnitude, so 0 and 4 both mean no detune, 1..3 detune up and 5..7 down.
+ *   detune_adjustment() has always implemented this; its comment described a mapping
+ *   centred on 3, and that reading had reached doc/sgu-instrument.md and from there
+ *   every FM importer. No register, table or output moved.
+ * - 2026-08-04 duty is SIGNED (int8_t): |duty| is the LOW-run length out of the
+ *              128-step period and the sign places that run -- positive at the
+ *              period start (____|~~~~), negative at the end (~~~~|____) -- so
+ *              a duty sweep wraps continuously through both rails (127 -> -128
+ *              and -1 -> 0). Decode: the 7-bit compare on duty[6:0] with its
+ *              result inverted by duty[7]; the same split point drives the
+ *              HALF/ABS wave modifiers on SINE/TRIANGLE/SAWTOOTH. (Previously
+ *              the register was unsigned 0..127 and every value >= 128
+ *              collapsed to DC low.)
+ * - 2026-08-02 SGU_Init() now accepts externally owned PCM memory and its size;
+ *              PCM storage may contain multiple 64 KiB banks and playback
+ *              wraps within the active bank.
+ * - 2026-07-26 Sticky output clip status flag (SGU_FLAG_CLIP), latched where
+ *              the hardware limiter saturates (ssat16 of mix>>1); read-to-clear
+ *              via SGU_GetFlags.
+ * - 2026-07-24 One-shot VOL sweep clamps continuously at `bound`: it holds
+ *              there, and runs to the hard rail only when `bound` lies strictly
+ *              behind the armed direction (fixes the fade-past-bound volume
+ *              inversion).
+ * - 2026-07-23 Volume sweep rework: signed int8 volume ranges, segmented
+ *              one-shot / repeat / ping-pong run modes (VOL amt b7/b6), and
+ *              sweeps apply independently of key state.
+ * - 2026-07-14 GATE/TRIG keying model: GATE is the envelope key LEVEL
+ *              (SID-style -- a GATE cycle re-attacks from the envelope's
+ *              CURRENT attenuation); TRIG (FLAGS0 b1) is a self-clearing
+ *              one-shot hard retrigger that attacks from silence and arms the
+ *              per-operator key-on DELAY window.
+ * - 2026-07-11 Implemented the LFOW AM/PM shape register and gated PCM playback
+ *              from the channel PCM control bit.
+ * - 2026-06-29 Sweep cleanup: unified boundary conditions, countdown cleared
+ *              while a sweep is not running, sweep parameter block documented.
+ * - 2026-06-28 OPL3-accurate key-level scaling (KSL); SGU_Reset also clears
+ *              the global DC-blocker HPF state.
+ * - 2026-06-25 SGU_PATCH_CHN(reg): index of a channel register inside a
+ *              per-channel patch image (operators first).
+ * - 2026-06-23 Envelope readout refactor: operator envelope level extracted
+ *              into sgu_get_operator_envelope_level() (no behavior change).
+ * - 2026-06-18 SGU_GetEnvelope(): per-channel envelope loudness readout.
+ * - 2026-06-11 Initial SGU-1 implementation imported into the tracker.
+ * - 2026-05-06 SGU-1 test-batch hardware arrived, marking the transition from
+ *              prototype development toward physical chip testing.
+ * - 2026-02-23 Added a no-op __attribute__ fallback for compilers without the
+ *              GCC/Clang extension.
+ * - 2026-02-20 Added the SGU_ON_MCU build configuration for firmware targets.
+ * - 2026-02-20 Added split setup/channel/finalize APIs for dual-core audio
+ *              rendering.
+ * - 2026-02-19 Optimized SGU synthesis and data layout for the RP2350.
+ * - 2026-02-19 Reorganized per-channel operator state as an array of structures
+ *              to improve cache locality.
+ * - 2026-02-05 SGU-1 reached its feature-complete baseline: 9-channel
+ *              four-operator FM, eight operator waveforms, ESFM routing,
+ *              OPN-style envelopes, resonant filters, sweeps, phase timers,
+ *              PCM playback, and a hardware sequencer.
+ * - 2026-01-06 Added output gain, 32-bit mix headroom, and soft-clipped output
+ *              limiting at the firmware audio stage.
+ * - 2026-01-06 Demonstrated SGU-1 playback on an RP2350 plus audio CODEC,
+ *              producing stereo 48 kHz I²S output from a six-channel SID
+ *              translation.
+ * - 2025-12-27 Introduced SGU-1 as a custom sound chip based on tildearrow
+ *              Sound Unit synthesis behind a memory-mapped register interface.
+ */
+
 #define SGU_CHIP_CLOCK     (48000) // 48kHz
 #define SGU_AUDIO_CHANNELS (2)
 
@@ -65,7 +139,7 @@
 #define SGU_OP_REGS     (8)
 #define SGU_REGS_PER_CH (SGU_OP_PER_CH * SGU_OP_REGS + SGU_CH_REGS)
 
-#define SGU_PCM_RAM_SIZE    (0x10000) // 64KB PCM RAM
+#define SGU_PCM_BANK_SIZE   (0x10000) // 64KB PCM bank
 #define SGU_WAVEFORM_LENGTH (0x400)   // 1024 samples per waveform
 
 /*
@@ -164,6 +238,17 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 
 #if !defined(__GNUC__) && !defined(__clang__)
 #define __attribute__(x)
+#endif
+
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define SGU_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#define SGU_STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+#else
+#define SGU_STATIC_ASSERT_CAT_(a, b) a##b
+#define SGU_STATIC_ASSERT_CAT(a, b)  SGU_STATIC_ASSERT_CAT_(a, b)
+#define SGU_STATIC_ASSERT(cond, msg) \
+    typedef char SGU_STATIC_ASSERT_CAT(sgu_static_assert_, __LINE__)[(cond) ? 1 : -1]
 #endif
 
 // -----------------------------------------------------------------------------
@@ -319,8 +404,12 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 #define SGU1_CHN_LFOW         (0x1E)
 #define SGU1_CHN_SPECIAL      (0x1F)
 
+// index of channel register `reg` within a per-channel patch image (operators come first)
+#define SGU_PATCH_CHN(reg)    (SGU_OP_PER_CH * SGU_OP_REGS + (reg))
+
 // channel control bits
 #define SGU1_FLAGS0_CTL_GATE      (1 << 0)
+#define SGU1_FLAGS0_CTL_TRIG      (1 << 1) // one-shot, self-clearing (see struct SGU_CH flags0)
 #define SGU1_FLAGS0_PCM_SHIFT     (3)
 #define SGU1_FLAGS0_PCM_MASK      (0x1 << SGU1_FLAGS0_PCM_SHIFT)
 #define SGU1_FLAGS0_CONTROL_SHIFT (4)
@@ -341,6 +430,11 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 // -----------------------------------------------------------------------------
 // Notes on behavior (implementation-level, not register-level)
 // - Operator envelope is AR -> DR toward SL, then SR while key held, then RR on key-off.
+// - EG keying is LEVEL-driven: the GATE level and the envelope's own state decide the
+//   transitions, RELEASE being the state that means "key up". A GATE cycle therefore
+//   retriggers SID-fashion, attacking from the envelope's CURRENT level; the one-shot
+//   FLAGS0 TRIG bit is what attacks from silence (the SID "hard restart") and what arms
+//   the key-on DELAY window.
 // - Envelope timing: SGU EG runs at 16kHz (48kHz/3), vs OPN/ESFM at ~17.7kHz.
 //   This results in ~10% slower envelope timing compared to ESFM reference.
 // - MOD is phase modulation gain from previous op; op0 uses MOD as feedback gain.
@@ -442,8 +536,36 @@ struct SGU_CH
     int8_t pan;    // positive Right, negative Left
 
     // flags0:
-    //  - bit 0: (GATE) ADSR envelope is running when set; key-on/key-off,
-    //    rising edge is starting the envelope generator and resetting the signal phase.
+    //  - bit 0: (GATE) envelope key LEVEL. Each sample, GATE and the operator's own
+    //    envelope state drive the envelope generator:
+    //      GATE high, envelope in RELEASE       -> enter Attack, rising from the envelope's
+    //                                              CURRENT attenuation (an idle voice sits
+    //                                              fully attenuated, so it attacks from
+    //                                              silence)
+    //      GATE high, in ATTACK/DECAY/SUSTAIN   -> the envelope runs on; hold the key and
+    //                                              write FREQ and the note slurs
+    //      GATE low                             -> enter Release
+    //    RELEASE is the state that means "key up", so a GATE cycle (low, then high again)
+    //    re-attacks from the level the release had reached -- the SID model. Silence-first
+    //    attacks (the SID "hard restart") are TRIG's job.
+    //  - bit 1: (TRIG) one-shot hard-retrigger request, SELF-CLEARING: the chip consumes it
+    //    at the next processed sample (so readback shows it for under one sample, like the
+    //    flags1 one-shots). It puts every operator's envelope in the fully-attenuated
+    //    initial state (silence, RELEASE) and arms the per-operator key-on DELAY window.
+    //    TRIG's scope is the envelope: signal phase belongs to the flags1 PHASE_RESET
+    //    one-shot, and the key-on DELAY window is armed here.
+    //
+    //    Read with GATE, the two bits spell the four note events:
+    //      GATE=1 TRIG=0  key down       : the GATE rules above -- attack from the current
+    //                                      level (a tie, or the SID-style soft retrigger)
+    //      GATE=1 TRIG=1  note-on        : hard retrigger -- attack from silence, out of any
+    //                                      state (after the operator's DELAY, if programmed)
+    //      GATE=0 TRIG=0  note-off (===) : release ramp
+    //      GATE=0 TRIG=1  note-cut (^^^) : instant silence -- the scrub lands the envelope
+    //                                      fully attenuated and the key is up to hold it there
+    //    TRIG acts on whatever the channel is doing, so it also serves as an RMW on its own
+    //    (leaving GATE as it stands): under a held GATE it restarts the envelope from
+    //    silence; under a released GATE it silences the tail at once.
     //  - bit 3: PCM enable (when set, src = pcm[pcmpos])
     //  - bit 4: ring mod enable (multiply by next channel's raw sample)
     //  - bits 5..7: filter mode selects (LP/HP/BP) (implemented as bitmask picks)
@@ -451,6 +573,7 @@ struct SGU_CH
 
     // flags1:
     //  - bit 0: one-shot phase reset request (handled at end of channel processing)
+    //  - bit 1: one-shot filter phase reset request
     //  - bit 2: PCM loop enable
     //  - bit 3: timer sync enable (enables restimer-based periodic phase reset)
     //  - bit 4: freq sweep enable
@@ -461,8 +584,16 @@ struct SGU_CH
     // cutoff: filter cutoff control (scaled to ff inside filter section).
     uint16_t cutoff;
 
-    // duty[6:0]: pulse width for WAVE_PULSE (0..127), where low = duty steps, high = 128 - duty
-    uint8_t duty;
+    // duty: SIGNED pulse width -- the split point in the 128-step period that both
+    // WAVE_PULSE and the HALF/ABS wave modifiers on SINE/TRIANGLE/SAWTOOTH read.
+    // |duty| is the LOW-run length and the sign places that run -- positive at the
+    // period start (____|~~~~), negative at the end (~~~~|____). So negating the duty
+    // mirrors the wave in time, 0 is all-high and -128 all-low, and the split point
+    // moves continuously through both wraps (127 -> -128 and -1 -> 0), which lets a
+    // wrapping PWM sweep play without a snap at the rails.
+    // Decode: 7-bit compare of the phase ramp against duty[6:0], with the result
+    // inverted by the sign bit duty[7].
+    int8_t duty;
 
     // reson: resonance amount (0..255). Used as (256 - reson) feedback term.
     uint8_t reson;
@@ -472,22 +603,91 @@ struct SGU_CH
     uint16_t pcmbnd; // boundary/end position
     uint16_t pcmrst; // loop restart position
 
-    // Sweep parameter blocks:
-    // speed: period in "ticks" (same domain as Pm) between sweep steps
-    // amt:   step amount + direction/mode bits (interpretation differs by sweep type)
-    // bound: limit value (coarse, often compared against high byte of freq/cutoff)
+    // Sweep parameter blocks -- per-sample automation of freq / vol / cutoff.
+    // A sweep runs only while its flags1 enable bit is set
+    // (FREQ_SWEEP / VOL_SWEEP / CUT_SWEEP) AND speed != 0.
+    //
+    //   speed: samples between sweep steps -- a per-sample countdown reloads with `speed`
+    //          each time it fires (larger = slower; 0 disables the sweep).
+    //   amt:   step magnitude + direction, plus (VOL only) the run-mode bits. The bit
+    //          LAYOUT DIFFERS per sweep -- see each struct below.
+    //   bound: target/limit, honored in EVERY VOL run mode (see the run-mode block below).
+    //          For freq/cut it is a COARSE high-byte limit (compared vs value>>8): the sweep
+    //          SATURATES to `bound<<8` EXACTLY -- in BOTH directions -- the moment value>>8
+    //          reaches bound (`>=`, see SGU_NextSample_Channels). Direction-independent:
+    //          bound 0x1C always pins to 0x1C00, never 0x1CFF.
+    //
+    // Run modes (one-time / repeat / ping-pong) exist ONLY on the VOLUME sweep, via amt
+    // bit6 (loop) and bit7 (bounce).
+    //
+    // Volume is a signed int8 value spanning the complete 0x80..0x7F range. Negative values
+    // have reversed output phase but otherwise participate normally in sweep arithmetic.
+    // Zero is the common hard rail between the positive and negative polarity domains.
+    //
+    // For looping modes, the sign of `bound` selects the active polarity domain:
+    //
+    //   positive bound: [0x00, 0x7F]
+    //   negative bound: [0x80, 0x00]
+    //   zero bound:     retain the current volume polarity; at volume zero, direction selects it.
+    //
+    // Within that domain, `bound` splits the range into two SEGMENTS:
+    //
+    //   positive: [0, bound] and [bound, INT8_MAX]
+    //   negative: [INT8_MIN, bound] and [bound, 0]
+    //
+    // The sweep lives inside the segment selected statelessly from the current volume, bound
+    // and direction. At exactly `bound`, direction selects which adjacent segment is active.
+    // When bound lies at zero or at the outer signed rail, the non-empty segment is the whole
+    // polarity domain.
+    //
+    // A current volume with polarity opposite to `bound` is not special-cased. Signed stepping
+    // may cross zero naturally while travelling toward bound. Once the sweep enters the
+    // bound-selected polarity domain, loop and ping-pong events at zero, bound or the outer rail
+    // keep it inside that domain.
+    //
+    //   * one-time  (loop=0):
+    //       Step in signed int8 order. If `bound` lies ahead in the selected direction, stop
+    //       exactly at bound. Otherwise continue to INT8_MIN or INT8_MAX and hold. This naturally
+    //       permits crossing zero when targeting an opposite-sign bound.
+    //
+    //   * repeat    (loop=1, bounce=0):
+    //       Sawtooth inside the selected segment. When a step crosses either segment rail, jump
+    //       to the segment's other rail. Depending on bound polarity and the selected segment,
+    //       this cycles between zero and bound or between bound and the matching outer signed rail.
+    //
+    //   * ping-pong (loop=1, bounce=1):
+    //       Reflect the overshoot around whichever segment rail was crossed and flip the direction
+    //       bit (amt bit5, toggled in place). If the step is wider than the segment, clamp the
+    //       reflected value to the segment so it cannot escape through zero into the opposite
+    //       polarity domain.
+    //
+    // The FREQ and CUT sweeps are always ONE-SHOT toward `bound`: they have no loop/bounce
+    // modes because those bits are used by a 7-bit step and direction bit. They saturate to
+    // `bound<<8`, or to the hard rails 0 / 0xFFFF, once value>>8 reaches the bound.
+    //
+    // FREQ sweep: amt = [7]dir(1=up) [6:0]step; bound = coarse target (freq>>8).
+    //   MULTIPLICATIVE (exponential / portamento-like):
+    //   up freq*=(128+step)/128, down freq*=(255-step)/256.
     struct
     {
         uint16_t speed;
         uint8_t amt;
         uint8_t bound;
     } swfreq;
+
+    // VOL sweep: amt = [7]bounce [6]loop [5]dir(1=up) [4:0]step;
+    //   bound = signed int8 target / segment divider, honored in every run mode.
+    //   LINEAR signed add/subtract of `step` per fire; rails at INT8_MIN, 0 and INT8_MAX.
     struct
     {
         uint16_t speed;
         uint8_t amt;
         uint8_t bound;
     } swvol;
+
+    // CUT sweep: amt = [7]dir(1=up) [6:0]step; bound = coarse target (cutoff>>8).
+    //   Up: cutoff += step (LINEAR).
+    //   Down: cutoff *= (1 - step/2048) (MULTIPLICATIVE).
     struct
     {
         uint16_t speed;
@@ -527,11 +727,12 @@ struct sgu_op_state
     uint32_t lfsr_state;                // per-operator noise LFSR state
 };
 
-// op_flags packed boolean bit groups (4 bits each, one per operator)
-#define OP_FLAGS_PHASE_WRAP 0  // bits 0-3:   phase wrap flag (for SYNC)
-#define OP_FLAGS_KEY_STATE  4  // bits 4-7:   current key state
-#define OP_FLAGS_KEYON_GATE 8  // bits 8-11:  last raw key state (edge detect)
-#define OP_FLAGS_EG_DELAY   12 // bits 12-15: envelope delay active
+// op_flags packed boolean bit groups (4 bits each, one per operator). Keying is
+// level-driven (the envelope state carries the key), so the two groups here are the
+// SYNC wrap flag and the TRIG-armed key-on DELAY window. (These fit a uint8_t; op_flags
+// stays uint16_t to keep the struct layout/diff stable across softcore copies.)
+#define OP_FLAGS_PHASE_WRAP 0 // bits 0-3: phase wrap flag (for SYNC)
+#define OP_FLAGS_EG_DELAY   4 // bits 4-7: envelope key-on delay window active (armed by TRIG)
 
 #define OP_FLAG_GET(flags, group, op) (((flags) >> ((group) + (op))) & 1u)
 #define OP_FLAG_SET(flags, group, op) ((flags) |= (1u << ((group) + (op))))
@@ -584,6 +785,10 @@ struct SGU
     int32_t L, R;
     int64_t L_in, R_in, L_q16, R_q16; // used for high-pass filtering
 
+    // Chip status word (SGU_FLAG_*). Finalize ORs into it, SGU_GetFlags reads and
+    // clears it. Lives with the output state because that is what it describes.
+    uint32_t flags;
+
     // ------ SID-like channel processing state (post-FM) ------
 
     // State-variable filter state per channel
@@ -594,7 +799,7 @@ struct SGU
     // Sweep countdown timers (decrement each sample, trigger when <= 0)
     int32_t vol_sweep_countdown[SGU_CHNS];
     int32_t freq_sweep_countdown[SGU_CHNS];
-    int32_t cut_sweep_countdown[SGU_CHNS];
+    int32_t cutoff_sweep_countdown[SGU_CHNS];
 
     // Phase reset countdown for timer sync
     int32_t phase_reset_countdown[SGU_CHNS];
@@ -602,8 +807,9 @@ struct SGU
     // PCM phase accumulator for fractional PCM playback
     int32_t pcm_phase_accum[SGU_CHNS];
 
-    // PCM sample memory (signed 8-bit)
+    // Externally owned PCM sample memory (signed 8-bit)
     int8_t *pcm;
+    size_t pcm_size;
 
     // Per-channel mute (software-side, not part of chip spec).
     bool muted[SGU_CHNS];
@@ -617,7 +823,7 @@ struct SGU
 
 // -----------------------------------------------------------------------------
 
-void SGU_Init(struct SGU *sgu, size_t sampleMemSize);
+void SGU_Init(struct SGU *sgu, int8_t *pcm, size_t pcm_size);
 void SGU_Reset(struct SGU *sgu);
 
 void SGU_Write(struct SGU *sgu, uint16_t addr13, uint8_t data);
@@ -637,3 +843,27 @@ void SGU_NextSample_Finalize(struct SGU *sgu, int64_t L, int64_t R,
 // Convenience getter: returns mono downmix of current per-channel post-pan samples (averaged).
 // This is not used in NextSample, but useful for taps/meters/debug.
 int32_t SGU_GetSample(struct SGU *sgu, uint8_t ch);
+
+// Convenience getter for VU meters / LEDs: returns the channel's current envelope
+// loudness as a linear amplitude (Q13, 0 = silent .. ~8192 = full scale). Each
+// operator's envelope amplitude is weighted by its OUT routing (OUT/7) and summed,
+// then clamped. Honors sgu->muted[ch]. Not used in NextSample.
+int32_t SGU_GetEnvelope(struct SGU *sgu, uint8_t ch);
+
+// Chip-wide status flags, accumulated by the render path.
+#define SGU_FLAG_CLIP (1u << 0) // the output stage saturated at least once
+
+// Output-stage saturation bounds, in the int32 domain SGU_NextSample() returns.
+// The X65 softcore packs the finalized mix into the I2S word as ssat16(mix >> 1)
+// (firmware/src/audio/sys/sgu.c), so every value in [-65536, +65535] survives the
+// shift intact and anything past either end is what the hardware clamps away.
+// Detection uses the *hardware* limit, not the tracker's float scaling, so the LED
+// answers "would this clip on an X65?" regardless of the master/play volume sliders.
+#define SGU_CLIP_MIN (-65536)
+#define SGU_CLIP_MAX (65535)
+
+// Returns the status word accumulated since the previous call (SGU_FLAG_CLIP: the
+// output stage clipped) and clears it -- the classic read-to-clear status register,
+// which is also how the service page will expose it once it has an address. Sticky
+// until read. Expects a single reader.
+uint32_t SGU_GetFlags(struct SGU *sgu);

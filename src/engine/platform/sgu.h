@@ -90,7 +90,12 @@ class DivPlatformSGU: public DivDispatch {
     }
 
     unsigned char lfowAm, lfowPm, lfow;
-    bool gate, pcm, phaseReset, filterPhaseReset;
+    // gate: the FLAGS0 key LEVEL. trig: the FLAGS0 one-shot hard retrigger, consumed
+    // by the next writeControl() (same one-shot idiom as phaseReset/filterPhaseReset).
+    // SGU-1 keying is level-driven, so a bare GATE cycle re-attacks from the envelope's
+    // CURRENT level (a tie); only TRIG attacks from silence and arms the per-operator
+    // key-on DELAY window. See the flags0 block in sound/sgu.h.
+    bool gate, trig, pcm, phaseReset, filterPhaseReset;
     bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep, released;
     unsigned short freqSweepP, volSweepP, cutSweepP;
     unsigned char freqSweepB, volSweepB, cutSweepB;
@@ -115,6 +120,7 @@ class DivPlatformSGU: public DivDispatch {
       lfowPm(0),
       lfow(0),
       gate(false),
+      trig(false),
       pcm(false),
       phaseReset(false),
       filterPhaseReset(false),
@@ -159,6 +165,9 @@ class DivPlatformSGU: public DivDispatch {
     };
   FixedQueue<QueuedWrite,2048> writes;
   SGU chip;
+  // PCM sample memory is owned by us and handed to SGU_Init(); the chip keeps only a
+  // pointer to it. One 64K bank -- the core supports several, we expose one.
+  signed char* pcmMem;
   short oldOut[2];
 
   // Sample memory tracking (from SoundUnit)

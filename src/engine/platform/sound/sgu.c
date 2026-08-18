@@ -1,6 +1,6 @@
 /* sgu.c/sgu.h - SGU-1 Sound Generator Unit 1
  *
- * Copyright (C) 2025 Tomasz "smokku" Sterna
+ * Copyright (c) 2025-2026 Tomasz Sterna
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
  * SOFTWARE.
  */
 
+#include <limits.h>
 #define _USE_MATH_DEFINES
 #include <assert.h>
 #include <math.h>
@@ -41,8 +42,6 @@
 // SGU implemented on RP2350 MCU uses hardware specific shortcuts
 #ifdef SGU_ON_MCU
 #include <pico.h>
-// PCM sample memory (signed 8-bit)
-static int8_t __uninitialized_ram(pcm_mem)[SGU_PCM_RAM_SIZE];
 #else
 #include <stdlib.h>
 
@@ -135,11 +134,19 @@ static const uint32_t EG_QUIET = 0x380;
 //-------------------------------------------------
 static inline uint32_t opl_key_scale_atten(uint32_t block, uint32_t fnum_4msb)
 {
-    // this table uses the top 4 bits of FNUM and are the maximal values
-    // (for when block == 7). Values for other blocks can be computed by
-    // subtracting 8 for each block below 7.
-    static uint8_t const fnum_to_atten[16] = {0, 24, 32, 37, 40, 43, 45, 47, 48, 50, 51, 52, 53, 54, 55, 56};
-    int32_t result = fnum_to_atten[fnum_4msb] - 8 * (block ^ 7);
+    // OPL3 KSL ROM (Nuked), indexed by the top 4 bits of the 10-bit f-num. SGU's freq16 carries an
+    // IMPLICIT leading 1, so the OPL "fnum>>6" index is 8 + (the top 3 fraction bits). The previous
+    // table was indexed by fnum_4msb alone -- it dropped that leading bit, so notes near the bottom
+    // of an octave got ~0 key scaling and KSL only engaged ~2 octaves too high (verified by A/B vs
+    // AdPlug: KSL=3 stayed flat until oct4 while real OPL rolls off 6dB/oct from oct2). The kslrom
+    // base (56..64) keeps the attenuation substantial across the whole range; the per-octave term
+    // (-8 per block below the top) gives the 6dB/oct rolloff (before the per-operator << ksl).
+    static const uint8_t kslrom[16] = {0, 32, 40, 45, 48, 51, 53, 55, 56, 58, 59, 60, 61, 62, 63, 64};
+    // The "+2" is a two-octave knee offset: freq16's block sits ~2 octaves higher than OPL's block
+    // for the same note, so without it KSL engaged ~2 octaves too low / over-attenuated. With it, the
+    // per-octave rolloff and absolute attenuation track Nuked OPL3 to within ~0.6 dB for every KSL
+    // value across oct1..6 (verified by A/B; see the carrier-only KSL sweep).
+    int32_t result = (int32_t)kslrom[8u + (fnum_4msb >> 1)] - 8 * ((int32_t)(block ^ 7) + 2);
     return (uint32_t)__builtin_arm_usat(result, 31);
 }
 
@@ -153,15 +160,13 @@ static inline uint32_t opl_key_scale_atten(uint32_t block, uint32_t fnum_4msb)
 //-------------------------------------------------
 static inline int32_t detune_adjustment(uint32_t detune, uint32_t keycode)
 {
-    // Detune uses following encoding:
-    //   0 = -3 (strongest negative)
-    //   1 = -2
-    //   2 = -1
-    //   3 =  0 (no detune)
-    //   4 = +1
-    //   5 = +2
-    //   6 = +3 (strongest positive)
-    //   7 =  0 (no detune, degenerate)
+    // Detune uses Yamaha's sign-magnitude encoding, as OPN/OPM DT1 does:
+    // bit 2 is the sign, bits 1:0 the magnitude -- so there are two zeros,
+    // and one symmetric table serves both directions via the negate below.
+    //   0 = +0 (no detune)           4 = -0 (no detune, degenerate)
+    //   1 = +1                       5 = -1
+    //   2 = +2                       6 = -2
+    //   3 = +3 (strongest positive)  7 = -3 (strongest negative)
     static uint8_t const s_detune_adjustment[32][4] = {
         // clang-format off
         { 0,  0,  1,  2 },  { 0,  0,  1,  2 },  { 0,  0,  1,  2 },  { 0,  0,  1,  2 },
@@ -312,8 +317,6 @@ static inline uint32_t attenuation_increment(uint32_t rate, uint32_t index)
     return (s_increment_table[rate] >> (4 * index)) & 0xF;
 }
 
-// freq16_to_ksl_params removed -- merged into freq16_decode()
-
 //-------------------------------------------------
 //  compute_eg_rate - compute the envelope rate
 //  for the given envelope state, including KSR
@@ -434,12 +437,19 @@ static inline int32_t lfo_compute_pm(uint8_t phasePm, uint8_t pmShape, int8_t no
 
 //-------------------------------------------------
 //  start_attack - start the attack phase; called
-//  when a keyon happens or when an SSG-EG cycle
-//  is complete and restarts
+//  by the level-driven keying when the key is
+//  high and the envelope sits in RELEASE (or when
+//  an SSG-EG cycle completes and restarts).
+//  Attenuation is NOT reset here: attack resumes
+//  from the current level (legato). The hard
+//  reset-to-silence lives in the FLAGS0 TRIG
+//  one-shot consume.
 //-------------------------------------------------
 static inline void start_attack(struct sgu_ch_state *self, uint8_t op, uint8_t op_reg[], uint32_t keycode)
 {
-    // don't change anything if already in attack state
+    // don't change anything if already in attack state (unreachable from the
+    // level-keyed caller, which only calls from RELEASE; kept as a cheap guard
+    // for future callers)
     if (self->op[op].envelope_state == SGU_EG_ATTACK)
         return;
     self->op[op].envelope_state = SGU_EG_ATTACK;
@@ -573,6 +583,19 @@ static inline void clock_phase(struct sgu_ch_state *self, uint8_t op, uint8_t op
 }
 
 //-------------------------------------------------
+//  sgu_duty_high - is the 10-bit phase past the
+//  channel duty split? |duty| is the LOW-run length
+//  in the 128-step ramp; the sign puts that run at
+//  the end of the period instead of the start.
+//-------------------------------------------------
+static inline bool sgu_duty_high(int8_t duty, int phase)
+{
+    // 7-bit compare on duty[6:0] (integer promotion makes -1 & 0x7F == 127), with the
+    // result inverted for a negative duty so the LOW run sits at the end of the period.
+    return ((phase >> 3) >= (duty & 0x7F)) != (duty < 0);
+}
+
+//-------------------------------------------------
 //  attenuation_to_volume - given a 5.8 fixed point
 //  logarithmic attenuation value, return a 13-bit
 //  linear volume
@@ -689,6 +712,38 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
         const uint8_t ch_flags0 = ch_reg->flags0;
         const bool key_live = (ch_flags0 & SGU1_FLAGS0_CTL_GATE) != 0;
 
+        // One-shot TRIG (hard retrigger / note-cut), consumed at the TOP of channel
+        // processing so it takes effect this very sample. (The flags1 one-shots run
+        // after the op loop and so land one sample later -- close enough for a phase
+        // reset, too late for a retrigger.)
+        //
+        // TRIG's whole job is to put every operator's envelope in the fully-attenuated
+        // initial state and arm the key-on DELAY window; the level-driven keying below
+        // turns that into a note event, reading GATE as it stands. With GATE high the
+        // envelope attacks from silence (after DELAY) -- the hard retrigger. With GATE
+        // low it stays silent and released -- the note-cut, which the scrub gives for
+        // free.
+        //
+        // The state must land in RELEASE (rather than ATTACK): that is what re-arms
+        // start_attack, whose AR>=62 snap is the one path by which rates 62/63 leave
+        // 0x3ff at all.
+        //
+        // Same dual-core model as the flags1 one-shot clears: each channel is owned
+        // by the core processing it, so the read-act-clear on flags0 is race-free.
+        if (ch_flags0 & SGU1_FLAGS0_CTL_TRIG)
+        {
+            for (uint8_t op = 0; op < SGU_OP_PER_CH; op++)
+            {
+                ch_state->op[op].envelope_attenuation = 0x3ff;    // silence
+                ch_state->op[op].envelope_state = SGU_EG_RELEASE; // re-arm attack
+                // TRIG owns the key-on DELAY window: a note-on waits it out, while a
+                // bare GATE key-down (a tie) sounds straight away
+                OP_FLAG_SET(ch_state->op_flags, OP_FLAGS_EG_DELAY, op);
+                ch_state->op[op].eg_delay_counter = 0;
+            }
+            ch_reg->flags0 &= (uint8_t)~SGU1_FLAGS0_CTL_TRIG; // self-clear (flags1 idiom)
+        }
+
         int32_t ch_sample = 0;
 
         if (ch_flags0 & SGU1_FLAGS0_PCM_MASK) // PCM mode
@@ -722,7 +777,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                         }
 
                         // Wrap to PCM RAM size (power-of-2 ring buffer).
-                        ch_reg->pcmpos &= (SGU_PCM_RAM_SIZE - 1);
+                        ch_reg->pcmpos &= (SGU_PCM_BANK_SIZE - 1);
                     }
                     else if (ch_reg->flags1 & SGU1_FLAGS1_PCM_LOOP)
                     {
@@ -762,46 +817,47 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
 
                 struct sgu_op_state *os = &ch_state->op[op];
 
-                // clock the key state (with optional per-operator delay)
+                // clock the TRIG-armed key-on DELAY window (see OP_FLAGS_EG_DELAY);
+                // the counter saturates so a long-held key keeps it at/above the target
                 if (OP_FLAG_GET(ch_state->op_flags, OP_FLAGS_EG_DELAY, op) && os->eg_delay_counter <= INT16_MAX)
                     os->eg_delay_counter++;
 
-                if (key_live && !OP_FLAG_GET(ch_state->op_flags, OP_FLAGS_KEYON_GATE, op))
-                {
-                    OP_FLAG_SET(ch_state->op_flags, OP_FLAGS_EG_DELAY, op);
-                    os->eg_delay_counter = 0;
-                }
-                else if (!key_live)
+                // a low gate takes the key up, which retires any delay window still
+                // pending on it (the state, as always, follows the level)
+                if (!key_live)
                 {
                     OP_FLAG_CLR(ch_state->op_flags, OP_FLAGS_EG_DELAY, op);
                     os->eg_delay_counter = 0;
                 }
 
+                // The effective key: GATE level, held off through a pending DELAY
+                // window (TRIG arms it; delay_target 0 passes the key straight through).
                 const unsigned delay = SGU_OP5_DELAY(op_reg[5]);
                 const unsigned delay_target = delay ? (256u << delay) : 0;
                 bool keystate = key_live
                                 && (!OP_FLAG_GET(ch_state->op_flags, OP_FLAGS_EG_DELAY, op)
                                     || os->eg_delay_counter >= delay_target);
-                if (key_live)
-                    OP_FLAG_SET(ch_state->op_flags, OP_FLAGS_KEYON_GATE, op);
-                else
-                    OP_FLAG_CLR(ch_state->op_flags, OP_FLAGS_KEYON_GATE, op);
 
-                // has the key changed?
-                if ((keystate ^ OP_FLAG_GET(ch_state->op_flags, OP_FLAGS_KEY_STATE, op)) != 0)
+                // Level-driven keying: the key level and the envelope's own state decide.
+                //   key high + RELEASE              -> enter Attack from the CURRENT
+                //     attenuation. RELEASE is the state that means "key up", so this is
+                //     what makes a gate cycle retrigger, the SID's model to the letter:
+                //     the attack resumes from the level the release reached. It fires
+                //     exactly once per key-down, since start_attack leaves RELEASE at
+                //     once. TRIG reaches here having scrubbed the state to RELEASE/0x3ff
+                //     above, which is how it attacks from silence with the key held --
+                //     the SID "hard restart", in one register write.
+                //   key high + ATTACK/DECAY/SUSTAIN -> the envelope runs on; the note
+                //     plays through (a tie -- a FREQ write under a held key slurs).
+                //   key low                         -> release (start_release holds when
+                //     the envelope is already there).
+                if (keystate)
                 {
-                    if (keystate)
-                        OP_FLAG_SET(ch_state->op_flags, OP_FLAGS_KEY_STATE, op);
-                    else
-                        OP_FLAG_CLR(ch_state->op_flags, OP_FLAGS_KEY_STATE, op);
-
-                    // if the key has turned on, start the attack
-                    if (keystate != 0)
+                    if (os->envelope_state >= SGU_EG_RELEASE)
                         start_attack(ch_state, op, op_reg, ch_keycode);
-                    // otherwise, start the release
-                    else
-                        start_release(ch_state, op);
                 }
+                else
+                    start_release(ch_state, op);
 
                 // save previous phase for noise boundary detection
                 const uint32_t phase_before = os->phase;
@@ -931,7 +987,9 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                         // Apply OPL-style wave modifiers (SGU_WPAR_HALF, SGU_WPAR_ABS)
                         if (wpar < SGU_WPAR_QUANT)
                         {
-                            const bool high = (phase >> 3) >= ch_reg->duty;
+                            // The channel duty splits the period (see sgu_duty_high()), so
+                            // sweeping it moves the silenced/negated part of the wave.
+                            const bool high = sgu_duty_high(ch_reg->duty, phase);
                             switch (wpar)
                             {
                             case SGU_WPAR_HALF_L:
@@ -956,10 +1014,10 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                     break;
                     case SGU_WAVE_PULSE:
                     {
-                        // compare phase-derived 7-bit ramp against duty (0..127).
+                        // The signed channel duty (see sgu_duty_high()) is the pulse width.
                         // WPAR: 0 => channel duty, 1..15 => fixed pulse width (x/16th of period)
-                        const uint8_t duty = wpar ? (uint8_t)((uint8_t)wpar << 3) : ch_reg->duty;
-                        sample = ((phase >> 3) >= duty) ? INT16_MAX : INT16_MIN;
+                        const int8_t duty = wpar ? (int8_t)(wpar << 3) : ch_reg->duty;
+                        sample = sgu_duty_high(duty, phase) ? INT16_MAX : INT16_MIN;
 
                         // Detect edge by comparing with previous RAW sample (not enveloped value)
                         need_blep = sample != os->blep_prev_sample;
@@ -979,7 +1037,7 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                         // Sample-as-waveform mode: read 8-bit PCM sample from memory
                         // Uses channel's pcmrst register as the base address for a 1024-sample waveform
                         // Phase (0-1023) indexes into the sample region, looping naturally via phase wraparound
-                        uint16_t sample_addr = (ch_reg->pcmrst + phase) & (SGU_PCM_RAM_SIZE - 1);
+                        uint16_t sample_addr = (ch_reg->pcmrst + phase) & (SGU_PCM_BANK_SIZE - 1);
                         // Scale 8-bit signed sample to 16-bit to match other waveforms
                         // (attenuation to 14-bit happens later at the envelope processing stage)
                         sample = (int16_t)((int16_t)sgu->pcm[sample_addr] << 8);
@@ -1117,79 +1175,106 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
         int32_t out_r = (voice_sample * pan_gain_lut_r[(uint8_t)ch_reg->pan]) >> 7;
 
         // Sweeps (affect parameters for future samples)
-        // (flags1 bit5).
-        // swvol.amt encoding:
-        //   bit5 (0x20): direction (1=up, 0=down)
-        //   bits0..4: step size
-        //   bit6 (0x40): "wrap/loop" behavior
-        //   bit7 (0x80): "bounce/alternate" behavior
-        if (key_live && (ch_reg->flags1 & SGU1_FLAGS1_VOL_SWEEP) && ch_reg->swvol.speed)
+        //
+        // VOL sweep: (flags1 bit5).
+        //   bit5: signed direction, 1 = up, 0 = down
+        //   bit6: loop
+        //   bit7: bounce
+        //   bits0..4: step
+        if ((ch_reg->flags1 & SGU1_FLAGS1_VOL_SWEEP) && ch_reg->swvol.speed)
         {
             if (--sgu->vol_sweep_countdown[ch] <= 0)
             {
                 sgu->vol_sweep_countdown[ch] += ch_reg->swvol.speed;
 
-                if (ch_reg->swvol.amt & 32) // up
+                enum
                 {
-                    ch_reg->vol += (ch_reg->swvol.amt & 31);
+                    SW_DIR    = 0x20,
+                    SW_LOOP   = 0x40,
+                    SW_BOUNCE = 0x80
+                };
 
-                    // If not wrapping, clamp at upper bound.
-                    if (ch_reg->vol > (int8_t)ch_reg->swvol.bound && !(ch_reg->swvol.amt & 64))
-                        ch_reg->vol = (int8_t)ch_reg->swvol.bound;
+                const int amt   = ch_reg->swvol.amt;
+                const int step  = amt & 0x1f;
+                const int vol   = (int8_t)ch_reg->vol;
+                const int bound = (int8_t)ch_reg->swvol.bound;
 
-                    // Handle wrap/bounce on overflow sign bit.
-                    if (ch_reg->vol & 0x80)
+                if (amt & SW_DIR) // up
+                {
+                    int new_vol = vol + step;
+
+                    if (amt & SW_LOOP)
                     {
-                        if (ch_reg->swvol.amt & 64) // wrap enabled
-                        {
-                            if (ch_reg->swvol.amt & 128) // bounce enabled
-                            {
-                                ch_reg->swvol.amt ^= 32;                    // flip direction
-                                ch_reg->vol = (int8_t)(0xFF - ch_reg->vol); // reflect
+                        // Loop/ping-pong: the run-mode EVENT fires the moment a step crosses a
+                        // rail of the current segment ([0,bound] or [bound,max]).
+                        int rail = INT_MIN;
+                        if (vol < bound && new_vol >= bound) rail = bound;
+                        else if (bound < 0 && vol <= 0 && new_vol > 0) rail = 0;
+                        else if (vol <= INT8_MAX && new_vol > INT8_MAX) rail = INT8_MAX;
+                        if (rail != INT_MIN) {
+                            if (amt & SW_BOUNCE) {
+                                new_vol = rail - (new_vol - rail);
+                                ch_reg->swvol.amt ^= 32; // flip direction
                             }
-                            else
-                            {
-                                ch_reg->vol &= ~0x80; // wrap into positive
+                            else {
+                                if (rail == bound)
+                                    new_vol = bound <= 0 ? INT8_MIN : 0;
+                                else
+                                    new_vol = bound;
                             }
-                        }
-                        else
-                        {
-                            ch_reg->vol = 0x7F; // clamp at upper bound
                         }
                     }
+                    else
+                    {
+                        // One-shot (sgu.h): if `bound` lies ahead (or we are already at it),
+                        // stop exactly at bound; only when bound is strictly BEHIND does the
+                        // sweep run on to the hard rail. Either target is clamped CONTINUOUSLY
+                        // (every step, not just on the crossing) so the sweep HOLDS once it
+                        // arrives -- a crossing-only clamp lets later steps drift past bound, and
+                        // a strict `vol < bound` test would drop the hold the instant vol == bound.
+                        if (vol <= bound) { if (new_vol > bound) new_vol = bound; }
+                        else if (new_vol > INT8_MAX) new_vol = INT8_MAX;
+                    }
+
+                    ch_reg->vol = (int8_t)new_vol;
                 }
                 else // down
                 {
-                    ch_reg->vol -= (ch_reg->swvol.amt & 31);
+                    int new_vol = vol - step;
 
-                    if (ch_reg->vol & 0x80)
+                    if (amt & SW_LOOP)
                     {
-                        if (ch_reg->swvol.amt & 64) // wrap enabled
-                        {
-                            if (ch_reg->swvol.amt & 128) // bounce enabled
-                            {
+                        int rail = INT_MAX;
+                        if (vol > bound && new_vol <= bound) rail = bound;
+                        else if (bound > 0 && vol >= 0 && new_vol < 0) rail = 0;
+                        else if (vol >= INT8_MIN && new_vol < INT8_MIN) rail = INT8_MIN;
+                        if (rail != INT_MAX) {
+                            if (amt & SW_BOUNCE) {
+                                new_vol = rail - (new_vol - rail);
                                 ch_reg->swvol.amt ^= 32; // flip direction
-                                ch_reg->vol = (int8_t)(-ch_reg->vol);
                             }
-                            else
-                            {
-                                ch_reg->vol &= ~0x80;
+                            else {
+                                if (rail == bound)
+                                    new_vol = bound >= 0 ? INT8_MAX : 0;
+                                else
+                                    new_vol = bound;
                             }
-                        }
-                        else
-                        {
-                            ch_reg->vol = 0x00; // clamp at 0
                         }
                     }
+                    else
+                    {
+                        if (vol >= bound) { if (new_vol < bound) new_vol = bound; }
+                        else if (new_vol < INT8_MIN) new_vol = INT8_MIN;
+                    }
 
-                    // If not wrapping, clamp at lower bound.
-                    if (ch_reg->vol < (int8_t)ch_reg->swvol.bound && !(ch_reg->swvol.amt & 64))
-                        ch_reg->vol = (int8_t)ch_reg->swvol.bound;
+                    ch_reg->vol = (int8_t)new_vol;
                 }
             }
         }
+        else
+            sgu->vol_sweep_countdown[ch] = 0; // inactive -> (re)arm fires on the first active sample
 
-        if (key_live && (ch_reg->flags1 & SGU1_FLAGS1_FREQ_SWEEP) && ch_reg->swfreq.speed)
+        if ((ch_reg->flags1 & SGU1_FLAGS1_FREQ_SWEEP) && ch_reg->swfreq.speed)
         {
             if (--sgu->freq_sweep_countdown[ch] <= 0)
             {
@@ -1204,7 +1289,15 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                         // Multiply by (1.0 + amt/128).
                         ch_reg->freq = (uint16_t)((ch_reg->freq * (0x80 + (ch_reg->swfreq.amt & 127))) >> 7);
 
-                        if ((ch_reg->freq >> 8) > ch_reg->swfreq.bound)
+                        // `bound` is a COARSE (high-byte) limit. An up sweep SATURATES at `bound<<8`
+                        // -- the moment freq enters bound's high-byte window it is pinned to the
+                        // window FLOOR (`>=`, not `>`), so it can never overshoot past `bound<<8`.
+                        // (`>` would let freq climb through the window and reset on the next step =
+                        // a sawtooth that never settles = buzz.) `bound<<8` is a single, direction-
+                        // independent value: a caller wanting to slide UP to a target must set
+                        // bound one high byte ABOVE the target when its low byte != 0 (the tracker
+                        // does this); a down sweep stops at the same `bound<<8` from above.
+                        if ((ch_reg->freq >> 8) >= ch_reg->swfreq.bound)
                             ch_reg->freq = (uint16_t)(ch_reg->swfreq.bound << 8);
                     }
                 }
@@ -1223,12 +1316,14 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                 }
             }
         }
+        else
+            sgu->freq_sweep_countdown[ch] = 0; // inactive -> (re)arm fires on the first active sample
 
-        if (key_live && (ch_reg->flags1 & SGU1_FLAGS1_CUT_SWEEP) && ch_reg->swcut.speed)
+        if ((ch_reg->flags1 & SGU1_FLAGS1_CUT_SWEEP) && ch_reg->swcut.speed)
         {
-            if (--sgu->cut_sweep_countdown[ch] <= 0)
+            if (--sgu->cutoff_sweep_countdown[ch] <= 0)
             {
-                sgu->cut_sweep_countdown[ch] += ch_reg->swcut.speed;
+                sgu->cutoff_sweep_countdown[ch] += ch_reg->swcut.speed;
 
                 if (ch_reg->swcut.amt & 128) // up
                 {
@@ -1238,8 +1333,8 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                     {
                         ch_reg->cutoff += (ch_reg->swcut.amt & 127);
 
-                        if ((ch_reg->cutoff >> 8) > ch_reg->swcut.bound)
-                            ch_reg->cutoff = (uint16_t)(ch_reg->swcut.bound << 8);
+                        if ((ch_reg->cutoff >> 8) >= ch_reg->swcut.bound)
+                            ch_reg->cutoff = (uint16_t)(ch_reg->swcut.bound << 8); // saturate at bound<<8 (see swfreq up)
                     }
                 }
                 else // down
@@ -1257,6 +1352,8 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Channels(
                 }
             }
         }
+        else
+            sgu->cutoff_sweep_countdown[ch] = 0; // inactive -> (re)arm fires on the first active sample
 
         // Phase reset requests
         if (ch_reg->flags1 & SGU1_FLAGS1_PHASE_RESET)
@@ -1334,6 +1431,16 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Finalize(
     int32_t final_R = (int32_t)(R_q16 >> 16);
     *l = sgu->L = (int32_t)minval(INT32_MAX, maxval(INT32_MIN, final_L));
     *r = sgu->R = (int32_t)minval(INT32_MAX, maxval(INT32_MIN, final_R));
+
+    // Clip detection. The mix leaves this function at full int32 width and each
+    // deployment narrows it on its own (I2S ssat16(mix>>1) on hardware, a float
+    // scale in the tracker, clamp16() in the WAV writer), so all the chip can do
+    // is report that the output stage's range was exceeded -- SGU_CLIP_MIN/MAX are
+    // the hardware's. Detection only.
+    // The flag is sticky; SGU_GetFlags clears it.
+    if (final_L < SGU_CLIP_MIN || final_L > SGU_CLIP_MAX ||
+        final_R < SGU_CLIP_MIN || final_R > SGU_CLIP_MAX)
+        sgu->flags |= SGU_FLAG_CLIP;
 }
 
 // ---------------------------------------------------------------------------
@@ -1347,9 +1454,22 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample(struct SGU *restrict sgu,
     SGU_NextSample_Finalize(sgu, L, R, l, r);
 }
 
-void __attribute__((optimize("Ofast"))) SGU_Init(struct SGU *sgu, size_t sampleMemSize)
+uint32_t SGU_GetFlags(struct SGU *sgu)
 {
-    (void)sampleMemSize;
+    // Read-to-clear (see sgu.h). The render thread ORs bits in while the GUI thread
+    // reads them out; the clear can race a concurrent OR and lose at most one latch.
+    uint32_t flags = sgu->flags;
+    sgu->flags = 0;
+    return flags;
+}
+
+void __attribute__((optimize("Ofast"))) SGU_Init(struct SGU *sgu, int8_t *pcm, size_t pcm_size)
+{
+    assert(sgu);
+    assert(pcm);
+    assert(pcm_size > 0);
+    assert((pcm_size % SGU_PCM_BANK_SIZE) == 0);
+
     memset(sgu, 0, sizeof(struct SGU));
 
     /**
@@ -1404,12 +1524,8 @@ void __attribute__((optimize("Ofast"))) SGU_Init(struct SGU *sgu, size_t sampleM
     }
     pan_gain_lut_r[128] = 0;
 
-#ifdef SGU_ON_MCU
-    // there can be only one…
-    sgu->pcm = pcm_mem;
-#else
-    sgu->pcm = malloc(SGU_PCM_RAM_SIZE);
-#endif
+    sgu->pcm = pcm;
+    sgu->pcm_size = pcm_size;
 
     SGU_Reset(sgu);
 }
@@ -1424,6 +1540,11 @@ void SGU_Reset(struct SGU *sgu)
     sgu->lfo_noise_am = 0;
     sgu->lfo_noise_pm = 0;
 
+    sgu->L = sgu->R = 0;
+    sgu->L_in = sgu->R_in = 0;
+    sgu->L_q16 = sgu->R_q16 = 0;
+    sgu->flags = 0;
+
     for (uint8_t ch = 0; ch < SGU_CHNS; ch++)
     {
         fm_channel_reset(&sgu->m_channel[ch], ch);
@@ -1433,10 +1554,9 @@ void SGU_Reset(struct SGU *sgu)
         sgu->svf_high[ch] = 0;
         sgu->svf_band[ch] = 0;
 
-        // Initialize sweep timers so first decrement lands at 0
-        sgu->vol_sweep_countdown[ch] = 1;
-        sgu->freq_sweep_countdown[ch] = 1;
-        sgu->cut_sweep_countdown[ch] = 1;
+        sgu->vol_sweep_countdown[ch] = 0;
+        sgu->freq_sweep_countdown[ch] = 0;
+        sgu->cutoff_sweep_countdown[ch] = 0;
 
         sgu->phase_reset_countdown[ch] = 0;
         sgu->pcm_phase_accum[ch] = 0;
@@ -1453,8 +1573,8 @@ void SGU_Write(struct SGU *sgu, uint16_t addr13, uint8_t data)
     ((uint8_t *)sgu->chan)[addr13] = data;
 }
 
-static_assert(sizeof(struct SGU_CH) == (SGU_OP_PER_CH * SGU_OP_REGS + SGU_CH_REGS), "SGU channel size mismatch");
-static_assert(SGU_REGS_PER_CH == (SGU_OP_PER_CH * SGU_OP_REGS + SGU_CH_REGS), "SGU regs size mismatch");
+SGU_STATIC_ASSERT(sizeof(struct SGU_CH) == (SGU_OP_PER_CH * SGU_OP_REGS + SGU_CH_REGS), "SGU channel size mismatch");
+SGU_STATIC_ASSERT(SGU_REGS_PER_CH == (SGU_OP_PER_CH * SGU_OP_REGS + SGU_CH_REGS), "SGU regs size mismatch");
 
 int32_t SGU_GetSample(struct SGU *sgu, uint8_t ch)
 {
@@ -1464,4 +1584,31 @@ int32_t SGU_GetSample(struct SGU *sgu, uint8_t ch)
     if (ret < INT16_MIN) ret = INT16_MIN;
     if (ret > INT16_MAX) ret = INT16_MAX;
     return (int32_t)ret;
+}
+
+static inline uint32_t sgu_get_operator_envelope_level(const struct SGU *sgu,
+                                                       const struct sgu_ch_state *cs,
+                                                       uint8_t ch,
+                                                       unsigned op)
+{
+    const unsigned out = SGU_OP7_OUT(sgu->chan[ch].op[op].reg7);
+    if (!out)
+        return 0;
+
+    const uint32_t att = minval(cs->op[op].envelope_attenuation, 0x3FFu);
+    return (env_gain_lut[att] * out) / 7u;
+}
+
+int32_t SGU_GetEnvelope(struct SGU *sgu, uint8_t ch)
+{
+    if (sgu->muted[ch])
+        return 0;
+
+    const struct sgu_ch_state *cs = &sgu->m_channel[ch];
+    uint32_t acc = 0;
+    for (unsigned op = 0; op < SGU_OP_PER_CH; op++)
+        acc += sgu_get_operator_envelope_level(sgu, cs, ch, op);
+
+    acc = minval(acc, 0x1FFFu);
+    return (int32_t)acc;
 }

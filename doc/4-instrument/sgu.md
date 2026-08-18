@@ -47,7 +47,9 @@ these apply to each operator:
 - **Frequency Multiplier (MULT)**: sets the coarse pitch ratio in relation to the note (0 to 15).
   - SGU-1 uses OPL-style multiplier mapping: `0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15` (`0` = half frequency).
 - **Detune (DT)**: shifts the pitch in fine steps (0 to 7).
-  - SGU-1 detune mapping is: `0=-3`, `1=-2`, `2=-1`, `3=0`, `4=+1`, `5=+2`, `6=+3`, `7=0`.
+  - SGU-1 uses Yamaha's sign-magnitude encoding, as OPN/OPM DT1 does: bit 2 is the sign and bits 1:0 the magnitude, so there are two zeroes.
+  - mapping is: `0=+0`, `1=+1`, `2=+2`, `3=+3`, `4=-0`, `5=-1`, `6=-2`, `7=-3`.
+  - neutral is `0`, not `3`.
 - **Waveform Select (WS)**: changes the waveform of the operator (0 to 7). see [waveforms](#waveforms) below.
 - **Waveform Parameter (WPAR)**: per-operator wave shaping parameter (0 to 15). the meaning depends on the selected waveform. see [waveforms](#waveforms) below.
 - **Hard Sync (SYNC)**: when enabled, this operator's phase resets whenever the previous operator's phase wraps around. creates hard-edged, harmonically rich timbres. for operator 1, the previous operator is operator 4.
