@@ -595,6 +595,17 @@ void DivPlatformSGU::writeControlUpper(int ch) {
   chan[ch].filterPhaseReset = false;
 }
 
+// Furnace stores DT offset-by-3 (0 = -3, 3 = NEUTRAL, 7 = degenerate), which is what the
+// instrument editor's detuneMap[]/detuneUnmap[] read and write. SGU-1's DT register is the
+// Yamaha sign-magnitude spelling instead -- bit 2 is the sign, bits 1:0 the magnitude, so
+// 0 and 4 are both neutral. The two are NOT the same number: passing the stored value
+// through raw makes an editor-neutral operator detune by the maximum positive amount, and
+// inverts the sign of every other setting. Same table as DivPlatformFMBase::dtTable (we
+// derive from DivDispatch, so we cannot inherit it); mirrored in renderFMPreviewSGU().
+static const unsigned char sguDetuneReg[8]={
+  7,6,5,0,1,2,3,4
+};
+
 void DivPlatformSGU::applyOpRegs(int ch, int o, const DivInstrumentFM::Operator& op, const DivInstrumentESFM::Operator& opE) {
   // logD("SGU op ch=%d op=%d INPUT: op.ar=%u op.dr=%u op.tl=%u", ch, o,
   //   static_cast<unsigned int>(op.ar), static_cast<unsigned int>(op.dr), static_cast<unsigned int>(op.tl));
@@ -608,7 +619,10 @@ void DivPlatformSGU::applyOpRegs(int ch, int o, const DivInstrumentFM::Operator&
   const unsigned char dr = op.dr & 0x1f;  // 5-bit DR
   const unsigned char sl = op.sl & 0x0f;  // 4-bit SL
   const unsigned char rr = op.rr & 0x0f;  // 4-bit RR
-  const unsigned char dt = op.dt & 0x07;  // 3-bit DT
+  // 3-bit DT. In FIX mode the field is not a detune at all -- it is the shift of the
+  // fixed-frequency ladder (base(MUL) << DT), which the editor's FixedFreq slider writes
+  // as a RAW register value -- so it must cross untranslated there.
+  const unsigned char dt = fix ? (op.dt & 0x07) : sguDetuneReg[op.dt & 0x07];
   const unsigned char sr = op.d2r & 0x1f; // 5-bit SR/D2R
   const unsigned char delay = opE.delay & 0x07; // 3-bit DELAY
   const unsigned char ksr = op.ksr & 0x03;  // 2-bit KSR
