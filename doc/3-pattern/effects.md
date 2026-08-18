@@ -245,12 +245,12 @@ ex | C64           | SID2          | SID3               | Sound Unit        | SG
  W | Waveform      | Waveform      | Waveform           | Waveform          | LFO AM Shape      |
  1 | Filter Mode   | Filter Mode   | Special            | Cutoff            | Cutoff            |
  2 | Resonance     | Resonance     | Attack             | Resonance         | Resonance         |
- 3 | Filter Toggle | Filter Toggle | Decay              | Control           | Filter Control    |
+ 3 | Filter Toggle | Filter Toggle | Decay              | Control           | Control           |
  A | Cutoff        | Cutoff        | Special Wave       |                   |                   |
  B |               |               | Phase Mod Source   |                   |                   |
  C |               | Noise Mode    | Ring Mod Source    |                   |                   |
  D |               | Wave Mix      | Hard Sync Source   |                   |                   |
- 4 | Special       | Special       | Sustain            | Phase Reset Timer | Sync Timer        |
+ 4 | Special       | Special       | Sustain            | Phase Reset Timer | Phase Reset Timer |
  5 | Attack        | Attack        | Sustain Rate       |                   | Op. Sync          |
  6 | Decay         | Decay         | Release            |                   | Op. Ring          |
  7 | Sustain       | Sustain       | Noise LFSR bits    |                   | Ch. Ring Mod      |
@@ -292,4 +292,4 @@ SGU-1 instruments reinterpret some FM operator macros:
  DT    | Op. Pitch      |
  EGT   | Output Level   |
  SUS   | MOD IN         |
- RS    | Op. Panning    |
+ RS    | WaveParm       |
