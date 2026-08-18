@@ -513,7 +513,9 @@ void DivPlatformSGU::tick(bool sysTick) {
 
       if (m.tl.had || m.ksl.had) {
         if (m.tl.had) {
-          op.tl=m.tl.val&63;
+          // SGU TL is 7-bit (applyOpRegs masks 0x7f and the editor offers 0..127); a 6-bit
+          // mask here aliased every macro value 64..127 back into 0..63, i.e. loud again
+          op.tl=m.tl.val&0x7f;
         }
         if (m.ksl.had) {
           op.ksl=m.ksl.val;
