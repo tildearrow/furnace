@@ -46,6 +46,34 @@ static const char* macroTypeValueNames[][2]={
   {NULL,NULL}
 };
 
+typedef void (*InsFeatureModifyFunc)(DivInstrument*,lua_State*);
+
+struct InsFeatureDef {
+  const char* valueName;
+  InsFeatureModifyFunc featureWriteFunc;
+};
+
+static InsFeatureDef insFeatures[]={
+  {"featureFM",writeFeatureFM},
+  {"featureGB",writeFeatureGB},
+  {"featureC64",writeFeatureC64},
+  {"featureAmiga",writeFeatureAmiga},
+  {"featureX1",writeFeatureX1},
+  {"feature163",writeFeatureN163},
+  {"featureFDS",writeFeatureFDS},
+  {"featureMultiPCM",writeFeatureMultiPCM},
+  {"featureWaveSynth",writeFeatureWaveSynth},
+  {"featureSoundUnit",writeFeatureSoundUnit},
+  {"featureES5506",writeFeatureES5506},
+  {"featureSNES",writeFeatureSNES},
+  {"featureESFM",writeFeatureESFM},
+  {"featurePowerNoise",writeFeaturePowerNoise},
+  {"featureSID2",writeFeatureSID2},
+  {"featureSID3",writeFeatureSID3},
+  {"featureKlattsch",writeFeatureKlattsch},
+  {NULL,NULL}
+};
+
 static FurnaceGUI* externGUI;
 
 /// FUNCTIONS
@@ -864,6 +892,24 @@ _CF(setInsMacroData) {
     lua_pop(s,1);
   }
   return 0;
+}
+
+_CF(getInsData) {
+  CHECK_ARGS_RANGE(0,1)
+  int index=curIns;
+  if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1)
+    index=lua_tointeger(s,1);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
+  }
+  DivInstrument* ins=e->getIns(index);
+  lua_newtable(s);
+  for (int i=0; insFeatures[i].valueName; i++) {
+    insFeatures[i].featureWriteFunc(ins,s);
+  }
+  return 1;
 }
 
 _CF(getInsMacroData) {
@@ -2091,10 +2137,13 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("create",createIns);
     API_ADD_FUNC("delete",deleteIns);
     API_ADD_FUNC("setData",setInsData);
+    API_ADD_FUNC("getData",getInsData)
     API_ADD_FUNC("setMacroData",setInsMacroData);
     API_ADD_FUNC("getMacroData",getInsMacroData)
     // instrument types
-    API_ADD_VALUE("typeStd",DIV_INS_STD,integer)
+    for (int i=0; insFeatures[i].valueName; i++) {
+      API_ADD_VALUE(insFeatures[i].valueName,i,integer);
+    }
     // macro types
     for (int i=0; macroTypeValueNames[i][0]; i++) {
       API_ADD_VALUE(macroTypeValueNames[i][0],i,integer);

@@ -121,7 +121,23 @@ class LuaValueInspector {
     void inspect(String& dest);
 };
 
-typedef void (*InsFeatureWriter)(const char*, const char*, int);
-
 void writeIns(DivInstrument* ins, DivInstrumentType type, const char* key, const char* subkey, int value);
 void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, int value);
+
+void writeFeatureFM(DivInstrument* ins, lua_State* s);
+void writeFeatureGB(DivInstrument* ins, lua_State* s);
+void writeFeatureC64(DivInstrument* ins, lua_State* s);
+void writeFeatureAmiga(DivInstrument* ins, lua_State* s);
+void writeFeatureX1(DivInstrument* ins, lua_State* s);
+void writeFeatureN163(DivInstrument* ins, lua_State* s);
+void writeFeatureFDS(DivInstrument* ins, lua_State* s);
+void writeFeatureMultiPCM(DivInstrument* ins, lua_State* s);
+void writeFeatureWaveSynth(DivInstrument* ins, lua_State* s);
+void writeFeatureSoundUnit(DivInstrument* ins, lua_State* s);
+void writeFeatureES5506(DivInstrument* ins, lua_State* s);
+void writeFeatureSNES(DivInstrument* ins, lua_State* s);
+void writeFeatureESFM(DivInstrument* ins, lua_State* s);
+void writeFeaturePowerNoise(DivInstrument* ins, lua_State* s);
+void writeFeatureSID2(DivInstrument* ins, lua_State* s);
+void writeFeatureSID3(DivInstrument* ins, lua_State* s);
+void writeFeatureKlattsch(DivInstrument* ins, lua_State* s);
