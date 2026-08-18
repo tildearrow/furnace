@@ -20,6 +20,32 @@
 #include "scripting.h"
 #include "../gui.h"
 
+static const char* macroTypeValueNames[][2]={
+  {"macroVolume","volume"},
+  {"macroArp","arp"},
+  {"macroDuty","duty"},
+  {"macroWave","wave"},
+  {"macroPitch","pitch"},
+  {"macroEx1","ex1"},
+  {"macroEx2","ex2"},
+  {"macroEx3","ex3"},
+  {"macroAlg","alg"},
+  {"macroFeedback","feedback"},
+  {"macroFMS","fms"},
+  {"macroAMS","ams"},
+  {"macroPanLeft","panLeft"},
+  {"macroPanRight","panRight"},
+  {"macroPhaseReset","phaseReset"},
+  {"macroEx4","ex4"},
+  {"macroEx5","ex5"},
+  {"macroEx6","ex6"},
+  {"macroEx7","ex7"},
+  {"macroEx8","ex8"},
+  {"macroEx9","ex9"},
+  {"macroEx10","ex10"},
+  {NULL,NULL}
+};
+
 static FurnaceGUI* externGUI;
 
 /// FUNCTIONS
@@ -701,6 +727,9 @@ _CF(deleteIns) {
   if (lua_gettop(s)>0) {
     CHECK_TYPE_INTEGER(1);
     index=lua_tointeger(s,1);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
   }
 
   e->delInstrument(index);
@@ -721,6 +750,9 @@ _CF(setInsData) {
     index=lua_tointeger(s,1);
     featureCode=lua_tointeger(s,2);
     tableIdx=3;
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
   } else {
     CHECK_TYPE_INTEGER(1);
     CHECK_TYPE_TABLE(2)
@@ -772,10 +804,13 @@ _CF(setInsMacroData) {
     index=lua_tointeger(s,1);
     macroType=lua_tointeger(s,2);
     tableIdx=3;
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
   } else {
     CHECK_TYPE_INTEGER(1);
     CHECK_TYPE_TABLE(2)
-      macroType=lua_tointeger(s,1);
+    macroType=lua_tointeger(s,1);
     tableIdx=2;
   }
   DivInstrumentMacro* macro=e->getIns(index)->std.macroByType((DivMacroType)macroType);
@@ -829,6 +864,74 @@ _CF(setInsMacroData) {
     lua_pop(s,1);
   }
   return 0;
+}
+
+_CF(getInsMacroData) {
+  CHECK_ARGS_RANGE(0,1)
+  int index=curIns;
+  if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1)
+    index=lua_tointeger(s,1);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
+  }
+  DivInstrument* ins=e->getIns(index);
+  lua_newtable(s);
+  for (int i=DIV_MACRO_VOL; i<=DIV_MACRO_EX10; i++) {
+    DivInstrumentMacro* macro=ins->std.macroByType(DivMacroType(i));
+    lua_pushstring(s,macroTypeValueNames[i][1]);
+    lua_newtable(s);
+    API_ADD_VALUE("delay",macro->delay,integer)
+    API_ADD_VALUE("speed",macro->speed,integer)
+    API_ADD_VALUE("loop",macro->loop,integer)
+    API_ADD_VALUE("release",macro->rel,integer)
+    API_ADD_VALUE("mode",macro->mode,integer)
+    API_ADD_VALUE("open",macro->open&1,boolean)
+    API_ADD_VALUE("instantRelease",macro->open&(1<<3),boolean)
+    int type=(macro->open>>1)&3;
+    switch (type) {
+      case 0: {
+        lua_pushstring(s,"values");
+        lua_newtable(s);
+        for (int j=0; j<macro->len; j++) {
+          lua_pushinteger(s,j+1);
+          lua_pushinteger(s,macro->val[j]);
+          lua_settable(s,-3);
+        }
+        lua_settable(s,-3);
+        break;
+      }
+      case 1: {
+        lua_pushstring(s,"envelope");
+        lua_newtable(s);
+        API_ADD_VALUE("bottom",macro->val[0],integer)
+        API_ADD_VALUE("top",macro->val[1],integer)
+        API_ADD_VALUE("attack",macro->val[2],integer)
+        API_ADD_VALUE("hold",macro->val[3],integer)
+        API_ADD_VALUE("decay",macro->val[4],integer)
+        API_ADD_VALUE("sustain",macro->val[5],integer)
+        API_ADD_VALUE("susTime",macro->val[6],integer)
+        API_ADD_VALUE("susDecay",macro->val[7],integer)
+        API_ADD_VALUE("release",macro->val[8],integer)
+        lua_settable(s,-3);
+        break;
+      }
+      case 2: {
+        lua_pushstring(s,"envelope");
+        lua_newtable(s);
+        API_ADD_VALUE("bottom",macro->val[0],integer)
+        API_ADD_VALUE("top",macro->val[1],integer)
+        API_ADD_VALUE("speed",macro->val[11],integer)
+        API_ADD_VALUE("waveform",macro->val[12],integer)
+        API_ADD_VALUE("phase",macro->val[13],integer)
+        lua_settable(s,-3);
+        break;
+      }
+    }
+    lua_settable(s,-3);
+  }
+  return 1;
 }
 
 _CF(createWave) {
@@ -1898,32 +2001,6 @@ static int _patternColumnEffectValue(lua_State* s) {
   return 1;
 }
 
-static const char* macroTypeValueNames[]={
-  "macroVolume",
-  "macroArp",
-  "macroDuty",
-  "macroWave",
-  "macroPitch",
-  "macroEx1",
-  "macroEx2",
-  "macroEx3",
-  "macroAlgorithm",
-  "macroFeedback",
-  "macroFMS",
-  "macroAMS",
-  "macroPanLeft",
-  "macroPanRight",
-  "macroPhaseReset",
-  "macroEx4",
-  "macroEx5",
-  "macroEx6",
-  "macroEx7",
-  "macroEx8",
-  "macroEx9",
-  "macroEx10",
-  NULL
-};
-
 void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   // make "fur" table
   lua_newtable(s);
@@ -2015,11 +2092,12 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("delete",deleteIns);
     API_ADD_FUNC("setData",setInsData);
     API_ADD_FUNC("setMacroData",setInsMacroData);
+    API_ADD_FUNC("getMacroData",getInsMacroData)
     // instrument types
     API_ADD_VALUE("typeStd",DIV_INS_STD,integer)
     // macro types
-    for (int i=0; macroTypeValueNames[i]; i++) {
-      API_ADD_VALUE(macroTypeValueNames[i],i,integer);
+    for (int i=0; macroTypeValueNames[i][0]; i++) {
+      API_ADD_VALUE(macroTypeValueNames[i][0],i,integer);
     }
   API_CATG_END;
   API_USE_CATG("wave");

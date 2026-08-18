@@ -52,7 +52,7 @@ void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, 
       else CHECK_PARAM("top",1)
       else CHECK_PARAM("speed",11)
       else CHECK_PARAM("waveform",12)
-      else CHECK_PARAM("phase",3)
+      else CHECK_PARAM("phase",13)
       macro->open=(macro->open&(~6))|4;
     }
   } else {

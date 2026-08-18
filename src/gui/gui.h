@@ -3657,6 +3657,9 @@ class FurnaceGUI {
     API_FUNC(setInsData)
     // [id], type, data
     API_FUNC(setInsMacroData)
+    // -> table
+    API_FUNC(getInsData)
+    API_FUNC(getInsMacroData)
 
     /// WAVETABLE MANIPULATION
     API_FUNC(createWave)
