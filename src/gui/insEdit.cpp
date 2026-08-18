@@ -221,6 +221,73 @@ const char* sguWaveforms[8]={
   _N("Sample")
 };
 
+// SGU-1 wave parameter (WPAR): a 4-bit per-operator field whose MEANING depends on the
+// operator's selected waveform, so a bare number tells the musician nothing. This table
+// names every reachable value per waveform; sguWparEntries() hands the right list to the
+// three operator layouts. Source of truth: doc/4-instrument/sgu.md "waveforms".
+//
+// Values with no entry are NOT offered but are preserved and shown raw -- on sine/triangle/
+// sawtooth the values 5..7 are silent no-ops, and periodic noise ignores bits 2..3, so an
+// imported or hand-edited patch can legitimately hold one and must not be rewritten just
+// because the editor was opened.
+struct SGUWparEntry { unsigned char val; const char* name; };
+
+// sine / triangle / sawtooth: bit 3 clear picks an OPL-style variant of the base wave,
+// bit 3 set quantizes the table lookup by zeroing (bits 0..2 + 1) low phase bits
+static const SGUWparEntry sguWparShaped[13]={
+  {0,_N("None")},
+  {1,_N("Half (low)")},
+  {2,_N("Half (high)")},
+  {3,_N("Abs (low)")},
+  {4,_N("Abs (high)")},
+  {8,_N("Quantize 1 bit")},
+  {9,_N("Quantize 2 bits")},
+  {10,_N("Quantize 3 bits")},
+  {11,_N("Quantize 4 bits")},
+  {12,_N("Quantize 5 bits")},
+  {13,_N("Quantize 6 bits")},
+  {14,_N("Quantize 7 bits")},
+  {15,_N("Quantize 8 bits")}
+};
+
+// pulse: 0 takes the channel pulse width, 1..15 is a fixed per-operator width of x/16
+static const SGUWparEntry sguWparPulse[16]={
+  {0,_N("Use channel duty")},
+  {1,_N("Width 1/16")},   {2,_N("Width 2/16")},   {3,_N("Width 3/16")},
+  {4,_N("Width 4/16")},   {5,_N("Width 5/16")},   {6,_N("Width 6/16")},
+  {7,_N("Width 7/16")},   {8,_N("Width 8/16")},   {9,_N("Width 9/16")},
+  {10,_N("Width 10/16")}, {11,_N("Width 11/16")}, {12,_N("Width 12/16")},
+  {13,_N("Width 13/16")}, {14,_N("Width 14/16")}, {15,_N("Width 15/16")}
+};
+
+// periodic noise: bits 1..0 pick the 6-bit LFSR tap configuration
+static const SGUWparEntry sguWparPNoise[4]={
+  {0,_N("31-state (taps 3,4)")},
+  {1,_N("31-state (taps 2,3)")},
+  {2,_N("63-state (taps 0,2,3)")},
+  {3,_N("63-state (taps 0,2,3,5)")}
+};
+
+// noise / reserved / sample read no WPAR at all
+static const SGUWparEntry sguWparUnused[1]={
+  {0,_N("(unused)")}
+};
+
+// returns the entry list for a waveform, and whether the operator reads WPAR at all
+static const SGUWparEntry* sguWparEntries(unsigned char ws, int& count, bool& used) {
+  used=true;
+  switch (ws&7) {
+    case 0: case 1: case 2:
+      count=13; return sguWparShaped;
+    case 3:
+      count=16; return sguWparPulse;
+    case 5:
+      count=4; return sguWparPNoise;
+    default: // 4 noise, 6 reserved, 7 sample
+      used=false; count=1; return sguWparUnused;
+  }
+}
+
 // SGU-1 fixed-frequency mode: freq16 = base[MUL] << DT
 // Helps "Fixed Freq" slider walk frequency monotonically.
 struct SGUFixedFreqSlot { unsigned char mul, dt; unsigned short freq16; };
@@ -605,6 +672,15 @@ const char* suControlBits[5]={
   NULL
 };
 
+// SGU-1 reads Op. Sync and Op. Ring as ONE channel-wide 4-bit mask, bit N per operator
+const char* sguOpBits[5]={
+  _N("op1"),
+  _N("op2"),
+  _N("op3"),
+  _N("op4"),
+  NULL
+};
+
 const char* es5506FilterModes[4]={
   "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
 };
@@ -872,38 +948,6 @@ String macroSoundUnitWaves(int id, float val, void* u) {
       break;
     case 7:
       label=_("XOR Triangle");
-      break;
-    default: break;
-  }
-  return fmt::sprintf("%d: %s",id,label);
-}
-
-String macroSGUWaves(int id, float val, void* u) {
-  const char* label="???";
-  switch (((int)val)&7) {
-    case 0:
-      label=_("Sine");
-      break;
-    case 1:
-      label=_("Triangle");
-      break;
-    case 2:
-      label=_("Sawtooth");
-      break;
-    case 3:
-      label=_("Pulse");
-      break;
-    case 4:
-      label=_("Noise");
-      break;
-    case 5:
-      label=_("Periodic Noise");
-      break;
-    case 6:
-      label=_("Reserved");
-      break;
-    case 7:
-      label=_("Sample");
       break;
     default: break;
   }
@@ -1225,7 +1269,7 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
   }
 }
 
-void FurnaceGUI::drawWaveformSGU(unsigned char type, const ImVec2& size, int sampleIdx) {
+void FurnaceGUI::drawWaveformSGU(unsigned char type, unsigned char wpar, const ImVec2& size, int sampleIdx) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -1245,32 +1289,50 @@ void FurnaceGUI::drawWaveformSGU(unsigned char type, const ImVec2& size, int sam
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
     switch (type) {
       case 0: // sine
-        for (size_t i=0; i<=waveformLen; i++) {
-          float x=(float)i/(float)waveformLen;
-          float y=sin(x*2.0*M_PI);
-          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-        }
-        break;
       case 1: // triangle
-        for (size_t i=0; i<=waveformLen; i++) {
-          float x=(float)i/(float)waveformLen;
-          float y=(x<0.25f)?(x*4.0f):((x<0.75f)?(2.0f-x*4.0f):(x*4.0f-4.0f));
-          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+      case 2: { // sawtooth (rising, two cycles)
+          // These three share one WPAR scheme on the chip, so they share one branch here.
+          // bit 3 set quantizes the table lookup by zeroing (bits 0..2 + 1) low phase bits;
+          // otherwise bits 0..2 pick an OPL-style variant split at the channel duty. The
+          // channel duty is not an instrument property, so the split is a nominal 50%.
+          const bool quant=(wpar&8);
+          const int quantBits=(wpar&7)+1;
+          const int variant=quant?0:(wpar&7);
+          for (size_t i=0; i<=waveformLen; i++) {
+            float x=(float)i/(float)waveformLen;
+            // walk a 10-bit phase like the chip so quantization steps land where they will
+            int ph=(int)(x*1024.0f)&1023;
+            if (quant) ph&=~((1<<quantBits)-1);
+            float p=(float)ph/1024.0f;
+            float sp=(type==2)?fmodf(p*2.0f,1.0f):p;
+            float y;
+            switch (type) {
+              case 0: y=sinf(sp*2.0f*(float)M_PI); break;
+              case 1: y=(sp<0.25f)?(sp*4.0f):((sp<0.75f)?(2.0f-sp*4.0f):(sp*4.0f-4.0f)); break;
+              default: y=2.0f*sp-1.0f; break;
+            }
+            const bool high=(sp>=0.5f);
+            switch (variant) {
+              case 1: if (!high) y=0.0f; break; // HALF_L: before the split is silenced
+              case 2: if (high) y=0.0f; break;  // HALF_H: after the split is silenced
+              case 3: if (!high) y=-y; break;   // ABS_L: before the split is negated
+              case 4: if (high) y=-y; break;    // ABS_H: after the split is negated
+              default: break;
+            }
+            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+          }
         }
         break;
-      case 2: // sawtooth (rising, two cycles)
-        for (size_t i=0; i<=waveformLen; i++) {
-          float x=(float)i/(float)waveformLen;
-          float phase=fmod(x*2.0f,1.0f);
-          float y=2.0f*phase-1.0f;
-          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-        }
-        break;
-      case 3: // pulse
-        for (size_t i=0; i<=waveformLen; i++) {
-          float x=(float)i/(float)waveformLen;
-          float y=(x<0.5f)?1.0f:-1.0f;
-          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+      case 3: { // pulse
+          // WPAR 0 takes the channel duty (nominal 50% here), 1..15 a fixed x/16 width.
+          // |duty| is the LOW run and it sits at the START of the period, so the low half
+          // comes first -- matching sgu_duty_high() rather than the old high-first sketch.
+          const float width=(wpar&15)?((float)(wpar&15)/16.0f):0.5f;
+          for (size_t i=0; i<=waveformLen; i++) {
+            float x=(float)i/(float)waveformLen;
+            float y=(x<width)?-1.0f:1.0f;
+            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+          }
         }
         break;
       case 4: // noise
@@ -1283,12 +1345,19 @@ void FurnaceGUI::drawWaveformSGU(unsigned char type, const ImVec2& size, int sam
           waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
         }
         break;
-      case 5: { // periodic noise (4 repeats, 8 steps per period)
-          const float noiseVals[8]={0.7f,-0.5f,0.3f,-0.9f,0.6f,-0.2f,0.8f,-0.7f};
+      case 5: { // periodic noise
+          // WPAR bits 1..0 pick the 6-bit LFSR taps: configs 0/1 run ~31 states, 2/3 run
+          // ~63, so the longer ones repeat half as often and read as a different timbre
+          const int period=((wpar&3)<2)?8:16;
           for (size_t i=0; i<=waveformLen; i++) {
             float x=(float)i/(float)waveformLen;
-            int step=(i*8/waveformLen)%8;
-            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-noiseVals[step]*0.4));
+            int step=(int)(i*period/waveformLen)%period;
+            // deterministic per (config,step) so the display is stable but each tap
+            // configuration looks distinct
+            unsigned int seed=((unsigned int)step*2654435761u)^((unsigned int)(wpar&3)*0x9e3779b9u);
+            seed^=seed>>16;
+            float y=((float)(seed&0xffff)/32768.0f)-1.0f;
+            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
           }
         }
         break;
@@ -4238,6 +4307,46 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
   }
 }
 
+// Draws the SGU-1 wave parameter as a named list rather than a hex nibble. Shared by all
+// three operator layouts (modern / alternate / compact) so they cannot drift apart -- the
+// same reason sguFixedFreq is one static table feeding three call sites.
+// prefixLabel: layouts that have no separate label cell carry the name in the widget, the
+// way the slider this replaced baked "WPAR: %X" into its format string
+void FurnaceGUI::drawSGUWpar(DivInstrument* ins, int opIdx, const DivInstrumentFM::Operator& op, bool prefixLabel) {
+  int count=0;
+  bool used=false;
+  const SGUWparEntry* entries=sguWparEntries(op.ws,count,used);
+  const unsigned char cur=ins->sgu.op[opIdx].wpar&0x0f;
+
+  // sel<0 means the patch holds a value this waveform does not define; show it raw instead
+  // of normalising it away behind the musician's back
+  int sel=-1;
+  for (int j=0; j<count; j++) {
+    if (entries[j].val==cur) {
+      sel=j;
+      break;
+    }
+  }
+
+  String label=(sel>=0)?String(_(entries[sel].name)):fmt::sprintf(_("Raw: %X"),cur);
+  if (prefixLabel) label=fmt::sprintf("WPAR: %s",label);
+
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  ImGui::BeginDisabled(!used);
+  if (ImGui::BeginCombo("##SGUWPAR",label.c_str())) {
+    for (int j=0; j<count; j++) {
+      if (ImGui::Selectable(_(entries[j].name),entries[j].val==cur)) { PARAMETER
+        ins->sgu.op[opIdx].wpar=entries[j].val;
+      }
+    }
+    ImGui::EndCombo();
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(_("WPAR: %X"),cur);
+  }
+}
+
 void FurnaceGUI::insTabFMModernHeader(DivInstrument* ins) {
   ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
   ImGui::TableNextColumn();
@@ -5353,7 +5462,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
               }
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[ordi].wpar,&_ZERO,&_FIFTEEN,"WPAR: %X")); rightClickable
+              drawSGUWpar(ins,ordi,op);
               bool syncOn=ins->sgu.op[ordi].sync;
               if (ImGui::Checkbox("SYNC##SGU",&syncOn)) { PARAMETER
                 ins->sgu.op[ordi].sync=syncOn;
@@ -5394,7 +5503,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
 
             if (ins->type==DIV_INS_SGU) {
-              drawWaveformSGU(op.ws&wsMax,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()),((op.ws&7)==7)?ins->amiga.initSample:-1);
+              drawWaveformSGU(op.ws&wsMax,ins->sgu.op[i].wpar&0x0f,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()),((op.ws&7)==7)?ins->amiga.initSample:-1);
             } else {
               drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
             }
@@ -5904,7 +6013,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               case DIV_INS_ESFM:
                 // waveform
                 if (ins->type==DIV_INS_SGU) {
-                  drawWaveformSGU(op.ws&wsMax,ImVec2(waveWidth,waveHeight),((op.ws&7)==7)?ins->amiga.initSample:-1);
+                  drawWaveformSGU(op.ws&wsMax,ins->sgu.op[i].wpar&0x0f,ImVec2(waveWidth,waveHeight),((op.ws&7)==7)?ins->amiga.initSample:-1);
                 } else {
                   drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 }
@@ -5932,8 +6041,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 }
                 if (ins->type==DIV_INS_SGU) {
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  snprintf(tempID,1024,"%s: %%X","WPAR");
-                  P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[i].wpar,&_ZERO,&_FIFTEEN,tempID)); rightClickable
+                  drawSGUWpar(ins,i,op);
                 }
 
                 // params
@@ -6749,7 +6857,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             if (ins->type==DIV_INS_SGU) {
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              P(CWSliderScalar("##WPAR",ImGuiDataType_U8,&ins->sgu.op[i].wpar,&_ZERO,&_FIFTEEN,"%X")); rightClickable
+              drawSGUWpar(ins,i,op,false); // this layout has its own label cell
               ImGui::TableNextColumn();
               ImGui::Text(_("WaveParm"));
             }
@@ -7655,6 +7763,11 @@ void FurnaceGUI::drawInsEdit() {
                     macroList.push_back(FurnaceGUIMacroDesc(_("Op. Arpeggio"),&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[ordi].ssgMacro.val,true));
                     macroList.push_back(FurnaceGUIMacroDesc(_("Op. Pitch"),&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
                   }
+                } else {
+                  // SGU runs these through handleArpFmOp()/handlePitchFmOp() regardless of
+                  // fixed mode -- it has no Block/FreqNum routing, so there is no second form
+                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Arpeggio"),&ins->std.opMacros[ordi].ssgMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.opMacros[ordi].ssgMacro.val,true));
+                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Pitch"),&ins->std.opMacros[ordi].dtMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
                 }
                 macroList.push_back(FurnaceGUIMacroDesc(ESFM_NAME(ESFM_DELAY),&ins->std.opMacros[ordi].dt2Macro,0,7,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
@@ -7680,9 +7793,9 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DVB),&ins->std.opMacros[ordi].dvbMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 if (ins->type==DIV_INS_SGU) {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_KSR),&ins->std.opMacros[ordi].ksrMacro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
-                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT),&ins->std.opMacros[ordi].dtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_PITCH]));
-                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Sync"),&ins->std.ex5Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-                  macroList.push_back(FurnaceGUIMacroDesc(_("Op. Ring"),&ins->std.ex6Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+                  // no DT macro here: dtMacro is this chip's per-operator PITCH (declared as
+                  // "Op. Pitch" above). Op. Sync / Op. Ring moved to the channel Macros tab --
+                  // they are one channel-wide 4-bit mask, not per-operator state.
                 } else {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_KSR),&ins->std.opMacros[ordi].ksrMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SUS),&ins->std.opMacros[ordi].susMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -9204,7 +9317,10 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
               } else {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
-                macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSoundUnitWaves,false,NULL));
+                // NO "Waveform" entry here for SGU: waveMacro is the LFO AM Shape on this
+                // chip (see the FM Macros tab) and the per-operator oscillator is wsMacro.
+                // Listing it here as a 0..7 Sound Unit waveform was the same macro under a
+                // second name, range and vocabulary.
               }
               macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,-127,127,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
@@ -9213,6 +9329,14 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Resonance"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_FILTER]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Control"),&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true,suControlBits));
               macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset Timer"),&ins->std.ex4Macro,0,65535,160,uiColors[GUI_COLOR_MACRO_PITCH])); // again reuse code from resonance macro but use ex4 instead
+              if (ins->type==DIV_INS_SGU) {
+                // channel-wide per-operator masks -- one macro covering all four operators,
+                // which is why they belong here and not under an individual OP tab
+                macroList.push_back(FurnaceGUIMacroDesc(_("Op. Sync"),&ins->std.ex5Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sguOpBits));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Op. Ring"),&ins->std.ex6Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sguOpBits));
+                // same FLAGS0 bit as Control's "ring mod"; this one runs later and wins
+                macroList.push_back(FurnaceGUIMacroDesc(_("Ch. Ring Mod"),&ins->std.ex7Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              }
               break;
             case DIV_INS_NAMCO:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));

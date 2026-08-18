@@ -36,7 +36,7 @@ these apply to each operator:
   - a value of 0 results in no delay.
 - **Attack Rate (AR)**: determines the rising time for the sound. the bigger the value, the faster the attack (0 to 31).
 - **Decay Rate (DR)**: determines the diminishing time for the sound. the higher the value, the shorter the decay. it's the initial amplitude decay rate (0 to 31).
-- **Sustain Level (SL)**: determines the point at which the sound ceases to decay and changes to a sound having a constant level. the sustain level is expressed as a fraction of the maximum level (0 to 15).
+- **Sustain Level (SL)**: determines the point at which the sound ceases to decay and changes to a sound having a constant level (0 to 15). SL is an *attenuation*, OPN-style: the higher the value, the further the decay runs and the quieter the plateau. `0` holds at the peak (no decay), `15` holds near silence; the plateau is about `(15 - SL) / 15` of the peak.
 - **Sustain Rate (D2R/SR)**: determines the rate at which the sound decays after reaching the sustain level while the key is held (0 to 31). this is an OPN-style feature not present in OPL or ESFM.
 - **Release Rate (RR)**: determines the rate at which the sound disappears after note off. the higher the value, the shorter the release (0 to 15).
 - **Total Level (TL)**: represents the envelope's highest amplitude, with 0 being the largest and 127 being the smallest. a change of one unit is about 0.75 dB.
@@ -51,7 +51,7 @@ these apply to each operator:
   - mapping is: `0=+0`, `1=+1`, `2=+2`, `3=+3`, `4=-0`, `5=-1`, `6=-2`, `7=-3`.
   - neutral is `0`, not `3`.
 - **Waveform Select (WS)**: changes the waveform of the operator (0 to 7). see [waveforms](#waveforms) below.
-- **Waveform Parameter (WPAR)**: per-operator wave shaping parameter (0 to 15). the meaning depends on the selected waveform. see [waveforms](#waveforms) below.
+- **Waveform Parameter (WPAR)**: per-operator wave shaping parameter. the editor names the available settings for the operator's currently selected waveform (wave variant, quantization, pulse width, or LFSR taps) — see [waveforms](#waveforms) below. a value the selected waveform does not define is shown as `Raw: x` and left alone.
 - **Hard Sync (SYNC)**: when enabled, this operator's phase resets whenever the previous operator's phase wraps around. creates hard-edged, harmonically rich timbres. for operator 1, the previous operator is operator 4.
 - **Ring Modulation (RING)**: when enabled, this operator's output is multiplied by the previous operator's output, producing sum and difference frequencies for bell-like or metallic tones. for operator 1, the previous operator is operator 4.
 - **Vibrato (VIB)**: makes the operator affected by LFO vibrato. the LFO PM waveform shape is selectable per channel via the FM Macros tab.
@@ -180,6 +180,12 @@ these macros allow you to control several parameters of each operator per tick.
 
 many operator parameters listed in the FM section above are available as macros.
 
+two of them do not mean what their ESFM/OPN namesakes mean:
+
+- **Op. Arpeggio**: per-operator pitch offset in semitones, on top of the channel note.
+- **Op. Pitch**: per-operator fine pitch. this is *not* the DT detune register — DT is a static
+  per-operator field in the FM tab, and no macro writes it.
+
 ### fixed frequency macros
 
 SGU does not use ESFM-style **Block**/**FreqNum** fixed-frequency macro/effect routing.
@@ -198,20 +204,12 @@ when fixed frequency is enabled, the editor uses the **Fixed Freq** control, whi
 - **Cutoff**: filter cutoff sequence (0 to 16383).
 - **Resonance**: filter resonance sequence (0 to 255).
   - values that are too high may distort the output!
-- **Filter Control**: filter parameter/ring mod sequence (0 to 15).
-  - **bit 0**: ring modulation with next channel (wraps from the last channel to channel 1).
-  - **bit 1**: low-pass filter. the lower the cutoff, the darker the sound.
-  - **bit 2**: high-pass filter. higher cutoff values result in a less "bassy" sound.
-  - **bit 3**: band-pass filter. cutoff determines which part of the sound is heard (from bass to treble).
-- **Sync Timer**: sets the phase reset timer (0 to 65535).
-- **Op. Sync**: per-operator hard sync bitmask (0 to 15).
-  - bit 0: operator 1 sync.
-  - bit 1: operator 2 sync.
-  - bit 2: operator 3 sync.
-  - bit 3: operator 4 sync.
-- **Op. Ring**: per-operator ring modulation bitmask (0 to 15).
-  - bit 0: operator 1 ring mod.
-  - bit 1: operator 2 ring mod.
-  - bit 2: operator 3 ring mod.
-  - bit 3: operator 4 ring mod.
-- **Ch. Ring Mod**: enables inter-channel ring modulation (0 or 1).
+- **Control**: filter parameter/ring mod bitmask.
+  - **ring mod**: ring modulation with next channel (wraps from the last channel to channel 1).
+  - **low pass**: the lower the cutoff, the darker the sound.
+  - **high pass**: higher cutoff values result in a less "bassy" sound.
+  - **band pass**: cutoff determines which part of the sound is heard (from bass to treble).
+- **Phase Reset Timer**: sets the phase reset timer (0 to 65535).
+- **Op. Sync**: hard sync bitmask, one bit per operator (op1 to op4). this is one channel-wide macro covering all four operators, not a per-operator one, so it lives here rather than in the OP tabs.
+- **Op. Ring**: ring modulation bitmask, one bit per operator (op1 to op4). same channel-wide shape as Op. Sync.
+- **Ch. Ring Mod**: enables inter-channel ring modulation (0 or 1). this drives the same bit as **Control**'s "ring mod"; when both are set on the same tick this one is applied last and wins.
