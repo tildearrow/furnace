@@ -473,7 +473,9 @@ void FurnaceGUI::renderFMPreviewSGU(const DivInstrumentFM& params, const DivInst
       const unsigned char dr=op.dr&0x1f;
       const unsigned char sl=op.sl&0x0f;
       const unsigned char rr=op.rr&0x0f;
-      const unsigned char dt=op.dt&0x07;
+      // in FIX mode DT is the fixed-frequency shift, written raw by the editor, not a
+      // detune -- same split the OPZ preview makes on egt above
+      const unsigned char dt=fix?(op.dt&0x07):dtTableFMP[op.dt&0x07];
       const unsigned char sr=op.d2r&0x1f;
       const unsigned char delay=opE.delay&0x07;
       const unsigned char ksr=op.ksr&0x03;
