@@ -4310,6 +4310,24 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
 // Draws the SGU-1 wave parameter as a named list rather than a hex nibble. Shared by all
 // three operator layouts (modern / alternate / compact) so they cannot drift apart -- the
 // same reason sguFixedFreq is one static table feeding three call sites.
+// SGU-1's KSR is TWO bits (0..3) where the OPL/OPN families have one, so a checkbox can
+// only ever reach 0 and 1 -- values 2 and 3 were authorable by macro alone. Every other
+// chip keeps the checkbox it has always had.
+void FurnaceGUI::drawFMKsr(DivInstrument* ins, DivInstrumentFM::Operator& op, bool shortName) {
+  if (ins->type==DIV_INS_SGU) {
+    op.ksr&=3;
+    char tempID[64];
+    snprintf(tempID,64,"%s: %%d",shortName?FM_SHORT_NAME(FM_KSR):FM_NAME(FM_KSR));
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    P(CWSliderScalar("##KSR",ImGuiDataType_U8,&op.ksr,&_ZERO,&_THREE,tempID)) rightClickable
+  } else {
+    bool ksrOn=op.ksr;
+    if (ImGui::Checkbox(shortName?FM_SHORT_NAME(FM_KSR):FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
+      op.ksr=ksrOn;
+    }
+  }
+}
+
 // prefixLabel: layouts that have no separate label cell carry the name in the widget, the
 // way the slider this replaced baked "WPAR: %X" into its format string
 void FurnaceGUI::drawSGUWpar(DivInstrument* ins, int opIdx, const DivInstrumentFM::Operator& op, bool prefixLabel) {
@@ -5354,9 +5372,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              if (ImGui::Checkbox(FM_SHORT_NAME(FM_KSR),&ksrOn)) { PARAMETER
-                op.ksr=ksrOn;
-              }
+              drawFMKsr(ins,op,true);
               ImGui::TableNextColumn();
               if (ImGui::Checkbox(FM_SHORT_NAME(FM_SUS),&susOn)) { PARAMETER
                 op.sus=susOn;
@@ -5483,9 +5499,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             if (ImGui::Checkbox(FM_NAME(FM_VIB),&vibOn)) { PARAMETER
               op.vib=vibOn;
             }
-            if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
-              op.ksr=ksrOn;
-            }
+            drawFMKsr(ins,op);
             if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
               if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
                 op.sus=susOn;
@@ -5862,9 +5876,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                     op.am=amOn;
                   }
                   ImGui::TableNextColumn();
-                  if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
-                    op.ksr=ksrOn;
-                  }
+                  drawFMKsr(ins,op);
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
@@ -5908,9 +5920,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                     op.am=amOn;
                   }
                   ImGui::TableNextColumn();
-                  if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
-                    op.ksr=ksrOn;
-                  }
+                  drawFMKsr(ins,op);
 
                   ImGui::TableNextRow();
                   ImGui::TableNextColumn();
@@ -6237,9 +6247,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 bool amOn=op.am;
                 bool fixedOn=opE.fixed;
                 ImGui::TableNextColumn();
-                if (ImGui::Checkbox(FM_SHORT_NAME(FM_KSR),&ksrOn)) { PARAMETER
-                  op.ksr=ksrOn;
-                }
+                drawFMKsr(ins,op,true);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 if (ImGui::BeginTable("vibAmCheckboxes",2)) {
@@ -6503,7 +6511,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_SGU)?31:15;
 
           bool ssgOn=op.ssgEnv&8;
-          bool ksrOn=op.ksr;
           bool vibOn=op.vib;
           bool susOn=op.sus; // don't you make fun of this one
           unsigned char ssgEnv=op.ssgEnv&7;
@@ -6892,9 +6899,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               op.vib=vibOn;
             }
             ImGui::SameLine();
-            if (ImGui::Checkbox(FM_NAME(FM_KSR),&ksrOn)) { PARAMETER
-              op.ksr=ksrOn;
-            }
+            drawFMKsr(ins,op);
           }
 
           if (ins->type==DIV_INS_ESFM || ins->type==DIV_INS_SGU) {
