@@ -59,8 +59,7 @@ namespace ymfm
 //           0A ----x--- Unknown
 //              -----x-- Key fraction mode
 //              ------xx Unknown
-//           0F x------- Noise enable
-//              ---xxxxx Noise frequency
+//           0F ---xxxxx Noise frequency
 //           10 xxxxxxxx Timer A value (upper 8 bits)
 //           11 ------xx Timer A value (lower 2 bits)
 //           12 xxxxxxxx Timer B value
