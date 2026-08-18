@@ -50,9 +50,9 @@
 //
 // For starters, there are four LFO generators. Two of them are configurable
 // and operate identically since identical parameters are offered for each.
-// The other two are fixed triangle LFOs, with unknown usage/behavior.
-// The LFOs on the OPZ have an extra "sync" option which apparently causes
-// the LFO to reset whenever a key on is received.
+// The other two are fixed triangle LFOs, used for per-op tremolo.
+// The LFOs on the OPZ have an extra "sync" option which triggers a reset
+// when 1 is written.
 // You may select between one and the other LFO for PMS/AMS.
 //
 // The sine table is four times as precise (compared to OPP) and the exp ROM is twice as big.
@@ -69,6 +69,8 @@
 //
 // Third, there is a "fine" register which offers extra precision on the
 // multiplier.
+//
+// Fourth, there is an extra tremolo setting which uses either the third or fourth LFOs.
 //
 // The envelope generator also supports a 2-bit shift value, which can be
 // used to reduce the effect of the envelope attenuation.
@@ -97,12 +99,12 @@ namespace ymfm
 //-------------------------------------------------
 
 opz_registers::opz_registers() :
-	m_lfo_counter{ 0, 0 },
+	m_lfo_counter{ 0, 0, 0, 0 },
 	m_noise_lfsr(1),
 	m_noise_counter(0),
 	m_noise_state(0),
 	m_noise_lfo(0),
-	m_lfo_am{ 0, 0 }
+	m_lfo_am{ 0, 0, 0, 0 }
 {
 	// create the waveforms
 	for (uint32_t index = 0; index < WAVEFORM_LENGTH; index++)
@@ -258,16 +260,6 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 	{
 		channel = bitfield(data, 0, 3);
 		opmask = bitfield(data, 3, 4);
-
-		// according to the TX81Z manual, the sync option causes the LFOs
-		// to reset at each note on
-		if (opmask != 0)
-		{
-			if (lfo_sync())
-				m_lfo_counter[0] = 0;
-			if (lfo2_sync())
-				m_lfo_counter[1] = 0;
-		}
 		return true;
 	}
 	return false;
@@ -313,6 +305,16 @@ int32_t opz_registers::clock_noise_and_lfo()
   if (rate1 != 0) {
 	  m_lfo_counter[1] += (0x10 | bitfield(rate1, 0, 4)) << bitfield(rate1, 4, 4);
   }
+
+	// the sync options are used to reset the LFO counters
+	// bit 1 of the test register may be used to reset the
+	// LFOs as well (both of them?)
+	if (lfo_sync() || lfo_reset())
+		m_lfo_counter[0] = 0;
+	if (lfo2_sync() || lfo_reset())
+		m_lfo_counter[1] = 0;
+
+
 	uint32_t lfo0 = bitfield(m_lfo_counter[0], 22, 8);
 	uint32_t lfo1 = bitfield(m_lfo_counter[1], 22, 8);
 

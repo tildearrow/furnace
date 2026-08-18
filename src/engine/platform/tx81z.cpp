@@ -1167,6 +1167,9 @@ void DivPlatformTX81Z::reset() {
   lfoShape=0;
   lfoShape2=0;
 
+  immWrite(0x15,0x01); // enter OPZ mode
+  immWrite(0x0a,0x04); // enable mono bit
+
   immWrite(0x18,0x00); // LFO Freq Off
   immWrite(0x16,0x00);
   immWrite(0x19,amDepth);

@@ -25,7 +25,8 @@ no plans have been made for TX81Z MIDI passthrough, because:
 
 ## effects
 
-- `10xx`: **set noise frequency of channel 8 operator 4.** `00` disables noise while `01` to `20` enable it.
+- `10xx`: **set LFO noise frequency.**
+  - the range is `01` to `20`.
 - `11xx`: **set feedback of channel.**
 - `12xx`: **set operator 1 level.**
 - `13xx`: **set operator 2 level.**

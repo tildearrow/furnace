@@ -96,7 +96,7 @@ most parameters are listed above.
 
 - **Arpeggio**: pitch change sequence in semitones.
 - **Noise Frequency**: specifies the noise frequency.
-  - this only applies to operator 4 of channel 8!
+  - this is only used for the LFOs! unlike OPM, it does not output on any channel at all.
 - **Panning**: toggles output on left and right channels.
 - **Pitch**: fine pitch.
   - **Relative**: when enabled, pitch changes are relative to the current pitch.

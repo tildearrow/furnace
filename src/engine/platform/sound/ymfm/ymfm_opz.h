@@ -213,8 +213,9 @@ public:
 	std::string log_keyon(uint32_t choffs, uint32_t opoffs);
 
 	// system-wide registers
+	uint32_t lfo_reset() const                       { return byte(0x09, 1, 1); }
 	uint32_t noise_frequency() const                 { return byte(0x0f, 0, 5); }
-	uint32_t noise_enable() const                    { return byte(0x0f, 7, 1); }
+	uint32_t noise_enable() const                    { return 0; } // we return 0 since noise is only used for LFO
 	uint32_t timer_a_value() const                   { return word(0x10, 0, 8, 0x11, 0, 2); }
 	uint32_t timer_b_value() const                   { return byte(0x12, 0, 8); }
 	uint32_t csm() const                             { return byte(0x14, 7, 1); }
@@ -287,12 +288,12 @@ protected:
 	}
 
 	// internal state
-	uint32_t m_lfo_counter[2];            // LFO counter
+	uint32_t m_lfo_counter[4];            // LFO counter
 	uint32_t m_noise_lfsr;                // noise LFSR state
 	uint8_t m_noise_counter;              // noise counter
 	uint8_t m_noise_state;                // latched noise state
 	uint8_t m_noise_lfo;                  // latched LFO noise value
-	uint8_t m_lfo_am[2];                  // current LFO AM value
+	uint8_t m_lfo_am[4];                  // current LFO AM value
 	uint8_t m_regdata[REGISTERS];         // register data
 	uint16_t m_phase_substep[OPERATORS];  // phase substep for fixed frequency
 	int16_t m_lfo_waveform[4][LFO_WAVEFORM_LENGTH]; // LFO waveforms; AM in low 8, PM in upper 8
