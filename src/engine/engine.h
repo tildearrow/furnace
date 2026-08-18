@@ -431,6 +431,7 @@ class DivEngine {
   DivAudioExportFormats exportFormat;
   DivAudioExportWavFormats wavFormat;
   DivAudioExportBitrateModes exportBitRateMode;
+  double prevAudioRate;
   double exportFadeOut;
   bool isFadingOut;
   int exportOutputs;
@@ -1458,6 +1459,7 @@ class DivEngine {
       exportFormat(DIV_EXPORT_FORMAT_WAV),
       wavFormat(DIV_EXPORT_WAV_S16),
       exportBitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
+      prevAudioRate(44100.0),
       exportFadeOut(0.0),
       isFadingOut(false),
       exportOutputs(2),

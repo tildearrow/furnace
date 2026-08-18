@@ -214,6 +214,7 @@ void DivEngine::runExportThread() {
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
         BUSY_BEGIN;
+        got.rate=prevAudioRate;
         exporting=false;
         BUSY_END;
         return;
@@ -283,6 +284,7 @@ void DivEngine::runExportThread() {
 
       logI("done!");
       BUSY_BEGIN;
+      got.rate=prevAudioRate;
       exporting=false;
       BUSY_END;
       break;
@@ -390,6 +392,7 @@ void DivEngine::runExportThread() {
 
       logI("done!");
       BUSY_BEGIN;
+      got.rate=prevAudioRate;
       exporting=false;
       BUSY_END;
       break;
@@ -556,6 +559,7 @@ void DivEngine::runExportThread() {
 
       logI("done!");
       BUSY_BEGIN;
+      got.rate=prevAudioRate;
       exporting=false;
       BUSY_END;
       curExportChan=0;
@@ -607,6 +611,7 @@ bool DivEngine::saveAudio(const char* path, DivAudioExportOptions options) {
   repeatPattern=false;
   setOrder(0);
   remainingLoops=-1;
+  prevAudioRate=got.rate;
   if (options.format==DIV_EXPORT_FORMAT_OPUS) {
     // Opus only supports 48KHz and a couple divisors of that number...
     got.rate=48000;
