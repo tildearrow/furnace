@@ -643,6 +643,7 @@ extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
 extern/YM2151-LLE/fmopm.c
+extern/YM2414-LLE-beta/opz_lle.c
 
 extern/pwrnoise/pwrnoise.c
 
