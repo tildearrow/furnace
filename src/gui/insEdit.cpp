@@ -845,6 +845,14 @@ String macroHoverBit30(int id, float val, void* u) {
   return _("Relative");
 }
 
+String macroHoverSGUDuty(int id, float val, void* u) {
+  // |duty| is the low run's length out of the 128-step period; the sign places that
+  // run at the end instead of the start. see the duty field in sound/sgu.h.
+  int duty=(int)val;
+  if (duty<0) return fmt::sprintf(_("%d: %d/128 low, at period end"),id,-duty);
+  return fmt::sprintf(_("%d: %d/128 low, at period start"),id,duty);
+}
+
 String macroHoverGain(int id, float val, void* u) {
   if (val>=224.0f) {
     return fmt::sprintf(_("%d: +%d (exponential)"),id,(int)(val-224));
@@ -9321,7 +9329,7 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->type != DIV_INS_SGU) {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
               } else {
-                macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,-128,127,160,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroHoverSGUDuty));
                 // NO "Waveform" entry here for SGU: waveMacro is the LFO AM Shape on this
                 // chip (see the FM Macros tab) and the per-operator oscillator is wsMacro.
                 // Listing it here as a 0..7 Sound Unit waveform was the same macro under a

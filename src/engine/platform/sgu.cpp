@@ -26,6 +26,14 @@
 
 static constexpr int SGU_CH_BASE = SGU_OP_PER_CH * SGU_OP_REGS;
 
+// DUTY is a signed 8-bit split point (see the duty field in sound/sgu.h), so a whole
+// byte of macro or effect value is meaningful: 00..7F puts the low run at the period
+// start, 80..FF puts it at the end. Sign-extend by hand -- converting an int above 127
+// to signed char is implementation-defined in C++14.
+static inline signed char sguSignedDuty(int val) {
+  return (signed char)((val&0x7f)-(val&0x80));
+}
+
 #define opWrite(c,o,a,v) rWrite(((c) * SGU_REGS_PER_CH) + ((o) * SGU_OP_REGS) + (a), (v))
 #define chWrite(c,a,v)   rWrite(((c) * SGU_REGS_PER_CH) + SGU_CH_BASE + (a), (v))
 
@@ -149,8 +157,11 @@ void DivPlatformSGU::tick(bool sysTick) {
 
     if (sysTick) {
       if (chan[i].pw_slide!=0) {
-        chan[i].virtual_duty-=chan[i].pw_slide;
-        chan[i].virtual_duty=CLAMP(chan[i].virtual_duty,0,0xfff);
+        // virtual_duty is the duty split point in 32nds, so it spans the whole signed
+        // register (-0x1000..0xfff). The rails are adjacent -- 127 is one step from -128
+        // and -1 one step from 0 -- so the sweep wraps, which is what lets a PWM sweep
+        // run continuously instead of parking at all-high or all-low.
+        chan[i].virtual_duty=(short)((((chan[i].virtual_duty-chan[i].pw_slide)+0x1000)&0x1fff)-0x1000);
         chan[i].duty=chan[i].virtual_duty>>5;
 
         chWrite(i,SGU1_CHN_DUTY,chan[i].duty);
@@ -182,13 +193,12 @@ void DivPlatformSGU::tick(bool sysTick) {
     }
 
     if (chan[i].std.duty.had) {
-      // DUTY is a SIGNED register now: |duty| is the low-run length and the sign places
-      // that run in the period. We author only the positive half (0..127, run at the
-      // period start), same as the 12xx effect path, so an out-of-range macro value must
-      // be brought into that domain -- left raw it would land in the mirrored half
-      // instead of the old "collapses to DC low".
-      chan[i].duty=chan[i].std.duty.val&127;
-      chan[i].virtual_duty=(unsigned short)chan[i].duty<<5;
+      // |duty| is the low-run length out of 128 and the sign places that run: positive
+      // at the period start (____|~~~~), negative at the end (~~~~|____). Negating a
+      // value mirrors the wave in time, which on the HALF/ABS wave modifiers picks which
+      // side of the split gets silenced or negated. The macro spans the whole register.
+      chan[i].duty=sguSignedDuty(chan[i].std.duty.val);
+      chan[i].virtual_duty=chan[i].duty<<5;
       chWrite(i,SGU1_CHN_DUTY,chan[i].duty);
     }
     if (chan[i].std.phaseReset.had) {
@@ -891,8 +901,8 @@ int DivPlatformSGU::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      chan[c.chan].duty=c.value&127;
-      chan[c.chan].virtual_duty=(unsigned short)chan[c.chan].duty << 5;
+      chan[c.chan].duty=sguSignedDuty(c.value);
+      chan[c.chan].virtual_duty=chan[c.chan].duty<<5;
       chWrite(c.chan,SGU1_CHN_DUTY,chan[c.chan].duty);
       break;
     case DIV_CMD_FM_AM_DEPTH: {

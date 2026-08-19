@@ -30,7 +30,8 @@ class DivPlatformSGU: public DivDispatch {
     } state;
     int cutoff, baseCutoff, res, control, hasOffset, sample;
     signed char pan;
-    unsigned char duty;
+    // the DUTY register is a signed split point, not a width -- see sound/sgu.h
+    signed char duty;
     unsigned char wpar[SGU_OP_PER_CH];
     bool sync[SGU_OP_PER_CH];
     bool ring[SGU_OP_PER_CH];

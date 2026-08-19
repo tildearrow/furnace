@@ -98,6 +98,7 @@ each operator can use one of 8 waveforms. the **Waveform Parameter (WPAR)** prov
       - `2` (**HALF_H**): half-sine; part of the wave after duty is silenced.
       - `3` (**ABS_L**): absolute-sine; part of the wave before duty is negated.
       - `4` (**ABS_H**): absolute-sine; part of the wave after duty is negated.
+      - "before" and "after" are relative to the channel duty's split point, so a negative duty (see `3`: pulse below) swaps which side of the wave each of these four affects.
     - bit 3 = `1`: quantizes waveform table lookup by zeroing low bits (stepped waveforms).
       - bits 0..2 select how many low bits are zeroed: `(bits 0..2 + 1)`.
 - `1`: **triangle.**
@@ -105,7 +106,7 @@ each operator can use one of 8 waveforms. the **Waveform Parameter (WPAR)** prov
 - `2`: **sawtooth.**
   - same WPAR behavior as sine and triangle (see `0` above).
 - `3`: **pulse.**
-  - WPAR `0`: uses the channel pulse width (set with the Duty macro or `12xx` effect).
+  - WPAR `0`: uses the channel pulse width (set with the Duty macro or `12xx` effect). the value is signed: its magnitude is the low run's length out of 128, and the sign places that run at the start of the period (positive, `____|~~~~`) or at the end (negative, `~~~~|____`). negating it mirrors the wave in time.
   - WPAR `1` to `15`: fixed per-operator pulse width of x/16 (x low units, 16-x high units).
 - `4`: **noise.** white noise using a 32-bit LFSR.
 - `5`: **periodic noise.** metallic/tonal noise using a configurable 6-bit LFSR.

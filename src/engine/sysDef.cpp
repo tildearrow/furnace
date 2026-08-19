@@ -2258,6 +2258,12 @@ void DivEngine::registerSystems() {
     suEffectHandlerMap
   );
 
+  // SGU-1 shares Sound Unit's effects, except that its pulse width register is a
+  // signed split point, so 12xx spans a whole byte instead of Sound Unit's 0..7F.
+  EffectHandlerMap sguEffectHandlerMap=suEffectHandlerMap;
+  sguEffectHandlerMap.erase(0x12);
+  sguEffectHandlerMap.emplace(0x12, EffectHandler(DIV_CMD_STD_NOISE_MODE, _("12xx: Set pulse width (00 to 7F at period start, 80 to FF at period end)")));
+
   sysDefs[DIV_SYSTEM_SGU]=new DivSysDef(
     _("SGU-1"), NULL, 0xe6, 0, 9, 9, 9,
     true, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
@@ -2272,7 +2278,7 @@ void DivEngine::registerSystems() {
       );
     }),
     {},
-    suEffectHandlerMap
+    sguEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(

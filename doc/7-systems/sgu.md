@@ -19,7 +19,7 @@ it has the following capabilities:
 - per-operator hard sync and ring modulation
 - OPN-style ADSR envelope with sustain rate control (AR/DR/SL/SR/RR) and 5-bit attack/decay/sustain rates
 - per-channel resonant filter (low pass, band pass, high pass, ring modulation)
-- 128 pulse widths for pulse waveform
+- 256 pulse width settings: 128 widths, each placed at either end of the period
 - volume, frequency and cutoff sweep units (per-channel)
 - phase reset timer (per-channel)
 - per-channel LFO waveform shape selection (saw, square, triangle, noise) for AM (tremolo) and PM (vibrato)
@@ -31,7 +31,7 @@ __note:__ unlike Sound Unit, waveforms are selected per-operator in the instrume
 
 __note:__ FM operator parameters (attack rate, decay rate, total level, multiplier, etc.) are controlled through macros in the instrument editor, not through pattern effects.
 
-- `12xx`: __set pulse width.__ range is `0` to `7F`.
+- `12xx`: __set pulse width.__ this is a signed split point rather than a plain width. `00` to `7F` put the low run at the start of the period (`____|~~~~`), and `80` to `FF` put it at the end (`~~~~|____`); in both halves the distance from `00` is the low run's length out of 128. so `00` is all high, `40` is a square wave, `80` is all low, and `C0` is a square wave mirrored in time.
 - `13xx`: __set resonance of filter.__ range is `0` to `FF`.
 - `14xx`: __set filter mode and ring mod.__
   - bit 0: ring mod with next channel
@@ -61,7 +61,7 @@ __note:__ FM operator parameters (attack rate, decay rate, total level, multipli
   - bit 0-6: speed
   - bit 7: up direction
 - `23xx`: __pulse width slide up.__
-- `24xx`: __pulse width slide down.__
+- `24xx`: __pulse width slide down.__ both wrap at the ends of the register, so a slide left running sweeps the pulse width continuously instead of stopping at all-high or all-low.
 - `25xx`: __filter cutoff slide up.__
 - `26xx`: __filter cutoff slide down.__
 - `4xxx`: __set cutoff.__ range is `0` to `FFF`.
