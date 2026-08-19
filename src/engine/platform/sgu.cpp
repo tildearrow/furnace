@@ -30,9 +30,6 @@ static constexpr int SGU_CH_BASE = SGU_OP_PER_CH * SGU_OP_REGS;
 #define chWrite(c,a,v)   rWrite(((c) * SGU_REGS_PER_CH) + SGU_CH_BASE + (a), (v))
 
 #define CHIP_FREQBASE 524288
-// upstream removed the NOTE_FREQUENCY macro (deprecated in favor of DivPitchTable).
-// keep a local definition until this dispatch is ported to DivPitchTable.
-#define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
 
 static const char* regCheatSheetSGU[]={
   "CHx_OPy_R0 [7 TRM][6 VIB][5:4 KSR][3:0 MUL]", "00+x*40+y*08",
@@ -179,7 +176,7 @@ void DivPlatformSGU::tick(bool sysTick) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -371,11 +368,17 @@ void DivPlatformSGU::tick(bool sysTick) {
       int arp=chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff;
       bool arpFixed=chan[i].fixedArp;
       int pitch2=chan[i].pitch2;
-      for (int o=0; o<SGU_OP_PER_CH; o++) {
-        if (chan[i].opsState[o].hasOpArp) {
-          arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride:chan[i].opsState[o].arpOff;
-          arpFixed=chan[i].opsState[o].fixedArp;
-          break;
+      // DivEngine::calcFreq, which this replaces, discarded the arp offset outright
+      // under the old arp strategy -- that strategy walks baseFreq itself (see the arp
+      // block above). SharedChannel keeps arpOff at 0 there, so the operator macros
+      // have to be held back the same way to land on the same frequency.
+      if (NEW_ARP_STRAT) {
+        for (int o=0; o<SGU_OP_PER_CH; o++) {
+          if (chan[i].opsState[o].hasOpArp) {
+            arp=chan[i].opsState[o].fixedArp?chan[i].opsState[o].baseNoteOverride:chan[i].opsState[o].arpOff;
+            arpFixed=chan[i].opsState[o].fixedArp;
+            break;
+          }
         }
       }
       for (int o=0; o<SGU_OP_PER_CH; o++) {
@@ -384,24 +387,9 @@ void DivPlatformSGU::tick(bool sysTick) {
           break;
         }
       }
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq, chan[i].pitch,
-          arp, arpFixed, false, 2, pitch2, chipClock, CHIP_FREQBASE);
-
-      if (chan[i].pcm) {
-        DivSample* sample=parent->getSample(chan[i].sample);
-        if (sample!=NULL) {
-          // pcmFactor = rate * CHIP_FREQBASE / (chipClock * 32768)
-          // (matches SU's hardcoded 4.0 with SU's 309000/1236000 clocks)
-          const double pcmFactor=(double)rate*(double)CHIP_FREQBASE/((double)chipClock*32768.0);
-          double off=0.25;
-          if (sample->centerRate<1) {
-            off=0.25;
-          } else {
-            off=(double)sample->centerRate/(parent->getCenterRate()*pcmFactor);
-          }
-          chan[i].freq=(double)chan[i].freq*off;
-        }
-      }
+      // in PCM mode this reads the sample's own pitch table, which already carries
+      // the center-rate ratio -- see notifyPitchTable().
+      chan[i].freq=chan[i].calcFreqFromOps(arp,arpFixed,pitch2);
 
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
@@ -763,6 +751,7 @@ int DivPlatformSGU::dispatch(DivCommand c) {
       if (chan[c.chan].pcm) {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           chan[c.chan].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
@@ -770,11 +759,14 @@ int DivPlatformSGU::dispatch(DivCommand c) {
       } else {
         chan[c.chan].sampleNote=DIV_NOTE_NULL;
         chan[c.chan].sampleNoteDelta=0;
+        // the operator "sample" waveform runs at oscillator rate, so a channel that
+        // merely points at a sample keeps the oscillator table.
+        chan[c.chan].pitchTable=&pitchTable;
       }
 
       // 4. Set up frequency
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -847,12 +839,12 @@ int DivPlatformSGU::dispatch(DivCommand c) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SGU));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value*((parent->song.compatFlags.linearPitch)?1:(1+(chan[c.chan].baseFreq>>9)));
@@ -879,7 +871,7 @@ int DivPlatformSGU::dispatch(DivCommand c) {
         commitState(c.chan,ins);
         chan[c.chan].insChanged=false;
       }
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -1514,6 +1506,7 @@ void DivPlatformSGU::reset() {
 
   for (int i=0; i<SGU_CHNS; i++) {
     chan[i]=DivPlatformSGU::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
 
     chan[i].vol=0x7f;
@@ -1561,6 +1554,16 @@ void DivPlatformSGU::notifyInsDeletion(void* ins) {
   for (int i=0; i<SGU_CHNS; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformSGU::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+  // PCM advances one sample per 0x8000 units of FREQ accumulated at `rate`, so a
+  // sample's pitch follows the output rate rather than chipClock. DivPitchTable
+  // computes freq*(divider/clock), so this divider cancels the clock back out and
+  // leaves playback rate = note frequency, which the manager then scales by each
+  // sample's centerRate/getCenterRate() ratio.
+  samplePitchTable.update<Channel>(chan,SGU_CHNS,parent->song.tuning,chipClock,(double)chipClock*32768.0/(double)rate,0xffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 const void* DivPlatformSGU::getSampleMem(int index) {
@@ -1650,10 +1653,13 @@ void DivPlatformSGU::setFlags(const DivConfig& flags) {
     oscBuf[i]->setRate(rate);
   }
   renderSamples(sysIDCache);
+
+  notifyPitchTable();
 }
 
 int DivPlatformSGU::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   sysIDCache=0;
@@ -1690,6 +1696,7 @@ DivPlatformSGU::DivPlatformSGU() {
 }
 
 DivPlatformSGU::~DivPlatformSGU() {
+  samplePitchTable.destroy<Channel>(chan,SGU_CHNS);
   delete[] sampleOffSGU;
   delete[] sampleLoaded;
   delete[] pcmMem;

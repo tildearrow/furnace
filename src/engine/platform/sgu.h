@@ -89,6 +89,23 @@ class DivPlatformSGU: public DivDispatch {
       }
     }
 
+    // SharedChannel::calcFreq() reads arp/pitch2 off the channel, but SGU lets a
+    // per-operator macro win over the channel's own (see the freq block in tick()),
+    // so the resolved values arrive as arguments. Same math otherwise, with the
+    // base class' pitchMult fixed at 1 -- SGU's FREQ register is a plain phase
+    // increment, one pitch unit per chip frequency unit.
+    int calcFreqFromOps(int arp, bool arpFixed, int opPitch2) {
+      if (rawFreq) return baseFreq+opPitch2;
+      if (pitchTable==NULL) return 0;
+      if (!pitchTable->linearity) {
+        return pitchTable->get(baseFreq,pitch,opPitch2);
+      }
+      if (arpFixed) {
+        return pitchTable->get(arp<<7,pitch,opPitch2);
+      }
+      return pitchTable->get(baseFreq+(arp<<7),pitch,opPitch2);
+    }
+
     unsigned char lfowAm, lfowPm, lfow;
     // gate: the FLAGS0 key LEVEL. trig: the FLAGS0 one-shot hard retrigger, consumed
     // by the next writeControl() (same one-shot idiom as phaseReset/filterPhaseReset).
@@ -164,6 +181,10 @@ class DivPlatformSGU: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
   FixedQueue<QueuedWrite,2048> writes;
+  // pitchTable drives the oscillators; samplePitchTable holds one table per sample,
+  // because PCM pitch depends on each sample's center rate. See notifyPitchTable().
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   SGU chip;
   // PCM sample memory is owned by us and handed to SGU_Init(); the chip keeps only a
   // pointer to it. One 64K bank -- the core supports several, we expose one.
@@ -212,6 +233,7 @@ class DivPlatformSGU: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
