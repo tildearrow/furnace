@@ -2969,6 +2969,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_POWERNOISE:
     case DIV_SYSTEM_UPD1771C:
     case DIV_SYSTEM_MULTIPCM:
+    case DIV_SYSTEM_SGU:
       break;
     case DIV_SYSTEM_YMU759:
       supportsCustomRate=false;
