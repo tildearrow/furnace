@@ -1314,11 +1314,6 @@ int DivPlatformSGU::dispatch(DivCommand c) {
         chWrite(c.chan,SGU1_CHN_CUTOFF_H,chan[c.chan].cutoff>>8);
       }
       break;
-    case DIV_CMD_C64_FINE_DUTY:
-      chan[c.chan].duty=c.value&127;
-      chan[c.chan].virtual_duty=(unsigned short)chan[c.chan].duty<<5;
-      chWrite(c.chan,SGU1_CHN_DUTY,chan[c.chan].duty);
-      break;
     case DIV_CMD_C64_AD:
       // Set AR and DR on all operators (convert 4-bit C64 to 5-bit SGU)
       for (int o=0; o<SGU_OP_PER_CH; o++) {
@@ -1525,7 +1520,9 @@ void DivPlatformSGU::reset() {
     chan[i].cutoff_slide=0;
     chan[i].pw_slide=0;
 
-    chan[i].virtual_duty=0x800; // for some reason duty by default is 50%
+    // the pulse width slide walks virtual_duty, so start it on the duty the channel
+    // was constructed with -- the two drift apart if this is written by hand.
+    chan[i].virtual_duty=chan[i].duty<<5;
   }
 
   oldOut[0]=0;
