@@ -49,19 +49,28 @@ namespace ymfm
 // OPZ register map:
 //
 //      System-wide registers:
-//           08 -----xxx Load preset (not sure how it gets saved)
-//           0F x------- Noise enable
-//              ---xxxxx Noise frequency
+//           08 -x------ Key on/off operator 4
+//              --x----- Key on/off operator 3
+//              ---x---- Key on/off operator 2
+//              ----x--- Key on/off operator 1
+//              -----xxx Channel select
+//           09 xxxxxx-x Test register
+//              ------x- LFO reset
+//           0A ----x--- Unknown
+//              -----x-- Key fraction mode
+//              ------xx Unknown
+//           0F ---xxxxx Noise frequency
 //           10 xxxxxxxx Timer A value (upper 8 bits)
 //           11 ------xx Timer A value (lower 2 bits)
 //           12 xxxxxxxx Timer B value
-//           14 x------- CSM mode
-//              --x----- Reset timer B
+//           14 --x----- Reset timer B
 //              ---x---- Reset timer A
 //              ----x--- Enable timer B
 //              -----x-- Enable timer A
 //              ------x- Load timer B
 //              -------x Load timer A
+//           15 ------x- 2-op mode enable
+//              -------x Enter OPZ mode
 //           16 xxxxxxxx LFO #2 frequency
 //           17 0xxxxxxx AM LFO #2 depth
 //              1xxxxxxx PM LFO #2 depth
@@ -73,20 +82,26 @@ namespace ymfm
 //              ---x---- LFO sync
 //              ----xx-- LFO #2 waveform
 //              ------xx LFO waveform
+//           1C x------- LFO #3 control?
+//              -xxxxxxx LFO #3 depth
+//           1E x------- LFO #4 control?
+//              -xxxxxxx LFO #4 depth
 //
 //     Per-channel registers (channel in address bits 0-2)
-//        00-07 xxxxxxxx Channel volume
+//        00-07 xxxxxxxx TL ramp speed
 //        20-27 x------- Pan right
-//              -x------ Key on (0)/off(1)
+//              -x------ IRQ enable
 //              --xxx--- Feedback level for operator 1 (0-7)
 //              -----xxx Operator connection algorithm (0-7)
 //        28-2F -xxxxxxx Key code
 //        30-37 xxxxxx-- Key fraction
-//              -------x Mono? mode
+//              -------x Mono mode ($0A.2 set)
+//              ------xx Key modifier ($0A.2 clear)
 //        38-3F 0xxx---- LFO PM sensitivity
 //              -----0xx LFO AM shift
 //              1xxx---- LFO #2 PM sensitivity
 //              -----1xx LFO #2 AM shift
+//              ----x--- LFO #3/#4 select
 //
 //     Per-operator registers (channel in address bits 0-2, operator in bits 3-4)
 //        40-5F 0xxx---- Detune value (0-7)
@@ -95,11 +110,13 @@ namespace ymfm
 //              0---xxxx Fix frequency (0-15)
 //              1xxx---- Oscillator waveform (0-7)
 //              1---xxxx Fine? (0-15)
-//        60-7F -xxxxxxx Total level (0-127)
+//        60-7F x------- TL ramp
+//              -xxxxxxx Total level (0-127)
 //        80-9F xx------ Key scale rate (0-3)
 //              --x----- Fix frequency mode
 //              ---xxxxx Attack rate (0-31)
 //        A0-BF x------- LFO AM enable
+//              -xx----- LFO #3/#4 AM depth
 //              ---xxxxx Decay rate (0-31)
 //        C0-DF xx0----- Detune 2 value (0-3)
 //              --0xxxxx Sustain rate (0-31)
@@ -195,8 +212,9 @@ public:
 	std::string log_keyon(uint32_t choffs, uint32_t opoffs);
 
 	// system-wide registers
+	uint32_t lfo_reset() const                       { return byte(0x09, 1, 1); }
 	uint32_t noise_frequency() const                 { return byte(0x0f, 0, 5); }
-	uint32_t noise_enable() const                    { return byte(0x0f, 7, 1); }
+	uint32_t noise_enable() const                    { return 0; } // we return 0 since noise is only used for LFO
 	uint32_t timer_a_value() const                   { return word(0x10, 0, 8, 0x11, 0, 2); }
 	uint32_t timer_b_value() const                   { return byte(0x12, 0, 8); }
 	uint32_t csm() const                             { return byte(0x14, 7, 1); }
@@ -219,7 +237,6 @@ public:
 	uint32_t lfo_waveform() const                    { return byte(0x1b, 0, 2); }
 
 	// per-channel registers
-	uint32_t ch_volume(uint32_t choffs) const        { return byte(0x00, 0, 8, choffs); }
 	uint32_t ch_output_any(uint32_t choffs) const    { return 1; }
 	uint32_t ch_output_0(uint32_t choffs) const      { return byte(0x30, 0, 1, choffs) | (!byte(0x20, 7, 1, choffs)); }
 	uint32_t ch_output_1(uint32_t choffs) const      { return byte(0x20, 7, 1, choffs) | byte(0x30, 0, 1, choffs); }
@@ -233,6 +250,7 @@ public:
 	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0x38, 0, 2, choffs); }
 	uint32_t ch_lfo2_pm_sens(uint32_t choffs) const  { return byte(0x180, 4, 3, choffs); } // fake
 	uint32_t ch_lfo2_am_sens(uint32_t choffs) const  { return byte(0x180, 0, 2, choffs); } // fake
+	uint32_t ch_ramp_period(uint32_t choffs) const   { return byte(0x00, 0, 8, choffs); }
 
 	// per-operator registers
 	uint32_t op_detune(uint32_t opoffs) const        { return byte(0x40, 4, 3, opoffs); }
@@ -242,6 +260,7 @@ public:
 	uint32_t op_waveform(uint32_t opoffs) const      { return byte(0x100, 4, 3, opoffs); } // fake
 	uint32_t op_fine(uint32_t opoffs) const          { return byte(0x100, 0, 4, opoffs); } // fake
 	uint32_t op_total_level(uint32_t opoffs) const   { return byte(0x60, 0, 7, opoffs); }
+	uint32_t op_tl_ramp(uint32_t opoffs) const       { return byte(0x60, 7, 1, opoffs); }
 	uint32_t op_ksr(uint32_t opoffs) const           { return byte(0x80, 6, 2, opoffs); }
 	uint32_t op_fix_mode(uint32_t opoffs) const      { return byte(0x80, 5, 1, opoffs); }
 	uint32_t op_attack_rate(uint32_t opoffs) const   { return byte(0x80, 0, 5, opoffs); }
@@ -268,15 +287,16 @@ protected:
 	}
 
 	// internal state
-	uint32_t m_lfo_counter[2];            // LFO counter
+	uint32_t m_lfo_counter[4];            // LFO counter
 	uint32_t m_noise_lfsr;                // noise LFSR state
 	uint8_t m_noise_counter;              // noise counter
 	uint8_t m_noise_state;                // latched noise state
 	uint8_t m_noise_lfo;                  // latched LFO noise value
-	uint8_t m_lfo_am[2];                  // current LFO AM value
+	uint8_t m_lfo_am[4];                  // current LFO AM value
 	uint8_t m_regdata[REGISTERS];         // register data
 	uint16_t m_phase_substep[OPERATORS];  // phase substep for fixed frequency
 	int16_t m_lfo_waveform[4][LFO_WAVEFORM_LENGTH]; // LFO waveforms; AM in low 8, PM in upper 8
+        // TODO: waveforms are four times wide
 	uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
 };
 

@@ -225,7 +225,7 @@ double DivEngine::benchmarkPlayback() {
 
   // benchmark
   while (playing) {
-    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE,true);
   }
 
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
