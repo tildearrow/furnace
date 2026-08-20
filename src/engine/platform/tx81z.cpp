@@ -1289,6 +1289,14 @@ void DivPlatformTX81Z::reset() {
     pendingWrites[i]=-1;
   }
 
+  lastSH1=false;
+  lastSH2=false;
+  lastSY=false;
+  isWaiting=1;
+  dacOut1=0;
+  dacOut2=0;
+  dacVal=0;
+
   lastBusy=60;
   pcmCycles=0;
   pcmL=0;
