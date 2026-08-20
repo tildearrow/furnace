@@ -1271,7 +1271,7 @@ void DivPlatformTX81Z::reset() {
         OPZLLE_Clock(&fm_lle,0);
       }
       fm_lle.input.n_ic=1;
-      fm_lle.input.sh2=1;
+      fm_lle.input.sh2=0;
       break;
   }
   if (dumpWrites) {
