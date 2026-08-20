@@ -46,32 +46,34 @@ static const char* macroTypeValueNames[][2]={
   {NULL,NULL}
 };
 
-typedef void (*InsFeatureModifyFunc)(DivInstrument*,lua_State*);
+typedef void (*InsFeatureWriteFunc)(DivInstrument*,lua_State*);
+typedef void (*InsFeatureReadFunc)(DivInstrument*,lua_State*,int);
 
 struct InsFeatureDef {
   const char* valueName;
-  InsFeatureModifyFunc featureWriteFunc;
+  InsFeatureWriteFunc featureWriteFunc;
+  InsFeatureReadFunc featureReadFunc;
 };
 
-static InsFeatureDef insFeatures[]={
-  {"featureFM",writeFeatureFM},
-  {"featureGB",writeFeatureGB},
-  {"featureC64",writeFeatureC64},
-  {"featureAmiga",writeFeatureAmiga},
-  {"featureX1",writeFeatureX1},
-  {"feature163",writeFeatureN163},
-  {"featureFDS",writeFeatureFDS},
-  {"featureMultiPCM",writeFeatureMultiPCM},
-  {"featureWaveSynth",writeFeatureWaveSynth},
-  {"featureSoundUnit",writeFeatureSoundUnit},
-  {"featureES5506",writeFeatureES5506},
-  {"featureSNES",writeFeatureSNES},
-  {"featureESFM",writeFeatureESFM},
-  {"featurePowerNoise",writeFeaturePowerNoise},
-  {"featureSID2",writeFeatureSID2},
-  {"featureSID3",writeFeatureSID3},
-  {"featureKlattsch",writeFeatureKlattsch},
-  {NULL,NULL}
+static const InsFeatureDef insFeatures[]={
+  {"featureFM",writeFeatureFM,readFeatureFM},
+  {"featureGB",writeFeatureGB,readFeatureGB},
+  {"featureC64",writeFeatureC64,readFeatureC64},
+  {"featureAmiga",writeFeatureAmiga,readFeatureAmiga},
+  {"featureX1",writeFeatureX1,readFeatureX1},
+  {"feature163",writeFeatureN163,readFeatureN163},
+  {"featureFDS",writeFeatureFDS,readFeatureFDS},
+  {"featureMultiPCM",writeFeatureMultiPCM,readFeatureMultiPCM},
+  {"featureWaveSynth",writeFeatureWaveSynth,readFeatureWaveSynth},
+  {"featureSoundUnit",writeFeatureSoundUnit,readFeatureSoundUnit},
+  {"featureES5506",writeFeatureES5506,readFeatureES5506},
+  {"featureSNES",writeFeatureSNES,readFeatureSNES},
+  {"featureESFM",writeFeatureESFM,readFeatureESFM},
+  {"featurePowerNoise",writeFeaturePowerNoise,readFeaturePowerNoise},
+  {"featureSID2",writeFeatureSID2,readFeatureSID2},
+  {"featureSID3",writeFeatureSID3,readFeatureSID3},
+  {"featureKlattsch",writeFeatureKlattsch,readFeatureKlattsch},
+  {NULL,NULL,NULL}
 };
 
 static FurnaceGUI* externGUI;
@@ -788,34 +790,7 @@ _CF(setInsData) {
     tableIdx=2;
   }
   DivInstrument* ins=e->getIns(index);
-  // first read the table
-  std::vector<std::pair<String,int>> tableValues;
-  lua_pushnil(s);
-  while (lua_next(s,tableIdx)) {
-    if (!lua_isstring(s, -2)) continue;
-    int value=lua_tointeger(s,-1);
-    const char* key=lua_tostring(s,-2);
-    // TODO: type checks
-    tableValues.push_back({key,value});
-    lua_pop(s,1);
-  }
-  // lua_pop(s,1);
-  // then apply the values
-  #define CHECK_PARAM(_l,_p,_mn,_mx) if (p.first==_l) {ins->_p =CLAMP(p.second,_mn,_mx);}
-  switch (featureCode) {
-    case DIV_INS_FM: {
-      for (auto const& p:tableValues) {
-        CHECK_PARAM("alg",fm.alg,0,7)
-        CHECK_PARAM("feedback",fm.fb,0,7)
-        // TODO: operators
-      }
-      break;
-    }
-    case DIV_INS_STD: {
-      // ???
-    }
-    default: SC_ERROR("invalid feature!");
-  }
+  insFeatures[featureCode].featureReadFunc(ins,s,tableIdx);
   return 0;
 }
 

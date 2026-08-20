@@ -164,3 +164,156 @@ void writeFeatureSID3(DivInstrument* ins, lua_State* s) {
 void writeFeatureKlattsch(DivInstrument* ins, lua_State* s) {
   if (ins->klattsch==defaultIns.klattsch) return;
 }
+
+void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
+  #define CHECK_VALUE(_k,_p,_mn,_mx) if (strcmp(key,_k)==0) {ins->fm._p=/*CLAMP(value,_mn,_mx)*/value;}
+  lua_pushnil(s);
+  while (lua_next(s,t)) {
+    if (!lua_isstring(s,-2)) continue;
+    const char* key=lua_tostring(s,-2);
+    int value;
+    switch (lua_type(s,-1)) {
+      case LUA_TBOOLEAN:
+        value=lua_toboolean(s,-1);
+        break;
+      case LUA_TNUMBER:
+        value=lua_tointeger(s,-1);
+        break;
+      case LUA_TTABLE: { // op table
+        lua_pushnil(s);
+        while (lua_next(s,-2)) {
+          if (lua_isinteger(s,-2)) {
+            if (lua_istable(s,-1)) {
+              int op=lua_tointeger(s,-2);
+              lua_pushnil(s);
+              while (lua_next(s,-2)) {
+                if (lua_isstring(s,-2)) {
+                  const char* subkey=lua_tostring(s,-2);
+                  switch (lua_type(s,-1)) {
+                    case LUA_TBOOLEAN:
+                      value=lua_toboolean(s,-1);
+                      break;
+                    case LUA_TNUMBER:
+                      value=lua_tointeger(s,-1);
+                      break;
+                    default: 
+                      lua_pop(s,1);
+                      continue;
+                  }
+                  #define CHECK_OP_VALUE(_p,_mn,_mx) if (strcmp(subkey,#_p)==0) {ins->fm.op[op-1]._p=/*CLAMP(value,_mn,_mx)*/value;}
+                  CHECK_OP_VALUE(enable,0,1)
+                  CHECK_OP_VALUE(am,0,1)
+                  CHECK_OP_VALUE(ar,0,1)
+                  CHECK_OP_VALUE(dr,0,1)
+                  CHECK_OP_VALUE(mult,0,15)
+                  CHECK_OP_VALUE(rr,0,1)
+                  CHECK_OP_VALUE(sl,0,1)
+                  CHECK_OP_VALUE(tl,0,127)
+                  CHECK_OP_VALUE(dt2,0,1)
+                  CHECK_OP_VALUE(rs,0,1)
+                  CHECK_OP_VALUE(dt,0,1)
+                  CHECK_OP_VALUE(dt2,0,1)
+                  CHECK_OP_VALUE(ssgEnv,0,1)
+                  CHECK_OP_VALUE(dam,0,1)
+                  CHECK_OP_VALUE(dvb,0,1)
+                  CHECK_OP_VALUE(egt,0,1)
+                  CHECK_OP_VALUE(ksl,0,1)
+                  CHECK_OP_VALUE(sus,0,1)
+                  CHECK_OP_VALUE(vib,0,1)
+                  CHECK_OP_VALUE(ws,0,1)
+                  CHECK_OP_VALUE(ksr,0,1)
+                  CHECK_OP_VALUE(kvs,0,1)
+                  #undef CHECK_OP_VALUE
+                }
+                lua_pop(s,1);
+              }
+            }
+          }
+          lua_pop(s,1);
+        }
+        lua_pop(s,1);
+        continue;
+      }
+    }
+    CHECK_VALUE("alg",alg,0,7)
+    CHECK_VALUE("feedback",fb,0,7)
+    CHECK_VALUE("fms",fms,0,7)
+    CHECK_VALUE("ams",ams,0,7)
+    CHECK_VALUE("fms2",fms2,0,7)
+    CHECK_VALUE("ams2",ams2,0,7)
+    CHECK_VALUE("ops",ops,0,7)
+    CHECK_VALUE("opllPreset",opllPreset,0,15)
+    CHECK_VALUE("block",block,0,7)
+    CHECK_VALUE("fixedDrums",fixedDrums,0,1)
+    CHECK_VALUE("kickFreq",kickFreq,0,7)
+    CHECK_VALUE("snareHatFreq",snareHatFreq,0,7)
+    CHECK_VALUE("tomTopFreq",tomTopFreq,0,7)
+    lua_pop(s,1);
+  }
+}
+
+// TODO!!!
+void readFeatureGB(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureC64(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureAmiga(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureX1(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureN163(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureFDS(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureMultiPCM(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureWaveSynth(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureSoundUnit(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureES5506(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureSNES(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureESFM(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeaturePowerNoise(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureSID2(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureSID3(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
+void readFeatureKlattsch(DivInstrument* ins, lua_State* s, int t) {
+  
+}
+
