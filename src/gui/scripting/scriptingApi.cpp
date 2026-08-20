@@ -1942,9 +1942,75 @@ _CF(addPatternInputCallback) {
 _CF(addChip) {
   CHECK_ARGS(1)
   CHECK_TYPE_INTEGER(1)
-  DivSystem id=(DivSystem)lua_tointeger(s,1);
-  bool success=e->addSystem(id);
+  int id=lua_tointeger(s,1);
+  if (id<0 || id>DIV_SYSTEM_MAX || chipIdNames[id]==NULL) {
+    SC_ERROR("invalid chip id!");
+  }
+  bool success=e->addSystem((DivSystem)id);
   lua_pushboolean(s,success);
+  return 1;
+}
+
+_CF(setChipConf) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_TABLE(2)
+  int which=lua_tointeger(s,1);
+  if (which<0 || which>=DIV_MAX_CHIPS) {
+    SC_ERROR("invalid chip index!");
+  }
+  if (which>=e->song.systemLen) {
+    return 0;
+  }
+  DivConfig* conf=&e->song.systemFlags[which];
+  lua_pushnil(s);
+  while (lua_next(s,2)) {
+    if (lua_isstring(s,-2)) {
+      const char* key=lua_tostring(s,-2);
+      String value;
+      switch (lua_type(s,-1)) {
+        case LUA_TBOOLEAN:
+          value=lua_toboolean(s,-1)?"1":"0";
+          break;
+        case LUA_TNUMBER:
+          value=fmt::sprintf("%d",lua_tointeger(s,-1));
+          break;
+        case LUA_TSTRING:
+          value=lua_tostring(s,-1);
+          break;
+        default:
+          lua_pop(s,1);
+          continue;
+      }
+      conf->set(key,value);
+    }
+    lua_pop(s,1);
+  }
+  e->updateSysFlags(which,true,true); // i cant be bothered to read the keys to know when to mustRender
+  return 0;
+}
+
+_CF(getChipCount) {
+  lua_pushinteger(s,e->song.systemLen);
+  return 1;
+}
+
+_CF(getChipConf) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_INTEGER(1)
+  int which=lua_tointeger(s,1);
+  if (which<0 || which>=DIV_MAX_CHIPS) {
+    SC_ERROR("invalid chip index!");
+  }
+  if (which>=e->song.systemLen) {
+    lua_pushnil(s);
+    return 1;
+  }
+  DivConfig* conf=&e->song.systemFlags[which];
+  lua_newtable(s);
+  for (auto& i:conf->configMap()) {
+    API_ADD_VALUE(i.first.c_str(),i.second.c_str(),string);
+  }
   return 1;
 }
 
@@ -2325,6 +2391,9 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   API_USE_CATG("system");
     API_ADD_FUNC("add",addChip);
     API_ADD_FUNC("remove",removeChip);
+    API_ADD_FUNC("getFlags",getChipConf);
+    API_ADD_FUNC("setFlags",setChipConf);
+    API_ADD_FUNC("getCount",getChipCount);
     // chip ids
     for (int i=0; i<DIV_SYSTEM_MAX; i++) {
       if (chipIdNames[i]) {

@@ -3718,11 +3718,17 @@ class FurnaceGUI {
     // function
     API_FUNC(addPatternInputCallback)
 
-    /// CHIP MANUPULATION
+    /// CHIP MANIPULATION
+    // id -> success
     API_FUNC(addChip)
+    // which -> success
     API_FUNC(removeChip)
+    // which, conf
     API_FUNC(setChipConf)
+    // which -> conf
     API_FUNC(getChipConf)
+    // -> count
+    API_FUNC(getChipCount)
 
     /// DIALOGS
     // name
