@@ -76,6 +76,127 @@ static const InsFeatureDef insFeatures[]={
   {NULL,NULL,NULL}
 };
 
+// NULLs are unsupported chips
+static const char* chipIdNames[]={
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  "chipSN76489",
+  NULL,
+  "chipGB",
+  "chipPCE",
+  "chipNES",
+  NULL,
+  NULL,
+  "chip6581",
+  "chip8580",
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  "chipAY",
+  "chipAmiga",
+  "chipYM2151",
+  "chipYM2612",
+  "chipTIA",
+  "chipSAA1099",
+  "chipAY8930",
+  "chipVIC20",
+  "chipPET",
+  "chipSNES",
+  "chipVRC6",
+  "chipYM2413",
+  "chipFDS",
+  "chipMMC5",
+  "chip163",
+  "chipYM2203",
+  "chipYM2203Ext",
+  "chipYM2608",
+  "chipYM2608Ext",
+  "chipYM3526",
+  "chipYM3812",
+  "chipYMF262",
+  "chipMultiPCM",
+  "chipPCSpeaker",
+  "chipPOKEY",
+  "chipRF5C68",
+  "chipSwan",
+  "chipYM2414",
+  "chipPokeMini",
+  "chipSegaPCM",
+  "chipVB",
+  "chipVRC7",
+  "chipYM2610B",
+  "chipZXSFX",
+  "chipZXQuadtone",
+  "chipYM2612Ext",
+  "chipSCC",
+  "chipYM3526Drums",
+  "chipYM3812Drums",
+  "chipYMF262Drums",
+  "chipYM2610",
+  "chipYM2610Ext",
+  "chipYM2413Drums",
+  "chipLynx",
+  "chipQSound",
+  "chipVERA",
+  "chipYM2610BExt",
+  NULL,
+  "chipX1",
+  "chipBubSysWSG",
+  "chipYMF278B",
+  "chipYMF278BDrums",
+  "chipES5506",
+  "chipY8950",
+  "chipY8950Drums",
+  "chipSCCPlus",
+  "chipSoundUnit",
+  "chipMSM6295",
+  "chipMSM6258",
+  "chipYMZ280B",
+  "chipNamcoWSG",
+  "chipNamco15xx",
+  "chipNamcoCUS30",
+  "chipYM2612DualPCM",
+  "chipYM2612DualPCMExt",
+  "chipMSM5232",
+  "chipT6W28",
+  "chipK007232",
+  "chipGA20",
+  "chipPCMDAC",
+  "chipPong",
+  "chipDummy",
+  "chipYM2612CSM",
+  "chipYM2610CSM",
+  "chipYM2610BCSM",
+  "chipYM2203CSM",
+  "chipYM2608CSM",
+  "chipSM8521",
+  "chipPV1000",
+  "chipK053260",
+  "chipTED",
+  "chipC140",
+  "chipC219",
+  "chipESFM",
+  "chipPowerNoise",
+  "chipDave",
+  "chipNDS",
+  "chipGBADMA",
+  "chipGBAMinmod",
+  "chip5E01",
+  "chipBifurcator",
+  "chipSID2",
+  "chipSupervision",
+  /*"chipuPD1771C"*/ NULL,
+  "chipSID3",
+  "chip6581PCM",
+  "chipNamcoPolePos",
+  "chipKlattsch"
+};
+
+static_assert((sizeof(chipIdNames)/sizeof(const char*))==DIV_SYSTEM_MAX,"chipIdNames: missing chip!");
+
 static FurnaceGUI* externGUI;
 
 /// FUNCTIONS
@@ -1818,6 +1939,33 @@ _CF(addPatternInputCallback) {
   return 0;
 }
 
+_CF(addChip) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_INTEGER(1)
+  DivSystem id=(DivSystem)lua_tointeger(s,1);
+  bool success=e->addSystem(id);
+  lua_pushboolean(s,success);
+  return 1;
+}
+
+_CF(removeChip) {
+  CHECK_ARGS_RANGE(1,2)
+  int which;
+  bool preserveOrder=true;
+  if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(1)
+    CHECK_TYPE_BOOLEAN(2)
+    which=lua_tointeger(s,1);
+    preserveOrder=lua_toboolean(s,2);
+  } else {
+    CHECK_TYPE_INTEGER(1)
+    which=lua_tointeger(s,1);
+  }
+  bool success=e->removeSystem(which,preserveOrder);
+  lua_pushboolean(s,success);
+  return 1;
+}
+
 _CF(dialogNew) {
   CHECK_ARGS(1)
   CHECK_TYPE_STRING(1)
@@ -2173,6 +2321,16 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_VALUE("noteRel",DIV_NOTE_REL,integer);
     API_ADD_VALUE("macroRel",DIV_MACRO_REL,integer);
     API_ADD_VALUE("noteRaw",DIV_NOTE_RAW,integer);
+  API_CATG_END;
+  API_USE_CATG("system");
+    API_ADD_FUNC("add",addChip);
+    API_ADD_FUNC("remove",removeChip);
+    // chip ids
+    for (int i=0; i<DIV_SYSTEM_MAX; i++) {
+      if (chipIdNames[i]) {
+        API_ADD_VALUE(chipIdNames[i],i,integer);
+      }
+    }
   API_CATG_END;
   API_USE_CATG("dialog");
     API_ADD_FUNC("new",dialogNew);
