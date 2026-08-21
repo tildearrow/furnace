@@ -16,6 +16,7 @@ scripts allow you to extend the capabilities of furnace by using code written in
 ### functions
 
 all functions are defined in the `fur` table.
+
 all functions use 0-indexing.
 
 #### general functions
@@ -1251,15 +1252,21 @@ all functions use 0-indexing.
 
   constants denoting the instrument macro codes
 
-## Appendix A: instrument data format
+## appendix A: instrument data format
 
 ```
   {
     fm=(table),
+    gb=(table),
+    amiga=(table),
+    x1=(table),
     ...
+    klattsch=(table)
   }
 ```
-blank features return a `nil` table
+some blank features return a `nil` table
+
+some parameters may be nil (like arrays) if they are empty
 
 - `fm` table:
   ```
@@ -1307,7 +1314,71 @@ blank features return a `nil` table
     }
     ```
 
-## Appendix B: instrument macro format
+- `gb` table
+  ```
+  {
+    envVol=(integer),
+    envDir=(integer),
+    soundLen=(integer),
+    softEnv=(boolean),
+    alwaysInit=(boolean),
+    doubleWave=(boolean),
+    hwSeq=(array of tables),
+  }
+  ```
+  - `hwSeq` table
+    ```
+    {
+      cmd=(integer),
+      data=(integer)
+    }
+    ```
+
+- `amiga` table
+  ```
+  {
+    initSample=(integer),
+    useNoteMap=(boolean),
+    useSample=(boolean),
+    useWave=(boolean),
+    waveLen=(integer),
+    noteMap=(array of tables),
+  }
+  ```
+  - `noteMap` table
+    ```
+    {
+      freq=(integer),
+      map=(integer),
+      dpcmFreq=(integer),
+      dpcmDelta=(integer),
+    }
+    ```
+
+- `x1` table
+  ```
+  {
+    bankSlot=(integer),
+  }
+  ```
+
+- `klattsch` table
+  ```
+  {
+    transition=(integer),
+    voicing=(integer),
+    aspiration=(integer),
+    tilt=(integer),
+    effort=(integer),
+    vibrato=(integer),
+    tremolo=(integer),
+    gain=(integer),
+    bandwidth=(integer),
+    formantShift=(integer),
+  }
+  ```
+
+## appendix B: instrument macro format
 
 ```
 {

@@ -1000,6 +1000,10 @@ _CF(getInsData) {
       SC_ERROR("invalid instrument index");
     }
   }
+  if (e->song.insLen==0) {
+    lua_pushnil(s);
+    return 1;
+  }
   DivInstrument* ins=e->getIns(index);
   lua_newtable(s);
   for (int i=0; insFeatures[i].valueName; i++) {
@@ -1017,6 +1021,10 @@ _CF(getInsMacroData) {
     if (index<0 || index>=e->song.insLen) {
       SC_ERROR("invalid instrument index");
     }
+  }
+  if (e->song.insLen==0) {
+    lua_pushnil(s);
+    return 1;
   }
   DivInstrument* ins=e->getIns(index);
   lua_newtable(s);

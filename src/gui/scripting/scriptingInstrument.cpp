@@ -64,7 +64,6 @@ void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, 
 }
 
 void writeFeatureFM(DivInstrument* ins, lua_State* s) {
-  if (ins->fm==defaultIns.fm) return;
   lua_pushstring(s,"fm");
   lua_newtable(s);
   API_ADD_VALUE("alg",ins->fm.alg,integer)
@@ -115,18 +114,76 @@ void writeFeatureFM(DivInstrument* ins, lua_State* s) {
   lua_settable(s,-3);
 }
 
-// TODO!!!
 void writeFeatureGB(DivInstrument* ins, lua_State* s) {
-  if (ins->gb==defaultIns.gb) return;
+  lua_pushstring(s,"gb");
+  lua_newtable(s);
+  API_ADD_VALUE("envVol",ins->gb.envVol,integer)
+  API_ADD_VALUE("envDir",ins->gb.envDir,integer)
+  API_ADD_VALUE("soundLen",ins->gb.soundLen,integer)
+  API_ADD_VALUE("softEnv",ins->gb.softEnv,boolean)
+  API_ADD_VALUE("alwaysInit",ins->gb.alwaysInit,boolean)
+  API_ADD_VALUE("doubleWave",ins->gb.softEnv,boolean)
+  // hw sequences
+  if (ins->gb.hwSeqLen) {
+    lua_pushstring(s,"hwSeq");
+    lua_newtable(s);
+    for (int i=0; i<ins->gb.hwSeqLen; i++) {
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("cmd",ins->gb.hwSeq[i].cmd,integer);
+      API_ADD_VALUE("data",ins->gb.hwSeq[i].data,integer);
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
+
 void writeFeatureC64(DivInstrument* ins, lua_State* s) {
   if (ins->c64==defaultIns.c64) return;
 }
+
 void writeFeatureAmiga(DivInstrument* ins, lua_State* s) {
-  if (ins->amiga==defaultIns.amiga) return;
+  lua_pushstring(s,"amiga");
+  lua_newtable(s);
+  API_ADD_VALUE("initSample",ins->amiga.initSample,integer)
+  API_ADD_VALUE("useNoteMap",ins->amiga.useNoteMap,boolean)
+  API_ADD_VALUE("useSample",ins->amiga.useSample,boolean)
+  API_ADD_VALUE("useWave",ins->amiga.useWave,boolean)
+  API_ADD_VALUE("waveLen",ins->amiga.waveLen,integer)
+  // sample map
+  // precheck for empty map
+  bool mapHasAny=false;
+  for (int i=0; i<180; i++) {
+    DivInstrumentAmiga::SampleMap* map=&ins->amiga.noteMap[i];
+    if (map->map!=-1) {
+      mapHasAny=true;
+      break;
+    }
+  }
+  if (mapHasAny) {
+    lua_pushstring(s,"noteMap");
+    lua_newtable(s);
+    for (int i=0; i<180; i++) {
+      DivInstrumentAmiga::SampleMap* map=&ins->amiga.noteMap[i];
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("freq",map->freq,integer);
+      API_ADD_VALUE("map",map->map,integer);
+      API_ADD_VALUE("dpcmFreq",map->dpcmFreq,integer);
+      API_ADD_VALUE("dpcmDelta",map->dpcmDelta,integer);
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
+
 void writeFeatureX1(DivInstrument* ins, lua_State* s) {
-  if (ins->x1_010==defaultIns.x1_010) return;
+  lua_pushstring(s,"x1");
+  lua_newtable(s);
+  API_ADD_VALUE("bankSlot",ins->x1_010.bankSlot,integer)
+  lua_settable(s,-3);
 }
 void writeFeatureN163(DivInstrument* ins, lua_State* s) {
   if (ins->n163==defaultIns.n163) return;
@@ -161,8 +218,21 @@ void writeFeatureSID2(DivInstrument* ins, lua_State* s) {
 void writeFeatureSID3(DivInstrument* ins, lua_State* s) {
   if (ins->sid3==defaultIns.sid3) return;
 }
+
 void writeFeatureKlattsch(DivInstrument* ins, lua_State* s) {
-  if (ins->klattsch==defaultIns.klattsch) return;
+  lua_pushstring(s,"klattsch");
+  lua_newtable(s);
+  API_ADD_VALUE("transition",ins->klattsch.transition,integer)
+  API_ADD_VALUE("voicing",ins->klattsch.voicing,integer)
+  API_ADD_VALUE("aspiration",ins->klattsch.aspiration,integer)
+  API_ADD_VALUE("tilt",ins->klattsch.tilt,integer)
+  API_ADD_VALUE("effort",ins->klattsch.effort,integer)
+  API_ADD_VALUE("vibrato",ins->klattsch.vibrato,integer)
+  API_ADD_VALUE("tremolo",ins->klattsch.tremolo,integer)
+  API_ADD_VALUE("gain",ins->klattsch.gain,integer)
+  API_ADD_VALUE("bandwidth",ins->klattsch.bandwidth,integer)
+  API_ADD_VALUE("formantShift",ins->klattsch.formantShift,integer)
+  lua_settable(s,-3);
 }
 
 void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
