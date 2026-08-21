@@ -52,6 +52,7 @@ typedef struct {
 #ifdef FMOPNA_YM2610
     int rad;
     int pad;
+    int ym2610b;
 #endif
 }
 #ifdef FMOPNA_YM2608
@@ -74,10 +75,14 @@ typedef struct {
 
     int ic;
 
+#ifndef FMOPNA_YM2612
     int ic_latch1[2];
+#endif
     int ic_latch2[2];
     int ic_latch3[2];
+#ifndef FMOPNA_YM2612
     int ic_check1;
+#endif
     int ic_check3;
     int prescaler_latch[2];
 #ifndef FMOPNA_YM2612
@@ -930,8 +935,6 @@ typedef struct {
     int o_pad;
     int o_pad_d;
     int o_pa8;
-
-    int ym2610b;
 #endif
 
 #ifndef FMOPNA_YM2612

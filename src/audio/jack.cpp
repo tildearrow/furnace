@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 
   jack_status_t as;
-  ac=jack_client_open(desc.name.c_str(),JackNoStartServer,&as);
+  ac=jack_client_open(desc.name.c_str(),JackNullOption,&as);
   if (ac==NULL) {
     logE("error while opening client! (%s)",printStatus(as));
     return false;

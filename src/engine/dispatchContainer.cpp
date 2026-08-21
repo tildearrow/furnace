@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,6 +91,7 @@
 #include "platform/dave.h"
 #include "platform/nds.h"
 #include "platform/bifurcator.h"
+#include "platform/klattsch.h"
 #include "platform/sid2.h"
 #include "platform/sid3.h"
 #include "platform/multipcm.h"
@@ -340,9 +341,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
       if (isRender) {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCoreRender",1)==0);
+        ((DivPlatformArcade*)dispatch)->setCore(eng->getConfInt("arcadeCoreRender",1));
       } else {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
+        ((DivPlatformArcade*)dispatch)->setCore(eng->getConfInt("arcadeCore",0));
       }
       break;
     case DIV_SYSTEM_YM2610_FULL:
@@ -604,11 +605,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
-      if (isRender) {
-        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCoreRender",0));
-      } else {
-        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCore",0));
-      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
@@ -675,6 +671,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       // Pac-Man
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
       break;
+    case DIV_SYSTEM_NAMCO_POLEPOS:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(2);
+      break;
     case DIV_SYSTEM_NAMCO_15XX:
       dispatch=new DivPlatformNamcoWSG;
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(15);
@@ -726,6 +726,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_BIFURCATOR:
       dispatch=new DivPlatformBifurcator;
+      break;
+    case DIV_SYSTEM_KLATTSCH:
+      dispatch=new DivPlatformKlattsch;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

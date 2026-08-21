@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
   bool mult0=false;
 
   if (pos==0) {
-    OPM_Reset((opm_t*)fmPreviewOPM);
+    OPM_Reset((opm_t*)fmPreviewOPM,0);
 
     // set params
     for (int i=0; i<4; i++) {

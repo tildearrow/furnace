@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -115,8 +115,8 @@ bool DivCSPlayer::tick() {
       bool mustTell=true;
 
       if (next<0xb3) { // note
-        e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
-        chan[i].note=(int)next-60;
+        e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next));
+        chan[i].note=(int)next;
         chan[i].vibratoPos=0;
       } else if (next>=0xf0) { // preset delay
         chan[i].waitTicks=fastDelays[next&15];
@@ -139,6 +139,24 @@ bool DivCSPlayer::tick() {
         case 0xb8:
           command=DIV_CMD_INSTRUMENT;
           break;
+        case 0xb9: {
+          unsigned int param=stream.readI()|DIV_NOTE_RAW_FLAG;
+          e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,param));
+          chan[i].note=param;
+          chan[i].vibratoPos=0;
+          break;
+        }
+        case 0xba: {
+          chan[i].portaTarget=stream.readI()|DIV_NOTE_RAW_FLAG;
+          chan[i].portaSpeed=(unsigned char)stream.readC();
+          break;
+        }
+        case 0xbb: {
+          unsigned int param=stream.readI()|DIV_NOTE_RAW_FLAG;
+          chan[i].note=param;
+          e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+          break;
+        }
         case 0xc0:
           command=DIV_CMD_PRE_PORTA;
           break;
@@ -172,17 +190,16 @@ bool DivCSPlayer::tick() {
         case 0xc8: // vol slide
           chan[i].volSpeed=(short)(bigEndian?stream.readS_BE():stream.readS());
           chan[i].volSpeedTarget=-1;
+          chan[i].tremoloDepth=0;
           break;
         case 0xc9: // porta
-          chan[i].portaTarget=(int)((unsigned char)stream.readC())-60;
+          chan[i].portaTarget=(int)((unsigned char)stream.readC());
           chan[i].portaSpeed=(unsigned char)stream.readC();
           break;
         case 0xca: { // legato
           int arg0=(unsigned char)stream.readC();
           if (arg0==0xff) {
             arg0=DIV_NOTE_NULL;
-          } else {
-            arg0-=60;
           }
           chan[i].note=arg0;
           e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
@@ -195,19 +212,42 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=arg0==0 ? -1 : arg1;
           break;
         }
-        case 0xcc: // tremolo (TODO)
-          stream.readC();
+        case 0xcc: { // tremolo
+          unsigned char param=stream.readC();
+          chan[i].tremoloDepth=param&15;
+          chan[i].tremoloRate=param>>4;
+          if (chan[i].tremoloDepth==0) {
+            chan[i].tremoloPos=0;
+          }
+          chan[i].volSpeed=0;
+          chan[i].volSpeedTarget=-1;
+          sendVolume=true;
           break;
-        case 0xcd: // panbrello (TODO)
-          stream.readC();
+        }
+        case 0xcd: { // panbrello
+          unsigned char param=stream.readC();
+          chan[i].panbrelloDepth=param&15;
+          chan[i].panbrelloRate=param>>4;
+          if (chan[i].panbrelloDepth==0) {
+            chan[i].panbrelloPos=0;
+          } else {
+            chan[i].panSpeed=0;
+          }
           break;
-        case 0xce: // pan slide (TODO)
-          stream.readC();
+        }
+        case 0xce: // pan slide
+          chan[i].panSpeed=stream.readC();
+          if (chan[i].panSpeed) {
+            // panbrello and slides are incompatible
+            chan[i].panbrelloDepth=0;
+            chan[i].panbrelloRate=0;
+            chan[i].panbrelloPos=0;
+          }
           break;
         case 0xcf: { // panning
-          int panL=(unsigned char)stream.readC();
-          int panR=(unsigned char)stream.readC();
-          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,panL,panR));
+          chan[i].panL=(unsigned char)stream.readC();
+          chan[i].panR=(unsigned char)stream.readC();
+          e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
           break;
         }
         case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5:
@@ -378,8 +418,6 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
           case DIV_CMD_WS_SWEEP_TIME:
           case DIV_CMD_WS_SWEEP_AMOUNT:
-          case DIV_CMD_N163_WAVE_POSITION:
-          case DIV_CMD_N163_WAVE_LENGTH:
           case DIV_CMD_N163_WAVE_UNUSED1:
           case DIV_CMD_N163_WAVE_UNUSED2:
           case DIV_CMD_N163_WAVE_LOADPOS:
@@ -462,6 +500,17 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_FM_AMS:
           case DIV_CMD_FM_FMS2:
           case DIV_CMD_FM_AMS2:
+          case DIV_CMD_KLATTSCH_PHONEME:
+          case DIV_CMD_KLATTSCH_TRANSITION:
+          case DIV_CMD_KLATTSCH_VOICING:
+          case DIV_CMD_KLATTSCH_ASPIRATION:
+          case DIV_CMD_KLATTSCH_TILT:
+          case DIV_CMD_KLATTSCH_EFFORT:
+          case DIV_CMD_KLATTSCH_VIBRATO:
+          case DIV_CMD_KLATTSCH_TREMOLO:
+          case DIV_CMD_KLATTSCH_GAIN:
+          case DIV_CMD_KLATTSCH_BW_SCALE:
+          case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
             arg0=(unsigned char)stream.readC();
             break;
           // TWO BYTE COMMANDS
@@ -509,6 +558,10 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
           case DIV_CMD_C64_PW_SLIDE:
           case DIV_CMD_C64_CUTOFF_SLIDE:
+          case DIV_CMD_N163_WAVE_POSITION:
+          case DIV_CMD_N163_WAVE_LENGTH:
+          case DIV_CMD_KLATTSCH_FORMANT:
+          case DIV_CMD_KLATTSCH_AMP:
             arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
@@ -554,7 +607,7 @@ bool DivCSPlayer::tick() {
       if (mustTell) chan[i].readPos=stream.tell();
     }
 
-    if (sendVolume || chan[i].volSpeed!=0) {
+    if (sendVolume || chan[i].volSpeed!=0 || chan[i].tremoloDepth!=0) {
       int preSpeedVol=chan[i].volume;
       chan[i].volume+=chan[i].volSpeed;
       if (chan[i].volSpeedTarget!=-1) {
@@ -578,13 +631,20 @@ bool DivCSPlayer::tick() {
           chan[i].volSpeedTarget=-1;
         }
       }
+
       if (chan[i].volume<0) {
         chan[i].volume=0;
       }
       if (chan[i].volume>chan[i].volMax) {
         chan[i].volume=chan[i].volMax;
       }
-      e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      if (chan[i].tremoloDepth>0) {
+        chan[i].tremoloPos+=chan[i].tremoloRate;
+        chan[i].tremoloPos&=127;
+        e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
+      } else {
+        e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      }
     }
 
     if (sendPitch || chan[i].vibratoDepth!=0) {
@@ -596,7 +656,7 @@ bool DivCSPlayer::tick() {
     }
 
     if (chan[i].portaSpeed) {
-      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.compatFlags.linearPitch?e->song.compatFlags.pitchSlideSpeed:1),chan[i].portaTarget));
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*((e->song.compatFlags.linearPitch && !(chan[i].note&DIV_NOTE_RAW_FLAG))?e->song.compatFlags.pitchSlideSpeed:1),chan[i].portaTarget));
     }
     if (chan[i].arp && !chan[i].portaSpeed) {
       if (chan[i].arpTicks==0) {
@@ -616,6 +676,74 @@ bool DivCSPlayer::tick() {
         chan[i].arpTicks=arpSpeed;
       }
       chan[i].arpTicks--;
+    }
+
+    if (chan[i].panSpeed) {
+      int newPanL=chan[i].panL;
+      int newPanR=chan[i].panR;
+      // increase one side until it has reached max. then decrease the other.
+      if (chan[i].panSpeed>0) { // right
+        if (newPanR>=0xff) {
+          newPanL-=chan[i].panSpeed;
+        } else {
+          newPanR+=chan[i].panSpeed;
+        }
+      } else { // left
+        if (newPanL>=0xff) {
+          newPanR+=chan[i].panSpeed;
+        } else {
+          newPanL-=chan[i].panSpeed;
+        }
+      }
+
+      // clamp to boundaries
+      if (newPanL<0) newPanL=0;
+      if (newPanL>0xff) newPanL=0xff;
+      if (newPanR<0) newPanR=0;
+      if (newPanR>0xff) newPanR=0xff;
+
+      // set new pan
+      chan[i].panL=newPanL;
+      chan[i].panR=newPanR;
+
+      // send panning command
+      e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+    }
+
+    if (chan[i].panbrelloDepth>0) {
+      chan[i].panbrelloPos+=chan[i].panbrelloRate;
+      chan[i].panbrelloPos&=255;
+
+      // calculate inverted...
+      // split position into four sections and calculate panning value
+      switch (chan[i].panbrelloPos&0xc0) {
+        case 0: // center -> right
+          chan[i].panL=((chan[i].panbrelloPos&0x3f)<<2);
+          chan[i].panR=0;
+          break;
+        case 0x40: // right -> center
+          chan[i].panL=0xff-((chan[i].panbrelloPos&0x3f)<<2);
+          chan[i].panR=0;
+          break;
+        case 0x80: // center -> left
+          chan[i].panL=0;
+          chan[i].panR=((chan[i].panbrelloPos&0x3f)<<2);
+          break;
+        case 0xc0: // left -> center
+          chan[i].panL=0;
+          chan[i].panR=0xff-((chan[i].panbrelloPos&0x3f)<<2);
+          break;
+      }
+
+      // multiply by depth
+      chan[i].panL=(chan[i].panL*chan[i].panbrelloDepth)/15;
+      chan[i].panR=(chan[i].panR*chan[i].panbrelloDepth)/15;
+
+      // then invert it to get final panning
+      chan[i].panL^=0xff;
+      chan[i].panR^=0xff;
+
+      e->dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
     }
   }
 
@@ -716,6 +844,10 @@ bool DivCSPlayer::init() {
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
+  for (int i=0; i<128; i++) {
+    tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
+  }
+  
 
   arpSpeed=1;
   bAccessTS=new unsigned short[bLen];

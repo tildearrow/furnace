@@ -119,8 +119,8 @@ public:
 
 	void generateMix(short fmL, short fmR, short& bufFL, short& bufFR, short& bufRL, short& bufRR, short* channelBufs = nullptr) {
 		generate(bufFL, bufFR, bufRL, bufRR, channelBufs);
-		bufFL = std::min(std::max((pcmMixL * bufFL + fmMixL * fmL) >> 4, -0x8000), 0x7fff);
-		bufFR = std::min(std::max((pcmMixR * bufFR + fmMixR * fmR) >> 4, -0x8000), 0x7fff);;
+		bufFL = std::min(std::max((pcmMixL * bufFL * 2 + fmMixL * fmL) >> 4, -0x8000), 0x7fff);
+		bufFR = std::min(std::max((pcmMixR * bufFR * 2 + fmMixR * fmR) >> 4, -0x8000), 0x7fff);;
 	}
 
 private:

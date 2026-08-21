@@ -2,8 +2,6 @@
 
 the SN76489 is a relatively simple sound chip made by Texas Instruments. a derivative of it is used in the Sega Master System and Sega Genesis. it has three square wave channels and one noise channel.
 
-the noise channel's default mode uses only 3 preset frequencies. to use the full range of pitches, one can enable a mode which matches the frequency of square wave channel 3. in addition, periodic noise mode can be enabled to create a "thin pulse" tone that sounds four octaves lower than the square wave channels.
-
 the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624, runs at a clock speed of 447 kHz and can only produce square waves as low as approximately 110 Hz, or note A2. later versions of the chip (such as the one in the Master System and Genesis) add an internal divide-by-8 stage and generally run at higher system clock rates to achieve a matching or similar frequency range.
 
 ## SN7 versions
@@ -24,7 +22,7 @@ SN7 was extremely popular due to low cost. therefore, it was cloned and copied t
 
 - `20xy`: **set noise mode.**
   - `x` controls whether to inherit frequency from channel 3.
-    - `0`: use one of 3 preset frequencies (C: A-2; C#: A-3; D: A-4).
+    - `0`: use one of 3 preset frequencies (see info below).
     - `1`: use frequency of channel 3.
   - `y` controls whether to select noise or thin pulse.
     - `0`: thin pulse.
@@ -33,6 +31,8 @@ SN7 was extremely popular due to low cost. therefore, it was cloned and copied t
 ## info
 
 this chip uses the [SN76489/Sega PSG](../4-instrument/psg.md) instrument editor.
+
+the noise channel's default mode uses only 3 preset frequencies. to use the full range of pitches, one can enable a mode in which the noise channel matches the frequency of square wave channel 3. in addition, periodic noise mode can be enabled to create a "thin pulse" tone that sounds four octaves lower than the square wave channels. for convenience in entering notes, a tracked note of C corresponds to a played note of A or A# in octave 2, C# is octave 3, and D is octave 4.
 
 noise mode macro values:
 - **0**: same as effect `2000`. thin pulse, 3 preset frequencies.

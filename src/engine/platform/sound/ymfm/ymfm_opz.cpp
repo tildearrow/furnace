@@ -44,17 +44,20 @@
 // and from reading the TX81Z operator manual, which describes how a number
 // of these new features work.
 //
-// OPZ appears be bsaically OPM with a bunch of extra features.
+// tildearrow: nukeykt has decapped an OPZ chip and provided loads of insight on the chip.
 //
-// For starters, there are two LFO generators. I have presumed that they
-// operate identically since identical parameters are offered for each. I
-// have also presumed the effects are additive between them. The LFOs on
-// the OPZ have an extra "sync" option which apparently causes the LFO to
-// reset whenever a key on is received.
+// OPZ appears be basically OPP with a bunch of extra features.
 //
-// At the channel level, there is an additional 8-bit volume control. This
-// might work as an addition to total level, or some other way. Completely
-// unknown, and unimplemented.
+// For starters, there are four LFO generators. Two of them are configurable
+// and operate identically since identical parameters are offered for each.
+// The other two are fixed triangle LFOs, used for per-op tremolo.
+// The LFOs on the OPZ have an extra "sync" option which triggers a reset
+// when 1 is written.
+// You may select between one and the other LFO for PMS/AMS.
+//
+// The sine table is four times as precise (compared to OPP) and the exp ROM is twice as big.
+//
+// At the channel level, there is a TL ramp control. Completely unimplemented.
 //
 // At the operator level, there are a number of extra features. First, there
 // are 8 different waveforms to choose from. These are different than the
@@ -64,30 +67,25 @@
 // generator, which kicks in when the envelope reaches -18dB. It specifies
 // a slower decay rate to produce a sort of faux reverb effect.
 //
+// Third, there is a "fine" register which offers extra precision on the
+// multiplier.
+//
+// Fourth, there is an extra tremolo setting which uses either the third or fourth LFOs.
+//
 // The envelope generator also supports a 2-bit shift value, which can be
 // used to reduce the effect of the envelope attenuation.
 //
 // OPZ supports a "fixed frequency" mode for each operator, with a 3-bit
-// range and 4-bit frequency value, plus a 1-bit enable. Not sure how that
-// works at all, so it's not implemented.
-// note by tildearrow:
-// - I have verified behavior of this mode against real hardware.
-//   after applying a small fix on the existing early implementation, it matches hardware.
-//   this means fixed frequency is fully implemented and working.
-//
-// There are also several mystery fields in the operators which I have no
-// clue about: "fine" (4 bits), "eg_shift" (2 bits), and "rev" (3 bits).
-// eg_shift is some kind of envelope generator effect, but how it works is
-// unknown.
-// note by tildearrow:
-// - behavior of "fine" is now confirmed and matches hardware.
+// range and 4-bit frequency value, plus a 1-bit enable.
+// After applying a small fix on the existing early implementation, it matches hardware.
+// This means fixed frequency is fully implemented and working.
 //
 // Also, according to the site above, the panning controls are changed from
 // OPM, with a "mono" bit and only one control bit for the right channel.
 // Current implementation is just a guess.
 //
 // additional modifications by tildearrow for Furnace
-//
+// special thanks to nukeykt for research on the OPZ chip!
 
 namespace ymfm
 {
@@ -101,12 +99,12 @@ namespace ymfm
 //-------------------------------------------------
 
 opz_registers::opz_registers() :
-	m_lfo_counter{ 0, 0 },
+	m_lfo_counter{ 0, 0, 0, 0 },
 	m_noise_lfsr(1),
 	m_noise_counter(0),
 	m_noise_state(0),
 	m_noise_lfo(0),
-	m_lfo_am{ 0, 0 }
+	m_lfo_am{ 0, 0, 0, 0 }
 {
 	// create the waveforms
 	for (uint32_t index = 0; index < WAVEFORM_LENGTH; index++)
@@ -242,43 +240,10 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 	else if (index < 0x100)
 		m_regdata[index] = data;
 
-	// preset writes restore some values from a preset memory; not sure
-	// how this really works but the TX81Z will overwrite the sustain level/
-	// release rate register and the envelope shift/reverb rate register to
-	// dampen sound, then write the preset number to register 8 to restore them
-	if (index == 0x08)
-	{
-		int chan = bitfield(data, 0, 3);
-		if (TEMPORARY_DEBUG_PRINTS)
-			printf("Loading preset %d\n", chan);
-		m_regdata[0xe0 + chan + 0] = m_regdata[0x140 + chan + 0];
-		m_regdata[0xe0 + chan + 8] = m_regdata[0x140 + chan + 8];
-		m_regdata[0xe0 + chan + 16] = m_regdata[0x140 + chan + 16];
-		m_regdata[0xe0 + chan + 24] = m_regdata[0x140 + chan + 24];
-		m_regdata[0x120 + chan + 0] = m_regdata[0x160 + chan + 0];
-		m_regdata[0x120 + chan + 8] = m_regdata[0x160 + chan + 8];
-		m_regdata[0x120 + chan + 16] = m_regdata[0x160 + chan + 16];
-		m_regdata[0x120 + chan + 24] = m_regdata[0x160 + chan + 24];
-	}
-
-	// store the presets under some unknown condition; the pattern of writes
-	// when setting a new preset is:
-	//
-	//   08 (0-7), 80-9F, A0-BF, C0-DF, C0-DF (alt), 20-27, 40-5F, 40-5F (alt),
-	//   C0-DF (alt -- again?), 38-3F, 1B, 18, E0-FF
-	//
-	// So it writes 0-7 to 08 to either reset all presets or to indicate
-	// that we're going to be loading them. Immediately after all the writes
-	// above, the very next write will be temporary values to blow away the
-	// values loaded into E0-FF, so somehow it also knows that anything after
-	// that point is not part of the preset.
-	//
-	// For now, try using the 40-5F (alt) writes as flags that presets are
-	// being loaded until the E0-FF writes happen.
+	// I have no idea why but this code must be kept.
 	bool is_setting_preset = (bitfield(m_regdata[0x100 + (index & 0x1f)], 7) != 0);
 	if (is_setting_preset)
 	{
-    //printf("ISP\n");
 		if ((index & 0xe0) == 0xe0)
 		{
 			m_regdata[0x140 + (index & 0x1f)] = data;
@@ -289,28 +254,12 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 	}
 
 	// handle writes to the key on index
-
-  // note from tildearrow:
-  // - are you kidding? I have to write to this "load preset" register before keying on?
-  // another note from tildearrow:
-  // - see https://github.com/110-kenichi/ymfm/blob/main/src/ymfm_opz.cpp
-  // - is 0x08 the actual key on register just like OPM?
-  // - if so then what's bit 5?
-	if ((index & 0xf8) == 0x20 /*&& bitfield(index, 0, 3) == bitfield(m_regdata[0x08], 0, 3)*/)
+	// there's no such thing as "load preset". $08 is the same as in OPM.
+        // also confirmed by https://github.com/110-kenichi/ymfm/blob/main/src/ymfm_opz.cpp
+	if (index == 0x08)
 	{
-		channel = bitfield(index, 0, 3);
-		opmask = ch_key_on(channel) ? 0xf : 0;
-    //printf("%d opmask is %d\n",opmask,channel);
-
-		// according to the TX81Z manual, the sync option causes the LFOs
-		// to reset at each note on
-		if (opmask != 0)
-		{
-			if (lfo_sync())
-				m_lfo_counter[0] = 0;
-			if (lfo2_sync())
-				m_lfo_counter[1] = 0;
-		}
+		channel = bitfield(data, 0, 3);
+		opmask = bitfield(data, 3, 4);
 		return true;
 	}
 	return false;
@@ -356,6 +305,16 @@ int32_t opz_registers::clock_noise_and_lfo()
   if (rate1 != 0) {
 	  m_lfo_counter[1] += (0x10 | bitfield(rate1, 0, 4)) << bitfield(rate1, 4, 4);
   }
+
+	// the sync options are used to reset the LFO counters
+	// bit 1 of the test register may be used to reset the
+	// LFOs as well (both of them?)
+	if (lfo_sync() || lfo_reset())
+		m_lfo_counter[0] = 0;
+	if (lfo2_sync() || lfo_reset())
+		m_lfo_counter[1] = 0;
+
+
 	uint32_t lfo0 = bitfield(m_lfo_counter[0], 22, 8);
 	uint32_t lfo1 = bitfield(m_lfo_counter[1], 22, 8);
 
@@ -392,6 +351,7 @@ uint32_t opz_registers::lfo_am_offset(uint32_t choffs) const
 {
 	// not sure how this works for real, but just adding the two
 	// AM LFOs together
+        // TODO: they don't add.
 	uint32_t result = 0;
 
 	// shift value for AM sensitivity is [*, 0, 1, 2],
@@ -457,7 +417,6 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 		cache.phase_step = opdata_cache::PHASE_STEP_DYNAMIC;
 
 	// total level, scaled by 8
-	// TODO: how does ch_volume() fit into this?
 	cache.total_level = op_total_level(opoffs) << 3;
 
 	// 4-bit sustain level, but 15 means 31 so effectively 5 bits
@@ -477,7 +436,12 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 		cache.eg_rate[EG_REVERB] = std::min<uint32_t>(effective_rate(reverb * 4 + 2, ksrval), cache.eg_rate[EG_REVERB]);
 
 	// set the envelope shift; TX81Z manual says operator 1 (actually operator 4) shift is fixed at "off"
-	cache.eg_shift = ((opoffs & 0x18) == 0x18) ? 0 : op_eg_shift(opoffs);
+        // however, it is nothing more than a software constraint
+	cache.eg_shift = op_eg_shift(opoffs);
+
+	// TL ramp
+	cache.tl_ramp = op_tl_ramp(opoffs);
+	cache.tl_ramp_period = ch_ramp_period(choffs);
 }
 
 

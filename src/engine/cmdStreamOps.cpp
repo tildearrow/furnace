@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,8 +84,6 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
     case DIV_CMD_WS_SWEEP_TIME:
     case DIV_CMD_WS_SWEEP_AMOUNT:
-    case DIV_CMD_N163_WAVE_POSITION:
-    case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_N163_WAVE_UNUSED1:
     case DIV_CMD_N163_WAVE_UNUSED2:
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -168,6 +166,17 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_FM_AMS:
     case DIV_CMD_FM_FMS2:
     case DIV_CMD_FM_AMS2:
+    case DIV_CMD_KLATTSCH_PHONEME:
+    case DIV_CMD_KLATTSCH_TRANSITION:
+    case DIV_CMD_KLATTSCH_VOICING:
+    case DIV_CMD_KLATTSCH_ASPIRATION:
+    case DIV_CMD_KLATTSCH_TILT:
+    case DIV_CMD_KLATTSCH_EFFORT:
+    case DIV_CMD_KLATTSCH_VIBRATO:
+    case DIV_CMD_KLATTSCH_TREMOLO:
+    case DIV_CMD_KLATTSCH_GAIN:
+    case DIV_CMD_KLATTSCH_BW_SCALE:
+    case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
       return 1;
     case DIV_CMD_FM_TL:
     case DIV_CMD_FM_AM:
@@ -213,6 +222,10 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
     case DIV_CMD_C64_PW_SLIDE:
     case DIV_CMD_C64_CUTOFF_SLIDE:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_KLATTSCH_FORMANT:
+    case DIV_CMD_KLATTSCH_AMP:
       return 2;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
@@ -278,7 +291,11 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xda: // jmp
     case 0xdb: // rate
     case 0xcb: // volporta
+    case 0xb9: // note raw
+    case 0xbb: // legato raw
       return 5;
+    case 0xba: // porta raw
+      return 6;
   }
   return 1;
 }
@@ -288,8 +305,15 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_NOTE_ON:
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xb4);
+      } else if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xb9);
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
       } else {
-        w->writeC(CLAMP(c.value+60,0,0xb3));
+        w->writeC(CLAMP(c.value,0,0xb3));
       }
       break;
     case DIV_CMD_NOTE_OFF:
@@ -332,10 +356,18 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(0xc8);
       break;
     case DIV_CMD_HINT_PORTA:
-      w->writeC(0xc9);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xba);
+      } else {
+        w->writeC(0xc9);
+      }
       break;
     case DIV_CMD_HINT_LEGATO:
-      w->writeC(0xca);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xbb);
+      } else {
+        w->writeC(0xca);
+      }
       break;
     case DIV_CMD_HINT_VOL_SLIDE_TARGET:
       w->writeC(0xcb);
@@ -361,8 +393,14 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_HINT_LEGATO:
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xff);
+      } else if (c.value&DIV_NOTE_RAW_FLAG) {
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
       } else {
-        w->writeC(c.value+60);
+        w->writeC(c.value);
       }
       break;
     case DIV_CMD_NOTE_ON:
@@ -388,8 +426,16 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(c.value2);
       break;
     case DIV_CMD_HINT_PORTA: {
-      unsigned char val=CLAMP(c.value+60,0,255);
-      w->writeC(val);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
+      } else {
+        unsigned char val=CLAMP(c.value,0,179);
+        w->writeC(val);
+      }
       w->writeC(c.value2);
       break;
     }
@@ -472,8 +518,6 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
     case DIV_CMD_WS_SWEEP_TIME:
     case DIV_CMD_WS_SWEEP_AMOUNT:
-    case DIV_CMD_N163_WAVE_POSITION:
-    case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_N163_WAVE_UNUSED1:
     case DIV_CMD_N163_WAVE_UNUSED2:
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -556,6 +600,17 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_FM_AMS:
     case DIV_CMD_FM_FMS2:
     case DIV_CMD_FM_AMS2:
+    case DIV_CMD_KLATTSCH_PHONEME:
+    case DIV_CMD_KLATTSCH_TRANSITION:
+    case DIV_CMD_KLATTSCH_VOICING:
+    case DIV_CMD_KLATTSCH_ASPIRATION:
+    case DIV_CMD_KLATTSCH_TILT:
+    case DIV_CMD_KLATTSCH_EFFORT:
+    case DIV_CMD_KLATTSCH_VIBRATO:
+    case DIV_CMD_KLATTSCH_TREMOLO:
+    case DIV_CMD_KLATTSCH_GAIN:
+    case DIV_CMD_KLATTSCH_BW_SCALE:
+    case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
       w->writeC(c.value);
       break;
     case DIV_CMD_FM_TL:
@@ -602,6 +657,10 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
     case DIV_CMD_C64_PW_SLIDE:
     case DIV_CMD_C64_CUTOFF_SLIDE:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_KLATTSCH_FORMANT:
+    case DIV_CMD_KLATTSCH_AMP:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;

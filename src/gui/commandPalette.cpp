@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ struct MatchResult {
 };
 
 static bool charMatch(const char* a, const char* b) {
-  // stub for future utf8 support, possibly with matching for related chars?
+  // stub for future utf8 support (TODO), possibly with matching for related chars?
   return std::tolower(*a)==std::tolower(*b);
 }
 
@@ -94,7 +94,7 @@ static bool matchFuzzy(const char* haystack, int haystackLen, const char* needle
 #endif
 
       // check match!
-      if (charMatch(haystack+hIdx, needle+matchLen)) {
+      if (charMatch(haystack+hIdx,needle+matchLen)) {
 
         // pull a fresh match from the pool if necessary
         if (matchLen==0) {
@@ -138,8 +138,8 @@ static void matchFuzzyTest() {
   String hay="a__i_a_i__o";
   String needle="aio";
   MatchResult match;
-  matchFuzzy(hay.c_str(), hay.length(), needle.c_str(), needle.length(), &match);
-  logI( "match.score.charsWithinNeedle: %d", match.score.charsWithinNeedle );
+  matchFuzzy(hay.c_str(),hay.length(),needle.c_str(),needle.length(),&match);
+  logI("match.score.charsWithinNeedle: %d",match.score.charsWithinNeedle);
 }
 #endif
 
@@ -179,9 +179,9 @@ void FurnaceGUI::drawPalette() {
     paletteSearchResults.clear();
     std::vector<MatchScore> matchScores;
 
-    auto Evaluate=[&](int i, const char* name, int nameLen) {
+    auto evaluate=[&](int i, const char* name, int nameLen) {
       MatchResult result;
-      if (matchFuzzy(name, nameLen, paletteQuery.c_str(), paletteQuery.length(), &result)) {
+      if (matchFuzzy(name,nameLen,paletteQuery.c_str(),paletteQuery.length(),&result)) {
         paletteSearchResults.emplace_back();
         paletteSearchResults.back().id=i;
         paletteSearchResults.back().highlightChars=std::move(result.highlightChars);
@@ -193,30 +193,30 @@ void FurnaceGUI::drawPalette() {
     case CMDPAL_TYPE_MAIN:
       for (int i=0; i<GUI_ACTION_MAX; i++) {
         if (guiActions[i].isNotABind()) continue;
-        Evaluate(i,guiActions[i].friendlyName,strlen(guiActions[i].friendlyName));
+        evaluate(i,guiActions[i].friendlyName,strlen(guiActions[i].friendlyName));
       }
       break;
 
     case CMDPAL_TYPE_RECENT:
       for (int i=0; i<(int)recentFile.size(); i++) {
-        Evaluate(i,recentFile[i].c_str(),recentFile[i].length());
+        evaluate(i,recentFile[i].c_str(),recentFile[i].length());
       }
       break;
 
     case CMDPAL_TYPE_INSTRUMENTS:
     case CMDPAL_TYPE_INSTRUMENT_CHANGE: {
       const char* noneStr=_("- None -");
-      Evaluate(0,noneStr,strlen(noneStr));
+      evaluate(0,noneStr,strlen(noneStr));
       for (int i=0; i<e->song.insLen; i++) {
-        String s=fmt::sprintf("%02X: %s", i, e->song.ins[i]->name.c_str());
-        Evaluate(i+1,s.c_str(),s.length()); // because over here ins=0 is 'None'
+        String s=fmt::sprintf("%02X: %s",i,e->song.ins[i]->name.c_str());
+        evaluate(i+1,s.c_str(),s.length()); // because over here ins=0 is 'None'
       }
       break;
     }
 
     case CMDPAL_TYPE_SAMPLES:
       for (int i=0; i<e->song.sampleLen; i++) {
-        Evaluate(i,e->song.sample[i]->name.c_str(),e->song.sample[i]->name.length());
+        evaluate(i,e->song.sample[i]->name.c_str(),e->song.sample[i]->name.length());
       }
       break;
 
@@ -224,7 +224,7 @@ void FurnaceGUI::drawPalette() {
       for (int i=0; availableSystems[i]; i++) {
         int ds=availableSystems[i];
         const char* sysname=getSystemName((DivSystem)ds);
-        Evaluate(ds,sysname,strlen(sysname));
+        evaluate(ds,sysname,strlen(sysname));
       }
       break;
 
@@ -237,8 +237,8 @@ void FurnaceGUI::drawPalette() {
     // sort indices by match quality
     std::vector<int> sortingIndices(paletteSearchResults.size());
     for (size_t i=0; i<sortingIndices.size(); ++i) sortingIndices[i]=(int)i;
-    std::sort(sortingIndices.begin(), sortingIndices.end(), [&](size_t a, size_t b) {
-      return MatchScore::IsFirstPreferable(matchScores[a], matchScores[b]);
+    std::sort(sortingIndices.begin(),sortingIndices.end(),[&](size_t a, size_t b) {
+      return MatchScore::IsFirstPreferable(matchScores[a],matchScores[b]);
     });
 
     // update paletteSearchResults from sorted indices (taking care not to stomp while we iterate
@@ -250,24 +250,24 @@ void FurnaceGUI::drawPalette() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("CommandPaletteList",avail,0,0)) {
-      bool navigated=false;
-      if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
-        curPaletteChoice-=1;
-        navigated=true;
-      }
-      if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-        curPaletteChoice+=1;
-        navigated=true;
-      }
+    bool navigated=false;
+    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
+      curPaletteChoice-=1;
+      navigated=true;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+      curPaletteChoice+=1;
+      navigated=true;
+    }
 
-      if (paletteSearchResults.size()>0 && curPaletteChoice<0) {
-        curPaletteChoice=0;
-        navigated=true;
-      }
-      if (curPaletteChoice>=(int)paletteSearchResults.size()) {
-        curPaletteChoice=paletteSearchResults.size()-1;
-        navigated=true;
-      }
+    if (paletteSearchResults.size()>0 && curPaletteChoice<0) {
+      curPaletteChoice=0;
+      navigated=true;
+    }
+    if (curPaletteChoice>=(int)paletteSearchResults.size()) {
+      curPaletteChoice=paletteSearchResults.size()-1;
+      navigated=true;
+    }
 
     int columnCount=curPaletteType==CMDPAL_TYPE_MAIN ? 2 : 1;
     if (ImGui::BeginTable("##commandPaletteTable",columnCount,ImGuiTableFlags_SizingStretchProp)) {
@@ -290,7 +290,7 @@ void FurnaceGUI::drawPalette() {
           if (id==0) {
             s=_("- None -");
           } else {
-            s=fmt::sprintf("%02X: %s", id-1, e->song.ins[id-1]->name.c_str());
+            s=fmt::sprintf("%02X: %s",id-1,e->song.ins[id-1]->name.c_str());
           }
           break;
         case CMDPAL_TYPE_SAMPLES:
@@ -314,17 +314,17 @@ void FurnaceGUI::drawPalette() {
         const std::vector<int>& highlights=paletteSearchResults[i].highlightChars;
         for (size_t ch=0; ch<highlights.size(); ch++) {
           ImGui::SameLine(0.0f,0.0f);
-          ImGui::Text("%.*s", (int)(highlights[ch]-chCursor), str+chCursor);
+          ImGui::Text("%.*s",(int)(highlights[ch]-chCursor),str+chCursor);
           ImGui::SameLine(0.0f,0.0f);
-          ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY], "%.1s", str+highlights[ch]);
+          ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"%.1s",str+highlights[ch]);
           chCursor=highlights[ch]+1;
         }
         ImGui::SameLine(0.0f,0.0f);
-        ImGui::Text("%.*s", (int)(s.length()-chCursor), str+chCursor);
+        ImGui::Text("%.*s",(int)(s.length()-chCursor),str+chCursor);
 
         if (curPaletteType==CMDPAL_TYPE_MAIN) {
           ImGui::TableNextColumn();
-          ImGui::TextColored(uiColors[GUI_COLOR_TEXT_DISABLED], "%s", getMultiKeysName(actionKeys[paletteSearchResults[i].id].data(),actionKeys[paletteSearchResults[i].id].size(),true).c_str());
+          ImGui::TextColored(uiColors[GUI_COLOR_TEXT_DISABLED],"%s",getMultiKeysName(actionKeys[paletteSearchResults[i].id].data(),actionKeys[paletteSearchResults[i].id].size(),true).c_str());
         }
 
         if (selectable) {
@@ -333,7 +333,7 @@ void FurnaceGUI::drawPalette() {
         }
 
         ImGui::PopID();
-        
+
         if ((navigated || paletteFirstFrame) && current) ImGui::SetScrollHereY();
       }
       ImGui::EndTable();

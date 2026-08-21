@@ -65,7 +65,7 @@ due to limitations in some of those sound chips, some restrictions exist:
 - Seta/Allumer X1-010: frequency resolution is terrible in the lower end. your sample can't be longer than 131072.
 - C219: sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
 
-furthermore, many of these chips have a limited amount of sample memory. check memory usage in window > statistics.
+furthermore, many of these chips have a limited amount of sample memory. check memory usage in the Memory Composition window (window > debug > memory composition).
 
 ## the sample editor
 
@@ -137,6 +137,8 @@ in there, you can modify certain data pertaining to your sample, such as the:
 - **Apply silence**: reduces amplitude of selection to 0.
 - **Delete**: removes selection.
 - **Trim**: removes all but selection.
+- **Noise Gate**: trims "silent" areas from start and end of selection.
+  - **Threshold (dB)**: the threshold in decibels below which the sample is considered "silent".
 - **Reverse**: reverses direction of selection.
 - **Invert**: flips selection "vertically".
 - **Signed/unsigned exchange**: reinterprets selection data as being of the opposite sign.
@@ -169,7 +171,10 @@ in the sample viewer:
   - **paste (replace)**: replaces the selection with the sample clipboard.
   - **paste (mix)**: mixes the sample clipboard into the existing sample, beginning at the start of the selection.
   - **set loop to selection**: changes loop region to match selection.
+  - **trim to the end of the loop**: deletes everything after the loop region.
+  - **trim around loop points**: deletes everything before and after the loop region.
   - **create wavetable from selection**: copies the selection into a new wavetable entry.
+  - **copy selection to new sample** copies the selection into a new sample.
 
 in the bottom status bar:
 - **Select**: set selection start and end positions. total selection length will be shown next to them.

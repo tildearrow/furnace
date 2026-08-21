@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1502,10 +1502,18 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_SEGAPCM:
         if (!hasSegaPCM) {
-          hasSegaPCM=4000000;
+          hasSegaPCM=disCont[i].dispatch->chipClock;
           CHIP_VOL(4,0.67);
           willExport[i]=true;
           writeSegaPCM[0]=disCont[i].dispatch;
+          switch (song.systemFlags[i].getInt("memSize",0)) {
+            case 0:
+              segaPCMOffset=0xf8000d;
+              break;
+            case 1:
+              segaPCMOffset=0x70000c;
+              break;
+          }
         } else if (!(hasSegaPCM&0x40000000)) {
           isSecond[i]=true;
           CHIP_VOL_SECOND(4,0.67);

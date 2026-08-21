@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     const unsigned int hardResetCycles=127;
 
-    struct FMChannel: public SharedChannel<int> {
+    struct FMChannel: public SharedChannel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int portaPauseFreq;
@@ -57,8 +57,8 @@ class DivPlatformFMBase: public DivDispatch {
       signed char konCycles;
       bool hardReset, opMaskChanged;
 
-      FMChannel():
-        SharedChannel<int>(0),
+      FMChannel(bool linear):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
@@ -70,8 +70,8 @@ class DivPlatformFMBase: public DivDispatch {
 
     struct FMChannelStereo: public FMChannel {
       unsigned char pan;
-      FMChannelStereo():
-        FMChannel(),
+      FMChannelStereo(bool linear):
+        FMChannel(linear),
         pan(3) {}
     };
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,12 @@
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char freqH, freqL;
       unsigned char psgMode;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         freqH(0),
         freqL(0),
         psgMode(1),
@@ -48,6 +48,7 @@ class DivPlatformSAA1099: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     FixedQueue<QueuedWrite,256> writes;
+    DivPitchTable pitchTable;
     int coreQuality;
     CSAASound* saa_saaSound;
     unsigned char regPool[32];
@@ -71,7 +72,7 @@ class DivPlatformSAA1099: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -83,10 +84,13 @@ class DivPlatformSAA1099: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
