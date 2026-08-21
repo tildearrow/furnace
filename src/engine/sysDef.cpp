@@ -1508,7 +1508,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_OPZ]=new DivSysDef(
     _("Yamaha YM2414 (OPZ)"), NULL, 0x98, 0, 8, 8, 8,
-    true, false, 0, false, 0, 0, 0,
+    true, false, 0x150, false, 0, 0, 0,
     _("like OPM, but with more waveforms, fixed frequency mode and totally... undocumented.\nused in the Yamaha TX81Z and some other synthesizers."),
     DivChanDefFunc(fmChanDef<DIV_CH_FM,DIV_INS_OPZ>),
     {

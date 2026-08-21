@@ -25,7 +25,7 @@
 #include "sound/ymfm/ymfm_opz.h"
 extern "C" {
   #include "../../../extern/YM2414-LLE-beta/opz_lle.h"
-  void OPZLLE_Clock(ym2414_t* chip, int clk);
+  //void OPZLLE_Clock(ym2414_t* chip, int clk);
 }
 
 class DivTXInterface: public ymfm::ymfm_interface {

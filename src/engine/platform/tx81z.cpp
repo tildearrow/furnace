@@ -178,20 +178,23 @@ void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
       if (fm_lle.o_sy && !lastSY) {
         dacVal>>=1;
         dacVal|=(fm_lle.o_so&1)<<17;
+        //logV("SO: %d",fm_lle.o_so&1);
       }
 
       if (!fm_lle.o_sh1 && lastSH1) {
-        int e=(dacVal>>15)&7;
-        int m=(dacVal>>5)&1023;
+        int e=(dacVal>>14)&7;
+        int m=(dacVal>>4)&1023;
         m-=512;
+        //logV("///SH1: %x (%d/%d)",dacVal,m,e);
         dacOut1=(m<<e)>>1;
         break;
       }
 
-      if (!fm_lle.o_sh2_pull && lastSH2) {
-        int e=(dacVal>>15)&7;
-        int m=(dacVal>>5)&1023;
+      if (fm_lle.o_sh2_pull && !lastSH2) {
+        int e=(dacVal>>14)&7;
+        int m=(dacVal>>4)&1023;
         m-=512;
+        //logV("///SH2: %x (%d/%d)",dacVal,m,e);
         dacOut2=(m<<e)>>1;
       }
     }
