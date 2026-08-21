@@ -2966,6 +2966,11 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_C219:
     case DIV_SYSTEM_BIFURCATOR:
+    case DIV_SYSTEM_AFTERBURNERII: {
+      supportsCustomRate=false;
+      ImGui::Text(_("nothing to configure"));
+      break;
+    }
     case DIV_SYSTEM_POWERNOISE:
     case DIV_SYSTEM_UPD1771C:
     case DIV_SYSTEM_MULTIPCM:

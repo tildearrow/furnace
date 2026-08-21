@@ -2684,6 +2684,26 @@ void DivEngine::registerSystems() {
     }
   );
 
+  sysDefs[DIV_SYSTEM_AFTERBURNERII]=new DivSysDef(
+    _("Afterburner II"), NULL, 0xe8, 0, 3, 3, 3,
+    false, true, 0, false, 0, 32, 16,
+    _("The audio chip used in the NuevoAuto fantasy computer. Three PSG channels (square/saw/1-bit noise, wavetable on channel 3)."),
+    DivChanDefFunc({
+      DivChanDef(_("PSG 1"), "P1", DIV_CH_PULSE, DIV_INS_AFTERBURNER2),
+      DivChanDef(_("PSG 2"), "P2", DIV_CH_PULSE, DIV_INS_AFTERBURNER2),
+      DivChanDef(_("PSG 3"), "P3", DIV_CH_WAVE, DIV_INS_AFTERBURNER2)
+    }),
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform (0: square; 1: saw; 2: noise)")}},
+      {0x12, {DIV_CMD_STD_NOISE_MODE, _("12xx: Set duty cycle (0-15)")}},
+      {0x13, {DIV_CMD_AFTB2_PSG2_BITWISE, _("13xx: PSG2 bitwise with PSG3 (0: off; 1: AND; 2: NAND; 3: OR; 4: NOR; 5: XOR; 6: XNOR)")}},
+      {0x14, {DIV_CMD_AFTB2_WAVE_ENABLE, _("14xx: Toggle PSG3 wavetable (0: off; 1: on)")}},
+    }
+  );
+
+
+
   sysDefs[DIV_SYSTEM_SID2]=new DivSysDef(   
     _("SID2"), NULL, 0xf0, 0, 3, 3, 3,
     false, true, 0, false, 0, 0, 0,
