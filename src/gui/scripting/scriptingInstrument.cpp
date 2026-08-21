@@ -73,7 +73,6 @@ void writeFeatureFM(DivInstrument* ins, lua_State* s) {
   API_ADD_VALUE("ams",ins->fm.ams,integer)
   API_ADD_VALUE("fms2",ins->fm.fms2,integer)
   API_ADD_VALUE("ams2",ins->fm.ams2,integer)
-  API_ADD_VALUE("ops",ins->fm.ops,integer)
   API_ADD_VALUE("opllPreset",ins->fm.opllPreset,integer)
   API_ADD_VALUE("block",ins->fm.block,integer)
   API_ADD_VALUE("fixedDrums",ins->fm.fixedDrums,boolean)
@@ -99,6 +98,7 @@ void writeFeatureFM(DivInstrument* ins, lua_State* s) {
     API_ADD_VALUE("rs",op->rs,integer)
     API_ADD_VALUE("dt",op->dt,integer)
     API_ADD_VALUE("dt2",op->dt2,integer)
+    API_ADD_VALUE("d2r",op->d2r,integer)
     API_ADD_VALUE("ssgEnv",op->ssgEnv,integer)
     API_ADD_VALUE("dam",op->dam,integer)
     API_ADD_VALUE("dvb",op->dvb,integer)
@@ -180,11 +180,17 @@ void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
         value=lua_tointeger(s,-1);
         break;
       case LUA_TTABLE: { // op table
+        int ops=0;
         lua_pushnil(s);
         while (lua_next(s,-2)) {
           if (lua_isinteger(s,-2)) {
+            ops++;
             if (lua_istable(s,-1)) {
               int op=lua_tointeger(s,-2);
+              if (op>=4) {
+                lua_pop(s,1);
+                continue;
+              }
               lua_pushnil(s);
               while (lua_next(s,-2)) {
                 if (lua_isstring(s,-2)) {
@@ -213,6 +219,7 @@ void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
                   CHECK_OP_VALUE(rs,0,1)
                   CHECK_OP_VALUE(dt,0,1)
                   CHECK_OP_VALUE(dt2,0,1)
+                  CHECK_OP_VALUE(d2r,0,1)
                   CHECK_OP_VALUE(ssgEnv,0,1)
                   CHECK_OP_VALUE(dam,0,1)
                   CHECK_OP_VALUE(dvb,0,1)
@@ -230,6 +237,7 @@ void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
             }
           }
           lua_pop(s,1);
+          ins->fm.ops=CLAMP(ops,1,4);
         }
         lua_pop(s,1);
         continue;
@@ -241,7 +249,6 @@ void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
     CHECK_VALUE("ams",ams,0,7)
     CHECK_VALUE("fms2",fms2,0,7)
     CHECK_VALUE("ams2",ams2,0,7)
-    CHECK_VALUE("ops",ops,0,7)
     CHECK_VALUE("opllPreset",opllPreset,0,15)
     CHECK_VALUE("block",block,0,7)
     CHECK_VALUE("fixedDrums",fixedDrums,0,1)

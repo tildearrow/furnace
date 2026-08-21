@@ -960,7 +960,7 @@ _CF(setInsMacroData) {
               if (lua_isnumber(s,-2)) {
                 if (lua_isnumber(s,-1) && count<255) {
                   int idx=lua_tointeger(s,-2);
-                  macro->val[idx-1]=lua_tointeger(s,-1);
+                  macro->val[idx-1]=lua_tointeger(s,-1); // TODO: limit to 255
                   count++;
                 }
               }

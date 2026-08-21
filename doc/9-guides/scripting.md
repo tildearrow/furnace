@@ -656,13 +656,65 @@ all functions use 0-indexing.
 
 - `fur.instrument.delete()`
 
-  arguments: (optional) instrument id (number)
+  arguments: (optional) instrument id (integer)
 
   return type: none
 
   deletes an instrument
 
   if instrument id not given, assumes current instrument
+
+- `fur.instrument.setData()`
+
+  arguments: (optional) instrument id (integer), instrument feature code (integer), instrument feature data (table)
+
+  return type: none
+
+  sets instrument parameters
+
+  if instrument id not given, assumes current instrument
+
+  for the data format, see [appendix A](#appendix-a-instrument-feature-formats)
+
+  for a list of valid instrument feature codes, see the [constants below](#instrument)
+
+- `fur.instrument.getData()`
+
+  arguments: (optional) instrument id (integer)
+
+  return type: table
+
+  returns instrument parameters
+
+  if instrument id not given, assumes current instrument
+
+  for the data format, see [appendix A](#appendix-a-instrument-feature-formats)
+
+- `fur.instrument.setMacroData()`
+
+  arguments: (optional) instrument id (integer), instrument macro code (integer), instrument macro data (table)
+
+  return type: none
+
+  sets instrument macro parameters
+
+  if instrument id not given, assumes current instrument
+
+  for the data format, see [appendix B](#appendix-b-instrument-macro-format)
+
+  for a list of valid instrument macro codes, see the [constants below](#instrument)
+
+- `fur.instrument.getMacroData()`
+
+  arguments: (optional) instrument id (integer)
+
+  return type: table
+
+  returns instrument macro parameters
+
+  if instrument id not given, assumes current instrument
+
+  for the data format, see [appendix B](#appendix-b-instrument-macro-format)
 
 #### wave manipulation
 
@@ -1078,6 +1130,8 @@ all functions use 0-indexing.
 
 ### constants
 
+#### pattern
+
 - `fur.pattern.columnNote`
 
   type: integer
@@ -1109,7 +1163,6 @@ all functions use 0-indexing.
   value: `21`
 
   special index for accessing raw frequency values
-
 
 - `fur.pattern.noteOff`
 
@@ -1143,3 +1196,190 @@ all functions use 0-indexing.
 
   the internal value of a note which denotes whether the row contains a raw frequency value
 
+#### instrument
+
+- `fur.instrument.featureFM`
+- `fur.instrument.featureGB`
+- `fur.instrument.featureC64`
+- `fur.instrument.featureAmiga`
+- `fur.instrument.featureX1`
+- `fur.instrument.feature163`
+- `fur.instrument.featureFDS`
+- `fur.instrument.featureMultiPCM`
+- `fur.instrument.featureWaveSynth`
+- `fur.instrument.featureSoundUnit`
+- `fur.instrument.featureES5506`
+- `fur.instrument.featureSNES`
+- `fur.instrument.featureESFM`
+- `fur.instrument.featurePowerNoise`
+- `fur.instrument.featureSID2`
+- `fur.instrument.featureSID3`
+- `fur.instrument.featureKlattsch`
+
+  type: integer
+
+  value: 0-16
+
+  constants denoting the instrument features
+
+- `fur.instrument.macroVolume`
+- `fur.instrument.macroArp`
+- `fur.instrument.macroDuty`
+- `fur.instrument.macroWave`
+- `fur.instrument.macroPitch`
+- `fur.instrument.macroEx1`
+- `fur.instrument.macroEx2`
+- `fur.instrument.macroEx3`
+- `fur.instrument.macroAlg`
+- `fur.instrument.macroFeedback`
+- `fur.instrument.macroFMS`
+- `fur.instrument.macroAMS`
+- `fur.instrument.macroPanLeft`
+- `fur.instrument.macroPanRight`
+- `fur.instrument.macroPhaseReset`
+- `fur.instrument.macroEx4`
+- `fur.instrument.macroEx5`
+- `fur.instrument.macroEx6`
+- `fur.instrument.macroEx7`
+- `fur.instrument.macroEx8`
+- `fur.instrument.macroEx9`
+- `fur.instrument.macroEx10`
+
+  type: integer
+
+  value: 0-21
+
+  constants denoting the instrument macro codes
+
+## Appendix A: instrument data format
+
+```
+  {
+    fm=(table),
+    ...
+  }
+```
+blank features return a `nil` table
+
+- `fm` table:
+  ```
+  {
+    alg=(integer),
+    feedback=(integer),
+    fms=(integer),
+    ams=(integer),
+    fms2=(integer),
+    ams2=(integer),
+    opllPreset=(integer),
+    block=(integer),
+    fixedDrums=(integer),
+    kickFreq=(integer),
+    snareHatFreq=(integer),
+    tomTopFreq=(integer),
+    op=(array of tables)
+  }
+  ```
+  - `op` table
+    ```
+    {
+      enable=(boolean),
+      am=(integer),
+      ar=(integer),
+      dr=(integer),
+      mult=(integer),
+      rr=(integer),
+      sl=(integer)
+      tl=(integer),
+      dt2=(integer),
+      rs=(integer),
+      dt=(integer),
+      d2r=(integer),
+      ssgEnv=(integer),
+      dam=(integer),
+      dvb=(integer),
+      egt=(integer),
+      ksl=(integer),
+      sus=(integer),
+      vib=(integer),
+      ws=(integer),
+      ksr=(integer),
+      kvs=(integer),
+    }
+    ```
+
+## Appendix B: instrument macro format
+
+```
+{
+  volume=(table),
+  arp=(table),
+  duty=(table),
+  wave=(table),
+  pitch=(table),
+  ex1=(table),
+  ex2=(table),
+  ex3=(table),
+  alg=(table),
+  feedback=(table),
+  fms=(table),
+  ams=(table),
+  panLeft=(table),
+  panRight=(table),
+  phaseReset=(table),
+  ex4=(table),
+  ex5=(table),
+  ex6=(table),
+  ex7=(table),
+  ex8=(table),
+  ex9=(table),
+  ex10=(table),
+}
+```
+
+all macro entries use the same format:
+
+```
+{
+  open=(boolean),
+  mode=(integer),
+  delay=(integer),
+  instantRelease=(boolean),
+  speed=(integer),
+  loop=(integer),
+  release=(integer),
+  -- if the macro type is sequence
+  values=(array of integers),
+  -- if the macro type is ADSR
+  envelope=(table),
+  -- if the macro type is LFO
+  lfo=(table),
+}
+```
+
+`values` may contain up to 255 integers
+
+- `envelope` table
+  ```
+  {
+    bottom=(integer),
+    top=(integer),
+    attack=(integer),
+    hold=(integer),
+    decay=(integer),
+    sustain=(integer),
+    susTime=(integer),
+    susDecay=(integer),
+    release=(integer),
+  },
+  ```
+
+- `lfo` table
+  ```
+  {
+    bottom=(integer),
+    top=(integer),
+    speed=(integer),
+    waveform=(integer),
+    phase=(integer),
+  },
+  ```
