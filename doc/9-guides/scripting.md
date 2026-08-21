@@ -674,7 +674,7 @@ all functions use 0-indexing.
 
   if instrument id not given, assumes current instrument
 
-  for the data format, see [appendix A](#appendix-a-instrument-feature-formats)
+  for the data format, see [appendix A](#appendix-a-instrument-data-format)
 
   for a list of valid instrument feature codes, see the [constants below](#instrument)
 
@@ -688,7 +688,7 @@ all functions use 0-indexing.
 
   if instrument id not given, assumes current instrument
 
-  for the data format, see [appendix A](#appendix-a-instrument-feature-formats)
+  for the data format, see [appendix A](#appendix-a-instrument-data-format)
 
 - `fur.instrument.setMacroData()`
 
