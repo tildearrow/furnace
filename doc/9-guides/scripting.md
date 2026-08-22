@@ -1035,9 +1035,9 @@ all functions use 0-indexing.
 
   sets the pattern data
 
-- `fur.pattern.addinputCallback()`
+- `fur.pattern.setInputCallback()`
 
-  arguments: callback function (function)
+  arguments: callback id (string), callback function (function)
 
   return type: none
 
@@ -1258,8 +1258,10 @@ all functions use 0-indexing.
   {
     fm=(table),
     gb=(table),
+    c64=(table),
     amiga=(table),
     x1=(table),
+    n163=(table)
     ...
     klattsch=(table)
   }
@@ -1334,6 +1336,41 @@ some parameters may be nil (like arrays) if they are empty
     }
     ```
 
+- `c64` table
+  ```
+  {
+    toFilter=(boolean),
+    initFilter=(boolean),
+    dutyIsAbs=(boolean),
+    filterIsAbs=(boolean),
+    noTest=(boolean),
+    resetDuty=(boolean),
+    ringMod=(integer),
+    oscSync=(integer),
+    envelope={
+      a=(integer),
+      d=(integer),
+      s=(integer),
+      r=(integer),
+    },
+    osc={
+      triOn=(boolean),
+      sawOn=(boolean),
+      pulseOn=(boolean),
+      noiseOn=(boolean),
+      duty=(integer),
+    },
+    filter={
+      res=(integer),
+      cut=(integer),
+      hp=(boolean),
+      lp=(boolean),
+      bp=(boolean),
+      ch3off=(boolean),
+    }
+  }
+  ```
+
 - `amiga` table
   ```
   {
@@ -1361,6 +1398,26 @@ some parameters may be nil (like arrays) if they are empty
     bankSlot=(integer),
   }
   ```
+
+- `n163` table
+  ```
+  {
+    wave=(integer),
+    wavePos=(integer),
+    waveLen=(integer),
+    waveMode=(integer),
+    perChanPos=(boolean),
+    wavePerChan=(array of tables),
+  }
+  ```
+  `wavePerChan` may have up to 8 entries
+  - `wavePerChan` table
+    ```
+    {
+      pos=(integer),
+      len=(integer),
+    }
+    ```
 
 - `klattsch` table
   ```

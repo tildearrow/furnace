@@ -124,17 +124,19 @@ void FurnaceGUI::resetScriptState(lua_State* s) {
   }
   scriptDialog.title.clear();
   scriptDialog.items.clear();
-  for (size_t i=0; i<scriptCallbacks.pattern.size(); i++) {
-    if (scriptCallbacks.pattern[i].first==s) {
-      scriptCallbacks.pattern.erase(scriptCallbacks.pattern.begin()+i);
-      i--;
+  for (auto p=scriptCallbacks.pattern.cbegin(); p!=scriptCallbacks.pattern.cend();) {
+    if (p->second.first==s) {
+      luaL_unref(s,LUA_REGISTRYINDEX,p->second.second);
+      p=scriptCallbacks.pattern.erase(p++);
+    } else {
+      ++p;
     }
   }
 }
 
 void FurnaceGUI::runCallbacks(scriptCallbackList* which) {
-  for (auto f=which->begin(); f<which->end(); f++) {
-    if (f->second!=-1) runScriptFunction(f->first,f->second);
+  for (auto f=which->begin(); f!=which->end(); f++) {
+    runScriptFunction(f->second.first,f->second.second);
   }
 }
 

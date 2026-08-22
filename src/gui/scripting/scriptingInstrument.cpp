@@ -79,38 +79,40 @@ void writeFeatureFM(DivInstrument* ins, lua_State* s) {
   API_ADD_VALUE("snareHatFreq",ins->fm.snareHatFreq,integer)
   API_ADD_VALUE("tomTopFreq",ins->fm.tomTopFreq,integer)
   // operators
-  lua_pushstring(s,"op");
-  lua_newtable(s);
-  for (int i=0; i<4; i++) {
-    DivInstrumentFM::Operator* op=&ins->fm.op[i];
-    lua_pushinteger(s,i+1);
+  {
+    lua_pushstring(s,"op");
     lua_newtable(s);
-    API_ADD_VALUE("enable",op->enable,boolean)
-    API_ADD_VALUE("am",op->am,integer)
-    API_ADD_VALUE("ar",op->ar,integer)
-    API_ADD_VALUE("dr",op->dr,integer)
-    API_ADD_VALUE("mult",op->mult,integer)
-    API_ADD_VALUE("rr",op->rr,integer)
-    API_ADD_VALUE("sl",op->sl,integer)
-    API_ADD_VALUE("tl",op->tl,integer)
-    API_ADD_VALUE("dt2",op->dt2,integer)
-    API_ADD_VALUE("rs",op->rs,integer)
-    API_ADD_VALUE("dt",op->dt,integer)
-    API_ADD_VALUE("dt2",op->dt2,integer)
-    API_ADD_VALUE("d2r",op->d2r,integer)
-    API_ADD_VALUE("ssgEnv",op->ssgEnv,integer)
-    API_ADD_VALUE("dam",op->dam,integer)
-    API_ADD_VALUE("dvb",op->dvb,integer)
-    API_ADD_VALUE("egt",op->egt,integer)
-    API_ADD_VALUE("ksl",op->ksl,integer)
-    API_ADD_VALUE("sus",op->sus,integer)
-    API_ADD_VALUE("vib",op->vib,integer)
-    API_ADD_VALUE("ws",op->ws,integer)
-    API_ADD_VALUE("ksr",op->ksr,integer)
-    API_ADD_VALUE("kvs",op->kvs,integer)
+    for (int i=0; i<4; i++) {
+      DivInstrumentFM::Operator* op=&ins->fm.op[i];
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("enable",op->enable,boolean)
+      API_ADD_VALUE("am",op->am,integer)
+      API_ADD_VALUE("ar",op->ar,integer)
+      API_ADD_VALUE("dr",op->dr,integer)
+      API_ADD_VALUE("mult",op->mult,integer)
+      API_ADD_VALUE("rr",op->rr,integer)
+      API_ADD_VALUE("sl",op->sl,integer)
+      API_ADD_VALUE("tl",op->tl,integer)
+      API_ADD_VALUE("dt2",op->dt2,integer)
+      API_ADD_VALUE("rs",op->rs,integer)
+      API_ADD_VALUE("dt",op->dt,integer)
+      API_ADD_VALUE("dt2",op->dt2,integer)
+      API_ADD_VALUE("d2r",op->d2r,integer)
+      API_ADD_VALUE("ssgEnv",op->ssgEnv,integer)
+      API_ADD_VALUE("dam",op->dam,integer)
+      API_ADD_VALUE("dvb",op->dvb,integer)
+      API_ADD_VALUE("egt",op->egt,integer)
+      API_ADD_VALUE("ksl",op->ksl,integer)
+      API_ADD_VALUE("sus",op->sus,integer)
+      API_ADD_VALUE("vib",op->vib,integer)
+      API_ADD_VALUE("ws",op->ws,integer)
+      API_ADD_VALUE("ksr",op->ksr,integer)
+      API_ADD_VALUE("kvs",op->kvs,integer)
+      lua_settable(s,-3);
+    }
     lua_settable(s,-3);
   }
-  lua_settable(s,-3);
   lua_settable(s,-3);
 }
 
@@ -140,7 +142,47 @@ void writeFeatureGB(DivInstrument* ins, lua_State* s) {
 }
 
 void writeFeatureC64(DivInstrument* ins, lua_State* s) {
-  if (ins->c64==defaultIns.c64) return;
+  lua_pushstring(s,"c64");
+  lua_newtable(s);
+  API_ADD_VALUE("toFilter",ins->c64.toFilter,boolean)
+  API_ADD_VALUE("initFilter",ins->c64.initFilter,boolean)
+  API_ADD_VALUE("dutyIsAbs",ins->c64.dutyIsAbs,boolean)
+  API_ADD_VALUE("filterIsAbs",ins->c64.filterIsAbs,boolean)
+  API_ADD_VALUE("noTest",ins->c64.noTest,boolean)
+  API_ADD_VALUE("resetDuty",ins->c64.resetDuty,boolean)
+  API_ADD_VALUE("ringMod",ins->c64.ringMod,integer)
+  API_ADD_VALUE("oscSync",ins->c64.oscSync,integer)
+  {
+    lua_pushstring(s,"envelope");
+    lua_newtable(s);
+    API_ADD_VALUE("a",ins->c64.a,integer)
+    API_ADD_VALUE("d",ins->c64.d,integer)
+    API_ADD_VALUE("s",ins->c64.s,integer)
+    API_ADD_VALUE("r",ins->c64.r,integer)
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"osc");
+    lua_newtable(s);
+    API_ADD_VALUE("triOn",ins->c64.triOn,boolean)
+    API_ADD_VALUE("sawOn",ins->c64.sawOn,boolean)
+    API_ADD_VALUE("pulseOn",ins->c64.pulseOn,boolean)
+    API_ADD_VALUE("noiseOn",ins->c64.noiseOn,boolean)
+    API_ADD_VALUE("duty",ins->c64.duty,integer)
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"filter");
+    lua_newtable(s);
+    API_ADD_VALUE("res",ins->c64.res,integer)
+    API_ADD_VALUE("cut",ins->c64.cut,integer)
+    API_ADD_VALUE("hp",ins->c64.hp,boolean)
+    API_ADD_VALUE("lp",ins->c64.lp,boolean)
+    API_ADD_VALUE("bp",ins->c64.bp,boolean)
+    API_ADD_VALUE("ch3off",ins->c64.ch3off,boolean)
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
 
 void writeFeatureAmiga(DivInstrument* ins, lua_State* s) {
@@ -185,8 +227,28 @@ void writeFeatureX1(DivInstrument* ins, lua_State* s) {
   API_ADD_VALUE("bankSlot",ins->x1_010.bankSlot,integer)
   lua_settable(s,-3);
 }
+
 void writeFeatureN163(DivInstrument* ins, lua_State* s) {
-  if (ins->n163==defaultIns.n163) return;
+  lua_pushstring(s,"n163");
+  lua_newtable(s);
+  API_ADD_VALUE("wave",ins->n163.wave,integer)
+  API_ADD_VALUE("wavePos",ins->n163.wavePos,integer)
+  API_ADD_VALUE("waveLen",ins->n163.waveLen,integer)
+  API_ADD_VALUE("waveMode",ins->n163.waveMode,integer)
+  API_ADD_VALUE("perChanPos",ins->n163.perChanPos,boolean)
+  {
+    lua_pushstring(s,"wavePerChan");
+    lua_newtable(s);
+    for (int i=0; i<8; i++) {
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("pos",ins->n163.wavePosCh[i],integer)
+      API_ADD_VALUE("len",ins->n163.waveLenCh[i],integer)
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
 void writeFeatureFDS(DivInstrument* ins, lua_State* s) {
   if (ins->fds==defaultIns.fds) return;

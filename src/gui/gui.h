@@ -40,7 +40,7 @@
 
 #include <lua.hpp>
 typedef int luaFunction;
-typedef std::vector<std::pair<lua_State*,luaFunction>> scriptCallbackList;
+typedef std::map<String,std::pair<lua_State*,luaFunction>> scriptCallbackList;
 
 #include "fileDialog.h"
 #include "newFilePicker.h"

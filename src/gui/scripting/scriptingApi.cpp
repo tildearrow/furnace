@@ -1940,10 +1940,12 @@ _CF(setPatternDirect) {
 }
 
 _CF(addPatternInputCallback) {
-  CHECK_ARGS(1)
-  CHECK_TYPE_FUNCTION(1)
+  CHECK_ARGS(2)
+  CHECK_TYPE_STRING(1)
+  CHECK_TYPE_FUNCTION(2)
+  const char* id=lua_tostring(s,1);
   luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
-  scriptCallbacks.pattern.push_back({s,funcID});
+  scriptCallbacks.pattern[id]={s,funcID};
   return 0;
 }
 
@@ -2382,7 +2384,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("set",setPattern);
     API_ADD_FUNC("getDirect",getPatternDirect);
     API_ADD_FUNC("setDirect",setPatternDirect);
-    API_ADD_FUNC("addInputCallback",addPatternInputCallback);
+    API_ADD_FUNC("setInputCallback",addPatternInputCallback);
     // helpers
     API_ADD_VALUE("columnNote",DIV_PAT_NOTE,integer);
     API_ADD_VALUE("columnIns",DIV_PAT_INS,integer);
