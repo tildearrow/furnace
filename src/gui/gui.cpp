@@ -447,6 +447,7 @@ void FurnaceGUI::VerticalText(const char* fmt, ...) {
   vtxBegin=dl->_VtxCurrentIdx;
   char text[4096];
   vsnprintf(text,4096,fmt,args);
+  va_end(args);
   ImVec2 size=ImGui::CalcTextSize(text);
   dl->AddText(pos,ImGui::GetColorU32(ImGuiCol_Text),text);
   vtxEnd=dl->_VtxCurrentIdx;
@@ -463,6 +464,7 @@ void FurnaceGUI::VerticalText(float maxSize, bool centered, const char* fmt, ...
   vtxBegin=dl->_VtxCurrentIdx;
   char text[4096];
   vsnprintf(text,4096,fmt,args);
+  va_end(args);
   const char* textEol=ImGui::FindRenderedTextEnd(text);
   ImVec2 size=ImGui::CalcTextSize(text);
   dl->PushClipRect(pos,pos+ImGui::GetWindowSize());
@@ -5716,7 +5718,14 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
-
+        if (!scriptWindows.empty()) {
+          ImGui::Separator();
+          for (auto& w:scriptWindows) {
+            if (ImGui::MenuItem(w.first.c_str(),0,w.second.open)) {
+              w.second.open=!w.second.open;
+            }
+          }
+        }
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?_("Help"):_("help"))) {
@@ -7516,6 +7525,17 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    // script windows
+    for (auto& w:scriptWindows) {
+      if (!w.second.open) continue;
+      if (ImGui::Begin(w.first.c_str(),&w.second.open)) {
+        if (!runScriptFunction(w.second.state,w.second.function)) {
+          w.second.open=false;
+        }
+      }
+      ImGui::End();
+    }
+
     // script dialog
     const char* scriptDialogTitle=scriptDialog.title.c_str();
     if (scriptDialog.dialogOpen) {
@@ -9076,6 +9096,9 @@ void FurnaceGUI::readLoadedScripts() {
   String script;
   for (size_t i=0; i<loadedScripts.size(); i++) {
     logV("reading script %d",i);
+    // yes i now know luaL_loadfile exists
+    // but since we have to parse the metadata inside the file we have to open it ourselves
+    // so why not just luaL_loadstring the file we just had to open
     if (readTextFile(loadedScripts[i].path.c_str(),script)) {
       // read metadata
       String key, value;

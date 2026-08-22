@@ -332,6 +332,41 @@ _CF(getCurSubSong) {
   return 1;
 }
 
+_CF(getChanState) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_INTEGER(1)
+  int chan=lua_tointeger(s,1);
+  if (chan<0 || chan>=e->song.chans) {
+    lua_pushnil(s);
+    return 1;
+  }
+  SharedChannel* state=e->getDispatchChanState(chan);
+  lua_newtable(s);
+  API_ADD_VALUE("freq",state->freq,integer)
+  API_ADD_VALUE("baseFreq",state->baseFreq,integer)
+  API_ADD_VALUE("pitch",state->pitch,integer)
+  API_ADD_VALUE("pitch2",state->pitch2,integer)
+  API_ADD_VALUE("arpOff",state->arpOff,integer)
+  API_ADD_VALUE("baseNoteOverride",state->baseNoteOverride,integer)
+  API_ADD_VALUE("note",state->note,integer)
+  API_ADD_VALUE("sampleNote",state->sampleNote,integer)
+  API_ADD_VALUE("sampleNoteDelta",state->sampleNoteDelta,integer)
+  API_ADD_VALUE("ins",state->ins,integer)
+  API_ADD_VALUE("vol",state->vol,integer)
+  API_ADD_VALUE("outVol",state->outVol,integer)
+  API_ADD_VALUE("freq",state->freq,integer)
+  API_ADD_VALUE("active",state->active,boolean)
+  API_ADD_VALUE("insChanged",state->insChanged,boolean)
+  API_ADD_VALUE("freqChanged",state->freqChanged,boolean)
+  API_ADD_VALUE("fixedArp",state->fixedArp,boolean)
+  API_ADD_VALUE("keyOn",state->keyOn,boolean)
+  API_ADD_VALUE("keyOff",state->keyOff,boolean)
+  API_ADD_VALUE("portaPause",state->portaPause,boolean)
+  API_ADD_VALUE("inPorta",state->inPorta,boolean)
+  API_ADD_VALUE("rawFreq",state->rawFreq,boolean)
+  return 1;
+}
+
 _CF(getEditOrder) {
   lua_pushinteger(s,curOrder);
   return 1;
@@ -2176,6 +2211,62 @@ _CF(dialogGetItems) {
   return scriptDialog.items.size();
 }
 
+_CF(guiRegisterWindow) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_STRING(1)
+  CHECK_TYPE_FUNCTION(2)
+  const char* title=lua_tostring(s,1);
+  luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
+  scriptWindows[title]={s,funcID,false};
+  return 0;
+}
+
+static int _guiText(lua_State* s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  const char* text=lua_tostring(s,1);
+  ImGui::TextUnformatted(text);
+  return 0;
+}
+
+static int _guiGetWindowDrawList(lua_State* s) {
+  lua_pushlightuserdata(s,ImGui::GetWindowDrawList());
+  return 1;
+}
+
+static int _guiGetCursorPos(lua_State* s) {
+  ImVec2 pos=ImGui::GetCursorScreenPos();
+  lua_pushnumber(s,pos.x);
+  lua_pushnumber(s,pos.y);
+  return 2;
+}
+
+static int _guiGetContentRegionAvail(lua_State* s) {
+  ImVec2 size=ImGui::GetContentRegionAvail();
+  lua_pushnumber(s,size.x);
+  lua_pushnumber(s,size.y);
+  return 2;
+}
+
+static int _guiDrawRect(lua_State* s) {
+  CHECK_ARGS(6)
+  CHECK_TYPE(lightuserdata,1)
+  CHECK_TYPE_NUMBER(2)
+  CHECK_TYPE_NUMBER(3)
+  CHECK_TYPE_NUMBER(4)
+  CHECK_TYPE_NUMBER(5)
+  CHECK_TYPE_INTEGER(6)
+  ImDrawList* dl=(ImDrawList*)lua_touserdata(s,1);
+  ImVec2 p1,p2;
+  p1.x=lua_tonumber(s,2);
+  p1.y=lua_tonumber(s,3);
+  p2.x=lua_tonumber(s,4);
+  p2.y=lua_tonumber(s,5);
+  ImU32 color=lua_tointeger(s,6);
+  dl->AddRect(p1,p2,color);
+  return 0;
+}
+
 _CF(inspect) {
   CHECK_ARGS(1);
   String repr=inspectTopValue(s,false);
@@ -2279,6 +2370,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("isFreelance",isFreelance);
     API_ADD_FUNC("getChanCount",getChanCount);
     API_ADD_FUNC("getCurSubSong",getCurSubSong);
+    API_ADD_FUNC("getChanState",getChanState);
   API_CATG_END;
   API_USE_CATG("interface");
     API_ADD_FUNC("getEditOrder",getEditOrder);
@@ -2419,6 +2511,14 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("itemCheckbox",dialogItemCheckbox);
     API_ADD_FUNC("show",dialogShow);
     API_ADD_FUNC("getItems",dialogGetItems);
+  API_CATG_END;
+  API_USE_CATG("gui")
+    API_ADD_FUNC("registerWindow",guiRegisterWindow);
+    API_ADD_FUNC("text",guiText);
+    API_ADD_FUNC("getWindowDrawList",guiGetWindowDrawList);
+    API_ADD_FUNC("getCursorPos",guiGetCursorPos);
+    API_ADD_FUNC("getContentRegionAvail",guiGetContentRegionAvail);
+    API_ADD_FUNC("drawRect",guiDrawRect);
   API_CATG_END;
 
   // API_USE_CATG("talvez");

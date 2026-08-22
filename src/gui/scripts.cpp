@@ -96,17 +96,27 @@ int FurnaceGUI::runScript(lua_State* s, const char* script) {
   }
 }
 
-void FurnaceGUI::runScriptFunction(lua_State* s, luaFunction id) {
-  logD("calling script function %d",id);
+bool FurnaceGUI::runScriptFunction(lua_State* s, luaFunction id) {
+  // logD("calling script function %d",id);
   lua_rawgeti(s,LUA_REGISTRYINDEX,id);
   int result=lua_pcall(s,0,LUA_MULTRET,0);
   if (result!=LUA_OK) {
     showError(fmt::sprintf(_("runScriptFunction error!\n%s"),getScriptError(s,result)));
+    return false;
   }
+  return true;
 }
 
 void FurnaceGUI::resetScriptState(lua_State* s) {
   lua_settop(s,0);
+  for (auto w=scriptWindows.begin(); w!=scriptWindows.end();) {
+    if (w->second.state==s) {
+      luaL_unref(s,LUA_REGISTRYINDEX,w->second.function);
+      w=scriptWindows.erase(w);
+    } else {
+      w++;
+    }
+  }
   for (auto menu=scriptMenus.begin(); menu!=scriptMenus.end();) {
     for (auto entry=menu->second.begin(); entry!=menu->second.end();) {
       if (entry->second.state==s) {
@@ -219,18 +229,14 @@ void FurnaceGUI::drawScripting() {
               }
               ImGui::TableNextColumn();
               if (ImGui::Button(ICON_FA_PLAY "##scriptRun")) {
-                String script;
-                if (!readTextFile(s.path.c_str(),script)) {
-                  showError("failed to read script file!");
-                } else {
-                  globalState.lastRet=runScript(globalState.state,script.c_str());
-                  if (globalState.lastRet!=LUA_OK) {
-                    globalState.lastError=getScriptError(globalState.state,globalState.lastRet);
-                    showError("failed to run loaded script!\n"+globalState.lastError);
-                    loadedScripts[i].status=LoadedScript::Status::RunFail;
-                  } else {
-                    loadedScripts[i].status=LoadedScript::Status::RunSuccess;
-                  }
+                // here however, we *can* use luaL_loadfile
+                int ret=luaL_loadfile(globalState.state,s.path.c_str());
+                if (ret==LUA_OK) {
+                  ret=lua_pcall(globalState.state,0,LUA_MULTRET,0);
+                }
+                if (ret!=LUA_OK) {
+                  globalState.lastError=getScriptError(globalState.state,ret);
+                  showError("failed to run "+loadedScripts[i].path+"!\n"+globalState.lastError);
                 }
               }
               ImGui::SetItemTooltip(_("Run"));

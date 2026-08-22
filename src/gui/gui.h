@@ -3095,6 +3095,12 @@ class FurnaceGUI {
 
   // scripting
   std::map<String,std::map<String,FurnaceGUIScriptAction>> scriptMenus;
+  struct ScriptWindow {
+    lua_State* state;
+    luaFunction function;
+    bool open;
+  };
+  std::map<String,ScriptWindow> scriptWindows;
   struct LoadedScript {
     String path;
     bool enabled;
@@ -3515,7 +3521,7 @@ class FurnaceGUI {
 
   void readLoadedScripts();
   int runScript(lua_State* s, const char* script);
-  void runScriptFunction(lua_State* s, luaFunction id);
+  bool runScriptFunction(lua_State* s, luaFunction id);
   void runCallbacks(scriptCallbackList* which);
   void resetScriptState(lua_State* s);
   void bindScriptFunctions(lua_State* s);
@@ -3581,6 +3587,7 @@ class FurnaceGUI {
     API_FUNC(isRunning)
     API_FUNC(isFreelance)
     API_FUNC(resetEngine)
+    API_FUNC(getChanState)
 
     /// ENGINE STATE
     API_FUNC(getChanCount)
@@ -3743,6 +3750,11 @@ class FurnaceGUI {
     API_FUNC(dialogShow)
     // probably dont do this
     API_FUNC(dialogGetItems)
+
+    /// GUI
+    // titlebar, function
+    API_FUNC(guiRegisterWindow)
+    // the rest do not need FurnaceGUI
 
 #undef API_FUNC
 
