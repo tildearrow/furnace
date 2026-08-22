@@ -577,6 +577,7 @@ bool FurnaceFilePicker::readDirectory(String path) {
   entries.clear();
   chosenEntries.clear();
   updateEntryName();
+  lastSelFilteredIndex=-1;
 
   // start new file thread
   String newPath=normalizePath(path);
@@ -617,7 +618,10 @@ void FurnaceFilePicker::setHomeDir(String where) {
 
 void FurnaceFilePicker::updateEntryName() {
   if (chosenEntries.size() > 1) {
-    entryName=_("<multiple files selected>");
+    entryName="\""+chosenEntries[0]->name+"\"";
+    for (size_t i=1; i<chosenEntries.size(); i++) {
+      entryName+=",\""+chosenEntries[i]->name+"\"";
+    }
   } else if (chosenEntries.size() == 1) {
     FileEntry* entry=chosenEntries[0];
     // only change the entry if the selection is valid
@@ -979,8 +983,13 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       entryLock.lock();
       listClipper.Begin(filteredEntries.size(),rowHeight);
       while (listClipper.Step()) {
+        const auto translateIndex=[this](int i) {
+          return sortInvert[sortMode]?(filteredEntries.size()-i-1):i;
+        };
+
         for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-          FileEntry* i=filteredEntries[sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i];
+          int selFilteredIndex=translateIndex(_i);
+          FileEntry* i=filteredEntries[selFilteredIndex];
           FileTypeStyle* style=&defaultTypeStyle[i->type];
 
           // get style for this entry
@@ -1004,28 +1013,43 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
           ImGui::PushID(_i);
           if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
+            bool ctrlDown=(ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
+            bool shiftDown=(ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
+
+            // all entries in the range [toggleStart,toggleEnd) are toggled
+            int toggleStart=-1;
+            int toggleEnd=-1;
+
             bool doNotAcknowledge=false;
-            if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
-              // multiple selection
+            if (ctrlDown && multiSelect) {
+              // toggle selection of the currently hovered item
               doNotAcknowledge=true;
+              toggleStart=selFilteredIndex;
+              toggleEnd=selFilteredIndex+1;
+            } else if (shiftDown && multiSelect) {
+              doNotAcknowledge=true;
+              if (lastSelFilteredIndex>=0) {
+                if (lastSelFilteredIndex<selFilteredIndex) {
+                  toggleStart=lastSelFilteredIndex+1;
+                  toggleEnd=selFilteredIndex+1;
+                } else {
+                  toggleStart=selFilteredIndex;
+                  toggleEnd=lastSelFilteredIndex;
+                }
+              } else {
+                // fallback to the ctrl+click behavior
+                toggleStart=selFilteredIndex;
+                toggleEnd=selFilteredIndex+1;
+              }
             } else {
-              // clear selected entries
+              // clear selected entries before selecting the new one
               for (FileEntry* j: chosenEntries) {
                 j->isSelected=false;
               }
               chosenEntries.clear();
-            }
+              toggleStart=selFilteredIndex;
+              toggleEnd=selFilteredIndex+1;
 
-            bool alreadySelected=false;
-            for (FileEntry* j: chosenEntries) {
-              if (j==i) alreadySelected=true;
-            }
-
-            if (!alreadySelected) {
-              // select this entry
-              chosenEntries.push_back(i);
-              i->isSelected=true;
-              updateEntryName();
               if (!doNotAcknowledge) {
                 if (isMobile || singleClickSelect) {
                   acknowledged=true;
@@ -1033,20 +1057,47 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
                   acknowledged=true;
                 }
               }
+            }
 
-              // trigger callback if set
-              if (selCallback!=NULL) {
-                String callbackPath;
-                if (path.empty()) {
-                  callbackPath=i->name;
-                } else {
-                  if (*path.rbegin()==DIR_SEPARATOR) {
-                    callbackPath=path+i->name;
-                  } else {
-                    callbackPath=path+DIR_SEPARATOR+i->name;
-                  }
+            for (int j=toggleStart; j<toggleEnd && j>=0 && j<(int)filteredEntries.size(); j++) {
+              FileEntry* entry=filteredEntries[translateIndex(j)];
+
+              // find index of the entry in the chosen entries list
+              ssize_t chosenIdx=-1;
+              for (size_t k=0; k<chosenEntries.size(); k++) {
+                if (chosenEntries[k]==entry) {
+                  chosenIdx=k;
+                  break;
                 }
-                selCallback(callbackPath.c_str());
+              }
+              bool alreadySelected=chosenIdx>=0;
+
+              if (!alreadySelected) {
+                lastSelFilteredIndex=selFilteredIndex;
+
+                // select this entry
+                chosenEntries.push_back(entry);
+                entry->isSelected=true;
+                updateEntryName();
+
+                // trigger callback if set
+                if (selCallback!=NULL) {
+                  String callbackPath;
+                  if (path.empty()) {
+                    callbackPath=entry->name;
+                  } else {
+                    if (*path.rbegin()==DIR_SEPARATOR) {
+                      callbackPath=path+entry->name;
+                    } else {
+                      callbackPath=path+DIR_SEPARATOR+entry->name;
+                    }
+                  }
+                  selCallback(callbackPath.c_str());
+                }
+              } else if (multiSelect) {
+                chosenEntries.erase(chosenEntries.begin()+chosenIdx);
+                entry->isSelected=false;
+                updateEntryName();
               }
             }
           }
