@@ -144,7 +144,7 @@ void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
             fm_lle.input.n_wr=0;
             fm_lle.input.a0=1;
             fm_lle.input.data=w.val;
-            logV("val %x",w.val);
+            //logV("val %x",w.val);
             writes.pop();
           } else {
             fm_lle.input.n_cs=0;
@@ -152,7 +152,7 @@ void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
             fm_lle.input.n_wr=0;
             fm_lle.input.a0=0;
             fm_lle.input.data=w.addr;
-            logV("addr %x",w.addr);
+            //logV("addr %x",w.addr);
             w.addrOrVal=true;
           }
           delay=8;
@@ -171,7 +171,7 @@ void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
       if (delay<=0 && isWaiting&2) {
         if (!(fm_lle.o_data&0x80)) {
           isWaiting=0;
-          logV("-----");
+          //logV("-----");
         }
       }
 
