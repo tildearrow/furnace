@@ -9165,6 +9165,10 @@ void FurnaceGUI::readLoadedScripts() {
       }
     }
   }
+  // restore script window states
+  for (auto& w:scriptWindows) {
+    w.second.open=e->getConfBool(fmt::sprintf("scriptWin_"+stripName(w.first)+"_Open"),true);
+  }
 }
 
 void FurnaceGUI::syncState() {
@@ -9360,7 +9364,6 @@ void FurnaceGUI::syncState() {
       path=e->getConfString(fmt::sprintf("script%dPath",i),"");
     } while (!path.empty());
   }
-
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
@@ -9546,6 +9549,12 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   }
 
   conf.set("cvHiScore",cvHiScore);
+
+  // commit script windows
+  for (auto& w:scriptWindows) {
+    if (w.second.state!=globalState.state) continue;
+    conf.set("scriptWin_"+stripName(w.first)+"_Open",w.second.open);
+  }
 
   // commit loaded scripts
   for (size_t i=0; i<loadedScripts.size(); i++) {

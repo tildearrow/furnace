@@ -2217,7 +2217,7 @@ _CF(guiRegisterWindow) {
   CHECK_TYPE_FUNCTION(2)
   const char* title=lua_tostring(s,1);
   luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
-  scriptWindows[title]={s,funcID,false};
+  scriptWindows[title]={s,funcID,true};
   return 0;
 }
 
@@ -2234,7 +2234,7 @@ static int _guiGetWindowDrawList(lua_State* s) {
   return 1;
 }
 
-static int _guiGetCursorPos(lua_State* s) {
+static int _guiGetCursorScreenPos(lua_State* s) {
   ImVec2 pos=ImGui::GetCursorScreenPos();
   lua_pushnumber(s,pos.x);
   lua_pushnumber(s,pos.y);
@@ -2248,14 +2248,60 @@ static int _guiGetContentRegionAvail(lua_State* s) {
   return 2;
 }
 
+static int _guiColorRGBA(lua_State* s) {
+  CHECK_ARGS_RANGE(3,4)
+  int r,g,b,a;
+  if (lua_gettop(s)>3) {
+    CHECK_TYPE_INTEGER(1)
+    CHECK_TYPE_INTEGER(2)
+    CHECK_TYPE_INTEGER(3)
+    CHECK_TYPE_INTEGER(4)
+    r=CLAMP(lua_tointeger(s,1),0,255);
+    g=CLAMP(lua_tointeger(s,2),0,255);
+    b=CLAMP(lua_tointeger(s,3),0,255);
+    a=CLAMP(lua_tointeger(s,4),0,255);
+  } else {
+    CHECK_TYPE_INTEGER(1)
+    CHECK_TYPE_INTEGER(2)
+    CHECK_TYPE_INTEGER(3)
+    r=CLAMP(lua_tointeger(s,1),0,255);
+    g=CLAMP(lua_tointeger(s,2),0,255);
+    b=CLAMP(lua_tointeger(s,3),0,255);
+    a=255;
+  }
+  lua_pushinteger(s,IM_COL32(r,g,b,a));
+  return 1;
+}
+
 static int _guiDrawRect(lua_State* s) {
-  CHECK_ARGS(6)
+  CHECK_ARGS_RANGE(6,8)
   CHECK_TYPE(lightuserdata,1)
   CHECK_TYPE_NUMBER(2)
   CHECK_TYPE_NUMBER(3)
   CHECK_TYPE_NUMBER(4)
   CHECK_TYPE_NUMBER(5)
   CHECK_TYPE_INTEGER(6)
+  float rounding=0.0f;
+  bool isFilled=false;
+  float thickness=1.0f;
+  if (lua_gettop(s)>6) {
+    CHECK_TYPE_NUMBER(7)
+    rounding=lua_tonumber(s,7);
+  }
+  if (lua_gettop(s)>7) {
+    switch (lua_type(s,8)) {
+      case LUA_TBOOLEAN:
+        isFilled=lua_toboolean(s,8);
+        break;
+      case LUA_TNUMBER:
+        thickness=lua_tonumber(s,8);
+        break;
+      default: {
+        SC_ERROR("invalid argument! (expected boolean of number)");
+        return 0;
+      }
+    }
+  }
   ImDrawList* dl=(ImDrawList*)lua_touserdata(s,1);
   ImVec2 p1,p2;
   p1.x=lua_tonumber(s,2);
@@ -2263,7 +2309,11 @@ static int _guiDrawRect(lua_State* s) {
   p2.x=lua_tonumber(s,4);
   p2.y=lua_tonumber(s,5);
   ImU32 color=lua_tointeger(s,6);
-  dl->AddRect(p1,p2,color);
+  if (isFilled) {
+    dl->AddRectFilled(p1,p2,color,rounding);
+  } else {
+    dl->AddRect(p1,p2,color,rounding,thickness);
+  }
   return 0;
 }
 
@@ -2516,9 +2566,10 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("registerWindow",guiRegisterWindow);
     API_ADD_FUNC("text",guiText);
     API_ADD_FUNC("getWindowDrawList",guiGetWindowDrawList);
-    API_ADD_FUNC("getCursorPos",guiGetCursorPos);
+    API_ADD_FUNC("getCursorScreenPos",guiGetCursorScreenPos);
     API_ADD_FUNC("getContentRegionAvail",guiGetContentRegionAvail);
     API_ADD_FUNC("drawRect",guiDrawRect);
+    API_ADD_FUNC("colorRGBA",guiColorRGBA);
   API_CATG_END;
 
   // API_USE_CATG("talvez");

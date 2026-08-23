@@ -119,7 +119,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 #define SCRIPTING_STATE_DEBUG(_state) { \
   ImGui::PushID(_state); \
   const int stackTop=lua_gettop(_state); \
-  ImGui::Text("state address: %p\n,stack top: %d",_state,stackTop); \
+  ImGui::Text("state address: %p\nstack top: %d",_state,stackTop); \
   if (ImGui::BeginTable("stackdump",3,ImGuiTableFlags_RowBg)) { \
     ImGui::TableSetupColumn("n",ImGuiTableColumnFlags_WidthFixed); \
     ImGui::TableSetupColumn("t",ImGuiTableColumnFlags_WidthFixed); \
@@ -155,10 +155,10 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
     ImGui::EndTable(); \
   } \
   ImGui::PopID(); \
-} \
+}
 
 #define SCRIPTING_CALLBACK_DEBUG(_c) \
-  if (ImGui::BeginTable("scriptCallback" #_c,3,ImGuiTableFlags_RowBg)) { \
+  if (ImGui::BeginTable("scriptCallback" #_c,4,ImGuiTableFlags_RowBg)) { \
     ImGui::TableNextRow(ImGuiTableRowFlags_Headers); \
     ImGui::TableNextColumn(); \
     ImGui::TextUnformatted("ID"); \
@@ -166,6 +166,8 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
     ImGui::TextUnformatted("State"); \
     ImGui::TableNextColumn(); \
     ImGui::TextUnformatted("Function"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("Call"); \
     for (auto c:scriptCallbacks._c) { \
       ImGui::TableNextRow(); \
       ImGui::TableNextColumn(); \
@@ -174,6 +176,10 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
       ImGui::Text("%p",c.second.first); \
       ImGui::TableNextColumn(); \
       ImGui::Text("%d",c.second.second); \
+      ImGui::TableNextColumn(); \
+      if (ImGui::Button(ICON_FA_PLAY)) { \
+        runScriptFunction(c.second.first,c.second.second); \
+      } \
     } \
     ImGui::EndTable(); \
   }
@@ -1308,6 +1314,34 @@ void FurnaceGUI::drawDebug() {
               ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
+          }
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Windows")) {
+          if (ImGui::BeginTable("scriptWin",4,ImGuiTableFlags_RowBg)) {
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("ID");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("State");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Function");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Open");
+            for (auto &c:scriptWindows) {
+              ImGui::PushID(&c);
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::TextUnformatted(c.first.c_str());
+              ImGui::TableNextColumn();
+              ImGui::Text("%p",c.second.state);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",c.second.function);
+              ImGui::TableNextColumn();
+              ImGui::Checkbox("##winOpen",&c.second.open);
+              ImGui::PopID();
+            }
+            ImGui::EndTable();
           }
           ImGui::EndTabItem();
         }

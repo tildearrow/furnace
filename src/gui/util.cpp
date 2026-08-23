@@ -48,6 +48,7 @@ bool readTextFile(const char* path, String& where) {
   fread(buf,1,len,f);
   fclose(f);
   buf[len]='\0';
+  where.resize(len);
   where=buf;
   delete[] buf;
   return true;
@@ -131,6 +132,18 @@ String getKeyName(int key, bool emptyNone) {
     ret+=_("Unknown");
   } else {
     ret+=name;
+  }
+  return ret;
+}
+
+String stripName(String what) {
+  String ret;
+  for (char& i: what) {
+    if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
+      ret+=i;
+    } else {
+      ret+='-';
+    }
   }
   return ret;
 }

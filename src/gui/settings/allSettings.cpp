@@ -169,18 +169,6 @@ static const char* coreQualities[]={
   _N("Ultimate")
 };
 
-static String stripName(String what) {
-  String ret;
-  for (char& i: what) {
-    if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
-      ret+=i;
-    } else {
-      ret+='-';
-    }
-  }
-  return ret;
-}
-
 #define CATEGORY_BEGIN(_name) allSettings.push_back(SettingsCategory(_name,
 #define CATEGORY_END ));
 #define SUBCATEGORY SettingsCategory
