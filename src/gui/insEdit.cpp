@@ -4314,11 +4314,11 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
-          P(CWSliderScalar(FM_NAME(FM_FMS2),ImGuiDataType_U8,&ins->fm.fms2,&_ZERO,&_SEVEN)); rightClickable
+          P(ImGui::Checkbox("LFO2##FMS",&ins->fm.fmsLFO));
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
-          P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
+          P(ImGui::Checkbox("LFO2##AMS",&ins->fm.amsLFO));
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));

@@ -97,10 +97,10 @@ namespace ymfm
 //        30-37 xxxxxx-- Key fraction
 //              -------x Mono mode ($0A.2 set)
 //              ------xx Key modifier ($0A.2 clear)
-//        38-3F 0xxx---- LFO PM sensitivity
-//              -----0xx LFO AM shift
-//              1xxx---- LFO #2 PM sensitivity
-//              -----1xx LFO #2 AM shift
+//        38-3F -xxx---- LFO PM sensitivity
+//              ------xx LFO AM shift
+//              x------- PM sens LFO select
+//              -----x-- AM shft LFO select
 //              ----x--- LFO #3/#4 select
 //
 //     Per-operator registers (channel in address bits 0-2, operator in bits 3-4)
@@ -248,8 +248,9 @@ public:
 	uint32_t ch_block_freq(uint32_t choffs) const    { return word(0x28, 0, 7, 0x30, 2, 6, choffs); }
 	uint32_t ch_lfo_pm_sens(uint32_t choffs) const   { return byte(0x38, 4, 3, choffs); }
 	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0x38, 0, 2, choffs); }
-	uint32_t ch_lfo2_pm_sens(uint32_t choffs) const  { return byte(0x180, 4, 3, choffs); } // fake
-	uint32_t ch_lfo2_am_sens(uint32_t choffs) const  { return byte(0x180, 0, 2, choffs); } // fake
+	uint32_t ch_lfo_pm_select(uint32_t choffs) const { return byte(0x38, 7, 1, choffs); }
+	uint32_t ch_lfo_am_select(uint32_t choffs) const { return byte(0x38, 2, 1, choffs); }
+	uint32_t ch_lfo_trem_sel(uint32_t choffs) const  { return byte(0x38, 3, 1, choffs); }
 	uint32_t ch_ramp_period(uint32_t choffs) const   { return byte(0x00, 0, 8, choffs); }
 
 	// per-operator registers

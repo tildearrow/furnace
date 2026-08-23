@@ -24,9 +24,8 @@ these apply to the instrument as a whole:
 - **Feedback (FB)**: determines how many times operator 1 returns its output to itself (0 to 7).
 
 - **LFO > Freq (FMS/PMS)**: determines how much will LFO have an effect in frequency (0 to 7).
-- **LFO > Amp (AM)**: determines how much will LFO have an effect in volume (0 to 3).
-- **LFO2 > Freq (FMS/PMS2)**: determines how much will the second LFO have an effect in frequency (0 to 7).
-- **LFO2 > Amp (AMS2)**: determines how much will the second LFO have an effect in volume (0 to 3).
+- **LFO > Amp (AMS)**: determines how much will LFO have an effect in volume (0 to 3).
+- **LFO2**: use the second LFO for FMS/AMS.
 
 - **Request from TX81Z**: if a Yamaha TX81Z is plugged in as MIDI input and output device, this sends a SysEx to the device in order to fetch its current voice.
 
@@ -75,9 +74,7 @@ these macros allow you to control several parameters of FM per tick.
 - **Algorithm**,
   **Feedback**,
   **LFO > Freq**,
-  **LFO > Amp**,
-  **LFO2 > Freq**,
-  **LFO2 > Amp**: as described above.
+  **LFO > Amp**: as described above.
 - **AM Depth**: amplitude modulation depth.
 - **PM Depth**: pitch modulation depth.
 - **LFO Speed**: LFO frequency.
