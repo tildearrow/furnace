@@ -579,11 +579,12 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(fb) &&
     _C(fms) &&
     _C(ams) &&
-    _C(fms2) &&
-    _C(ams2) &&
     _C(ops) &&
     _C(opllPreset) &&
     _C(block) &&
+    _C(fmsLFO) &&
+    _C(amsLFO) &&
+    _C(tremLFO) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
@@ -997,8 +998,8 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
 
   // base data
   w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
-  w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
-  w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+  w->writeC((fm.tremLFO?0x20:0)|((fm.ams&3)<<3)|(fm.fms&7));
+  w->writeC((fm.fmsLFO?0x80:0)|(fm.amsLFO?0x40:0)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
   w->writeC(fm.block&15);
 
   // operator data
@@ -2360,14 +2361,30 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   fm.fb=next&7;
 
   next=reader.readC();
-  fm.fms2=(next>>5)&7;
+  unsigned char fms2=(next>>5)&7;
   fm.ams=(next>>3)&3;
   fm.fms=next&7;
 
   next=reader.readC();
-  fm.ams2=(next>>6)&3;
+  unsigned char ams2=(next>>6)&3;
   fm.ops=(next&32)?4:2;
   fm.opllPreset=next&31;
+
+  if (version>=251) {
+    fm.tremLFO=fms2&1;
+    fm.fmsLFO=ams2&2;
+    fm.amsLFO=ams2&1;
+  } else {
+    // attempt to convert by selecting the greatest sensitivity
+    if (fms2>fm.fms) {
+      fm.fms=fms2;
+      fm.fmsLFO=true;
+    }
+    if (ams2>fm.ams) {
+      fm.ams=ams2;
+      fm.amsLFO=true;
+    }
+  }
 
   if (version>=224) {
     next=reader.readC();
@@ -4016,8 +4033,17 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // OPZ
   if (version>=77) {
-    fm.fms2=reader.readC();
-    fm.ams2=reader.readC();
+    unsigned char fms2=reader.readC();
+    unsigned char ams2=reader.readC();
+    // attempt to convert by selecting the greatest sensitivity
+    if (fms2>fm.fms) {
+      fm.fms=fms2;
+      fm.fmsLFO=true;
+    }
+    if (ams2>fm.ams) {
+      fm.ams=ams2;
+      fm.amsLFO=true;
+    }
   }
 
   // wave synth

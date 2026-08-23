@@ -26,8 +26,6 @@
 #define ADDR_WS_FINE 0x100
 // actually 0xc0 but bit 5 of data selects address
 #define ADDR_EGS_REV 0x120
-// actually 0x38 but bits 7 and 2 select address
-#define ADDR_FMS2_AMS2 0x140
 
 const char* regCheatSheetOPZ[]={
   "RampPeriod", "00",
@@ -369,23 +367,15 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     }
     if (chan[i].std.fms.had) {
       chan[i].state.fms=chan[i].std.fms.val;
-      rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+      rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3)|(chan[i].state.fmsLFO?0x80:0)|(chan[i].state.amsLFO?0x04:0)|(chan[i].state.tremLFO?0x08:0));
     }
     if (chan[i].std.ams.had) {
       chan[i].state.ams=chan[i].std.ams.val;
-      rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
+      rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3)|(chan[i].state.fmsLFO?0x80:0)|(chan[i].state.amsLFO?0x04:0)|(chan[i].state.tremLFO?0x08:0));
     }
     if (chan[i].std.ex4.had && chan[i].active) {
       chan[i].opMask=chan[i].std.ex4.val&15;
       chan[i].opMaskChanged=true;
-    }
-    if (chan[i].std.ex9.had) {
-      chan[i].state.fms2=chan[i].std.ex9.val;
-      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
-    }
-    if (chan[i].std.ex10.had) {
-      chan[i].state.ams2=chan[i].std.ex10.val;
-      rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -643,8 +633,7 @@ void DivPlatformTX81Z::commitState(int ch, DivInstrument* ins) {
   }
   if (chan[ch].insChanged) {
     rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|(chan[ch].chVolR<<7));
-    rWrite(chanOffs[ch]+ADDR_FMS_AMS,((chan[ch].state.fms&7)<<4)|(chan[ch].state.ams&3));
-    rWrite(chanOffs[ch]+ADDR_FMS2_AMS2,((chan[ch].state.fms2&7)<<4)|(chan[ch].state.ams2&3));
+    rWrite(chanOffs[ch]+ADDR_FMS_AMS,((chan[ch].state.fms&7)<<4)|(chan[ch].state.ams&3)|(chan[ch].state.fmsLFO?0x80:0)|(chan[ch].state.amsLFO?0x04:0)|(chan[ch].state.tremLFO?0x08:0));
   }
 }
 
@@ -807,22 +796,12 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
     }
     case DIV_CMD_FM_FMS: {
       chan[c.chan].state.fms=c.value&7;
-      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3)|(chan[c.chan].state.fmsLFO?0x80:0)|(chan[c.chan].state.amsLFO?0x04:0)|(chan[c.chan].state.tremLFO?0x08:0));
       break;
     }
     case DIV_CMD_FM_AMS: {
       chan[c.chan].state.ams=c.value&3;
-      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
-      break;
-    }
-    case DIV_CMD_FM_FMS2: {
-      chan[c.chan].state.fms2=c.value&7;
-      rWrite(chanOffs[c.chan]+ADDR_FMS2_AMS2,((chan[c.chan].state.fms2&7)<<4)|(chan[c.chan].state.ams2&3));
-      break;
-    }
-    case DIV_CMD_FM_AMS2: {
-      chan[c.chan].state.ams2=c.value&3;
-      rWrite(chanOffs[c.chan]+ADDR_FMS2_AMS2,((chan[c.chan].state.fms2&7)<<4)|(chan[c.chan].state.ams2&3));
+      rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3)|(chan[c.chan].state.fmsLFO?0x80:0)|(chan[c.chan].state.amsLFO?0x04:0)|(chan[c.chan].state.tremLFO?0x08:0));
       break;
     }
     case DIV_CMD_FM_MULT: {
@@ -1187,8 +1166,7 @@ void DivPlatformTX81Z::forceIns() {
       rWrite(baseAddr+ADDR_EGS_REV,(op.dam&7)|(op.ksl<<6));
     }
     rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].chVolR<<7));
-    rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
-    rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3)|(chan[i].state.fmsLFO?0x80:0)|(chan[i].state.amsLFO?0x04:0)|(chan[i].state.tremLFO?0x08:0));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;

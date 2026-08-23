@@ -224,15 +224,12 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 	// special mappings:
 	//   0x16 -> 0x188 if bit 7 is set
 	//   0x19 -> 0x189 if bit 7 is set
-	//   0x38..0x3F -> 0x180..0x187 if bit 7 is set
 	//   0x40..0x5F -> 0x100..0x11F if bit 7 is set
 	//   0xC0..0xDF -> 0x120..0x13F if bit 5 is set
 	if (index == 0x17 && bitfield(data, 7) != 0)
 		m_regdata[0x188] = data;
 	else if (index == 0x19 && bitfield(data, 7) != 0)
 		m_regdata[0x189] = data;
-	else if ((index & 0xf8) == 0x38 && bitfield(data, 7) != 0)
-		m_regdata[0x180 + (index & 7)] = data;
 	else if ((index & 0xe0) == 0x40 && bitfield(data, 7) != 0)
 		m_regdata[0x100 + (index & 0x1f)] = data;
 	else if ((index & 0xe0) == 0xc0 && bitfield(data, 5) != 0)
@@ -358,7 +355,7 @@ uint32_t opz_registers::lfo_am_offset(uint32_t choffs) const
 	// mapping to values of [0, 23.9, 47.8, and 95.6dB]
 	uint32_t am_sensitivity = ch_lfo_am_sens(choffs);
 	if (am_sensitivity != 0)
-		result = m_lfo_am[0] << (am_sensitivity - 1);
+		result = m_lfo_am[ch_lfo_am_select(choffs) ? 1 : 0] << (am_sensitivity - 1);
 
 	// QUESTION: see OPN note below for the dB range mapping; it applies
 	// here as well
@@ -366,9 +363,6 @@ uint32_t opz_registers::lfo_am_offset(uint32_t choffs) const
 	// raw LFO AM value on OPZ is 0-FF, which is already a factor of 2
 	// larger than the OPN below, putting our staring point at 2x theirs;
 	// this works out since our minimum is 2x their maximum
-	uint32_t am_sensitivity2 = ch_lfo2_am_sens(choffs);
-	if (am_sensitivity2 != 0)
-		result += m_lfo_am[1] << (am_sensitivity2 - 1);
 
 	return result;
 }
@@ -411,7 +405,7 @@ void opz_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 	// phase step, or PHASE_STEP_DYNAMIC if PM is active; this depends on
 	// block_freq, detune, and multiple, so compute it after we've done those;
 	// note that fix frequency mode is also treated as dynamic
-	if (!op_fix_mode(opoffs) && (lfo_pm_depth() == 0 || ch_lfo_pm_sens(choffs) == 0) && (lfo2_pm_depth() == 0 || ch_lfo2_pm_sens(choffs) == 0))
+	if (!op_fix_mode(opoffs) && (lfo_pm_depth() == 0 || (!ch_lfo_pm_select(choffs) && ch_lfo_pm_sens(choffs) == 0)) && (lfo2_pm_depth() == 0 || (ch_lfo_pm_select(choffs) && ch_lfo_pm_sens(choffs) == 0)))
 		cache.phase_step = compute_phase_step(choffs, opoffs, cache, 0);
 	else
 		cache.phase_step = opdata_cache::PHASE_STEP_DYNAMIC;
@@ -496,22 +490,9 @@ uint32_t opz_registers::compute_phase_step(uint32_t choffs, uint32_t opoffs, opd
 			// this roughly corresponds to shifting the 200-cent value:
 			//    0  >> 5,  >> 4,  >> 3,  >> 2,  >> 1,   << 1,   << 2
 			if (pm_sensitivity < 6)
-				delta += int8_t(lfo_raw_pm) >> (6 - pm_sensitivity);
+				delta += int8_t(lfo_raw_pm >> (ch_lfo_pm_select(choffs) ? 8 : 0)) >> (6 - pm_sensitivity);
 			else
-				delta += int8_t(lfo_raw_pm) << (pm_sensitivity - 5);
-		}
-		uint32_t pm_sensitivity2 = ch_lfo2_pm_sens(choffs);
-		if (pm_sensitivity2 != 0)
-		{
-			// raw PM value is -127..128 which is +/- 200 cents
-			// manual gives these magnitudes in cents:
-			//    0, +/-5, +/-10, +/-20, +/-50, +/-100, +/-400, +/-700
-			// this roughly corresponds to shifting the 200-cent value:
-			//    0  >> 5,  >> 4,  >> 3,  >> 2,  >> 1,   << 1,   << 2
-			if (pm_sensitivity2 < 6)
-				delta += int8_t(lfo_raw_pm >> 8) >> (6 - pm_sensitivity2);
-			else
-				delta += int8_t(lfo_raw_pm >> 8) << (pm_sensitivity2 - 5);
+				delta += int8_t(lfo_raw_pm >> (ch_lfo_pm_select(choffs) ? 8 : 0)) << (pm_sensitivity - 5);
 		}
 
 		// apply delta and convert to a frequency number; this translation is
@@ -572,15 +553,6 @@ std::string opz_registers::log_keyon(uint32_t choffs, uint32_t opoffs)
 		end += snprintf(end, 256-(end-buffer), " pm=%u/%02X", ch_lfo_pm_sens(choffs), lfo_pm_depth());
 	if (am || pm)
 		end += snprintf(end, 256-(end-buffer), " lfo=%02X/%c", lfo_rate(), "WQTN"[lfo_waveform()]);
-
-	bool am2 = (lfo2_am_depth() != 0 && ch_lfo2_am_sens(choffs) != 0 && op_lfo_am_enable(opoffs) != 0);
-	if (am2)
-		end += snprintf(end, 256-(end-buffer), " am2=%u/%02X", ch_lfo2_am_sens(choffs), lfo2_am_depth());
-	bool pm2 = (lfo2_pm_depth() != 0 && ch_lfo2_pm_sens(choffs) != 0);
-	if (pm2)
-		end += snprintf(end, 256-(end-buffer), " pm2=%u/%02X", ch_lfo2_pm_sens(choffs), lfo2_pm_depth());
-	if (am2 || pm2)
-		end += snprintf(end, 256-(end-buffer), " lfo2=%02X/%c", lfo2_rate(), "WQTN"[lfo2_waveform()]);
 
 	if (op_reverb_rate(opoffs) != 0)
 		end += snprintf(end, 256-(end-buffer), " rev=%u", op_reverb_rate(opoffs));
