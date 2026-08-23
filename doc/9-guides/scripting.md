@@ -1131,7 +1131,7 @@ all functions use 0-indexing.
 
 ### constants
 
-#### pattern
+#### `pattern`
 
 - `fur.pattern.columnNote`
 
@@ -1197,7 +1197,7 @@ all functions use 0-indexing.
 
   the internal value of a note which denotes whether the row contains a raw frequency value
 
-#### instrument
+#### `instrument`
 
 - `fur.instrument.featureFM`
 - `fur.instrument.featureGB`
@@ -1275,6 +1275,142 @@ all functions use 0-indexing.
 
   constants denoting the wavetable synthesizer effects
 
+- `fur.instrument.soundUnitCmdVolume`
+- `fur.instrument.soundUnitCmdPitch`
+- `fur.instrument.soundUnitCmdCut`
+- `fur.instrument.soundUnitCmdWait`
+- `fur.instrument.soundUnitCmdWaitRel`
+- `fur.instrument.soundUnitCmdLoop`
+- `fur.instrument.soundUnitCmdLoopRel`
+
+  type: integer
+
+  value: 0-6
+
+  constants denoting the sound unit hardware sequence command values
+
+- `fur.instrument.es5506FilterModeHPK2_HPK2`
+- `fur.instrument.es5506FilterModeHPK2_LPK1`
+- `fur.instrument.es5506FilterModeLPK2_LPK2`
+- `fur.instrument.es5506FilterModeLPK2_LPK1`
+
+  type: integer
+
+  value: 0-3
+
+  constants denoting the ES5506 filter modes
+
+#### `system`
+
+- `fur.system.chipSN76489`
+- `fur.system.chipGB`
+- `fur.system.chipPCE`
+- `fur.system.chipNES`
+- `fur.system.chip6581`
+- `fur.system.chip8580`
+- `fur.system.chipAY`
+- `fur.system.chipAmiga`
+- `fur.system.chipYM2151`
+- `fur.system.chipYM2612`
+- `fur.system.chipTIA`
+- `fur.system.chipSAA1099`
+- `fur.system.chipAY8930`
+- `fur.system.chipVIC20`
+- `fur.system.chipPET`
+- `fur.system.chipSNES`
+- `fur.system.chipVRC6`
+- `fur.system.chipYM2413`
+- `fur.system.chipFDS`
+- `fur.system.chipMMC5`
+- `fur.system.chip163`
+- `fur.system.chipYM2203`
+- `fur.system.chipYM2203Ext`
+- `fur.system.chipYM2608`
+- `fur.system.chipYM2608Ext`
+- `fur.system.chipYM3526`
+- `fur.system.chipYM3812`
+- `fur.system.chipYMF262`
+- `fur.system.chipMultiPCM`
+- `fur.system.chipPCSpeaker`
+- `fur.system.chipPOKEY`
+- `fur.system.chipRF5C68`
+- `fur.system.chipSwan`
+- `fur.system.chipYM2414`
+- `fur.system.chipPokeMini`
+- `fur.system.chipSegaPCM`
+- `fur.system.chipVB`
+- `fur.system.chipVRC7`
+- `fur.system.chipYM2610B`
+- `fur.system.chipZXSFX`
+- `fur.system.chipZXQuadtone`
+- `fur.system.chipYM2612Ext`
+- `fur.system.chipSCC`
+- `fur.system.chipYM3526Drums`
+- `fur.system.chipYM3812Drums`
+- `fur.system.chipYMF262Drums`
+- `fur.system.chipYM2610`
+- `fur.system.chipYM2610Ext`
+- `fur.system.chipYM2413Drums`
+- `fur.system.chipLynx`
+- `fur.system.chipQSound`
+- `fur.system.chipVERA`
+- `fur.system.chipYM2610BExt`
+- `fur.system.chipX1`
+- `fur.system.chipBubSysWSG`
+- `fur.system.chipYMF278B`
+- `fur.system.chipYMF278BDrums`
+- `fur.system.chipES5506`
+- `fur.system.chipY8950`
+- `fur.system.chipY8950Drums`
+- `fur.system.chipSCCPlus`
+- `fur.system.chipSoundUnit`
+- `fur.system.chipMSM6295`
+- `fur.system.chipMSM6258`
+- `fur.system.chipYMZ280B`
+- `fur.system.chipNamcoWSG`
+- `fur.system.chipNamco15xx`
+- `fur.system.chipNamcoCUS30`
+- `fur.system.chipYM2612DualPCM`
+- `fur.system.chipYM2612DualPCMExt`
+- `fur.system.chipMSM5232`
+- `fur.system.chipT6W28`
+- `fur.system.chipK007232`
+- `fur.system.chipGA20`
+- `fur.system.chipPCMDAC`
+- `fur.system.chipPong`
+- `fur.system.chipDummy`
+- `fur.system.chipYM2612CSM`
+- `fur.system.chipYM2610CSM`
+- `fur.system.chipYM2610BCSM`
+- `fur.system.chipYM2203CSM`
+- `fur.system.chipYM2608CSM`
+- `fur.system.chipSM8521`
+- `fur.system.chipPV1000`
+- `fur.system.chipK053260`
+- `fur.system.chipTED`
+- `fur.system.chipC140`
+- `fur.system.chipC219`
+- `fur.system.chipESFM`
+- `fur.system.chipPowerNoise`
+- `fur.system.chipDave`
+- `fur.system.chipNDS`
+- `fur.system.chipGBADMA`
+- `fur.system.chipGBAMinmod`
+- `fur.system.chip5E01`
+- `fur.system.chipBifurcator`
+- `fur.system.chipSID2`
+- `fur.system.chipSupervision`
+- `fur.system.chipSID3`
+- `fur.system.chip6581PCM`
+- `fur.system.chipNamcoPolePos`
+- `fur.system.chipKlattsch`
+
+  type: integer
+
+  constants denoting chips
+
+  their values **are not** equal to the chip ids in the file format
+
 ## appendix A: instrument data format
 
 ```
@@ -1288,8 +1424,14 @@ all functions use 0-indexing.
     fds=(table),
     multiPCM=(table),
     waveSynth=(table),
-    ...
-    klattsch=(table)
+    soundUnit=(table),
+    es5506=(table),
+    snes=(table),
+    esfm=(table),
+    powerNoise=(table),
+    sid2=(table),
+    sid3=(table),
+    klattsch=(table),
   }
 ```
 some blank features return a `nil` table
@@ -1473,6 +1615,54 @@ some parameters may be nil (like arrays) if they are empty
     param4=(integer),
   }
   ```
+
+- `soundUnit` table
+  ```
+  {
+    switchRoles=(boolean),
+    hwSeq=(array of tables),
+  }
+  ```
+  - `hwSeq` table
+    ```
+    {
+      cmd=(integer),
+      bound=(integer),
+      val=(integer),
+      speed=(integer),
+    }
+    ```
+
+- `es5506` table
+  ```
+  {
+    filter={
+      mode=(integer),
+      k1=(integer),
+      k2=(integer),
+    },
+    envelope={
+      ecount=(integer)
+      lVRamp=(integer)
+      rVRamp=(integer)
+      k1Ramp=(integer)
+      k2Ramp=(integer)
+      k1Slow=(boolean)
+      k2Slow=(boolean)
+    }
+  }
+  ```
+
+- `snes` table
+
+- `esfm` table
+
+- `powerNoise` table
+
+- `sid2` table
+
+- `sid3` table
+
 
 - `klattsch` table
   ```

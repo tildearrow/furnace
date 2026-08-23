@@ -99,6 +99,24 @@ static const char* waveSynthEffectDualNames[]={
 };
 static_assert((sizeof(waveSynthEffectDualNames)/sizeof(const char*))==(DIV_WS_DUAL_MAX-DIV_WS_NONE_DUAL-1),"waveSynthEffectDualNames: missing value!");
 
+static const char* soundUnitHwCmdNames[]={
+  "soundUnitCmdVolume",
+  "soundUnitCmdPitch",
+  "soundUnitCmdCut",
+  "soundUnitCmdWait",
+  "soundUnitCmdWaitRel",
+  "soundUnitCmdLoop",
+  "soundUnitCmdLoopRel",
+};
+static_assert((sizeof(soundUnitHwCmdNames)/sizeof(const char*))==DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX,"soundUnitHwCmdNames: missing value!");
+
+static const char* es5506FilterModeNames[]={
+  "es5506FilterModeHPK2_HPK2",
+  "es5506FilterModeHPK2_LPK1",
+  "es5506FilterModeLPK2_LPK2",
+  "es5506FilterModeLPK2_LPK1",
+};
+
 // NULLs are unsupported chips
 static const char* chipIdNames[]={
   NULL,
@@ -2518,6 +2536,14 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     }
     for (int i=DIV_WS_NONE_DUAL+1; i<DIV_WS_DUAL_MAX; i++) {
       API_ADD_VALUE(waveSynthEffectDualNames[i-(DIV_WS_NONE_DUAL+1)],i,integer);
+    }
+    // sound unit hw commands
+    for (int i=0; i<DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX; i++) {
+      API_ADD_VALUE(soundUnitHwCmdNames[i],i,integer);
+    }
+    // es5506 filter modes
+    for (int i=0; i<4; i++) {
+      API_ADD_VALUE(es5506FilterModeNames[i],i,integer);
     }
   API_CATG_END;
   API_USE_CATG("wave");

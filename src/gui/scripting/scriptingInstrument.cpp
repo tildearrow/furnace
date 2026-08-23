@@ -313,10 +313,49 @@ void writeFeatureWaveSynth(DivInstrument* ins, lua_State* s) {
 }
 
 void writeFeatureSoundUnit(DivInstrument* ins, lua_State* s) {
-  if (ins->su==defaultIns.su) return;
+  lua_pushstring(s,"soundUnit");
+  lua_newtable(s);
+  API_ADD_VALUE("switchRoles",ins->su.switchRoles,boolean);
+  {
+    lua_pushstring(s,"hwSeq");
+    lua_newtable(s);
+    for (int i=0; i<ins->su.hwSeqLen; i++) {
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("cmd",ins->su.hwSeq[i].cmd,integer);
+      API_ADD_VALUE("bound",ins->su.hwSeq[i].bound,integer);
+      API_ADD_VALUE("val",ins->su.hwSeq[i].val,integer);
+      API_ADD_VALUE("speed",ins->su.hwSeq[i].speed,integer);
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
 void writeFeatureES5506(DivInstrument* ins, lua_State* s) {
-  if (ins->es5506==defaultIns.es5506) return;
+  lua_pushstring(s,"es5506");
+  lua_newtable(s);
+  {
+    lua_pushstring(s,"filter");
+    lua_newtable(s);
+    API_ADD_VALUE("mode",ins->es5506.filter.mode,integer)
+    API_ADD_VALUE("k1",ins->es5506.filter.k1,integer)
+    API_ADD_VALUE("k2",ins->es5506.filter.k2,integer)
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"envelope");
+    lua_newtable(s);
+    API_ADD_VALUE("ecount",ins->es5506.envelope.ecount,integer)
+    API_ADD_VALUE("lVRamp",ins->es5506.envelope.lVRamp,integer)
+    API_ADD_VALUE("rVRamp",ins->es5506.envelope.rVRamp,integer)
+    API_ADD_VALUE("k1Ramp",ins->es5506.envelope.k1Ramp,integer)
+    API_ADD_VALUE("k2Ramp",ins->es5506.envelope.k2Ramp,integer)
+    API_ADD_VALUE("k1Slow",ins->es5506.envelope.k1Slow,boolean)
+    API_ADD_VALUE("k2Slow",ins->es5506.envelope.k2Slow,boolean)
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
 void writeFeatureSNES(DivInstrument* ins, lua_State* s) {
   if (ins->snes==defaultIns.snes) return;
