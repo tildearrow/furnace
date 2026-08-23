@@ -76,6 +76,29 @@ static const InsFeatureDef insFeatures[]={
   {NULL,NULL,NULL}
 };
 
+static const char* waveSynthEffectSingleNames[]={
+  "waveSynthNone",
+  "waveSynthInvert",
+  "waveSynthAdd",
+  "waveSynthSubtract",
+  "waveSynthAverage",
+  "waveSynthPhase",
+  "waveSynthChorus",
+};
+static_assert((sizeof(waveSynthEffectSingleNames)/sizeof(const char*))==DIV_WS_SINGLE_MAX,"waveSynthEffectSingleNames: missing value!");
+
+static const char* waveSynthEffectDualNames[]={
+  "waveSynthWipe",
+  "waveSynthFade",
+  "waveSynthPingPong",
+  "waveSynthOverlay",
+  "waveSynthNegativeOverlay",
+  "waveSynthSlide",
+  "waveSynthMix",
+  "waveSynthPhaseMod",
+};
+static_assert((sizeof(waveSynthEffectDualNames)/sizeof(const char*))==(DIV_WS_DUAL_MAX-DIV_WS_NONE_DUAL-1),"waveSynthEffectDualNames: missing value!");
+
 // NULLs are unsupported chips
 static const char* chipIdNames[]={
   NULL,
@@ -2488,6 +2511,13 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     // macro types
     for (int i=0; macroTypeValueNames[i][0]; i++) {
       API_ADD_VALUE(macroTypeValueNames[i][0],i,integer);
+    }
+    // wavesynth effects
+    for (int i=DIV_WS_NONE; i<DIV_WS_SINGLE_MAX; i++) {
+      API_ADD_VALUE(waveSynthEffectSingleNames[i],i,integer);
+    }
+    for (int i=DIV_WS_NONE_DUAL+1; i<DIV_WS_DUAL_MAX; i++) {
+      API_ADD_VALUE(waveSynthEffectDualNames[i-(DIV_WS_NONE_DUAL+1)],i,integer);
     }
   API_CATG_END;
   API_USE_CATG("wave");

@@ -1252,6 +1252,29 @@ all functions use 0-indexing.
 
   constants denoting the instrument macro codes
 
+- `fur.instrument.waveSynthNone`
+- `fur.instrument.waveSynthInvert`
+- `fur.instrument.waveSynthAdd`
+- `fur.instrument.waveSynthSubtract`
+- `fur.instrument.waveSynthAverage`
+- `fur.instrument.waveSynthPhase`
+- `fur.instrument.waveSynthChorus`
+
+- `fur.instrument.waveSynthWipe`
+- `fur.instrument.waveSynthFade`
+- `fur.instrument.waveSynthPingPong`
+- `fur.instrument.waveSynthOverlay`
+- `fur.instrument.waveSynthNegativeOverlay`
+- `fur.instrument.waveSynthSlide`
+- `fur.instrument.waveSynthMix`
+- `fur.instrument.waveSynthPhaseMod`
+
+  type: integer
+
+  value: 0-6, 129-136
+
+  constants denoting the wavetable synthesizer effects
+
 ## appendix A: instrument data format
 
 ```
@@ -1261,7 +1284,10 @@ all functions use 0-indexing.
     c64=(table),
     amiga=(table),
     x1=(table),
-    n163=(table)
+    n163=(table),
+    fds=(table),
+    multiPCM=(table),
+    waveSynth=(table),
     ...
     klattsch=(table)
   }
@@ -1418,6 +1444,35 @@ some parameters may be nil (like arrays) if they are empty
       len=(integer),
     }
     ```
+
+- `fds` table
+  ```
+  {
+    modSpeed=(integer),
+    modDepth=(integer),
+    initModTableWithFirstWave=(boolean),
+    modTable=(array of integers)
+  }
+  ```
+  `modTable` may have up to 32 values
+
+- `waveSynth` table
+  ```
+  {
+    wave1=(integer),
+    wave2=(integer),
+    rateDivider=(integer),
+    effect=(integer),
+    oneShot=(boolean),
+    enabled=(boolean),
+    global=(boolean),
+    speed=(integer),
+    param1=(integer),
+    param2=(integer),
+    param3=(integer),
+    param4=(integer),
+  }
+  ```
 
 - `klattsch` table
   ```

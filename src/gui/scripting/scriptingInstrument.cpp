@@ -250,15 +250,68 @@ void writeFeatureN163(DivInstrument* ins, lua_State* s) {
   }
   lua_settable(s,-3);
 }
+
 void writeFeatureFDS(DivInstrument* ins, lua_State* s) {
-  if (ins->fds==defaultIns.fds) return;
+  lua_pushstring(s,"fds");
+  lua_newtable(s);
+  API_ADD_VALUE("modSpeed",ins->fds.modSpeed,integer)
+  API_ADD_VALUE("modDepth",ins->fds.modDepth,integer)
+  API_ADD_VALUE("initModTableWithFirstWave",ins->fds.initModTableWithFirstWave,boolean)
+  {
+    lua_pushstring(s,"modTable");
+    lua_newtable(s);
+    for (int i=0; i<32; i++) {
+      lua_pushinteger(s,i+1);
+      lua_pushinteger(s,ins->fds.modTable[i]);
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
+
 void writeFeatureMultiPCM(DivInstrument* ins, lua_State* s) {
-  if (ins->multipcm==defaultIns.multipcm) return;
+  lua_pushstring(s,"multiPCM");
+  lua_newtable(s);
+  {
+    lua_pushstring(s,"envelope");
+    lua_newtable(s);
+    API_ADD_VALUE("ar",ins->multipcm.ar,integer)
+    API_ADD_VALUE("d1r",ins->multipcm.d1r,integer)
+    API_ADD_VALUE("d2r",ins->multipcm.d2r,boolean)
+    API_ADD_VALUE("dl",ins->multipcm.dl,integer)
+    API_ADD_VALUE("rr",ins->multipcm.rr,integer)
+    API_ADD_VALUE("rc",ins->multipcm.rc,integer)
+    lua_settable(s,-3);
+  }
+  API_ADD_VALUE("lfo",ins->multipcm.lfo,integer);
+  API_ADD_VALUE("vib",ins->multipcm.vib,integer);
+  API_ADD_VALUE("am",ins->multipcm.am,integer);
+  API_ADD_VALUE("damp",ins->multipcm.damp,boolean);
+  API_ADD_VALUE("pseudoReverb",ins->multipcm.pseudoReverb,boolean);
+  API_ADD_VALUE("lfoReset",ins->multipcm.lfoReset,boolean);
+  API_ADD_VALUE("levelDirect",ins->multipcm.levelDirect,boolean);
+  lua_settable(s,-3);
 }
+
 void writeFeatureWaveSynth(DivInstrument* ins, lua_State* s) {
-  if (ins->ws==defaultIns.ws) return;
+  lua_pushstring(s,"waveSynth");
+  lua_newtable(s);
+  API_ADD_VALUE("wave1",ins->ws.wave1,integer);
+  API_ADD_VALUE("wave2",ins->ws.wave2,integer);
+  API_ADD_VALUE("rateDivider",ins->ws.rateDivider,integer);
+  API_ADD_VALUE("effect",ins->ws.effect,integer);
+  API_ADD_VALUE("oneShot",ins->ws.oneShot,boolean);
+  API_ADD_VALUE("enabled",ins->ws.enabled,boolean);
+  API_ADD_VALUE("global",ins->ws.global,boolean);
+  API_ADD_VALUE("speed",ins->ws.speed,integer);
+  API_ADD_VALUE("param1",ins->ws.param1,integer);
+  API_ADD_VALUE("param2",ins->ws.param2,integer);
+  API_ADD_VALUE("param3",ins->ws.param3,integer);
+  API_ADD_VALUE("param4",ins->ws.param4,integer);
+  lua_settable(s,-3);
 }
+
 void writeFeatureSoundUnit(DivInstrument* ins, lua_State* s) {
   if (ins->su==defaultIns.su) return;
 }
