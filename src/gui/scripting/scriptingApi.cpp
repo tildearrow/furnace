@@ -85,6 +85,7 @@ static const char* waveSynthEffectSingleNames[]={
   "waveSynthPhase",
   "waveSynthChorus",
 };
+
 static_assert((sizeof(waveSynthEffectSingleNames)/sizeof(const char*))==DIV_WS_SINGLE_MAX,"waveSynthEffectSingleNames: missing value!");
 
 static const char* waveSynthEffectDualNames[]={
@@ -97,6 +98,7 @@ static const char* waveSynthEffectDualNames[]={
   "waveSynthMix",
   "waveSynthPhaseMod",
 };
+
 static_assert((sizeof(waveSynthEffectDualNames)/sizeof(const char*))==(DIV_WS_DUAL_MAX-DIV_WS_NONE_DUAL-1),"waveSynthEffectDualNames: missing value!");
 
 static const char* soundUnitHwCmdNames[]={
@@ -108,6 +110,7 @@ static const char* soundUnitHwCmdNames[]={
   "soundUnitCmdLoop",
   "soundUnitCmdLoopRel",
 };
+
 static_assert((sizeof(soundUnitHwCmdNames)/sizeof(const char*))==DivInstrumentSoundUnit::DIV_SU_HWCMD_MAX,"soundUnitHwCmdNames: missing value!");
 
 static const char* es5506FilterModeNames[]={
@@ -115,6 +118,14 @@ static const char* es5506FilterModeNames[]={
   "es5506FilterModeHPK2_LPK1",
   "es5506FilterModeLPK2_LPK2",
   "es5506FilterModeLPK2_LPK1",
+};
+
+static const char* snesGainModeNames[]={
+  "snesGainModeDirect",
+  "snesGainModeDecLinear",
+  "snesGainModeDecLog",
+  "snesGainModeIncLinear",
+  "snesGainModeIncInvLog",
 };
 
 // NULLs are unsupported chips
@@ -2544,6 +2555,10 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     // es5506 filter modes
     for (int i=0; i<4; i++) {
       API_ADD_VALUE(es5506FilterModeNames[i],i,integer);
+    }
+    // snes gain modes
+    for (int i=0; i<5; i++) {
+      API_ADD_VALUE(snesGainModeNames[i],i,integer);
     }
   API_CATG_END;
   API_USE_CATG("wave");

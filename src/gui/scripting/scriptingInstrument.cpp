@@ -332,6 +332,7 @@ void writeFeatureSoundUnit(DivInstrument* ins, lua_State* s) {
   }
   lua_settable(s,-3);
 }
+
 void writeFeatureES5506(DivInstrument* ins, lua_State* s) {
   lua_pushstring(s,"es5506");
   lua_newtable(s);
@@ -357,20 +358,158 @@ void writeFeatureES5506(DivInstrument* ins, lua_State* s) {
   }
   lua_settable(s,-3);
 }
+
 void writeFeatureSNES(DivInstrument* ins, lua_State* s) {
-  if (ins->snes==defaultIns.snes) return;
+  lua_pushstring(s,"snes");
+  lua_newtable(s);
+  API_ADD_VALUE("useEnv",ins->snes.useEnv,boolean);
+  API_ADD_VALUE("sus",ins->snes.sus,integer);
+  API_ADD_VALUE("gain",ins->snes.gain,integer);
+  API_ADD_VALUE("gainMode",ins->snes.gainMode,integer);
+  {
+    lua_pushstring(s,"envelope");
+    lua_newtable(s);
+    API_ADD_VALUE("a",ins->snes.a,integer)
+    API_ADD_VALUE("d",ins->snes.d,integer)
+    API_ADD_VALUE("s",ins->snes.s,integer)
+    API_ADD_VALUE("r",ins->snes.r,integer)
+    API_ADD_VALUE("d2",ins->snes.d2,integer)
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
+
 void writeFeatureESFM(DivInstrument* ins, lua_State* s) {
-  if (ins->esfm==defaultIns.esfm) return;
+  lua_pushstring(s,"esfm");
+  lua_newtable(s);
+  API_ADD_VALUE("noise",ins->esfm.noise,integer)
+  // operators
+  {
+    lua_pushstring(s,"op");
+    lua_newtable(s);
+    for (int i=0; i<4; i++) {
+      DivInstrumentESFM::Operator* op=&ins->esfm.op[i];
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("delay",op->delay,integer)
+      API_ADD_VALUE("outLvl",op->outLvl,integer)
+      API_ADD_VALUE("modIn",op->modIn,integer)
+      API_ADD_VALUE("left",op->left,integer)
+      API_ADD_VALUE("right",op->right,integer)
+      API_ADD_VALUE("fixed",op->fixed,integer)
+      API_ADD_VALUE("ct",op->ct,integer)
+      API_ADD_VALUE("dt",op->dt,integer)
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
+
 void writeFeaturePowerNoise(DivInstrument* ins, lua_State* s) {
-  if (ins->powernoise==defaultIns.powernoise) return;
+  lua_pushstring(s,"powerNoise");
+  lua_newtable(s);
+  API_ADD_VALUE("octave",ins->powernoise.octave,integer)
+  lua_settable(s,-3);
 }
+
 void writeFeatureSID2(DivInstrument* ins, lua_State* s) {
-  if (ins->sid2==defaultIns.sid2) return;
+  lua_pushstring(s,"sid2");
+  lua_newtable(s);
+  API_ADD_VALUE("volume",ins->sid2.volume,integer)
+  API_ADD_VALUE("mixMode",ins->sid2.mixMode,integer)
+  API_ADD_VALUE("noiseMode",ins->sid2.noiseMode,integer)
+  lua_settable(s,-3);
 }
+
 void writeFeatureSID3(DivInstrument* ins, lua_State* s) {
-  if (ins->sid3==defaultIns.sid3) return;
+  lua_pushstring(s,"sid3");
+  lua_newtable(s);
+  API_ADD_VALUE("mixMode",ins->sid3.mixMode,integer)
+  API_ADD_VALUE("duty",ins->sid3.duty,integer)
+  API_ADD_VALUE("oneBitNoise",ins->sid3.oneBitNoise,boolean)
+  API_ADD_VALUE("separateNoisePitch",ins->sid3.separateNoisePitch,boolean)
+  API_ADD_VALUE("doWavetable",ins->sid3.doWavetable,boolean)
+  API_ADD_VALUE("resetDuty",ins->sid3.resetDuty,boolean)
+  API_ADD_VALUE("dutyIsAbs",ins->sid3.dutyIsAbs,boolean)
+  API_ADD_VALUE("phaseInv",ins->sid3.phaseInv,integer)
+  API_ADD_VALUE("feedback",ins->sid3.feedback,integer)
+  {
+    lua_pushstring(s,"waveform");
+    lua_newtable(s);
+    API_ADD_VALUE("noise",ins->sid3.noiseOn,boolean)
+    API_ADD_VALUE("pulse",ins->sid3.pulseOn,boolean)
+    API_ADD_VALUE("saw",ins->sid3.sawOn,boolean)
+    API_ADD_VALUE("tri",ins->sid3.triOn,boolean)
+    if (ins->sid3.specialWaveOn) {
+      API_ADD_VALUE("special",ins->sid3.special_wave,integer)
+    }
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"phaseMod");
+    lua_newtable(s);
+    API_ADD_VALUE("enable",ins->sid3.phase_mod,boolean)
+    API_ADD_VALUE("source",ins->sid3.phase_mod_source,integer)
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"ringMod");
+    lua_newtable(s);
+    API_ADD_VALUE("enable",ins->sid3.ringMod,boolean)
+    API_ADD_VALUE("source",ins->sid3.ring_mod_source,integer)
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"oscSync");
+    lua_newtable(s);
+    API_ADD_VALUE("enable",ins->sid3.oscSync,boolean)
+    API_ADD_VALUE("source",ins->sid3.sync_source,integer)
+    lua_settable(s,-3);
+  }
+  {
+    lua_pushstring(s,"envelope");
+    lua_newtable(s);
+    API_ADD_VALUE("a",ins->sid3.a,integer)
+    API_ADD_VALUE("d",ins->sid3.d,integer)
+    API_ADD_VALUE("s",ins->sid3.s,integer)
+    API_ADD_VALUE("sr",ins->sid3.sr,integer)
+    API_ADD_VALUE("t",ins->sid3.r,integer)
+    lua_settable(s,-3);
+  }
+  // operators
+  {
+    lua_pushstring(s,"filter");
+    lua_newtable(s);
+    for (int i=0; i<4; i++) {
+      DivInstrumentSID3::Filter* filt=&ins->sid3.filt[i];
+      lua_pushinteger(s,i+1);
+      lua_newtable(s);
+      API_ADD_VALUE("enable",filt->enabled,boolean)
+      API_ADD_VALUE("init",filt->init,boolean)
+      API_ADD_VALUE("absoluteCutoff",filt->absoluteCutoff,boolean)
+      API_ADD_VALUE("bindCutoffOnNote",filt->bindCutoffOnNote,boolean)
+      API_ADD_VALUE("bindCutoffToNote",filt->bindCutoffToNote,boolean)
+      API_ADD_VALUE("bindCutoffToNoteDir",filt->bindCutoffToNoteDir,boolean)
+      API_ADD_VALUE("bindResonanceOnNote",filt->bindResonanceOnNote,boolean)
+      API_ADD_VALUE("bindResonanceToNote",filt->bindResonanceToNote,boolean)
+      API_ADD_VALUE("bindCutoffToNoteDir",filt->bindCutoffToNoteDir,boolean)
+
+      API_ADD_VALUE("cutoff",filt->cutoff,integer)
+      API_ADD_VALUE("resonance",filt->resonance,integer)
+      API_ADD_VALUE("outputVolume",filt->output_volume,integer)
+      API_ADD_VALUE("distortionLevel",filt->distortion_level,integer)
+      API_ADD_VALUE("mode",filt->mode,integer)
+      API_ADD_VALUE("filterMatrix",filt->filter_matrix,integer)
+      API_ADD_VALUE("bindCutoffToNoteStrength",filt->bindCutoffToNoteStrength,integer)
+      API_ADD_VALUE("bindCutoffToNoteCenter",filt->bindCutoffToNoteCenter,integer)
+      API_ADD_VALUE("bindResonanceToNoteStrength",filt->bindResonanceToNoteStrength,integer)
+      API_ADD_VALUE("bindResonanceToNoteCenter",filt->bindResonanceToNoteCenter,integer)
+      lua_settable(s,-3);
+    }
+    lua_settable(s,-3);
+  }
+  lua_settable(s,-3);
 }
 
 void writeFeatureKlattsch(DivInstrument* ins, lua_State* s) {

@@ -1300,6 +1300,18 @@ all functions use 0-indexing.
 
   constants denoting the ES5506 filter modes
 
+- `fur.instrument.snesGainModeDirect`
+- `fur.instrument.snesGainModeDecLinear`
+- `fur.instrument.snesGainModeDecLog`
+- `fur.instrument.snesGainModeIncLinear`
+- `fur.instrument.snesGainModeIncInvLog`
+
+  type: integer
+
+  value: 0-4
+
+  constants denoting the SNES gain modes
+
 #### `system`
 
 - `fur.system.chipSN76489`
@@ -1654,14 +1666,122 @@ some parameters may be nil (like arrays) if they are empty
   ```
 
 - `snes` table
+  ```
+  {
+    useEnv=(boolean),
+    sus=(integer),
+    gain=(integer),
+    gainMode=(integer),
+    envelope={
+      a=(integer),
+      d=(integer),
+      s=(integer),
+      r=(integer),
+      d2=(integer),
+    }
+  }
+  ```
 
 - `esfm` table
+  ```
+  {
+    noise=(integer),
+    op=(array of tables)
+  }
+  ```
+  - `op` table
+    ```
+    {
+      delay=(integer),
+      outLvl=(integer),
+      modIn=(integer),
+      left=(integer),
+      right=(integer),
+      fixed=(integer),
+      ct=(integer),
+      dt=(integer),
+    }
+    ```
 
 - `powerNoise` table
+  ```
+  {
+    octave=(integer),
+  }
+  ```
 
 - `sid2` table
+  ```
+  {
+    volume=(integer),
+    mixMode=(integer),
+    noiseMode=(integer),
+  }
+  ```
 
 - `sid3` table
+  ```
+  {
+    mixMode=(integer),
+    duty=(integer),
+    oneBitNoise=(boolean),
+    separateNoisePitch=(boolean),
+    doWavetable=(boolean),
+    resetDuty=(boolean),
+    dutyIsAbs=(boolean),
+    phaseInv=(integer),
+    feedback=(integer),
+    waveform={
+      noise=(boolean),
+      pulse=(boolean),
+      saw=(boolean),
+      tri=(boolean),
+      special=(integer or nil)
+    },
+    phaseMod=(table),
+    ringMod=(table),
+    oscSync=(table),
+    envelope={
+      a=(integer),
+      d=(integer),
+      s=(integer),
+      sr=(integer),
+      t=(integer),
+    },
+    filter=(array of tables)
+  }
+  ```
+  - `phaseMod`, `ringMod`, `oscSync` tables
+    ```
+    {
+      enable=(boolean),
+      source=(integer),
+    }
+    ```
+  - `filter` table
+    ```
+    {
+      enable=(boolean),
+      init=(boolean),
+      absoluteCutoff=(boolean),
+      bindCutoffOnNote=(boolean),
+      bindCutoffToNote=(boolean),
+      bindCutoffToNoteDir=(boolean),
+      bindResonanceOnNote=(boolean),
+      bindResonanceToNote=(boolean),
+      bindCutoffToNoteDir=(boolean),
+      cutoff=(integer),
+      resonance=(integer),
+      outputVolume=(integer),
+      distortionLevel=(integer),
+      mode=(integer),
+      filterMatrix=(integer),
+      bindCutoffToNoteStrength=(integer),
+      bindCutoffToNoteCenter=(integer),
+      bindResonanceToNoteStrength=(integer),
+      bindResonanceToNoteCenter=(integer),
+    }
+    ```
 
 
 - `klattsch` table
