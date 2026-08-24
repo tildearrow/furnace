@@ -1248,6 +1248,15 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     headFont=mainFont;
   }
 
+  // update font base size
+  if (updateFonts && !safeMode) {
+    if (ImGui::GetIO().Fonts!=NULL) {
+      if (!ImGui::GetIO().Fonts->Fonts.empty()) {
+        ImGui::GetStyle().FontSizeBase=ImGui::GetIO().Fonts->Fonts[0]->LegacySize;
+      }
+    }
+  }
+
   // set built-in file picker up (NEW)
   newFilePicker->clearTypes();
 

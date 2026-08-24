@@ -541,8 +541,8 @@ JSON serializeInstrument(DivInstrument* ins) {
     SET_VALUE(fm,fb);
     SET_VALUE(fm,fms);
     SET_VALUE(fm,ams);
-    SET_VALUE(fm,fms2);
-    SET_VALUE(fm,ams2);
+    SET_VALUE(fm,fmsLFO);
+    SET_VALUE(fm,amsLFO);
     SET_VALUE(fm,ops);
     SET_VALUE(fm,opllPreset);
     SET_VALUE(fm,block);
