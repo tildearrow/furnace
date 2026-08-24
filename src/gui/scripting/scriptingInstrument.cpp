@@ -529,8 +529,9 @@ void writeFeatureKlattsch(DivInstrument* ins, lua_State* s) {
   lua_settable(s,-3);
 }
 
+#define CHECK_VALUE(_k,_p,_mn,_mx) if (strcmp(key,_k)==0) {ins->_p=/*CLAMP(value,_mn,_mx)*/value;}
+
 void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
-  #define CHECK_VALUE(_k,_p,_mn,_mx) if (strcmp(key,_k)==0) {ins->fm._p=/*CLAMP(value,_mn,_mx)*/value;}
   lua_pushnil(s);
   while (lua_next(s,t)) {
     if (!lua_isstring(s,-2)) continue;
@@ -544,17 +545,18 @@ void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
         value=lua_tointeger(s,-1);
         break;
       case LUA_TTABLE: { // op table
+        if (strcmp(key,"op")!=0) break;
         int ops=0;
         lua_pushnil(s);
         while (lua_next(s,-2)) {
           if (lua_isinteger(s,-2)) {
-            ops++;
             if (lua_istable(s,-1)) {
               int op=lua_tointeger(s,-2);
-              if (op>=4) {
+              if (op>4 || op<1) {
                 lua_pop(s,1);
                 continue;
               }
+              ops++;
               lua_pushnil(s);
               while (lua_next(s,-2)) {
                 if (lua_isstring(s,-2)) {
@@ -607,26 +609,91 @@ void readFeatureFM(DivInstrument *ins, lua_State *s, int t) {
         continue;
       }
     }
-    CHECK_VALUE("alg",alg,0,7)
-    CHECK_VALUE("feedback",fb,0,7)
-    CHECK_VALUE("fms",fms,0,7)
-    CHECK_VALUE("ams",ams,0,7)
-    CHECK_VALUE("fmsLFO",fmsLFO,0,1)
-    CHECK_VALUE("amsLFO",amsLFO,0,1)
-    CHECK_VALUE("tremLFO",tremLFO,0,1)
-    CHECK_VALUE("opllPreset",opllPreset,0,15)
-    CHECK_VALUE("block",block,0,7)
-    CHECK_VALUE("fixedDrums",fixedDrums,0,1)
-    CHECK_VALUE("kickFreq",kickFreq,0,7)
-    CHECK_VALUE("snareHatFreq",snareHatFreq,0,7)
-    CHECK_VALUE("tomTopFreq",tomTopFreq,0,7)
+    CHECK_VALUE("alg",fm.alg,0,7)
+    CHECK_VALUE("feedback",fm.fb,0,7)
+    CHECK_VALUE("fms",fm.fms,0,7)
+    CHECK_VALUE("ams",fm.ams,0,7)
+    CHECK_VALUE("fmsLFO",fm.fmsLFO,0,1)
+    CHECK_VALUE("amsLFO",fm.amsLFO,0,1)
+    CHECK_VALUE("tremLFO",fm.tremLFO,0,1)
+    CHECK_VALUE("opllPreset",fm.opllPreset,0,15)
+    CHECK_VALUE("block",fm.block,0,7)
+    CHECK_VALUE("fixedDrums",fm.fixedDrums,0,1)
+    CHECK_VALUE("kickFreq",fm.kickFreq,0,7)
+    CHECK_VALUE("snareHatFreq",fm.snareHatFreq,0,7)
+    CHECK_VALUE("tomTopFreq",fm.tomTopFreq,0,7)
     lua_pop(s,1);
   }
 }
 
 // TODO!!!
 void readFeatureGB(DivInstrument* ins, lua_State* s, int t) {
-  
+  lua_pushnil(s);
+  while (lua_next(s,t)) {
+    if (!lua_isstring(s,-2)) continue;
+    const char* key=lua_tostring(s,-2);
+    int value;
+    switch (lua_type(s,-1)) {
+      case LUA_TBOOLEAN:
+        value=lua_toboolean(s,-1);
+        break;
+      case LUA_TNUMBER:
+        value=lua_tointeger(s,-1);
+        break;
+      case LUA_TTABLE: { // hwSeq table
+        if (strcmp(key,"hwSeq")!=0) break;
+        int seqLen=0;
+        lua_pushnil(s);
+        while (lua_next(s,-2)) {
+          if (lua_isinteger(s,-2)) {
+            if (lua_istable(s,-1)) {
+              int seq=lua_tointeger(s,-2);
+              if (seq>255 || seq<1) {
+                lua_pop(s,1);
+                continue;
+              }
+              seqLen++;
+              lua_pushnil(s);
+              while (lua_next(s,-2)) {
+                if (lua_isstring(s,-2)) {
+                  const char* subkey=lua_tostring(s,-2);
+                  switch (lua_type(s,-1)) {
+                    case LUA_TBOOLEAN:
+                      value=lua_toboolean(s,-1);
+                      break;
+                    case LUA_TNUMBER:
+                      value=lua_tointeger(s,-1);
+                      break;
+                    default: 
+                      lua_pop(s,1);
+                      continue;
+                  }
+                  if (strcmp(subkey,"cmd")==0) {
+                    ins->gb.hwSeq[seq-1].cmd=value;
+                  }
+                  if (strcmp(subkey,"data")==0) {
+                    ins->gb.hwSeq[seq-1].data=value;
+                  }
+                }
+                lua_pop(s,1);
+              }
+            }
+          }
+          lua_pop(s,1);
+          ins->gb.hwSeqLen=CLAMP(seqLen,0,255);
+        }
+        lua_pop(s,1);
+        continue;
+      }
+    }
+    CHECK_VALUE("envVol",gb.envVol,0,7)
+    CHECK_VALUE("envDir",gb.envDir,0,7)
+    CHECK_VALUE("soundLen",gb.soundLen,0,7)
+    CHECK_VALUE("softEnv",gb.softEnv,0,1)
+    CHECK_VALUE("alwaysInit",gb.alwaysInit,0,1)
+    CHECK_VALUE("doubleWave",gb.doubleWave,0,1)
+    lua_pop(s,1);
+  }
 }
 
 void readFeatureC64(DivInstrument* ins, lua_State* s, int t) {
@@ -634,11 +701,94 @@ void readFeatureC64(DivInstrument* ins, lua_State* s, int t) {
 }
 
 void readFeatureAmiga(DivInstrument* ins, lua_State* s, int t) {
-  
+  lua_pushnil(s);
+  while (lua_next(s,t)) {
+    if (!lua_isstring(s,-2)) continue;
+    const char* key=lua_tostring(s,-2);
+    int value;
+    switch (lua_type(s,-1)) {
+      case LUA_TBOOLEAN:
+        value=lua_toboolean(s,-1);
+        break;
+      case LUA_TNUMBER:
+        value=lua_tointeger(s,-1);
+        break;
+      case LUA_TTABLE: { // noteMap table
+        if (strcmp(key,"noteMap")!=0) break;
+        lua_pushnil(s);
+        while (lua_next(s,-2)) {
+          if (lua_isinteger(s,-2)) {
+            if (lua_istable(s,-1)) {
+              int map=lua_tointeger(s,-2);
+              if (map>180 || map<1) {
+                lua_pop(s,1);
+                continue;
+              }
+              lua_pushnil(s);
+              while (lua_next(s,-2)) {
+                if (lua_isstring(s,-2)) {
+                  const char* subkey=lua_tostring(s,-2);
+                  switch (lua_type(s,-1)) {
+                    case LUA_TBOOLEAN:
+                      value=lua_toboolean(s,-1);
+                      break;
+                    case LUA_TNUMBER:
+                      value=lua_tointeger(s,-1);
+                      break;
+                    default: 
+                      lua_pop(s,1);
+                      continue;
+                  }
+                  if (strcmp(subkey,"freq")==0) {
+                    ins->amiga.noteMap[map-1].freq=value;
+                  }
+                  if (strcmp(subkey,"map")==0) {
+                    ins->amiga.noteMap[map-1].map=value;
+                  }
+                  if (strcmp(subkey,"dpcmFreq")==0) {
+                    ins->amiga.noteMap[map-1].dpcmFreq=value;
+                  }
+                  if (strcmp(subkey,"dpcmDelta")==0) {
+                    ins->amiga.noteMap[map-1].dpcmDelta=value;
+                  }
+                }
+                lua_pop(s,1);
+              }
+            }
+          }
+          lua_pop(s,1);
+        }
+        lua_pop(s,1);
+        continue;
+      }
+    }
+    CHECK_VALUE("initSample",amiga.initSample,0,65535)
+    CHECK_VALUE("useNoteMap",amiga.useNoteMap,0,1)
+    CHECK_VALUE("useSample",amiga.useSample,0,1)
+    CHECK_VALUE("useWave",amiga.useWave,0,1)
+    CHECK_VALUE("waveLen",amiga.waveLen,0,255)
+    lua_pop(s,1);
+  }
 }
 
 void readFeatureX1(DivInstrument* ins, lua_State* s, int t) {
-  
+  lua_pushnil(s);
+  while (lua_next(s,t)) {
+    if (!lua_isstring(s,-2)) continue;
+    const char* key=lua_tostring(s,-2);
+    int value;
+    switch (lua_type(s,-1)) {
+      case LUA_TBOOLEAN:
+        value=lua_toboolean(s,-1);
+        break;
+      case LUA_TNUMBER:
+        value=lua_tointeger(s,-1);
+        break;
+      default: break;
+    }
+    CHECK_VALUE("bankSlot",x1_010.bankSlot,0,65535)
+    lua_pop(s,1);
+  }
 }
 
 void readFeatureN163(DivInstrument* ins, lua_State* s, int t) {
