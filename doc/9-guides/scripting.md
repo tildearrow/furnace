@@ -1611,6 +1611,27 @@ some parameters may be nil (like arrays) if they are empty
   ```
   `modTable` may have up to 32 values
 
+- `multiPCM` table
+  ```
+  {
+    envelope={
+      ar=(integer),
+      d1r=(integer),
+      d2r=(boolean),
+      dl=(integer),
+      rr=(integer),
+      rc=(integer),
+    },
+    lfo=(integer),
+    vib=(integer),
+    am=(integer),
+    damp=(boolean),
+    pseudoReverb=(boolean),
+    lfoReset=(boolean),
+    levelDirect=(boolean),
+  }
+  ```
+
 - `waveSynth` table
   ```
   {
