@@ -20,6 +20,79 @@
 #include "scripting.h"
 #include "../gui.h"
 
+static const char* insTypeNames[]={
+  "typeSTD",
+  "typeFM",
+  "typeGB",
+  "typeC64",
+  "typeAmiga",
+  "typePCE",
+  "typeAY",
+  "typeAY8930",
+  "typeTIA",
+  "typeSAA1099",
+  "typeVIC",
+  "typePET",
+  "typeVRC6",
+  "typeOPLL",
+  "typeOPL",
+  "typeFDS",
+  "typeVB",
+  "typeN163",
+  "typeSCC",
+  "typeOPZ",
+  "typePOKEY",
+  "typeBeeper",
+  "typeSwan",
+  "typeMikey",
+  "typeVERA",
+  "typeX1",
+  "typeVRC6Saw",
+  "typeES5506",
+  "typeMultiPCM",
+  "typeSNES",
+  "typeSoundUnit",
+  "typeNamco",
+  "typeOPLDrums",
+  "typeOPM",
+  "typeNES",
+  "typeMSM6258",
+  "typeMSM6295",
+  "typeADPCMA",
+  "typeADPCMB",
+  "typeSegaPCM",
+  "typeQSound",
+  "typeYMZ280B",
+  "typeRF5C68",
+  "typeMSM5232",
+  "typeT6W28",
+  "typeK007232",
+  "typeGA20",
+  "typePokeMini",
+  "typeSM8521",
+  "typePV1000",
+  "typeK053260",
+  NULL,// "typeYMF292",
+  "typeTED",
+  "typeC140",
+  "typeC219",
+  "typeESFM",
+  "typePowerNoise",
+  "typePowerNoiseSlope",
+  "typeDave",
+  "typeNDS",
+  "typeGBADMA",
+  "typeGBAMinMod",
+  "typeBifurcator",
+  "typeSID2",
+  "typeSupervision",
+  NULL, //"typeuPD1771C"
+  "typeSID3",
+  "typeKlattsch"
+};
+
+static_assert((sizeof(insTypeNames)/sizeof(const char*))==DIV_INS_MAX,"insTypeNames: missing type!");
+
 static const char* macroTypeValueNames[][2]={
   {"macroVolume","volume"},
   {"macroArp","arp"},
@@ -127,6 +200,28 @@ static const char* snesGainModeNames[]={
   "snesGainModeIncLinear",
   "snesGainModeIncInvLog",
 };
+
+static const char* sampleTypeNames[]={
+  "depth1BitPCM",
+  NULL,
+  "depth1BitDPCM",
+  "depthYMZADPCM",
+  "depthQSoundADPCM",
+  "depthADPCMA",
+  "depthADPCMB",
+  "depthK05ADPCM",
+  "depth8BitPCM",
+  "depthBRR",
+  "depthVOX",
+  "depth8BituLaw",
+  "depthC219PCM",
+  "depthIMAADPCM",
+  "depth12BitPCM",
+  "depth4BitPCM",
+  "depth16BitPCM"
+};
+
+static_assert((sizeof(sampleTypeNames)/sizeof(const char*))==DIV_SAMPLE_DEPTH_MAX,"chipIdNames: missing type!");
 
 // NULLs are unsupported chips
 static const char* chipIdNames[]={
@@ -975,6 +1070,86 @@ _CF(deleteIns) {
   return 0;
 }
 
+_CF(getInsName) {
+  CHECK_ARGS_RANGE(0,1);
+
+  int index=curIns;
+  if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
+    index=lua_tointeger(s,1);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
+  }
+  lua_pushstring(s,e->getIns(index)->name.c_str());
+  return 1;
+}
+
+_CF(getInsType) {
+  CHECK_ARGS_RANGE(0,1);
+
+  int index=curIns;
+  if (lua_gettop(s)>0) {
+    CHECK_TYPE_INTEGER(1);
+    index=lua_tointeger(s,1);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
+  }
+  lua_pushinteger(s,e->getIns(index)->type);
+  return 1;
+}
+
+_CF(setInsName) {
+  CHECK_ARGS_RANGE(1,2)
+
+  int index=curIns;
+  const char* name;
+  if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(1);
+    CHECK_TYPE_STRING(2);
+    index=lua_tointeger(s,1);
+    name=lua_tostring(s,2);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
+  } else {
+    CHECK_TYPE_STRING(1);
+    name=lua_tostring(s,1);
+  }
+  e->getIns(index)->name=name;
+  return 0;
+}
+
+_CF(getInsCount) {
+  lua_pushinteger(s,e->song.insLen);
+  return 1;
+}
+
+_CF(setInsType) {
+  CHECK_ARGS_RANGE(1,2)
+
+  int index=curIns;
+  int type;
+  if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(1);
+    CHECK_TYPE_INTEGER(2);
+    index=lua_tointeger(s,1);
+    type=lua_tointeger(s,2);
+    if (index<0 || index>=e->song.insLen) {
+      SC_ERROR("invalid instrument index");
+    }
+  } else {
+    CHECK_TYPE_INTEGER(1);
+    type=lua_tointeger(s,1);
+  }
+  if (type<0 || type>DIV_INS_MAX) {
+    SC_ERROR("invalid instrument type!");
+  }
+  e->getIns(index)->type=(DivInstrumentType)type;
+  return 0;
+}
+
 _CF(setInsData) {
   CHECK_ARGS_RANGE(2,3)
 
@@ -1336,6 +1511,11 @@ _CF(setWaveData) {
   return 0;
 }
 
+_CF(getWaveCount) {
+  lua_pushinteger(s,e->song.waveLen);
+  return 1;
+}
+
 _CF(createSample) {
   int ret=e->addSample();
   if (ret>=0) {
@@ -1358,6 +1538,11 @@ _CF(deleteSample) {
   e->delSample(index);
 
   return 0;
+}
+
+_CF(getSampleCount) {
+  lua_pushinteger(s,e->song.sampleLen);
+  return 1;
 }
 
 _CF(getSampleLength) {
@@ -2529,11 +2714,22 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   API_USE_CATG("instrument");
     API_ADD_FUNC("create",createIns);
     API_ADD_FUNC("delete",deleteIns);
+    API_ADD_FUNC("getName",getInsName);
+    API_ADD_FUNC("getType",getInsType);
+    API_ADD_FUNC("setName",setInsName);
+    API_ADD_FUNC("setType",setInsType);
+    API_ADD_FUNC("getCount",getInsCount);
     API_ADD_FUNC("setData",setInsData);
     API_ADD_FUNC("getData",getInsData)
     API_ADD_FUNC("setMacroData",setInsMacroData);
     API_ADD_FUNC("getMacroData",getInsMacroData)
     // instrument types
+    for (int i=0; i<DIV_INS_MAX; i++) {
+      if (insTypeNames[i]) {
+        API_ADD_VALUE(insTypeNames[i],i,integer);
+      }
+    }
+    // instrument features
     for (int i=0; insFeatures[i].valueName; i++) {
       API_ADD_VALUE(insFeatures[i].valueName,i,integer);
     }
@@ -2570,10 +2766,12 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("setHeight",setWaveHeight);
     API_ADD_FUNC("getData",getWaveData);
     API_ADD_FUNC("setData",setWaveData);
+    API_ADD_FUNC("getCount",getWaveCount);
   API_CATG_END;
   API_USE_CATG("sample");
     API_ADD_FUNC("create",createSample);
     API_ADD_FUNC("delete",deleteSample);
+    API_ADD_FUNC("getCount",getSampleCount);
     API_ADD_FUNC("getLength",getSampleLength);
     API_ADD_FUNC("setLength",setSampleLength);
     API_ADD_FUNC("getSize",getSampleSize);
@@ -2587,6 +2785,12 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("setData",setSampleData);
     API_ADD_FUNC("isEditable",isSampleEditable);
     API_ADD_FUNC("render",renderSamples);
+    // sample types
+    for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
+      if (sampleTypeNames[i]) {
+        API_ADD_VALUE(sampleTypeNames[i],i,integer);
+      }
+    }
   API_CATG_END;
   API_USE_CATG("order");
     API_ADD_FUNC("get",getOrder);
@@ -2643,11 +2847,6 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("colorRGBA",guiColorRGBA);
   API_CATG_END;
 
-  // API_USE_CATG("talvez");
-  // API_ADD_VALUE("a",200,integer);
-  // API_ADD_VALUE("b",400,integer);
-  // API_ADD_VALUE("c",150,integer);
-  // API_ADD_FUNC("logE",logE);
   lua_pop(s,1);
 }
 

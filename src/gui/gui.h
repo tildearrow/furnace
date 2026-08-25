@@ -3660,6 +3660,8 @@ class FurnaceGUI {
     API_FUNC(deleteIns)
     API_FUNC(getInsName)
     API_FUNC(getInsType)
+    API_FUNC(setInsName)
+    API_FUNC(setInsType)
     API_FUNC(getInsCount)
     // [id], type, data
     API_FUNC(setInsData)
