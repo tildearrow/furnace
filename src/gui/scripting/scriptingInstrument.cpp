@@ -494,7 +494,6 @@ void writeFeatureSID3(DivInstrument* ins, lua_State* s) {
       API_ADD_VALUE("bindCutoffToNoteDir",filt->bindCutoffToNoteDir,boolean)
       API_ADD_VALUE("bindResonanceOnNote",filt->bindResonanceOnNote,boolean)
       API_ADD_VALUE("bindResonanceToNote",filt->bindResonanceToNote,boolean)
-      API_ADD_VALUE("bindCutoffToNoteDir",filt->bindCutoffToNoteDir,boolean)
 
       API_ADD_VALUE("cutoff",filt->cutoff,integer)
       API_ADD_VALUE("resonance",filt->resonance,integer)
@@ -1332,7 +1331,143 @@ void readFeatureSID2(DivInstrument* ins, lua_State* s, int t) {
 }
 
 void readFeatureSID3(DivInstrument* ins, lua_State* s, int t) {
-
+  lua_pushnil(s);
+  while (lua_next(s,t)) {
+    if (!lua_isstring(s,-2)) continue;
+    const char* key=lua_tostring(s,-2);
+    int value;
+    switch (lua_type(s,-1)) {
+      case LUA_TBOOLEAN:
+        value=lua_toboolean(s,-1);
+        break;
+      case LUA_TNUMBER:
+        value=lua_tointeger(s,-1);
+        break;
+      case LUA_TTABLE: {
+        if (strcmp(key,"phaseMod")==0) {
+          lua_pushnil(s);
+          while (lua_next(s,-2)) {
+            if (!lua_isstring(s,-2)) continue;
+            const char* subkey=lua_tostring(s,-2);
+            switch (lua_type(s,-1)) {
+              case LUA_TBOOLEAN:
+                value=lua_toboolean(s,-1);
+                break;
+              case LUA_TNUMBER:
+                value=lua_tointeger(s,-1);
+                break;
+            }
+            CHECK_SUBVALUE("enable",sid3.phase_mod,0,0)
+            else CHECK_SUBVALUE("source",sid3.phase_mod_source,0,0)
+            lua_pop(s,1);
+          }
+          lua_pop(s,1);
+          continue;
+        } else if (strcmp(key,"ringMod")==0) {
+          lua_pushnil(s);
+          while (lua_next(s,-2)) {
+            if (!lua_isstring(s,-2)) continue;
+            const char* subkey=lua_tostring(s,-2);
+            switch (lua_type(s,-1)) {
+              case LUA_TBOOLEAN:
+                value=lua_toboolean(s,-1);
+                break;
+              case LUA_TNUMBER:
+                value=lua_tointeger(s,-1);
+                break;
+            }
+            CHECK_SUBVALUE("enable",sid3.ringMod,0,0)
+            else CHECK_SUBVALUE("source",sid3.ring_mod_source,0,0)
+            lua_pop(s,1);
+          }
+          lua_pop(s,1);
+          continue;
+        } else if (strcmp(key,"oscSync")==0) {
+          lua_pushnil(s);
+          while (lua_next(s,-2)) {
+            if (!lua_isstring(s,-2)) continue;
+            const char* subkey=lua_tostring(s,-2);
+            switch (lua_type(s,-1)) {
+              case LUA_TBOOLEAN:
+                value=lua_toboolean(s,-1);
+                break;
+              case LUA_TNUMBER:
+                value=lua_tointeger(s,-1);
+                break;
+            }
+            CHECK_SUBVALUE("enable",sid3.oscSync,0,0)
+            else CHECK_SUBVALUE("source",sid3.sync_source,0,0)
+            lua_pop(s,1);
+          }
+          lua_pop(s,1);
+          continue;
+        } else if (strcmp(key,"filter")==0) {
+          lua_pushnil(s);
+          while (lua_next(s,-2)) {
+            if (lua_isinteger(s,-2)) {
+              if (lua_istable(s,-1)) {
+                int filt=lua_tointeger(s,-2);
+                if (filt>4 || filt<1) {
+                  lua_pop(s,1);
+                  continue;
+                }
+                lua_pushnil(s);
+                while (lua_next(s,-2)) {
+                  if (lua_isstring(s,-2)) {
+                    const char* subkey=lua_tostring(s,-2);
+                    switch (lua_type(s,-1)) {
+                      case LUA_TBOOLEAN:
+                      value=lua_toboolean(s,-1);
+                      break;
+                      case LUA_TNUMBER:
+                      value=lua_tointeger(s,-1);
+                      break;
+                      default:
+                      lua_pop(s,1);
+                      continue;
+                    }
+                    CHECK_SUBVALUE("enable",sid3.filt[filt-1].enabled,0,0)
+                    else CHECK_SUBVALUE("init",sid3.filt[filt-1].init,0,0)
+                    else CHECK_SUBVALUE("absoluteCutoff",sid3.filt[filt-1].absoluteCutoff,0,0)
+                    else CHECK_SUBVALUE("bindCutoffOnNote",sid3.filt[filt-1].bindCutoffOnNote,0,0)
+                    else CHECK_SUBVALUE("bindCutoffToNote",sid3.filt[filt-1].bindCutoffToNote,0,0)
+                    else CHECK_SUBVALUE("bindCutoffToNoteDir",sid3.filt[filt-1].bindCutoffToNoteDir,0,0)
+                    else CHECK_SUBVALUE("bindResonanceOnNote",sid3.filt[filt-1].bindResonanceOnNote,0,0)
+                    else CHECK_SUBVALUE("bindResonanceToNote",sid3.filt[filt-1].bindResonanceToNote,0,0)
+                    else CHECK_SUBVALUE("bindResonanceToNoteDir",sid3.filt[filt-1].bindResonanceToNoteDir,0,0)
+                    else CHECK_SUBVALUE("cutoff",sid3.filt[filt-1].cutoff,0,0)
+                    else CHECK_SUBVALUE("resonance",sid3.filt[filt-1].resonance,0,0)
+                    else CHECK_SUBVALUE("outputVolume",sid3.filt[filt-1].output_volume,0,0)
+                    else CHECK_SUBVALUE("distortionLevel",sid3.filt[filt-1].distortion_level,0,0)
+                    else CHECK_SUBVALUE("mode",sid3.filt[filt-1].mode,0,0)
+                    else CHECK_SUBVALUE("filterMatrix",sid3.filt[filt-1].filter_matrix,0,0)
+                    else CHECK_SUBVALUE("bindCutoffToNoteStrength",sid3.filt[filt-1].bindCutoffToNoteStrength,0,0)
+                    else CHECK_SUBVALUE("bindCutoffToNoteCenter",sid3.filt[filt-1].bindCutoffToNoteCenter,0,0)
+                    else CHECK_SUBVALUE("bindResonanceToNoteStrength",sid3.filt[filt-1].bindResonanceToNoteStrength,0,0)
+                    else CHECK_SUBVALUE("bindResonanceToNoteCenter",sid3.filt[filt-1].bindResonanceToNoteCenter,0,0)
+                  }
+                  lua_pop(s,1);
+                }
+              }
+            }
+            lua_pop(s,1);
+          }
+        }
+        lua_pop(s,1);
+        continue;
+      }
+    }
+    CHECK_VALUE("mixMode",sid3.mixMode,0,7)
+    else CHECK_VALUE("duty",sid3.duty,0,7)
+    else CHECK_VALUE("oneBitNoise",sid3.oneBitNoise,0,7)
+    else CHECK_VALUE("separateNoisePitch",sid3.separateNoisePitch,0,7)
+    else CHECK_VALUE("doWavetable",sid3.doWavetable,0,7)
+    else CHECK_VALUE("resetDuty",sid3.resetDuty,0,7)
+    else CHECK_VALUE("dutyIsAbs",sid3.dutyIsAbs,0,7)
+    else CHECK_VALUE("phaseInv",sid3.phaseInv,0,7)
+    else CHECK_VALUE("feedback",sid3.feedback,0,7)
+    lua_pop(s,1);
+  }
 }
 
 void readFeatureKlattsch(DivInstrument* ins, lua_State* s, int t) {

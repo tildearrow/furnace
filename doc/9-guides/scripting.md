@@ -1791,7 +1791,6 @@ some parameters may be nil (like arrays) if they are empty
       bindCutoffToNoteDir=(boolean),
       bindResonanceOnNote=(boolean),
       bindResonanceToNote=(boolean),
-      bindCutoffToNoteDir=(boolean),
       cutoff=(integer),
       resonance=(integer),
       outputVolume=(integer),
