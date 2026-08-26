@@ -479,7 +479,7 @@ _CF(getCurSubSong) {
   return 1;
 }
 
-_CF(getChanState) {
+_CF(getDispatchState) {
   CHECK_ARGS(1)
   CHECK_TYPE_INTEGER(1)
   int chan=lua_tointeger(s,1);
@@ -511,6 +511,89 @@ _CF(getChanState) {
   API_ADD_VALUE("portaPause",state->portaPause,boolean)
   API_ADD_VALUE("inPorta",state->inPorta,boolean)
   API_ADD_VALUE("rawFreq",state->rawFreq,boolean)
+  return 1;
+}
+
+_CF(getChanState) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_INTEGER(1)
+  int chan=lua_tointeger(s,1);
+  if (chan<0 || chan>=e->song.chans) {
+    lua_pushnil(s);
+    return 1;
+  }
+  DivChannelState* state=e->getChanState(chan);
+  lua_newtable(s);
+  #define PUSH_INT(x) API_ADD_VALUE(#x,state->x,integer)
+  #define PUSH_BOOL(x) API_ADD_VALUE(#x,state->x,boolean)
+  PUSH_INT(note)
+  PUSH_INT(oldNote)
+  PUSH_INT(lastIns)
+  PUSH_INT(pitch)
+  PUSH_INT(portaSpeed)
+  PUSH_INT(portaNote)
+  PUSH_INT(volume)
+  PUSH_INT(volSpeed)
+  PUSH_INT(volSpeedTarget)
+  PUSH_INT(cut)
+  PUSH_INT(volCut)
+  PUSH_INT(legatoDelay)
+  PUSH_INT(legatoTarget)
+  PUSH_INT(rowDelay)
+  PUSH_INT(volMax)
+  PUSH_INT(delayOrder)
+  PUSH_INT(delayRow)
+  PUSH_INT(retrigSpeed)
+  PUSH_INT(retrigTick)
+  PUSH_INT(vibratoDepth)
+  PUSH_INT(vibratoRate)
+  PUSH_INT(vibratoPos)
+  PUSH_INT(vibratoPosGiant)
+  PUSH_INT(vibratoShape)
+  PUSH_INT(vibratoFine)
+  PUSH_INT(tremoloDepth)
+  PUSH_INT(tremoloRate)
+  PUSH_INT(tremoloPos)
+  PUSH_INT(panDepth)
+  PUSH_INT(panRate)
+  PUSH_INT(panPos)
+  PUSH_INT(panSpeed)
+  PUSH_INT(sampleOff)
+  PUSH_INT(arp)
+  PUSH_INT(arpStage)
+  PUSH_INT(arpTicks)
+  PUSH_INT(panL)
+  PUSH_INT(panR)
+  PUSH_INT(panRL)
+  PUSH_INT(panRR)
+  PUSH_INT(lastVibrato)
+  PUSH_INT(lastPorta)
+  PUSH_INT(cutType)
+  PUSH_BOOL(doNote)
+  PUSH_BOOL(legato)
+  PUSH_BOOL(portaStop)
+  PUSH_BOOL(keyOn)
+  PUSH_BOOL(keyOff)
+  PUSH_BOOL(stopOnOff)
+  PUSH_BOOL(releasing)
+  PUSH_BOOL(arpYield)
+  PUSH_BOOL(delayLocked)
+  PUSH_BOOL(inPorta)
+  PUSH_BOOL(scheduledSlideReset)
+  PUSH_BOOL(shorthandPorta)
+  PUSH_BOOL(wasShorthandPorta)
+  PUSH_BOOL(noteOnInhibit)
+  PUSH_BOOL(resetArp)
+  PUSH_BOOL(sampleOffSet)
+  PUSH_BOOL(wentThroughNote)
+  PUSH_BOOL(goneThroughNote)
+  PUSH_INT(midiNote)
+  PUSH_INT(curMidiNote)
+  PUSH_INT(midiPitch)
+  PUSH_INT(midiAge)
+  PUSH_BOOL(midiAftertouch)
+  #undef PUSH_INT
+  #undef PUSH_BOOL
   return 1;
 }
 
@@ -2428,26 +2511,6 @@ _CF(dialogShow) {
   return 0;
 }
 
-_CF(dialogGetItems) {
-  for (ScriptDialog::Item& i:scriptDialog.items) {
-    switch (i.type) {
-      case ScriptDialog::Item::Type::Checkbox:
-        lua_pushboolean(s,i.valueInt.b);
-        break;
-      case ScriptDialog::Item::Type::Int:
-        lua_pushinteger(s,i.valueInt.i);
-        break;
-      case ScriptDialog::Item::Type::Float:
-        lua_pushnumber(s,i.valueInt.f);
-        break;
-      case ScriptDialog::Item::Type::String:
-        lua_pushstring(s,i.valueS.c_str());
-        break;
-    }
-  }
-  return scriptDialog.items.size();
-}
-
 _CF(guiRegisterWindow) {
   CHECK_ARGS(2)
   CHECK_TYPE_STRING(1)
@@ -2657,6 +2720,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("isFreelance",isFreelance);
     API_ADD_FUNC("getChanCount",getChanCount);
     API_ADD_FUNC("getCurSubSong",getCurSubSong);
+    API_ADD_FUNC("getDispatchState",getDispatchState);
     API_ADD_FUNC("getChanState",getChanState);
   API_CATG_END;
   API_USE_CATG("interface");
@@ -2835,7 +2899,6 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("itemString",dialogItemString);
     API_ADD_FUNC("itemCheckbox",dialogItemCheckbox);
     API_ADD_FUNC("show",dialogShow);
-    API_ADD_FUNC("getItems",dialogGetItems);
   API_CATG_END;
   API_USE_CATG("gui")
     API_ADD_FUNC("registerWindow",guiRegisterWindow);

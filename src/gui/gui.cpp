@@ -7571,7 +7571,28 @@ bool FurnaceGUI::loop() {
         }
       }
       if (ImGui::Button(_("OK"))) {
-        runScriptFunction(scriptDialog.state,scriptDialog.callbackFunction);
+        lua_rawgeti(scriptDialog.state,LUA_REGISTRYINDEX,scriptDialog.callbackFunction);
+        // push arguments
+        for (ScriptDialog::Item& i:scriptDialog.items) {
+          switch (i.type) {
+            case ScriptDialog::Item::Type::Checkbox:
+              lua_pushboolean(scriptDialog.state,i.valueInt.b);
+              break;
+            case ScriptDialog::Item::Type::Int:
+              lua_pushinteger(scriptDialog.state,i.valueInt.i);
+              break;
+            case ScriptDialog::Item::Type::Float:
+              lua_pushnumber(scriptDialog.state,i.valueInt.f);
+              break;
+            case ScriptDialog::Item::Type::String:
+              lua_pushstring(scriptDialog.state,i.valueS.c_str());
+              break;
+          }
+        }
+        int result=lua_pcall(scriptDialog.state,scriptDialog.items.size(),LUA_MULTRET,0);
+        if (result!=LUA_OK) {
+          showError(fmt::sprintf(_("runScriptFunction error!\n%s"),getScriptError(scriptDialog.state,result)));
+        }
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();

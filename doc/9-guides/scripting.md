@@ -225,6 +225,26 @@ all functions use 0-indexing.
 
   returns the current subsong number
 
+- `fur.engine.getDispatchState()`
+
+  arguments: channel (integer)
+
+  return type: table
+
+  returns the dispatch state of a channel
+
+  for the table data format, see [appendix C](#appendix-c-dispatch-state-table-format)
+
+- `fur.engine.getChanState()`
+
+  arguments: channel (integer)
+
+  return type: table
+
+  returns the channel state of a channel
+
+  for the table data format, see [appendix D](#appendix-d-channel-state-table-format)
+
 #### interface functions
 
 - `fur.interface.getEditOrder()`
@@ -665,6 +685,56 @@ all functions use 0-indexing.
 
   if instrument id not given, assumes current instrument
 
+- `fur.instrument.getName()`
+
+  arguments: (optional) instrument id (integer)
+
+  return type: string
+
+  returns the instrument name
+
+  if instrument id not given, assumes current instrument
+
+- `fur.instrument.getType()`
+
+  arguments: (optional) instrument id (integer)
+
+  return type: integer
+
+  returns the instrument type
+
+  if instrument id not given, assumes current instrument
+
+- `fur.instrument.setName()`
+
+  arguments: (optional) instrument id (integer), instrument name (string)
+
+  return type: none
+
+  sets the instrument name
+
+  if instrument id not given, assumes current instrument
+
+- `fur.instrument.setType()`
+
+  arguments: (optional) instrument id (integer), instrument type (integer)
+
+  return type: none
+
+  sets the instrument type
+
+  if instrument id not given, assumes current instrument
+
+  for a list of valid instrument types, see the [constants below](#instrument)
+
+- `fur.instrument.getCount()`
+
+  arguments: none
+
+  return type: integer
+
+  returns the number of instruments
+
 - `fur.instrument.setData()`
 
   arguments: (optional) instrument id (integer), instrument feature code (integer), instrument feature data (table)
@@ -805,6 +875,14 @@ all functions use 0-indexing.
 
   if wavetable id not given, assumes current wavetable
 
+- `fur.wave.getCount()`
+
+  arguments: none
+
+  return type: integer
+
+  returns the number of wavetables
+
 #### sample manipulation
 
 - `fur.sample.create()`
@@ -826,6 +904,14 @@ all functions use 0-indexing.
   deletes an sample
 
   if sample id not given, assumes current sample
+
+- `fur.sample.getCount()`
+
+  arguments: none
+
+  return type: integer
+
+  returns the number of samples
 
 - `fur.sample.getLength()`
 
@@ -1121,13 +1207,9 @@ all functions use 0-indexing.
 
   shows the dialog
 
-- `fur.dialog.getItems()`
+  when the dialog is confirmed, it runs the given function
 
-  arguments: none
-
-  return type: (any)
-
-  returns the values from the dialog items, in order
+  the dialog inputs are passed as arguments to the function, so the function has to have as many arguments as there are dialog inputs
 
 ### constants
 
@@ -1198,6 +1280,79 @@ all functions use 0-indexing.
   the internal value of a note which denotes whether the row contains a raw frequency value
 
 #### `instrument`
+
+- `fur.instrument.typeSTD`
+- `fur.instrument.typeFM`
+- `fur.instrument.typeGB`
+- `fur.instrument.typeC64`
+- `fur.instrument.typeAmiga`
+- `fur.instrument.typePCE`
+- `fur.instrument.typeAY`
+- `fur.instrument.typeAY8930`
+- `fur.instrument.typeTIA`
+- `fur.instrument.typeSAA1099`
+- `fur.instrument.typeVIC`
+- `fur.instrument.typePET`
+- `fur.instrument.typeVRC6`
+- `fur.instrument.typeOPLL`
+- `fur.instrument.typeOPL`
+- `fur.instrument.typeFDS`
+- `fur.instrument.typeVB`
+- `fur.instrument.typeN163`
+- `fur.instrument.typeSCC`
+- `fur.instrument.typeOPZ`
+- `fur.instrument.typePOKEY`
+- `fur.instrument.typeBeeper`
+- `fur.instrument.typeSwan`
+- `fur.instrument.typeMikey`
+- `fur.instrument.typeVERA`
+- `fur.instrument.typeX1`
+- `fur.instrument.typeVRC6Saw`
+- `fur.instrument.typeES5506`
+- `fur.instrument.typeMultiPCM`
+- `fur.instrument.typeSNES`
+- `fur.instrument.typeSoundUnit`
+- `fur.instrument.typeNamco`
+- `fur.instrument.typeOPLDrums`
+- `fur.instrument.typeOPM`
+- `fur.instrument.typeNES`
+- `fur.instrument.typeMSM6258`
+- `fur.instrument.typeMSM6295`
+- `fur.instrument.typeADPCMA`
+- `fur.instrument.typeADPCMB`
+- `fur.instrument.typeSegaPCM`
+- `fur.instrument.typeQSound`
+- `fur.instrument.typeYMZ280B`
+- `fur.instrument.typeRF5C68`
+- `fur.instrument.typeMSM5232`
+- `fur.instrument.typeT6W28`
+- `fur.instrument.typeK007232`
+- `fur.instrument.typeGA20`
+- `fur.instrument.typePokeMini`
+- `fur.instrument.typeSM8521`
+- `fur.instrument.typePV1000`
+- `fur.instrument.typeK053260`
+- `fur.instrument.typeTED`
+- `fur.instrument.typeC140`
+- `fur.instrument.typeC219`
+- `fur.instrument.typeESFM`
+- `fur.instrument.typePowerNoise`
+- `fur.instrument.typePowerNoiseSlope`
+- `fur.instrument.typeDave`
+- `fur.instrument.typeNDS`
+- `fur.instrument.typeGBADMA`
+- `fur.instrument.typeGBAMinMod`
+- `fur.instrument.typeBifurcator`
+- `fur.instrument.typeSID2`
+- `fur.instrument.typeSupervision`
+- `fur.instrument.typeSID3`
+- `fur.instrument.typeKlattsch`
+
+  type: integer
+
+  value: (various)
+
+  constants denoting the instrument types
 
 - `fur.instrument.featureFM`
 - `fur.instrument.featureGB`
@@ -1311,6 +1466,31 @@ all functions use 0-indexing.
   value: 0-4
 
   constants denoting the SNES gain modes
+
+### `sample`
+
+- `fur.sample.depth1BitPCM`
+- `fur.sample.depth1BitDPCM`
+- `fur.sample.depthYMZADPCM`
+- `fur.sample.depthQSoundADPCM`
+- `fur.sample.depthADPCMA`
+- `fur.sample.depthADPCMB`
+- `fur.sample.depthK05ADPCM`
+- `fur.sample.depth8BitPCM`
+- `fur.sample.depthBRR`
+- `fur.sample.depthVOX`
+- `fur.sample.depth8BituLaw`
+- `fur.sample.depthC219PCM`
+- `fur.sample.depthIMAADPCM`
+- `fur.sample.depth12BitPCM`
+- `fur.sample.depth4BitPCM`
+- `fur.sample.depth16BitPCM`
+
+  type: integer
+
+  value: 0, 2-16
+
+  constants denoting sample types
 
 #### `system`
 
@@ -1897,3 +2077,109 @@ all macro entries use the same format:
     phase=(integer),
   },
   ```
+
+## appendix C: dispatch state table format
+
+it is meant to match the dispatch state debug view
+
+```
+{
+  freq=(integer),
+  baseFreq=(integer),
+  pitch=(integer),
+  pitch2=(integer),
+  arpOff=(integer),
+  baseNoteOverride=(integer),
+  note=(integer),
+  sampleNote=(integer),
+  sampleNoteDelta=(integer),
+  ins=(integer),
+  vol=(integer),
+  outVol=(integer),
+  freq=(integer),
+  active=(boolean),
+  insChanged=(boolean),
+  freqChanged=(boolean),
+  fixedArp=(boolean),
+  keyOn=(boolean),
+  keyOff=(boolean),
+  portaPause=(boolean),
+  inPorta=(boolean),
+  rawFreq=(boolean),
+}
+```
+
+## appendix D: channel state table format
+
+it is meant to match the channel state debug view
+
+```
+{
+  note=(integer),
+  oldNote=(integer),
+  lastIns=(integer),
+  pitch=(integer),
+  portaSpeed=(integer),
+  portaNote=(integer),
+  volume=(integer),
+  volSpeed=(integer),
+  volSpeedTarget=(integer),
+  cut=(integer),
+  volCut=(integer),
+  legatoDelay=(integer),
+  legatoTarget=(integer),
+  rowDelay=(integer),
+  volMax=(integer),
+  delayOrder=(integer),
+  delayRow=(integer),
+  retrigSpeed=(integer),
+  retrigTick=(integer),
+  vibratoDepth=(integer),
+  vibratoRate=(integer),
+  vibratoPos=(integer),
+  vibratoPosGiant=(integer),
+  vibratoShape=(integer),
+  vibratoFine=(integer),
+  tremoloDepth=(integer),
+  tremoloRate=(integer),
+  tremoloPos=(integer),
+  panDepth=(integer),
+  panRate=(integer),
+  panPos=(integer),
+  panSpeed=(integer),
+  sampleOff=(integer),
+  arp=(integer),
+  arpStage=(integer),
+  arpTicks=(integer),
+  panL=(integer),
+  panR=(integer),
+  panRL=(integer),
+  panRR=(integer),
+  lastVibrato=(integer),
+  lastPorta=(integer),
+  cutType=(integer),
+  doNote=(boolean),
+  legato=(boolean),
+  portaStop=(boolean),
+  keyOn=(boolean),
+  keyOff=(boolean),
+  stopOnOff=(boolean),
+  releasing=(boolean),
+  arpYield=(boolean),
+  delayLocked=(boolean),
+  inPorta=(boolean),
+  scheduledSlideReset=(boolean),
+  shorthandPorta=(boolean),
+  wasShorthandPorta=(boolean),
+  noteOnInhibit=(boolean),
+  resetArp=(boolean),
+  sampleOffSet=(boolean),
+  wentThroughNote=(boolean),
+  goneThroughNote=(boolean),
+  midiNote=(integer),
+  curMidiNote=(integer),
+  midiPitch=(integer),
+  midiAge=(integer),
+  midiAftertouch=(boolean),
+}
+```

@@ -3588,6 +3588,7 @@ class FurnaceGUI {
     API_FUNC(isRunning)
     API_FUNC(isFreelance)
     API_FUNC(resetEngine)
+    API_FUNC(getDispatchState)
     API_FUNC(getChanState)
 
     /// ENGINE STATE
@@ -3655,7 +3656,7 @@ class FurnaceGUI {
     API_FUNC(swapChannels)
     API_FUNC(stompChannel)
 
-    /// INSTRUMENT MANIPULATION (TODO)
+    /// INSTRUMENT MANIPULATION
     API_FUNC(createIns)
     API_FUNC(deleteIns)
     API_FUNC(getInsName)
@@ -3751,8 +3752,6 @@ class FurnaceGUI {
     API_FUNC(dialogItemFloat)
     // function
     API_FUNC(dialogShow)
-    // probably dont do this
-    API_FUNC(dialogGetItems)
 
     /// GUI
     // titlebar, function
