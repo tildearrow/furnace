@@ -239,7 +239,8 @@ void FurnaceGUI::commitSettings() {
 
   bool scriptSettingsChanged=(
     settings.scriptingAllowIO!=e->getConfBool("scriptingAllowIO",0) ||
-    settings.scriptingAllowOS!=e->getConfBool("scriptingAllowOS",0)
+    settings.scriptingAllowOS!=e->getConfBool("scriptingAllowOS",0) ||
+    settings.scriptingAllowPackage!=e->getConfBool("scriptingAllowPackage",0)
   );
 
   writeConfig(e->getConfObject());
