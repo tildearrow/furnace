@@ -3179,7 +3179,7 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
   const char* tGotIt=_N("Got It");
   int kGotIt=ImGuiKey_Enter;
 
-  const char* tOk=_N("Ok");
+  const char* tOk=_N("OK");
   int kOk=ImGuiKey_Enter;
 
   FurnaceGUI::WarnChoice wCancel={tCancel,kCancel,[]{}};
