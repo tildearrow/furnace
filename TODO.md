@@ -1,8 +1,3 @@
-# scripting
-
-- documentation
-- more functions
-
 # to-do for 0.7?
 
 - CSM macros

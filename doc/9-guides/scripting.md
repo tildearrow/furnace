@@ -225,6 +225,76 @@ all functions use 0-indexing.
 
   returns the current subsong number
 
+- `fur.engine.swapInstruments()`
+
+  arguments: 1st instrument (integer), 2nd instrument (integer)
+
+  return type: boolean
+
+  swaps instruments
+
+  returns true on success, false on failure
+
+- `fur.engine.swapWaves()`
+
+  arguments: 1st wavetable (integer), 2nd wavetable (integer)
+
+  return type: boolean
+
+  swaps wavetables
+
+  returns true on success, false on failure
+
+- `fur.engine.swapSamples()`
+
+  arguments: 1st sample (integer), 2nd sample (integer)
+
+  return type: boolean
+
+  swaps samples
+
+  returns true on success, false on failure
+
+- `fur.engine.exchangeIns()`
+
+  arguments: 1st instrument (integer), 2nd instrument (integer)
+
+  return type: none
+
+  changes every occurence of the 1st instrument with the 2nd instrument
+
+- `fur.engine.exchangeSample()`
+
+  arguments: 1st sample (integer), 2nd sample (integer)
+
+  return type: none
+
+  changes every occurence of the 1st sample with the 2nd sample
+
+- `fur.engine.copyChannel()`
+
+  arguments: source channel (integer), destination channel (integer)
+
+  return type: none
+
+  copies the data from the source channel into the destination channel
+
+- `fur.engine.copyChannel()`
+
+  arguments: 1st channel (integer), 2nd channel (integer)
+
+  return type: none
+
+  swaps channel data
+
+- `fur.engine.stompChannel()`
+
+  arguments: channel (integer)
+
+  return type: none
+
+  erases channel data
+
 - `fur.engine.getDispatchState()`
 
   arguments: channel (integer)
@@ -1210,6 +1280,122 @@ all functions use 0-indexing.
   when the dialog is confirmed, it runs the given function
 
   the dialog inputs are passed as arguments to the function, so the function has to have as many arguments as there are dialog inputs
+
+#### gui
+
+- `fur.gui.registerWindow`
+
+  arguments: window title (string), window draw function(function)
+
+  return type: none
+
+  adds a new window to the GUI, with an entry in the "window" menu
+
+  the window open state is stored inside the config, unless the window was added from the playground
+
+**the following functions are meant to run inside a window draw function**
+
+- `fur.gui.text`
+
+  arguments: text (string)
+
+  return type: none
+
+  adds a text windget to a window
+
+- `fur.gui.button`
+
+  arguments: label (string)
+
+  return type: boolean
+
+  adds a button windget to a window
+
+  returns true when pressed
+
+- `fur.gui.getWindowDrawList`
+- `fur.gui.getBackgroundDrawList`
+- `fur.gui.getForegroundDrawList`
+
+  arguments: none
+
+  return type: lightuserdata
+
+  get the window/background/foreground draw list object pointer
+
+- `fur.gui.getCursorPos`
+
+  arguments: none
+
+  return type: 2×number
+
+  gets the widget cursor position of a window (x,y)
+
+  the position is relative to the window
+
+- `fur.gui.getCursorScreenPos`
+
+  arguments: none
+
+  return type: 2×number
+
+  gets the widget cursor position of a window (x,y)
+
+  the position is absolute
+
+- `fur.gui.getContentRegionAvail`
+
+  arguments: none
+
+  return type: 2×number
+
+  gets the size of the available content region inside a window (width,height)
+
+- `fur.gui.drawLine`
+
+  arguments: draw list pointer (lightuserdata), 1st point x position (number), 1st point y position (number), 2nd point x position (number), 2nd point y position (number), line color (integer), (optional) line thickness (number)
+
+  return type: none
+
+  draws a line
+
+- `fur.gui.drawRect`
+
+  arguments: draw list pointer (lightuserdata), 1st point x position (number), 1st point y position (number), 2nd point x position (number), 2nd point y position (number), line color (integer), (optional) rounding (number), (optional) line thickness (number) or filled (boolean)
+
+  return type: none
+
+  draws a rectangle
+
+- `fur.gui.drawRect`
+
+  arguments: draw list pointer (lightuserdata), origin x position (number), origin y position (number), text color (integer), text (string)
+
+  return type: none
+
+  draws text
+
+- `fur.gui.colorRGBA`
+
+  arguments: red value (integer), green value (integer), blue value (integer), (optional) alpha value (integer)
+
+  return type: integer
+
+  joins separate red, green, blue, alpha values into one integer
+
+  the format may vary across different platforms but its usually ABGR8888
+
+- `fur.gui.colorHSV`
+
+  arguments: hue (number), saturation (number), value (number)
+
+  return type: integer
+
+  converts HSV color to a single RGBA color
+
+  the format may vary across different platforms but its usually ABGR8888
+
+
 
 ### constants
 

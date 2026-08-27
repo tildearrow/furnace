@@ -7591,7 +7591,7 @@ bool FurnaceGUI::loop() {
         }
         int result=lua_pcall(scriptDialog.state,scriptDialog.items.size(),LUA_MULTRET,0);
         if (result!=LUA_OK) {
-          showError(fmt::sprintf(_("runScriptFunction error!\n%s"),getScriptError(scriptDialog.state,result)));
+          showError(fmt::sprintf(_("dialog callback error!\n%s"),getScriptError(scriptDialog.state,result)));
         }
         ImGui::CloseCurrentPopup();
       }

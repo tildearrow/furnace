@@ -366,6 +366,13 @@ _CF(showError) {
   return 0;
 }
 
+_CF(inspect) {
+  CHECK_ARGS(1);
+  String repr=inspectTopValue(s,false);
+  lua_pushstring(s,repr.c_str());
+  return 1;
+}
+
 _CF(getCursor) {
   lua_pushinteger(s,cursor.xCoarse);
   lua_pushinteger(s,cursor.xFine);
@@ -1126,6 +1133,103 @@ _CF(setPatLength) {
   return 0;
 }
 
+_CF(swapInstruments) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int a, b;
+  a=lua_tointeger(s,1);
+  b=lua_tointeger(s,2);
+  lua_pushboolean(s,e->swapInstruments(a,b));
+  return 1;
+}
+
+_CF(swapWaves) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int a, b;
+  a=lua_tointeger(s,1);
+  b=lua_tointeger(s,2);
+  lua_pushboolean(s,e->swapWaves(a,b));
+  return 1;
+}
+
+_CF(swapSamples) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int a, b;
+  a=lua_tointeger(s,1);
+  b=lua_tointeger(s,2);
+  lua_pushboolean(s,e->swapSamples(a,b));
+  return 1;
+}
+
+_CF(exchangeIns) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int one, two;
+  one=lua_tointeger(s,1);
+  two=lua_tointeger(s,2);
+  e->exchangeIns(one,two);
+  return 0;
+}
+
+_CF(exchangeWave) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int one, two;
+  one=lua_tointeger(s,1);
+  two=lua_tointeger(s,2);
+  e->exchangeWave(one,two);
+  return 0;
+}
+
+_CF(exchangeSample) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int one, two;
+  one=lua_tointeger(s,1);
+  two=lua_tointeger(s,2);
+  e->exchangeSample(one,two);
+  return 0;
+}
+
+_CF(copyChannel) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int src, dest;
+  src=lua_tointeger(s,1);
+  dest=lua_tointeger(s,2);
+  e->copyChannel(src,dest);
+  return 0;
+}
+
+_CF(swapChannels) {
+  CHECK_ARGS(2)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  int src, dest;
+  src=lua_tointeger(s,1);
+  dest=lua_tointeger(s,2);
+  e->swapChannels(src,dest);
+  return 0;
+}
+
+_CF(stompChannel) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_INTEGER(1)
+  int ch;
+  ch=lua_tointeger(s,1);
+  e->stompChannel(ch);
+  return 0;
+}
+
 _CF(createIns) {
   int ret=e->addInstrument();
   if (ret>=0) {
@@ -1291,11 +1395,11 @@ _CF(setInsMacroData) {
       switch (lua_type(s,-1)) {
         case LUA_TBOOLEAN:
           value=lua_toboolean(s,-1);
-          writeMacro(macro,key,NULL,value);
+          readFeatureMacro(macro,key,NULL,value);
           break;
         case LUA_TNUMBER:
           value=lua_tointeger(s,-1);
-          writeMacro(macro,key,NULL,value);
+          readFeatureMacro(macro,key,NULL,value);
           break;
         case LUA_TTABLE: { // subtable
           if (strcmp(key,"values")==0) {
@@ -1320,7 +1424,7 @@ _CF(setInsMacroData) {
                 if (lua_isinteger(s,-1)) {
                   const char* subkey=lua_tostring(s,-2);
                   int value=lua_tointeger(s,-1);
-                  writeMacro(macro,key,subkey,value);
+                  readFeatureMacro(macro,key,subkey,value);
                 }
               }
               lua_pop(s,1);
@@ -2521,6 +2625,8 @@ _CF(guiRegisterWindow) {
   return 0;
 }
 
+// these gui functions do not require FurnaceGUI
+
 static int _guiText(lua_State* s) {
   CHECK_ARGS(1)
   CHECK_TYPE_STRING(1)
@@ -2529,9 +2635,34 @@ static int _guiText(lua_State* s) {
   return 0;
 }
 
+static int _guiButton(lua_State* s) {
+  CHECK_ARGS(1)
+  CHECK_TYPE_STRING(1)
+  const char* label=lua_tostring(s,1);
+  lua_pushboolean(s,ImGui::Button(label));
+  return 1;
+}
+
 static int _guiGetWindowDrawList(lua_State* s) {
   lua_pushlightuserdata(s,ImGui::GetWindowDrawList());
   return 1;
+}
+
+static int _guiGetBackgroundDrawList(lua_State* s) {
+  lua_pushlightuserdata(s,ImGui::GetBackgroundDrawList());
+  return 1;
+}
+
+static int _guiGetForegroundDrawList(lua_State* s) {
+  lua_pushlightuserdata(s,ImGui::GetForegroundDrawList());
+  return 1;
+}
+
+static int _guiGetCursorPos(lua_State* s) {
+  ImVec2 pos=ImGui::GetCursorPos();
+  lua_pushnumber(s,pos.x);
+  lua_pushnumber(s,pos.y);
+  return 2;
 }
 
 static int _guiGetCursorScreenPos(lua_State* s) {
@@ -2571,6 +2702,45 @@ static int _guiColorRGBA(lua_State* s) {
   }
   lua_pushinteger(s,IM_COL32(r,g,b,a));
   return 1;
+}
+
+static int _guiColorHSV(lua_State* s) {
+  CHECK_ARGS(3)
+  float h,sa,v;
+  CHECK_TYPE_NUMBER(1)
+  CHECK_TYPE_NUMBER(2)
+  CHECK_TYPE_NUMBER(3)
+  h=lua_tonumber(s,1);
+  sa=lua_tonumber(s,2);
+  v=lua_tonumber(s,3);
+  float r,g,b;
+  ImGui::ColorConvertHSVtoRGB(h,sa,v,r,g,b);
+  lua_pushinteger(s,ImGui::ColorConvertFloat4ToU32({r,g,b,1.0f}));
+  return 1;
+}
+
+static int _guiDrawLine(lua_State* s) {
+  CHECK_ARGS_RANGE(6,7)
+  CHECK_TYPE(lightuserdata,1)
+  CHECK_TYPE_NUMBER(2)
+  CHECK_TYPE_NUMBER(3)
+  CHECK_TYPE_NUMBER(4)
+  CHECK_TYPE_NUMBER(5)
+  CHECK_TYPE_NUMBER(6)
+  ImDrawList* dl=(ImDrawList*)lua_touserdata(s,1);
+  ImVec2 p1, p2;
+  p1.x=lua_tonumber(s,2);
+  p1.y=lua_tonumber(s,3);
+  p2.x=lua_tonumber(s,4);
+  p2.y=lua_tonumber(s,5);
+  ImU32 color=lua_tointeger(s,6);
+  float thickness=1.0f;
+  if (lua_gettop(s)>6) {
+    CHECK_TYPE_NUMBER(7)
+    thickness=lua_tonumber(s,7);
+  }
+  dl->AddLine(p1,p2,color,thickness);
+  return 0;
 }
 
 static int _guiDrawRect(lua_State* s) {
@@ -2617,11 +2787,21 @@ static int _guiDrawRect(lua_State* s) {
   return 0;
 }
 
-_CF(inspect) {
-  CHECK_ARGS(1);
-  String repr=inspectTopValue(s,false);
-  lua_pushstring(s,repr.c_str());
-  return 1;
+static int _guiDrawText(lua_State* s) {
+  CHECK_ARGS(5)
+  CHECK_TYPE(lightuserdata,1)
+  CHECK_TYPE_NUMBER(2)
+  CHECK_TYPE_NUMBER(3)
+  CHECK_TYPE_NUMBER(4)
+  CHECK_TYPE_STRING(5)
+  ImDrawList* dl=(ImDrawList*)lua_touserdata(s,1);
+  ImVec2 pos;
+  pos.x=lua_tonumber(s,2);
+  pos.y=lua_tonumber(s,3);
+  ImU32 color=lua_tointeger(s,4);
+  const char* text=lua_tostring(s,5);
+  dl->AddText(pos,color,text);
+  return 0;
 }
 
 // LOGGING
@@ -2720,6 +2900,15 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("isFreelance",isFreelance);
     API_ADD_FUNC("getChanCount",getChanCount);
     API_ADD_FUNC("getCurSubSong",getCurSubSong);
+    API_ADD_FUNC("swapInstruments",swapInstruments);
+    API_ADD_FUNC("swapWaves",swapWaves);
+    API_ADD_FUNC("swapSamples",swapSamples);
+    API_ADD_FUNC("exchangeIns",exchangeIns);
+ // API_ADD_FUNC("exchangeWave",exchangeWave); // "does nothing"
+    API_ADD_FUNC("exchangeSample",exchangeSample);
+    API_ADD_FUNC("copyChannel",copyChannel);
+    API_ADD_FUNC("swapChannels",swapChannels);
+    API_ADD_FUNC("stompChannel",stompChannel);
     API_ADD_FUNC("getDispatchState",getDispatchState);
     API_ADD_FUNC("getChanState",getChanState);
   API_CATG_END;
@@ -2903,11 +3092,18 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   API_USE_CATG("gui")
     API_ADD_FUNC("registerWindow",guiRegisterWindow);
     API_ADD_FUNC("text",guiText);
+    API_ADD_FUNC("button",guiButton);
     API_ADD_FUNC("getWindowDrawList",guiGetWindowDrawList);
+    API_ADD_FUNC("getBackgroundDrawList",guiGetBackgroundDrawList);
+    API_ADD_FUNC("getForegroundDrawList",guiGetForegroundDrawList);
+    API_ADD_FUNC("getCursorPos",guiGetCursorPos);
     API_ADD_FUNC("getCursorScreenPos",guiGetCursorScreenPos);
     API_ADD_FUNC("getContentRegionAvail",guiGetContentRegionAvail);
+    API_ADD_FUNC("drawLine",guiDrawLine);
     API_ADD_FUNC("drawRect",guiDrawRect);
+    API_ADD_FUNC("drawText",guiDrawText);
     API_ADD_FUNC("colorRGBA",guiColorRGBA);
+    API_ADD_FUNC("colorHSV",guiColorHSV);
   API_CATG_END;
 
   lua_pop(s,1);

@@ -21,9 +21,7 @@
 
 // instruments are so complicated the API helper functions are kept separate
 
-const DivInstrument defaultIns;
-
-void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, int value) {
+void readFeatureMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, int value) {
   #define CHECK_PARAM(_k,_p,_mn,_mx) if (strcmp(key,_k)==0) {macro->_p=CLAMP(value,_mn,_mx);}
   CHECK_PARAM("delay",delay,0,255)
   else CHECK_PARAM("speed",speed,0,255)
@@ -61,6 +59,7 @@ void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, 
     macro->open=(macro->open&(~6));
     macro->len=0;
   }
+  #undef CHECK_PARAM
 }
 
 void writeFeatureFM(DivInstrument* ins, lua_State* s) {

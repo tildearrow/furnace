@@ -121,8 +121,7 @@ class LuaValueInspector {
     void inspect(String& dest);
 };
 
-void writeIns(DivInstrument* ins, DivInstrumentType type, const char* key, const char* subkey, int value);
-void writeMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, int value);
+void readFeatureMacro(DivInstrumentMacro* macro, const char* key, const char* subkey, int value);
 
 void writeFeatureFM(DivInstrument* ins, lua_State* s);
 void writeFeatureGB(DivInstrument* ins, lua_State* s);

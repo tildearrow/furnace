@@ -3650,9 +3650,13 @@ class FurnaceGUI {
     API_FUNC(setPatLength)
 
     /// HIGH-LEVEL FUNCTIONS
+    API_FUNC(swapInstruments)
+    API_FUNC(swapWaves)
+    API_FUNC(swapSamples)
     API_FUNC(exchangeIns)
     API_FUNC(exchangeWave)
     API_FUNC(exchangeSample)
+    API_FUNC(copyChannel)
     API_FUNC(swapChannels)
     API_FUNC(stompChannel)
 
