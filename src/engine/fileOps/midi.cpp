@@ -829,7 +829,10 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
         // MIDI 60 (C4) maps to Furnace 108, which is C-4
         pat->newData[localRow][DIV_PAT_NOTE]=(short)(ev.note+48);
 
-        std::pair<int, int> insKey={pi, (int)ev.program};
+        // key on the timbre, not the part - two tracks on the same GM program
+        // share one instrument. drums are their own namespace (program 0 is a
+        // kit on channel 10, a piano everywhere else)
+        std::pair<int, int> insKey={(part.channel==9)?1:0, (int)ev.program};
         std::map<std::pair<int, int>, int>::iterator insIt=insMap.find(insKey);
         int insIndex;
         if (insIt==insMap.end()) {
