@@ -1374,6 +1374,11 @@ class DivEngine {
     unsigned char* tg100ROM;
     unsigned char* mu5ROM;
 
+    // MIDI import options. set these before loading a .mid - see loadMIDI().
+    // the enabled sources multiply together; if all are off the volume column
+    // is left at maximum.
+    bool midiImportVelocity, midiImportCC7, midiImportCC11;
+
     DivEngine():
       output(NULL),
       exportThread(NULL),
@@ -1509,7 +1514,10 @@ class DivEngine {
       processTime(0),
       yrw801ROM(NULL),
       tg100ROM(NULL),
-      mu5ROM(NULL) {
+      mu5ROM(NULL),
+      midiImportVelocity(true),
+      midiImportCC7(true),
+      midiImportCC11(true) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(vibTable,0,64*sizeof(short));

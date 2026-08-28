@@ -2932,6 +2932,14 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     fclose(f);
+    // a MIDI needs import options picked first. bounce it to the dialog, which
+    // calls back into here with midiImportPending set once the user confirms.
+    if (!midiImportPending && len>=4 && memcmp(file,"MThd",4)==0) {
+      delete[] file;
+      pendingMIDIPath=path;
+      displayMIDIImport=true;
+      return 0;
+    }
     if (!e->load(file,(size_t)len,path.c_str())) {
       lastError=e->getLastError();
       logE("could not open file!");
@@ -6941,6 +6949,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup(_("Import Raw Sample"));
     }
 
+    if (displayMIDIImport) {
+      displayMIDIImport=false;
+      ImGui::OpenPopup(_("Import MIDI"));
+    }
+
     if (displayInsTypeList) {
       displayInsTypeList=false;
       ImGui::OpenPopup("InsTypeList");
@@ -7902,6 +7915,45 @@ bool FurnaceGUI::loop() {
       ImGui::SameLine();
       if (ImGui::Button(_("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    ImVec2 midiImportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(460.0f*dpiScale,280.0f*dpiScale);
+    ImVec2 midiImportMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
+    ImGui::SetNextWindowSizeConstraints(midiImportMinSize,midiImportMaxSize);
+    if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
+      if (ImGui::GetWindowSize().x<midiImportMinSize.x || ImGui::GetWindowSize().y<midiImportMinSize.y) {
+        ImGui::SetWindowSize(midiImportMinSize,ImGuiCond_Always);
+      }
+      ImGui::Text(_("Volume column:"));
+      ImGui::Indent();
+      ImGui::Checkbox(_("Note velocity"),&e->midiImportVelocity);
+      ImGui::Checkbox(_("CC7 (channel volume)"),&e->midiImportCC7);
+      ImGui::Checkbox(_("CC11 (expression)"),&e->midiImportCC11);
+      ImGui::Unindent();
+      if (!e->midiImportVelocity && !e->midiImportCC7 && !e->midiImportCC11) {
+        ImGui::TextWrapped(_("with all of them off, every note is imported at maximum volume."));
+      } else {
+        ImGui::TextWrapped(_("the enabled sources multiply together, the way they would on a MIDI synth."));
+      }
+
+      ImGui::SetCursorPosY(ImGui::GetWindowSize().y-ImGui::GetFrameHeightWithSpacing()-ImGui::GetStyle().ItemSpacing.y*2.0f);
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0)) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Import"),ImVec2(200.0f*dpiScale,0))) {
+        String path=pendingMIDIPath;
+        ImGui::CloseCurrentPopup();
+        midiImportPending=true;
+        int result=load(path);
+        midiImportPending=false;
+        if (result>0) {
+          showError(fmt::sprintf(_("Error while loading file! (%s)"),lastError));
+        }
       }
       ImGui::EndPopup();
     }
@@ -9516,6 +9568,8 @@ FurnaceGUI::FurnaceGUI():
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),
   pendingRawSampleReplace(false),
+  displayMIDIImport(false),
+  midiImportPending(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
