@@ -255,6 +255,57 @@ template<typename K> static K midiMostCommonByDuration(const std::vector<std::pa
   return best;
 }
 
+// rows per quarter note. the smallest one that captures the groove keeps
+// patterns short; 12 and 24 are there so triplets are not mangled
+static const int midiRCandidates[6]={4, 8, 12, 16, 24, 32};
+
+// what the import dialog offers when the grid is set by hand. it reaches past
+// the auto-detect list because spreading notes out is a valid reason to ask for
+// a finer grid than the file itself needs
+static const int midiRManual[8]={4, 8, 12, 16, 24, 32, 48, 64};
+
+// pick rows per quarter note: the smallest candidate landing at least 95% of
+// note-ons on its grid. failing that, the candidate that fits best - a humanized
+// or live-recorded file has no clean grid, and the closest fit still beats
+// whatever the tick rate happened to allow. rMax caps the grid because a row
+// cannot be shorter than one tick; if nothing fits under it, fallback stands
+static int midiDetectR(const std::vector<DivMIDIEvent>& events, int TPQN, double rMax, int fallback) {
+  int totalNoteOns=0;
+  for (const DivMIDIEvent& e: events) {
+    if (e.type==DIV_MIDI_NOTE_ON) totalNoteOns++;
+  }
+  if (totalNoteOns<1) return fallback;
+
+  int bestCand=0;
+  double bestPct=0.0;
+  for (int ci=0; ci<6; ci++) {
+    int cand=midiRCandidates[ci];
+    if ((double)cand>rMax) break;
+    int onGrid=0;
+    for (const DivMIDIEvent& e: events) {
+      if (e.type!=DIV_MIDI_NOTE_ON) continue;
+      double scaled=(double)e.tick*(double)cand/(double)TPQN;
+      if (fabs(scaled-(double)llround(scaled))<0.05) onGrid++;
+    }
+    double pct=(double)onGrid/(double)totalNoteOns;
+    // strictly greater, so a tie keeps the smaller (shorter) grid
+    if (bestCand==0 || pct>bestPct) {
+      bestPct=pct;
+      bestCand=cand;
+    }
+    if (pct>=0.95) {
+      logI("MIDI import: R=%d (%.1f%% of notes on-grid)",cand,pct*100.0);
+      return cand;
+    }
+  }
+  if (bestCand==0) {
+    logI("MIDI import: no R candidate fits the tick rate; using R=%d",fallback);
+    return fallback;
+  }
+  logI("MIDI import: no clean grid fit; best match R=%d (%.1f%% of notes on-grid)",bestCand,bestPct*100.0);
+  return bestCand;
+}
+
 #ifdef DIV_MIDI_SELFTEST
 #include <cassert>
 #include <cstdlib>
@@ -324,6 +375,38 @@ static void midiSelfTest() {
       assert(fabs(gotRows-rowsPerSecond)/rowsPerSecond<0.04);
     }
   }
+
+  // R detection. 16ths at TPQN 96 already sit on the 4-row grid
+  std::vector<DivMIDIEvent> rEvents;
+  static const int straightTicks[4]={0, 24, 48, 72};
+  for (int i=0; i<4; i++) {
+    rEvents.push_back({straightTicks[i], 0, 0, DIV_MIDI_NOTE_ON, (short)60, (short)100, (short)-1, 0, (short)0});
+  }
+  assert(midiDetectR(rEvents,96,1e9,16)==4);
+
+  // 8th triplets need 12
+  rEvents.clear();
+  static const int tripletTicks[4]={0, 32, 64, 96};
+  for (int i=0; i<4; i++) {
+    rEvents.push_back({tripletTicks[i], 0, 0, DIV_MIDI_NOTE_ON, (short)60, (short)100, (short)-1, 0, (short)0});
+  }
+  assert(midiDetectR(rEvents,96,1e9,12)==12);
+
+  // nothing reaches 95%: take the best scorer, not the fallback. 12 and 24 both
+  // score 80% here, and the tie has to go to the smaller grid
+  rEvents.clear();
+  static const int messyTicks[10]={0, 32, 64, 128, 160, 224, 256, 288, 7, 13};
+  for (int i=0; i<10; i++) {
+    rEvents.push_back({messyTicks[i], 0, 0, DIV_MIDI_NOTE_ON, (short)60, (short)100, (short)-1, 0, (short)0});
+  }
+  assert(midiDetectR(rEvents,96,1e9,16)==12);
+
+  // no candidate fits under the tick-rate cap, so the fallback stands
+  assert(midiDetectR(rEvents,96,3.0,4)==4);
+
+  // no notes at all
+  rEvents.clear();
+  assert(midiDetectR(rEvents,96,1e9,8)==8);
 }
 #endif
 
@@ -543,55 +626,62 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
         break;
       }
     }
-
-    // rows per quarter note. the smallest one that captures the groove keeps
-    // patterns short; 12 and 24 are there so triplets are not mangled
-    static const int midiRCandidates[6]={4, 8, 12, 16, 24, 32};
-    int totalNoteOns=0;
-    for (DivMIDIEvent& e: events) {
-      if (e.type==DIV_MIDI_NOTE_ON) totalNoteOns++;
-    }
-
     // a row cannot be shorter than one tick, so at a fixed tick rate this caps
     // how fine the grid gets. in base tempo mode the tick rate follows the song,
     // so there is nothing to cap against
     double rMax=midiImportBaseTempo?1e9:(MIDI_BASE_HZ*(double)tempo0/1000000.0);
+    // and one bar still has to fit inside one pattern
+    int rBarLimit=DIV_MAX_ROWS*denom/(numer*4);
+    if (rBarLimit<1) rBarLimit=1;
     int R=4;
-    for (int ci=0; ci<6; ci++) {
-      if (midiRCandidates[ci]>16) break;
-      if ((double)midiRCandidates[ci]<=rMax) R=midiRCandidates[ci];
-    }
-    if (totalNoteOns>0) {
-      bool foundR=false;
-      double lastPct=0.0;
+    int rAsked=0;
+    bool rBarCapped=false, rGrooveCapped=false;
+    if (midiImportR>0) {
+      rAsked=midiImportR;
+      R=midiImportR;
+      if (R>rBarLimit) {
+        R=rBarLimit;
+        rBarCapped=true;
+      }
+      if ((double)R>rMax) {
+        R=(int)floor(rMax);
+        rGrooveCapped=true;
+      }
+      // land back on a musical subdivision. a capped value like 28 rows per beat
+      // is arithmetically fine but means nothing to read
+      int snapped=midiRManual[0];
+      for (int i=0; i<8; i++) {
+        if (midiRManual[i]<=R) snapped=midiRManual[i];
+      }
+      R=snapped;
+      logI("MIDI import: R=%d (set by hand)",R);
+    } else {
       for (int ci=0; ci<6; ci++) {
-        int cand=midiRCandidates[ci];
-        if ((double)cand>rMax) break;
-        int onGrid=0;
-        for (DivMIDIEvent& e: events) {
-          if (e.type!=DIV_MIDI_NOTE_ON) continue;
-          double scaled=(double)e.tick*(double)cand/(double)TPQN;
-          if (fabs(scaled-(double)llround(scaled))<0.05) onGrid++;
-        }
-        double pct=(double)onGrid/(double)totalNoteOns;
-        lastPct=pct;
-        if (pct>=0.95) {
-          R=cand;
-          foundR=true;
-          logI("MIDI import: R=%d (%.1f%% of notes on-grid)",R,pct*100.0);
-          break;
-        }
+        if (midiRCandidates[ci]>16) break;
+        if ((double)midiRCandidates[ci]<=rMax) R=midiRCandidates[ci];
       }
-      if (!foundR) {
-        logI("MIDI import: R auto-detect found no good fit (best %.1f%% on-grid), falling back to %d",lastPct*100.0,R);
-      }
+      R=midiDetectR(events,TPQN,rMax,R);
     }
 
     int rowsPerBar=R*numer*4/denom;
     if (rowsPerBar<1) rowsPerBar=1;
-    int barsPerPattern=64/rowsPerBar;
+    // auto aims for 64 rows; an explicit setting is already a bar count. either
+    // way a pattern ends up a whole number of bars
+    int barsPerPattern=(midiImportBarsPerPattern>0)?midiImportBarsPerPattern:(64/rowsPerBar);
     if (barsPerPattern<1) barsPerPattern=1;
+    // drop bars until the pattern fits. the auto path can never trip this, since
+    // 64/rowsPerBar fits by construction, but an explicit count can ask for more
+    // than the row limit allows
+    int barCap=DIV_MAX_ROWS/rowsPerBar;
+    if (barCap<1) barCap=1;
+    bool patTruncated=false;
+    if (barsPerPattern>barCap) {
+      patTruncated=(midiImportBarsPerPattern>0);
+      barsPerPattern=barCap;
+    }
     int patLen=rowsPerBar*barsPerPattern;
+    // only reachable when a single bar is wider than a pattern; no bar-aligned
+    // length exists there
     if (patLen>DIV_MAX_ROWS) patLen=DIV_MAX_ROWS;
     if (patLen<1) patLen=1;
 
@@ -877,8 +967,9 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
           }
         }
         if (found>=0) {
-          // a note-off landing on its own note-on's row gets pushed one row down,
-          // unless that row already has a note - the retrigger covers it anyway
+          // a note-off landing on its own note-on's row gets pushed one row down.
+          // if that row is already taken on this voice, the note there ends the
+          // old one, so there is nothing to write and nothing lost
           int offRow=totalRow;
           bool pushed=false;
           if (offRow==voiceStartRow[found]) {
@@ -949,7 +1040,11 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       addWarning(fmt::sprintf("%d notes were re-timed by quantization",retimedCount));
     }
     if (droppedCount>0) {
-      addWarning(fmt::sprintf("%d note-offs were dropped due to quantization",droppedCount));
+      // not a warning: the row already holds a note on this same voice, so the
+      // retrigger ends the old note anyway. the one lossy case is a note-off on
+      // the very last row, which has nowhere to be pushed to and no audible
+      // consequence either
+      logD("MIDI import: %d note-offs fell on a retrigger row and were left out",droppedCount);
     }
     if (stealCount>0) {
       addWarning(fmt::sprintf("%d voice steals (more than %d simultaneous notes)",stealCount,DIV_MAX_CHANS));
@@ -959,6 +1054,15 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     }
     if (truncated) {
       addWarning("song truncated to 256 orders");
+    }
+    if (rBarCapped) {
+      addWarning(fmt::sprintf("rows per beat reduced from %d to %d; one bar has to fit in %d rows",rAsked,R,DIV_MAX_ROWS));
+    }
+    if (rGrooveCapped) {
+      addWarning(fmt::sprintf("rows per beat reduced from %d to %d; Groove Approximation holds the tick rate at %gHz, which this tempo cannot subdivide further. import with Base Tempo for a finer grid",rAsked,R,MIDI_BASE_HZ));
+    }
+    if (patTruncated) {
+      addWarning(fmt::sprintf("pattern length reduced to %d bar(s); %d would exceed the %d-row limit",barsPerPattern,midiImportBarsPerPattern,DIV_MAX_ROWS));
     }
     if (tooFast) {
       if (midiImportBaseTempo) {

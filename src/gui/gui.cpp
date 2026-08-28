@@ -7919,7 +7919,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    ImVec2 midiImportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(460.0f*dpiScale,360.0f*dpiScale);
+    ImVec2 midiImportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(480.0f*dpiScale,560.0f*dpiScale);
     ImVec2 midiImportMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
     ImGui::SetNextWindowSizeConstraints(midiImportMinSize,midiImportMaxSize);
     if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
@@ -7951,13 +7951,45 @@ bool FurnaceGUI::loop() {
         ImGui::TextWrapped(_("Keeps the tick rate at 60Hz and carries the tempo in the groove. rows may jitter by one tick."));
       }
 
+      ImGui::Separator();
+      ImGui::Text(_("Grid:"));
+      ImGui::Indent();
+      const char* rowsPerBeatNames[9]={_("Auto"), "4", "8", "12", "16", "24", "32", "48", "64"};
+      static const int rowsPerBeatValues[9]={0, 4, 8, 12, 16, 24, 32, 48, 64};
+      int rowsPerBeatIndex=0;
+      for (int i=0; i<9; i++) {
+        if (rowsPerBeatValues[i]==e->midiImportR) rowsPerBeatIndex=i;
+      }
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::Combo(_("Rows per beat"),&rowsPerBeatIndex,rowsPerBeatNames,9)) {
+        e->midiImportR=rowsPerBeatValues[rowsPerBeatIndex];
+      }
+      const char* patBarNames[6]={_("Auto"),_("1 bar"),_("2 bars"),_("4 bars"),_("8 bars"),_("16 bars")};
+      static const int patBarValues[6]={0, 1, 2, 4, 8, 16};
+      int patBarIndex=0;
+      for (int i=0; i<6; i++) {
+        if (patBarValues[i]==e->midiImportBarsPerPattern) patBarIndex=i;
+      }
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::Combo(_("Pattern length"),&patBarIndex,patBarNames,6)) {
+        e->midiImportBarsPerPattern=patBarValues[patBarIndex];
+      }
+      ImGui::Unindent();
+      if (e->midiImportR>0) {
+        ImGui::TextWrapped(_("More rows per beat spreads notes further apart without changing playback speed. Groove Approximation limits how fine the grid can get on faster songs."));
+      } else {
+        ImGui::TextWrapped(_("Rows per beat is detected from the file, and patterns take as many whole bars as fit in about 64 rows."));
+      }
+
       ImGui::SetCursorPosY(ImGui::GetWindowSize().y-ImGui::GetFrameHeightWithSpacing()-ImGui::GetStyle().ItemSpacing.y*2.0f);
       ImGui::Separator();
-      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0)) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+      // split the full width, so the pair spans the dialog at any DPI or font size
+      float midiImportBtnW=(ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x)*0.5f;
+      if (ImGui::Button(_("Cancel"),ImVec2(midiImportBtnW,0)) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button(_("Import"),ImVec2(200.0f*dpiScale,0))) {
+      if (ImGui::Button(_("Import"),ImVec2(midiImportBtnW,0))) {
         String path=pendingMIDIPath;
         ImGui::CloseCurrentPopup();
         midiImportPending=true;

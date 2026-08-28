@@ -1378,8 +1378,12 @@ class DivEngine {
     // the enabled volume sources multiply together; if all are off the volume
     // column is left at maximum. midiImportBaseTempo picks how the tempo is
     // carried: false solves it into a groove at the default tick rate, true
-    // sets the tick rate from the song's BPM instead.
+    // sets the tick rate from the song's BPM instead. midiImportBarsPerPattern
+    // is the pattern length in bars, or 0 to size it automatically.
     bool midiImportVelocity, midiImportCC7, midiImportCC11, midiImportBaseTempo;
+    int midiImportBarsPerPattern;
+    // rows per beat, or 0 to detect it from the file
+    int midiImportR;
 
     DivEngine():
       output(NULL),
@@ -1520,7 +1524,9 @@ class DivEngine {
       midiImportVelocity(true),
       midiImportCC7(true),
       midiImportCC11(true),
-      midiImportBaseTempo(false) {
+      midiImportBaseTempo(false),
+      midiImportBarsPerPattern(0),
+      midiImportR(0) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(vibTable,0,64*sizeof(short));
