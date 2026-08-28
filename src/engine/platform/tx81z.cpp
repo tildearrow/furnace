@@ -775,6 +775,16 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       immWrite(0x1b,lfoShape|(lfoShape2<<2));
       break;
     }
+    case DIV_CMD_FM_LFO3: {
+      lfoValue3=c.value;
+      immWrite(0x1e,lfoValue3);
+      break;
+    }
+    case DIV_CMD_FM_LFO4: {
+      lfoValue4=c.value;
+      immWrite(0x1c,lfoValue4);
+      break;
+    }
     case DIV_CMD_FM_ALG: {
       chan[c.chan].state.alg=c.value&7;
       rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|(chan[c.chan].chVolR<<7));
@@ -1180,6 +1190,8 @@ void DivPlatformTX81Z::forceIns() {
   immWrite(0x18,lfoValue);
   immWrite(0x16,lfoValue2);
   immWrite(0x1b,lfoShape|(lfoShape2<<2));
+  immWrite(0x1e,lfoValue3);
+  immWrite(0x1c,lfoValue4);
 }
 
 void DivPlatformTX81Z::notifyInsChange(int ins) {
@@ -1291,6 +1303,8 @@ void DivPlatformTX81Z::reset() {
   lfoValue2=0;
   lfoShape=0;
   lfoShape2=0;
+  lfoValue3=0;
+  lfoValue4=0;
 
   immWrite(0x15,0x01); // enter OPZ mode
   immWrite(0x0a,0x04); // enable mono bit

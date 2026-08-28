@@ -324,8 +324,8 @@ const char* cmdName[]={
   "FM_ALG",
   "FM_FMS",
   "FM_AMS",
-  "FM_FMS2",
-  "FM_AMS2",
+  "FM_LFO3",
+  "FM_LFO4",
 
   "KLATTSCH_PHONEME",
   "KLATTSCH_TRANSITION",
