@@ -4325,6 +4325,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
+          ImGui::AlignTextToFramePadding();
           ImGui::TextUnformatted(_("Tremolo"));
           ImGui::SameLine();
           if (ImGui::Button(ins->fm.tremLFO?"LFO4###TLFO":"LFO3###TLFO")) {
@@ -4856,7 +4857,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
             ImGui::TableNextColumn();
             CENTER_VSLIDER;
-            P(CWVSliderScalar("##TS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_SEVEN)); rightClickable
+            P(CWVSliderScalar("##TS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_THREE)); rightClickable
           }
 
           if (ins->type==DIV_INS_ESFM) {
@@ -5767,11 +5768,24 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   op.egt=egtOn;
                 }
 
+                // this chip has too many parameters. I can't think of a better placement for the tremolo setting.
+                float oneTinySlider=(ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x)*0.5f;
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_EGSHIFT));
+                ImGui::SetNextItemWidth(oneTinySlider);
+                snprintf(tempID,1024,"%s: %%d",FM_SHORT_NAME(FM_EGSHIFT));
                 P(CWSliderScalar("##EGShift",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE,tempID)); rightClickable
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("%s",FM_NAME(FM_EGSHIFT));
+                }
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(oneTinySlider);
+                snprintf(tempID,1024,"%s: %%d",FM_SHORT_NAME(FM_TS));
+                P(CWSliderScalar("##TS",ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_THREE,tempID)); rightClickable
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("%s",FM_NAME(FM_TS));
+                }
 
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -6225,6 +6239,16 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               P(CWSliderScalar(FM_NAME(FM_REV),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
               ImGui::TableNextColumn();
               ImGui::Text("%s",FM_NAME(FM_REV));
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar(FM_NAME(FM_TS),ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_THREE)); rightClickable
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",FM_SHORT_NAME(FM_TS));
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s",FM_NAME(FM_TS));
+              }
             }
 
             if (ins->type==DIV_INS_OPZ) {
