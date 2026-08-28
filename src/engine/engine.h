@@ -1375,9 +1375,11 @@ class DivEngine {
     unsigned char* mu5ROM;
 
     // MIDI import options. set these before loading a .mid - see loadMIDI().
-    // the enabled sources multiply together; if all are off the volume column
-    // is left at maximum.
-    bool midiImportVelocity, midiImportCC7, midiImportCC11;
+    // the enabled volume sources multiply together; if all are off the volume
+    // column is left at maximum. midiImportBaseTempo picks how the tempo is
+    // carried: false solves it into a groove at the default tick rate, true
+    // sets the tick rate from the song's BPM instead.
+    bool midiImportVelocity, midiImportCC7, midiImportCC11, midiImportBaseTempo;
 
     DivEngine():
       output(NULL),
@@ -1517,7 +1519,8 @@ class DivEngine {
       mu5ROM(NULL),
       midiImportVelocity(true),
       midiImportCC7(true),
-      midiImportCC11(true) {
+      midiImportCC11(true),
+      midiImportBaseTempo(false) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(vibTable,0,64*sizeof(short));

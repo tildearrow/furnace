@@ -7919,7 +7919,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    ImVec2 midiImportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(460.0f*dpiScale,280.0f*dpiScale);
+    ImVec2 midiImportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(460.0f*dpiScale,360.0f*dpiScale);
     ImVec2 midiImportMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
     ImGui::SetNextWindowSizeConstraints(midiImportMinSize,midiImportMaxSize);
     if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
@@ -7937,6 +7937,18 @@ bool FurnaceGUI::loop() {
         ImGui::TextWrapped(_("with all of them off, every note is imported at maximum volume."));
       } else {
         ImGui::TextWrapped(_("the enabled sources multiply together, the way they would on a MIDI synth."));
+      }
+
+      ImGui::Separator();
+      ImGui::Text(_("Tempo:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("Groove Approximation"),!e->midiImportBaseTempo)) e->midiImportBaseTempo=false;
+      if (ImGui::RadioButton(_("Base Tempo"),e->midiImportBaseTempo)) e->midiImportBaseTempo=true;
+      ImGui::Unindent();
+      if (e->midiImportBaseTempo) {
+        ImGui::TextWrapped(_("Sets the song's base tempo from the MIDI's own BPM. exact tempo and a flat speed, at the cost of an unusual tick rate."));
+      } else {
+        ImGui::TextWrapped(_("Keeps the tick rate at 60Hz and carries the tempo in the groove. rows may jitter by one tick."));
       }
 
       ImGui::SetCursorPosY(ImGui::GetWindowSize().y-ImGui::GetFrameHeightWithSpacing()-ImGui::GetStyle().ItemSpacing.y*2.0f);

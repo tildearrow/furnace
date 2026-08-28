@@ -183,8 +183,12 @@ static void midiBestRational(double x, int limit, int& p, int& q) {
   q=q1;
 }
 
-// the tick rate is never touched on import - the base tempo rides in the groove
+// the default tick rate, which groove approximation mode never touches - there
+// the base tempo rides in the groove instead
 #define MIDI_BASE_HZ 60.0
+
+// the ceiling the Speed window enforces on the tick rate
+#define MIDI_MAX_HZ 999.0
 
 // solve the average ticks per row into a groove of at most 16 integer entries,
 // spreading the remainder one row at a time (Bresenham) instead of front-loading it
@@ -548,8 +552,10 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       if (e.type==DIV_MIDI_NOTE_ON) totalNoteOns++;
     }
 
-    // a row cannot be shorter than one tick, so this caps how fine the grid gets
-    double rMax=MIDI_BASE_HZ*(double)tempo0/1000000.0;
+    // a row cannot be shorter than one tick, so at a fixed tick rate this caps
+    // how fine the grid gets. in base tempo mode the tick rate follows the song,
+    // so there is nothing to cap against
+    double rMax=midiImportBaseTempo?1e9:(MIDI_BASE_HZ*(double)tempo0/1000000.0);
     int R=4;
     for (int ci=0; ci<6; ci++) {
       if (midiRCandidates[ci]>16) break;
@@ -590,8 +596,28 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     if (patLen<1) patLen=1;
 
     DivGroovePattern baseGroove;
-    midiComputeBaseGroove(R,tempo0,baseGroove);
-    bool tooFast=(rMax<4.0);
+    double songHz=MIDI_BASE_HZ;
+    bool tooFast=false;
+    if (midiImportBaseTempo) {
+      // solve the tick rate instead of the groove. the speed stays flat, so
+      // the tempo is exact and the Base Tempo field reads the song's own BPM
+      // (hz*2.5 = R*BPM*speed/24, which is BPM itself whenever R*speed is 24)
+      double rowsPerSecond=(double)R*1000000.0/(double)tempo0;
+      int speed=6;
+      while (speed>1 && rowsPerSecond*(double)speed>MIDI_MAX_HZ) speed--;
+      songHz=rowsPerSecond*(double)speed;
+      if (songHz>MIDI_MAX_HZ) {
+        songHz=MIDI_MAX_HZ;
+        tooFast=true;
+      }
+      if (songHz<1.0) songHz=1.0;
+      baseGroove.len=1;
+      for (int i=0; i<16; i++) baseGroove.val[i]=(unsigned short)speed;
+      logI("MIDI import: base tempo mode - tick rate %g Hz, speed %d",songHz,speed);
+    } else {
+      midiComputeBaseGroove(R,tempo0,baseGroove);
+      tooFast=(rMax<4.0);
+    }
 
     int totalRows=(int)ceil((double)songEndTicks*(double)R/(double)TPQN)+1;
     if (totalRows<1) totalRows=1;
@@ -698,6 +724,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     DivSubSong* sub=ds.subsong[0];
     sub->speeds=baseGroove;
+    sub->hz=(float)songHz;
     sub->virtualTempoN=150;
     sub->virtualTempoD=150;
     sub->patLen=patLen;
@@ -931,7 +958,11 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       addWarning("song truncated to 256 orders");
     }
     if (tooFast) {
-      addWarning("song is too fast for the default tick rate; it will play back slower than the MIDI (raise the tick rate to fix)");
+      if (midiImportBaseTempo) {
+        addWarning("Song is too fast for the maximum tick rate of 999Hz; it will play back slower than the MIDI");
+      } else {
+        addWarning("Song is too fast for the default tick rate; it will play back slower than the MIDI (raise the tick rate, or import again with Base Tempo, to fix)");
+      }
     }
     if (approxTempoUsed) {
       addWarning("a tempo change ratio did not fit exactly and was approximated");
