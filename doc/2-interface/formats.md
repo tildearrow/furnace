@@ -14,6 +14,7 @@ this is a list of file formats that Furnace supports.
   - Impulse Tracker module (.it)
   - Future Composer module (.fc13/.fc14/.fc/.smod)
   - TFM Music Maker module (.tfe)
+  - Standard MIDI file (.mid/.midi)
 - export:
   - DefleMask module (.dmf)
   - VGM (.vgm)

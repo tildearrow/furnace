@@ -66,6 +66,7 @@ class DivWorkPool;
 #define DIV_VERSION_TFE 0xff05
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
+#define DIV_VERSION_MIDI 0xff08
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -548,6 +549,7 @@ class DivEngine {
   bool loadFC(unsigned char* file, size_t len);
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
+  bool loadMIDI(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
