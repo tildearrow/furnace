@@ -56,7 +56,7 @@ namespace ymfm
 //              -----xxx Channel select
 //           09 xxxxxx-x Test register
 //              ------x- LFO reset
-//           0A ----x--- Unknown
+//           0A ----x--- Funny bit (modified sine wave)
 //              -----x-- Key fraction mode
 //              ------xx Unknown
 //           0F ---xxxxx Noise frequency
