@@ -7919,14 +7919,15 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    ImVec2 midiImportMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(480.0f*dpiScale,560.0f*dpiScale);
-    ImVec2 midiImportMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
-    ImGui::SetNextWindowSizeConstraints(midiImportMinSize,midiImportMaxSize);
-    if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+    // width is pinned so the wrapped hint text has something to wrap against;
+    // height follows the content and is capped by the canvas, so this cannot
+    // overflow a short monitor the way a fixed minimum did
+    float midiImportW=mobileUI?(canvasW-(portrait?0:(60.0*dpiScale))):(480.0f*dpiScale);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(midiImportW,0.0f),ImVec2(midiImportW,canvasH-(mobileUI?(60.0*dpiScale):0)));
+    if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
-      if (ImGui::GetWindowSize().x<midiImportMinSize.x || ImGui::GetWindowSize().y<midiImportMinSize.y) {
-        ImGui::SetWindowSize(midiImportMinSize,ImGuiCond_Always);
-      }
+      ImGui::Text(_("Controllers:"));
+      ImGui::Indent();
       ImGui::Text(_("Volume column:"));
       ImGui::Indent();
       ImGui::Checkbox(_("Note velocity"),&e->midiImportVelocity);
@@ -7938,50 +7939,87 @@ bool FurnaceGUI::loop() {
       } else {
         ImGui::TextWrapped(_("the enabled sources multiply together, the way they would on a MIDI synth."));
       }
+      ImGui::Checkbox(_("Honor sustain pedal (CC64)"),&e->midiImportSustain);
+      ImGui::Unindent();
 
       ImGui::Separator();
       ImGui::Text(_("Tempo:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("Groove Approximation"),!e->midiImportBaseTempo)) e->midiImportBaseTempo=false;
       if (ImGui::RadioButton(_("Base Tempo"),e->midiImportBaseTempo)) e->midiImportBaseTempo=true;
+      if (ImGui::RadioButton(_("Groove Approximation"),!e->midiImportBaseTempo)) e->midiImportBaseTempo=false;
       ImGui::Unindent();
       if (e->midiImportBaseTempo) {
-        ImGui::TextWrapped(_("Sets the song's base tempo from the MIDI's own BPM. exact tempo and a flat speed, at the cost of an unusual tick rate."));
+        ImGui::TextWrapped(_("Sets the song's tick rate from the MIDI's own BPM. Exact tempo, a flat speed, and sub-row timing carried in note delays, at the cost of an unusual tick rate."));
       } else {
-        ImGui::TextWrapped(_("Keeps the tick rate at 60Hz and carries the tempo in the groove. rows may jitter by one tick."));
+        ImGui::TextWrapped(_("Keeps the tick rate at 60Hz and carries the tempo in the groove. Notes land on whole rows, so timing is coarser."));
       }
 
       ImGui::Separator();
-      ImGui::Text(_("Grid:"));
+      ImGui::Text(_("Timing:"));
       ImGui::Indent();
-      const char* rowsPerBeatNames[9]={_("Auto"), "4", "8", "12", "16", "24", "32", "48", "64"};
-      static const int rowsPerBeatValues[9]={0, 4, 8, 12, 16, 24, 32, 48, 64};
-      int rowsPerBeatIndex=0;
-      for (int i=0; i<9; i++) {
-        if (rowsPerBeatValues[i]==e->midiImportR) rowsPerBeatIndex=i;
+      // Quantize is the row grid: how many rows one whole note takes. the list
+      // pairs each straight value with its triplet sibling, since a triplet
+      // grid needs a value divisible by 3
+      const char* quantizeNames[10]={_("1/4 notes"),_("1/6 notes"),_("1/8 notes"),_("1/12 notes"),_("1/16 notes"),_("1/24 notes"),_("1/32 notes"),_("1/48 notes"),_("1/64 notes"),_("1/96 notes")};
+      static const int quantizeValues[10]={4, 6, 8, 12, 16, 24, 32, 48, 64, 96};
+      int quantizeIndex=6;
+      for (int i=0; i<10; i++) {
+        if (quantizeValues[i]==e->midiImportQuantize) quantizeIndex=i;
       }
       ImGui::SetNextItemWidth(120.0f*dpiScale);
-      if (ImGui::Combo(_("Rows per beat"),&rowsPerBeatIndex,rowsPerBeatNames,9)) {
-        e->midiImportR=rowsPerBeatValues[rowsPerBeatIndex];
+      if (ImGui::Combo(_("Quantize"),&quantizeIndex,quantizeNames,10)) {
+        e->midiImportQuantize=quantizeValues[quantizeIndex];
       }
-      const char* patBarNames[6]={_("Auto"),_("1 bar"),_("2 bars"),_("4 bars"),_("8 bars"),_("16 bars")};
-      static const int patBarValues[6]={0, 1, 2, 4, 8, 16};
-      int patBarIndex=0;
-      for (int i=0; i<6; i++) {
-        if (patBarValues[i]==e->midiImportBarsPerPattern) patBarIndex=i;
+      // in groove approximation the speed comes out of the groove, so there is
+      // no fixed tick count for this to set
+      ImGui::BeginDisabled(!e->midiImportBaseTempo);
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::InputInt(_("Ticks per row"),&e->midiImportTicksPerRow)) {
+        e->midiImportTicksPerRow=CLAMP(e->midiImportTicksPerRow,2,16);
+      }
+      ImGui::EndDisabled();
+      const char* patLenNames[5]={"16", "32", "64", "128", "256"};
+      static const int patLenValues[5]={16, 32, 64, 128, 256};
+      int patLenIndex=2;
+      for (int i=0; i<5; i++) {
+        if (patLenValues[i]==e->midiImportPatternLen) patLenIndex=i;
       }
       ImGui::SetNextItemWidth(120.0f*dpiScale);
-      if (ImGui::Combo(_("Pattern length"),&patBarIndex,patBarNames,6)) {
-        e->midiImportBarsPerPattern=patBarValues[patBarIndex];
+      if (ImGui::Combo(_("Pattern length"),&patLenIndex,patLenNames,5)) {
+        e->midiImportPatternLen=patLenValues[patLenIndex];
       }
       ImGui::Unindent();
-      if (e->midiImportR>0) {
-        ImGui::TextWrapped(_("More rows per beat spreads notes further apart without changing playback speed. Groove Approximation limits how fine the grid can get on faster songs."));
-      } else {
-        ImGui::TextWrapped(_("Rows per beat is detected from the file, and patterns take as many whole bars as fit in about 64 rows."));
+      {
+        int rowsPerBeat=MAX(1,e->midiImportQuantize/4);
+        float barsPerPat=(float)e->midiImportPatternLen/(float)e->midiImportQuantize;
+        if (e->midiImportBaseTempo) {
+          ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. whatever a note misses the row grid by is carried in a note delay, so the real resolution is 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportQuantize*e->midiImportTicksPerRow);
+        } else {
+          ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. Groove Approximation has no note delays, so the resolution is the row grid itself: 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportQuantize);
+        }
       }
 
-      ImGui::SetCursorPosY(ImGui::GetWindowSize().y-ImGui::GetFrameHeightWithSpacing()-ImGui::GetStyle().ItemSpacing.y*2.0f);
+      ImGui::Separator();
+      ImGui::Text(_("Drums:"));
+      ImGui::Indent();
+      const char* drumChNames[17]={_("None"), "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
+      int drumChIndex=CLAMP(e->midiImportDrumChannel,0,16);
+      ImGui::SetNextItemWidth(120.0f*dpiScale);
+      if (ImGui::Combo(_("Drum channel"),&drumChIndex,drumChNames,17)) {
+        e->midiImportDrumChannel=drumChIndex;
+      }
+      ImGui::BeginDisabled(e->midiImportDrumChannel==0);
+      ImGui::Checkbox(_("One instrument per drum note"),&e->midiImportSplitDrums);
+      ImGui::EndDisabled();
+      ImGui::Unindent();
+      if (e->midiImportDrumChannel==0) {
+        ImGui::TextWrapped(_("No drum channel: every channel is treated as melodic."));
+      } else if (e->midiImportSplitDrums) {
+        ImGui::TextWrapped(_("Each drum note gets its own instrument, named after its GM kit piece, and is played from C-4."));
+      } else {
+        ImGui::TextWrapped(_("The whole kit shares one instrument, played chromatically."));
+      }
+
       ImGui::Separator();
       // split the full width, so the pair spans the dialog at any DPI or font size
       float midiImportBtnW=(ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x)*0.5f;

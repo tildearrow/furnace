@@ -1376,14 +1376,25 @@ class DivEngine {
 
     // MIDI import options. set these before loading a .mid - see loadMIDI().
     // the enabled volume sources multiply together; if all are off the volume
-    // column is left at maximum. midiImportBaseTempo picks how the tempo is
-    // carried: false solves it into a groove at the default tick rate, true
-    // sets the tick rate from the song's BPM instead. midiImportBarsPerPattern
-    // is the pattern length in bars, or 0 to size it automatically.
-    bool midiImportVelocity, midiImportCC7, midiImportCC11, midiImportBaseTempo;
-    int midiImportBarsPerPattern;
-    // rows per beat, or 0 to detect it from the file
-    int midiImportR;
+    // column is left at maximum.
+    bool midiImportVelocity, midiImportCC7, midiImportCC11;
+    // rows per whole note (4-256). this is the row grid: quantize/4 is rows per
+    // beat, and quantize is rows per 4/4 measure
+    int midiImportQuantize;
+    // ticks per row (2-16). this is the song speed AND the sub-row resolution:
+    // whatever a note misses the row grid by is carried in an EDxx note delay
+    int midiImportTicksPerRow;
+    // pattern length in rows (1-256)
+    int midiImportPatternLen;
+    // which MIDI channel is the drum channel (1-16, or 0 for none)
+    int midiImportDrumChannel;
+    // give every drum note its own instrument instead of one kit instrument
+    bool midiImportSplitDrums;
+    // honour CC64 (sustain pedal) when placing note-offs
+    bool midiImportSustain;
+    // true solves the tick rate from the song's BPM and keeps a flat speed;
+    // false pins the tick rate at 60Hz and carries the tempo in the groove
+    bool midiImportBaseTempo;
 
     DivEngine():
       output(NULL),
@@ -1524,9 +1535,13 @@ class DivEngine {
       midiImportVelocity(true),
       midiImportCC7(true),
       midiImportCC11(true),
-      midiImportBaseTempo(false),
-      midiImportBarsPerPattern(0),
-      midiImportR(0) {
+      midiImportQuantize(32),
+      midiImportTicksPerRow(6),
+      midiImportPatternLen(64),
+      midiImportDrumChannel(10),
+      midiImportSplitDrums(true),
+      midiImportSustain(true),
+      midiImportBaseTempo(true) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(vibTable,0,64*sizeof(short));
