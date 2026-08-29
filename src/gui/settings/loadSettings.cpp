@@ -445,6 +445,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opllCore=conf.getInt("opllCore",0);
     settings.ayCore=conf.getInt("ayCore",0);
     settings.swanCore=conf.getInt("swanCore",0);
+    settings.opzCore=conf.getInt("opzCore",0);
 
     settings.dsidQuality=conf.getInt("dsidQuality",3);
     settings.gbQuality=conf.getInt("gbQuality",3);
@@ -468,6 +469,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.opllCoreRender=conf.getInt("opllCoreRender",0);
     settings.ayCoreRender=conf.getInt("ayCoreRender",0);
     settings.swanCoreRender=conf.getInt("swanCoreRender",0);
+    settings.opzCoreRender=conf.getInt("opzCoreRender",0);
 
     settings.dsidQualityRender=conf.getInt("dsidQualityRender",3);
     settings.gbQualityRender=conf.getInt("gbQualityRender",3);
@@ -511,6 +513,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opllCore,0,1);
   clampSetting(settings.ayCore,0,1);
   clampSetting(settings.swanCore,0,1);
+  clampSetting(settings.opzCore,0,1);
   clampSetting(settings.dsidQuality,0,5);
   clampSetting(settings.gbQuality,0,5);
   clampSetting(settings.pnQuality,0,5);
@@ -532,6 +535,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
   clampSetting(settings.opllCoreRender,0,1);
   clampSetting(settings.ayCoreRender,0,1);
   clampSetting(settings.swanCoreRender,0,1);
+  clampSetting(settings.opzCoreRender,0,1);
   clampSetting(settings.dsidQualityRender,0,5);
   clampSetting(settings.gbQualityRender,0,5);
   clampSetting(settings.pnQualityRender,0,5);
@@ -943,6 +947,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opllCore",settings.opllCore);
     conf.set("ayCore",settings.ayCore);
     conf.set("swanCore",settings.swanCore);
+    conf.set("opzCore",settings.opzCore);
 
     conf.set("dsidQuality",settings.dsidQuality);
     conf.set("gbQuality",settings.gbQuality);
@@ -966,6 +971,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("opllCoreRender",settings.opllCoreRender);
     conf.set("ayCoreRender",settings.ayCoreRender);
     conf.set("swanCoreRender",settings.swanCoreRender);
+    conf.set("opzCoreRender",settings.opzCoreRender);
 
     conf.set("dsidQualityRender",settings.dsidQualityRender);
     conf.set("gbQualityRender",settings.gbQualityRender);

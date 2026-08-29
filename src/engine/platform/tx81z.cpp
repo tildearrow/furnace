@@ -55,7 +55,7 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
   return regCheatSheetOPZ;
 }
 
-void DivPlatformTX81Z::acquire(short** buf, size_t len) {
+void DivPlatformTX81Z::acquire_ymfm(short** buf, size_t len) {
   thread_local int os[2];
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
@@ -101,6 +101,126 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
 
   for (int i=0; i<8; i++) {
     oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    while (true) {
+      lastSH1=fm_lle.o_sh1;
+      lastSH2=fm_lle.o_sh2_pull;
+      lastSY=fm_lle.o_sy;
+
+      if (delay>0) {
+        delay--;
+        fm_lle.input.n_cs=0;
+        fm_lle.input.n_wr=1;
+        fm_lle.input.n_rd=delay&1;
+        fm_lle.input.a0=1;
+      } else if (isWaiting) {
+        fm_lle.input.n_cs=0;
+        fm_lle.input.n_wr=1;
+        fm_lle.input.n_rd=!(isWaiting&1);
+        fm_lle.input.a0=1;
+        if (isWaiting==2) {
+          isWaiting=3;
+        } else {
+          isWaiting=2;
+        }
+      } else {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addrOrVal) {
+            regPool[w.addr&0xff]=w.val;
+            fm_lle.input.n_cs=0;
+            fm_lle.input.n_rd=1;
+            fm_lle.input.n_wr=0;
+            fm_lle.input.a0=1;
+            fm_lle.input.data=w.val;
+            //logV("val %x",w.val);
+            writes.pop();
+          } else {
+            fm_lle.input.n_cs=0;
+            fm_lle.input.n_rd=1;
+            fm_lle.input.n_wr=0;
+            fm_lle.input.a0=0;
+            fm_lle.input.data=w.addr;
+            //logV("addr %x",w.addr);
+            w.addrOrVal=true;
+          }
+          delay=8;
+
+          isWaiting=1;
+        } else {
+          fm_lle.input.n_cs=1;
+          fm_lle.input.n_rd=1;
+          fm_lle.input.n_wr=1;
+        }
+      }
+
+      OPZLLE_Clock(&fm_lle,1);
+      OPZLLE_Clock(&fm_lle,0);
+
+      if (delay<=0 && isWaiting&2) {
+        if (!(fm_lle.o_data&0x80)) {
+          isWaiting=0;
+          //logV("-----");
+        }
+      }
+
+      if (fm_lle.o_sy && !lastSY) {
+        dacVal>>=1;
+        dacVal|=(fm_lle.o_so&1)<<17;
+        //logV("SO: %d",fm_lle.o_so&1);
+      }
+
+      if (!fm_lle.o_sh1 && lastSH1) {
+        int e=(dacVal>>14)&7;
+        int m=(dacVal>>4)&1023;
+        m-=512;
+        //logV("///SH1: %x (%d/%d)",dacVal,m,e);
+        dacOut1=(m<<e)>>1;
+        break;
+      }
+
+      if (fm_lle.o_sh2_pull && !lastSH2) {
+        int e=(dacVal>>14)&7;
+        int m=(dacVal>>4)&1023;
+        m-=512;
+        //logV("///SH2: %x (%d/%d)",dacVal,m,e);
+        dacOut2=(m<<e)>>1;
+      }
+    }
+
+    if (dacOut1<-32768) dacOut1=-32768;
+    if (dacOut1>32767) dacOut1=32767;
+    if (dacOut2<-32768) dacOut2=-32768;
+    if (dacOut2>32767) dacOut2=32767;
+
+    buf[0][h]=dacOut2;
+    buf[1][h]=dacOut1;
+
+    for (int i=0; i<8; i++) {
+      //short chOut=fm_lle.accm_input;
+      //oscBuf[i]->putSample(h,chOut);
+    }
+  }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformTX81Z::acquire(short** buf, size_t len) {
+  if (selCore==0) {
+    acquire_ymfm(buf,len);
+  } else if (selCore==1) {
+    acquire_lle(buf,len);
   }
 }
 
@@ -263,7 +383,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       DivMacroInt::IntOp& m=chan[i].std.op[j];
       if (m.am.had) {
         op.am=m.am.val;
-        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
       }
       if (m.ar.had) {
         op.ar=m.ar.val;
@@ -271,7 +391,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.dr.had) {
         op.dr=m.dr.val;
-        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
       }
       if (m.mult.had) {
         op.mult=m.mult.val;
@@ -279,11 +399,11 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.rr.had) {
         op.rr=m.rr.val;
-        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
       }
       if (m.sl.had) {
         op.sl=m.sl.val;
-        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
       }
       if (m.tl.had) {
         op.tl=m.tl.val;
@@ -447,7 +567,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         for (int j=0; j<4; j++) {
           unsigned short baseAddr=chanOffs[i]|opOffs[j];
           DivInstrumentFM::Operator& op=chan[i].state.op[j];
-          immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          immWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
         }
 
         immWrite(0x08,(chan[i].opMask<<3)|i);
@@ -504,9 +624,9 @@ void DivPlatformTX81Z::commitState(int ch, DivInstrument* ins) {
     if (chan[ch].insChanged) {
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
-      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
       rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
-      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
       rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
       rWrite(baseAddr+ADDR_EGS_REV,(op.dam&7)|(op.ksl<<6));
     }
@@ -655,6 +775,16 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       immWrite(0x1b,lfoShape|(lfoShape2<<2));
       break;
     }
+    case DIV_CMD_FM_LFO3: {
+      lfoValue3=c.value;
+      immWrite(0x1e,lfoValue3);
+      break;
+    }
+    case DIV_CMD_FM_LFO4: {
+      lfoValue4=c.value;
+      immWrite(0x1c,lfoValue4);
+      break;
+    }
     case DIV_CMD_FM_ALG: {
       chan[c.chan].state.alg=c.value&7;
       rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|(chan[c.chan].chVolR<<7));
@@ -746,13 +876,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
           op.am=c.value2&1;
           unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
         }
       } else if (c.value<4) {
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
         op.am=c.value2&1;
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
       }
       break;
     }
@@ -762,13 +892,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
           op.dr=c.value2&31;
           unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
         }
       } else if (c.value<4) {
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
         op.dr=c.value2&31;
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+        rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
       }
       break;
     }
@@ -778,13 +908,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
           op.sl=c.value2&15;
           unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
         }
       } else if (c.value<4) {
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
         op.sl=c.value2&15;
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
       }
       break;
     }
@@ -794,13 +924,13 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
           DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
           op.rr=c.value2&15;
           unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
         }
       } else if (c.value<4) {
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
         op.rr=c.value2&15;
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
-        rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
       }
       break;
     }
@@ -1039,9 +1169,9 @@ void DivPlatformTX81Z::forceIns() {
       }
       rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|((op.egt?(op.dt&7):dtTable[op.dt&7])<<4));
       rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
-      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|((op.ssgEnv&3)<<5)|(op.am<<7));
       rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
-      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      rWrite(baseAddr+ADDR_SL_RR,CLAMP(op.rr,1,15)|(op.sl<<4));
       rWrite(baseAddr+ADDR_WS_FINE,(op.dvb&15)|(op.ws<<4));
       rWrite(baseAddr+ADDR_EGS_REV,(op.dam&7)|(op.ksl<<6));
     }
@@ -1060,6 +1190,8 @@ void DivPlatformTX81Z::forceIns() {
   immWrite(0x18,lfoValue);
   immWrite(0x16,lfoValue2);
   immWrite(0x1b,lfoShape|(lfoShape2<<2));
+  immWrite(0x1e,lfoValue3);
+  immWrite(0x1c,lfoValue4);
 }
 
 void DivPlatformTX81Z::notifyInsChange(int ins) {
@@ -1115,7 +1247,26 @@ void DivPlatformTX81Z::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformTX81Z::reset() {
   writes.clear();
   memset(regPool,0,330);
-  fm_ymfm->reset();
+  switch (selCore) {
+    case 0: // ymfm
+      fm_ymfm->reset();
+      break;
+    case 1: // LLE
+      memset(&fm_lle,0,sizeof(ym2414_t));
+
+      // TODO: perform LLE reset
+      fm_lle.input.n_ic=0;
+      fm_lle.input.n_rd=1;
+      fm_lle.input.n_wr=1;
+      fm_lle.input.n_cs=1;
+      for (int i=0; i<1200; i++) {
+        OPZLLE_Clock(&fm_lle,1);
+        OPZLLE_Clock(&fm_lle,0);
+      }
+      fm_lle.input.n_ic=1;
+      fm_lle.input.sh2=0;
+      break;
+  }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1131,6 +1282,14 @@ void DivPlatformTX81Z::reset() {
     pendingWrites[i]=-1;
   }
 
+  lastSH1=false;
+  lastSH2=false;
+  lastSY=false;
+  isWaiting=1;
+  dacOut1=0;
+  dacOut2=0;
+  dacVal=0;
+
   lastBusy=60;
   pcmCycles=0;
   pcmL=0;
@@ -1144,6 +1303,8 @@ void DivPlatformTX81Z::reset() {
   lfoValue2=0;
   lfoShape=0;
   lfoShape2=0;
+  lfoValue3=0;
+  lfoValue4=0;
 
   immWrite(0x15,0x01); // enter OPZ mode
   immWrite(0x0a,0x04); // enable mono bit
@@ -1181,6 +1342,10 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
 
 int DivPlatformTX81Z::getOutputCount() {
   return 2;
+}
+
+void DivPlatformTX81Z::setCore(int newCore) {
+  selCore=newCore;
 }
 
 int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

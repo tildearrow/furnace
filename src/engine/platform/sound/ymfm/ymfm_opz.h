@@ -56,7 +56,7 @@ namespace ymfm
 //              -----xxx Channel select
 //           09 xxxxxx-x Test register
 //              ------x- LFO reset
-//           0A ----x--- Unknown
+//           0A ----x--- Funny bit (modified sine wave)
 //              -----x-- Key fraction mode
 //              ------xx Unknown
 //           0F ---xxxxx Noise frequency
@@ -82,10 +82,10 @@ namespace ymfm
 //              ---x---- LFO sync
 //              ----xx-- LFO #2 waveform
 //              ------xx LFO waveform
-//           1C x------- LFO #3 control?
-//              -xxxxxxx LFO #3 depth
-//           1E x------- LFO #4 control?
-//              -xxxxxxx LFO #4 depth
+//           1C x------- LFO #4 shape?
+//              -xxxxxxx LFO #4 speed
+//           1E x------- LFO #3 shape?
+//              -xxxxxxx LFO #3 speed
 //
 //     Per-channel registers (channel in address bits 0-2)
 //        00-07 xxxxxxxx TL ramp speed

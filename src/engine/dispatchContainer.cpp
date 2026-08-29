@@ -561,6 +561,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_OPZ:
       dispatch=new DivPlatformTX81Z;
+      if (isRender) {
+        ((DivPlatformTX81Z*)dispatch)->setCore(eng->getConfInt("opzCoreRender",0));
+      } else {
+        ((DivPlatformTX81Z*)dispatch)->setCore(eng->getConfInt("opzCore",0));
+      }
       break;
     case DIV_SYSTEM_SAA1099: {
       dispatch=new DivPlatformSAA1099;

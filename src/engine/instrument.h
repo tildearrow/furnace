@@ -167,7 +167,7 @@ enum DivMacroTypeOp: unsigned char {
 //   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
 //   - KSL, VIB, WS (OPL2/3), KSR
 // - OPZ:
-//   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
+//   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R, SSG-EG = TS (tremolo sensitivity)
 //   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed, KSR = TL Ramp
 
 struct DivInstrumentFM {

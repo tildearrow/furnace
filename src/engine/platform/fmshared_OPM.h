@@ -43,7 +43,7 @@ class DivPlatformOPM: public DivPlatformFMBase {
       0x00, 0x08, 0x10, 0x18
     };
 
-    unsigned char lfoValue, lfoValue2, lfoShape, lfoShape2;
+    unsigned char lfoValue, lfoValue2, lfoShape, lfoShape2, lfoValue3, lfoValue4;
     bool brokenPitch;
 
     DivPlatformOPM():
@@ -52,6 +52,8 @@ class DivPlatformOPM: public DivPlatformFMBase {
       lfoValue2(0),
       lfoShape(0),
       lfoShape2(0),
+      lfoValue3(0),
+      lfoValue4(0),
       brokenPitch(false) {}
 };
 

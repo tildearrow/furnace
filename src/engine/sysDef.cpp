@@ -564,6 +564,8 @@ void DivEngine::registerSystems() {
     {0x2a, {DIV_CMD_FM_WS, _("2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)"), effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, _("2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)"), effectOpVal<4>, effectValAnd<3>}},
     {0x2c, {DIV_CMD_FM_FINE, _("2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)"), effectOpVal<4>, effectValAnd<15>}},
+    {0x2d, {DIV_CMD_FM_LFO3, _("2Dxx: Set LFO 3 (bit 7: shape; bit 0-6: speed)")}},
+    {0x2e, {DIV_CMD_FM_LFO4, _("2Exx: Set LFO 4 (bit 7: shape; bit 0-6: speed)")}},
     {0x60, {DIV_CMD_FM_OPMASK, _("60xx: Set operator mask (bits 0-3)")}},
     // I know this is the wrong command name. I don't feel like adding a new command just for this.
     {0x66, {DIV_CMD_ES5506_ENVELOPE_LVRAMP, _("66xx: Set TL ramp time")}},
@@ -1506,7 +1508,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_OPZ]=new DivSysDef(
     _("Yamaha YM2414 (OPZ)"), NULL, 0x98, 0, 8, 8, 8,
-    true, false, 0, false, 0, 0, 0,
+    true, false, 0x150, false, 0, 0, 0,
     _("like OPM, but with more waveforms, fixed frequency mode and totally... undocumented.\nused in the Yamaha TX81Z and some other synthesizers."),
     DivChanDefFunc(fmChanDef<DIV_CH_FM,DIV_INS_OPZ>),
     {
