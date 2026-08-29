@@ -24,7 +24,7 @@
 #include "../../fixedQueue.h"
 #include "sound/ymfm/ymfm_opz.h"
 extern "C" {
-  #include "../../../extern/YM2414-LLE-beta/opz_lle.h"
+  #include "../../../extern/YM2414-LLE/opz_lle.h"
   //void OPZLLE_Clock(ym2414_t* chip, int clk);
 }
 

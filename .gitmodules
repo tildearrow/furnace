@@ -14,3 +14,7 @@
 [submodule "extern/json"]
 	path = extern/json
 	url = https://github.com/nlohmann/json.git
+[submodule "extern/YM2414-LLE"]
+	path = extern/YM2414-LLE
+	url = https://github.com/nukeykt/YM2414-LLE.git
+	branch = main
