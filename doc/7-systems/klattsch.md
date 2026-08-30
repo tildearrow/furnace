@@ -45,7 +45,10 @@ with the ja-mokhtari-2000 bank, these Japanese phonemes are appended: `28` A, `2
 
 ## effect commands
 
-- `10xx`: **set phoneme.** see the table above.
+- `10xx`: **set phoneme.**
+  - phonemes may be entered directly (instead of entering their hex values).
+  - if multiple `10xx` are used in a row, these will be queued up and applied on each tick.
+  - see the table above for a list of phonemes.
 - `11xx`: **set spectral transition time** in ticks. sticky. `00` = instant.
 - `12xx`: **set F1 frequency** to `xx`×10 Hz.
 - `13xx`: **set F2 frequency** to `xx`×16 Hz.
