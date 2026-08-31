@@ -20,6 +20,80 @@ this is a list of file formats that Furnace supports.
   - VGM (.vgm)
   - ZSound Music (.zsm)
 
+### MIDI import
+
+MIDI import is a transcription, not a player - it will not sound like the file
+did. notes, timing, velocity, sustain, panning, modulation, pitch bend, tempo and program
+changes land on a Generic PCM DAC, but no samples are created and no General MIDI
+timbre is emulated: the song is silent until you assign samples to its
+instruments.
+
+each combination of track and MIDI channel becomes a "part" that owns its own run
+of Furnace channels, growing a new one whenever its polyphony rises. notes are
+spread sideways rather than dropped, and one part's notes never land in another
+part's columns.
+
+each effect a part uses gets its own column, and keeps that column for as long
+as the channel exists - a note delay is always in the same place, a pitch slide
+never trades places with a pan effect from row to row. a channel only shows as
+many columns as the effects it actually uses.
+
+the import dialog offers:
+
+- **volume column**: any combination of note velocity, CC7 (channel volume) and
+  CC11 (expression). the enabled sources multiply together, the way they would on
+  a MIDI synth. with all of them off, every note is imported at maximum volume.
+- **honor sustain pedal (CC64)**: hold notes until the pedal lifts, instead of
+  ending them at their note-off.
+- **panning (CC10)**: imported as `80xx` panning effects. needs the chip's Stereo
+  option, which is on by default.
+- **vibrato (CC1)**: imported as `04xy` vibrato. the mod wheel only carries depth -
+  the rate is part of a synth's patch, not the file - so **rate** is set once here
+  and applies to the whole import, while **max depth** is what a fully-raised wheel
+  reaches. the rate is solved against the song's own tick rate, so it holds in
+  either tempo mode; at very high tick rates it may come out faster than asked,
+  since `04xy` cannot go slower than one step per tick.
+- **pitch bend**: see below.
+- **tempo**: Base Tempo sets the song's tick rate from the MIDI's own BPM. this is
+  exact and keeps a flat speed, and whatever a note misses the row grid by is
+  carried in a note delay, at the cost of an unusual tick rate. Groove
+  Approximation instead holds the tick rate at 60Hz and carries the tempo in the
+  groove, so notes land on whole rows and timing is coarser.
+- **quantize**: the row grid - how many rows one whole note takes.
+- **ticks/row**: the song speed, and in Base Tempo mode the sub-row resolution.
+- **pattern length**, and which channel is the **drum channel**.
+
+these settings are kept for the rest of the session, so importing several files in
+a row does not mean setting them up again. they return to their defaults when
+Furnace restarts.
+
+#### pitch bend
+
+pitch bend is imported as `F1xx`/`F2xx` single-tick pitch slides. `E5xx` is not
+used: it only reaches one semitone either side of centre, while a General MIDI
+wheel at its default range of two semitones already covers twice that.
+
+these slides are *relative* - each row carries only the change since the last one.
+the values are therefore not meaningful to read on their own, and copying part of a
+bend carries pitch along with it. playback and seeking are unaffected.
+
+MIDI has no "ramp" message, so a bend curve is only ever a series of discrete
+events. when they arrive sparser than the row grid, the rows between two of them
+are filled with the interpolation - otherwise a curve exported as breakpoints would
+import as a staircase.
+
+**bend range** decides how far the wheel travels:
+
+- **from file** (the default) follows the range the file declares through RPN 0
+  (`CC101`, `CC100`, `CC6`, `CC38`), or General MIDI's two semitones if it never
+  says. a file that changes its range partway through is followed.
+- **1 to 24 semitones** overrides both, on every channel.
+
+many files bend with a wider wheel than they declare, and nothing in the file gives
+that away. if the bends come out too shallow, set this to whatever made the file -
+12 is a common choice. a warning is shown after importing a file that bends without
+declaring a range.
+
 ## instrument
 
 - load/save:

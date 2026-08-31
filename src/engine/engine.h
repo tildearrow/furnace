@@ -1392,6 +1392,25 @@ class DivEngine {
     bool midiImportSplitDrums;
     // honour CC64 (sustain pedal) when placing note-offs
     bool midiImportSustain;
+    // import CC10 (pan) as 80xx panning effects
+    bool midiImportPan;
+    // import CC1 (modulation) as 04xy vibrato. MIDI's mod wheel carries depth
+    // only - the LFO rate is part of the synth's patch, not the file - so the
+    // rate below is fixed for the whole import and only depth follows the wheel
+    bool midiImportVibrato;
+    // vibrato rate in Hz (1-15). resolved to an 04xy speed nibble against the
+    // song's own tick rate, so a file wobbles at the same speed in either
+    // tempo mode
+    int midiImportVibratoRate;
+    // 04xy depth at full mod wheel (1-15). 15 is a full semitone, well past
+    // what a GM synth reaches at full wheel
+    int midiImportVibratoDepth;
+    // import pitch bend as F1xx/F2xx pitch slides, scaled by the RPN 0 bend
+    // range the file declares (GM default is 2 semitones)
+    bool midiImportPitchBend;
+    // pitch bend range in semitones, overriding whatever the file says.
+    // 0 follows the file instead (1-24)
+    int midiImportBendRange;
     // true solves the tick rate from the song's BPM and keeps a flat speed;
     // false pins the tick rate at 60Hz and carries the tempo in the groove
     bool midiImportBaseTempo;
@@ -1541,6 +1560,12 @@ class DivEngine {
       midiImportDrumChannel(10),
       midiImportSplitDrums(true),
       midiImportSustain(true),
+      midiImportPan(true),
+      midiImportVibrato(true),
+      midiImportVibratoRate(5),
+      midiImportVibratoDepth(8),
+      midiImportPitchBend(true),
+      midiImportBendRange(0),
       midiImportBaseTempo(true) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
