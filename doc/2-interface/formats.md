@@ -78,9 +78,21 @@ the values are therefore not meaningful to read on their own, and copying part o
 bend carries pitch along with it. playback and seeking are unaffected.
 
 MIDI has no "ramp" message, so a bend curve is only ever a series of discrete
-events. when they arrive sparser than the row grid, the rows between two of them
-are filled with the interpolation - otherwise a curve exported as breakpoints would
-import as a staircase.
+events, and each one is written only on the row it happens - nothing is drawn
+between two events, since there is nothing in the file to draw.
+
+`F1xx`/`F2xx` can only move the pitch so far in a single row. an instant bend
+wider than that - a fast wheel dive, or a wide bend range - would otherwise arrive
+late, ramping in over the following rows instead of snapping. to avoid that, a
+bend too wide for one row moves the note column itself to the nearest semitone
+first, and lets the slide cover only the remainder (at most half a semitone).
+moving the note this way does not retrigger the note: it is followed by an `EA01`
+that keeps the sample running underneath the pitch change, and the next real note
+in that column always undoes it with an `EA00`. this is not a legato feature and
+exposes no legato behaviour - `EA01`/`EA00` only ever appear as a byproduct of a
+wide bend, are written and cleared entirely by the importer, and every ordinary
+note-on still retriggers normally. pitch bend is skipped entirely on the drum
+channel, since moving its note column would change which drum sounds.
 
 **bend range** decides how far the wheel travels:
 

@@ -19,7 +19,9 @@
 
 #include "fileOpsCommon.h"
 #include <algorithm>
+#include <cassert>
 #include <cstdint>
+#include <cstdlib>
 #include <cmath>
 #include <map>
 #include <vector>
@@ -124,20 +126,15 @@ static bool midiGrooveEq(const DivGroovePattern& a, const DivGroovePattern& b) {
 
 #define MIDI_NOTE_BIAS 48
 #define MIDI_DRUM_NOTE (60+MIDI_NOTE_BIAS)
-#define MIDI_BEND_MAX_FILL 4096
 
-// effect columns are pinned by role rather than taken first-free, so an effect
-// always sits in the same column for the life of a channel. ordered by how many
-// rows actually carry it, densest first - effectCols is the highest used role
-// plus one, so a common effect at a high index would force every channel wide.
-// midiCompactFx() below then drops a channel's unused roles down to 0..n-1, so
-// a channel that never bends or pans still shows as few columns as it uses
 #define MIDI_FX_NOTE_DELAY 0
 #define MIDI_FX_NOTE_CUT 1
 #define MIDI_FX_PITCH 2
 #define MIDI_FX_VIBRATO 3
 #define MIDI_FX_PAN 4
-#define MIDI_FX_MAX 5
+
+#define MIDI_FX_NO_RETRIGGER 5
+#define MIDI_FX_MAX 6
 
 struct DivMIDIChanState {
   int program;
@@ -146,11 +143,10 @@ struct DivMIDIChanState {
   bool sustain;
   bool monoMode;
   int pitchBend;
-  int bendRow;
   int bendSemis, bendFine, bendRangeCents;
   int rpnMSB, rpnLSB;
-  int pan; // CC10, 0-127 with 64 at centre - GM's own default
-  int modulation; // CC1, 0-127 - depth only; MIDI carries no rate
+  int pan;
+  int modulation;
   int noteOn[128];
   DivMIDIChanState():
     program(0),
@@ -159,7 +155,6 @@ struct DivMIDIChanState {
     sustain(false),
     monoMode(false),
     pitchBend(0),
-    bendRow(-1),
     bendSemis(2),
     bendFine(0),
     bendRangeCents(200),
@@ -179,9 +174,12 @@ struct DivMIDIModChanState {
   bool sustained;
   int noteRow, prevNoteRow;
   int noteDelay;
+  int baseNote;
+  int curNote;
   int pitchApplied;
-  int panApplied; // last 80xx written to this voice, -1 until the first one
-  int vibratoApplied; // last 04xy byte written to this voice, 0 (no vibrato) until the first one
+  bool noRetrigger;
+  int panApplied;
+  int vibratoApplied;
   DivMIDIModChanState():
     midiCh(-1),
     note(-1),
@@ -191,7 +189,10 @@ struct DivMIDIModChanState {
     noteRow(-1),
     prevNoteRow(-1),
     noteDelay(0),
+    baseNote(-1),
+    curNote(-1),
     pitchApplied(0),
+    noRetrigger(false),
     panApplied(-1),
     vibratoApplied(0) {}
   bool rowTaken(int row) const {
@@ -282,17 +283,12 @@ static short midiVolumeOf(int vel, int cc7, int cc11, int maxVol, bool useVel, b
   return (short)CLAMP(v,0,maxVol);
 }
 
-// write to a pinned role rather than the first free column - two roles can
-// never collide, so unlike the old first-free scan this cannot fail
 static void midiWriteFx(short* row, unsigned char& effectCols, int role, unsigned char fx, unsigned char val) {
   row[DIV_PAT_FX(role)]=(short)fx;
   row[DIV_PAT_FXVAL(role)]=(short)val;
   if (effectCols<(unsigned char)(role+1)) effectCols=(unsigned char)(role+1);
 }
 
-// drop each channel's unused roles out of its effect columns, remapping the
-// roles it does use down to 0..n-1 in role order. run once at the end, after
-// every event has been written and no more roles can appear
 static void midiCompactFx(DivSubSong* sub, int numChans, int ordersLen, int patLen) {
   for (int ch=0; ch<numChans; ch++) {
     bool roleUsed[MIDI_FX_MAX];
@@ -344,10 +340,6 @@ static void midiCompactFx(DivSubSong* sub, int numChans, int ordersLen, int patL
   }
 }
 
-// 04xy's speed nibble counts in ticks, so a vibrato's real rate depends on the
-// song's tick rate - which is not solved until the tempo is. every 04xy written
-// so far holds the rate it wanted in Hz there; turn them all into tick speeds
-// now, so a file wobbles at the same rate whichever tempo mode imported it
 static void midiResolveVibratoRate(DivSubSong* sub, int numChans, int ordersLen, int patLen, double songHz) {
   for (int ch=0; ch<numChans; ch++) {
     for (int o=0; o<ordersLen; o++) {
@@ -368,28 +360,16 @@ static int midiBendToPitch(int bend, int rangeCents) {
   return (int)midiMulDivR(bend,(int64_t)rangeCents*128,8192LL*100);
 }
 
-// CC1 (0-127) to an 04xy byte. the low nibble is the depth; the high nibble is
-// NOT the final speed but the rate that was asked for, in Hz. 04xy's speed
-// counts in ticks, so it cannot be resolved until the song's tick rate is
-// known - midiResolveVibratoRate() rewrites it once it is. a zero byte means
-// no vibrato, which is 0400
 static unsigned char midiModTo04xy(int mod, int maxDepth, int rateHz) {
   const int depth=(int)midiMulDivR(mod,CLAMP(maxDepth,1,15),127);
   if (depth<1) return 0;
   return (unsigned char)((CLAMP(rateHz,1,15)<<4)|depth);
 }
 
-// CC10 (0-127, 64 centre) to Furnace's 80xx linear pan (0-255, 128 centre).
-// doubling keeps centre exact; 127 is nudged up to the 255 end stop rather
-// than landing one short of it at 254
 static unsigned char midiPanTo80xx(int pan) {
   return (unsigned char)((pan>=127)?255:(pan*2));
 }
 
-// steps is a signed change to the F1xx/F2xx slide already on the row's pinned
-// pitch lane. the lane can hold only one direction at a time, so reads and
-// writes go through the same slot - a change of direction overwrites rather
-// than leaving a stale opposite-facing effect behind
 static int midiWritePitchSlide(short* row, unsigned char& effectCols, int steps) {
   short& fx=row[DIV_PAT_FX(MIDI_FX_PITCH)];
   short& val=row[DIV_PAT_FXVAL(MIDI_FX_PITCH)];
@@ -403,6 +383,37 @@ static int midiWritePitchSlide(short* row, unsigned char& effectCols, int steps)
   }
   return total-prev;
 }
+
+static bool midiSplitBend(int want, int cur, int slideSpeed, int& newNote, int& steps) {
+  const int reach=255*slideSpeed;
+  if (want-cur<=reach && cur-want<=reach) {
+    newNote=-1;
+    steps=CLAMP((want-cur)/slideSpeed,-255,255);
+    return false;
+  }
+  newNote=CLAMP((want+64)>>7,0,179);
+  steps=CLAMP((want-(newNote<<7))/slideSpeed,-255,255);
+  return true;
+}
+
+#ifndef NDEBUG
+static void midiSplitBendSelfCheck() {
+  int newNote, steps;
+
+  assert(!midiSplitBend(1020,0,4,newNote,steps) && steps==255);
+
+  assert(midiSplitBend(1021,0,4,newNote,steps));
+  assert(std::abs(1021-(newNote*128+steps*4))<4);
+
+  assert(midiSplitBend(9800,12800,4,newNote,steps));
+  assert(std::abs(9800-(newNote*128+steps*4))<4);
+  assert(midiSplitBend(12800,9800,4,newNote,steps));
+  assert(std::abs(12800-(newNote*128+steps*4))<4);
+
+  assert(midiSplitBend(999999,0,4,newNote,steps) && newNote==179);
+  assert(midiSplitBend(-999999,0,4,newNote,steps) && newNote==0);
+}
+#endif
 
 static int midiAllocVoice(DivMIDIPart& part, const std::vector<DivMIDIModChanState>& chans, int& nextChan, int voiceChans, int note, bool monoMode, int totalRow, int& outRow, int& nudgeCount, int& crowdedCount, int& stealCount) {
   outRow=totalRow;
@@ -458,6 +469,9 @@ static int midiAllocVoice(DivMIDIPart& part, const std::vector<DivMIDIModChanSta
 }
 
 bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
+#ifndef NDEBUG
+  midiSplitBendSelfCheck();
+#endif
   bool success=false;
   SafeReader reader=SafeReader(file,len);
   std::vector<DivMIDITrackState> tracks;
@@ -476,8 +490,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     const int slideSpeed=(ds.compatFlags.linearPitch && ds.compatFlags.pitchSlideSpeed>0)?ds.compatFlags.pitchSlideSpeed:1;
     const int bendRangeOverride=CLAMP(midiImportBendRange,0,24);
     const int vibDepthMax=CLAMP(midiImportVibratoDepth,1,15);
-    // one rate for the whole import - GS/SC files carry a per-channel rate on
-    // CC76, but files that use it are rare enough not to bother with yet
+
     const int vibRateHz=CLAMP(midiImportVibratoRate,1,15);
 
     reader.seek(4,SEEK_SET);
@@ -690,10 +703,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
             if (cell[DIV_PAT_NOTE]>=DIV_NOTE_RAW || isDrum) return;
 
             if (useDelays) {
-              // ECxx counts ticks from when it is processed, not from the row
-              // start - and a delayed row is processed late, at its own EDxx.
-              // relative to the note's own delay is what actually lands on
-              // the tick the note should end
+
               int cut=delay-modChan[ch].noteDelay;
               if (cut<1) {
                 cut=1;
@@ -714,45 +724,54 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
             }
           };
 
-          auto emitBend=[&](int ch, int bOrd, int bRow, int target) {
-            const int want=(target-modChan[ch].pitchApplied)/slideSpeed;
-            if (want==0) return;
-            const int steps=CLAMP(want,-255,255);
-            short* bendCell=sub->pat[ch].getPattern(bOrd,true)->newData[bRow];
-            const int applied=midiWritePitchSlide(bendCell,sub->pat[ch].effectCols,steps);
-            modChan[ch].pitchApplied+=applied*slideSpeed;
-            if (applied!=want) bendClamped++;
+          auto emitBend=[&](int ch, int startRow, int target) {
+            for (int fr=startRow;; fr++) {
+              const int want=modChan[ch].baseNote*128+target;
+              int cur=modChan[ch].curNote*128+modChan[ch].pitchApplied;
+              if (want==cur) break;
+
+              const int bOrd=fr/patLen;
+              if (bOrd>=DIV_MAX_PATTERNS) break;
+              if (bOrd>maxOrd) maxOrd=bOrd;
+              short* bendCell=sub->pat[ch].getPattern(bOrd,true)->newData[fr%patLen];
+
+              int newNote, steps;
+              if (midiSplitBend(want,cur,slideSpeed,newNote,steps)) {
+                if (bendCell[DIV_PAT_NOTE]==-1) {
+                  bendCell[DIV_PAT_NOTE]=(short)newNote;
+                  modChan[ch].curNote=newNote;
+                  modChan[ch].pitchApplied=0;
+                  if (!modChan[ch].noRetrigger) {
+                    midiWriteFx(bendCell,sub->pat[ch].effectCols,MIDI_FX_NO_RETRIGGER,0xea,1);
+                    modChan[ch].noRetrigger=true;
+                  }
+
+                  bendCell[DIV_PAT_FX(MIDI_FX_PITCH)]=-1;
+                  bendCell[DIV_PAT_FXVAL(MIDI_FX_PITCH)]=-1;
+                  steps=CLAMP((want-(newNote<<7))/slideSpeed,-255,255);
+                } else {
+
+                  steps=CLAMP((want-cur)/slideSpeed,-255,255);
+                }
+              }
+
+              const int applied=midiWritePitchSlide(bendCell,sub->pat[ch].effectCols,steps);
+              modChan[ch].pitchApplied+=applied*slideSpeed;
+              if (applied==steps || applied==0) break;
+              if (fr==startRow) bendClamped++;
+            }
           };
 
           auto applyBend=[&](int newBend) {
-            const int oldTarget=midiBendToPitch(mc.pitchBend,mc.bendRangeCents);
-            const int newTarget=midiBendToPitch(newBend,mc.bendRangeCents);
-            const int lastRow=mc.bendRow;
-            if (lastRow>=0 && totalRow>lastRow+1 && oldTarget!=newTarget && (totalRow-lastRow)<=MIDI_BEND_MAX_FILL) {
-              for (int n=0; n<128; n++) {
-                int ch=mc.noteOn[n];
-                if (ch<0) continue;
-                int from=lastRow+1;
-                if (modChan[ch].noteRow>from) from=modChan[ch].noteRow;
-                for (int fr=from; fr<totalRow; fr++) {
-                  const int fillOrd=fr/patLen;
-                  if (fillOrd>=DIV_MAX_PATTERNS) break;
-                  emitBend(ch,fillOrd,fr%patLen,oldTarget+(int)midiMulDivR(newTarget-oldTarget,fr-lastRow,totalRow-lastRow));
-                }
-              }
-            }
             mc.pitchBend=newBend;
-            mc.bendRow=totalRow;
+            if (isDrum) return;
+            const int newTarget=midiBendToPitch(newBend,mc.bendRangeCents);
             for (int n=0; n<128; n++) {
               int ch=mc.noteOn[n];
-              if (ch>=0) emitBend(ch,ord,row,newTarget);
+              if (ch>=0) emitBend(ch,totalRow,newTarget);
             }
           };
 
-          // CC10 is channel state, not per-note - like CC7/CC11 above, an
-          // update reaches every voice this MIDI channel currently has
-          // sounding. a voice that is silent right now needs no write: its
-          // next note-on seeds pan fresh from mc.pan regardless
           auto applyPan=[&]() {
             const unsigned char panVal=midiPanTo80xx(mc.pan);
             for (int n=0; n<128; n++) {
@@ -763,9 +782,6 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
             }
           };
 
-          // CC1 is channel state like CC10 - it reaches every voice this MIDI
-          // channel has sounding. a silent voice needs no write: its next
-          // note-on seeds vibrato fresh from mc.modulation
           auto applyVibrato=[&]() {
             const unsigned char vibVal=midiModTo04xy(mc.modulation,vibDepthMax,vibRateHz);
             for (int n=0; n<128; n++) {
@@ -834,7 +850,29 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                 short* cell=sub->pat[ch].getPattern(placeOrd,true)->newData[placeLocalRow];
 
                 int outNote=(isDrum && midiImportSplitDrums)?MIDI_DRUM_NOTE:CLAMP(note+MIDI_NOTE_BIAS,0,179);
+                modChan[ch].baseNote=outNote;
+                modChan[ch].curNote=outNote;
+                modChan[ch].pitchApplied=0;
+
+                int seedSteps=0;
+                if (!isDrum && midiImportPitchBend && mc.pitchBend!=0) {
+                  const int want=outNote*128+midiBendToPitch(mc.pitchBend,mc.bendRangeCents);
+                  int newNote;
+                  if (midiSplitBend(want,outNote*128,slideSpeed,newNote,seedSteps)) {
+                    outNote=newNote;
+                    modChan[ch].curNote=newNote;
+
+                    cell[DIV_PAT_FX(MIDI_FX_PITCH)]=-1;
+                    cell[DIV_PAT_FXVAL(MIDI_FX_PITCH)]=-1;
+                    seedSteps=CLAMP((want-(newNote<<7))/slideSpeed,-255,255);
+                  }
+                }
                 cell[DIV_PAT_NOTE]=(short)outNote;
+
+                if (modChan[ch].noRetrigger) {
+                  midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NO_RETRIGGER,0xea,0);
+                  modChan[ch].noRetrigger=false;
+                }
 
                 std::pair<int,int> insKey;
                 if (isDrum) {
@@ -872,22 +910,15 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                 cell[DIV_PAT_VOL]=midiVolumeOf(data2,mc.volume,mc.expression,maxVol,midiImportVelocity,midiImportCC7,midiImportCC11);
                 if (useDelays && placeDelay!=0) midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NOTE_DELAY,0xed,(unsigned char)placeDelay);
 
-                modChan[ch].pitchApplied=0;
-                if (midiImportPitchBend && mc.pitchBend!=0) {
-                  emitBend(ch,placeOrd,placeLocalRow,midiBendToPitch(mc.pitchBend,mc.bendRangeCents));
+                if (seedSteps!=0) {
+                  modChan[ch].pitchApplied=midiWritePitchSlide(cell,sub->pat[ch].effectCols,seedSteps)*slideSpeed;
                 }
 
-                // seed pan the same way - a note starting mid-way through a
-                // panned part must not sound at the chip's default centre
                 if (midiImportPan && mc.pan!=64) {
                   modChan[ch].panApplied=mc.pan;
                   midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_PAN,0x80,midiPanTo80xx(mc.pan));
                 }
 
-                // vibrato sticks to the Furnace channel across notes, so a
-                // voice whose last note wobbled has to be told to stop -
-                // seeding only when the wheel is up would leave the previous
-                // note's 04xy running under this one
                 if (midiImportVibrato) {
                   const unsigned char vibVal=midiModTo04xy(mc.modulation,vibDepthMax,vibRateHz);
                   if (modChan[ch].vibratoApplied!=(int)vibVal) {
@@ -945,9 +976,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   for (int n=0; n<128; n++) noteOff(n);
                   break;
                 case 121:
-                  // reset all controllers recentres the wheel and zeroes
-                  // modulation, but leaves pan alone - RP-015 excludes it on
-                  // purpose
+
                   mc.volume=127;
                   mc.expression=127;
                   mc.sustain=false;
@@ -1217,14 +1246,8 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     logI("MIDI import: %d parts, %d channels, %d instruments",(int)parts.size(),numChans,ds.insLen);
 
-    // every 04xy written during the event loop carries its requested rate in
-    // Hz, not ticks - resolve them all against the song's own tick rate now
-    // that it's known, before compaction moves MIDI_FX_VIBRATO to a new lane
     if (midiImportVibrato) midiResolveVibratoRate(sub,nextChan,ordersLen,patLen,songHz);
 
-    // drop each voice channel's unused effect roles now that no more can appear.
-    // the tempo channel (if any) already sits at one column and needs no
-    // compaction, so this only covers the voice channels
     midiCompactFx(sub,nextChan,ordersLen,patLen);
 
     sub->removeUnusedPatterns();
@@ -1274,7 +1297,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       }
     }
     if (bendClamped>0) {
-      addWarning(fmt::sprintf("%d pitch bends moved faster than one row can carry; raise Quantize",bendClamped));
+      addWarning(fmt::sprintf("%d pitch bends could not land on their target row (the row was already taken, or the note range ran out) and were spread over the rows after them",bendClamped));
     }
     if (pitchBendSeen && !midiImportPitchBend) {
       addWarning("this file has pitch bend, but importing it is turned off");
