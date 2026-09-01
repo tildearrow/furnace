@@ -59,12 +59,27 @@
  * The SGU-1 emulation was imported into the tracker on 2026-06-11; entries record
  * every semantic or API change to sgu.h/sgu.c since, newest first.
  *
- * - 2026-08-11  DT encoding stated correctly -- DESCRIPTION ONLY, no behavior change.
- *   The field is Yamaha sign-magnitude, as OPN/OPM DT1: bit 2 is the sign and bits
- *   1:0 the magnitude, so 0 and 4 both mean no detune, 1..3 detune up and 5..7 down.
- *   detune_adjustment() has always implemented this; its comment described a mapping
- *   centred on 3, and that reading had reached doc/sgu-instrument.md and from there
- *   every FM importer. No register, table or output moved.
+ * - 2026-08-30 Per-channel diagnostic readback behind FLAGS1 bit 7 (DIAG):
+ *              designated window offsets become dual-function -- writes land in
+ *              the register file as always, reads return live chip state
+ *              (per-operator envelope attenuation, EG state, sample; channel
+ *              raw mix and envelope level). SGU_RegRead() is the chip's first
+ *              read entry point, so deployments share one map instead of each
+ *              indexing the register file.
+ * - 2026-08-27 Reset is partitioned into domains (SGU_RESET_VOICES / _TIMEBASE /
+ *              _MIX) reachable through SGU_ResetParts(); SGU_Reset() is unchanged
+ *              and equals SGU_RESET_ALL. SGU_RequestReset() latches a reset from
+ *              any context (an ISR, the other core) and SGU_NextSample_Setup()
+ *              performs it at the next sample boundary, before any channel work
+ *              is dispatched. The status word is now read/written atomically, so
+ *              a clip latched by the render core can no longer be lost by a
+ *              concurrent SGU_GetFlags() on another core.
+ * - 2026-08-11 DT encoding stated correctly -- DESCRIPTION ONLY, no behavior change.
+ *              The field is Yamaha sign-magnitude, as OPN/OPM DT1: bit 2 is the sign and bits
+ *              1:0 the magnitude, so 0 and 4 both mean no detune, 1..3 detune up and 5..7 down.
+ *              detune_adjustment() has always implemented this; its comment described a mapping
+ *              centred on 3, and that reading had reached doc/sgu-instrument.md and from there
+ *              every FM importer. No register, table or output moved.
  * - 2026-08-04 duty is SIGNED (int8_t): |duty| is the LOW-run length out of the
  *              128-step period and the sign places that run -- positive at the
  *              period start (____|~~~~), negative at the end (~~~~|____) -- so
@@ -426,6 +441,11 @@ Additional WAVE form related parameter (per-operator, 4 bits)
 #define SGU1_FLAGS1_FREQ_SWEEP         (1 << 4)
 #define SGU1_FLAGS1_VOL_SWEEP          (1 << 5)
 #define SGU1_FLAGS1_CUT_SWEEP          (1 << 6)
+// DIAG: while set on a channel, designated offsets of that channel's register
+// window read back as live diagnostics instead of the register file (writes are
+// unaffected). See SGU_RegRead for the map. Plain stored bit: any FLAGS1 write
+// with bit 7 clear switches the channel back to normal readback.
+#define SGU1_FLAGS1_DIAG               (1 << 7)
 
 // -----------------------------------------------------------------------------
 // Notes on behavior (implementation-level, not register-level)
@@ -532,7 +552,7 @@ struct SGU_CH
     struct SGU_OP op[SGU_OP_PER_CH];
 
     uint16_t freq; // 16-bit phase increment / playback rate
-    int8_t vol;    // signed 8-bit; sign allows inversion.
+    int8_t vol;    // signed 8-bit; sign allows amplitude inversion.
     int8_t pan;    // positive Right, negative Left
 
     // flags0:
@@ -621,7 +641,7 @@ struct SGU_CH
     // bit6 (loop) and bit7 (bounce).
     //
     // Volume is a signed int8 value spanning the complete 0x80..0x7F range. Negative values
-    // have reversed output phase but otherwise participate normally in sweep arithmetic.
+    // have reversed output amplitude but otherwise participate normally in sweep arithmetic.
     // Zero is the common hard rail between the positive and negative polarity domains.
     //
     // For looping modes, the sign of `bound` selects the active polarity domain:
@@ -787,7 +807,14 @@ struct SGU
 
     // Chip status word (SGU_FLAG_*). Finalize ORs into it, SGU_GetFlags reads and
     // clears it. Lives with the output state because that is what it describes.
+    // Read and written atomically -- the render core sets bits while another
+    // context reads them out. Plain uint32_t, not _Atomic, so struct SGU stays
+    // trivially copyable for snapshots.
     uint32_t flags;
+
+    // Reset domains (SGU_RESET_*) latched by SGU_RequestReset and performed by
+    // SGU_NextSample_Setup at the next sample boundary. Atomic, same reason.
+    uint32_t pending_reset;
 
     // ------ SID-like channel processing state (post-FM) ------
 
@@ -824,9 +851,52 @@ struct SGU
 // -----------------------------------------------------------------------------
 
 void SGU_Init(struct SGU *sgu, int8_t *pcm, size_t pcm_size);
+
+// Reset domains. These name the parts of *this core* that a reset can clear;
+// how a deployment's bus exposes them -- register address, command encoding,
+// which subsets it offers -- is the deployment's business, not the chip's.
+// PCM sample memory is deliberately absent: it is host-loaded data rather than
+// chip state, and clearing it is far too slow to do at a sample boundary.
+#define SGU_RESET_VOICES   (1u << 0) // channel register file, operators, envelopes, per-channel DSP
+#define SGU_RESET_TIMEBASE (1u << 1) // sample/envelope/LFO counters and the LFO noise LFSR
+#define SGU_RESET_MIX      (1u << 2) // output mix, DC-removal filter state, status flags
+#define SGU_RESET_ALL      (SGU_RESET_VOICES | SGU_RESET_TIMEBASE | SGU_RESET_MIX)
+
+// Reset the named domains immediately. The caller guarantees no render is in
+// flight -- from an ISR, or from a core that is not the one rendering, use
+// SGU_RequestReset instead.
+void SGU_ResetParts(struct SGU *sgu, uint32_t parts);
+
+// Latch a reset of the named domains, to be performed by SGU_NextSample_Setup
+// at the next sample boundary before any channel work is dispatched. Atomic and
+// does no work itself, so it is safe from an interrupt handler or the other
+// core while rendering is under way. Requests accumulate until performed.
+void SGU_RequestReset(struct SGU *sgu, uint32_t parts);
+
+// Reset the whole chip (== SGU_ResetParts(sgu, SGU_RESET_ALL)).
 void SGU_Reset(struct SGU *sgu);
 
 void SGU_Write(struct SGU *sgu, uint16_t addr13, uint8_t data);
+
+// Read one byte of channel ch's 64-byte register window (reg 0..63), applying
+// diagnostic mode: with SGU1_FLAGS1_DIAG set on the channel, the designated
+// offsets below return live chip state; everything else (and everything, with
+// DIAG clear) returns the register file byte. This is the chip's read entry
+// point -- deployments should route CPU reads of channel banks through it so
+// the map cannot drift between them.
+//
+// Diagnostic map (op n block base = n*8; values read pre-VOL, pre-pan):
+//   op base+0  envelope attenuation, 0.375 dB steps (0 = full level, 255 = silent)
+//   op base+1  EG state in bits 1:0 (0 A, 1 D, 2 S, 3 R) | bit 2 = TRIG-armed
+//              key-on DELAY window active
+//   op base+2/+3  operator sample lo/hi (current op value, int16)
+//   $20/$21    channel sample lo/hi: raw channel mix src[ch] (int16, pre-VOL,
+//              pre-filter, pre-pan; live for PCM channels too)
+//   $22        channel envelope, 0..255 linear (SGU_GetEnvelope >> 5); reads 0
+//              for a PCM-mode channel
+// Sample lo/hi are two separate reads while rendering runs, so a pair can
+// straddle a sample boundary -- jitter, not corruption.
+uint8_t SGU_RegRead(const struct SGU *sgu, uint8_t ch, uint8_t reg);
 
 void SGU_NextSample(struct SGU *sgu, int32_t *l, int32_t *r);
 
@@ -864,6 +934,8 @@ int32_t SGU_GetEnvelope(struct SGU *sgu, uint8_t ch);
 
 // Returns the status word accumulated since the previous call (SGU_FLAG_CLIP: the
 // output stage clipped) and clears it -- the classic read-to-clear status register,
-// which is also how the service page will expose it once it has an address. Sticky
-// until read. Expects a single reader.
+// which is also how the service page exposes it. Sticky until read. The read and
+// clear are one atomic exchange, so a bit latched by the render core concurrently
+// is either returned by this call or left standing for the next one, never lost.
+// Still expects a single reader: two readers would each see part of the history.
 uint32_t SGU_GetFlags(struct SGU *sgu);

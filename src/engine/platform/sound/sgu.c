@@ -104,6 +104,38 @@ static inline uint32_t sgu_clz32(uint32_t value)
 #endif
 }
 
+// Atomic read-modify-write on a 32-bit chip word. The status flags and the
+// pending-reset word are both written by whichever context notices the event
+// (the render core, an ISR, the other core) and consumed by another, so the
+// read-and-clear has to be indivisible or a latch set between the load and the
+// store is silently dropped. Relaxed ordering is enough: each word stands
+// alone, no other data is published alongside it.
+static inline uint32_t sgu_atomic_fetch_or32(uint32_t *word, uint32_t bits)
+{
+#if defined(_MSC_VER)
+    return (uint32_t)_InterlockedOr((volatile long *)word, (long)bits);
+#elif defined(__GNUC__) || defined(__clang__)
+    return __atomic_fetch_or(word, bits, __ATOMIC_RELAXED);
+#else
+    const uint32_t previous = *word;
+    *word = previous | bits;
+    return previous;
+#endif
+}
+
+static inline uint32_t sgu_atomic_exchange32(uint32_t *word, uint32_t value)
+{
+#if defined(_MSC_VER)
+    return (uint32_t)_InterlockedExchange((volatile long *)word, (long)value);
+#elif defined(__GNUC__) || defined(__clang__)
+    return __atomic_exchange_n(word, value, __ATOMIC_RELAXED);
+#else
+    const uint32_t previous = *word;
+    *word = value;
+    return previous;
+#endif
+}
+
 //-------------------------------------------------
 //  svf_saturate - cheap soft saturation for analog warmth
 //  Prevents harsh digital clipping, emulates analog op-amp behavior.
@@ -672,6 +704,14 @@ static inline uint32_t attenuation_to_volume(uint32_t input)
 // ---------------------------------------------------------------------------
 void __attribute__((optimize("Ofast"))) SGU_NextSample_Setup(struct SGU *restrict sgu)
 {
+    // Perform any reset latched since the last sample. This is the one point in
+    // the frame where no channel work is in flight on any core -- Setup runs on
+    // the coordinator before it dispatches channels -- so it is where a reset
+    // requested from an ISR or the other core can safely land.
+    const uint32_t pending = sgu_atomic_exchange32(&sgu->pending_reset, 0u);
+    if (pending)
+        SGU_ResetParts(sgu, pending);
+
     sgu->sample_counter += 1;
     // YMFM-style envelope counter with 2-bit subcounter
     if (EG_CLOCK_DIVIDER == 1)
@@ -1437,10 +1477,11 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample_Finalize(
     // scale in the tracker, clamp16() in the WAV writer), so all the chip can do
     // is report that the output stage's range was exceeded -- SGU_CLIP_MIN/MAX are
     // the hardware's. Detection only.
-    // The flag is sticky; SGU_GetFlags clears it.
+    // The flag is sticky; SGU_GetFlags clears it. The branch keeps the common
+    // case a plain compare and the atomic off the hot path.
     if (final_L < SGU_CLIP_MIN || final_L > SGU_CLIP_MAX ||
         final_R < SGU_CLIP_MIN || final_R > SGU_CLIP_MAX)
-        sgu->flags |= SGU_FLAG_CLIP;
+        sgu_atomic_fetch_or32(&sgu->flags, SGU_FLAG_CLIP);
 }
 
 // ---------------------------------------------------------------------------
@@ -1456,11 +1497,10 @@ void __attribute__((optimize("Ofast"))) SGU_NextSample(struct SGU *restrict sgu,
 
 uint32_t SGU_GetFlags(struct SGU *sgu)
 {
-    // Read-to-clear (see sgu.h). The render thread ORs bits in while the GUI thread
-    // reads them out; the clear can race a concurrent OR and lose at most one latch.
-    uint32_t flags = sgu->flags;
-    sgu->flags = 0;
-    return flags;
+    // Read-to-clear (see sgu.h). The render core ORs bits in while another context
+    // reads them out, so read and clear are one exchange: a bit latched concurrently
+    // is either returned here or survives for the next call.
+    return sgu_atomic_exchange32(&sgu->flags, 0u);
 }
 
 void __attribute__((optimize("Ofast"))) SGU_Init(struct SGU *sgu, int8_t *pcm, size_t pcm_size)
@@ -1527,45 +1567,72 @@ void __attribute__((optimize("Ofast"))) SGU_Init(struct SGU *sgu, int8_t *pcm, s
     sgu->pcm = pcm;
     sgu->pcm_size = pcm_size;
 
+    // Explicit: callers are not required to have zeroed the struct, and a stray
+    // pending reset would fire on the very first sample.
+    sgu->pending_reset = 0;
+
     SGU_Reset(sgu);
 }
+void SGU_ResetParts(struct SGU *sgu, uint32_t parts)
+{
+    if (parts & SGU_RESET_TIMEBASE)
+    {
+        sgu->sample_counter = 0;
+        sgu->envelope_counter = 0;
+        sgu->lfo_counter = 0;
+        sgu->lfo_lfsr = 0x1FFFF; // non-zero seed (17 bits set)
+        sgu->lfo_noise_am = 0;
+        sgu->lfo_noise_pm = 0;
+    }
+
+    if (parts & SGU_RESET_MIX)
+    {
+        sgu->L = sgu->R = 0;
+        sgu->L_in = sgu->R_in = 0;
+        sgu->L_q16 = sgu->R_q16 = 0;
+        // The status word describes the output stage, so it clears with it.
+        sgu_atomic_exchange32(&sgu->flags, 0u);
+    }
+
+    if (parts & SGU_RESET_VOICES)
+    {
+        memset(sgu->chan, 0, sizeof(struct SGU_CH) * SGU_CHNS);
+
+        for (uint8_t ch = 0; ch < SGU_CHNS; ch++)
+        {
+            fm_channel_reset(&sgu->m_channel[ch], ch);
+
+            // Reset SID-like channel processing state
+            sgu->svf_low[ch] = 0;
+            sgu->svf_high[ch] = 0;
+            sgu->svf_band[ch] = 0;
+
+            sgu->vol_sweep_countdown[ch] = 0;
+            sgu->freq_sweep_countdown[ch] = 0;
+            sgu->cutoff_sweep_countdown[ch] = 0;
+
+            sgu->phase_reset_countdown[ch] = 0;
+            sgu->pcm_phase_accum[ch] = 0;
+
+            sgu->src[ch] = 0;
+            sgu->post[ch] = 0;
+            sgu->outL[ch] = 0;
+            sgu->outR[ch] = 0;
+        }
+    }
+}
+
+void SGU_RequestReset(struct SGU *sgu, uint32_t parts)
+{
+    // Latch only -- SGU_NextSample_Setup performs the work at the next sample
+    // boundary. Doing it here would tear the register file out from under a
+    // render already in progress on another core.
+    sgu_atomic_fetch_or32(&sgu->pending_reset, parts);
+}
+
 void SGU_Reset(struct SGU *sgu)
 {
-    memset(sgu->chan, 0, sizeof(struct SGU_CH) * SGU_CHNS);
-
-    sgu->sample_counter = 0;
-    sgu->envelope_counter = 0;
-    sgu->lfo_counter = 0;
-    sgu->lfo_lfsr = 0x1FFFF; // non-zero seed (17 bits set)
-    sgu->lfo_noise_am = 0;
-    sgu->lfo_noise_pm = 0;
-
-    sgu->L = sgu->R = 0;
-    sgu->L_in = sgu->R_in = 0;
-    sgu->L_q16 = sgu->R_q16 = 0;
-    sgu->flags = 0;
-
-    for (uint8_t ch = 0; ch < SGU_CHNS; ch++)
-    {
-        fm_channel_reset(&sgu->m_channel[ch], ch);
-
-        // Reset SID-like channel processing state
-        sgu->svf_low[ch] = 0;
-        sgu->svf_high[ch] = 0;
-        sgu->svf_band[ch] = 0;
-
-        sgu->vol_sweep_countdown[ch] = 0;
-        sgu->freq_sweep_countdown[ch] = 0;
-        sgu->cutoff_sweep_countdown[ch] = 0;
-
-        sgu->phase_reset_countdown[ch] = 0;
-        sgu->pcm_phase_accum[ch] = 0;
-
-        sgu->src[ch] = 0;
-        sgu->post[ch] = 0;
-        sgu->outL[ch] = 0;
-        sgu->outR[ch] = 0;
-    }
+    SGU_ResetParts(sgu, SGU_RESET_ALL);
 }
 
 void SGU_Write(struct SGU *sgu, uint16_t addr13, uint8_t data)
@@ -1611,4 +1678,53 @@ int32_t SGU_GetEnvelope(struct SGU *sgu, uint8_t ch)
 
     acc = minval(acc, 0x1FFFu);
     return (int32_t)acc;
+}
+
+uint8_t SGU_RegRead(const struct SGU *sgu, uint8_t ch, uint8_t reg)
+{
+    // Precondition: ch < SGU_CHNS (bank routing is the deployment's job).
+    reg &= SGU_REGS_PER_CH - 1;
+    const uint8_t file = ((const uint8_t *)sgu->chan)[((uint16_t)ch << 6) | reg];
+    if (!(sgu->chan[ch].flags1 & SGU1_FLAGS1_DIAG))
+        return file;
+
+    const struct sgu_ch_state *cs = &sgu->m_channel[ch];
+    if (reg < SGU_OP_PER_CH * SGU_OP_REGS)
+    {
+        const unsigned op = reg >> 3;
+        switch (reg & 7)
+        {
+        case 0: // envelope attenuation in 0.375 dB steps; 0x3FF>>2 == 0xFF exact
+            return (uint8_t)(minval(cs->op[op].envelope_attenuation, 0x3FFu) >> 2);
+        case 1: // EG state | DELAY window armed
+            return (uint8_t)(((unsigned)cs->op[op].envelope_state & 0x3u)
+                             | (OP_FLAG_GET(cs->op_flags, OP_FLAGS_EG_DELAY, op) << 2));
+        case 2:
+            return (uint8_t)((uint16_t)cs->op[op].value & 0xFFu);
+        case 3:
+            return (uint8_t)((uint16_t)cs->op[op].value >> 8);
+        default:
+            return file;
+        }
+    }
+    switch (reg)
+    {
+    case SGU_PATCH_CHN(SGU1_CHN_FREQ_L):
+        return (uint8_t)((uint16_t)sgu->src[ch] & 0xFFu);
+    case SGU_PATCH_CHN(SGU1_CHN_FREQ_H):
+        return (uint8_t)((uint16_t)sgu->src[ch] >> 8);
+    case SGU_PATCH_CHN(SGU1_CHN_VOL): {
+        // Channel envelope, pre-VOL (SGU_GetEnvelope semantics, Q13 -> byte).
+        // A PCM channel reads 0 by contract: its operator attenuations are
+        // frozen at whatever they last held, so the sum would be stale.
+        if (sgu->muted[ch] || (sgu->chan[ch].flags0 & SGU1_FLAGS0_PCM_MASK))
+            return 0;
+        uint32_t acc = 0;
+        for (unsigned op = 0; op < SGU_OP_PER_CH; op++)
+            acc += sgu_get_operator_envelope_level(sgu, cs, ch, op);
+        return (uint8_t)(minval(acc, 0x1FFFu) >> 5);
+    }
+    default:
+        return file;
+    }
 }

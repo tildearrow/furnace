@@ -69,3 +69,5 @@ __note:__ FM operator parameters (attack rate, decay rate, total level, multipli
 ## info
 
 this chip uses the [SGU-1](../4-instrument/sgu.md) instrument editor.
+
+the chip latches a clip flag whenever its output stage would saturate on an X65. the limit is the hardware's own, so it answers "would this clip on the real machine?" regardless of Furnace's volume settings. open the debug window from `help` > `debug menu` and expand `Chip Status`: it shows a `CLIP` lamp with a count of clipping episodes.

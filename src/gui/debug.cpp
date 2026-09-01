@@ -577,6 +577,13 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text(" - pending: %d",(int)ch->writes.size());
       ImGui::Text(" - capacity: %d",(int)ch->writes.capacity());
       COMMON_CHIP_DEBUG_BOOL;
+      // the clip status the chip latches at the X65 output stage's own limit; the
+      // dispatch reads the read-to-clear flag on the render thread and holds it for
+      // us, so this is a plain display (see DivPlatformSGU::pollStatus)
+      ImVec4 colorClip=ImVec4(1.0f,0.25f,0.25f,1.0f);
+      ImGui::TextColored(ch->isClipping()?colorClip:colorOff,">> CLIP");
+      ImGui::SameLine();
+      ImGui::Text("(%u episodes since reset)",ch->getClipEvents());
       break;
     }
     default: {

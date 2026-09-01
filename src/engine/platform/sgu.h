@@ -192,6 +192,13 @@ class DivPlatformSGU: public DivDispatch {
   signed char* pcmMem;
   short oldOut[2];
 
+  // Output-stage clip status, derived by pollStatus() from the chip's read-to-clear
+  // status word. clipHold counts down in rendered samples after the last clipped
+  // chunk, so even a lone clipped sample shows for a moment; clipEvents counts
+  // clipping episodes since the last reset().
+  int clipHold;
+  unsigned int clipEvents;
+
   // Sample memory tracking (from SoundUnit)
   unsigned int* sampleOffSGU;
   bool* sampleLoaded;
@@ -200,6 +207,7 @@ class DivPlatformSGU: public DivDispatch {
 
   void writeControl(int ch);
   void writeControlUpper(int ch);
+  void pollStatus(size_t len);
   void applyOpRegs(int ch, int o, const DivInstrumentFM::Operator& op, const DivInstrumentESFM::Operator& opE);
   void commitState(int ch, DivInstrument* ins);
 
@@ -235,6 +243,9 @@ class DivPlatformSGU: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
+    // chip debug window: the output-stage clip status (see pollStatus)
+    bool isClipping();
+    unsigned int getClipEvents();
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

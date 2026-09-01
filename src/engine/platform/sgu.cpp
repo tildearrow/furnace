@@ -53,8 +53,8 @@ static const char* regCheatSheetSGU[]={
   "CHx_FREQ_H", "21+x*40",
   "CHx_VOL", "22+x*40",
   "CHx_PAN", "23+x*40",
-  "CHx_FLAGS0", "24+x*40",
-  "CHx_FLAGS1", "25+x*40",
+  "CHx_FLAGS0 [7 NSBAND][6 NSHIGH][5 NSLOW][4 RING_MOD][3 PCM][1 TRIG][0 GATE]", "24+x*40",
+  "CHx_FLAGS1 [7 DIAG][6 CUT_SWEEP][5 VOL_SWEEP][4 FREQ_SWEEP][3 TIMER_SYNC][2 PCM_LOOP][1 FILTER_PHASE_RESET][0 PHASE_RESET]", "25+x*40",
   "CHx_CUTOFF_L", "26+x*40",
   "CHx_CUTOFF_H", "27+x*40",
   "CHx_DUTY", "28+x*40",
@@ -111,6 +111,7 @@ void DivPlatformSGU::acquire(short** buf, size_t len) {
   for (int i=0; i<SGU_CHNS; i++) {
     oscBuf[i]->end(len);
   }
+  pollStatus(len);
 }
 
 void DivPlatformSGU::acquireDirect(blip_buffer_t** bb, size_t len) {
@@ -146,6 +147,23 @@ void DivPlatformSGU::acquireDirect(blip_buffer_t** bb, size_t len) {
   }
   for (int i=0; i<SGU_CHNS; i++) {
     oscBuf[i]->end(len);
+  }
+  pollStatus(len);
+}
+
+// The chip latches SGU_FLAG_CLIP whenever its output stage would saturate on an X65
+// (the int32-domain bounds in sound/sgu.h -- the hardware's limit, not Furnace's
+// volume scaling, so the lamp answers "would this clip on the real machine?") and
+// clears the flag on read. Reading it here, once per rendered chunk on the render
+// thread, honours the chip's single-reader contract and makes the hold deterministic:
+// measured in rendered samples, it is the same whether or not the debug window is
+// open and however fast the GUI draws.
+void DivPlatformSGU::pollStatus(size_t len) {
+  if (SGU_GetFlags(&chip)&SGU_FLAG_CLIP) {
+    if (clipHold<=0) clipEvents++;
+    clipHold=rate*3/20; // 150 ms: long enough to register with the eye, short enough to fall off promptly
+  } else if (clipHold>0) {
+    clipHold=(len>=(size_t)clipHold)?0:(clipHold-(int)len);
   }
 }
 
@@ -1504,10 +1522,20 @@ int DivPlatformSGU::getRegisterPoolSize() {
   return (SGU_CHNS * SGU_REGS_PER_CH);
 }
 
+bool DivPlatformSGU::isClipping() {
+  return clipHold>0;
+}
+
+unsigned int DivPlatformSGU::getClipEvents() {
+  return clipEvents;
+}
+
 void DivPlatformSGU::reset() {
   while (!writes.empty()) writes.pop();
 
   SGU_Reset(&chip);
+  clipHold=0;
+  clipEvents=0;
 
   for (int i=0; i<SGU_CHNS; i++) {
     chan[i]=DivPlatformSGU::Channel(parent->song.compatFlags.linearPitch);
@@ -1695,7 +1723,9 @@ bool DivPlatformSGU::hasSoftPan(int ch) {
 }
 
 // initialization of sample tracking arrays
-DivPlatformSGU::DivPlatformSGU() {
+DivPlatformSGU::DivPlatformSGU():
+  clipHold(0),
+  clipEvents(0) {
   sampleOffSGU=new unsigned int[32768];
   sampleLoaded=new bool[32768];
   pcmMem=new signed char[SGU_PCM_BANK_SIZE];
