@@ -8015,14 +8015,14 @@ bool FurnaceGUI::loop() {
           // Quantize is the row grid: how many rows one whole note takes. the list
           // pairs each straight value with its triplet sibling, since a triplet
           // grid needs a value divisible by 3
-          const char* quantizeNames[10]={_("1/4 notes"),_("1/6 notes"),_("1/8 notes"),_("1/12 notes"),_("1/16 notes"),_("1/24 notes"),_("1/32 notes"),_("1/48 notes"),_("1/64 notes"),_("1/96 notes")};
-          static const int quantizeValues[10]={4, 6, 8, 12, 16, 24, 32, 48, 64, 96};
+          const char* quantizeNames[12]={_("1/4 notes"),_("1/6 notes"),_("1/8 notes"),_("1/12 notes"),_("1/16 notes"),_("1/24 notes"),_("1/32 notes"),_("1/48 notes"),_("1/64 notes"),_("1/96 notes"),_("1/128 notes"),_("1/192 notes")};
+          static const int quantizeValues[12]={4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192};
           int quantizeIndex=6;
-          for (int i=0; i<10; i++) {
+          for (int i=0; i<12; i++) {
             if (quantizeValues[i]==e->midiImportQuantize) quantizeIndex=i;
           }
           ImGui::SetNextItemWidth(120.0f*dpiScale);
-          if (ImGui::Combo(_("Quantize"),&quantizeIndex,quantizeNames,10)) {
+          if (ImGui::Combo(_("Quantize"),&quantizeIndex,quantizeNames,12)) {
             e->midiImportQuantize=quantizeValues[quantizeIndex];
           }
           // in groove approximation the speed comes out of the groove, so there is

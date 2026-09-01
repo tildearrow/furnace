@@ -1255,55 +1255,55 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     ds.recalcChans();
 
-    addWarning("no samples were created - assign samples to the instruments, or change the chip, to hear anything");
+    addWarning("No samples were created. - Assign samples to the instruments, or change the chip, to hear anything");
     if (retimedCount>0) {
-      addWarning(fmt::sprintf("%d note-offs were moved a row later by quantization",retimedCount));
+      addWarning(fmt::sprintf("%d Note-offs were moved a row later by quantization",retimedCount));
     }
     if (tempoClamped>0) {
-      addWarning(fmt::sprintf("%d tempo changes were faster than the 1023Hz tick rate limit; lower Ticks/Row or Quantize",tempoClamped));
+      addWarning(fmt::sprintf("%d Tempo changes were faster than the 1023Hz tick rate limit; lower Ticks/Row or Quantize",tempoClamped));
     }
     if (grooveOverflow>0) {
-      addWarning(fmt::sprintf("%d tempo changes did not fit in the 256-groove table and were left out",grooveOverflow));
+      addWarning(fmt::sprintf("%d Tempo changes did not fit in the 256-groove table and were left out",grooveOverflow));
     }
     if (droppedCount>0) {
       logD("MIDI import: %d note-offs fell on a retrigger row and were left out",droppedCount);
     }
     if (stealCount>0) {
-      addWarning(fmt::sprintf("%d voice steals (more than %d simultaneous notes)",stealCount,voiceChans));
+      addWarning(fmt::sprintf("%d Voice steals (more than %d simultaneous notes)",stealCount,voiceChans));
     }
     if (crowdedCount>0) {
-      addWarning(fmt::sprintf("%d notes needed an extra channel because too many landed on one row; raise Quantize for a finer grid",crowdedCount));
+      addWarning(fmt::sprintf("%d Notes needed an extra channel because too many landed on one row; raise Quantize for a finer grid",crowdedCount));
     }
     if (nudgeCount>0) {
       logD("MIDI import: %d notes were moved to the next row to share a column instead of taking a new one",nudgeCount);
     }
     if (partOverflow>0) {
-      addWarning(fmt::sprintf("%d parts had no channel left and share the last one",partOverflow));
+      addWarning(fmt::sprintf("%d Parts had no channel left and share the last one",partOverflow));
     }
     if (zeroLenNotes>0) {
-      addWarning(fmt::sprintf("%d notes were shorter than one tracker tick; raise Ticks/Row for finer timing",zeroLenNotes));
+      addWarning(fmt::sprintf("%d Notes were shorter than one tracker tick; raise Ticks/Row for finer timing",zeroLenNotes));
     }
     if (timeSigChanges) {
-      addWarning("time signature changes are not supported; bars will drift after the first change");
+      addWarning("Time signature changes are not supported; bars will drift after the first change");
     }
     if (truncated) {
-      addWarning(fmt::sprintf("song truncated to %d patterns; raise Pattern Length or lower Quantize",DIV_MAX_PATTERNS));
+      addWarning(fmt::sprintf("Song truncated to %d patterns; raise Pattern Length or lower Quantize",DIV_MAX_PATTERNS));
     }
     if (tooFast) {
       if (baseTempoMode) {
-        addWarning(fmt::sprintf("song is too fast for the maximum tick rate of %gHz; it will play back slower than the MIDI. lower Ticks/Row or Quantize",MIDI_MAX_HZ));
+        addWarning(fmt::sprintf("Song is too fast for the maximum tick rate of %gHz; it will play back slower than the MIDI. lower Ticks/Row or Quantize",MIDI_MAX_HZ));
       } else {
-        addWarning(fmt::sprintf("song is too fast for Groove Approximation, which holds the tick rate at %gHz; it will play back slower than the MIDI. lower Quantize, or import with Base Tempo",MIDI_BASE_HZ));
+        addWarning(fmt::sprintf("Song is too fast for Groove Approximation, which holds the tick rate at %gHz; it will play back slower than the MIDI. lower Quantize, or import with Base Tempo",MIDI_BASE_HZ));
       }
     }
     if (bendClamped>0) {
-      addWarning(fmt::sprintf("%d pitch bends could not land on their target row (the row was already taken, or the note range ran out) and were spread over the rows after them",bendClamped));
+      addWarning(fmt::sprintf("%d Pitch bends could not land on their target row (the row was already taken, or the note range ran out) and were spread over the rows after them",bendClamped));
     }
     if (pitchBendSeen && !midiImportPitchBend) {
-      addWarning("this file has pitch bend, but importing it is turned off");
+      addWarning("This file has pitch bend, but importing it is turned off");
     }
     if (pitchBendSeen && midiImportPitchBend && !rpnSeen && bendRangeOverride==0) {
-      addWarning("this file bends without saying how far, so the General MIDI default of 2 semitones was used. if the bends sound too shallow, set Bend Range in the import options to whatever made the file");
+      addWarning("This file bends without saying how far, so the General MIDI default of 2 semitones was used. if the bends sound too shallow, set Bend Range in the import options to whatever made the file");
     }
 
     if (active) quitDispatch();
