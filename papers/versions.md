@@ -96,19 +96,177 @@ if loading a previous version song, set the `posLatch` flag to `false` on each N
 
 ## dev243 - Namco 163 convenience effects
 
+this version adds two Namco 163 effects for convenience and .ftm import:
+
+- 1Axx: set wave load and play pos (equivalent to 11xx 15xx)
+- 1Bxx: set wave load and play length (equivalent to 12xx 16xx)
+
+a small change to the command stream format has been made. the commands for N163 loadpos/loadlen have been retired, and the commands for N163 wave position/length now take in 2 bytes instead of 1.
+the first byte is the position/length.
+the second byte is a bitset. if bit 0 is set, update playback state. if bit 1 is set, update load state.
+
 ## dev242 - OPL4 mixing levels
+
+this version adds four chip flags to OPL4 for mixing levels:
+
+- fmMixL (default 4)
+- fmMixR (default 4)
+- pcmMixL (default 7)
+- pcmMixR (default 7)
+
+when loading an older file, set fmMixL and fmMixR to 7 (previous mixing levels).
 
 ## dev241 - fix groove saving
 
+this version fixes groove saving, which broke in dev240.
+
 ## dev240 - new info header!
+
+this version introduces the INF2 info header to the Furnace file format, alongside a bunch of other changes.
+
+a new song info header (`INF2`) has been introduced, which:
+- cleans up the mess I made when adding sub-songs to Furnace
+- allows better forward compatibility and extensibility
+- uses 16-bit chip IDs
+- moves compatibility flags to another block and is stored as a DivConfig
+- stores channel count in the file, allowing chips with dynamic channel count (e.g. Namco 163)
+
+a new sub-song data block has been introduced as well.
+
+TimeBase ("Divider" in the UI) has been REMOVED. it was a DefleMask leftover.
+to compensate, the speeds are now 16-bit. older songs will have their speeds converted, but this may fail if you use grooves or change speed mid-song.
+
+dynamic channel count support has been added. the following chips are currently supported:
+- Namco 163 (1-8 channels)
+- ES5506 (5-32 channels)
+- Generic PCM DAC (1-128 channels, with software mixing!)
+
+channel colors have been added (thanks Eknous!).
+
+SegaPCM (compatible 5-channel mode) and Neo Geo CD have been REMOVED. when loading previous files, including .dmf ones, these will have compatible SegaPCM and Neo Geo CD chips converted to normal SegaPCM and YM2610 respectively.
+their channel count remains unaltered though. you can fix this by going into the chip manager and clicking the button next to "irregular channel count" in each chip config section.
 
 ## dev239 - total extinction of legacy sample mode
 
+this version removes legacy sample mode. files made under previous versions will be converted if legacy sample mode is detected.
+
+legacy sample mode was the original method used to play samples back in the DefleMask and early Furnace days.
+it involved use of the `17xx` effect. when this sample mode is enabled, 12 samples are mapped to an octave (from C to B) and their pitches were configurable in the sample editor.
+to use more than 12 samples, you had to switch "banks" with the `EBxx` effect.
+
+when Furnace 0.4 came out, the current sample playback method was added. bind samples to instruments, and subsequently play notes using instruments.
+this offered greater pitch control compared to legacy sample mode.
+
+the eventual addition of sample maps further rendered legacy sample mode pointless.
+
+as time passed, legacy sample mode remained as a tumor, plaguing every chip implementation and complicating the already-messy code.
+this prompted me to remove it. in this version that became a reality.
+
+the following strategy is used to convert legacy sample mode usage to the current one:
+
+1. check whether we have a free instrument slot. if we don't, stop.
+2. check which samples are used by instruments of the following types:
+  - MSM6258
+  - MSM6295
+  - ADPCM-A
+  - ADPCM-B
+  - SegaPCM
+  - QSound
+  - YMZ280B
+  - RF5C68
+  - Amiga (Generic Sample)
+  - MultiPCM
+  - SNES
+  - ES5506
+  - K007232
+  - GA20
+  - K053260
+  - C140
+  - C219
+  - NDS
+  - GBA DMA
+  - GBA MinMod
+  - NES
+  - Supervision
+  - if "Use sample" is enabled:
+    - Sound Unit
+    - AY-3-8910/SSG
+    - AY8930
+    - Lynx/Mikey
+    - PC Engine
+    - X1-010
+    - WonderSwan
+    - VRC6
+  mark samples used by these instruments to exclude them from future checks.
+3. for each channel:
+  3.0. skip to the next channel if you are:
+    - NES/5E01: not in the DPCM channel
+    - MMC5/WonderSwan: not in the PCM channel
+    - YM2612: not in channel 6
+    - YM2610/YM2610B: not in the ADPCM channels
+    - YM2612 DualPCM: not in the DualPCM channels
+    - YM2608/Y8950: not in the ADPCM channel
+    - VRC6: not in the pulse channels
+    - PCE/X1-010/AY/AY8930/SegaPCM/MSM6258/MSM6295: keep going
+    - on a chip not under this list
+  3.1. there are three modes. off, legacy and normal.
+  3.2. the initial sample bank is 0. this is a per-channel thing.
+  3.3. the initial sample mode is "off", except under these circumstances:
+    - NES/5E01/MMC5/YM2608/YM2610/YM2610B/YM2612 DualPCM/SegaPCM/MSM6258/MSM6295/Y8950: legacy
+  3.4. the following chips have a legacy toggle:
+    - YM2612
+    - YM2612 DualPCM
+    - PCE
+    - X1-010
+    - WonderSwan
+    - VRC6
+  3.5. legacy mode is disabled on note off in these chips:
+    - PCE
+    - X1-010
+    - WonderSwan
+  3.6. for each sub-song, scan all patterns in Orders order. left to right, top to bottom.
+    - if you already did this pattern, go to the next order.
+    - if the pattern doesn't exist, go to the next order.
+    - if you find an 17xx effect, check whether the chip has a legacy toggle. in that case, change the sample mode accordingly (0 is off and any other value is legacy mode). remember to erase the effect afterwards!
+    - if you find an EBxx effect, change the current sample bank. erase the effect as well.
+    - check whether there is an instrument change.
+      - if so, check its type. if it's a Generic Sample, an appropriate type for the chip, or the "Use sample" option, enter normal sample mode.
+    - if there is a note, and the sample mode is legacy:
+      - initialize the "Legacy Samples" instrument (if you haven't).
+      - set the instrument to the Legacy Samples one.
+      - check the involved sample (12×sampleBank+note).
+        - if it's not used by any instrument, set the sample's C-4 rate to its legacy rate.
+    - if there is a note off, and note off disables sample mode, set the sample mode to off.
+4. the following procedure initializes the "Legacy Samples" instrument... for each bank (group of 12 samples):
+  4.1. create a new instrument with Generic Sample type.
+  4.2. call it "Legacy Samples" if only one bank exists, or "Legacy Samples (bank BANK)".
+  4.3. enable sample map.
+  4.4. populate the sample map by assigning 12 samples to each octave.
+
+a warning is displayed when legacy sample mode conversion took place.
+
 ## dev238 - file player
+
+an audio file player is added. it supports synchronized playback and is useful for making covers.
 
 ## dev237 - partial pitch linearity removal
 
+Furnace began as a DefleMask-compatible tracker, inheriting its peculiar approach to pitch slides/control, known as "partial pitch linearity".
+
+in non-linear pitch, slides and pitch control (E5xx) operate in the period/frequency registers. this results in slide durations not being consistent across octaves and pitch control range also depending on the note.
+
+in linear pitch, slides and pitch control operate in linear space. this guarantees a ±1 semitone range for pitch control and ensures slides will always have the same duration regardless of frequency.
+
+partial pitch linearity is an oddity which combines both linear pitch control and non-linear slides.
+however, it is more complicated to maintain and makes it harder to write a driver for.
+
+this version removes partial pitch linearity. songs using partial pitch linearity will be converted to fully linear pitch and a warning is displayed afterwards.
+
 ## dev236 - fix OPM E5xx range
+
+the E5xx effect in OPM had an unusual range: 40 to C0. this is a DefleMask quirk which actually maps the effect to the OPM's key fraction range (1/64th of a semitone). however, it is inconsistent with other chips.
+
+Furnace will convert OPM songs made in previous versions to the new range, by scaling 40-C0 to 00-FF.
 
 ## dev235 - pattern refactor
 
