@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/k007232/k007232.hpp"
 
 class DivPlatformK007232: public DivDispatch, public k007232_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned int audPos;
     int prevBank;
@@ -35,8 +35,8 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     bool volumeChanged, setPos;
     int resVol, lvol, rvol;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(-1),
       audPos(0),
       prevBank(-1),
@@ -63,6 +63,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
       val(v) {}
   };
   FixedQueue<QueuedWrite,256> writes;
+  DivPitchTableManager samplePitchTable;
   unsigned int* sampleOffK007232;
   bool* sampleLoaded;
 
@@ -83,7 +84,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     u8 read_sample(u8 ne, u32 address);
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -99,6 +100,8 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setFlags(const DivConfig& flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

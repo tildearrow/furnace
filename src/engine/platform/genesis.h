@@ -46,8 +46,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
       bool dacDirection;
       bool setPos;
       signed char dacOutput;
-      Channel():
-        FMChannelStereo(),
+      Channel(bool linear=true):
+        FMChannelStereo(linear),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -67,6 +67,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivOPNInterface iface;
+
+    DivPitchTableManager samplePitchTable;
 
     int softPCMTimer;
 
@@ -101,7 +103,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -122,6 +124,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);

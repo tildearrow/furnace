@@ -380,10 +380,10 @@ void FurnaceGUI::drawOsc() {
 
             if (settings.oscEscapesBoundary) {
               dl->PushClipRectFullScreen();
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              dl->AddPolyline(waveform,oscWidth-24,color,dpiScale*settings.oscLineSize,ImDrawFlags_None);
               dl->PopClipRect();
             } else {
-              dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+              dl->AddPolyline(waveform,oscWidth-24,color,dpiScale*settings.oscLineSize,ImDrawFlags_None);
             }
           }
         } else {
@@ -417,10 +417,10 @@ void FurnaceGUI::drawOsc() {
               
               if (settings.oscEscapesBoundary) {
                 dl->PushClipRectFullScreen();
-                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->AddPolyline(waveform,oscWidth-24,color,dpiScale*settings.oscLineSize,ImDrawFlags_None);
                 dl->PopClipRect();
               } else {
-                dl->AddPolyline(waveform,oscWidth-24,color,ImDrawFlags_None,dpiScale*settings.oscLineSize);
+                dl->AddPolyline(waveform,oscWidth-24,color,dpiScale*settings.oscLineSize,ImDrawFlags_None);
               }
             }
           }
@@ -430,7 +430,7 @@ void FurnaceGUI::drawOsc() {
       dl->Flags=prevFlags;
       
       if (settings.oscBorder) {
-        dl->AddRect(inRect.Min,inRect.Max,borderColor,(settings.oscRoundedCorners && !(safeMode || renderBackend==GUI_BACKEND_SOFTWARE))?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+        dl->AddRect(inRect.Min,inRect.Max,borderColor,(settings.oscRoundedCorners && !(safeMode || renderBackend==GUI_BACKEND_SOFTWARE))?(8.0f*dpiScale):0.0f,1.5f*dpiScale);
       }
     }
     if (oscZoomSlider && ImGui::IsItemHovered()) {

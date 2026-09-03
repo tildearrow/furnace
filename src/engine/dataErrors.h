@@ -19,9 +19,16 @@
 
 #ifndef _DATA_ERRORS_H
 #define _DATA_ERRORS_H
+
+/**
+ * the following enum contains error constants used when loading data.
+ */
 enum DivDataErrors {
+  // no error.
   DIV_DATA_SUCCESS=0,
+  // the header is invalid (e.g. wrong magic).
   DIV_DATA_INVALID_HEADER=1,
+  // the data is invalid.
   DIV_DATA_INVALID_DATA=2
 };
 #endif

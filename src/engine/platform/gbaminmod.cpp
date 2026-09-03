@@ -241,9 +241,9 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -301,8 +301,7 @@ void DivPlatformGBAMinMod::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
+      chan[i].freq=chan[i].calcFreq();
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
         if ((chan[i].echo&0xf)!=0) {
@@ -387,6 +386,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       chan[c.chan].macroPanMul=ins->type==DIV_INS_AMIGA?127:255;
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
+        chan[c.chan].pitchTable=samplePitchTable.get(-1);
         chan[c.chan].wtLen=ins->amiga.waveLen+1;
         if (c.chan<chanMax) {
           wtMemCompo.entries[c.chan].end=wtMemCompo.entries[c.chan].begin+chan[c.chan].wtLen;
@@ -402,6 +402,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       } else {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
           c.value=ins->amiga.getFreq(c.value);
         }
         chan[c.chan].useWave=false;
@@ -410,7 +411,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
         chan[c.chan].sample=-1;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value));
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -473,7 +474,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -496,7 +497,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -505,7 +506,7 @@ int DivPlatformGBAMinMod::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -556,7 +557,7 @@ void DivPlatformGBAMinMod::forceIns() {
   }
 }
 
-void* DivPlatformGBAMinMod::getChanState(int ch) {
+SharedChannel* DivPlatformGBAMinMod::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -591,7 +592,8 @@ void DivPlatformGBAMinMod::reset() {
   memset(regPool,0,sizeof(regPool));
   memset(wtMem,0,sizeof(wtMem));
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformGBAMinMod::Channel();
+    chan[i]=DivPlatformGBAMinMod::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,255);
@@ -642,6 +644,14 @@ void DivPlatformGBAMinMod::notifyInsDeletion(void* ins) {
   for (int i=0; i<16; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformGBAMinMod::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,16,parent->song.tuning,chipClock,CHIP_FREQBASE,0xfffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGBAMinMod::getMaxFreq(int ch) {
+  return 0xfffffff;
 }
 
 void DivPlatformGBAMinMod::poke(unsigned int addr, unsigned short val) {
@@ -756,10 +766,13 @@ void DivPlatformGBAMinMod::setFlags(const DivConfig& flags) {
     mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO, fmt::sprintf("Buffer %d Left",i),-1,i*2048,i*2048));
     mixMemCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_ECHO, fmt::sprintf("Buffer %d Right",i),-1,i*2048+1024,i*2048+1024));
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformGBAMinMod::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<16; i++) {
@@ -804,4 +817,5 @@ DivPlatformGBAMinMod::DivPlatformGBAMinMod() {
 DivPlatformGBAMinMod::~DivPlatformGBAMinMod() {
   delete[] sampleOff;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,16);
 }

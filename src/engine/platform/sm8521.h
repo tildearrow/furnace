@@ -30,13 +30,13 @@ class DivPlatformSM8521: public DivDispatch {
 
   const unsigned char freqMap[3][2]={{0x46,0x47},{0x48,0x49},{0x4c,0x4d}};
 
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int antiClickPeriodCount, antiClickWavePos;
     signed short wave;
     bool volumeChanged;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(31),
+    Channel(bool linear=true):
+      SharedChannel(31,linear),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       wave(-1),
@@ -52,6 +52,7 @@ class DivPlatformSM8521: public DivDispatch {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
 
   bool antiClickEnabled;
   int coreQuality, lastOut;
@@ -63,7 +64,7 @@ class DivPlatformSM8521: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -78,6 +79,8 @@ class DivPlatformSM8521: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -1165,6 +1165,7 @@ void DivCompatFlags::setDefaults() {
   oldAlwaysSetVolume=false;
   oldSampleOffset=false;
   oldCenterRate=true;
+  noVolSlideReset=false;
 }
 
 bool DivCompatFlags::areDefaults() {
@@ -1250,6 +1251,7 @@ bool DivCompatFlags::readData(SafeReader& reader) {
   CHECK_AND_LOAD_BOOL(oldAlwaysSetVolume);
   CHECK_AND_LOAD_BOOL(oldSampleOffset);
   CHECK_AND_LOAD_BOOL(oldCenterRate);
+  CHECK_AND_LOAD_BOOL(noVolSlideReset);
 
   return true;
 }
@@ -1324,6 +1326,7 @@ void DivCompatFlags::putData(SafeWriter* w) {
   CHECK_AND_STORE_BOOL(oldAlwaysSetVolume);
   CHECK_AND_STORE_BOOL(oldSampleOffset);
   CHECK_AND_STORE_BOOL(oldCenterRate);
+  CHECK_AND_STORE_BOOL(noVolSlideReset);
 
   String data=c.toString();
   w->write("CFLG",4);

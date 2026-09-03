@@ -51,3 +51,13 @@ right-clicking on the piano keys will make the buttons disappear; right-clicking
 **Share play/edit offset/range**: if disabled, the piano will keep different octave and range values for playback and non-playback states.
 
 **Read-only (can't input notes)**: prevents note entry.
+
+## settings
+
+this setting can be found in the main Furnace settings dialog, "Appearance" tab, "Channel" section:
+- **Channel feedback style:** sets how channel headers and piano keys highlight.
+  - **Off**: no indicator.
+  - **Note**: flash at the start of a note, then fades.
+  - **Volume**: change intensity with channel volume.
+  - **Active**: stay fully on while a note is held.
+  - **Volume (real)**: change intensity with output loudness.

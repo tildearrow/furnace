@@ -24,7 +24,7 @@
 #include "../waveSynth.h"
 
 class DivPlatformGBAMinMod: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned char echo;
     unsigned int audPos, wtLen;
     int sample, wave;
@@ -33,8 +33,8 @@ class DivPlatformGBAMinMod: public DivDispatch {
     int macroVolMul;
     int macroPanMul;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       echo(0),
       audPos(0),
       wtLen(1),
@@ -86,6 +86,7 @@ class DivPlatformGBAMinMod: public DivDispatch {
   DivMemoryComposition romMemCompo;
   DivMemoryComposition mixMemCompo;
   DivMemoryComposition wtMemCompo;
+  DivPitchTableManager samplePitchTable;
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
@@ -93,7 +94,7 @@ class DivPlatformGBAMinMod: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -110,6 +111,8 @@ class DivPlatformGBAMinMod: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

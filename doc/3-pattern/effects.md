@@ -146,120 +146,139 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 
 ## macro table
 
- ID  | macro         | ID   | op 1   | ID   | op 2   | ID   | op 3   | ID   | op 4   |
------|---------------|------|--------|------|--------|------|--------|------|--------|
-`00` | volume        | `20` | AM     | `40` | AM     | `60` | AM     | `80` | AM     |
-`01` | arpeggio      | `21` | AR     | `41` | AR     | `61` | AR     | `81` | AR     |
-`02` | duty/noise    | `22` | DR     | `42` | DR     | `62` | DR     | `82` | DR     |
-`03` | waveform      | `23` | MULT   | `43` | MULT   | `63` | MULT   | `83` | MULT   |
-`04` | pitch         | `24` | RR     | `44` | RR     | `64` | RR     | `84` | RR     |
-`05` | extra 1       | `25` | SL     | `45` | SL     | `65` | SL     | `85` | SL     |
-`06` | extra 2       | `26` | TL     | `46` | TL     | `66` | TL     | `86` | TL     |
-`07` | extra 3       | `27` | DT2    | `47` | DT2    | `67` | DT2    | `87` | DT2    |
-`08` | extra A (ALG) | `28` | RS     | `48` | RS     | `68` | RS     | `88` | RS     |
-`09` | extra B (FM)  | `29` | DT     | `49` | DT     | `69` | DT     | `89` | DT     |
-`0A` | extra C (FMS) | `2A` | D2R    | `4A` | D2R    | `6A` | D2R    | `8A` | D2R    |
-`0B` | extra D (AMS) | `2B` | SSG-EG | `4B` | SSG-EG | `6B` | SSG-EG | `8B` | SSG-EG |
-`0C` | panning left  | `2C` | DAM    | `4C` | DAM    | `6C` | DAM    | `8C` | DAM    |
-`0D` | panning right | `2D` | DVB    | `4D` | DVB    | `6D` | DVB    | `8D` | DVB    |
-`0E` | phase reset   | `2E` | EGT    | `4E` | EGT    | `6E` | EGT    | `8E` | EGT    |
-`0F` | extra 4       | `2F` | KSL    | `4F` | KSL    | `6F` | KSL    | `8F` | KSL    |
-`10` | extra 5       | `30` | SUS    | `50` | SUS    | `70` | SUS    | `90` | SUS    |
-`11` | extra 6       | `31` | VIB    | `51` | VIB    | `71` | VIB    | `91` | VIB    |
-`12` | extra 7       | `32` | WS     | `52` | WS     | `72` | WS     | `92` | WS     |
-`13` | extra 8       | `33` | KSR    | `53` | KSR    | `73` | KSR    | `93` | KSR    |
+ID   | macro           |  ID  | op 1   |  ID  | op 2   |  ID  | op 3   |  ID  | op 4   |
+:---:|-----------------|:----:|--------|:----:|--------|:----:|--------|:----:|--------|
+`00` | Volume          | `20` | AM     | `40` | AM     | `60` | AM     | `80` | AM     |
+`01` | Arpeggio        | `21` | AR     | `41` | AR     | `61` | AR     | `81` | AR     |
+`02` | Duty/Noise      | `22` | DR     | `42` | DR     | `62` | DR     | `82` | DR     |
+`03` | Waveform        | `23` | MULT   | `43` | MULT   | `63` | MULT   | `83` | MULT   |
+`04` | Pitch           | `24` | RR     | `44` | RR     | `64` | RR     | `84` | RR     |
+`05` | extra 1         | `25` | SL     | `45` | SL     | `65` | SL     | `85` | SL     |
+`06` | extra 2         | `26` | TL     | `46` | TL     | `66` | TL     | `86` | TL     |
+`07` | extra 3         | `27` | DT2    | `47` | DT2    | `67` | DT2    | `87` | DT2    |
+`08` | extra A (ALG)   | `28` | RS     | `48` | RS     | `68` | RS     | `88` | RS     |
+`09` | extra B (FB)    | `29` | DT     | `49` | DT     | `69` | DT     | `89` | DT     |
+`0A` | extra C (FMS)   | `2A` | D2R    | `4A` | D2R    | `6A` | D2R    | `8A` | D2R    |
+`0B` | extra D (AMS)   | `2B` | SSG-EG | `4B` | SSG-EG | `6B` | SSG-EG | `8B` | SSG-EG |
+`0C` | Panning (left)  | `2C` | DAM    | `4C` | DAM    | `6C` | DAM    | `8C` | DAM    |
+`0D` | Panning (right) | `2D` | DVB    | `4D` | DVB    | `6D` | DVB    | `8D` | DVB    |
+`0E` | Phase Reset     | `2E` | EGT    | `4E` | EGT    | `6E` | EGT    | `8E` | EGT    |
+`0F` | extra 4         | `2F` | KSL    | `4F` | KSL    | `6F` | KSL    | `8F` | KSL    |
+`10` | extra 5         | `30` | SUS    | `50` | SUS    | `70` | SUS    | `90` | SUS    |
+`11` | extra 6         | `31` | VIB    | `51` | VIB    | `71` | VIB    | `91` | VIB    |
+`12` | extra 7         | `32` | WS     | `52` | WS     | `72` | WS     | `92` | WS     |
+`13` | extra 8         | `33` | KSR    | `53` | KSR    | `73` | KSR    | `93` | KSR    |
 
-the interpretation of duty, wave and extra macros depends on chip/instrument type:
+the interpretation of duty, wave, and extra macros depends on chip/instrument type:
 
-ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx     | C64           |
----|--------|-----------|-----------|-------|------------|------------|----------|---------------|
- D | NoiseF | NoiseFreq |           |       | NoiseFreq  | NoiseFreq  | Duty/Int | Duty          |
- W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform      |
- 1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode    |
- 2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance     |
- 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Filter Toggle |
- A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          | Cutoff        |
- B | FB     | FB        | FB        |       |            | Noise AND  |          |               |
- C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |               |
- D | AMS    | AMS       | AMS       |       |            |            |          |               |
- 4 | OpMask | OpMask    |           |       |            |            |          | Special       |
- 5 |        |           | AMD2      |       |            |            |          | Attack        |
- 6 |        |           | PMD2      |       |            |            |          | Decay         |
- 7 |        |           | LFO2Speed |       |            |            |          | Sustain       |
- 8 |        |           | LFO2Shape |       |            |            |          | Release       |
+ex | FM         | OPLL          | OPM        | OPZ         |
+:-:|------------|---------------|------------|-------------|
+ D | Noise Freq |               | Noise Freq |             |
+ W |            | Patch         | LFO Shape  | LFO Shape   |
+ 1 |            |               | AM Depth   | AM Depth    |
+ 2 |            |               | PM Depth   | PM Depth    |
+ 3 | LFO Speed  |               | LFO Speed  | LFO Speed   |
+ A | Algorithm  | Sustain       | Algorithm  | Algorithm   |
+ B | Feedback   | Feedback      | Feedback   | Feedback    |
+ C | LFO > Freq | OP2 Half Sine | LFO > Freq | LFO > Freq  |
+ D | LFO > Amp  | OP1 Half Sine | LFO > Amp  | LFO > Amp   |
+ 4 | OpMask     |               | OpMask     |             |
+ 5 |            |               |            | AM Depth 2  |
+ 6 |            |               |            | PM Depth 2  |
+ 7 |            |               |            | LFO Speed 2 |
+ 8 |            |               |            | LFO Shape 2 |
 
-ex | SAA1099  | X1-010     | Namco 163  | FDS       | Sound Unit | ES5506    | MSM6258  |
----|----------|------------|------------|-----------|------------|-----------|----------|
- D |          |            | Wave Pos   |           | Duty       | Filt Mode | FreqDiv  |
- W | Waveform | Waveform   | Waveform   | Waveform  | Waveform   |           |          |
- 1 | Envelope | EnvMode    | WaveLen    | Mod Depth | Cutoff     | Filter K1 | ClockDiv |
- 2 |          | Envelope   | WaveUpdate | Mod Speed | Resonance  | Filter K2 |          |
- 3 |          | AutoEnvNum | WaveLoad W |           | Control    | Env Count |          |
- A |          | AutoEnvDen | WaveLoad P |           |            | Control   |          |
- B |          |            | WaveLoad L |           |            |           |          |
- C |          |            | WaveLoad T |           |            |           |          |
- D |          |            |            |           |            |           |          |
- 4 |          |            |            |           | PResetTime | EnvRampL  |          |
- 5 |          |            |            |           |            | EnvRampR  |          |
- 6 |          |            |            |           |            | EnvRampK1 |          |
- 7 |          |            |            |           |            | EnvRampK2 |          |
- 8 |          |            |            |           |            | Env Mode  |          |
+ex | ES5506            | MSM6258       | QSound        | SNES       |
+:-:|-------------------|---------------|---------------|------------|
+ D | Filter Mode       | Freq Divider  | Echo Level    | Noise Freq |
+ W |                   |               |               | Waveform   |
+ 1 | Filter K1         | Clock Divider | Echo Feedback | Special    |
+ 2 | Filter K2         |               | Echo Length   | Gain       |
+ 3 | Envelope length   |               |               |            |
+ A | Control           |               |               |            |
+ B | Outputs           |               |               |            |
+ C |                   |               |               |            |
+ D |                   |               |               |            |
+ 4 | Left Volume Ramp  |               |               |            |
+ 5 | Right Volume Ramp |               |               |            |
+ 6 | Filter K1 Ramp    |               |               |            |
+ 7 | Filter K2 Ramp    |               |               |            |
+ 8 |                   |               |               |            |
 
-ex | QSound       | SNES      | MSM5232   | SID2          |
----|--------------|-----------|-----------|---------------|
- D | Echo Level   | NoiseFreq | GroupCtrl | Duty          |
- W |              | Waveform  |           | Waveform      |
- 1 | EchoFeedback | Special   | GroupAtk  | Filter mode   |
- 2 | Echo Length  | Gain      | GroupDec  | Resonance     |
- 3 |              |           | Noise     | Filter toggle |
- A |              |           |           | Filter cutoff |
- B |              |           |           |               |
- C |              |           |           | Noise mode    |
- D |              |           |           | Wave mix mode |
- 4 |              |           |           | Special       |
- 5 |              |           |           | Attack        |
- 6 |              |           |           | Decay         |
- 7 |              |           |           | Sustain       |
- 8 |              |           |           | Release       |
+ex | FDS       | Namco 163   | X1-010        |
+:-:|-----------|-------------|---------------|
+ D |           | Wave Pos    |               |
+ W | Waveform  | Waveform    | Waveform      |
+ 1 | Mod Depth | Wave Length | Envelope Mode |
+ 2 | Mod Speed |             | Envelope      |
+ 3 |           |             | AutoEnv Num   |
+ A |           |             | AutoEnv Den   |
+ B |           |             |               |
+ C |           |             |               |
+ D |           |             |               |
+ 4 |           |             |               |
+ 5 |           |             |               |
+ 6 |           |             |               |
+ 7 |           |             |               |
+ 8 |           |             |               |
 
+ex | AY-3-8910    | AY8930         | Lynx      | MSM5232      | SAA1099  |
+:-:|--------------|----------------|-----------|--------------|----------|
+ D | Noise Freq   | Noise Freq     | Duty/Int  | Group Ctrl   |          |
+ W | Waveform     | Waveform       |           |              | Waveform |
+ 1 |              | Duty           | Load LFSR | Group Attack | Envelope |
+ 2 | Envelope     | Envelope       |           | Group Decay  |          |
+ 3 | AutoEnv Num  | AutoEnv Num    |           | Noise        |          |
+ A | AutoEnv Den  | AutoEnv Den    |           |              |          |
+ B |              | Noise AND Mask |           |              |          |
+ C |              | Noise OR Mask  |           |              |          |
+ D |              |                |           |              |          |
+ 4 | Force Period | Force Period   |           |              |          |
+ 5 | Env Period   | Env Period     |           |              |          |
+ 6 |              |                |           |              |          |
+ 7 |              |                |           |              |          |
+ 8 |              |                |           |              |          |
 
-SID3 instrument also uses some of the FM operators macros in main macros list:
+ex | C64           | SID2          | SID3               | Sound Unit        |
+:-:|---------------|---------------|--------------------|-------------------|
+ D | Duty          | Duty          | Duty               | Duty              |
+ W | Waveform      | Waveform      | Waveform           | Waveform          |
+ 1 | Filter Mode   | Filter Mode   | Special            | Cutoff            |
+ 2 | Resonance     | Resonance     | Attack             | Resonance         |
+ 3 | Filter Toggle | Filter Toggle | Decay              | Control           |
+ A | Cutoff        | Cutoff        | Special Wave       |                   |
+ B |               |               | Phase Mod Source   |                   |
+ C |               | Noise Mode    | Ring Mod Source    |                   |
+ D |               | Wave Mix      | Hard Sync Source   |                   |
+ 4 | Special       | Special       | Sustain            | Phase Reset Timer |
+ 5 | Attack        | Attack        | Sustain Rate       |                   |
+ 6 | Decay         | Decay         | Release            |                   |
+ 7 | Sustain       | Sustain       | Noise LFSR bits    |                   |
+ 8 | Release       | Release       | Wave Mix           |                   |
 
-ex    |   SID3                        |
-------|-------------------------------|
- D    | Duty                          |
- W    | Waveform                      |
- 1    | Special                       |
- 2    | Attack                        |
- 3    | Decay                         |
- A    | Special wave                  |
- B    | Phase Mod source              |
- C    | Ring Mod source               |
- D    | Hard sync source              |
- 4    | Sustain                       |
- 5    | Sustain rate                  |
- 6    | Release                       |
- 7    | LFSR feedback bits            |
- 8    | Wave mix mode                 |
-OP1 AM| Key On/Off                    |
-OP2 AM| Noise phase reset             |
-OP3 AM| Envelope reset                |
-OP4 AM| Noise Arpeggio                |
-OP1 AR| Noise Pitch                   |
-OP2 AR| 1-bit noise/PCM mode          |
-OP3 AR| Channel signal inversion      |
-OP4 AR| Feedback                      |
+SID3 instruments also use some of the FM operator macros in the main macros list:
 
-SID3 instrument uses FM operators macros for filters:
+  ex   | SID3              |
+:-----:|-------------------|
+OP1 AM | Key On/Off        |
+OP2 AM | Noise Phase Reset |
+OP3 AM | Envelope Reset    |
+OP4 AM |                   |
+OP1 AR |                   |
+OP2 AR | 1-bit Noise       |
+OP3 AR | Channel inversion |
+OP4 AR | Feedback          |
 
-ex   |   SID3                        |
------|-------------------------------|
-D2R  | Cutoff                        |
-DAM  | Resonance                     |
-DR   | Filter toggle                 |
-DT2  | Distortion level              |
-DT   | Output volume                 |
-DVB  | Connect to channel input      |
-EGT  | Connect to channel output     |
-KSL  | Connection matrix row         |
-KSR  | Filter mode                   |
+SID3 instruments use FM operator macros for filters:
+
+ ex  | SID3                      |
+:---:|---------------------------|
+ D2R | Cutoff                    |
+ DAM | Resonance                 |
+ DR  | Filter Toggle             |
+ DT2 | Distortion Level          |
+ DT  | Output Volume             |
+ DVB | Channel Input Connection  |
+ EGT | Channel Output Connection |
+ KSL | Connection Matrix Row     |
+ KSR | Filter Mode               |

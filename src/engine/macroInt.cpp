@@ -32,6 +32,13 @@
 #define ADSR_SR source.val[7]
 #define ADSR_RR source.val[8]
 
+#define ADSR_BOTTOM (source.val[0]<<8)
+#define ADSR_TOP ((source.val[1]<<8)|0xff)
+#define ADSR_BOTTOM_INV ((source.val[0]<<8)|0xff)
+#define ADSR_TOP_INV (source.val[1]<<8)
+#define ADSR_SUS ((source.val[5]<<8)|0xff)
+#define ADSR_SUS_INV (source.val[5]<<8)
+
 #define LFO_SPEED source.val[11]
 #define LFO_WAVE source.val[12]
 #define LFO_PHASE source.val[13]
@@ -44,7 +51,33 @@ void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   type=(source.open>>1)&3;
   activeRelease=source.open&8;
   linger=(source.macroType==DIV_MACRO_VOL && e->song.compatFlags.volMacroLinger);
-  lfoPos=LFO_PHASE;
+  lfoDir=false;
+
+  if (type==1) {
+    pos=ADSR_BOTTOM;
+    // if the bottom is higher than the top, set the fractional part to max.
+    if (ADSR_LOW>ADSR_HIGH) {
+      pos|=0xff;
+    }
+  } else if (type==2) {
+    // this will be pre-computed on compilation.
+    switch (LFO_WAVE&3) {
+      case 0: // triangle
+        if (LFO_PHASE&512) {
+          pos=ADSR_TOP+(((ADSR_BOTTOM-ADSR_TOP)*(LFO_PHASE&511))>>9);
+        } else {
+          pos=ADSR_BOTTOM+(((ADSR_TOP-ADSR_BOTTOM)*LFO_PHASE)>>9);
+        }
+        lfoDir=LFO_PHASE&512;
+        break;
+      case 1: // saw
+        pos=ADSR_BOTTOM+(((ADSR_TOP-ADSR_BOTTOM)*LFO_PHASE)>>10);
+        break;
+      case 2: // pulse
+        pos=LFO_PHASE<<6;
+        break;
+    }
+  }
 }
 
 void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tick) {
@@ -107,68 +140,152 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     }
     if (type==1) { // ADSR
       if (released && lastPos<3) lastPos=3;
-      switch (lastPos) {
-        case 0: // attack
-          pos+=ADSR_AR;
-          if (pos>255) {
-            pos=255;
-            lastPos=1;
-            delay=ADSR_HT;
-          }
-          break;
-        case 1: // decay
-          pos-=ADSR_DR;
-          if (pos<=ADSR_SL) {
-            pos=ADSR_SL;
-            lastPos=2;
-            delay=ADSR_ST;
-          }
-          break;
-        case 2: // sustain
-          pos-=ADSR_SR;
-          if (pos<0) {
-            pos=0;
-            lastPos=4;
-          }
-          break;
-        case 3: // release
-          pos-=ADSR_RR;
-          if (pos<0) {
-            pos=0;
-            lastPos=4;
-          }
-          break;
-        case 4: // end
-          pos=0;
-          if (!linger) has=false;
-          break;
-      }
-      if (ADSR_HIGH>ADSR_LOW) {
-        val=ADSR_LOW+((pos+(ADSR_HIGH-ADSR_LOW)*pos)>>8);
+
+      // we invert the directions if bottom is higher than top.
+      // during ROM export this will be compiled to two separate functions
+      // (one for normal and another for inverted)
+      if (ADSR_LOW>ADSR_HIGH) {
+        switch (lastPos) {
+          case 0: // attack
+            pos-=ADSR_AR;
+            if (pos<=ADSR_TOP_INV) {
+              pos=ADSR_TOP_INV;
+              lastPos=1;
+              delay=ADSR_HT;
+            }
+            break;
+          case 1: // decay
+            pos+=ADSR_DR;
+            if (pos>=ADSR_SUS_INV) {
+              pos=ADSR_SUS_INV;
+              lastPos=2;
+              delay=ADSR_ST;
+            }
+            break;
+          case 2: // sustain
+            pos+=ADSR_SR;
+            if (pos>=ADSR_BOTTOM_INV) {
+              pos=ADSR_BOTTOM_INV;
+              lastPos=4;
+            }
+            break;
+          case 3: // release
+            pos+=ADSR_RR;
+            if (pos>=ADSR_BOTTOM_INV) {
+              pos=ADSR_BOTTOM_INV;
+              lastPos=4;
+            }
+            break;
+          case 4: // end
+            pos=ADSR_BOTTOM_INV;
+            if (!linger) has=false;
+            break;
+        }
       } else {
-        val=ADSR_HIGH+(((255-pos)+(ADSR_LOW-ADSR_HIGH)*(255-pos))>>8);
+        switch (lastPos) {
+          case 0: // attack
+            pos+=ADSR_AR;
+            if (pos>=ADSR_TOP) {
+              pos=ADSR_TOP;
+              lastPos=1;
+              delay=ADSR_HT;
+            }
+            break;
+          case 1: // decay
+            pos-=ADSR_DR;
+            if (pos<=ADSR_SUS) {
+              pos=ADSR_SUS;
+              lastPos=2;
+              delay=ADSR_ST;
+            }
+            break;
+          case 2: // sustain
+            pos-=ADSR_SR;
+            if (pos<=ADSR_BOTTOM) {
+              pos=ADSR_BOTTOM;
+              lastPos=4;
+            }
+            break;
+          case 3: // release
+            pos-=ADSR_RR;
+            if (pos<=ADSR_BOTTOM) {
+              pos=ADSR_BOTTOM;
+              lastPos=4;
+            }
+            break;
+          case 4: // end
+            pos=ADSR_BOTTOM;
+            if (!linger) has=false;
+            break;
+        }
       }
+      val=(pos>>8);
     }
     if (type==2) { // LFO
-      lfoPos+=LFO_SPEED;
-      lfoPos&=1023;
-
-      int lfoOut=0;
-      switch (LFO_WAVE&3) {
-        case 0: // triangle
-          lfoOut=((lfoPos&512)?(1023-lfoPos):(lfoPos))>>1;
-          break;
-        case 1: // saw
-          lfoOut=lfoPos>>2;
-          break;
-        case 2: // pulse
-          lfoOut=(lfoPos&512)?255:0;
-          break;
-      }
-      if (ADSR_HIGH>ADSR_LOW) {
-        val=ADSR_LOW+((lfoOut+(ADSR_HIGH-ADSR_LOW)*lfoOut)>>8);
+      // same thing here.
+      // at compile time we could make wave 3 "inverted saw" and just flip the values.
+      if (ADSR_LOW>ADSR_HIGH) {
+        switch (LFO_WAVE&3) {
+          case 0: // triangle
+            if (lfoDir) {
+              pos+=LFO_SPEED;
+              if (pos>ADSR_BOTTOM_INV) {
+                lfoDir=false;
+                pos-=LFO_SPEED*2;
+              }
+            } else {
+              pos-=LFO_SPEED;
+              if (pos<ADSR_TOP_INV) {
+                lfoDir=true;
+                pos+=LFO_SPEED*2;
+              }
+            }
+            val=pos>>8;
+            break;
+          case 1: // saw
+            pos-=LFO_SPEED;
+            if (pos<ADSR_TOP_INV) {
+              pos+=(ADSR_BOTTOM_INV-ADSR_TOP_INV);
+            }
+            val=pos>>8;
+            break;
+          case 2: // pulse
+            pos+=LFO_SPEED;
+            pos&=65535;
+            val=(pos&32768)?ADSR_HIGH:ADSR_LOW;
+            break;
+        }
       } else {
-        val=ADSR_HIGH+(((255-lfoOut)+(ADSR_LOW-ADSR_HIGH)*(255-lfoOut))>>8);
+        switch (LFO_WAVE&3) {
+          case 0: // triangle
+            if (lfoDir) {
+              pos-=LFO_SPEED;
+              if (pos<ADSR_BOTTOM) {
+                lfoDir=false;
+                pos+=LFO_SPEED*2;
+              }
+            } else {
+              pos+=LFO_SPEED;
+              if (pos>ADSR_TOP) {
+                lfoDir=true;
+                pos-=LFO_SPEED*2;
+              }
+            }
+            val=pos>>8;
+            break;
+          case 1: // saw
+            pos+=LFO_SPEED;
+            if (pos>ADSR_TOP) {
+              pos-=(ADSR_TOP-ADSR_BOTTOM);
+            }
+            val=pos>>8;
+            break;
+          case 2: // pulse
+            pos+=LFO_SPEED;
+            pos&=65535;
+            val=(pos&32768)?ADSR_HIGH:ADSR_LOW;
+            break;
+        }
       }
     }
   }

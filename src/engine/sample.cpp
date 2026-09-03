@@ -181,8 +181,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   }
 
   if (version>=58) { // modern sample
-    init(samples);
-    reader.read(getCurBuf(),getCurBufLen());
+    if (init(samples)) {
+      reader.read(getCurBuf(),getCurBufLen());
+    }
 #ifdef TA_BIG_ENDIAN
     // convert 16-bit samples to big-endian
     if (depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -196,7 +197,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     }
 #endif
   } else { // legacy sample
-    int length=samples;
+    unsigned int length=samples;
+    if (length>16777215) {
+      // yeah I know this is a terrible idea...
+      length=16777215;
+    }
     short* data=new short[length];
     reader.read(data,2*length);
 
@@ -217,20 +222,20 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       depth=DIV_SAMPLE_DEPTH_16BIT;
     }
     samples=(double)samples/samplePitchesSD[pitch];
-    init(samples);
-
-    unsigned int k=0;
-    float mult=(float)(vol)/50.0f;
-    for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
-      if (k>=samples) {
-        break;
-      }
-      if (depth==DIV_SAMPLE_DEPTH_8BIT) {
-        float next=(float)(data[(unsigned int)j]-0x80)*mult;
-        data8[k++]=fmin(fmax(next,-128),127);
-      } else {
-        float next=(float)data[(unsigned int)j]*mult;
-        data16[k++]=fmin(fmax(next,-32768),32767);
+    if (init(samples)) {
+      unsigned int k=0;
+      float mult=(float)(vol)/50.0f;
+      for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
+        if (k>=samples) {
+          break;
+        }
+        if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+          float next=(float)(data[(unsigned int)j]-0x80)*mult;
+          data8[k++]=fmin(fmax(next,-128),127);
+        } else {
+          float next=(float)data[(unsigned int)j]*mult;
+          data16[k++]=fmin(fmax(next,-32768),32767);
+        }
       }
     }
 
@@ -813,6 +818,8 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
 
 bool DivSample::insert(unsigned int pos, unsigned int length) {
   unsigned int count=samples+length;
+  if (pos>samples) pos=samples;
+
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
@@ -1340,9 +1347,9 @@ void DivSample::render(unsigned int formatMask) {
         break;
       case DIV_SAMPLE_DEPTH_12BIT: // 12-bit PCM (MultiPCM)
         for (unsigned int i=0, j=0; i<samples; i+=2, j+=3) {
-          data16[i+0]=(data12[j+0]<<8)|(data12[j+1]&0xf0);
+          data16[i+0]=(data12[j+0]<<8)|((data12[j+1]<<4)&0xf0);
           if (i+1<samples) {
-            data16[i+1]=(data12[j+2]<<8)|((data12[j+1]<<4)&0xf0);
+            data16[i+1]=(data12[j+2]<<8)|(data12[j+1]&0xf0);
           }
         }
         break;
@@ -1552,7 +1559,7 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_12BIT,samples)) return;
     for (unsigned int i=0, j=0; i<samples; i+=2, j+=3) {
       data12[j+0]=data16[i+0]>>8;
-      data12[j+1]=((data16[i+0]>>4)&0xf)|(i+1<samples?(data16[i+1]>>4)&0xf:0);
+      data12[j+1]=(((data16[i+0]>>4)&0xf)<<4)|(i+1<samples?(data16[i+1]>>4)&0xf:0);
       if (i+1<samples) {
         data12[j+2]=data16[i+1]>>8;
       } else {

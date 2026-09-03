@@ -119,7 +119,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
     // label
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
-    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((selectedPortSet==portSetID)?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
+    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((selectedPortSet==portSetID)?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,dpiScale);
     dl->AddText(ImGui::GetFont(),ImGui::GetFontSize(),textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str(),NULL,ImGui::GetWindowSize().x*0.6f);
   }
 
@@ -152,6 +152,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     if (visible) {
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
         dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32((i<activeIns)?portColor:portColorH),0.0f);
+        // ???????
         dl->AddRect(portMin,portMax,ImGui::GetColorU32((i<activeIns)?portBorderColor:portBorderColorH),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
       }
@@ -192,6 +193,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     if (visible) {
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
         dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32((i<activeOuts)?portColor:portColorH),0.0f);
+        // ???????
         dl->AddRect(portMin,portMax,ImGui::GetColorU32((i<activeOuts)?portBorderColor:portBorderColorH),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
       }

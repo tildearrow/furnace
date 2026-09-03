@@ -25,10 +25,10 @@
 #include "sound/t6w28/T6W28_Apu.h"
 
 class DivPlatformT6W28: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned char panL, panR, duty;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       panL(15),
       panR(15),
       duty(7) {}
@@ -44,6 +44,7 @@ class DivPlatformT6W28: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,256> writes;
+  DivPitchTable tonePitchTable, noisePitchTable;
   unsigned char lastPan;
 
   int cycles, curChan, delay;
@@ -53,14 +54,13 @@ class DivPlatformT6W28: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
-  double NOTE_SN(int ch, int note);
   int snCalcFreq(int ch);
   
   void writeOutVol(int ch);
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -77,6 +77,8 @@ class DivPlatformT6W28: public DivDispatch {
     bool hasAcquireDirect();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
