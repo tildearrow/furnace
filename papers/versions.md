@@ -270,6 +270,88 @@ Furnace will convert OPM songs made in previous versions to the new range, by sc
 
 ## dev235 - pattern refactor
 
+this version changes the internal pattern format.
+note and octave are no longer separate fields - instead, these have been fused into one.
+
+no changes were made to the file format though.
+
 ## dev234 - extra config paranoia
 
+Furnace keeps previous versions of files in the config directory as a safeguard against corruption (typically caused by forced disk unmount or abnormal loss of power).
+
+this version adds start/end markers to config files to ensure these files are complete.
+
+this change was made because under certain circumstances the config file may seem valid but actually is incomplete. happened often on Android.
+
 ## dev233 - breaking the limit
+
+the wavetable and sample limit has been increased to 32768 (from 256).
+
+the version bump is mandatory due to addition of new features to the instrument format.
+the LW (list of wavetables) and LS (list of samples) features replace the previous WL/SL ones which were limited to 256 entries.
+
+## dev232 - I don't know
+
+I don't exactly remember why did I bump version, but I think we were diagnosing a crash or some issue and did so to tell versions apart.
+
+## dev231 - OPN default chip revision
+
+OPN2 had three or so notable revisions during its history:
+- YM2612 (OPN2): the original, with a built-in 9-bit DAC. a tiny defect in the DAC introduces some "distortion" when the output is quiet. present in Model 1 Genesis/Mega Drive.
+- YM3438 (OPN2C): this revision fixes the aforementioned defect. present in Model 2 Genesis/Mega Drive.
+- YMF276 (OPL2L): this revision is meant to be used with an external DAC. as a result, it has better sound quality. present in the FM Towns computer.
+
+this version changes the default revision to YM2612 (it previously was YM3438).
+
+when loading an older song, the `chipType` flag will be set to 0 (YM3438) if neither the `chipType` nor `ladderEffect` flags are present.
+
+## dev230 - I don't know
+
+now this time I cannot recall why did this version bump occur. I apologize.
+
+## dev229 - VERA accuracy fix
+
+the VERA emulator had inaccurate noise emulation. it was being run at twice the normal rate.
+
+this version addresses that problem.
+
+when loading a previous version song, set the `chipType` flag to 2.
+
+## 0.6.8.1 (228)
+
+this version removes the shitty April Fools' jokes for 2025.
+these jokes were horrible and impossible to turn off.
+
+Furnace 0.6.8.2 and 0.6.8.3 share this version number if I remember correctly.
+
+## 0.6.8 (227)
+
+## 0.6.8pre2 (226)
+
+## 0.6.8pre1 (225)
+
+## dev224 - FM fixed block
+
+this version adds a new field to the instrument format, which allows the user to force a specific block (octave) in certain FM chips (OPN, OPL and OPLL).
+
+this parameter is useful to force changes in RS/KSL calculation or SSG-EG frequencies.
+
+## dev223 - Y8950 ADPCM pitch fix
+
+this version fixes Y8950 ADPCM pitch being too high.
+
+when loading a file made with a previous version, set the `compatYPitch` flag to true on every Y8950 chip.
+
+## dev222 - addition of SID3
+
+SID3 is a fantasy chip created by LTVA. it is a rework of his SID2 fantasy chip, now with more channels, higher envelope resolution, special shapes, several modulation modes and even a wavetable channel.
+
+## dev221 - addition of OPL4
+
+this version adds the OPL4 chip. it is an OPL3 with 24 channels of MultiPCM built-in.
+
+the MultiPCM instrument format has seen a few changes.
+
+## dev220 - SNES anti-click
+
+## 0.6.7 (219)
