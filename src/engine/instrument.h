@@ -21,9 +21,11 @@
 #define _INSTRUMENT_H
 #include "safeWriter.h"
 #include "dataErrors.h"
+#include "defines.h"
 #include "../ta-utils.h"
 #include "../pch.h"
 #include "../fixedQueue.h"
+#include <initializer_list>
 
 struct DivSong;
 struct DivInstrument;
@@ -99,6 +101,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SUPERVISION=64,
   DIV_INS_UPD1771C=65,
   DIV_INS_SID3=66,
+  DIV_INS_KLATTSCH=67,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -156,6 +159,7 @@ enum DivMacroTypeOp: unsigned char {
 //   - AM, AR, DR, MULT, RR, SL, TL, RS, DT, D2R, SSG-EG
 // - OPM:
 //   - AM, AR, DR, MULT, RR, SL, TL, DT2, RS, DT, D2R
+//   - KSR = OPP TL Ramp
 // - OPLL:
 //   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
 //   - KSL, VIB, KSR
@@ -163,11 +167,12 @@ enum DivMacroTypeOp: unsigned char {
 //   - AM, AR, DR, MULT, RR, SL, TL, SSG-EG&8 = EG-S
 //   - KSL, VIB, WS (OPL2/3), KSR
 // - OPZ:
-//   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R
-//   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed
+//   - AM, AR, DR, MULT (CRS), RR, SL, TL, DT2, RS, DT, D2R, SSG-EG = TS (tremolo sensitivity)
+//   - WS, DVB = MULT (FINE), DAM = REV, KSL = EGShift, EGT = Fixed, KSR = TL Ramp
 
 struct DivInstrumentFM {
-  unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset, block;
+  unsigned char alg, fb, fms, ams, ops, opllPreset, block;
+  bool fmsLFO, amsLFO, tremLFO;
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
 
@@ -214,11 +219,12 @@ struct DivInstrumentFM {
     fb(0),
     fms(0),
     ams(0),
-    fms2(0),
-    ams2(0),
     ops(2),
     opllPreset(0),
     block(0),
+    fmsLFO(false),
+    amsLFO(false),
+    tremLFO(false),
     fixedDrums(false),
     kickFreq(0x520),
     snareHatFreq(0x550),
@@ -259,6 +265,43 @@ struct DivInstrumentFM {
   }
 };
 
+enum DivCompiledMacroFormat {
+  // 8-bit unsigned
+  DIV_COMPILED_MACRO_U8=0,
+  // 8-bit signed
+  DIV_COMPILED_MACRO_S8,
+  // 16-bit unsigned
+  DIV_COMPILED_MACRO_U16,
+  // 16-bit signed
+  DIV_COMPILED_MACRO_S16,
+  // 8-bit special (for arpeggio macro)
+  // - start in relative mode.
+  // - read one byte. treat it as signed number.
+  // - if it is 0x7f, read two bytes (this will be the macro value).
+  // - if it is 0x80, fixed mode is on for this value.
+  // - otherwise this is the macro value.
+  DIV_COMPILED_MACRO_BIT30,
+  // 4-bit unsigned (top first, bottom second)
+  DIV_COMPILED_MACRO_U4,
+  // these four are reserved.
+  DIV_COMPILED_MACRO_ADSR16,
+  DIV_COMPILED_MACRO_ADSR8,
+  DIV_COMPILED_MACRO_LFO16,
+  DIV_COMPILED_MACRO_LFO8,
+  // these are reserved as well. only implement if necessary.
+  DIV_COMPILED_MACRO_ADSR24,
+  DIV_COMPILED_MACRO_LFO24,
+};
+
+struct DivCompileMacroDef {
+  unsigned char type;
+  DivCompiledMacroFormat format;
+  int minRange, maxRange;
+
+  DivCompileMacroDef(unsigned char t, DivCompiledMacroFormat f, int x1, int x2):
+    type(t), format(f), minRange(x1), maxRange(x2) {}
+};
+
 // this is getting out of hand
 struct DivInstrumentMacro {
   int val[256];
@@ -269,6 +312,21 @@ struct DivInstrumentMacro {
   // 32+: operator (top 3 bits select operator, starting from 1)
   unsigned char macroType;
 
+  /**
+   * convert from the previous ADSR/LFO macro format.
+   * INTERNAL. DO NOT USE.
+   */
+  void convertOldADSRLFO();
+
+  /**
+   * compile a macro. for use with ROM export.
+   * @param w a SafeWriter where the compiled macro will be written to.
+   * @param format a format hint. this is ignored for ADSR/LFO macros.
+   * @param min minimum value.
+   * @param max maximum value.
+   * @return whether compilation was successful.
+   */
+  bool compile(SafeWriter* w, DivCompiledMacroFormat format, int min, int max);
   explicit DivInstrumentMacro(unsigned char initType, bool initOpen=false):
     mode(0),
     open(initOpen),
@@ -328,6 +386,7 @@ struct DivInstrumentSTD {
     DivInstrumentMacro vibMacro;
     DivInstrumentMacro wsMacro;
     DivInstrumentMacro ksrMacro;
+    DivInstrumentMacro* macroByType(DivMacroTypeOp type);
     OpMacro():
       amMacro(DIV_MACRO_OP_AM), arMacro(DIV_MACRO_OP_AR), drMacro(DIV_MACRO_OP_DR), multMacro(DIV_MACRO_OP_MULT),
       rrMacro(DIV_MACRO_OP_RR), slMacro(DIV_MACRO_OP_SL), tlMacro(DIV_MACRO_OP_TL,true), dt2Macro(DIV_MACRO_OP_DT2),
@@ -481,7 +540,7 @@ struct DivInstrumentAmiga {
   bool useSample;
   bool useWave;
   unsigned char waveLen;
-  SampleMap noteMap[120];
+  SampleMap noteMap[180];
 
   bool operator==(const DivInstrumentAmiga& other);
   bool operator!=(const DivInstrumentAmiga& other) {
@@ -494,8 +553,9 @@ struct DivInstrumentAmiga {
    */
   inline short getSample(int note) {
     if (useNoteMap) {
+      if (note&DIV_NOTE_RAW_FLAG) return initSample;
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].map;
     }
     return initSample;
@@ -507,8 +567,9 @@ struct DivInstrumentAmiga {
    */
   inline int getFreq(int note) {
     if (useNoteMap) {
+      if (note&DIV_NOTE_RAW_FLAG) return note;
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].freq;
     }
     return note;
@@ -520,8 +581,9 @@ struct DivInstrumentAmiga {
    */
   inline signed char getDPCMFreq(int note) {
     if (useNoteMap) {
+      if (note&DIV_NOTE_RAW_FLAG) return note;
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].dpcmFreq;
     }
     return -1;
@@ -533,8 +595,9 @@ struct DivInstrumentAmiga {
    */
   inline signed char getDPCMDelta(int note) {
     if (useNoteMap) {
+      if (note&DIV_NOTE_RAW_FLAG) return -1;
       if (note<0) note=0;
-      if (note>119) note=119;
+      if (note>179) note=179;
       return noteMap[note].dpcmDelta;
     }
     return -1;
@@ -546,7 +609,7 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (int i=0; i<120; i++) {
+    for (int i=0; i<180; i++) {
       noteMap[i].map=-1;
       noteMap[i].freq=i;
     }
@@ -974,6 +1037,36 @@ struct DivInstrumentSID3 {
     }
 };
 
+struct DivInstrumentKlattsch {
+  // Values use the same byte encodings as the corresponding pattern effects.
+  unsigned char transition;
+  unsigned char voicing;
+  unsigned char aspiration;
+  unsigned char tilt;
+  unsigned char effort;
+  unsigned char vibrato;
+  unsigned char tremolo;
+  unsigned char gain;
+  unsigned char bandwidth;
+  unsigned char formantShift;
+
+  bool operator==(const DivInstrumentKlattsch& other);
+  bool operator!=(const DivInstrumentKlattsch& other) {
+    return !(*this==other);
+  }
+  DivInstrumentKlattsch():
+    transition(2),
+    voicing(0xff),
+    aspiration(0),
+    tilt(0),
+    effort(0x80),
+    vibrato(0x50),
+    tremolo(0x50),
+    gain(0x38),
+    bandwidth(0),
+    formantShift(0) {}
+};
+
 struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
@@ -993,6 +1086,7 @@ struct DivInstrumentPOD {
   DivInstrumentPowerNoise powernoise;
   DivInstrumentSID2 sid2;
   DivInstrumentSID3 sid3;
+  DivInstrumentKlattsch klattsch;
 
   DivInstrumentPOD() :
     type(DIV_INS_FM) {
@@ -1009,7 +1103,7 @@ struct DivInstrumentTemp {
     memset(vScroll,0,160*sizeof(int));
     memset(vZoom,-1,160*sizeof(int));
     memset(typeMemory,0,160*16*sizeof(int));
-    memset(lenMemory,0,160*sizeof(int));
+    memset(lenMemory,0,160*sizeof(unsigned char));
   }
 };
 
@@ -1037,7 +1131,7 @@ struct MemPatch {
 };
 
 struct DivInstrumentUndoStep {
-  DivInstrumentUndoStep() :
+  DivInstrumentUndoStep():
     name(""),
     nameValid(false),
     processTime(0) {
@@ -1052,15 +1146,15 @@ struct DivInstrumentUndoStep {
   bool makeUndoPatch(size_t processTime_, const DivInstrument* pre, const DivInstrument* post);
 };
 
-struct DivInstrument : DivInstrumentPOD {
+struct DivInstrument: DivInstrumentPOD {
   String name;
 
   DivInstrumentTemp temp;
 
-  DivInstrument() :
+  DivInstrument():
     name("") {
       // clear and construct DivInstrumentPOD so it doesn't have any garbage in the padding
-      memset((unsigned char*)(DivInstrumentPOD*)this, 0, sizeof(DivInstrumentPOD));
+      memset((unsigned char*)(DivInstrumentPOD*)this,0,sizeof(DivInstrumentPOD));
       new ((DivInstrumentPOD*)this) DivInstrumentPOD;
   }
 
@@ -1108,6 +1202,7 @@ struct DivInstrument : DivInstrumentPOD {
   void writeFeaturePN(SafeWriter* w);
   void writeFeatureS2(SafeWriter* w);
   void writeFeatureS3(SafeWriter* w);
+  void writeFeatureKT(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -1134,11 +1229,26 @@ struct DivInstrument : DivInstrumentPOD {
   void readFeaturePN(SafeReader& reader, short version);
   void readFeatureS2(SafeReader& reader, short version);
   void readFeatureS3(SafeReader& reader, short version);
+  void readFeatureKT(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
 
   void convertC64SpecialMacro();
+  void convertOldADSRLFO();
+
+  bool compileWaveSynth(SafeWriter* w);
+  bool compileSampleMap(SafeWriter* w, bool nes);
+  bool compileMacros(SafeWriter* w, std::initializer_list<DivCompileMacroDef> which, unsigned int start);
+
+  /**
+   * compile the instrument for ROM export.
+   * addresses must be relocated when placed in ROM!
+   * @param w a SafeWriter where the compiled instrument will be written to.
+   * @param insType instrument type. we don't use the type set in this instrument because it may be different from the desired type.
+   * @return whether compilation was successful.
+   */
+  bool compile(SafeWriter* w, DivInstrumentType insType);
 
   /**
    * save the instrument to a SafeWriter.

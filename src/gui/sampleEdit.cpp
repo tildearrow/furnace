@@ -51,6 +51,16 @@ const double timeMultipliers[13]={
   3600.0
 };
 
+const char* sampleFixLoopTargets[]={
+  _N("Amiga"),
+  _N("SNES"),
+  _N("Namco C219"),
+  _N("NDS 16-bit"),
+  _N("NDS 8-bit"),
+  _N("NDS IMA"),
+  _N("GBA DMA Sound")
+};
+
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
 
@@ -114,7 +124,7 @@ void FurnaceGUI::drawSampleEdit() {
     ImGui::SetNextWindowSize(patWindowSize);
   }
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Sample Editor"))) {
-    if (curSample<0 || curSample>=(int)e->song.sample.size()) {
+    if (curSample<0||curSample>=(int)e->song.sample.size()) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
       CENTER_TEXT(_("no sample selected"));
       ImGui::Text(_("no sample selected"));
@@ -171,7 +181,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SetNextItemWidth(72.0f*dpiScale);
       if (ImGui::BeginCombo("##SampleSelect",sampleIndex.c_str())) {
         String name;
-        for (size_t i=0; i<e->song.sample.size(); i++) {
+        for (size_t i=0;i<e->song.sample.size();i++) {
           name=fmt::sprintf("%d: %s##_SMPS%d",i,e->song.sample[i]->name,i);
           if (ImGui::Selectable(name.c_str(),curSample==(int)i)) {
             curSample=i;
@@ -330,9 +340,12 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,_("YM2608: loop point ignored on ADPCM (may only loop entire sample)"));
               }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512"));
+              if (sample->samples&511) { // &63) {
+                SAMPLE_WARN(warnLength,_("YM2608: sample length will be padded to multiple of 512")); // 64"));
               }
+            }
+            if (sample->samples>524288) {
+              SAMPLE_WARN(warnLength,_("YM2608: maximum sample length is 524288"));
             }
             if (dispatch!=NULL) {
               MAX_RATE("YM2608",dispatch->chipClock/144);
@@ -367,13 +380,17 @@ void FurnaceGUI::drawSampleEdit() {
             }
             break;
           case DIV_SYSTEM_Y8950:
+          case DIV_SYSTEM_Y8950_DRUMS:
             if (sample->loop) {
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,_("Y8950: loop point ignored on ADPCM (may only loop entire sample)"));
               }
-              if (sample->samples&511) {
-                SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512"));
+              if (sample->samples&511) { // &63) {
+                SAMPLE_WARN(warnLength,_("Y8950: sample length will be padded to multiple of 512")); // 64"));
               }
+            }
+            if (sample->samples>524288) {
+              SAMPLE_WARN(warnLength,_("Y8950: maximum sample length is 524288"));
             }
             if (dispatch!=NULL) {
               MAX_RATE("Y8950",dispatch->chipClock/72);
@@ -596,7 +613,7 @@ void FurnaceGUI::drawSampleEdit() {
         // ADPCM-A/B specific warnings
         if (sample->depth==DIV_SAMPLE_DEPTH_ADPCM_A || sample->depth==DIV_SAMPLE_DEPTH_ADPCM_B) {
           if (sample->samples&511) {
-            SAMPLE_WARN(warnLength,_("ADPCM sample is not padded to 256 bytes!"));
+            SAMPLE_WARN(warnLength,_("ADPCM sample is not padded to 512 samples!"));
           }
         }
 
@@ -675,7 +692,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::BeginCombo("##SampleType",sampleType.c_str())) {
             for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
               if (sampleDepths[i]==NULL) continue;
-              if (ImGui::Selectable(sampleDepths[i])) {
+              if (ImGui::Selectable(sampleDepths[i],sample->depth==(DivSampleDepth)i)) {
                 sample->prepareUndo(true);
                 e->lockEngine([this,sample,i]() {
                   sample->convert((DivSampleDepth)i,e->getSampleFormatMask());
@@ -685,6 +702,7 @@ void FurnaceGUI::drawSampleEdit() {
                 notifySampleChange=true;
                 MARK_MODIFIED;
               }
+              if (sample->depth==(DivSampleDepth)i) ImGui::SetItemDefaultFocus();
             }
             ImGui::EndCombo();
           }
@@ -763,12 +781,17 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          pushWarningColor(targetRate>384000);
           if (ImGui::InputInt("##SampleRate",&targetRate,10,200)) { MARK_MODIFIED
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
+          if (targetRate>384000) {
+            ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+          }
+          popWarningColor();
           
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Note"));
@@ -805,9 +828,9 @@ void FurnaceGUI::drawSampleEdit() {
 
             targetRate=e->getCenterRate()*pow(2.0,(double)sampleNote/(128.0*12.0));
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
 
           ImGui::AlignTextToFramePadding();
@@ -835,9 +858,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             if (targetRate<100) targetRate=100;
-            if (targetRate>384000) targetRate=384000;
 
             sample->centerRate=targetRate;
+            e->notifyPitchTable(curSample);
           }
 
           ImGui::TableNextColumn();
@@ -851,7 +874,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
             for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
               if (sampleLoopModes[i]==NULL) continue;
-              if (ImGui::Selectable(sampleLoopModes[i])) {
+              if (ImGui::Selectable(sampleLoopModes[i],sample->loopMode==(DivSampleLoopMode)i)) {
                 sample->prepareUndo(true);
                 sample->loopMode=(DivSampleLoopMode)i;
                 e->renderSamplesP(curSample);
@@ -1001,6 +1024,7 @@ void FurnaceGUI::drawSampleEdit() {
                   }
 
                   ImGui::PushStyleColor(ImGuiCol_FrameBg,color);
+                  ImGui::PushStyleColor(ImGuiCol_CheckboxSelectedBg,color);
                   ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,colorHovered);
                   ImGui::PushStyleColor(ImGuiCol_FrameBgActive,colorActive);
                   ImGui::PushStyleColor(ImGuiCol_CheckMark,baseColor);
@@ -1009,7 +1033,7 @@ void FurnaceGUI::drawSampleEdit() {
                     e->renderSamplesP(curSample);
                   }
 
-                  ImGui::PopStyleColor(4);
+                  ImGui::PopStyleColor(5);
 
                   if (ImGui::IsItemHovered()) {
                     const char* memName=NULL;
@@ -1120,27 +1144,28 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::OpenPopup("SResampleOpt");
       }
       if (ImGui::BeginPopupContextItem("SResampleOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        pushWarningColor(resampleTarget>384000);
         if (ImGui::InputDouble("Rate##SRRate",&resampleTarget,1.0,50.0,"%g")) {
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
+        if (resampleTarget>384000) {
+          ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
+        }
+        popWarningColor();
         double factor=resampleTarget/(double)targetRate;
         unsigned int targetLength=round(sample->samples*factor);
         if (ImGui::InputScalar("Length##SRLen",ImGuiDataType_U32,&targetLength, &_ONE, &_SIXTEEN)) {
           if (targetLength<1) targetLength=1;
           resampleTarget=targetRate*targetLength/(double)sample->samples;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::InputDouble(_("Factor"),&factor,0.125,0.5,"%g")) {
           resampleTarget=(double)targetRate*factor;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         if (ImGui::Button("0.5x")) {
           resampleTarget*=0.5;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
@@ -1150,7 +1175,6 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
           if (resampleTarget<100) resampleTarget=100;
-          if (resampleTarget>384000) resampleTarget=384000;
         }
         ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
         if (ImGui::Button(_("Resample"))) {
@@ -1161,6 +1185,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
             e->renderSamples(curSample);
           });
+          e->notifySampleChange(curSample);
           updateSampleTex=true;
           notifySampleChange=true;
           sampleSelStart=-1;
@@ -1175,6 +1200,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::EndDisabled();
       if (ImGui::Button(ICON_FA_UNDO "##SUndo")) {
         doUndoSample();
       }
@@ -1191,6 +1217,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
       ImGui::Button(ICON_FA_VOLUME_UP "##SAmplify");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Amplify/Offset"));
@@ -1320,6 +1347,31 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Trim"));
       }
+      sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
+      if (ImGui::Button(ICON_FA_MAGIC "##STrimSideNoise")) {
+        openTrimSideNoiseOpt=true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Trim Side-Noise"));
+      }
+      if (openTrimSideNoiseOpt) {
+        openTrimSideNoiseOpt=false;
+        ImGui::OpenPopup("STrimSideNoiseOpt");
+      }
+      if (ImGui::BeginPopupContextItem("STrimSideNoiseOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+        ImGui::Text(_("Threshold (dB)"));
+        if (ImGui::InputFloat("##STSNThreshold",&trimSideNoiseThreshold,1.0f,5.0f,"%.1f")) {
+          if (trimSideNoiseThreshold<-144.0f) trimSideNoiseThreshold=-144.0f;
+          if (trimSideNoiseThreshold>0.0f) trimSideNoiseThreshold=0.0f;
+        }
+        if (ImGui::Button(_("Apply"))) {
+          doAction(GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE);
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::EndDisabled();
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
@@ -1489,6 +1541,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
       sameLineMaybe();
+      ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sample->depth!=DIV_SAMPLE_DEPTH_8BIT);
       ImGui::Button(ICON_FUR_CROSSFADE "##CrossFade");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(_("Crossfade loop points"));
@@ -1557,6 +1610,24 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_MAGIC "##SFixLoop")) {
+        ImGui::OpenPopup("SFixLoopOpt");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(_("Align Loop Points"));
+      }
+      if (ImGui::BeginPopup("SFixLoopOpt")) {
+        if (this->sampleFixLoopTarget<0 || this->sampleFixLoopTarget>=7) this->sampleFixLoopTarget=0;
+        ImGui::Combo(_("Target"),&this->sampleFixLoopTarget,LocalizedComboGetter,sampleFixLoopTargets,7);
+        ImGui::Combo(_("Filter"),&resampleStrat,LocalizedComboGetter,resampleStrats,6);
+        if (ImGui::Button(_("Apply"))) {
+          doAction(GUI_ACTION_SAMPLE_FIX_LOOP);
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+      ImGui::EndDisabled();
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
         e->previewSample(curSample);
@@ -2010,6 +2081,22 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem(_("set loop to selection"),BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
+          if (ImGui::MenuItem(_("select loop region"),BIND_FOR(GUI_ACTION_SAMPLE_SELECT_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_SELECT_LOOP);
+          }
+          ImGui::BeginDisabled(!sample->isLoopable() || (unsigned int)sample->loopEnd>=sample->samples || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
+          if (ImGui::MenuItem(_("trim to the end of the loop"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP);
+          }
+          ImGui::EndDisabled();
+          ImGui::BeginDisabled(!sample->isLoopable() || (sample->loopStart==0 && (unsigned int)sample->loopEnd>=sample->samples) || (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT));
+          if (ImGui::MenuItem(_("trim around loop points"),BIND_FOR(GUI_ACTION_SAMPLE_TRIM_TO_LOOP))) {
+            doAction(GUI_ACTION_SAMPLE_TRIM_TO_LOOP);
+          }
+          ImGui::EndDisabled();
+
+          ImGui::Separator();
+
           if (ImGui::MenuItem(_("create wavetable from selection"),BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
             doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
           }

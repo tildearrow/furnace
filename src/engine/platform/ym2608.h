@@ -53,6 +53,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
     fmopna_t fm_lle;
+    DivPitchTableManager samplePitchTable;
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];
@@ -94,7 +95,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -108,6 +109,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

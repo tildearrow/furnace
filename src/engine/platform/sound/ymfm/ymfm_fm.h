@@ -75,6 +75,8 @@ struct opdata_cache
 	uint32_t eg_sustain;              // sustain level, shifted up to envelope values
 	uint8_t eg_rate[EG_STATES];       // envelope rate, including KSR
 	uint8_t eg_shift = 0;             // envelope shift amount
+	uint8_t tl_ramp = 0;                  // whether TL ramp is enabled
+	uint8_t tl_ramp_period = 0;           // TL ramp duration
 };
 
 
@@ -236,6 +238,8 @@ private:
 	uint8_t m_ssg_inverted;                // non-zero if the output should be inverted (bit 0)
 	uint8_t m_key_state;                   // current key state: on or off (bit 0)
 	uint8_t m_keyon_live;                  // live key on state (bit 0 = direct, bit 1 = rhythm, bit 2 = CSM)
+	uint32_t m_actual_level;                // actual total level after ramping
+	uint32_t m_ramp_counter;                // ramp counter
 	opdata_cache m_cache;                  // cached values for performance
 	RegisterType &m_regs;                  // direct reference to registers
 	fm_engine_base<RegisterType> &m_owner; // reference to the owning engine

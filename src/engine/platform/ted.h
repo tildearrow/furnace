@@ -25,10 +25,10 @@
 #include "sound/ted-sound.h"
 
 class DivPlatformTED: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool noise, square;
-    Channel():
-      SharedChannel<signed char>(8),
+    Channel(bool linear=true):
+      SharedChannel(8,linear),
       noise(false),
       square(true) {}
   };
@@ -42,6 +42,7 @@ class DivPlatformTED: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,64> writes;
+  DivPitchTable pitchTable;
 
   struct plus4_sound_s ted;
   unsigned char vol;
@@ -55,7 +56,7 @@ class DivPlatformTED: public DivDispatch {
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     bool isVolGlobal();
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -68,6 +69,8 @@ class DivPlatformTED: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

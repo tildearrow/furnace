@@ -75,7 +75,7 @@ bool DivEngine::convertLegacySampleMode() {
 
     if (canUse) {
       if (ins->amiga.useNoteMap) {
-        for (int i=0; i<120; i++) {
+        for (int i=0; i<180; i++) {
           if (ins->amiga.noteMap[i].map>=0 && ins->amiga.noteMap[i].map<(int)song.sample.size()) {
             isUsedByIns[ins->amiga.noteMap[i].map]=true;
           }
@@ -101,8 +101,8 @@ bool DivEngine::convertLegacySampleMode() {
         } else {
           ins->name=fmt::sprintf("Legacy Samples (bank %d)",(int)bank);
         }
-        for (int i=0; i<120; i++) {
-          ins->amiga.noteMap[i].freq=48; // C-4
+        for (int i=0; i<180; i++) {
+          ins->amiga.noteMap[i].freq=108; // C-4
           ins->amiga.noteMap[i].map=12*bank+(i%12);
         }
 

@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     signed char resVol;
     short wave, wavePos, waveLen;
     short curWavePos, curWaveLen;
@@ -35,8 +35,8 @@ class DivPlatformN163: public DivDispatch {
     bool volumeChanged;
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;    
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       resVol(15),
       wave(-1),
       wavePos(0),
@@ -60,6 +60,7 @@ class DivPlatformN163: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
   };
   FixedQueue<QueuedWrite,2048> writes;
+  DivPitchTable pitchTable;
   unsigned char initChanMax;
   unsigned char chanMax;
   short loadWave, loadPos;
@@ -76,7 +77,7 @@ class DivPlatformN163: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -91,6 +92,8 @@ class DivPlatformN163: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

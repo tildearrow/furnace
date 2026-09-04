@@ -31,7 +31,7 @@
 // - ex4 (test) compatibility
 
 class DivPlatformC64: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, testWhen;
     unsigned int audPos;
     int pcmPos, sample, pcmPeriod, pcmRate, pcmOut;
@@ -40,8 +40,8 @@ class DivPlatformC64: public DivDispatch {
     bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       testWhen(0),
       audPos(0),
@@ -83,6 +83,8 @@ class DivPlatformC64: public DivDispatch {
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;
@@ -115,7 +117,7 @@ class DivPlatformC64: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -133,6 +135,8 @@ class DivPlatformC64: public DivDispatch {
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

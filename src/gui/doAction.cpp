@@ -372,6 +372,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
       nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
+    case GUI_ACTION_WINDOW_BACKUPS_MANAGER:
+      nextWindow=GUI_WINDOW_BACKUPS_MANAGER;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -491,6 +494,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SPECTRUM:
           spectrumOpen=false;
+          break;
+        case GUI_WINDOW_BACKUPS_MANAGER:
+          backupsManagerOpen=false;
           break;
         default:
           break;
@@ -674,6 +680,34 @@ void FurnaceGUI::doAction(int what) {
         e->curSubSong->chanCollapse[cursor.xCoarse]--;
       }
       break;
+    case GUI_ACTION_PAT_COLLAPSE_SELECTED: {
+      finishSelection();
+      int chCount=e->getTotalChannelCount();
+      int chStart=(int)selStart.xCoarse;
+      if (chStart<0) chStart=0;
+      else if (chStart>=chCount) chStart=chCount-1;
+      int chEnd=(int)selEnd.xCoarse;
+      if (chEnd<0) chEnd=0;
+      else if (chEnd>=chCount) chEnd=chCount-1;
+      for (int i=chStart; i<=chEnd; i++) {
+        e->curSubSong->chanCollapse[i]=3;
+      }
+      break;
+    }
+    case GUI_ACTION_PAT_EXPAND_SELECTED: {
+      finishSelection();
+      int chCount=e->getTotalChannelCount();
+      int chStart=(int)selStart.xCoarse;
+      if (chStart<0) chStart=0;
+      else if (chStart>=chCount) chStart=chCount-1;
+      int chEnd=(int)selEnd.xCoarse;
+      if (chEnd<0) chEnd=0;
+      else if (chEnd>=chCount) chEnd=chCount-1;
+      for (int i=chStart; i<=chEnd; i++) {
+        e->curSubSong->chanCollapse[i]=0;
+      }
+      break;
+    }
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->curPat[cursor.xCoarse].effectCols++;
@@ -972,6 +1006,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1030,6 +1065,7 @@ void FurnaceGUI::doAction(int what) {
         showError(_("too many samples!"));
       } else {
         wantScrollListSample=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       updateSampleTex=true;
@@ -1064,6 +1100,7 @@ void FurnaceGUI::doAction(int what) {
             e->renderSamples();
           });
           wantScrollListSample=true;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         updateSampleTex=true;
@@ -1094,6 +1131,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1103,6 +1141,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollListSample=true;
         updateSampleTex=true;
         notifySampleChange=true;
+        e->notifyPitchTable();
         MARK_MODIFIED;
       }
       break;
@@ -1115,6 +1154,7 @@ void FurnaceGUI::doAction(int what) {
       }
       updateSampleTex=true;
       notifySampleChange=true;
+      e->notifyPitchTable();
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -1639,10 +1679,201 @@ void FurnaceGUI::doAction(int what) {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleCrossFadeOpt=true;
       break;
+    case GUI_ACTION_SAMPLE_FIX_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (!sample->isLoopable() || sample->loopEnd<=sample->loopStart) {
+        showError(_("Tune Loop: sample must have a valid loop."));
+        break;
+      }
+      int currentLoopLength=sample->loopEnd-sample->loopStart;
+      if (currentLoopLength<1) {
+        showError(_("Tune Loop: loop length must be greater than zero."));
+        break;
+      }
+      static const int startAlign[7]={2,16,2,2,4,8,4};
+      static const int lengthAlign[7]={2,16,2,2,4,8,16};
+      if (sampleFixLoopTarget<0 || sampleFixLoopTarget>=7) sampleFixLoopTarget=0;
+      int targetIndex=sampleFixLoopTarget;
+      int alignLength=lengthAlign[targetIndex];
+      int targetLoopLength=((currentLoopLength+(alignLength>>1))/alignLength)*alignLength;
+      if (targetLoopLength<alignLength) targetLoopLength=alignLength;
+
+      double currentRate=sample->centerRate;
+      double targetFixRate=currentRate*((double)targetLoopLength/(double)currentLoopLength);
+      if (targetFixRate<100.0) targetFixRate=100.0;
+      if (targetFixRate>384000.0) targetFixRate=384000.0;
+
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample,currentRate,targetFixRate,targetIndex]() {
+        auto snapAlignedInRange=[](int value, int align, int minValue, int maxValue, int& out) -> bool {
+          if (minValue>maxValue) return false;
+          if (align<=1) {
+            out=CLAMP(value,minValue,maxValue);
+            return true;
+          }
+          int first=((minValue+align-1)/align)*align;
+          int last=(maxValue/align)*align;
+          if (first>last) return false;
+          int down=(value/align)*align;
+          if (value<0 && (value%align)!=0) down-=align;
+          int up=down+align;
+          if (down<first) down=first;
+          if (down>last) down=last;
+          if (up<first) up=first;
+          if (up>last) up=last;
+          int downDist=value-down;
+          if (downDist<0) downDist=-downDist;
+          int upDist=up-value;
+          if (upDist<0) upDist=-upDist;
+          out=(upDist<=downDist)?up:down;
+          return true;
+        };
+
+        if (!sample->resample(currentRate,targetFixRate,resampleStrat)) {
+          showError(_("couldn't resample! make sure your sample is 8 or 16-bit and that the target rate is at least 100Hz."));
+          return;
+        }
+
+        int sampleCount=(int)sample->samples;
+        int curLengthAlign=lengthAlign[targetIndex];
+        int curStartAlign=startAlign[targetIndex];
+        if (sampleCount<curLengthAlign) {
+          showError(_("Tune Loop: sample is too short for selected target alignment."));
+          return;
+        }
+
+        int currentStart=sample->loopStart;
+        int currentLength=sample->loopEnd-sample->loopStart;
+        if (currentLength<1) {
+          showError(_("Tune Loop: loop became invalid after resampling."));
+          return;
+        }
+
+        int snappedLength=0;
+        if (!snapAlignedInRange(currentLength,curLengthAlign,curLengthAlign,sampleCount,snappedLength)) {
+          showError(_("Tune Loop: unable to fit aligned loop length into sample bounds."));
+          return;
+        }
+
+        int snappedStart=0;
+        if (!snapAlignedInRange(currentStart,curStartAlign,0,sampleCount-snappedLength,snappedStart)) {
+          showError(_("Tune Loop: unable to fit aligned loop start into sample bounds."));
+          return;
+        }
+
+        sample->loopStart=snappedStart;
+        sample->loopEnd=snappedStart+snappedLength;
+        if (sample->loopEnd>sampleCount) sample->loopEnd=sampleCount;
+        if (sample->loopEnd<=sample->loopStart) {
+          showError(_("Tune Loop: failed to produce a valid aligned loop."));
+          return;
+        }
+
+        e->renderSamples(curSample);
+      });
+      updateSampleTex=true;
+      notifySampleChange=true;
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
     case GUI_ACTION_SAMPLE_FILTER:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       openSampleFilterOpt=true;
       break;
+    case GUI_ACTION_SAMPLE_TRIM_SIDE_NOISE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if ((sample->depth==DIV_SAMPLE_DEPTH_16BIT || sample->depth==DIV_SAMPLE_DEPTH_8BIT) && sample->getCurBuf()!=NULL && sample->samples>0) {
+        sample->prepareUndo(true);
+        e->lockEngine([this,sample]() {
+          SAMPLE_OP_BEGIN;
+          float linThreshold=powf(10.0f,trimSideNoiseThreshold/20.0f)*(sample->depth==DIV_SAMPLE_DEPTH_16BIT?32767.0f:127.0f);
+          unsigned int newStart=start;
+          unsigned int newEnd=end;
+          unsigned int windowSize=128;
+          if (windowSize>(end-start)) windowSize=end-start;
+          unsigned int minCount=windowSize/4;
+          if (minCount<1) minCount=1;
+
+          if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+            short* buf=sample->data16;
+            unsigned int count=0;
+            for (unsigned int j=0; j<windowSize; j++) {
+              if (fabsf((float)buf[start+j])>=linThreshold) count++;
+            }
+            for (unsigned int i=start; i+windowSize<=end; i++) {
+              if (count>=minCount) {
+                newStart=i;
+                break;
+              }
+              if (fabsf((float)buf[i])>=linThreshold) count--;
+              if (i+windowSize<end && fabsf((float)buf[i+windowSize])>=linThreshold) count++;
+            }
+            count=0;
+            for (unsigned int j=0; j<windowSize; j++) {
+              if (fabsf((float)buf[end-windowSize+j])>=linThreshold) count++;
+            }
+            for (unsigned int i=end; (i-start)>=windowSize; i--) {
+              if (count>=minCount) {
+                newEnd=i;
+                break;
+              }
+              if (fabsf((float)buf[i-1])>=linThreshold) count--;
+              if (i>=start+windowSize && fabsf((float)buf[i-windowSize-1])>=linThreshold) count++;
+            }
+          } else {
+            signed char* buf=sample->data8;
+            unsigned int count=0;
+            for (unsigned int j=0; j<windowSize; j++) {
+              if (fabsf((float)buf[start+j])>=linThreshold) count++;
+            }
+            for (unsigned int i=start; i+windowSize<=end; i++) {
+              if (count>=minCount) {
+                newStart=i;
+                break;
+              }
+              if (fabsf((float)buf[i])>=linThreshold) count--;
+              if (i+windowSize<end && fabsf((float)buf[i+windowSize])>=linThreshold) count++;
+            }
+            count=0;
+            for (unsigned int j=0; j<windowSize; j++) {
+              if (fabsf((float)buf[end-windowSize+j])>=linThreshold) count++;
+            }
+            for (unsigned int i=end; (i-start)>=windowSize; i--) {
+              if (count>=minCount) {
+                newEnd=i;
+                break;
+              }
+              if (fabsf((float)buf[i-1])>=linThreshold) count--;
+              if (i>=start+windowSize && fabsf((float)buf[i-windowSize-1])>=linThreshold) count++;
+            }
+          }
+
+          if (newStart<newEnd && (newStart>start || newEnd<end)) {
+            if (start==0 && end==sample->samples) {
+              sample->trim(newStart,newEnd);
+            } else {
+              if (newEnd<end) {
+                sample->strip(newEnd,end);
+              }
+              if (newStart>start) {
+                sample->strip(start,newStart);
+              }
+              sampleSelStart=start;
+              sampleSelEnd=start+(newEnd-newStart);
+            }
+          }
+          updateSampleTex=true;
+          notifySampleChange=true;
+          e->renderSamples(curSample);
+        });
+        MARK_MODIFIED;
+      }
+      break;
+    }
     case GUI_ACTION_SAMPLE_PREVIEW:
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
       e->previewSample(curSample);
@@ -1847,6 +2078,7 @@ void FurnaceGUI::doAction(int what) {
       curSample=prevSampleNum;
 
       // TODO: confirm these
+      e->notifyPitchTable();
       wantScrollListSample=true;
       MARK_MODIFIED;
       updateSampleTex=true;
@@ -1854,11 +2086,61 @@ void FurnaceGUI::doAction(int what) {
       break;
     }
 
+    case GUI_ACTION_SAMPLE_TRIM_AFTER_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) break;
+      if (!sample->isLoopable()) break;
+      if ((unsigned int)sample->loopEnd>=sample->samples) break;
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        sample->trim(0,sample->loopEnd);
+        updateSampleTex=true;
+        notifySampleChange=true;
+        e->renderSamples(curSample);
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
+
+    case GUI_ACTION_SAMPLE_TRIM_TO_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) break;
+      if (!sample->isLoopable()) break;
+      sample->prepareUndo(true);
+      e->lockEngine([this,sample]() {
+        int loopLen=sample->loopEnd-sample->loopStart;
+        sample->trim(sample->loopStart,sample->loopEnd);
+        sample->loopStart=0;
+        sample->loopEnd=loopLen;
+        updateSampleTex=true;
+        notifySampleChange=true;
+        e->renderSamples(curSample);
+      });
+      sampleSelStart=-1;
+      sampleSelEnd=-1;
+      MARK_MODIFIED;
+      break;
+    }
+
+    case GUI_ACTION_SAMPLE_SELECT_LOOP: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      if (sample->isLoopable()) {
+        sampleSelStart=sample->loopStart;
+        sampleSelEnd=sample->loopEnd;
+      }
+      break;
+    }
+
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {
         setOrder(curOrder-1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1866,7 +2148,7 @@ void FurnaceGUI::doAction(int what) {
       if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
         if (orderEditMode!=0) {
-          curNibble=false;
+          curNibble=0;
         }
       }
       break;
@@ -1881,7 +2163,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1896,7 +2178,7 @@ void FurnaceGUI::doAction(int what) {
         }
       } while (!e->curSubSong->chanShow[orderCursor]);
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1906,7 +2188,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }
@@ -1916,7 +2198,7 @@ void FurnaceGUI::doAction(int what) {
         e->curOrders->ord[orderCursor][curOrder]--;
       }
       if (orderEditMode!=0) {
-        curNibble=false;
+        curNibble=0;
       }
       break;
     }

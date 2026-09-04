@@ -17,23 +17,36 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// cmdStream.h: reference command stream player.
+
 #ifndef _CMD_STREAM_H
 #define _CMD_STREAM_H
 
 #include "defines.h"
 #include "safeReader.h"
 
+// size of the trace log (per channel)
 #define DIV_MAX_CSTRACE 64
+// stack size
 #define DIV_MAX_CSSTACK 128
 
 class DivEngine;
 
+/**
+ * state for a channel in the command stream player.
+ * this sort of resembles DivChannelState but is minimal.
+ */
 struct DivCSChannelState {
+  // initial program counter address.
   unsigned int startPos;
+  // the current "program counter" (position within the command stream) address.
   unsigned int readPos;
+  // number of ticks to wait before processing. set by the wait command.
   int waitTicks;
+  // length of the last wait command.
   int lastWaitLen;
 
+  // I don't think I have to explain these.
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
