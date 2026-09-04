@@ -447,6 +447,7 @@ void FurnaceGUI::VerticalText(const char* fmt, ...) {
   vtxBegin=dl->_VtxCurrentIdx;
   char text[4096];
   vsnprintf(text,4096,fmt,args);
+  va_end(args);
   ImVec2 size=ImGui::CalcTextSize(text);
   dl->AddText(pos,ImGui::GetColorU32(ImGuiCol_Text),text);
   vtxEnd=dl->_VtxCurrentIdx;
@@ -463,6 +464,7 @@ void FurnaceGUI::VerticalText(float maxSize, bool centered, const char* fmt, ...
   vtxBegin=dl->_VtxCurrentIdx;
   char text[4096];
   vsnprintf(text,4096,fmt,args);
+  va_end(args);
   const char* textEol=ImGui::FindRenderedTextEnd(text);
   ImVec2 size=ImGui::CalcTextSize(text);
   dl->PushClipRect(pos,pos+ImGui::GetWindowSize());
@@ -1273,6 +1275,11 @@ Pos=704,243\n\
 Size=413,115\n\
 Collapsed=0\n\
 \n\
+[Window][Scripts]\n\
+Pos=472,328\n\
+Size=874,518\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
@@ -1523,6 +1530,7 @@ void FurnaceGUI::noteInput(int num, int key, int vol, int chanOff) {
       pat->newData[y][DIV_PAT_VOL]=-1;
     }
   }
+  runCallbacks(&scriptCallbacks.pattern);
   if ((!e->isPlaying() || !followPattern) && (chanOff<1 || noteInputMode!=GUI_NOTE_INPUT_CHORD) && !doNotAdvance) {
     editAdvance();
   }
@@ -1719,11 +1727,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     } else {
       if (e->song.ins.size()<16) {
         curNibble=0;
+        runCallbacks(&scriptCallbacks.pattern);
         editAdvance();
       } else {
         curNibble++;
         if (curNibble>=2) {
           curNibble=0;
+          runCallbacks(&scriptCallbacks.pattern);
           editAdvance();
         }
       }
@@ -1741,11 +1751,13 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       if (e->getMaxVolumeChan(ch)<16) {
         curNibble=0;
         if (pat->newData[y][target]>e->getMaxVolumeChan(ch)) pat->newData[y][target]=e->getMaxVolumeChan(ch);
+        runCallbacks(&scriptCallbacks.pattern);
         editAdvance();
       } else {
         curNibble++;
         if (curNibble>=2) {
           curNibble=0;
+          runCallbacks(&scriptCallbacks.pattern);
           editAdvance();
         }
       }
@@ -1758,6 +1770,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
       curNibble++;
       if (curNibble>=2) {
         curNibble=0;
+        runCallbacks(&scriptCallbacks.pattern);
         if (!settings.effectCursorDir) {
           editAdvance();
         } else {
@@ -1804,7 +1817,7 @@ void FurnaceGUI::rawFreqInput(int num) {
     (pat->newData[y][DIV_PAT_RAW2]<<16)|
     (pat->newData[y][DIV_PAT_RAW3]<<24)
   );
-  
+
   unsigned int valNibbles=(bsr32(valMax)+3)>>2;
   if (!settings.pushNibble && !curNibble) {
     val=num;
@@ -1819,6 +1832,7 @@ void FurnaceGUI::rawFreqInput(int num) {
   curNibble++;
   if (curNibble>=valNibbles) {
     curNibble=0;
+    runCallbacks(&scriptCallbacks.pattern);
     editAdvance();
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
@@ -2039,7 +2053,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         // pattern input otherwise
         if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
         if (warnIsOpen && !settings.warnNotePassthrough) break;
-        if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && 
+        if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() &&
             curOrder>=0 && curOrder<DIV_MAX_PATTERNS &&
             cursor.y>=0 && cursor.y<DIV_MAX_ROWS &&
             (!ev.key.repeat || settings.inputRepeat)) {
@@ -2724,6 +2738,33 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale,
         NULL,
         false
+      );
+      break;
+    case GUI_FILE_LOAD_SCRIPT:
+      if (!dirExists(workingDirScript)) workingDirScript=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Load Lua Script"),
+        {_("Lua script"), "*.lua"},
+        workingDirScript,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_LOAD_SCRIPT_PLAYGROUND:
+      if (!dirExists(workingDirScript)) workingDirScript=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        _("Open Lua Script"),
+        {_("Lua script"), "*.lua"},
+        workingDirScript,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_SAVE_SCRIPT_PLAYGROUND:
+      if (!dirExists(workingDirScript)) workingDirScript=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Save Lua Script"),
+        {_("Lua script"), "*.lua"},
+        workingDirScript,
+        dpiScale
       );
       break;
     case GUI_FILE_TEST_OPEN:
@@ -4622,6 +4663,7 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(refPlayer)
   DECLARE_METRIC(multiInsSetup)
   DECLARE_METRIC(backupsManager)
+  DECLARE_METRIC(scripting)
   DECLARE_METRIC(popup)
 
 #ifdef IS_MOBILE
@@ -5173,7 +5215,7 @@ bool FurnaceGUI::loop() {
       recoveringGraphics=true;
 
       logW("graphics are dead! restarting...");
-      
+
       if (sampleTex!=NULL) {
         rend->destroyTexture(sampleTex);
         sampleTex=NULL;
@@ -5282,6 +5324,7 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(refPlayerOpen);
         IMPORT_CLOSE(multiInsSetupOpen);
         IMPORT_CLOSE(backupsManagerOpen);
+        IMPORT_CLOSE(scriptingOpen);
       } else if (pendingLayoutImportStep==1) {
         // let the UI settle
       } else if (pendingLayoutImportStep==2) {
@@ -5607,6 +5650,9 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("backup management..."),BIND_FOR(GUI_ACTION_WINDOW_BACKUPS_MANAGER))) {
           backupsManagerOpen=true;
         }
+        if (ImGui::MenuItem(_("scripts..."),BIND_FOR(GUI_ACTION_WINDOW_SCRIPTING))) {
+          scriptingOpen=true;
+        }
         if (ImGui::MenuItem(_("settings..."),BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
           syncSettings();
           settingsOpen=true;
@@ -5672,12 +5718,19 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
-
+        if (!scriptWindows.empty()) {
+          ImGui::Separator();
+          for (auto& w:scriptWindows) {
+            if (ImGui::MenuItem(w.first.c_str(),0,w.second.open)) {
+              w.second.open=!w.second.open;
+            }
+          }
+        }
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu(settings.capitalMenuBar?_("Help"):_("help"))) {
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
-        if (ImGui::MenuItem(_("online manual"))) 
+        if (ImGui::MenuItem(_("online manual")))
 #ifdef DIV_UNSTABLE
           SDL_OpenURL("https://github.com/tildearrow/furnace/tree/master/doc");
 #else
@@ -5692,6 +5745,16 @@ bool FurnaceGUI::loop() {
           aboutScroll=0;
         }
         ImGui::EndMenu();
+      }
+      for (auto const& i: scriptMenus) {
+        if (ImGui::BeginMenu(i.first.c_str())) {
+          for (auto const& j: i.second) {
+            if (ImGui::MenuItem(j.first.c_str())) {
+              runScriptFunction(j.second.state,j.second.function);
+            }
+          }
+          ImGui::EndMenu();
+        }
       }
       ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PLAYBACK_STAT]);
@@ -5882,6 +5945,7 @@ bool FurnaceGUI::loop() {
       MEASURE(userPresets,drawUserPresets());
       MEASURE(refPlayer,drawRefPlayer());
       MEASURE(multiInsSetup,drawMultiInsSetup());
+      MEASURE(scripting,drawScripting());
       MEASURE(patManager,drawPatManager());
       MEASURE(tuner,drawTuner());
       MEASURE(spectrum,drawSpectrum());
@@ -5934,7 +5998,7 @@ bool FurnaceGUI::loop() {
       MEASURE(refPlayer,drawRefPlayer());
       MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(backupsManager,drawBackupsManager());
-
+      MEASURE(scripting,drawScripting());
     }
 
     // release selection if mouse released
@@ -6117,6 +6181,11 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_MUSIC_OPEN:
           workingDirMusic=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_LOAD_SCRIPT:
+        case GUI_FILE_LOAD_SCRIPT_PLAYGROUND:
+        case GUI_FILE_SAVE_SCRIPT_PLAYGROUND:
+          workingDirScript=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_TEST_OPEN:
         case GUI_FILE_TEST_OPEN_MULTI:
         case GUI_FILE_TEST_SAVE:
@@ -6224,6 +6293,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_CONFIG) {
             checkExtension(".cfg");
+          }
+          if (curFileDialog==GUI_FILE_SAVE_SCRIPT_PLAYGROUND) {
+            checkExtension(".lua");
           }
           String copyOfName=fileName;
           switch (curFileDialog) {
@@ -6408,36 +6480,24 @@ bool FurnaceGUI::loop() {
                   if (fileDialog->getFileName().size()>1) {
                     warn=true;
                     errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                  } else {; // what the shit? a stray semicolon??????
-                    // TODO: somebody please reindent this. it looks so unreadable.
+                  } else {
                     showError(e->getLastError());
                   }
-                } 
-                else 
-                {
-                  if((int)samples.size() == 1)
-                  {
-                    if (e->addSamplePtr(samples[0]) == -1)
-                    {
-                      if (fileDialog->getFileName().size()>1)
-                      {
+                } else {
+                  if (samples.size()==1) {
+                    if (e->addSamplePtr(samples[0])==-1) {
+                      if (fileDialog->getFileName().size()>1) {
                         warn=true;
                         errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
-                      } 
-                      else 
-                      {
+                      } else {
                         showError(e->getLastError());
                       }
-                    } 
-                    else 
-                    {
+                    } else {
                       MARK_MODIFIED;
-              e->notifyPitchTable();
+                      e->notifyPitchTable();
                     }
-                  }
-                  else
-                  {
-                    for (DivSample* s: samples) { //ask which samples to load!
+                  } else {
+                    for (DivSample* s: samples) { // ask which samples to load!
                       pendingSamples.push_back(std::make_pair(s,false));
                     }
                     displayPendingSamples=true;
@@ -6890,6 +6950,29 @@ bool FurnaceGUI::loop() {
                 }
               });
               break;
+            case GUI_FILE_LOAD_SCRIPT: {
+              LoadedScript script(copyOfName);
+              loadedScripts.push_back(script);
+              pushRecentSys(copyOfName.c_str());
+              break;
+            }
+            case GUI_FILE_LOAD_SCRIPT_PLAYGROUND: {
+              if (!readTextFile(copyOfName.c_str(),playgroundData)) {
+                showError(_("could not open file!"));
+              }
+              break;
+            }
+            case GUI_FILE_SAVE_SCRIPT_PLAYGROUND: {
+              FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+              if (f!=NULL) {
+                fputs(playgroundData.c_str(),f);
+                fclose(f);
+                pushRecentSys(copyOfName.c_str());
+              } else {
+                showError(_("could not open file!"));
+              }
+              break;
+            }
             case GUI_FILE_TEST_OPEN:
               showWarning(fmt::sprintf(_("You opened: %s"),copyOfName),GUI_WARN_GENERIC);
               break;
@@ -7442,6 +7525,83 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    // script windows
+    for (auto& w:scriptWindows) {
+      if (!w.second.open) continue;
+      if (ImGui::Begin(w.first.c_str(),&w.second.open)) {
+        if (!runScriptFunction(w.second.state,w.second.function)) {
+          w.second.open=false;
+        }
+      }
+      ImGui::End();
+    }
+
+    // script dialog
+    const char* scriptDialogTitle=scriptDialog.title.c_str();
+    if (scriptDialog.dialogOpen) {
+      scriptDialog.dialogOpen=false;
+      ImGui::OpenPopup(scriptDialog.title.c_str());
+    }
+    centerNextWindow(scriptDialogTitle,canvasW,canvasH);
+    if (ImGui::BeginPopupModal(scriptDialogTitle,NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      for (ScriptDialog::Item& i:scriptDialog.items) {
+        switch (i.type) {
+          case ScriptDialog::Item::Type::Checkbox: {
+            ImGui::Checkbox(i.label.c_str(),&i.valueInt.b);
+            break;
+          }
+          case ScriptDialog::Item::Type::Int: {
+            if (ImGui::InputInt(i.label.c_str(),&i.valueInt.i)) {
+              if (i.valueInt.i>i.max.i) i.valueInt.i=i.max.i;
+              if (i.valueInt.i<i.min.i) i.valueInt.i=i.min.i;
+            }
+            break;
+          }
+          case ScriptDialog::Item::Type::Float: {
+            if (ImGui::InputFloat(i.label.c_str(),&i.valueInt.f)) {
+              if (i.valueInt.f>i.max.f) i.valueInt.f=i.max.f;
+              if (i.valueInt.f<i.min.f) i.valueInt.f=i.min.f;
+            }
+            break;
+          }
+          case ScriptDialog::Item::Type::String: {
+            ImGui::InputText(i.label.c_str(),&i.valueS);
+            break;
+          }
+        }
+      }
+      if (ImGui::Button(_("OK"))) {
+        lua_rawgeti(scriptDialog.state,LUA_REGISTRYINDEX,scriptDialog.callbackFunction);
+        // push arguments
+        for (ScriptDialog::Item& i:scriptDialog.items) {
+          switch (i.type) {
+            case ScriptDialog::Item::Type::Checkbox:
+              lua_pushboolean(scriptDialog.state,i.valueInt.b);
+              break;
+            case ScriptDialog::Item::Type::Int:
+              lua_pushinteger(scriptDialog.state,i.valueInt.i);
+              break;
+            case ScriptDialog::Item::Type::Float:
+              lua_pushnumber(scriptDialog.state,i.valueInt.f);
+              break;
+            case ScriptDialog::Item::Type::String:
+              lua_pushstring(scriptDialog.state,i.valueS.c_str());
+              break;
+          }
+        }
+        int result=lua_pcall(scriptDialog.state,scriptDialog.items.size(),LUA_MULTRET,0);
+        if (result!=LUA_OK) {
+          showError(fmt::sprintf(_("dialog callback error!\n%s"),getScriptError(scriptDialog.state,result)));
+        }
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Cancel"))) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
     warnIsOpen=ImGui::IsPopupOpen(_("Warning"));
 
     if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
@@ -7818,7 +7978,7 @@ bool FurnaceGUI::loop() {
         ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
       }
       popWarningColor();
-      
+
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
@@ -8046,7 +8206,7 @@ bool FurnaceGUI::loop() {
 #endif
 
               String finalPath=backupPath+String(DIR_SEPARATOR_STR)+backupFileName;
-              
+
               FILE* outFile=ps_fopen(finalPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
@@ -8091,7 +8251,7 @@ bool FurnaceGUI::loop() {
     }
 
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
-    
+
     curWindowThreadSafe=curWindow;
 
     if (curWindow!=curWindowLast) {
@@ -8238,7 +8398,7 @@ bool FurnaceGUI::loop() {
     if (shallDetectScale) {
       if (--shallDetectScale<1) {
         if (settings.dpiScale<0.5f) {
-          const char* videoBackend=SDL_GetCurrentVideoDriver();      
+          const char* videoBackend=SDL_GetCurrentVideoDriver();
           double newScale=getScaleFactor(videoBackend,sdlWin);
           if (newScale<0.1f) {
             logW("scale what?");
@@ -8772,6 +8932,9 @@ bool FurnaceGUI::init() {
 
   userEvents=SDL_RegisterEvents(1);
 
+  logD("initializing script engine...");
+  initScriptEngine();
+
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
     if (introPos<11.0) return -3;
     midiLock.lock();
@@ -8944,8 +9107,89 @@ bool FurnaceGUI::init() {
 
   initSettings();
 
+  readLoadedScripts();
+
   logI("done!");
   return true;
+}
+
+void FurnaceGUI::readLoadedScripts() {
+  String script;
+  for (size_t i=0; i<loadedScripts.size(); i++) {
+    logV("reading script %d",i);
+    // yes i now know luaL_loadfile exists
+    // but since we have to parse the metadata inside the file we have to open it ourselves
+    // so why not just luaL_loadstring the file we just had to open
+    if (readTextFile(loadedScripts[i].path.c_str(),script)) {
+      // read metadata
+      String key, value;
+      int parseState=0;
+      bool writingString=false;
+      for (char& c:script) {
+        switch (c) {
+          case ':':
+            if (parseState==2) {
+              parseState=3;
+              writingString=false;
+            }
+            break;
+          case '\n':
+            if (key=="title") {
+              loadedScripts[i].metadata.title=value;
+            } else if (key=="author") {
+              loadedScripts[i].metadata.author=value;
+            } else if (key=="desc") {
+              loadedScripts[i].metadata.description=value;
+            }
+            key.clear();
+            value.clear();
+            parseState=0;
+            writingString=false;
+            break;
+          case '-':
+            if (parseState<2) {
+              parseState++;
+              break;
+            }
+            // fall through
+          case ' ':
+            if (!writingString) {
+              break;
+            }
+            // fall through
+          default:
+            switch (parseState) {
+              case 2:
+                key+=c;
+                writingString=true;
+                break;
+              case 3:
+                value+=c;
+                writingString=true;
+                break;
+              default: break;
+            }
+            break;
+        }
+      }
+      if (loadedScripts[i].enabled) {
+        globalState.lastRet=runScript(globalState.state,script.c_str());
+        if (globalState.lastRet!=LUA_OK) {
+          globalState.lastError=getScriptError(globalState.state,globalState.lastRet);
+          logE("failed to run %s! (%s)",loadedScripts[i].path.c_str(),globalState.lastError.c_str());
+          loadedScripts[i].status=LoadedScript::Status::RunFail;
+        } else {
+          loadedScripts[i].status=LoadedScript::Status::RunSuccess;
+        }
+      } else {
+        loadedScripts[i].status=LoadedScript::Status::Idle;
+      }
+    }
+  }
+  // restore script window states
+  for (auto& w:scriptWindows) {
+    w.second.open=e->getConfBool(fmt::sprintf("scriptWin_"+stripName(w.first)+"_Open"),true);
+  }
 }
 
 void FurnaceGUI::syncState() {
@@ -8965,6 +9209,7 @@ void FurnaceGUI::syncState() {
   workingDirLayout=e->getConfString("lastDirLayout",workingDir);
   workingDirConfig=e->getConfString("lastDirConfig",workingDir);
   workingDirMusic=e->getConfString("lastDirMusic",workingDir);
+  workingDirScript=e->getConfString("lastDirScript",workingDir);
   workingDirTest=e->getConfString("lastDirTest",workingDir);
 
   editControlsOpen=e->getConfBool("editControlsOpen",true);
@@ -9011,6 +9256,7 @@ void FurnaceGUI::syncState() {
   refPlayerOpen=e->getConfBool("refPlayerOpen",false);
   multiInsSetupOpen=e->getConfBool("multiInsSetupOpen",false);
   backupsManagerOpen=e->getConfBool("backupsManagerOpen",false);
+  scriptingOpen=e->getConfBool("scriptingOpen",false);
 
   insListDir=e->getConfBool("insListDir",false);
   waveListDir=e->getConfBool("waveListDir",false);
@@ -9128,6 +9374,19 @@ void FurnaceGUI::syncState() {
   cvHiScore=e->getConfInt("cvHiScore",25000);
 
   newFilePicker->loadSettings(e->getConfObject());
+
+  // loaded scripts
+  String path=e->getConfString("script0Path","");
+  if (!path.empty()) {
+    int i=0;
+    do {
+      LoadedScript script(path);
+      script.enabled=e->getConfBool(fmt::sprintf("script%dEnabled",i),0);
+      loadedScripts.push_back(script);
+      i++;
+      path=e->getConfString(fmt::sprintf("script%dPath",i),"");
+    } while (!path.empty());
+  }
 }
 
 void FurnaceGUI::commitState(DivConfig& conf) {
@@ -9152,6 +9411,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirLayout",workingDirLayout);
   conf.set("lastDirConfig",workingDirConfig);
   conf.set("lastDirMusic",workingDirMusic);
+  conf.set("lastDirScript",workingDirScript);
   conf.set("lastDirTest",workingDirTest);
 
   // commit last open windows
@@ -9195,6 +9455,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("refPlayerOpen",refPlayerOpen);
   conf.set("multiInsSetupOpen",multiInsSetupOpen);
   conf.set("backupsManagerOpen",backupsManagerOpen);
+  conf.set("scriptingOpen",scriptingOpen);
 
   // commit dir state
   conf.set("insListDir",insListDir);
@@ -9314,6 +9575,22 @@ void FurnaceGUI::commitState(DivConfig& conf) {
 
   conf.set("cvHiScore",cvHiScore);
 
+  // commit script windows
+  for (auto& w:scriptWindows) {
+    if (w.second.state!=globalState.state) continue;
+    conf.set("scriptWin_"+stripName(w.first)+"_Open",w.second.open);
+  }
+
+  // commit loaded scripts
+  for (size_t i=0; i<loadedScripts.size(); i++) {
+    conf.set(fmt::sprintf("script%dPath",i),loadedScripts[i].path);
+    conf.set(fmt::sprintf("script%dEnabled",i),loadedScripts[i].enabled);
+  }
+  String lastScriptKey=fmt::sprintf("script%dPath",loadedScripts.size());
+  if (!(e->getConfString(lastScriptKey,"").empty())) {
+    conf.remove(lastScriptKey);
+  }
+
   newFilePicker->saveSettings(e->getConfObject());
 }
 
@@ -9393,6 +9670,15 @@ bool FurnaceGUI::finish(bool saveConfig) {
       delete[] spectrum.plot[i];
       spectrum.plot[i]=NULL;
     }
+  }
+
+  if (playground.state) {
+    lua_close(playground.state);
+    playground.state=NULL;
+  }
+  if (globalState.state) {
+    lua_close(globalState.state);
+    globalState.state=NULL;
   }
 
   for (size_t i=0; i<allSettings.size(); i++)
@@ -9665,6 +9951,7 @@ FurnaceGUI::FurnaceGUI():
   refPlayerOpen(false),
   multiInsSetupOpen(false),
   backupsManagerOpen(false),
+  scriptingOpen(false),
   cvNotSerious(false),
   shortIntro(false),
   insListDir(false),

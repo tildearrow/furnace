@@ -39,6 +39,10 @@
 #include <tuple>
 #include "../pch.h"
 
+#include <lua.hpp>
+typedef int luaFunction;
+typedef std::map<String,std::pair<lua_State*,luaFunction>> scriptCallbackList;
+
 #include "fileDialog.h"
 #include "newFilePicker.h"
 #include "newSettings.h"
@@ -638,6 +642,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_REF_PLAYER,
   GUI_WINDOW_MULTI_INS_SETUP,
   GUI_WINDOW_BACKUPS_MANAGER,
+  GUI_WINDOW_SCRIPTING,
   GUI_WINDOW_SPOILER
 };
 
@@ -725,6 +730,9 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_MU5_ROM_OPEN,
   GUI_FILE_CMDSTREAM_OPEN,
   GUI_FILE_MUSIC_OPEN,
+  GUI_FILE_LOAD_SCRIPT,
+  GUI_FILE_LOAD_SCRIPT_PLAYGROUND,
+  GUI_FILE_SAVE_SCRIPT_PLAYGROUND,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -859,6 +867,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_REF_PLAYER,
   GUI_ACTION_WINDOW_MULTI_INS_SETUP,
   GUI_ACTION_WINDOW_BACKUPS_MANAGER,
+  GUI_ACTION_WINDOW_SCRIPTING,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1777,6 +1786,14 @@ enum FurnaceGUIRawNoteState {
 
 struct FurnaceCV;
 
+struct FurnaceGUIScriptAction {
+  luaFunction function;
+  lua_State* state;
+  FurnaceGUIScriptAction():
+    function(-1),
+    state(NULL) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1803,7 +1820,7 @@ class FurnaceGUI {
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirROMExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
-  String workingDirLayout, workingDirROM, workingDirMusic, workingDirTest;
+  String workingDirLayout, workingDirROM, workingDirMusic, workingDirScript, workingDirTest;
   String workingDirConfig;
   String mmlString[32];
   String mmlStringW, grooveString, grooveListString, mmlStringModTable;
@@ -2045,6 +2062,9 @@ class FurnaceGUI {
     bool rackShowLEDs;
     bool warnNotePassthrough;
     bool sampleImportInstDetune;
+    bool scriptingAllowIO;
+    bool scriptingAllowOS;
+    bool scriptingAllowPackage;
     int mainFontSize, patFontSize, headFontSize, iconSize;
     int headFontSize2;
     int headFontSize3;
@@ -2296,6 +2316,9 @@ class FurnaceGUI {
       rackShowLEDs(true),
       warnNotePassthrough(false),
       sampleImportInstDetune(false),
+      scriptingAllowIO(false),
+      scriptingAllowOS(false),
+      scriptingAllowPackage(false),
       mainFontSize(GUI_FONT_SIZE_DEFAULT),
       patFontSize(GUI_FONT_SIZE_DEFAULT),
       headFontSize(27),
@@ -2527,7 +2550,7 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, tunerOpen, spectrumOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, xyOscOpen, memoryOpen, csPlayerOpen, cvOpen, userPresetsOpen, refPlayerOpen;
-  bool multiInsSetupOpen, backupsManagerOpen;
+  bool multiInsSetupOpen, backupsManagerOpen, scriptingOpen;
 
   bool cvNotSerious;
 
@@ -3079,6 +3102,88 @@ class FurnaceGUI {
   // user presets window
   std::vector<int> selectedUserPreset;
 
+  // scripting
+  std::map<String,std::map<String,FurnaceGUIScriptAction>> scriptMenus;
+  struct ScriptWindow {
+    lua_State* state;
+    luaFunction function;
+    bool open;
+  };
+  std::map<String,ScriptWindow> scriptWindows;
+  struct LoadedScript {
+    String path;
+    bool enabled;
+    enum class Status {
+      Idle,
+      RunSuccess,
+      RunFail,
+    } status;
+    struct Metadata {
+      String title;
+      String author;
+      String description;
+      Metadata():
+      title(""),
+      author(""),
+      description("") {}
+    } metadata;
+    LoadedScript():
+      path(""),
+      enabled(false),
+      status(Status::Idle) {}
+    LoadedScript(String p):
+      path(p),
+      enabled(false),
+      status(Status::Idle) {}
+  };
+  std::vector<LoadedScript> loadedScripts;
+  struct ScriptCallbacks { // future-proofing
+    scriptCallbackList pattern;
+  } scriptCallbacks;
+  struct ScriptingData {
+    lua_State* state;
+    int lastRet;
+    String lastError;
+    ScriptingData():
+      state(NULL),
+      lastRet(LUA_OK),
+      lastError("") {}
+  } globalState, playground;
+  String playgroundData, playgroundRet;
+  struct ScriptDialog {
+    struct Item {
+      String label;
+      enum class Type {
+        Checkbox,
+        Int,
+        Float,
+        String
+      } type;
+      union {
+        int i; float f;
+      } min, max;
+      union {
+        bool b;
+        int i;
+        float f;
+      } valueInt;
+      String valueS;
+      Item():
+        label(""),
+        type(Type::Int) {
+        min.i=0;
+        max.i=0;
+        valueInt.i=0;
+        valueS="";
+      }
+    };
+    lua_State* state;
+    String title;
+    luaFunction callbackFunction;
+    std::vector<Item> items;
+    bool dialogOpen;
+  } scriptDialog;
+
   std::vector<String> randomDemoSong;
 
   // used for storing warning dialog options, when appliable
@@ -3268,6 +3373,7 @@ class FurnaceGUI {
   void drawRefPlayer();
   void drawMultiInsSetup();
   void drawBackupsManager();
+  void drawScripting();
 
   float drawSystemChannelInfo(const DivSysDef* whichDef, int keyHitOffset=-1, float width=-1.0f, int chanCount=-1);
   void drawSystemChannelInfoText(const DivSysDef* whichDef);
@@ -3422,6 +3528,25 @@ class FurnaceGUI {
   bool initRender();
   bool quitRender();
 
+  void readLoadedScripts();
+  int runScript(lua_State* s, const char* script);
+  bool runScriptFunction(lua_State* s, luaFunction id);
+  void runCallbacks(scriptCallbackList* which);
+  void resetScriptState(lua_State* s);
+  void bindScriptFunctions(lua_State* s);
+  void initScriptEngine(bool initGlobal=true);
+  String getScriptError(lua_State* s, int result);
+
+  String inspectValues(lua_State* s, bool indentTables);
+
+  /**
+   * inspect the value on the top of the stack, while indenting if need when encountering tbales
+   *
+   * @param indentTables if true, will indent when encountering non-array tables
+   * @param indent the indent level; messing with this parameter is not recommended
+   */
+  String inspectTopValue(lua_State* s, bool indentTables, int indent=0);
+
   ImFont* addFontZlib(const void* data, size_t len, float size_pixels, const ImFontConfig* font_cfg=NULL, const ImWchar* glyph_ranges=NULL);
 
   const char* getSystemName(DivSystem which);
@@ -3435,6 +3560,219 @@ class FurnaceGUI {
   friend class SettingEntry;
 
   public:
+#define API_FUNC(_f) int sc_ ## _f (lua_State* s);
+    ///// API functions
+    ///// used by script engine
+
+    /// GENERAL
+    API_FUNC(version)
+    API_FUNC(versionStr)
+    API_FUNC(showError)
+    API_FUNC(inspect)
+
+    /// CURSOR STATE
+    // -> xCoarse, xFine, y
+    API_FUNC(getCursor)
+    // xCoarse, xFine, y
+    API_FUNC(setCursor)
+    // -> xCoarse, xFine, y
+    API_FUNC(getSelStart)
+    // xCoarse, xFine, y
+    API_FUNC(setSelStart)
+    // -> xCoarse, xFine, y
+    API_FUNC(getSelEnd)
+    // xCoarse, xFine, y
+    API_FUNC(setSelEnd)
+
+    /// PLAYBACK STATE
+    API_FUNC(getCurOrder)
+    API_FUNC(getCurRow)
+    API_FUNC(getCurTick)
+    API_FUNC(getCurSpeeds)
+    API_FUNC(getPlayTimeSec)
+    API_FUNC(getPlayTimeMicro)
+    API_FUNC(getPlayTimeTicks)
+    API_FUNC(isPlaying)
+    API_FUNC(isRunning)
+    API_FUNC(isFreelance)
+    API_FUNC(resetEngine)
+    API_FUNC(getDispatchState)
+    API_FUNC(getChanState)
+
+    /// ENGINE STATE
+    API_FUNC(getChanCount)
+    API_FUNC(getCurSubSong)
+    API_FUNC(setCurSubSong)
+
+    /// INTERFACE STATE
+    API_FUNC(getEditOrder)
+    API_FUNC(registerMenuEntry)
+    API_FUNC(getCurIns)
+    API_FUNC(getCurWave)
+    API_FUNC(getCurSample)
+    API_FUNC(setCurIns)
+    API_FUNC(setCurWave)
+    API_FUNC(setCurSample)
+    API_FUNC(getOctave)
+    API_FUNC(getEditStep)
+    API_FUNC(getEditStepCoarse)
+    API_FUNC(getOrderEditMode)
+    API_FUNC(getOrderCursor)
+    API_FUNC(setOctave)
+    API_FUNC(setEditStep)
+    API_FUNC(setEditStepCoarse)
+    API_FUNC(setOrderEditMode)
+    API_FUNC(setOrderCursor)
+
+    /// SONG MANIPULATION
+    API_FUNC(createNewSong)
+    API_FUNC(getSongName)
+    API_FUNC(setSongName)
+    API_FUNC(getSongAuthor)
+    API_FUNC(setSongAuthor)
+    API_FUNC(getSongAlbum)
+    API_FUNC(setSongAlbum)
+    API_FUNC(getSongSysName)
+    API_FUNC(setSongSysName)
+    API_FUNC(getSongTuning)
+    API_FUNC(setSongTuning)
+    API_FUNC(getSongComments)
+    API_FUNC(setSongComments)
+
+    /// SUB-SONG MANIPULATION
+    API_FUNC(getSubSongName)
+    API_FUNC(setSubSongName)
+    API_FUNC(getSubSongComments)
+    API_FUNC(setSubSongComments)
+    API_FUNC(getSongRate)
+    API_FUNC(setSongRate)
+    API_FUNC(getSongVirtualTempo)
+    API_FUNC(setSongVirtualTempo)
+    API_FUNC(getSongHighlights)
+    API_FUNC(setSongHighlights)
+    API_FUNC(getSongSpeeds)
+    API_FUNC(setSongSpeeds)
+    API_FUNC(getSongLength)
+    API_FUNC(setSongLength)
+    API_FUNC(getPatLength)
+    API_FUNC(setPatLength)
+
+    /// HIGH-LEVEL FUNCTIONS
+    API_FUNC(swapInstruments)
+    API_FUNC(swapWaves)
+    API_FUNC(swapSamples)
+    API_FUNC(exchangeIns)
+    API_FUNC(exchangeWave)
+    API_FUNC(exchangeSample)
+    API_FUNC(copyChannel)
+    API_FUNC(swapChannels)
+    API_FUNC(stompChannel)
+
+    /// INSTRUMENT MANIPULATION
+    API_FUNC(createIns)
+    API_FUNC(deleteIns)
+    API_FUNC(getInsName)
+    API_FUNC(getInsType)
+    API_FUNC(setInsName)
+    API_FUNC(setInsType)
+    API_FUNC(getInsCount)
+    // [id], type, data
+    API_FUNC(setInsData)
+    // [id], type, data
+    API_FUNC(setInsMacroData)
+    // -> table
+    API_FUNC(getInsData)
+    API_FUNC(getInsMacroData)
+
+    /// WAVETABLE MANIPULATION
+    API_FUNC(createWave)
+    API_FUNC(deleteWave)
+    API_FUNC(getWaveWidth)
+    API_FUNC(setWaveWidth)
+    API_FUNC(getWaveHeight)
+    API_FUNC(setWaveHeight)
+    API_FUNC(getWaveData)
+    API_FUNC(setWaveData)
+    API_FUNC(getWaveCount)
+
+    /// SAMPLE MANIPULATION
+    API_FUNC(createSample)
+    API_FUNC(deleteSample)
+    API_FUNC(getSampleCount)
+    // in samples
+    API_FUNC(getSampleLength)
+    API_FUNC(setSampleLength)
+    // in bytes
+    API_FUNC(getSampleSize)
+    API_FUNC(getSampleType)
+    API_FUNC(setSampleType)
+    API_FUNC(getSampleLoop)
+    API_FUNC(setSampleLoop)
+    API_FUNC(getSampleRate)
+    API_FUNC(setSampleRate)
+    API_FUNC(getSampleData)
+    API_FUNC(setSampleData)
+    API_FUNC(isSampleEditable)
+    API_FUNC(renderSamples)
+
+    /// ORDER MANIPULATION
+    // chan, order -> val
+    // subsong, chan, order -> val
+    API_FUNC(getOrder)
+    // chan, order, val
+    // subsong, chan, order, val
+    API_FUNC(setOrder)
+
+    /// PATTERN MANIPULATION
+    // chan, row, pos -> val
+    // order, chan, row, pos -> val
+    // subsong, order, chan, row, pos -> val
+    API_FUNC(getPattern)
+    // chan, row, pos, val
+    // order, chan, row, pos, val
+    // subsong, order, chan, row, pos, val
+    API_FUNC(setPattern)
+    // pat, chan, row, pos -> val
+    // subsong, pat, chan, row, pos -> val
+    API_FUNC(getPatternDirect)
+    // pat, chan, row, pos, val
+    // subsong, pat, chan, row, pos, val
+    API_FUNC(setPatternDirect)
+    // function
+    API_FUNC(addPatternInputCallback)
+
+    /// CHIP MANIPULATION
+    // id -> success
+    API_FUNC(addChip)
+    // which -> success
+    API_FUNC(removeChip)
+    // which, conf
+    API_FUNC(setChipConf)
+    // which -> conf
+    API_FUNC(getChipConf)
+    // -> count
+    API_FUNC(getChipCount)
+
+    /// DIALOGS
+    // name
+    API_FUNC(dialogNew)
+    // label, [default]
+    API_FUNC(dialogItemString)
+    API_FUNC(dialogItemCheckbox)
+    // label, [default], [min, max]
+    API_FUNC(dialogItemInt)
+    API_FUNC(dialogItemFloat)
+    // function
+    API_FUNC(dialogShow)
+
+    /// GUI
+    // titlebar, function
+    API_FUNC(guiRegisterWindow)
+    // the rest do not need FurnaceGUI
+
+#undef API_FUNC
+
+    /// other
     void editStr(String* which);
     void showError(String what);
     void showWarning(String what, FurnaceGUIWarnings type);
