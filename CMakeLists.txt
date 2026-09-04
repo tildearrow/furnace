@@ -1019,6 +1019,7 @@ src/gui/klattschInput.cpp
 src/gui/about.cpp
 src/gui/backupsManager.cpp
 src/gui/channels.cpp
+src/gui/oscTrigger.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
 src/gui/commandPalette.cpp
