@@ -196,6 +196,7 @@ const char* aboutLine[]={
   _N("SID2 emulator by LTVA (modification of reSID emulator)"),
   _N("SID3 emulator by LTVA"),
   _N("klattsch formant speech synth by Tony Gies"),
+  _N("AfterburnerII emulator by Antiblue"),
   "",
   _N("greetings to:"),
   "floxy!",

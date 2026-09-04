@@ -378,6 +378,7 @@ TAParamResult pVersion(String) {
   printf("- SID3 emulator by LTVA (MIT)\n");
   printf("- openMSX YMF278 emulator (modified version) by the openMSX developers (GPLv2)\n");
   printf("- klattsch formant speech synth by Tony Gies (MIT)\n");
+  printf("- AfterburnerII emulator by Antiblue643 (MIT)\n");
 #ifdef HAVE_ASIO
   printf("\nASIO is a registered trademark of Steinberg Media Technologies GmbH.\n");
 #endif
