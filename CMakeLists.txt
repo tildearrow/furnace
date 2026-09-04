@@ -822,7 +822,6 @@ src/engine/export.cpp
 src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
-src/engine/filePlayer.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
 src/engine/legacySample.cpp
@@ -937,7 +936,10 @@ else()
 endif()
 
 if (USE_SNDFILE)
-  list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
+  list(APPEND ENGINE_SOURCES
+src/engine/sfWrapper.cpp
+src/engine/filePlayer.cpp
+)
 endif()
 
 if (WITH_JSON)
@@ -1050,7 +1052,6 @@ src/gui/patManager.cpp
 src/gui/pattern.cpp
 src/gui/piano.cpp
 src/gui/presets.cpp
-src/gui/refPlayer.cpp
 src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
@@ -1091,6 +1092,10 @@ if (NOT NO_INTRO)
   )
 else()
   list(APPEND DEPENDENCIES_DEFINES NO_INTRO)
+endif()
+
+if (USE_SNDFILE)
+  list(APPEND GUI_SOURCES src/gui/refPlayer.cpp)
 endif()
 
 if (WIN32 AND NOT SUPPORT_XP)
