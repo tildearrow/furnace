@@ -148,6 +148,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0);
         break;
       case DIV_SYSTEM_YM2151:
+      case DIV_SYSTEM_OPZ:
         for (int i=0; i<8; i++) {
           w->writeC(4|baseAddr1);
           w->writeC(0xe0+i);
@@ -971,6 +972,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_YM2151:
+    case DIV_SYSTEM_OPZ:
       w->writeC(4|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
@@ -1641,6 +1643,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         }
         break;
       case DIV_SYSTEM_YM2151:
+      case DIV_SYSTEM_OPZ:
         if (!hasOPM) {
           hasOPM=disCont[i].dispatch->chipClock;
           CHIP_VOL(3,1.0);

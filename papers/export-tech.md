@@ -671,6 +671,6 @@ hex | description
  de | ALG (b)
  df | FMS (b)
  e0 | AMS (b)
- e1 | FMS2 (b)
- e2 | AMS2 (b)
+ e1 | LFO3 (b)
+ e2 | LFO4 (b)
 ```

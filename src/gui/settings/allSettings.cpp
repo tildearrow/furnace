@@ -160,6 +160,11 @@ static const char* ayCores[]={
   "AtomicSSG"
 };
 
+static const char* opzCores[]={
+  "ymfm",
+  "YM2414-LLE (beta)"
+};
+
 static const char* coreQualities[]={
   _N("Lower"),
   _N("Low"),
@@ -1571,6 +1576,7 @@ void FurnaceGUI::initSettings() {
           CORE_SETTING("ESFM",esfmCore,esfmCores);
           CORE_SETTING("OPLL",opllCore,opllCores);
           CORE_SETTING("AY-3-8910/SSG",ayCore,ayCores);
+          CORE_SETTING("YM2414",opzCore,opzCores);
 
           ImGui::EndTable();
         }

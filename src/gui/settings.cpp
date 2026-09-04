@@ -241,6 +241,7 @@ void FurnaceGUI::commitSettings() {
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||
     settings.swanCore!=e->getConfInt("swanCore",0) ||
+    settings.opzCore!=e->getConfInt("opzCore",0) ||
     settings.dsidQuality!=e->getConfInt("dsidQuality",3) ||
     settings.gbQuality!=e->getConfInt("gbQuality",3) ||
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||

@@ -302,7 +302,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       chan[c.chan].psgMode=(c.value&1)|((c.value&16)>>3);
       break;
     case DIV_CMD_STD_NOISE_FREQ:
-      saaNoise[c.chan/3]=(c.value&1)|((c.value&16)>>3);
+      saaNoise[c.chan/3]=(c.value&3);
       rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
       break;
     case DIV_CMD_SAA_ENVELOPE:

@@ -146,7 +146,7 @@ const char* aboutLine[]={
   _N("adpcm-xq by David Bryant"),
   _N("Nuked-OPL3-fast by nukeykt and Tony Gies"),
   _N("Nuked-OPLL/OPM/OPN2/PSG by nukeykt"),
-  _N("YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"),
+  _N("YM3812-LLE, YMF262-LLE, YMF276-LLE, YM2151-LLE, YM2414-LLE and YM2608-LLE by nukeykt"),
   _N("ESFMu (modified version) by Kagamiin~,"),
   _N("akumanatt and Tony Gies"),
   _N("ymfm by Aaron Giles"),

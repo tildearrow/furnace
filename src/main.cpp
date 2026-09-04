@@ -328,6 +328,8 @@ TAParamResult pVersion(String) {
   printf("- YM3812-LLE by nukeykt (GPLv2)\n");
   printf("- YMF262-LLE by nukeykt (GPLv2)\n");
   printf("- YMF276-LLE by nukeykt (GPLv2)\n");
+  printf("- YM2151-LLE by nukeykt (GPLv2)\n");
+  printf("- YM2414-LLE by nukeykt (GPLv2)\n");
   printf("- YM2608-LLE by nukeykt (GPLv2)\n");
   printf("- ESFMu (modified version) by Kagamiin~, akumanatt and Tony Gies (LGPLv2.1)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");

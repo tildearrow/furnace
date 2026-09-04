@@ -124,8 +124,6 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `61xx`: **set algorithm** (0 to 7).
 - `62xx`: **set LFO FM depth** (0 to 7).
 - `63xx`: **set LFO AM depth** (0 to 3).
-- `64xx`: **set LFO2 FM depth** (0 to 7).
-- `65xx`: **set LFO2 AM depth** (0 to 3).
 - `66xx`: **set TL ramp time for this channel**.
 
 ## info
