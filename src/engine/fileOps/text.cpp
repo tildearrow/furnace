@@ -125,7 +125,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
 
     w->writeText(fmt::sprintf("- type: %d\n",(int)ins->type));
 
-    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
+    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM || ins->type==DIV_INS_SGU) {
       int opCount=4;
       if (ins->type==DIV_INS_OPLL) {
         opCount=2;
@@ -176,7 +176,7 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       }
     }
 
-    if (ins->type==DIV_INS_ESFM) {
+    if (ins->type==DIV_INS_ESFM || ins->type==DIV_INS_SGU) {
       w->writeText("- ESFM parameters:\n");
       w->writeText(fmt::sprintf("  - noise mode: %d\n",ins->esfm.noise));
 
@@ -192,6 +192,30 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
         w->writeText(fmt::sprintf("    - CT: %d\n",opE.ct));
         w->writeText(fmt::sprintf("    - DT: %d\n",opE.dt));
         w->writeText(fmt::sprintf("    - fixed frequency: %s\n",trueFalse[opE.fixed?1:0]));
+      }
+    }
+
+    if (ins->type==DIV_INS_SU) {
+      w->writeText("- Sound Unit parameters:\n");
+      w->writeText(fmt::sprintf("  - switch roles: %s\n",trueFalse[ins->su.switchRoles?1:0]));
+      if (ins->su.hwSeqLen>0) {
+        w->writeText("  - hardware sequence:\n");
+        for (int j=0; j<ins->su.hwSeqLen; j++) {
+          w->writeText(fmt::sprintf("    - %d: %.2X %.2X %.2X %.4X\n",j,ins->su.hwSeq[j].cmd,ins->su.hwSeq[j].bound,ins->su.hwSeq[j].val,ins->su.hwSeq[j].speed));
+        }
+      }
+    }
+
+    if (ins->type==DIV_INS_SGU) {
+      w->writeText("- SGU parameters:\n");
+
+      for (int j=0; j<4; j++) {
+        DivInstrumentSGU::Operator& opS=ins->sgu.op[j];
+
+        w->writeText(fmt::sprintf("  - operator %d:\n",j));
+        w->writeText(fmt::sprintf("    - WPAR: %d\n",opS.wpar));
+        w->writeText(fmt::sprintf("    - SYNC: %s\n",trueFalse[opS.sync?1:0]));
+        w->writeText(fmt::sprintf("    - RING: %s\n",trueFalse[opS.ring?1:0]));
       }
     }
 
