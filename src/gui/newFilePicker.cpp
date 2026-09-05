@@ -624,11 +624,13 @@ void FurnaceFilePicker::updateEntryName() {
     }
   } else if (chosenEntries.size() == 1) {
     FileEntry* entry=chosenEntries[0];
+    logV("entry: %s",entry->name);
     // only change the entry if the selection is valid
     if ((entry->isDir && dirSelect) || (!entry->isDir && !dirSelect)) {
       entryName=entry->name;
     }
   }
+  logV("updateEntryName(): %s",entryName);
 }
 
 // the name of this function is somewhat misleading.
@@ -983,12 +985,9 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       entryLock.lock();
       listClipper.Begin(filteredEntries.size(),rowHeight);
       while (listClipper.Step()) {
-        const auto translateIndex=[this](int i) {
-          return sortInvert[sortMode]?(filteredEntries.size()-i-1):i;
-        };
 
         for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-          int selFilteredIndex=translateIndex(_i);
+          int selFilteredIndex=sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i;
           FileEntry* i=filteredEntries[selFilteredIndex];
           FileTypeStyle* style=&defaultTypeStyle[i->type];
 
@@ -1060,7 +1059,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
             }
 
             for (int j=toggleStart; j<toggleEnd && j>=0 && j<(int)filteredEntries.size(); j++) {
-              FileEntry* entry=filteredEntries[translateIndex(j)];
+              FileEntry* entry=filteredEntries[j];
 
               // find index of the entry in the chosen entries list
               ssize_t chosenIdx=-1;
@@ -1076,6 +1075,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
                 lastSelFilteredIndex=selFilteredIndex;
 
                 // select this entry
+                logV("selecting entry: %s",entry->name);
                 chosenEntries.push_back(entry);
                 entry->isSelected=true;
                 updateEntryName();
