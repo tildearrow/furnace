@@ -836,6 +836,7 @@ src/engine/sysDef.cpp
 src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/wavOps.cpp
+src/engine/oscVideoRender.cpp
 src/engine/vgmOps.cpp
 
 src/engine/platform/abstract.cpp
@@ -1021,6 +1022,7 @@ src/gui/backupsManager.cpp
 src/gui/channels.cpp
 src/gui/oscTrigger.cpp
 src/gui/chanOsc.cpp
+src/gui/oscVideoExport.cpp
 src/gui/clock.cpp
 src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
