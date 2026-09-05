@@ -149,6 +149,7 @@ class FurnaceFilePicker {
   void sortFiles();
   void filterFiles();
   void clearAllFiles();
+  String getEscapedEntryName(FileEntry* entry);
   void updateEntryName();
   bool readDirectory(String path);
   String normalizePath(const String& which);

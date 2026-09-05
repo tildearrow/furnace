@@ -616,18 +616,35 @@ void FurnaceFilePicker::setHomeDir(String where) {
   homeDir=where;
 }
 
+String FurnaceFilePicker::getEscapedEntryName(FileEntry* entry) {
+  if (multiSelect) {
+    String ret;
+    ret.reserve(entry->name.size());
+    for (char& i: entry->name) {
+      if (i=='"') {
+        ret+='\\';
+      }
+      ret+=i;
+    }
+    return ret;
+  }
+  return entry->name;
+}
+
 void FurnaceFilePicker::updateEntryName() {
   if (chosenEntries.size() > 1) {
-    entryName="\""+chosenEntries[0]->name+"\"";
-    for (size_t i=1; i<chosenEntries.size(); i++) {
-      entryName+=",\""+chosenEntries[i]->name+"\"";
+    entryName="";
+    for (size_t i=0; i<chosenEntries.size(); i++) {
+      entryName+="\""+getEscapedEntryName(chosenEntries[i])+"\"";
+      if (i!=chosenEntries.size()-1) {
+        entryName+=',';
+      }
     }
   } else if (chosenEntries.size() == 1) {
     FileEntry* entry=chosenEntries[0];
-    logV("entry: %s",entry->name);
     // only change the entry if the selection is valid
     if ((entry->isDir && dirSelect) || (!entry->isDir && !dirSelect)) {
-      entryName=entry->name;
+      entryName=getEscapedEntryName(entry);
     }
   }
   logV("updateEntryName(): %s",entryName);
@@ -1709,6 +1726,7 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         }
       } else {
         // return the user-provided entry
+        // TODO: parse the entry name on multi-select
         finalSelection.clear();
         if (!entryName.empty()) {
           String dirCheckPath;
