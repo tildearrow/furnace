@@ -1,5 +1,40 @@
 # ROM export technical details
 
+## instrument data (common)
+
+### wave synth
+
+```
+size | description
+-----|----------------------------------
+  1  | enable synth
+     | - bit 6: global
+     | - bit 0: enable
+  1  | synth effect
+  2  | wave 1
+  2  | wave 2
+  1  | update rate
+  1  | speed
+  1  | amount
+  1  | power
+```
+
+### sample map
+
+```
+size | description
+-----|----------------------------------
+  1  | lower boundary
+  1  | upper boundary
+ 2?? | pointers to byte tables, offset by lower boundary
+     | - the following four tables are present, in this order:
+     |   - sample number (low)
+     |   - sample number (high)
+     |   - note/DPCM freq
+     |   - DPCM delta (NES only)
+     | - I know it's weird, but it paves the way for a 6502 optimization.
+```
+
 ## instrument data
 
 ### C64
@@ -13,37 +48,36 @@ size | description
      | - bit 5: saw
      | - bit 4: triangle
      | - bit 3: test
-     | - bit 2: sync
-     | - bit 1: ring
+     | - bit 2: ring
+     | - bit 1: sync
      | - bit 0: gate (always on)
   1  | filter flags
-     | - bit 7: don't test before new note
-     | - bit 6: enable filter
-     | - bit 5: init filter
-     | - bit 3: ch3off
-     | - bit 2: high pass
-     | - bit 1: band pass
-     | - bit 0: low pass
+     | - bit 7: ch3off
+     | - bit 6: high pass
+     | - bit 5: band pass
+     | - bit 4: low pass
+     | - bit 2: don't test before new note
+     | - bit 1: enable filter
+     | - bit 0: init filter
   1  | other flags
      | - bit 7: reset duty on new note
      | - bit 6: absolute cutoff macro
      | - bit 5: absolute duty macro
+  1  | attack/decay
+     | - bit 4-7: attack
+     | - bit 0-3: decay
+  1  | sustain/release
+     | - bit 4-7: sustain
+     | - bit 0-3: release
+  2  | initial duty
+  2  | initial cutoff/resonance
+     | - first byte:
+     |   - bit 4-7: resonance
+     |   - bit 0-2: cutoff (low 3 bits)
+     | - second byte: cutoff (high 8 bits)
+     | - this is how it is stored in SID registers.
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | duty
-  2  | wave
-  2  | pitch
-  2  | cutoff
-  2  | resonance
-  2  | filter mode
-  2  | filter toggle
-  2  | special
-  2  | attack
-  2  | decay
-  2  | sustain
-  2  | release
+ 2?? | macro pointers... (0 = end of list)
 ```
 
 ### SNES
@@ -51,10 +85,20 @@ size | description
 ```
 size | description
 -----|----------------------------------
-  1  | ADSR/gain
+  1  | ADSR toggle/decay/attack
+     | - bit 7: ADSR enabled
+     | - bit 4-6: decay
+     | - bit 0-3: attack
+  1  | sustain/release
+     | - bit 5-7: sustain
+     | - bit 0-4: release
+  1  | gain
+     | - bit 7: special modes
+     | - bit 0-6: value
+     | - equivalent to the SNES gain register.
   1  | decay 2/release mode
-     | - bit 3-7: decay 2
-     | - bit 0-2: mode
+     | - bit 2-6: decay 2
+     | - bit 0-1: mode
      |   - 0: direct
      |   - 1: effective linear
      |   - 2: effective exp
@@ -69,28 +113,9 @@ size | description
      | - sample: sample index
      | - sample map: pointer to sample map
      | - wavetable: wave width
+  2  | pointer to wave synth data (0 = disabled)
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | noise freq
-  2  | wave
-  2  | pan left
-  2  | pan right
-  2  | pitch
-  2  | special
------|----------------------------------
-     | **wave synth data (only in wavetable mode)**
-  1  | enable synth
-     | - bit 6: global
-     | - bit 0: enable
-  1  | synth effect
-  2  | wave 1
-  2  | wave 2
-  1  | update rate
-  1  | speed
-  1  | amount
-  1  | power
+ 2?? | macro pointers... (0 = end of list)
 ```
 
 ### Game Boy
@@ -105,37 +130,21 @@ size | description
      | - bit 7: software env
      | - bit 6: init env on every note
      | - bit 5: double wave length
+  2  | pointer to wave synth data (0 = disabled)
+  2  | pointer to hardware sequence (0 = empty)
 -----|----------------------------------
-     | **macro pointers**
-  2  | vol
-  2  | arp
-  2  | duty/noise
-  2  | wave
-  2  | pan
-  2  | pitch
-  2  | phase reset
------|----------------------------------
-     | **wave synth data**
-  1  | enable synth
-     | - bit 6: global
-     | - bit 0: enable
-  1  | synth effect
-  2  | wave 1
-  2  | wave 2
-  1  | update rate
-  1  | speed
-  1  | amount
-  1  | power
------|----------------------------------
-     | **hardware sequence**
- ??? | data...
+ 2?? | macro pointers... (0 = end of list)
 ```
+
+hardware sequence is copied from the instrument verbatim.
 
 ## compiled macro data
 
 ```
 size | description
 -----|-------------------------------------------------
+  1  | macro type
+     | - these are the same as the macro on/off/restart effect ones.
   1  | flags/macro data type
      | - bit 6: release mode
      |   - active when enabled; passive otherwise
@@ -308,6 +317,9 @@ hex | description
  b6 | note off env
  b7 | env release
  b8 | instrument (b)
+ b9 | note on: raw frequency (i)
+ ba | raw freq porta (ib) // target, speed
+ bb | raw freq note (i)
  c0 | pre porta (X)
     | - bit 7: inPorta
     | - bit 6: isPortaOrSlide
@@ -659,6 +671,6 @@ hex | description
  de | ALG (b)
  df | FMS (b)
  e0 | AMS (b)
- e1 | FMS2 (b)
- e2 | AMS2 (b)
+ e1 | LFO3 (b)
+ e2 | LFO4 (b)
 ```

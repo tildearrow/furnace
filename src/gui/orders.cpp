@@ -100,7 +100,7 @@ void FurnaceGUI::drawMobileOrderSel() {
       ImVec2 textSize=ImGui::CalcTextSize(info.c_str());
 
       dl->AddRectFilled(ImVec2(11.0f*dpiScale,(size.y*0.5)-(5.0f*dpiScale)),ImVec2((21.0f*dpiScale)+textSize.x,(size.y*0.5)+textSize.y+(5.0f*dpiScale)),ImGui::GetColorU32(ImGuiCol_WindowBg));
-      dl->AddRect(ImVec2(11.0f*dpiScale,(size.y*0.5)-(5.0f*dpiScale)),ImVec2((21.0f*dpiScale)+textSize.x,(size.y*0.5)+textSize.y+(5.0f*dpiScale)),ImGui::GetColorU32(ImGuiCol_Border),0,0,dpiScale);
+      dl->AddRect(ImVec2(11.0f*dpiScale,(size.y*0.5)-(5.0f*dpiScale)),ImVec2((21.0f*dpiScale)+textSize.x,(size.y*0.5)+textSize.y+(5.0f*dpiScale)),ImGui::GetColorU32(ImGuiCol_Border),0,dpiScale);
       dl->AddText(ImVec2(16.0f*dpiScale,(size.y)*0.5),ImGui::GetColorU32(ImGuiCol_Text),info.c_str());
     }
   }
@@ -222,7 +222,7 @@ void FurnaceGUI::drawOrderButtons() {
   if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
     orderEditMode++;
     if (orderEditMode>3) orderEditMode=mobileUI?1:0;
-    curNibble=false;
+    curNibble=0;
   }
   if (ImGui::IsItemHovered()) {
     if (orderEditMode==3) {
@@ -342,7 +342,7 @@ void FurnaceGUI::drawOrders() {
           }
           if (ImGui::Selectable(selID)) {
             setOrder(i);
-            curNibble=false;
+            curNibble=0;
             orderCursor=-1;
 
             if (orderEditMode==0) {
@@ -384,13 +384,13 @@ void FurnaceGUI::drawOrders() {
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
               } else {
                 setOrder(i);
                 if (orderEditMode!=0) {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
 
                 // i wonder whether this is necessary
@@ -468,13 +468,13 @@ void FurnaceGUI::drawOrders() {
                   makeUndo(GUI_UNDO_CHANGE_ORDER);
                 } else {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
               } else {
                 setOrder(i);
                 if (orderEditMode!=0) {
                   orderCursor=j;
-                  curNibble=false;
+                  curNibble=0;
                 }
 
                 if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&

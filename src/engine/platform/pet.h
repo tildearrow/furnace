@@ -23,14 +23,14 @@
 #include "../dispatch.h"
 
 class DivPlatformPET: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     bool enable;
     int wave;
     unsigned char sreg;
     int cnt;
     short out;
-    Channel():
-      SharedChannel<int>(1),
+    Channel(bool linear=true):
+      SharedChannel(1,linear),
       enable(false),
       wave(0b00001111),
       sreg(0),
@@ -39,6 +39,7 @@ class DivPlatformPET: public DivDispatch {
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
+  DivPitchTable pitchTable;
   bool isMuted;
 
   unsigned char regPool[16];
@@ -47,7 +48,7 @@ class DivPlatformPET: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -57,6 +58,8 @@ class DivPlatformPET: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

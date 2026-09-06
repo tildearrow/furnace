@@ -44,6 +44,18 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("ins $%.2x",(int)buf[addr+1]);
       break;
+    case 0xb9:
+      if (addr+4>=bufLen) return "???";
+      return fmt::sprintf("note raw $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      break;
+    case 0xba:
+      if (addr+5>=bufLen) return "???";
+      return fmt::sprintf("porta raw $%.8x, %d",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)),(int)buf[addr+5]);
+      break;
+    case 0xbb:
+      if (addr+4>=bufLen) return "???";
+      return fmt::sprintf("legato raw $%.8x",(unsigned int)(buf[addr+1]|(buf[addr+2]<<8)|(buf[addr+3]<<16)|(buf[addr+4]<<24)));
+      break;
     case 0xc0:
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("preporta $%.2x",(int)buf[addr+1]);
@@ -233,7 +245,7 @@ void FurnaceGUI::drawCSPlayer() {
       if (ImGui::BeginTabBar("CSOptions")) {
         int chans=e->getTotalChannelCount();
         if (ImGui::BeginTabItem(_("Status"))) {
-          if (ImGui::BeginTable("CSStat",13,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
+          if (ImGui::BeginTable("CSStat",13,ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_ScrollX|ImGuiTableFlags_Borders)) {
             ImGui::TableSetupScrollFreeze(1,1);
             ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
             ImGui::TableNextColumn();

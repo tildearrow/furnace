@@ -49,7 +49,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     const unsigned int hardResetCycles=127;
 
-    struct FMChannel: public SharedChannel<int> {
+    struct FMChannel: public SharedChannel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int portaPauseFreq;
@@ -57,8 +57,8 @@ class DivPlatformFMBase: public DivDispatch {
       signed char konCycles;
       bool hardReset, opMaskChanged;
 
-      FMChannel():
-        SharedChannel<int>(0),
+      FMChannel(bool linear):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
@@ -70,8 +70,8 @@ class DivPlatformFMBase: public DivDispatch {
 
     struct FMChannelStereo: public FMChannel {
       unsigned char pan;
-      FMChannelStereo():
-        FMChannel(),
+      FMChannelStereo(bool linear):
+        FMChannel(linear),
         pan(3) {}
     };
 

@@ -116,8 +116,6 @@ void DivPlatformPowerNoise::acquire(short** buf, size_t len) {
 
 void DivPlatformPowerNoise::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    int CHIP_DIVIDER=2;
-    if (i==3) CHIP_DIVIDER=128;
     chan[i].std.next();
 
     if (chan[i].std.ex1.had) {
@@ -180,9 +178,9 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -218,17 +216,22 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      chan[i].freq>>=chan[i].octaveOff;
+      chan[i].freq=chan[i].calcFreq();
+      if (chan[i].rawFreq) {
+        chan[i].fNum=chan[i].freq&0xfff;
+        chan[i].octave=(chan[i].freq>>12)&15;
+      } else {
+        chan[i].freq>>=chan[i].octaveOff;
 
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
-      int bsr32Val=bsr32(chan[i].freq);
-      chan[i].octave=MAX(bsr32Val-12,0);
-      if (chan[i].octave>15) chan[i].octave=15;
-      chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
-      if (chan[i].fNum<0) chan[i].fNum=0;
-      if (chan[i].fNum>4095) chan[i].fNum=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x7ffffff) chan[i].freq=0x7ffffff;
+        int bsr32Val=bsr32(chan[i].freq);
+        chan[i].octave=MAX(bsr32Val-12,0);
+        if (chan[i].octave>15) chan[i].octave=15;
+        chan[i].fNum=0x1000-(chan[i].freq>>chan[i].octave);
+        if (chan[i].fNum<0) chan[i].fNum=0;
+        if (chan[i].fNum>4095) chan[i].fNum=4095;
+      }
 
       chWrite(i,0x01,chan[i].fNum&0xff);
       chWrite(i,0x02,(chan[i].fNum>>8)|(chan[i].octave<<4));
@@ -272,14 +275,11 @@ void DivPlatformPowerNoise::tick(bool sysTick) {
 }
 
 int DivPlatformPowerNoise::dispatch(DivCommand c) {
-  int CHIP_DIVIDER=2;
-  if (c.chan==3) CHIP_DIVIDER=128;
-
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -330,7 +330,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
 
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -365,7 +365,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       int whatAMess=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
 
-      chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(whatAMess);
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -375,7 +375,7 @@ int DivPlatformPowerNoise::dispatch(DivCommand c) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POWERNOISE));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -425,7 +425,7 @@ void DivPlatformPowerNoise::forceIns() {
   }
 }
 
-void* DivPlatformPowerNoise::getChanState(int ch) {
+SharedChannel* DivPlatformPowerNoise::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -462,9 +462,15 @@ int DivPlatformPowerNoise::getRegisterPoolSize() {
 void DivPlatformPowerNoise::reset() {
   memset(regPool,0,32);
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformPowerNoise::Channel();
+    chan[i]=DivPlatformPowerNoise::Channel(parent->song.compatFlags.linearPitch);
+    if (i==3) {
+      chan[i].pitchTable=&slopePitchTable;
+      chan[i].slope=true;
+    } else {
+      chan[i].pitchTable=&pitchTable;
+      chan[i].slope=false;
+    }
     chan[i].std.setEngine(parent);
-    chan[i].slope=(i==3);
   }
 
   pwrnoise_reset(&pn);
@@ -511,6 +517,15 @@ void DivPlatformPowerNoise::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformPowerNoise::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,2,0x7ffffff,true,parent->song.compatFlags.linearPitch);
+  slopePitchTable.init(parent->song.tuning,chipClock,128,0x7ffffff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformPowerNoise::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
   chipClock=16000000;
 
@@ -520,6 +535,8 @@ void DivPlatformPowerNoise::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformPowerNoise::poke(unsigned int addr, unsigned short val) {

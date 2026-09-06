@@ -31,7 +31,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
   inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
@@ -42,6 +42,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     void setCSM(bool isCSM);

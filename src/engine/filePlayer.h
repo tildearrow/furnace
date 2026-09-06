@@ -46,9 +46,9 @@ class DivFilePlayer {
   SNDFILE* sf;
   SF_INFO si;
 
-  ssize_t playPos;
-  ssize_t lastWantBlock;
-  ssize_t wantBlock;
+  int64_t playPos;
+  int64_t lastWantBlock;
+  int64_t wantBlock;
   int outRate;
   int rateAccum;
   float volume;
@@ -58,7 +58,7 @@ class DivFilePlayer {
   bool threadHasQuit;
   bool isActive;
 
-  ssize_t pendingPos;
+  int64_t pendingPos;
   unsigned int pendingPosOffset;
   unsigned int pendingPlayOffset;
   unsigned int pendingStopOffset;
@@ -68,9 +68,9 @@ class DivFilePlayer {
   std::mutex cacheThreadLock;
   std::condition_variable cacheCV;
 
-  void fillBlocksNear(ssize_t pos);
-  void collectGarbage(ssize_t pos);
-  float getSampleAt(ssize_t pos, int ch);
+  void fillBlocksNear(int64_t pos);
+  void collectGarbage(int64_t pos);
+  float getSampleAt(int64_t pos, int ch);
 
   public:
     void runCacheThread();
@@ -78,13 +78,13 @@ class DivFilePlayer {
     size_t getMemUsage();
 
     void mix(float** buf, int chans, unsigned int size);
-    ssize_t getPos();
+    int64_t getPos();
     TimeMicros getPosSeconds();
-    ssize_t setPos(ssize_t newPos, unsigned int offset=UINT_MAX);
-    ssize_t setPosSeconds(TimeMicros newTime, unsigned int offset=UINT_MAX);
+    int64_t setPos(int64_t newPos, unsigned int offset=UINT_MAX);
+    int64_t setPosSeconds(TimeMicros newTime, unsigned int offset=UINT_MAX);
     
-    bool isBlockPresent(ssize_t pos);
-    bool setBlockPriority(ssize_t pos, bool priority);
+    bool isBlockPresent(int64_t pos);
+    bool setBlockPriority(int64_t pos, bool priority);
     bool isLoaded();
     bool isPlaying();
     void play(unsigned int offset=UINT_MAX);

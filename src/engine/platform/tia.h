@@ -25,12 +25,12 @@
 
 class DivPlatformTIA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char shape;
       unsigned char curFreq, tuneCtr, tuneFreq;
       int tuneAcc;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         shape(4),
         curFreq(0),
         tuneCtr(0),
@@ -56,7 +56,7 @@ class DivPlatformTIA: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -72,6 +72,7 @@ class DivPlatformTIA: public DivDispatch {
     bool hasAcquireDirect();
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

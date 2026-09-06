@@ -27,12 +27,12 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformNES: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char duty, sweep, envMode, len;
     bool sweepChanged, setPos;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       duty(0),
       sweep(8),
@@ -51,6 +51,8 @@ class DivPlatformNES: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   int dacPeriod, dacRate, dpcmPos;
   unsigned int dacPos, dacAntiClick;
   int dacSample;
@@ -94,7 +96,7 @@ class DivPlatformNES: public DivDispatch {
     void acquire(short** buf, size_t len);
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -111,6 +113,8 @@ class DivPlatformNES: public DivDispatch {
     void set5E01(bool use);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

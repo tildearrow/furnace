@@ -24,14 +24,14 @@
 #include "sound/rf5c68.h"
 
 class DivPlatformRF5C68: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -42,6 +42,7 @@ class DivPlatformRF5C68: public DivDispatch {
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
+  DivPitchTableManager samplePitchTable;
   int chipType;
   unsigned char curChan;
   unsigned int* sampleOffRFC;
@@ -58,7 +59,7 @@ class DivPlatformRF5C68: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -74,6 +75,8 @@ class DivPlatformRF5C68: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setFlags(const DivConfig& flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

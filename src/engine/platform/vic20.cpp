@@ -101,9 +101,9 @@ void DivPlatformVIC20::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -137,14 +137,19 @@ void DivPlatformVIC20::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (i<3) {
-        chan[i].freq>>=(2-i);
+      chan[i].freq=chan[i].calcFreq();
+      if (chan[i].rawFreq) {
+        // counter-transformation
+        chan[i].freq=255-chan[i].freq;
       } else {
-        chan[i].freq>>=1;
+        if (i<3) {
+          chan[i].freq>>=(2-i);
+        } else {
+          chan[i].freq>>=1;
+        }
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>127) chan[i].freq=0;
       }
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>127) chan[i].freq=0;
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
         if (i<3) {
@@ -174,7 +179,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VIC);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -218,7 +223,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -241,7 +246,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -249,7 +254,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VIC));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -300,7 +305,7 @@ bool DivPlatformVIC20::isVolGlobal() {
   return true;
 }
 
-void* DivPlatformVIC20::getChanState(int ch) {
+SharedChannel* DivPlatformVIC20::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -324,6 +329,7 @@ void DivPlatformVIC20::reset() {
   memset(regPool,0,16);
   for (int i=0; i<4; i++) {
     chan[i]=Channel();
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   vic_sound_machine_init(vic,rate,chipClock,filterOff);
@@ -344,6 +350,14 @@ void DivPlatformVIC20::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformVIC20::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformVIC20::getMaxFreq(int ch) {
+  return 0xff;
+}
+
 void DivPlatformVIC20::setFlags(const DivConfig& flags) {
   filterOff=flags.getBool("filterOff",false);
   if (flags.getInt("clockSel",0)) {
@@ -356,6 +370,8 @@ void DivPlatformVIC20::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformVIC20::poke(unsigned int addr, unsigned short val) {

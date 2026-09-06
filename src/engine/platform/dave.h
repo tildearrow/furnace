@@ -25,7 +25,7 @@
 #include "sound/dave/dave.hpp"
 
 class DivPlatformDave: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample;
@@ -34,8 +34,8 @@ class DivPlatformDave: public DivDispatch {
     unsigned char panR;
     unsigned char wave;
     bool writeVol, highPass, ringMod, swapCounters, lowPass, resetPhase, setPos;
-    Channel():
-      SharedChannel<signed char>(63),
+    Channel(bool linear=true):
+      SharedChannel(63,linear),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),
@@ -63,6 +63,8 @@ class DivPlatformDave: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   bool writeControl;
   bool clockDiv;
 
@@ -73,7 +75,7 @@ class DivPlatformDave: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
@@ -91,6 +93,8 @@ class DivPlatformDave: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

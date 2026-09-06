@@ -284,7 +284,7 @@ void FurnaceGUI::drawNewSong() {
     redoHist.clear();
     curFileName="";
     modified=false;
-    curNibble=false;
+    curNibble=0;
     orderNibble=false;
     orderCursor=-1;
     samplePos=0;

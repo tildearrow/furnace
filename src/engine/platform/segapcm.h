@@ -27,7 +27,7 @@
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       bool isNewSegaPCM, setPos;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
@@ -40,8 +40,8 @@ class DivPlatformSegaPCM: public DivDispatch {
         short freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(-1) {}
       } pcm;
-      Channel():
-        SharedChannel<int>(127),
+      Channel(bool linear=true):
+        SharedChannel(127,linear),
         isNewSegaPCM(false),
         setPos(false),
         chVolL(127),
@@ -64,9 +64,13 @@ class DivPlatformSegaPCM: public DivDispatch {
     };
     FixedQueue<QueuedWrite,1024> writes;
     segapcm_device pcm;
+    DivPitchTableManager samplePitchTable;
     int delay;
     int pcmL, pcmR, pcmCycles;
-    bool oldSlides;
+    int maxChans;
+    bool oldSlides, isDiscrete;
+    unsigned int sampleMemSize;
+    unsigned char bankShift;
     unsigned char lastBusy;
 
     unsigned char regPool[256];
@@ -88,7 +92,7 @@ class DivPlatformSegaPCM: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -101,6 +105,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();

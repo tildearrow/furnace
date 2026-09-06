@@ -32,7 +32,7 @@ class DivPlatformAY8910: public DivDispatch {
       0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct PSGMode {
         // bit 4: timer FX
         // bit 3: DAC
@@ -94,8 +94,8 @@ class DivPlatformAY8910: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
@@ -117,6 +117,8 @@ class DivPlatformAY8910: public DivDispatch {
     FixedQueue<QueuedWrite,128> writes;
     ay8910_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     unsigned char regPool[16];
     unsigned char lastBusy;
   
@@ -164,7 +166,7 @@ class DivPlatformAY8910: public DivDispatch {
     void acquireDirect(blip_buffer_t** bb, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);
@@ -185,6 +187,8 @@ class DivPlatformAY8910: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

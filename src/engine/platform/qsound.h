@@ -24,15 +24,15 @@
 #include "sound/qsound.h"
 
 class DivPlatformQSound: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     int resVol;
     int sample, wave;
     int panning;
     int echo;
     int audPos;
     bool useWave, surround, isNewQSound, setPos;
-    Channel():
-      SharedChannel<int>(255),
+    Channel(bool linear=true):
+      SharedChannel(255,linear),
       resVol(4095),
       sample(-1),
       wave(-1),
@@ -46,6 +46,7 @@ class DivPlatformQSound: public DivDispatch {
   };
   Channel chan[19];
   DivDispatchOscBuffer* oscBuf[19];
+  DivPitchTableManager samplePitchTable;
   int echoDelay;
   int echoFeedback;
 
@@ -69,7 +70,7 @@ class DivPlatformQSound: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -87,6 +88,8 @@ class DivPlatformQSound: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

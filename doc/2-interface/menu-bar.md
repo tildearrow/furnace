@@ -67,15 +67,17 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
   - **Set effect:**: only appears when the selection includes an effect column. if enabled, an input box will appear. instead of being randomized, all effect types in the selection will be changed to the value entered.
 - **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
 - **flip selection**: flips the selection so it is backwards.
-- **collapse/expand amount**: allows you to specify how much to collapse/expand in the next two menu items.
-- **collapse**: shrinks the selected contents.
-- **expand**: expands the selected contents.
+- **collapse/expand amount**: allows you to specify how much to collapse/expand in the following menu items.
+- **collapse rows**: shrinks the selected contents by deleting rows.
+- **expand rows**: expands the selected contents by inserting empty rows.
 - **collapse pattern**: same as collapse, but affects the entire pattern.
 - **expand pattern**: same as expand, but affects the entire pattern.
 - **collapse song**: same as collapse, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
 - **expand song**: same as expand, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
+- **minimize channels**: sets all selected channels to their narrowest width in the pattern view.
+- **maximize channels**: sets all selected channels to their normal width in the pattern view.
 - **find/replace**: shows [the Find/Replace window](../8-advanced/find-replace.md).
 - **clear...**: opens a window that allows you to mass-delete things like songs, unused instruments, and the like.
 
@@ -86,6 +88,7 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
 - **pattern visualizer**: toggles pattern view particle effects when the song plays.
 - **reset layout**: resets the workspace to its defaults.
 - **user systems...**: shows the User Systems window. this is detailed in [the User Systems documentation](../8-advanced/user-systems.md).
+- **backup management...**: shows the Backup Management window, detailed in [the Backup Management documentation](backup.md).
 - **settings...**: shows the Settings window. these are detailed in [the Settings documentation](settings.md).
 
 ## window
@@ -134,9 +137,9 @@ all these menu items show or hide their associated windows.
 
 ## help
 
+- **effect list**: displays the [effect list](../3-pattern/effects.md).
 - **online manual**: opens the online manual in your default browser.
   - the online manual is frequently updated to match Furnace's development; it may contain material that doesn't apply to the most recent stable release.
-- **effect list**: displays the [effect list](../3-pattern/effects.md).
 - **debug menu**: this menu contains various debug utilities.
   - unless you are working with the Furnace codebase, it's not useful.
 - **inspector**: this option shows the Dear ImGui Metrics/Debugger window.

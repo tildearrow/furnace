@@ -104,6 +104,8 @@ the format versions are:
 
 versions that do not appear in this list are `dev???` ones.
 
+check out [versions.md](versions.md) for details on format and behavior changes across versions.
+
 # header
 
 the header is 32 bytes long.
@@ -268,7 +270,9 @@ the channel count is stored in the file in order to allow Furnace to load files 
 - 0xe1: PS1 - 24 channels (UNAVAILABLE)
 - 0xe2: C64 (6581) with PCM - 4 channels
 - 0xe3: Watara Supervision - 4 channels
+- 0xe4: Namco Pole Position WSG - 8 channels
 - 0xe5: µPD1771C-017 - 4 channels
+- 0xe7: klattsch - 1 channel
 - 0xf0: SID2 - 3 channels
 - 0xf1: 5E01 - 5 channels
 - 0xf5: SID3 - 7 channels
@@ -580,6 +584,8 @@ size | description
      |   - 180 is note off
      |   - 181 is note release
      |   - 182 is macro release
+     |   - 183 is raw frequency (>=248)
+     |     - after reading 183, you must read a 32-bit int (which is the raw frequency).
 ```
 
 ---

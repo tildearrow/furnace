@@ -106,6 +106,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
         if (tune<220.0f) tune=220.0f;
         if (tune>880.0f) tune=880.0f;
         e->song.tuning=tune;
+        e->notifyPitchTable();
       }
       ImGui::EndTable();
     }

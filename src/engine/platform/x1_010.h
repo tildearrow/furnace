@@ -26,7 +26,7 @@
 #include "vgsound_emu/src/x1_010/x1_010.hpp"
 
 class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     struct Envelope {
       struct EnvFlag {
         unsigned char envEnable : 1;
@@ -88,8 +88,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         vol=outVol=lvol=rvol=15;
         waveBank=0;
     }
-    Channel():
-      SharedChannel<int>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       fixedFreq(0),
       wave(-1),
       sample(-1),
@@ -111,6 +111,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   bool stereo=false;
   unsigned char* sampleMem;
   size_t sampleMemLen;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   x1_010_core x1_010;
 
   bool isBanked=false;
@@ -121,7 +123,6 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   DivMemoryComposition memCompo;
 
   unsigned char regPool[0x2000];
-  double NoteX1_010(int ch, int note);
   void updateWave(int ch);
   void updateEnvelope(int ch);
   friend void putDispatchChip(void*,int);
@@ -130,7 +131,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     u8 read_byte(u32 address);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -147,6 +148,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const void* getSampleMem(int index = 0);

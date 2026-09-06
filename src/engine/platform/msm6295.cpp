@@ -263,7 +263,7 @@ void DivPlatformMSM6295::forceIns() {
   rWrite(12,!rateSel);
 }
 
-void* DivPlatformMSM6295::getChanState(int ch) {
+SharedChannel* DivPlatformMSM6295::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -299,7 +299,7 @@ void DivPlatformMSM6295::reset() {
     addWrite(0xffffffff,0);
   }
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformMSM6295::Channel();
+    chan[i]=DivPlatformMSM6295::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     msm.voice_mute(i,isMuted[i]);
   }
@@ -341,6 +341,10 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
+  return 0;
 }
 
 const void* DivPlatformMSM6295::getSampleMem(int index) {

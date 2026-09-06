@@ -30,13 +30,13 @@ extern "C" {
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int fixedFreq;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         fixedFreq(0),
@@ -55,6 +55,7 @@ class DivPlatformOPLL: public DivDispatch {
     FixedQueue<QueuedWrite,512> writes;
     opll_t fm;
     OPLL* fm_emu;
+    DivPitchTable pitchTable;
     int delay, lastCustomMemory;
     unsigned char lastBusy;
     unsigned char drumState;
@@ -93,7 +94,7 @@ class DivPlatformOPLL: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
@@ -115,6 +116,8 @@ class DivPlatformOPLL: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

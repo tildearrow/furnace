@@ -25,7 +25,7 @@
 
 class DivPlatformAY8930: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct Envelope {
         unsigned char mode;
         unsigned short period;
@@ -79,8 +79,8 @@ class DivPlatformAY8930: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen, duty, autoNoiseMode;
       signed char konCycles, autoNoiseOff;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel<int>(31),
+      Channel(bool linear=true):
+        SharedChannel(31,linear),
         envelope(Envelope()),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
@@ -105,6 +105,8 @@ class DivPlatformAY8930: public DivDispatch {
     FixedQueue<QueuedWrite,128> writes;
     ay8930_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     unsigned char regPool[32];
     unsigned char ayNoiseAnd, ayNoiseOr;
     unsigned char stereoSep;
@@ -131,7 +133,7 @@ class DivPlatformAY8930: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);
@@ -149,6 +151,8 @@ class DivPlatformAY8930: public DivDispatch {
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

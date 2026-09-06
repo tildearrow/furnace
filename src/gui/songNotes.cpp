@@ -20,8 +20,6 @@
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-// NOTE: please don't ask me to enable text wrap.
-//       Dear ImGui doesn't have that feature. D:
 void FurnaceGUI::drawNotes(bool asChild) {
   if (nextWindow==GUI_WINDOW_NOTES) {
     notesOpen=true;
@@ -31,7 +29,7 @@ void FurnaceGUI::drawNotes(bool asChild) {
   if (!notesOpen && !asChild) return;
   bool began=asChild?ImGui::BeginChild("Song Info##Song Information"):ImGui::Begin("Song Comments",&notesOpen,globalWinFlags,_("Song Comments"));
   if (began) {
-    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo|(settings.songNotesWrap?ImGuiInputTextFlags_WordWrap:0))) {
+    if (ImGui::InputTextMultiline("##SongNotes",&e->song.notes,ImGui::GetContentRegionAvail(),/*currently disabled because of an assertion that happens no matter what ImGuiInputTextFlags_UndoRedo|*/(settings.songNotesWrap?ImGuiInputTextFlags_WordWrap:0))) {
       MARK_MODIFIED;
     }
   }

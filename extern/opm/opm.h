@@ -1,5 +1,5 @@
 /* Nuked OPM
- * Copyright (C) 2020 Nuke.YKT
+ * Copyright (C) 2020, 2026 Nuke.YKT
  *
  * This file is part of Nuked OPM.
  *
@@ -18,10 +18,12 @@
  *
  *  Nuked OPM emulator.
  *  Thanks:
- *      siliconpr0n.org(digshadow, John McMaster):
+ *      John McMaster(siliconpr0n.org):
  *          YM2151 and other FM chip decaps and die shots.
+ *      gtr3qq (https://github.com/gtr3qq):
+ *          YM2164 decap
  *
- * version: 0.9.2 beta
+ * version: 1.0
  */
 #ifndef _OPM_H_
 #define _OPM_H_
@@ -32,10 +34,16 @@
 extern "C" {
 #endif
 
+enum {
+    opm_flags_none = 0,
+    opm_flags_ym2164 = 1,   /* YM2164(OPP) */
+};
+
 typedef struct {
     uint32_t cycles;
     uint8_t ic;
     uint8_t ic2;
+    uint8_t opp;
     // IO
     uint8_t write_data;
     uint8_t write_a;
@@ -83,6 +91,7 @@ typedef struct {
     uint8_t eg_rate[2];
     uint8_t eg_sl[2];
     uint8_t eg_tl[3];
+    uint16_t eg_tl_opp;
     uint8_t eg_zr[2];
     uint8_t eg_timershift_lock;
     uint8_t eg_timer_lock;
@@ -118,6 +127,8 @@ typedef struct {
     uint8_t pg_reset[32];
     uint8_t pg_reset_latch[32];
     uint32_t pg_serial;
+    uint8_t pg_opp_pms;
+    uint8_t pg_opp_dt2[32];
 
     // Operator
     uint16_t op_phase_in;
@@ -142,6 +153,8 @@ typedef struct {
     uint8_t op_mixl;
     uint8_t op_mixr;
     uint16_t op_chmix[8];
+    uint8_t op_opp_rl;
+    uint8_t op_opp_fb[3];
 
     // Mixer
 
@@ -169,7 +182,7 @@ typedef struct {
     uint32_t noise_timer;
     uint8_t noise_timer_of;
     uint8_t noise_update;
-    uint8_t noise_temp;
+    uint8_t noise_bit;
 
     // Register set
     uint8_t mode_test[8];
@@ -204,6 +217,13 @@ typedef struct {
     uint8_t noise_en;
     uint8_t noise_freq;
 
+    // OPP
+    uint8_t ch_ramp_div[8];
+    uint8_t reg_20_delay;
+    uint8_t reg_28_delay;
+    uint8_t reg_30_delay;
+    uint8_t opp_tl_cnt[8];
+    uint16_t opp_tl[32];
 
     // Timer
     uint16_t timer_a_reg;
@@ -262,7 +282,7 @@ uint8_t OPM_ReadIRQ(opm_t *chip);
 uint8_t OPM_ReadCT1(opm_t *chip);
 uint8_t OPM_ReadCT2(opm_t *chip);
 void OPM_SetIC(opm_t *chip, uint8_t ic);
-void OPM_Reset(opm_t *chip);
+void OPM_Reset(opm_t *chip, uint32_t flags);
 
 #ifdef __cplusplus
 } // extern "C"

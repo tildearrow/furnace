@@ -24,6 +24,8 @@ you may change the cursor position by clicking anywhere on the pattern.
 
 to select an area, press and hold the left mouse button. then drag the mouse and release the button to finish selection.
 
+you can select multiple entire rows at once by clicking and dragging on row numbers.
+
 right-clicking within the pattern view brings up a pop-up menu with most options from the [edit menu](../2-interface/menu-bar.md).
 
 
@@ -83,6 +85,8 @@ to rename and/or hide channels, open [the Channels window](../8-advanced/channel
 - **note release** (`===`) triggers macro release (and in FM/hardware envelope channels it also triggers key off).
 - **macro release** (`REL`) does the same as above, but does not trigger key off in FM/hardware envelope channels.
 - **toggle edit** enables and disables editing. when editing is enabled, the cursor's row will be shaded red.
+- **toggle raw note** switches between raw frequency/period mode and normal mode for the currently selected note.
+  - in raw frequency/period mode, notes are entered as hexadecimal values. these are sent directly to the chip's frequency register. read the [raw note section](../8-advanced/raw-notes.md) for more information.
 
 ### instrument/volume input
 

@@ -40,15 +40,15 @@ class DivPlatformLynx: public DivDispatch {
     MikeyDuty(int duty);
   };
 
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     MikeyFreqDiv fd;
     MikeyDuty duty;
-    int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
+    int actualNote, lfsr, sample, samplePos, sampleAccum, sampleFreq;
     unsigned char pan;
     bool pcm, setPos, updateLFSR;
     int macroVolMul;
-    Channel():
-      SharedChannel<signed char>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       fd(0),
       duty(0),
       actualNote(0),
@@ -56,7 +56,6 @@ class DivPlatformLynx: public DivDispatch {
       sample(-1),
       samplePos(0),
       sampleAccum(0),
-      sampleBaseFreq(0),
       sampleFreq(0),
       pan(0xff),
       pcm(false),
@@ -76,6 +75,8 @@ class DivPlatformLynx: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
@@ -84,7 +85,7 @@ class DivPlatformLynx: public DivDispatch {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -103,6 +104,8 @@ class DivPlatformLynx: public DivDispatch {
     //int getPortaFloor(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -23,12 +23,12 @@
 #include "../dispatch.h"
 
 class DivPlatformMMC5: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char duty, sweep;
     bool sweepChanged, setPos;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       duty(0),
       sweep(8),
@@ -45,6 +45,8 @@ class DivPlatformMMC5: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
@@ -58,7 +60,7 @@ class DivPlatformMMC5: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -72,6 +74,8 @@ class DivPlatformMMC5: public DivDispatch {
     float getPostAmp();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

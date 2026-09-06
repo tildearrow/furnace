@@ -42,6 +42,8 @@ const char* FurnaceGUI::noteNameNormal(short note) {
     return "===";
   } else if (note==DIV_MACRO_REL) { // envelope release only
     return "REL";
+  } else if (note==DIV_NOTE_RAW) { // this shouldn't be normally visible, but is here just in case
+    return "RAW";
   } else if (note==-1) {
     return "...";
   } else if (note==DIV_NOTE_NULL_PAT) {
@@ -226,7 +228,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
               if (p->newData[j][k]!=op->newData[j][k]) {
                 s.pat.push_back(UndoPatternData(subSong,i,e->curOrders->ord[i][h],j,k,op->newData[j][k],p->newData[j][k]));
 
-                if (k>=DIV_PAT_FX(0)) {
+                if (k>=DIV_PAT_FX(0) && k<DIV_PAT_NOTE_BUFFER) {
                   int fxCol=(k&1)?k:(k-1);
                   if (op->newData[j][fxCol]==0x09 ||
                       op->newData[j][fxCol]==0x0b ||
@@ -284,7 +286,7 @@ void FurnaceGUI::makeUndo(ActionType action, UndoRegion region) {
 
 void FurnaceGUI::doSelectAll() {
   finishSelection();
-  curNibble=false;
+  curNibble=0;
   if (selStart.xFine==0 && selEnd.xFine==2+e->curPat[selEnd.xCoarse].effectCols*2) {
     if (selStart.y==0 && selEnd.y==e->curSubSong->patLen-1) { // select entire pattern
       selStart.xCoarse=0;
@@ -364,7 +366,7 @@ void FurnaceGUI::doSelectAll() {
 void FurnaceGUI::doDelete() {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
-  curNibble=false;
+  curNibble=0;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -381,6 +383,11 @@ void FurnaceGUI::doDelete() {
           touch(jOrder,j);
           if (iFine==0) {
             if (selStart.y==selEnd.y && selStart.order==selEnd.order) pat->newData[j][DIV_PAT_INS]=-1;
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
           }
           pat->newData[j][iFine]=-1;
 
@@ -406,7 +413,7 @@ void FurnaceGUI::doPullDelete() {
   }
 
   prepareUndo(GUI_UNDO_PATTERN_PULL);
-  curNibble=false;
+  curNibble=0;
 
   if (settings.pullDeleteBehavior) {
     if (--selStart.y<0) {
@@ -456,8 +463,22 @@ void FurnaceGUI::doPullDelete() {
         //       more than one order.
         if (j<e->curSubSong->patLen-1) {
           pat->newData[j][iFine]=pat->newData[j+1][iFine];
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=pat->newData[j+1][DIV_PAT_NOTE_BUFFER];
+            pat->newData[j][DIV_PAT_RAW0]=pat->newData[j+1][DIV_PAT_RAW0];
+            pat->newData[j][DIV_PAT_RAW1]=pat->newData[j+1][DIV_PAT_RAW1];
+            pat->newData[j][DIV_PAT_RAW2]=pat->newData[j+1][DIV_PAT_RAW2];
+            pat->newData[j][DIV_PAT_RAW3]=pat->newData[j+1][DIV_PAT_RAW3];
+          }
         } else {
           pat->newData[j][iFine]=-1;
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
+          }
         }
       }
     }
@@ -476,7 +497,7 @@ void FurnaceGUI::doInsert() {
   }
 
   prepareUndo(GUI_UNDO_PATTERN_PUSH);
-  curNibble=false;
+  curNibble=0;
 
   SelectionPoint sStart=selStart;
   SelectionPoint sEnd=selEnd;
@@ -496,8 +517,22 @@ void FurnaceGUI::doInsert() {
       for (int j=e->curSubSong->patLen-1; j>=sStart.y; j--) {
         if (j==sStart.y) {
           pat->newData[j][iFine]=-1;
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=-1;
+            pat->newData[j][DIV_PAT_RAW0]=-1;
+            pat->newData[j][DIV_PAT_RAW1]=-1;
+            pat->newData[j][DIV_PAT_RAW2]=-1;
+            pat->newData[j][DIV_PAT_RAW3]=-1;
+          }
         } else {
           pat->newData[j][iFine]=pat->newData[j-1][iFine];
+          if (iFine==0) {
+            pat->newData[j][DIV_PAT_NOTE_BUFFER]=pat->newData[j-1][DIV_PAT_NOTE_BUFFER];
+            pat->newData[j][DIV_PAT_RAW0]=pat->newData[j-1][DIV_PAT_RAW0];
+            pat->newData[j][DIV_PAT_RAW1]=pat->newData[j-1][DIV_PAT_RAW1];
+            pat->newData[j][DIV_PAT_RAW2]=pat->newData[j-1][DIV_PAT_RAW2];
+            pat->newData[j][DIV_PAT_RAW3]=pat->newData[j-1][DIV_PAT_RAW3];
+          }
         }
       }
     }
@@ -510,7 +545,7 @@ void FurnaceGUI::doInsert() {
 void FurnaceGUI::doTranspose(int amount, OperationMask& mask) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_DELETE);
-  curNibble=false;
+  curNibble=0;
 
   int iCoarse=selStart.xCoarse;
   int iFine=selStart.xFine;
@@ -532,6 +567,7 @@ void FurnaceGUI::doTranspose(int amount, OperationMask& mask) {
             if (pat->newData[j][iFine]==DIV_NOTE_OFF) continue;
             if (pat->newData[j][iFine]==DIV_NOTE_REL) continue;
             if (pat->newData[j][iFine]==DIV_MACRO_REL) continue;
+            if (pat->newData[j][iFine]==DIV_NOTE_RAW) continue; // TODO: transpose raw frequency
             if (pat->newData[j][iFine]==DIV_NOTE_NULL_PAT) continue;
           } else if (iFine==DIV_PAT_INS) {
             if (e->song.ins.empty()) continue;
@@ -555,7 +591,7 @@ String FurnaceGUI::doCopy(bool cut, bool writeClipboard, const SelectionPoint& s
   if (writeClipboard) {
     finishSelection();
     if (cut) {
-      curNibble=false;
+      curNibble=0;
       prepareUndo(GUI_UNDO_PATTERN_CUT);
     }
   }
@@ -576,9 +612,24 @@ String FurnaceGUI::doCopy(bool cut, bool writeClipboard, const SelectionPoint& s
         DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][jOrder],true);
         for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<sEnd.xCoarse || iFine<=sEnd.xFine); iFine++) {
           if (iFine==0) {
-            clipb+=noteNameNormal(pat->newData[j][DIV_PAT_NOTE]);
+            if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+              // this is kind of ugly
+              clipb+=fmt::sprintf(
+                "r%.8X",
+                (pat->newData[j][DIV_PAT_RAW0]&0xff)|
+                ((pat->newData[j][DIV_PAT_RAW1]&0xff)<<8)|
+                ((pat->newData[j][DIV_PAT_RAW2]&0xff)<<16)|
+                ((pat->newData[j][DIV_PAT_RAW3]&0xff)<<24)
+              );
+            } else {
+              clipb+=noteNameNormal(pat->newData[j][DIV_PAT_NOTE]);
+            }
             if (cut) {
               pat->newData[j][DIV_PAT_NOTE]=-1;
+              pat->newData[j][DIV_PAT_RAW0]=-1;
+              pat->newData[j][DIV_PAT_RAW1]=-1;
+              pat->newData[j][DIV_PAT_RAW2]=-1;
+              pat->newData[j][DIV_PAT_RAW3]=-1;
             }
           } else {
             if (pat->newData[j][iFine]==-1) {
@@ -617,7 +668,7 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
 
   int j=cursor.y;
   int jOrder=cursor.order;
-  char note[4];
+  char note[16];
   for (size_t i=2; i<data.size() && j<e->curSubSong->patLen; i++) {
     size_t charPos=0;
     int iCoarse=cursor.xCoarse;
@@ -653,7 +704,20 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
           break;
         }
         note[2]=line[charPos++];
-        note[3]=0;
+        if (note[0]=='r') {
+          // raw frequency
+          for (int _i=3; _i<9; _i++) {
+            if (charPos>=line.size()) {
+              invalidData=true;
+              break;
+            }
+            note[_i]=line[charPos++];
+          }
+          if (invalidData) break;
+          note[9]=0;
+        } else {
+          note[3]=0;
+        }
 
         if (iFine==0 && !opMaskPaste.note) {
           iFine++;
@@ -665,9 +729,33 @@ void FurnaceGUI::doPasteFurnace(PasteMode mode, int arg, bool readClipboard, Str
           // do nothing.
         } else {
           if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->newData[j][DIV_PAT_NOTE]==-1)) {
-            if (!decodeNote(note,pat->newData[j][DIV_PAT_NOTE])) {
-              invalidData=true;
-              break;
+            if (note[0]=='r') {
+              // decode raw frequency
+              unsigned int rawVal=0;
+              for (int _i=1; _i<9; _i++) {
+                unsigned char digit=note[_i];
+                rawVal<<=4;
+                if (digit>='0' && digit<='9') {
+                  rawVal|=digit-'0';
+                } else if (digit>='A' && digit<='F') {
+                  rawVal|=digit-'A'+10;
+                } else {
+                  invalidData=true;
+                  break;
+                }
+              }
+              if (invalidData) break;
+
+              pat->newData[j][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+              pat->newData[j][DIV_PAT_RAW0]=rawVal&0xff;
+              pat->newData[j][DIV_PAT_RAW1]=(rawVal>>8)&0xff;
+              pat->newData[j][DIV_PAT_RAW2]=(rawVal>>16)&0xff;
+              pat->newData[j][DIV_PAT_RAW3]=(rawVal>>24)&0xff;
+            } else {
+              if (!decodeNote(note,pat->newData[j][DIV_PAT_NOTE])) {
+                invalidData=true;
+                break;
+              }
             }
             if (mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) pat->newData[j][DIV_PAT_INS]=arg;
           }
@@ -1391,7 +1479,19 @@ void FurnaceGUI::doInterpolate() {
             touch(jOrder,j);
             if (pat->newData[j][DIV_PAT_NOTE]!=-1) {
               if (pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_OFF && pat->newData[j][DIV_PAT_NOTE]!=DIV_NOTE_REL && pat->newData[j][DIV_PAT_NOTE]!=DIV_MACRO_REL) {
-                points.emplace(points.end(),j|(jOrder<<8),pat->newData[j][DIV_PAT_NOTE]);
+                if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+                  points.emplace(
+                    points.end(),
+                    j|(jOrder<<8),
+                    pat->newData[j][DIV_PAT_RAW0]|
+                    (pat->newData[j][DIV_PAT_RAW1]<<8)|
+                    (pat->newData[j][DIV_PAT_RAW2]<<16)|
+                    (pat->newData[j][DIV_PAT_RAW3]<<24)|
+                    DIV_NOTE_RAW_FLAG
+                  );
+                } else {
+                  points.emplace(points.end(),j|(jOrder<<8),pat->newData[j][DIV_PAT_NOTE]);
+                }
               }
             }
           }
@@ -1401,14 +1501,24 @@ void FurnaceGUI::doInterpolate() {
         if (points.size()>1) for (size_t j=0; j<points.size()-1; j++) {
           std::pair<int,int>& curPoint=points[j];
           std::pair<int,int>& nextPoint=points[j+1];
+          // check whether we can interpolate (both notes must be either normal or raw)
+          if ((curPoint.second&DIV_NOTE_RAW_FLAG)!=(nextPoint.second&DIV_NOTE_RAW_FLAG)) continue;
           int distance=(
             ((nextPoint.first&0xff)+((nextPoint.first>>8)*e->curSubSong->patLen))-
             ((curPoint.first&0xff)+((curPoint.first>>8)*e->curSubSong->patLen))
           );
           for (int k=0, k_p=curPoint.first; k<distance; k++) {
             DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][(k_p>>8)&0xff],true);
-            int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/(double)distance);
-            pat->newData[k_p&0xff][DIV_PAT_NOTE]=val;
+            unsigned int val=curPoint.second+((nextPoint.second-curPoint.second)*(double)k/(double)distance);
+            if (curPoint.second&DIV_NOTE_RAW_FLAG) {
+              pat->newData[k_p&0xff][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+              pat->newData[k_p&0xff][DIV_PAT_RAW0]=(val&0xff);
+              pat->newData[k_p&0xff][DIV_PAT_RAW1]=((val>>8)&0xff);
+              pat->newData[k_p&0xff][DIV_PAT_RAW2]=((val>>16)&0xff);
+              pat->newData[k_p&0xff][DIV_PAT_RAW3]=((val>>24)&0x7f);
+            } else {
+              pat->newData[k_p&0xff][DIV_PAT_NOTE]=val;
+            }
             k_p++;
             if ((k_p&0xff)>=e->curSubSong->patLen) {
               k_p&=~0xff;
@@ -1923,7 +2033,7 @@ void FurnaceGUI::doAbsorbInstrument() {
       // skip "special note values" like OFF/REL/=== and "none", since there won't be valid
       // octave values
       short note=pat->newData[i][DIV_PAT_NOTE];
-      if (!foundOctave && note!=-1 && note!=DIV_NOTE_OFF && note!=DIV_NOTE_REL && note!=DIV_MACRO_REL) {
+      if (!foundOctave && note!=-1 && note!=DIV_NOTE_OFF && note!=DIV_NOTE_REL && note!=DIV_MACRO_REL && note!=DIV_NOTE_RAW) {
         foundOctave=true;
 
         // decode octave data

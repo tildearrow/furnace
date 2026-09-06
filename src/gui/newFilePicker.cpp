@@ -577,6 +577,7 @@ bool FurnaceFilePicker::readDirectory(String path) {
   entries.clear();
   chosenEntries.clear();
   updateEntryName();
+  lastSelFilteredIndex=-1;
 
   // start new file thread
   String newPath=normalizePath(path);
@@ -615,16 +616,38 @@ void FurnaceFilePicker::setHomeDir(String where) {
   homeDir=where;
 }
 
+String FurnaceFilePicker::getEscapedEntryName(FileEntry* entry) {
+  if (multiSelect) {
+    String ret;
+    ret.reserve(entry->name.size());
+    for (char& i: entry->name) {
+      if (i=='"' || i=='\\') {
+        ret+='\\';
+      }
+      ret+=i;
+    }
+    return ret;
+  }
+  return entry->name;
+}
+
 void FurnaceFilePicker::updateEntryName() {
   if (chosenEntries.size() > 1) {
-    entryName=_("<multiple files selected>");
+    entryName="";
+    for (size_t i=0; i<chosenEntries.size(); i++) {
+      entryName+="\""+getEscapedEntryName(chosenEntries[i])+"\"";
+      if (i!=chosenEntries.size()-1) {
+        entryName+=',';
+      }
+    }
   } else if (chosenEntries.size() == 1) {
     FileEntry* entry=chosenEntries[0];
     // only change the entry if the selection is valid
     if ((entry->isDir && dirSelect) || (!entry->isDir && !dirSelect)) {
-      entryName=entry->name;
+      entryName=getEscapedEntryName(entry);
     }
   }
+  logV("updateEntryName(): %s",entryName);
 }
 
 // the name of this function is somewhat misleading.
@@ -979,8 +1002,10 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
       entryLock.lock();
       listClipper.Begin(filteredEntries.size(),rowHeight);
       while (listClipper.Step()) {
+
         for (int _i=listClipper.DisplayStart; _i<listClipper.DisplayEnd; _i++) {
-          FileEntry* i=filteredEntries[sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i];
+          int selFilteredIndex=sortInvert[sortMode]?(filteredEntries.size()-_i-1):_i;
+          FileEntry* i=filteredEntries[selFilteredIndex];
           FileTypeStyle* style=&defaultTypeStyle[i->type];
 
           // get style for this entry
@@ -1004,29 +1029,43 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
           ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(style->color));
           ImGui::PushID(_i);
           if (ImGui::Selectable(style->icon.c_str(),i->isSelected,ImGuiSelectableFlags_AllowDoubleClick|ImGuiSelectableFlags_SpanAllColumns|ImGuiSelectableFlags_SpanAvailWidth)) {
+            bool ctrlDown=(ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl));
+            bool shiftDown=(ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift));
+
+            // all entries in the range [toggleStart,toggleEnd) are toggled
+            int toggleStart=-1;
+            int toggleEnd=-1;
+
             bool doNotAcknowledge=false;
-            if ((ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) && multiSelect) {
-              // multiple selection
+            if (ctrlDown && multiSelect) {
+              // toggle selection of the currently hovered item
               doNotAcknowledge=true;
+              toggleStart=selFilteredIndex;
+              toggleEnd=selFilteredIndex+1;
+            } else if (shiftDown && multiSelect) {
+              doNotAcknowledge=true;
+              if (lastSelFilteredIndex>=0) {
+                if (lastSelFilteredIndex<selFilteredIndex) {
+                  toggleStart=lastSelFilteredIndex+1;
+                  toggleEnd=selFilteredIndex+1;
+                } else {
+                  toggleStart=selFilteredIndex;
+                  toggleEnd=lastSelFilteredIndex;
+                }
+              } else {
+                // fallback to the ctrl+click behavior
+                toggleStart=selFilteredIndex;
+                toggleEnd=selFilteredIndex+1;
+              }
             } else {
-              // clear selected entries
+              // clear selected entries before selecting the new one
               for (FileEntry* j: chosenEntries) {
                 j->isSelected=false;
               }
               chosenEntries.clear();
-            }
+              toggleStart=selFilteredIndex;
+              toggleEnd=selFilteredIndex+1;
 
-            bool alreadySelected=false;
-            for (FileEntry* j: chosenEntries) {
-              if (j==i) alreadySelected=true;
-            }
-
-            if (!alreadySelected) {
-              // select this entry
-              chosenEntries.push_back(i);
-              i->isSelected=true;
-              focusEntryName=true;
-              updateEntryName();
               if (!doNotAcknowledge) {
                 if (isMobile || singleClickSelect) {
                   acknowledged=true;
@@ -1034,20 +1073,51 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
                   acknowledged=true;
                 }
               }
+            }
 
-              // trigger callback if set
-              if (selCallback!=NULL) {
-                String callbackPath;
-                if (path.empty()) {
-                  callbackPath=i->name;
-                } else {
-                  if (*path.rbegin()==DIR_SEPARATOR) {
-                    callbackPath=path+i->name;
-                  } else {
-                    callbackPath=path+DIR_SEPARATOR+i->name;
-                  }
+            for (int j=toggleStart; j<toggleEnd && j>=0 && j<(int)filteredEntries.size(); j++) {
+              FileEntry* entry=filteredEntries[j];
+
+              // find index of the entry in the chosen entries list
+              // TODO: this may be unoptimal. is it possible to optimize somehow?
+              ssize_t chosenIdx=-1;
+              for (size_t k=0; k<chosenEntries.size(); k++) {
+                if (chosenEntries[k]==entry) {
+                  chosenIdx=k;
+                  break;
                 }
-                selCallback(callbackPath.c_str());
+              }
+              bool alreadySelected=chosenIdx>=0;
+
+              if (!alreadySelected) {
+                lastSelFilteredIndex=selFilteredIndex;
+
+                // select this entry
+                logV("selecting entry: %s",entry->name);
+                chosenEntries.push_back(entry);
+                entry->isSelected=true;
+                focusEntryName=true;
+                updateEntryName();
+
+                // trigger callback if set
+                if (selCallback!=NULL) {
+                  String callbackPath;
+                  if (path.empty()) {
+                    callbackPath=entry->name;
+                  } else {
+                    if (*path.rbegin()==DIR_SEPARATOR) {
+                      callbackPath=path+entry->name;
+                    } else {
+                      callbackPath=path+DIR_SEPARATOR+entry->name;
+                    }
+                  }
+                  selCallback(callbackPath.c_str());
+                }
+              } else if (multiSelect) {
+                chosenEntries.erase(chosenEntries.begin()+chosenIdx);
+                entry->isSelected=false;
+                focusEntryName=true;
+                updateEntryName();
               }
             }
           }
@@ -1677,83 +1747,135 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         // return the user-provided entry
         finalSelection.clear();
         if (!entryName.empty()) {
-          String dirCheckPath;
-          if (isPathAbsolute(entryName)) {
-            dirCheckPath=entryName;
-          } else {
-            if (path.empty()) {
-              dirCheckPath=entryName;
-            } else if (*path.rbegin()==DIR_SEPARATOR) {
-              dirCheckPath=path+entryName;
-            } else {
-              dirCheckPath=path+DIR_SEPARATOR_STR+entryName;
-            }
-          }
-
-          // check whether this is a directory
-          bool isDir=false;
-#ifdef _WIN32
-          WString dirCheckPathW=utf8To16(dirCheckPath);
-          isDir=PathIsDirectoryW(dirCheckPathW.c_str());
-          int dirError=0;
-#else
-          // again, silly but works.
-          DIR* checkDir=opendir(dirCheckPath.c_str());
-          int dirError=0;
-          if (checkDir!=NULL) {
-            isDir=true;
-            closedir(checkDir);
-          } else {
-            dirError=errno;
-          }
-#endif
-
-          if (isDir) {
-            // go to directory
-            newDir=dirCheckPath;
-          } else {
-            bool extCheck=false;
-            if (confirmOverwrite) {
-              // check whether the file may exist with an extension
-              std::vector<String> parsedExtensions;
-              String nextType;
-              for (char i: filterOptions[curFilterType+1]) {
-                switch (i) {
-                  case '*': // ignore
-                    break;
-                  case ' ': // separator
-                    if (!nextType.empty()) {
-                      parsedExtensions.push_back(nextType);
-                      nextType="";
-                    }
-                    break;
-                  default: // push
-                    nextType.push_back(i);
-                    break;
-                }
+          std::vector<String> parsedEntries;
+          if (multiSelect) {
+            // parse the entry name
+            bool inQuotes=false;
+            bool escaping=false;
+            String next="";
+            for (char& i: entryName) {
+              if (escaping) {
+                if (i!='"' && i!='\\' && (i!=',' || inQuotes)) next+='\\';
+                next+=i;
+                escaping=false;
+                continue;
               }
-              if (!nextType.empty()) {
-                parsedExtensions.push_back(nextType);
-                nextType="";
-              }
-              for (String& i: parsedExtensions) {
-                String fileWithExt=dirCheckPath+i;
-                logV("testing %s",fileWithExt);
-                if (fileExists(fileWithExt.c_str())) {
-                  extCheck=true;
+              switch (i) {
+                case '\\':
+                  escaping=true;
                   break;
-                }
+                case '"':
+                  inQuotes=!inQuotes;
+                  break;
+                case ',':
+                  if (inQuotes) {
+                    next+=i;
+                    break;
+                  }
+                  // add the current entry
+                  parsedEntries.push_back(next);
+                  next="";
+                  break;
+                default:
+                  next+=i;
+                  break;
               }
             }
+            // assume the user wanted to type a backslash
+            if (escaping) next+='\\';
+            if (inQuotes) {
+              // TODO: error?
+            }
+            if (!next.empty()) parsedEntries.push_back(next);
+          } else {
+            // we don't have to parse
+            parsedEntries.push_back(entryName);
+          }
 
-            // return now unless we gotta confirm overwrite
-            if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
-              finalSelection.push_back(dirCheckPath);
-              ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
-              logV("confirm overwrite");
+          std::vector<String> dirCheckPaths;
+          for (String& i: parsedEntries) {
+            if (isPathAbsolute(i)) {
+              dirCheckPaths.push_back(i);
             } else {
-              finalSelection.push_back(dirCheckPath);
-              acceptAndClose();
+              if (path.empty()) {
+                dirCheckPaths.push_back(i);
+              } else if (*path.rbegin()==DIR_SEPARATOR) {
+                dirCheckPaths.push_back(path+i);
+              } else {
+                dirCheckPaths.push_back(path+DIR_SEPARATOR_STR+i);
+              }
+            }
+          }
+
+          if (!dirCheckPaths.empty()) {
+            // check whether this is a directory if a single entry is provided
+            bool isDir=false;
+            int dirError=0;
+            if (dirCheckPaths.size()==1) {
+#ifdef _WIN32
+              WString dirCheckPathW=utf8To16(dirCheckPaths[0]);
+              isDir=PathIsDirectoryW(dirCheckPathW.c_str());
+#else
+              // again, silly but works.
+              DIR* checkDir=opendir(dirCheckPaths[0].c_str());
+              if (checkDir!=NULL) {
+                isDir=true;
+                closedir(checkDir);
+              } else {
+                dirError=errno;
+              }
+#endif
+            }
+
+            if (isDir) {
+              // go to directory
+              newDir=dirCheckPaths[0];
+            } else {
+              bool extCheck=false;
+              if (confirmOverwrite) {
+                // check whether the file(s) may exist with an extension
+                std::vector<String> parsedExtensions;
+                String nextType;
+                for (char i: filterOptions[curFilterType+1]) {
+                  switch (i) {
+                    case '*': // ignore
+                      break;
+                    case ' ': // separator
+                      if (!nextType.empty()) {
+                        parsedExtensions.push_back(nextType);
+                        nextType="";
+                      }
+                      break;
+                    default: // push
+                      nextType.push_back(i);
+                      break;
+                  }
+                }
+                if (!nextType.empty()) {
+                  parsedExtensions.push_back(nextType);
+                  nextType="";
+                }
+                for (String& i: parsedExtensions) {
+                  for (String& j: dirCheckPaths) {
+                    String fileWithExt=j+i;
+                    logV("testing %s",fileWithExt);
+                    if (fileExists(fileWithExt.c_str())) {
+                      extCheck=true;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              // return now unless we gotta confirm overwrite
+              if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
+                finalSelection=dirCheckPaths;
+                ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
+                logV("confirm overwrite");
+              } else {
+                finalSelection=dirCheckPaths;
+                acceptAndClose();
+              }
             }
           }
         } else {
@@ -1767,7 +1889,11 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),ImGuiCond_Always,ImVec2(0.5,0.5));
     if (ImGui::BeginPopupModal(_("Warning###ConfirmOverwrite"),NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings)) {
-      ImGui::TextUnformatted(_("The file you selected already exists! Would you like to overwrite it?"));
+      if (multiSelect) {
+        ImGui::TextUnformatted(_("Some of the files you selected already exist! Would you like to overwrite them?"));
+      } else {
+        ImGui::TextUnformatted(_("The file you selected already exists! Would you like to overwrite it?"));
+      }
       if (ImGui::Button(_("Yes"))) {
         acceptAndClose();
         ImGui::CloseCurrentPopup();
@@ -1820,7 +1946,7 @@ bool FurnaceFilePicker::isOpened() {
 }
 
 bool FurnaceFilePicker::isSave() {
-  return isSave_;
+  return confirmOverwrite;
 }
 
 bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, const std::vector<String>& filter, FilePickerSelectCallback selectCallback) {
@@ -1835,7 +1961,6 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   noClose=(flags&FP_FLAGS_NO_CLOSE);
   confirmOverwrite=(flags&FP_FLAGS_SAVE);
   multiSelect=(flags&FP_FLAGS_MULTI_SELECT);
-  isSave_=(flags&FP_FLAGS_SAVE);
   dirSelect=(flags&FP_FLAGS_DIR_SELECT);
   isEmbed=(flags&FP_FLAGS_EMBEDDABLE);
 
@@ -1847,7 +1972,7 @@ bool FurnaceFilePicker::open(String name, String pa, String hint, int flags, con
   }
   curFilterType=0;
 
-  selectCallback=selCallback;
+  selCallback=selectCallback;
 
   if (!isSearch || windowName!=name) {
     if (isSearch) this->filter="";

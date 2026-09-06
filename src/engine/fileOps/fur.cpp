@@ -19,42 +19,6 @@
 
 #include "fileOpsCommon.h"
 
-short newFormatNotes[180]={
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -5
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -4
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -3
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -2
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -1
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  0
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  1
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  2
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  3
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  4
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  5
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  6
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  7
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  8
-  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11  //  9
-};
-
-short newFormatOctaves[180]={
-  250, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251, // -5
-  251, 252, 252, 252, 252, 252, 252, 252, 252, 252, 252, 252, // -4
-  252, 253, 253, 253, 253, 253, 253, 253, 253, 253, 253, 253, // -3
-  253, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, // -2
-  254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, // -1
-  255,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, //  0
-    0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, //  1
-    1,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2, //  2
-    2,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3, //  3
-    3,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4, //  4
-    4,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5, //  5
-    5,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6, //  6
-    6,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7, //  7
-    7,   8,   8,   8,   8,   8,   8,   8,   8,   8,   8,   8, //  8
-    8,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9, //  9
-};
-
 struct PatToWrite {
   unsigned short subsong, chan, pat;
   PatToWrite(unsigned short s, unsigned short c, unsigned short p):
@@ -1165,7 +1129,10 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
       if (tchans>DIV_MAX_CHANS) {
         tchans=DIV_MAX_CHANS;
-        logW("too many channels!");
+        logE("too many channels!");
+        lastError="too many channels!";
+        delete[] file;
+        return false;
       }
       logV("system len: %d",ds.systemLen);
       if (ds.systemLen<1) {
@@ -2014,6 +1981,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
               pat->newData[j][0]=DIV_NOTE_REL;
             } else if (note==182) {
               pat->newData[j][0]=DIV_MACRO_REL;
+            } else if (note==183) {
+              pat->newData[j][0]=DIV_NOTE_RAW;
+              // read raw frequency
+              pat->newData[j][DIV_PAT_RAW0]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW1]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW2]=(unsigned char)reader.readC();
+              pat->newData[j][DIV_PAT_RAW3]=(unsigned char)reader.readC();
             } else if (note<180) {
               pat->newData[j][DIV_PAT_NOTE]=note;
             } else {
@@ -2811,6 +2785,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         finalNote=181;
       } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_MACRO_REL) { // macro release
         finalNote=182;
+      } else if (pat->newData[j][DIV_PAT_NOTE]==DIV_NOTE_RAW) { // raw frequency
+        finalNote=183;
       } else if (pat->newData[j][DIV_PAT_NOTE]==-1) { // empty
         finalNote=255;
       } else {
@@ -2854,7 +2830,15 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
         if (mask&32) w->writeC(effectMask&0xff);
         if (mask&64) w->writeC((effectMask>>8)&0xff);
 
-        if (mask&1) w->writeC(finalNote);
+        if (mask&1) {
+          w->writeC(finalNote);
+          if (finalNote==183) { // write raw frequency
+            w->writeC(pat->newData[j][DIV_PAT_RAW0]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW1]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW2]);
+            w->writeC(pat->newData[j][DIV_PAT_RAW3]);
+          }
+        }
         if (mask&2) w->writeC(pat->newData[j][DIV_PAT_INS]);
         if (mask&4) w->writeC(pat->newData[j][DIV_PAT_VOL]);
         if (mask&8) w->writeC(pat->newData[j][DIV_PAT_FX(0)]);

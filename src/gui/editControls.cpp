@@ -476,8 +476,6 @@ void FurnaceGUI::drawMobileControls() {
       ImGui::EndTable();
     }
 
-    ImGui::Checkbox("New Pattern",&newPatternRenderer);
-
     ImGui::Separator();
 
     switch (mobScene) {
@@ -610,6 +608,10 @@ void FurnaceGUI::drawMobileControls() {
         ImGui::SameLine();
         if (ImGui::Button(_("Presets"))) {
           userPresetsOpen=!userPresetsOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Backups"))) {
+          backupsManagerOpen=!backupsManagerOpen;
         }
         ImGui::SameLine();
         if (ImGui::Button(_("PatManager"))) {
