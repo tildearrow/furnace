@@ -111,6 +111,7 @@ class FurnaceFilePicker {
   bool haveFiles, haveStat, stopReading, isOpen, isMobile;
   bool sortInvert[FP_SORT_MAX];
   bool multiSelect;
+  int lastSelFilteredIndex; // index of last selection on the filtered entry list
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
   bool isPathBookmarked, isSearch;
   int scheduledSort, imguiFlags, editingBookmark;
@@ -148,6 +149,7 @@ class FurnaceFilePicker {
   void sortFiles();
   void filterFiles();
   void clearAllFiles();
+  String getEscapedEntryName(FileEntry* entry);
   void updateEntryName();
   bool readDirectory(String path);
   String normalizePath(const String& which);
