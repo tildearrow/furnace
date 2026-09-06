@@ -1079,6 +1079,7 @@ void FurnaceFilePicker::drawFileList(ImVec2& tableSize, bool& acknowledged) {
               FileEntry* entry=filteredEntries[j];
 
               // find index of the entry in the chosen entries list
+              // TODO: this may be unoptimal. is it possible to optimize somehow?
               ssize_t chosenIdx=-1;
               for (size_t k=0; k<chosenEntries.size(); k++) {
                 if (chosenEntries[k]==entry) {
