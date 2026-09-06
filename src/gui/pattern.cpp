@@ -1366,7 +1366,7 @@ void FurnaceGUI::drawPattern() {
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(0,patLineHeight*0.5f),activeColor,id);
             } else if (maxFreq>=0x100000) {
               // 6 chars (isn't this too small?)
-              snprintf(id,63,"%.3X",((freq&maxFreq)&0xfff000)>>24);
+              snprintf(id,63,"%.3X",((freq&maxFreq)&0xfff000)>>12);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,0),activeColor,id);
               snprintf(id,63,"%.3X",(freq&maxFreq)&0xfff);
               dl->AddText(patFont,settings.patFontSize*dpiScale*3.0f/4.0f,pos+ImVec2(oneCharSize*3.0f/8.0f,patLineHeight*0.5f),activeColor,id);

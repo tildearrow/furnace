@@ -1789,7 +1789,7 @@ void FurnaceGUI::rawFreqInput(int num) {
   // bail out if this channel is not pitchable
   if (valMax==0) return;
 
-  logV("rawFreqInput: chan %d, %d:%d",ch,ord,y);
+  logV("rawFreqInput: chan %d, %d:%d (valMax %x)",ch,ord,y,valMax);
 
   if (e->isPlaying() && !e->isStepping() && followPattern) {
     e->getPlayPos(ord,y);
