@@ -621,7 +621,7 @@ String FurnaceFilePicker::getEscapedEntryName(FileEntry* entry) {
     String ret;
     ret.reserve(entry->name.size());
     for (char& i: entry->name) {
-      if (i=='"') {
+      if (i=='"' || i=='\\') {
         ret+='\\';
       }
       ret+=i;
@@ -1726,86 +1726,137 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
         }
       } else {
         // return the user-provided entry
-        // TODO: parse the entry name on multi-select
         finalSelection.clear();
         if (!entryName.empty()) {
-          String dirCheckPath;
-          if (isPathAbsolute(entryName)) {
-            dirCheckPath=entryName;
-          } else {
-            if (path.empty()) {
-              dirCheckPath=entryName;
-            } else if (*path.rbegin()==DIR_SEPARATOR) {
-              dirCheckPath=path+entryName;
-            } else {
-              dirCheckPath=path+DIR_SEPARATOR_STR+entryName;
-            }
-          }
-
-          // check whether this is a directory
-          bool isDir=false;
-#ifdef _WIN32
-          WString dirCheckPathW=utf8To16(dirCheckPath);
-          isDir=PathIsDirectoryW(dirCheckPathW.c_str());
-          int dirError=0;
-#else
-          // again, silly but works.
-          DIR* checkDir=opendir(dirCheckPath.c_str());
-          int dirError=0;
-          if (checkDir!=NULL) {
-            isDir=true;
-            closedir(checkDir);
-          } else {
-            dirError=errno;
-          }
-#endif
-
-          if (isDir) {
-            // go to directory
-            newDir=dirCheckPath;
-          } else {
-            bool extCheck=false;
-            if (confirmOverwrite) {
-              // check whether the file may exist with an extension
-              std::vector<String> parsedExtensions;
-              String nextType;
-              for (char i: filterOptions[curFilterType+1]) {
-                switch (i) {
-                  case '*': // ignore
-                    break;
-                  case ' ': // separator
-                    if (!nextType.empty()) {
-                      parsedExtensions.push_back(nextType);
-                      nextType="";
-                    }
-                    break;
-                  default: // push
-                    nextType.push_back(i);
-                    break;
-                }
+          std::vector<String> parsedEntries;
+          if (multiSelect) {
+            // parse the entry name
+            bool inQuotes=false;
+            bool escaping=false;
+            String next="";
+            for (char& i: entryName) {
+              if (escaping) {
+                if (i!='"' && i!='\\' && (i!=',' || inQuotes)) next+='\\';
+                next+=i;
+                escaping=false;
+                continue;
               }
-              if (!nextType.empty()) {
-                parsedExtensions.push_back(nextType);
-                nextType="";
-              }
-              for (String& i: parsedExtensions) {
-                String fileWithExt=dirCheckPath+i;
-                logV("testing %s",fileWithExt);
-                if (fileExists(fileWithExt.c_str())) {
-                  extCheck=true;
+              switch (i) {
+                case '\\':
+                  escaping=true;
                   break;
-                }
+                case '"':
+                  inQuotes=!inQuotes;
+                  break;
+                case ',':
+                  if (inQuotes) {
+                    next+=i;
+                    break;
+                  }
+                  // add the current entry
+                  parsedEntries.push_back(next);
+                  next="";
+                  break;
+                default:
+                  next+=i;
+                  break;
               }
             }
+            // assume the user wanted to type a backslash
+            if (escaping) next+='\\';
+            if (inQuotes) {
+              // TODO: error?
+            }
+            if (!next.empty()) parsedEntries.push_back(next);
+          } else {
+            // we don't have to parse
+            parsedEntries.push_back(entryName);
+          }
 
-            // return now unless we gotta confirm overwrite
-            if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
-              finalSelection.push_back(dirCheckPath);
-              ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
-              logV("confirm overwrite");
+          std::vector<String> dirCheckPaths;
+          for (String& i: parsedEntries) {
+            if (isPathAbsolute(i)) {
+              dirCheckPaths.push_back(i);
             } else {
-              finalSelection.push_back(dirCheckPath);
-              acceptAndClose();
+              if (path.empty()) {
+                dirCheckPaths.push_back(i);
+              } else if (*path.rbegin()==DIR_SEPARATOR) {
+                dirCheckPaths.push_back(path+i);
+              } else {
+                dirCheckPaths.push_back(path+DIR_SEPARATOR_STR+i);
+              }
+            }
+          }
+
+          if (!dirCheckPaths.empty()) {
+            // check whether this is a directory if a single entry is provided
+            bool isDir=false;
+            int dirError=0;
+            if (dirCheckPaths.size()==1) {
+#ifdef _WIN32
+              WString dirCheckPathW=utf8To16(dirCheckPaths[0]);
+              isDir=PathIsDirectoryW(dirCheckPathW.c_str());
+#else
+              // again, silly but works.
+              DIR* checkDir=opendir(dirCheckPaths[0].c_str());
+              if (checkDir!=NULL) {
+                isDir=true;
+                closedir(checkDir);
+              } else {
+                dirError=errno;
+              }
+#endif
+            }
+
+            if (isDir) {
+              // go to directory
+              newDir=dirCheckPaths[0];
+            } else {
+              bool extCheck=false;
+              if (confirmOverwrite) {
+                // check whether the file(s) may exist with an extension
+                std::vector<String> parsedExtensions;
+                String nextType;
+                for (char i: filterOptions[curFilterType+1]) {
+                  switch (i) {
+                    case '*': // ignore
+                      break;
+                    case ' ': // separator
+                      if (!nextType.empty()) {
+                        parsedExtensions.push_back(nextType);
+                        nextType="";
+                      }
+                      break;
+                    default: // push
+                      nextType.push_back(i);
+                      break;
+                  }
+                }
+                if (!nextType.empty()) {
+                  parsedExtensions.push_back(nextType);
+                  nextType="";
+                }
+                for (String& i: parsedExtensions) {
+                  for (String& j: dirCheckPaths) {
+                    String fileWithExt=j+i;
+                    logV("testing %s",fileWithExt);
+                    if (fileExists(fileWithExt.c_str())) {
+                      extCheck=true;
+                      break;
+                    }
+                  }
+                }
+              }
+
+              // return now unless we gotta confirm overwrite
+              if (confirmOverwrite && (dirError==ENOTDIR || extCheck)) {
+                finalSelection=dirCheckPaths;
+                ImGui::OpenPopup(_("Warning###ConfirmOverwrite"));
+                logV("confirm overwrite");
+              } else {
+                finalSelection=dirCheckPaths;
+                acceptAndClose();
+              }
             }
           }
         } else {
@@ -1819,7 +1870,11 @@ bool FurnaceFilePicker::draw(ImGuiWindowFlags winFlags) {
 
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),ImGuiCond_Always,ImVec2(0.5,0.5));
     if (ImGui::BeginPopupModal(_("Warning###ConfirmOverwrite"),NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoSavedSettings)) {
-      ImGui::TextUnformatted(_("The file you selected already exists! Would you like to overwrite it?"));
+      if (multiSelect) {
+        ImGui::TextUnformatted(_("Some of the files you selected already exist! Would you like to overwrite them?"));
+      } else {
+        ImGui::TextUnformatted(_("The file you selected already exists! Would you like to overwrite it?"));
+      }
       if (ImGui::Button(_("Yes"))) {
         acceptAndClose();
         ImGui::CloseCurrentPopup();
