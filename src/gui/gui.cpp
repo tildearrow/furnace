@@ -8062,12 +8062,6 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          const char* drumChNames[17]={_("None"), "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
-          int drumChIndex=CLAMP(e->midiImportOptions.drumChannel,0,16);
-          ImGui::SetNextItemWidth(120.0f*dpiScale);
-          if (ImGui::Combo(_("Drum channel"),&drumChIndex,drumChNames,17)) {
-            e->midiImportOptions.drumChannel=drumChIndex;
-          }
 
           // cannot just strcpy into strBuf due to l10n (are you sure "None" always translates to a utf-8 string <=15 bytes?)
           const char* midiDrumChPreview=_("None");
