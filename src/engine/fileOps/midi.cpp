@@ -556,7 +556,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     ds.systemChans[0]=(unsigned short)DIV_MAX_CHANS;
     ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0.0f;
-    ds.systemFlags[9].set("volMax",127);
+    ds.systemFlags[0].set("volMax",127);
     ds.systemName="Generic PCM DAC";
 
     int chanDefIdx=0;
