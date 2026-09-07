@@ -468,6 +468,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     DivSong ds;
     ds.version=DIV_VERSION_MIDI;
 
+    const int drumChannel=(midiImportOptions.drumChannel>=1 && midiImportOptions.drumChannel<=16)?(midiImportOptions.drumChannel-1):-1;
     const int slideSpeed=(ds.compatFlags.linearPitch && ds.compatFlags.pitchSlideSpeed>0)?ds.compatFlags.pitchSlideSpeed:1;
 
     reader.seek(4,SEEK_SET);
@@ -655,7 +656,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
           if (command<0x80) throw EndOfFileException(&r,r.size());
           const int midiCh=((command&0x0f)+tr.midiBaseChannel)%16;
           DivMIDIChanState& mc=midiChan[midiCh];
-          const bool isDrum=(midiCh==midiImportOptions.drumChannel);
+          const bool isDrum=(midiCh==drumChannel);
 
           auto noteOff=[&](int note) {
             if (note<0 || note>127) return;
@@ -1122,8 +1123,8 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
       short* cell=sub->pat[tempoChan].getPattern(te.order,true)->newData[te.row];
       if (midiImportOptions.useBaseTempo) {
-        double hz=(double)midiImportOptions.quantize*1000000.0/(4.0*(double)te.tempo)*(double)midiImportOptions.quantize;
-        int hzI=(int)lround(hz);
+        double hz=(double)midiImportOptions.quantize*1000000.0/(4.0*(double)te.tempo)*(double)midiImportOptions.ticksPerRow;
+        int hzI=round(hz);
         if (hzI<1) hzI=1;
         if (hzI>1023) {
           hzI=1023;
@@ -1138,7 +1139,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     int rowsPerBeat=midiImportOptions.quantize/4;
     if (rowsPerBeat<1) rowsPerBeat=1;
-    int rowsPerBar=(int)lround((double)midiImportOptions.quantize*(double)timeSigNumer/(double)timeSigDenom);
+    int rowsPerBar=round((double)midiImportOptions.quantize*(double)timeSigNumer/(double)timeSigDenom);
     if (rowsPerBar<1) rowsPerBar=rowsPerBeat;
     sub->hilightA=(unsigned char)CLAMP(rowsPerBeat,1,255);
     sub->hilightB=(unsigned char)CLAMP(rowsPerBar,1,255);
@@ -1177,7 +1178,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     for (size_t i=0; i<parts.size(); i++) {
       DivMIDIPart& part=parts[i];
       if (!part.name.empty()) continue;
-      if (part.channel==midiImportOptions.drumChannel) {
+      if (part.channel==drumChannel) {
         part.name=(part.firstProgram<=0)?String("Standard Drum Kit"):fmt::sprintf("Drum Kit %d",part.firstProgram);
       } else if (part.firstProgram>=0 && part.firstProgram<128) {
         part.name=midiGMInstrumentNames[part.firstProgram];
