@@ -66,6 +66,7 @@ class DivWorkPool;
 #define DIV_VERSION_TFE 0xff05
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
+#define DIV_VERSION_MIDI 0xff08
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -548,6 +549,7 @@ class DivEngine {
   bool loadFC(unsigned char* file, size_t len);
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
+  bool loadMIDI(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -1372,6 +1374,47 @@ class DivEngine {
     unsigned char* tg100ROM;
     unsigned char* mu5ROM;
 
+    // MIDI import options. set these before loading a .mid - see loadMIDI().
+    // the enabled volume sources multiply together; if all are off the volume
+    // column is left at maximum.
+    bool midiImportVelocity, midiImportCC7, midiImportCC11;
+    // rows per whole note (4-256). this is the row grid: quantize/4 is rows per
+    // beat, and quantize is rows per 4/4 measure
+    int midiImportQuantize;
+    // ticks per row (2-16). this is the song speed AND the sub-row resolution:
+    // whatever a note misses the row grid by is carried in an EDxx note delay
+    int midiImportTicksPerRow;
+    // pattern length in rows (1-256)
+    int midiImportPatternLen;
+    // which MIDI channel is the drum channel (1-16, or 0 for none)
+    int midiImportDrumChannel;
+    // give every drum note its own instrument instead of one kit instrument
+    bool midiImportSplitDrums;
+    // honour CC64 (sustain pedal) when placing note-offs
+    bool midiImportSustain;
+    // import CC10 (pan) as 80xx panning effects
+    bool midiImportPan;
+    // import CC1 (modulation) as 04xy vibrato. MIDI's mod wheel carries depth
+    // only - the LFO rate is part of the synth's patch, not the file - so the
+    // rate below is fixed for the whole import and only depth follows the wheel
+    bool midiImportVibrato;
+    // vibrato rate in Hz (1-15). resolved to an 04xy speed nibble against the
+    // song's own tick rate, so a file wobbles at the same speed in either
+    // tempo mode
+    int midiImportVibratoRate;
+    // 04xy depth at full mod wheel (1-15). 15 is a full semitone, well past
+    // what a GM synth reaches at full wheel
+    int midiImportVibratoDepth;
+    // import pitch bend as F1xx/F2xx pitch slides, scaled by the RPN 0 bend
+    // range the file declares (GM default is 2 semitones)
+    bool midiImportPitchBend;
+    // pitch bend range in semitones, overriding whatever the file says.
+    // 0 follows the file instead (1-24)
+    int midiImportBendRange;
+    // true solves the tick rate from the song's BPM and keeps a flat speed;
+    // false pins the tick rate at 60Hz and carries the tempo in the groove
+    bool midiImportBaseTempo;
+
     DivEngine():
       output(NULL),
       exportThread(NULL),
@@ -1507,7 +1550,23 @@ class DivEngine {
       processTime(0),
       yrw801ROM(NULL),
       tg100ROM(NULL),
-      mu5ROM(NULL) {
+      mu5ROM(NULL),
+      midiImportVelocity(true),
+      midiImportCC7(true),
+      midiImportCC11(true),
+      midiImportQuantize(32),
+      midiImportTicksPerRow(6),
+      midiImportPatternLen(64),
+      midiImportDrumChannel(10),
+      midiImportSplitDrums(true),
+      midiImportSustain(true),
+      midiImportPan(true),
+      midiImportVibrato(true),
+      midiImportVibratoRate(5),
+      midiImportVibratoDepth(8),
+      midiImportPitchBend(true),
+      midiImportBendRange(0),
+      midiImportBaseTempo(true) {
       memset(isMuted,0,DIV_MAX_CHANS*sizeof(bool));
       memset(keyHit,0,DIV_MAX_CHANS*sizeof(bool));
       memset(vibTable,0,64*sizeof(short));
