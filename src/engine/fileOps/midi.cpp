@@ -17,16 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// TODO: this code needs to be partially rewritten. a message from its author follows.
+//
+// Yes, I used Claude Opus for questions and code implementation
+// 
+// Before committing + pushing, the code is personally reviewed by me and tested to ensure the code generated is quality code, and that it follows the contributing rules
+// 
+// I honestly left the disclosure out because I didn't know how people would react with MIDI import action since there was some long heated discussions in the past, and right now AI-assisted contributions are also having very heated discussions so i wanted to pick only 1 struggle, even tho it will make me look like a asshole
+// 
+// but in future contributions (if i make them) I will disclosure the usage of LMMs if they are used
+
 #include "fileOpsCommon.h"
 #include <algorithm>
-#include <cassert>
-#include <cstdint>
-#include <cstdlib>
-#include <cmath>
+#include <assert.h>
+#include <stdlib.h>
+#include <math.h>
 #include <map>
 #include <vector>
 
-static const char* const midiGMInstrumentNames[128]={
+static const char* midiGMInstrumentNames[128]={
   "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano", "Honky-tonk Piano",
   "Electric Piano 1", "Electric Piano 2", "Harpsichord", "Clavinet",
   "Celesta", "Glockenspiel", "Music Box", "Vibraphone",
@@ -63,7 +72,7 @@ static const char* const midiGMInstrumentNames[128]={
 
 #define MIDI_DRUM_FIRST 35
 #define MIDI_DRUM_LAST 81
-static const char* const midiGMDrumNames[MIDI_DRUM_LAST-MIDI_DRUM_FIRST+1]={
+static const char* midiGMDrumNames[MIDI_DRUM_LAST-MIDI_DRUM_FIRST+1]={
   "Acoustic Bass Drum", "Bass Drum 1", "Side Stick", "Acoustic Snare",
   "Hand Clap", "Electric Snare", "Low Floor Tom", "Closed Hi-hat",
   "High Floor Tom", "Pedal Hi-hat", "Low Tom", "Open Hi-hat",
