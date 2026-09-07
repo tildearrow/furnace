@@ -108,7 +108,7 @@ class FurnaceFilePicker {
   String entryName;
   ImGuiListClipper listClipper;
   ImVec2 minSize, maxSize;
-  bool haveFiles, haveStat, stopReading, isOpen, isMobile;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile, focusEntryName;
   bool sortInvert[FP_SORT_MAX];
   bool multiSelect;
   int lastSelFilteredIndex; // index of last selection on the filtered entry list
@@ -175,6 +175,7 @@ class FurnaceFilePicker {
     void setSizeConstraints(const ImVec2& min, const ImVec2& max);
     bool draw(ImGuiWindowFlags winFlags=0);
     bool isOpened();
+    bool isSave();
     void close();
     bool open(String name, String path, String hint, int flags, const std::vector<String>& filter, FilePickerSelectCallback selectCallback=NULL);
     void loadSettings(DivConfig& conf);

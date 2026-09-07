@@ -9403,7 +9403,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
 
 bool FurnaceGUI::requestQuit() {
   if (modified && !cvOpen) {
-    showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+    // only modify
+    if (!newFilePicker->isOpened() || !newFilePicker->isSave()) {
+      showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+    }
   } else if (settingsOpen && settingsChanged) {
     showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
   } else {
