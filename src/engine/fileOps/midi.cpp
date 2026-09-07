@@ -552,10 +552,11 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     const int voiceChans=DIV_MAX_CHANS-1;
 
     ds.systemLen=1;
-    ds.system[0]=DIV_SYSTEM_PCM_DAC;
+    ds.system[0]=DIV_SYSTEM_DUMMY;
     ds.systemChans[0]=(unsigned short)DIV_MAX_CHANS;
     ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0.0f;
+    ds.systemFlags[9].set("volMax",127);
     ds.systemName="Generic PCM DAC";
 
     int chanDefIdx=0;
@@ -898,8 +899,12 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                       }
                       if (kit!=0) ins->name+=fmt::sprintf(" (Kit %d)",kit);
                     }
+                    ins->std.dutyMacro.len=1;
+                    ins->std.dutyMacro.val[0]=1;
                   } else {
                     ins->name=midiGMInstrumentNames[insKey.second&0x7f];
+                    ins->std.dutyMacro.len=1;
+                    ins->std.dutyMacro.val[0]=0;
                   }
                   ds.ins.push_back(ins);
                   insMap[insKey]=insIndex;
@@ -1255,7 +1260,6 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     ds.recalcChans();
 
-    addWarning("No samples were created. - Assign samples to the instruments, or change the chip, to hear anything");
     if (retimedCount>0) {
       addWarning(fmt::sprintf("%d Note-offs were moved a row later by quantization",retimedCount));
     }
