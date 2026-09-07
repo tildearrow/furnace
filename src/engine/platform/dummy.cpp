@@ -179,7 +179,6 @@ unsigned int DivPlatformDummy::getMaxFreq(int ch) {
 void DivPlatformDummy::setFlags(const DivConfig& flags) {
   maxVol=flags.getInt("volMax",15);
   if (maxVol<1) maxVol=1;
-  if (maxVol>255) maxVol=255;
 }
 
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

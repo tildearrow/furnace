@@ -7831,7 +7831,6 @@ bool FurnaceGUI::loop() {
         ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
       }
       popWarningColor();
-      
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
@@ -7919,12 +7918,12 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    // width is pinned so the wrapped hint text has something to wrap against;
-    // height follows the content and is capped by the canvas, so this cannot
-    // overflow a short monitor the way a fixed minimum did
     float midiImportW=mobileUI?(canvasW-(portrait?0:(60.0*dpiScale))):(480.0f*dpiScale);
     ImGui::SetNextWindowSizeConstraints(ImVec2(midiImportW,0.0f),ImVec2(midiImportW,canvasH-(mobileUI?(60.0*dpiScale):0)));
     if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_AlwaysAutoResize)) {
+      // string buffer used for combo selectables/previews
+      char strBuf[16];
+
       ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
       if (ImGui::BeginTabBar("MIDIImportSections")) {
         if (ImGui::BeginTabItem(_("Controllers"))) {
@@ -7933,11 +7932,11 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          ImGui::Checkbox(_("Note Velocity"),&e->midiImportVelocity);
-          ImGui::Checkbox(_("CC07 (Channel Volume)"),&e->midiImportCC7);
-          ImGui::Checkbox(_("CC11 (Expression)"),&e->midiImportCC11);
+          ImGui::Checkbox(_("Note Velocity"),&e->midiImportOptions.importVelocity);
+          ImGui::Checkbox(_("CC07 (Channel Volume)"),&e->midiImportOptions.importCC7);
+          ImGui::Checkbox(_("CC11 (Expression)"),&e->midiImportOptions.importCC11);
           ImGui::Unindent();
-          if (!e->midiImportVelocity && !e->midiImportCC7 && !e->midiImportCC11) {
+          if (!e->midiImportOptions.importVelocity && !e->midiImportOptions.importCC7 && !e->midiImportOptions.importCC11) {
             ImGui::TextWrapped(_("With all of them off, every note is imported at maximum volume."));
           } else {
             ImGui::TextWrapped(_("The enabled sources multiply together, the way they would on a MIDI Synthesizer."));
@@ -7949,21 +7948,21 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          ImGui::Checkbox(_("CC01 (Modulation)"),&e->midiImportVibrato);
-          ImGui::Checkbox(_("MIDI Pitch"),&e->midiImportPitchBend);
+          ImGui::Checkbox(_("CC01 (Modulation)"),&e->midiImportOptions.importVibrato);
+          ImGui::Checkbox(_("MIDI Pitch"),&e->midiImportOptions.importPitchBend);
           ImGui::Unindent();
-          ImGui::BeginDisabled(!e->midiImportVibrato);
+          ImGui::BeginDisabled(!e->midiImportOptions.importVibrato);
           ImGui::SetNextItemWidth(160.0f*dpiScale);
-          ImGui::SliderInt(_("Modulation Rate"),&e->midiImportVibratoRate,1,15,_("%d Hz"),ImGuiSliderFlags_AlwaysClamp);
+          ImGui::SliderInt(_("Modulation Rate"),&e->midiImportOptions.vibratoRate,1,15,_("%d Hz"),ImGuiSliderFlags_AlwaysClamp);
           ImGui::SetNextItemWidth(160.0f*dpiScale);
-          ImGui::SliderInt(_("Max-Depth"),&e->midiImportVibratoDepth,1,15,"%d",ImGuiSliderFlags_AlwaysClamp);
+          ImGui::SliderInt(_("Max-Depth"),&e->midiImportOptions.vibratoDepth,1,15,"%d",ImGuiSliderFlags_AlwaysClamp);
           ImGui::EndDisabled();
-          ImGui::BeginDisabled(!e->midiImportPitchBend);
+          ImGui::BeginDisabled(!e->midiImportOptions.importPitchBend);
           ImGui::SetNextItemWidth(160.0f*dpiScale);
-          ImGui::SliderInt(_("Pitch Range"),&e->midiImportBendRange,0,24,e->midiImportBendRange?_("%d Semitones"):_("From file"),ImGuiSliderFlags_AlwaysClamp);
+          ImGui::SliderInt(_("Pitch Range"),&e->midiImportOptions.bendRange,0,24,e->midiImportOptions.bendRange?_("%d Semitones"):_("From file"),ImGuiSliderFlags_AlwaysClamp);
           ImGui::EndDisabled();
           ImGui::TextWrapped(_("CC1 modulation imports as 04xy. the mod wheel only sets depth - MIDI has no rate to convert - so 5Hz is used as a approximation. max depth is what a fully-raised wheel reaches; 15 is a full semitone."));
-          if (e->midiImportBendRange) {
+          if (e->midiImportOptions.bendRange) {
             ImGui::TextWrapped(_("Pitch bend imports as F1xx/F2xx pitch slides, ignoring the range the file asks for."));
           } else {
             ImGui::TextWrapped(_("Pitch bend imports as F1xx/F2xx pitch slides, scaled to the bend range the file asks for, or 2 semitones if it does not say. raise this if the bends come out too shallow."));
@@ -7975,9 +7974,9 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          ImGui::Checkbox(_("CC10 (Pan Position MSB)"),&e->midiImportPan);
+          ImGui::Checkbox(_("CC10 (Pan Position MSB)"),&e->midiImportOptions.importPan);
           ImGui::Unindent();
-          if (e->midiImportPan) {
+          if (e->midiImportOptions.importPan) {
             ImGui::TextWrapped(_("Imported as 80xx panning effects. You need to enable 'Stereo' in the Chip Manager for this to have any effect."));
           }
 
@@ -7987,7 +7986,7 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          ImGui::Checkbox(_("Sustain Pedal (CC64)"),&e->midiImportSustain);
+          ImGui::Checkbox(_("Sustain Pedal (CC64)"),&e->midiImportOptions.importSustain);
           ImGui::Unindent();
           ImGui::EndTabItem();
         }
@@ -7997,10 +7996,10 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          if (ImGui::RadioButton(_("Base Tempo"),e->midiImportBaseTempo)) e->midiImportBaseTempo=true;
-          if (ImGui::RadioButton(_("Groove Approximation"),!e->midiImportBaseTempo)) e->midiImportBaseTempo=false;
+          if (ImGui::RadioButton(_("Base Tempo"),e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=true;
+          if (ImGui::RadioButton(_("Groove Approximation"),!e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=false;
           ImGui::Unindent();
-          if (e->midiImportBaseTempo) {
+          if (e->midiImportOptions.useBaseTempo) {
             ImGui::TextWrapped(_("Sets the song's tick rate from the MIDI's own BPM. Exact tempo, a flat speed, and sub-row timing carried in note delays, at the cost of an unusual tick rate."));
           } else {
             ImGui::TextWrapped(_("Keeps the tick rate at 60Hz and carries the tempo in the groove. Notes land on whole rows, so timing is coarser."));
@@ -8012,45 +8011,47 @@ bool FurnaceGUI::loop() {
           ImGui::PopFont();
           ImGui::Separator();
           ImGui::Indent();
-          // Quantize is the row grid: how many rows one whole note takes. the list
-          // pairs each straight value with its triplet sibling, since a triplet
-          // grid needs a value divisible by 3
-          const char* quantizeNames[12]={_("1/4 notes"),_("1/6 notes"),_("1/8 notes"),_("1/12 notes"),_("1/16 notes"),_("1/24 notes"),_("1/32 notes"),_("1/48 notes"),_("1/64 notes"),_("1/96 notes"),_("1/128 notes"),_("1/192 notes")};
-          static const int quantizeValues[12]={4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192};
-          int quantizeIndex=6;
-          for (int i=0; i<12; i++) {
-            if (quantizeValues[i]==e->midiImportQuantize) quantizeIndex=i;
-          }
+
           ImGui::SetNextItemWidth(120.0f*dpiScale);
-          if (ImGui::Combo(_("Quantize"),&quantizeIndex,quantizeNames,12)) {
-            e->midiImportQuantize=quantizeValues[quantizeIndex];
+          snprintf(strBuf,15,"1/%d notes",e->midiImportOptions.quantize);
+          if (ImGui::BeginCombo(_("Quantize"),strBuf)) {
+            for (int i=0; i<12; i++) {
+              snprintf(strBuf,15,"1/%d notes",midiQuantizeValues[i]);
+              if (ImGui::Selectable(strBuf,e->midiImportOptions.quantize==midiQuantizeValues[i])) {
+                e->midiImportOptions.quantize=midiQuantizeValues[i];
+              }
+            }
+            ImGui::EndCombo();
           }
           // in groove approximation the speed comes out of the groove, so there is
           // no fixed tick count for this to set
-          ImGui::BeginDisabled(!e->midiImportBaseTempo);
+          ImGui::BeginDisabled(!e->midiImportOptions.useBaseTempo);
           ImGui::SetNextItemWidth(120.0f*dpiScale);
-          if (ImGui::InputInt(_("Ticks per row"),&e->midiImportTicksPerRow)) {
-            e->midiImportTicksPerRow=CLAMP(e->midiImportTicksPerRow,2,16);
+          if (ImGui::InputInt(_("Ticks per row"),&e->midiImportOptions.ticksPerRow)) {
+            e->midiImportOptions.ticksPerRow=CLAMP(e->midiImportOptions.ticksPerRow,2,16);
           }
           ImGui::EndDisabled();
-          const char* patLenNames[5]={"16", "32", "64", "128", "256"};
-          static const int patLenValues[5]={16, 32, 64, 128, 256};
-          int patLenIndex=2;
-          for (int i=0; i<5; i++) {
-            if (patLenValues[i]==e->midiImportPatternLen) patLenIndex=i;
-          }
+
           ImGui::SetNextItemWidth(120.0f*dpiScale);
-          if (ImGui::Combo(_("Pattern length"),&patLenIndex,patLenNames,5)) {
-            e->midiImportPatternLen=patLenValues[patLenIndex];
+          snprintf(strBuf,15,"%d",e->midiImportOptions.patternLen);
+          if (ImGui::BeginCombo(_("Pattern length"),strBuf)) {
+            for (int i=0; i<5; i++) {
+              int value=16<<i;
+              snprintf(strBuf,15,"%d",value);
+              if (ImGui::Selectable(strBuf,e->midiImportOptions.patternLen==value)) {
+                e->midiImportOptions.patternLen=value;
+              }
+            }
+            ImGui::EndCombo();
           }
           ImGui::Unindent();
           {
-            int rowsPerBeat=MAX(1,e->midiImportQuantize/4);
-            float barsPerPat=(float)e->midiImportPatternLen/(float)e->midiImportQuantize;
-            if (e->midiImportBaseTempo) {
-              ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. whatever a note misses the row grid by is carried in a note delay, so the real resolution is 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportQuantize*e->midiImportTicksPerRow);
+            int rowsPerBeat=MAX(1,e->midiImportOptions.quantize/4);
+            float barsPerPat=(float)e->midiImportOptions.patternLen/(float)e->midiImportOptions.quantize;
+            if (e->midiImportOptions.useBaseTempo) {
+              ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. whatever a note misses the row grid by is carried in a note delay, so the real resolution is 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportOptions.quantize*e->midiImportOptions.ticksPerRow);
             } else {
-              ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. Groove Approximation has no note delays, so the resolution is the row grid itself: 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportQuantize);
+              ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. Groove Approximation has no note delays, so the resolution is the row grid itself: 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportOptions.quantize);
             }
           }
           ImGui::EndTabItem();
@@ -8062,18 +8063,38 @@ bool FurnaceGUI::loop() {
           ImGui::Separator();
           ImGui::Indent();
           const char* drumChNames[17]={_("None"), "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
-          int drumChIndex=CLAMP(e->midiImportDrumChannel,0,16);
+          int drumChIndex=CLAMP(e->midiImportOptions.drumChannel,0,16);
           ImGui::SetNextItemWidth(120.0f*dpiScale);
           if (ImGui::Combo(_("Drum channel"),&drumChIndex,drumChNames,17)) {
-            e->midiImportDrumChannel=drumChIndex;
+            e->midiImportOptions.drumChannel=drumChIndex;
           }
-          ImGui::BeginDisabled(e->midiImportDrumChannel==0);
-          ImGui::Checkbox(_("One instrument per drum note"),&e->midiImportSplitDrums);
+
+          // cannot just strcpy into strBuf due to l10n (are you sure "None" always translates to a utf-8 string <=15 bytes?)
+          const char* midiDrumChPreview=_("None");
+          if (e->midiImportOptions.drumChannel) {
+            snprintf(strBuf,15,"%d",e->midiImportOptions.drumChannel);
+            midiDrumChPreview=strBuf;
+          } 
+          if (ImGui::BeginCombo(_("Drum channel"),midiDrumChPreview)) {
+            if (ImGui::Selectable(_("None"),e->midiImportOptions.drumChannel==0)) {
+              e->midiImportOptions.drumChannel=0;
+            }
+            for (int i=1; i<=16; i++) {
+              snprintf(strBuf,15,"%d",midiQuantizeValues[i]);
+              if (ImGui::Selectable(strBuf,e->midiImportOptions.drumChannel==i)) {
+                e->midiImportOptions.drumChannel=0;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
+          ImGui::BeginDisabled(e->midiImportOptions.drumChannel==0);
+          ImGui::Checkbox(_("One instrument per drum note"),&e->midiImportOptions.splitDrums);
           ImGui::EndDisabled();
           ImGui::Unindent();
-          if (e->midiImportDrumChannel==0) {
+          if (e->midiImportOptions.drumChannel==0) {
             ImGui::TextWrapped(_("No drum channel: every channel is treated as melodic."));
-          } else if (e->midiImportSplitDrums) {
+          } else if (e->midiImportOptions.splitDrums) {
             ImGui::TextWrapped(_("Each drum note gets its own instrument, named after its GM kit piece, and is played from C-4."));
           } else {
             ImGui::TextWrapped(_("The whole kit shares one instrument, played chromatically."));

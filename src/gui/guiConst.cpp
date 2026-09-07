@@ -138,6 +138,10 @@ const int vgmVersions[7]={
   0x172
 };
 
+const int midiQuantizeValues[12]={
+  4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192
+};
+
 // name, icon, letter icon
 const char* insTypes[DIV_INS_MAX+1][3]={
   {"SN76489/Sega PSG",ICON_FA_BAR_CHART,ICON_FUR_INS_STD},

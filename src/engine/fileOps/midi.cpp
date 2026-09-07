@@ -102,11 +102,11 @@ static void midiComputeBaseGroove(int R, int tempo0, DivGroovePattern& groove) {
   if (avgSpeed>512.0) avgSpeed=512.0;
 
   int bestLen=1;
-  int bestSum=(int)lround(avgSpeed);
+  int bestSum=round(avgSpeed);
   double bestErr=-1.0;
   for (int len=1; len<=16; len++) {
     if (R%len) continue;
-    int sum=(int)lround(avgSpeed*(double)len);
+    int sum=round(avgSpeed*(double)len);
     if (sum<len) sum=len;
     if (sum>512*len) sum=512*len;
     double err=fabs((double)sum/(double)len-avgSpeed);
@@ -283,13 +283,13 @@ template<typename K> static K midiMostCommonByDuration(const std::vector<std::pa
   return best;
 }
 
-static short midiVolumeOf(int vel, int cc7, int cc11, int maxVol, bool useVel, bool useCC7, bool useCC11) {
+static short midiVolumeOf(int vel, int cc7, int cc11, bool useVel, bool useCC7, bool useCC11) {
   double scale=1.0;
   if (useVel) scale*=(double)vel/127.0;
   if (useCC7) scale*=(double)cc7/127.0;
   if (useCC11) scale*=(double)cc11/127.0;
-  int v=(int)lround(scale*(double)maxVol);
-  return (short)CLAMP(v,0,maxVol);
+  int v=round(scale*127.0);
+  return (short)CLAMP(v,0,127);
 }
 
 static void midiWriteFx(short* row, unsigned char& effectCols, int role, unsigned char fx, unsigned char val) {
@@ -405,25 +405,6 @@ static bool midiSplitBend(int want, int cur, int slideSpeed, int& newNote, int& 
   return true;
 }
 
-#ifndef NDEBUG
-static void midiSplitBendSelfCheck() {
-  int newNote, steps;
-
-  assert(!midiSplitBend(1020,0,4,newNote,steps) && steps==255);
-
-  assert(midiSplitBend(1021,0,4,newNote,steps));
-  assert(std::abs(1021-(newNote*128+steps*4))<4);
-
-  assert(midiSplitBend(9800,12800,4,newNote,steps));
-  assert(std::abs(9800-(newNote*128+steps*4))<4);
-  assert(midiSplitBend(12800,9800,4,newNote,steps));
-  assert(std::abs(12800-(newNote*128+steps*4))<4);
-
-  assert(midiSplitBend(999999,0,4,newNote,steps) && newNote==179);
-  assert(midiSplitBend(-999999,0,4,newNote,steps) && newNote==0);
-}
-#endif
-
 static int midiAllocVoice(DivMIDIPart& part, const std::vector<DivMIDIModChanState>& chans, int& nextChan, int voiceChans, int note, bool monoMode, int totalRow, int& outRow, int& nudgeCount, int& crowdedCount, int& stealCount) {
   outRow=totalRow;
 
@@ -478,9 +459,6 @@ static int midiAllocVoice(DivMIDIPart& part, const std::vector<DivMIDIModChanSta
 }
 
 bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
-#ifndef NDEBUG
-  midiSplitBendSelfCheck();
-#endif
   bool success=false;
   SafeReader reader=SafeReader(file,len);
   std::vector<DivMIDITrackState> tracks;
@@ -490,17 +468,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     DivSong ds;
     ds.version=DIV_VERSION_MIDI;
 
-    const int quantize=CLAMP(midiImportQuantize,4,256);
-    const int patLen=CLAMP(midiImportPatternLen,1,DIV_MAX_ROWS);
-    const int ticksPerRow=CLAMP(midiImportTicksPerRow,2,16);
-    const int drumCh=(midiImportDrumChannel>=1 && midiImportDrumChannel<=16)?(midiImportDrumChannel-1):-1;
-    const bool baseTempoMode=midiImportBaseTempo;
-    const bool useDelays=baseTempoMode;
     const int slideSpeed=(ds.compatFlags.linearPitch && ds.compatFlags.pitchSlideSpeed>0)?ds.compatFlags.pitchSlideSpeed:1;
-    const int bendRangeOverride=CLAMP(midiImportBendRange,0,24);
-    const int vibDepthMax=CLAMP(midiImportVibratoDepth,1,15);
-
-    const int vibRateHz=CLAMP(midiImportVibratoRate,1,15);
 
     reader.seek(4,SEEK_SET);
     int headerLen=reader.readI_BE();
@@ -530,7 +498,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     std::vector<String> trackNames;
     while (reader.tell()+8<=reader.size() && (int)tracks.size()<numTracks) {
-      unsigned char chunkID[4];
+      char chunkID[4];
       reader.read(chunkID,4);
       int chunkLenS=reader.readI_BE();
       if (chunkLenS<0) throw EndOfFileException(&reader,reader.size());
@@ -538,7 +506,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       if (chunkLen>reader.size()-reader.tell()) chunkLen=reader.size()-reader.tell();
       size_t chunkStart=reader.tell();
       midiSkip(reader,chunkLen);
-      if (memcmp(chunkID,"MTrk",4)!=0) continue;
+      if (strncmp(chunkID,"MTrk",4)!=0) continue;
 
       DivMIDITrackState ts;
       ts.r=new SafeReader(file+chunkStart,chunkLen);
@@ -549,7 +517,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
         ts.nextEvent=INT64_MAX;
       }
       tracks.push_back(ts);
-      trackNames.push_back(String(""));
+      trackNames.push_back("");
     }
     numTracks=(int)tracks.size();
     if (numTracks<1) {
@@ -562,22 +530,19 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     ds.systemLen=1;
     ds.system[0]=DIV_SYSTEM_DUMMY;
-    ds.systemChans[0]=(unsigned short)DIV_MAX_CHANS;
     ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0.0f;
     ds.systemFlags[0].set("volMax",127);
-    ds.systemName="Generic PCM DAC";
 
     int chanDefIdx=0;
-    DivInstrumentType pcmInsType=DivEngine::getSystemDef(ds.system[0])->getChanDef(chanDefIdx).insType[0];
-    int maxVol=ds.systemFlags[0].getInt("volMax",255);
+    DivInstrumentType pcmInsType=getSystemDef(ds.system[0])->getChanDef(chanDefIdx).insType[0];
 
     DivSubSong* sub=ds.subsong[0];
-    sub->patLen=patLen;
+    sub->patLen=midiImportOptions.patternLen;
 
-    std::vector<DivMIDIChanState> midiChan(16);
-    if (bendRangeOverride>0) {
-      for (size_t i=0; i<midiChan.size(); i++) midiChan[i].bendRangeCents=bendRangeOverride*100;
+    DivMIDIChanState midiChan[16];
+    if (midiImportOptions.bendRange>0) {
+      for (size_t i=0; i<16; i++) midiChan[i].bendRangeCents=midiImportOptions.bendRange*100;
     }
     std::vector<DivMIDIModChanState> modChan(DIV_MAX_CHANS);
     std::vector<DivMIDITempoEvent> tempoEvents;
@@ -611,17 +576,17 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       DivMIDITrackState& tr=tracks[t];
       SafeReader& r=*tr.r;
 
-      int64_t modTicks=midiMulDivR(tick,(int64_t)quantize*(int64_t)ticksPerRow,(int64_t)ppqn*4);
-      int64_t totalRow64=modTicks/ticksPerRow;
-      int delay=(int)(modTicks%ticksPerRow);
-      int64_t ord64=totalRow64/patLen;
+      int64_t modTicks=midiMulDivR(tick,(int64_t)midiImportOptions.quantize*(int64_t)midiImportOptions.ticksPerRow,(int64_t)ppqn*4);
+      int64_t totalRow64=modTicks/midiImportOptions.ticksPerRow;
+      int delay=(int)(modTicks%midiImportOptions.ticksPerRow);
+      int64_t ord64=totalRow64/midiImportOptions.patternLen;
       if (ord64>=DIV_MAX_PATTERNS) {
         truncated=true;
         break;
       }
       const int totalRow=(int)totalRow64;
       const int ord=(int)ord64;
-      const int row=(int)(totalRow64%patLen);
+      const int row=(int)(totalRow64%midiImportOptions.patternLen);
 
       if (ord>maxOrd) maxOrd=ord;
       if (tick>songEndTicks) songEndTicks=tick;
@@ -690,13 +655,13 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
           if (command<0x80) throw EndOfFileException(&r,r.size());
           const int midiCh=((command&0x0f)+tr.midiBaseChannel)%16;
           DivMIDIChanState& mc=midiChan[midiCh];
-          const bool isDrum=(midiCh==drumCh);
+          const bool isDrum=(midiCh==midiImportOptions.drumChannel);
 
           auto noteOff=[&](int note) {
             if (note<0 || note>127) return;
             int ch=mc.noteOn[note];
             if (ch<0) return;
-            if (mc.sustain && midiImportSustain) {
+            if (mc.sustain && midiImportOptions.importSustain) {
               modChan[ch].sustained=true;
               return;
             }
@@ -707,13 +672,12 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
             short* cell=sub->pat[ch].getPattern(ord,true)->newData[row];
             if (cell[DIV_PAT_NOTE]==-1) {
               cell[DIV_PAT_NOTE]=DIV_NOTE_OFF;
-              if (useDelays && delay!=0) midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NOTE_DELAY,0xed,(unsigned char)delay);
+              if (midiImportOptions.useBaseTempo && delay!=0) midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NOTE_DELAY,0xed,(unsigned char)delay);
               return;
             }
             if (cell[DIV_PAT_NOTE]>=DIV_NOTE_RAW || isDrum) return;
 
-            if (useDelays) {
-
+            if (midiImportOptions.useBaseTempo) {
               int cut=delay-modChan[ch].noteDelay;
               if (cut<1) {
                 cut=1;
@@ -722,9 +686,9 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
               midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NOTE_CUT,0xec,(unsigned char)cut);
             } else {
               int offRow=totalRow+1;
-              int offOrd=offRow/patLen;
+              int offOrd=offRow/midiImportOptions.patternLen;
               if (offOrd>=DIV_MAX_PATTERNS) return;
-              short* offCell=sub->pat[ch].getPattern(offOrd,true)->newData[offRow%patLen];
+              short* offCell=sub->pat[ch].getPattern(offOrd,true)->newData[offRow%midiImportOptions.patternLen];
               if (offCell[DIV_PAT_NOTE]==-1) {
                 offCell[DIV_PAT_NOTE]=DIV_NOTE_OFF;
                 retimedCount++;
@@ -740,10 +704,10 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
               int cur=modChan[ch].curNote*128+modChan[ch].pitchApplied;
               if (want==cur) break;
 
-              const int bOrd=fr/patLen;
+              const int bOrd=fr/midiImportOptions.patternLen;
               if (bOrd>=DIV_MAX_PATTERNS) break;
               if (bOrd>maxOrd) maxOrd=bOrd;
-              short* bendCell=sub->pat[ch].getPattern(bOrd,true)->newData[fr%patLen];
+              short* bendCell=sub->pat[ch].getPattern(bOrd,true)->newData[fr%midiImportOptions.patternLen];
 
               int newNote, steps;
               if (midiSplitBend(want,cur,slideSpeed,newNote,steps)) {
@@ -793,7 +757,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
           };
 
           auto applyVibrato=[&]() {
-            const unsigned char vibVal=midiModTo04xy(mc.modulation,vibDepthMax,vibRateHz);
+            const unsigned char vibVal=midiModTo04xy(mc.modulation,midiImportOptions.vibratoDepth,midiImportOptions.vibratoRate);
             for (int n=0; n<128; n++) {
               int ch=mc.noteOn[n];
               if (ch<0 || modChan[ch].vibratoApplied==(int)vibVal) continue;
@@ -831,12 +795,12 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                 DivMIDIPart& part=parts[pi];
                 int placeRow=totalRow;
                 int ch=midiAllocVoice(part,modChan,nextChan,voiceChans,note,mc.monoMode,totalRow,placeRow,nudgeCount,crowdedCount,stealCount);
-                int placeOrd=placeRow/patLen;
+                int placeOrd=placeRow/midiImportOptions.patternLen;
                 if (placeOrd>=DIV_MAX_PATTERNS) {
                   placeRow=totalRow;
                   placeOrd=ord;
                 }
-                const int placeLocalRow=placeRow%patLen;
+                const int placeLocalRow=placeRow%midiImportOptions.patternLen;
 
                 const int placeDelay=(placeRow==totalRow)?delay:0;
                 if (placeOrd>maxOrd) maxOrd=placeOrd;
@@ -859,13 +823,13 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
                 short* cell=sub->pat[ch].getPattern(placeOrd,true)->newData[placeLocalRow];
 
-                int outNote=(isDrum && midiImportSplitDrums)?MIDI_DRUM_NOTE:CLAMP(note+MIDI_NOTE_BIAS,0,179);
+                int outNote=(isDrum && midiImportOptions.splitDrums)?MIDI_DRUM_NOTE:CLAMP(note+MIDI_NOTE_BIAS,0,179);
                 modChan[ch].baseNote=outNote;
                 modChan[ch].curNote=outNote;
                 modChan[ch].pitchApplied=0;
 
                 int seedSteps=0;
-                if (!isDrum && midiImportPitchBend && mc.pitchBend!=0) {
+                if (!isDrum && midiImportOptions.importPitchBend && mc.pitchBend!=0) {
                   const int want=outNote*128+midiBendToPitch(mc.pitchBend,mc.bendRangeCents);
                   int newNote;
                   if (midiSplitBend(want,outNote*128,slideSpeed,newNote,seedSteps)) {
@@ -886,7 +850,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
                 std::pair<int,int> insKey;
                 if (isDrum) {
-                  insKey=std::make_pair(1+mc.program,midiImportSplitDrums?note:-1);
+                  insKey=std::make_pair(1+mc.program,midiImportOptions.splitDrums?note:-1);
                 } else {
                   insKey=std::make_pair(0,mc.program);
                 }
@@ -899,7 +863,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   if (insKey.first>0) {
                     int kit=insKey.first-1;
                     if (insKey.second<0) {
-                      ins->name=(kit==0)?String("Standard Drum Kit"):fmt::sprintf("Drum Kit %d",kit);
+                      ins->name=(kit==0)?"Standard Drum Kit":fmt::sprintf("Drum Kit %d",kit);
                     } else {
                       if (insKey.second>=MIDI_DRUM_FIRST && insKey.second<=MIDI_DRUM_LAST) {
                         ins->name=midiGMDrumNames[insKey.second-MIDI_DRUM_FIRST];
@@ -921,20 +885,20 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   insIndex=insIt->second;
                 }
                 cell[DIV_PAT_INS]=(short)insIndex;
-                cell[DIV_PAT_VOL]=midiVolumeOf(data2,mc.volume,mc.expression,maxVol,midiImportVelocity,midiImportCC7,midiImportCC11);
-                if (useDelays && placeDelay!=0) midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NOTE_DELAY,0xed,(unsigned char)placeDelay);
+                cell[DIV_PAT_VOL]=midiVolumeOf(data2,mc.volume,mc.expression,midiImportOptions.importVelocity,midiImportOptions.importCC7,midiImportOptions.importCC11);
+                if (midiImportOptions.useBaseTempo && placeDelay!=0) midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_NOTE_DELAY,0xed,(unsigned char)placeDelay);
 
                 if (seedSteps!=0) {
                   modChan[ch].pitchApplied=midiWritePitchSlide(cell,sub->pat[ch].effectCols,seedSteps)*slideSpeed;
                 }
 
-                if (midiImportPan && mc.pan!=64) {
+                if (midiImportOptions.importPan && mc.pan!=64) {
                   modChan[ch].panApplied=mc.pan;
                   midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_PAN,0x80,midiPanTo80xx(mc.pan));
                 }
 
-                if (midiImportVibrato) {
-                  const unsigned char vibVal=midiModTo04xy(mc.modulation,vibDepthMax,vibRateHz);
+                if (midiImportOptions.importVibrato) {
+                  const unsigned char vibVal=midiModTo04xy(mc.modulation,midiImportOptions.vibratoDepth,midiImportOptions.vibratoRate);
                   if (modChan[ch].vibratoApplied!=(int)vibVal) {
                     modChan[ch].vibratoApplied=vibVal;
                     midiWriteFx(cell,sub->pat[ch].effectCols,MIDI_FX_VIBRATO,0x04,vibVal);
@@ -958,19 +922,19 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   for (int n=0; n<128; n++) {
                     int ch=mc.noteOn[n];
                     if (ch<0) continue;
-                    short vol=midiVolumeOf(modChan[ch].vel,mc.volume,mc.expression,maxVol,midiImportVelocity,midiImportCC7,midiImportCC11);
+                    short vol=midiVolumeOf(modChan[ch].vel,mc.volume,mc.expression,midiImportOptions.importVelocity,midiImportOptions.importCC7,midiImportOptions.importCC11);
                     sub->pat[ch].getPattern(ord,true)->newData[row][DIV_PAT_VOL]=vol;
                   }
                   break;
                 }
                 case 1:
-                  if (midiImportVibrato) {
+                  if (midiImportOptions.importVibrato) {
                     mc.modulation=data2&0x7f;
                     applyVibrato();
                   }
                   break;
                 case 10:
-                  if (midiImportPan) {
+                  if (midiImportOptions.importPan) {
                     mc.pan=data2&0x7f;
                     applyPan();
                   }
@@ -990,15 +954,14 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   for (int n=0; n<128; n++) noteOff(n);
                   break;
                 case 121:
-
                   mc.volume=127;
                   mc.expression=127;
                   mc.sustain=false;
                   mc.monoMode=false;
                   mc.modulation=0;
 
-                  if (midiImportPitchBend) applyBend(0);
-                  if (midiImportVibrato) applyVibrato();
+                  if (midiImportOptions.importPitchBend) applyBend(0);
+                  if (midiImportOptions.importVibrato) applyVibrato();
                   break;
                 case 126:
                   if (data2==0) mc.monoMode=true;
@@ -1008,7 +971,6 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   break;
                 case 98:
                 case 99:
-
                   mc.rpnMSB=0x7f;
                   mc.rpnLSB=0x7f;
                   break;
@@ -1020,7 +982,6 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                   break;
                 case 6:
                 case 38:
-
                   if (mc.rpnMSB==0 && mc.rpnLSB==0) {
                     rpnSeen=true;
                     if (data1==6) {
@@ -1029,9 +990,9 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                     } else {
                       mc.bendFine=data2&0x7f;
                     }
-                    if (bendRangeOverride==0) {
+                    if (midiImportOptions.bendRange==0) {
                       mc.bendRangeCents=mc.bendSemis*100+mc.bendFine;
-                      if (midiImportPitchBend) applyBend(mc.pitchBend);
+                      if (midiImportOptions.importPitchBend) applyBend(mc.pitchBend);
                     }
                   }
                   break;
@@ -1047,7 +1008,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
               break;
             case 0xe0:
               pitchBendSeen=true;
-              if (midiImportPitchBend) {
+              if (midiImportOptions.importPitchBend) {
                 applyBend(((((int)((unsigned char)r.readC())&0x7f)<<7)|((int)data1&0x7f))-8192);
               } else {
                 midiSkip(r,1);
@@ -1095,31 +1056,31 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     for (DivMIDITempoEvent& e: tempoEvents) tempoPairs.push_back(std::make_pair(e.tick,e.tempo));
     int tempo0=midiMostCommonByDuration<int>(tempoPairs,songEndTicks+1,500000);
 
-    double rowsPerSecond=(double)quantize*1000000.0/(4.0*(double)tempo0);
+    double rowsPerSecond=(double)midiImportOptions.quantize*1000000.0/(4.0*(double)tempo0);
     bool tooFast=false;
     double songHz=MIDI_BASE_HZ;
-    if (baseTempoMode) {
-      songHz=rowsPerSecond*(double)ticksPerRow;
+    if (midiImportOptions.useBaseTempo) {
+      songHz=rowsPerSecond*(double)midiImportOptions.ticksPerRow;
       if (songHz>MIDI_MAX_HZ) {
         songHz=MIDI_MAX_HZ;
         tooFast=true;
       }
       if (songHz<1.0) songHz=1.0;
       sub->speeds.len=1;
-      for (int i=0; i<16; i++) sub->speeds.val[i]=(unsigned short)ticksPerRow;
+      for (int i=0; i<16; i++) sub->speeds.val[i]=(unsigned short)midiImportOptions.ticksPerRow;
     } else {
       songHz=MIDI_BASE_HZ;
-      midiComputeBaseGroove(MAX(1,quantize/4),tempo0,sub->speeds);
+      midiComputeBaseGroove(MAX(1,midiImportOptions.quantize/4),tempo0,sub->speeds);
       tooFast=(rowsPerSecond>MIDI_BASE_HZ);
     }
-    logI("MIDI import: quantize %d, %d ticks/row, %d rows/pattern, %s, tick rate %g Hz",quantize,ticksPerRow,patLen,baseTempoMode?"base tempo":"groove approximation",songHz);
+    logI("MIDI import: quantize %d, %d ticks/row, %d rows/pattern, %s, tick rate %g Hz",midiImportOptions.quantize,midiImportOptions.ticksPerRow,midiImportOptions.patternLen,midiImportOptions.useBaseTempo?"base tempo":"groove approximation",songHz);
 
     sub->hz=(float)songHz;
 
     bool anyTempoChange=false;
     int curTempoVal=tempo0;
     std::map<int,int> grooveOf;
-    if (!baseTempoMode) {
+    if (!midiImportOptions.useBaseTempo) {
       ds.grooves.push_back(sub->speeds);
       grooveOf[tempo0]=0;
     }
@@ -1130,11 +1091,11 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       curTempoVal=te.tempo;
 
       int gi=0;
-      if (!baseTempoMode) {
+      if (!midiImportOptions.useBaseTempo) {
         std::map<int,int>::iterator gIt=grooveOf.find(te.tempo);
         if (gIt==grooveOf.end()) {
           DivGroovePattern g;
-          midiComputeBaseGroove(MAX(1,quantize/4),te.tempo,g);
+          midiComputeBaseGroove(MAX(1,midiImportOptions.quantize/4),te.tempo,g);
           gi=-1;
           for (size_t gj=0; gj<ds.grooves.size(); gj++) {
             if (midiGrooveEq(ds.grooves[gj],g)) {
@@ -1160,8 +1121,8 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       }
 
       short* cell=sub->pat[tempoChan].getPattern(te.order,true)->newData[te.row];
-      if (baseTempoMode) {
-        double hz=(double)quantize*1000000.0/(4.0*(double)te.tempo)*(double)ticksPerRow;
+      if (midiImportOptions.useBaseTempo) {
+        double hz=(double)midiImportOptions.quantize*1000000.0/(4.0*(double)te.tempo)*(double)midiImportOptions.quantize;
         int hzI=(int)lround(hz);
         if (hzI<1) hzI=1;
         if (hzI>1023) {
@@ -1175,9 +1136,9 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       anyTempoChange=true;
     }
 
-    int rowsPerBeat=quantize/4;
+    int rowsPerBeat=midiImportOptions.quantize/4;
     if (rowsPerBeat<1) rowsPerBeat=1;
-    int rowsPerBar=(int)lround((double)quantize*(double)timeSigNumer/(double)timeSigDenom);
+    int rowsPerBar=(int)lround((double)midiImportOptions.quantize*(double)timeSigNumer/(double)timeSigDenom);
     if (rowsPerBar<1) rowsPerBar=rowsPerBeat;
     sub->hilightA=(unsigned char)CLAMP(rowsPerBeat,1,255);
     sub->hilightB=(unsigned char)CLAMP(rowsPerBar,1,255);
@@ -1216,7 +1177,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     for (size_t i=0; i<parts.size(); i++) {
       DivMIDIPart& part=parts[i];
       if (!part.name.empty()) continue;
-      if (part.channel==drumCh) {
+      if (part.channel==midiImportOptions.drumChannel) {
         part.name=(part.firstProgram<=0)?String("Standard Drum Kit"):fmt::sprintf("Drum Kit %d",part.firstProgram);
       } else if (part.firstProgram>=0 && part.firstProgram<128) {
         part.name=midiGMInstrumentNames[part.firstProgram];
@@ -1226,12 +1187,12 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     }
     for (size_t i=0; i<parts.size(); i++) {
       DivMIDIPart& part=parts[i];
-      for (size_t j=0; j<part.voices.size(); j++) {
-        if (j==0) {
-          sub->chanName[part.voices[j]]=fmt::sprintf("MIDI CH%02d | %s",part.channel,part.name);
-        } else {
-          sub->chanName[part.voices[j]]=fmt::sprintf("MIDI CH%02d | %s | [Polyphony: %d]",part.channel,part.name,(int)j);
+      if (part.voices.size()>1) {
+        for (size_t j=0; j<part.voices.size(); j++) {
+          sub->chanName[part.voices[j]]=fmt::sprintf("MIDI CH%02d | %s | [Polyphony: %d]",part.channel+1,part.name,(int)j+1);
         }
+      } else {
+        sub->chanName[part.voices[0]]=fmt::sprintf("MIDI CH%02d | %s",part.channel+1,part.name);
       }
     }
 
@@ -1260,9 +1221,9 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
 
     logI("MIDI import: %d parts, %d channels, %d instruments",(int)parts.size(),numChans,ds.insLen);
 
-    if (midiImportVibrato) midiResolveVibratoRate(sub,nextChan,ordersLen,patLen,songHz);
+    if (midiImportOptions.importVibrato) midiResolveVibratoRate(sub,nextChan,ordersLen,midiImportOptions.patternLen,songHz);
 
-    midiCompactFx(sub,nextChan,ordersLen,patLen);
+    midiCompactFx(sub,nextChan,ordersLen,midiImportOptions.patternLen);
 
     sub->removeUnusedPatterns();
     sub->optimizePatterns();
@@ -1303,7 +1264,7 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       addWarning(fmt::sprintf("Song truncated to %d patterns; raise Pattern Length or lower Quantize",DIV_MAX_PATTERNS));
     }
     if (tooFast) {
-      if (baseTempoMode) {
+      if (midiImportOptions.useBaseTempo) {
         addWarning(fmt::sprintf("Song is too fast for the maximum tick rate of %gHz; it will play back slower than the MIDI. lower Ticks/Row or Quantize",MIDI_MAX_HZ));
       } else {
         addWarning(fmt::sprintf("Song is too fast for Groove Approximation, which holds the tick rate at %gHz; it will play back slower than the MIDI. lower Quantize, or import with Base Tempo",MIDI_BASE_HZ));
@@ -1312,10 +1273,10 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     if (bendClamped>0) {
       addWarning(fmt::sprintf("%d Pitch bends could not land on their target row (the row was already taken, or the note range ran out) and were spread over the rows after them",bendClamped));
     }
-    if (pitchBendSeen && !midiImportPitchBend) {
+    if (pitchBendSeen && !midiImportOptions.importPitchBend) {
       addWarning("This file has pitch bend, but importing it is turned off");
     }
-    if (pitchBendSeen && midiImportPitchBend && !rpnSeen && bendRangeOverride==0) {
+    if (pitchBendSeen && midiImportOptions.importPitchBend && !rpnSeen && midiImportOptions.bendRange==0) {
       addWarning("This file bends without saying how far, so the General MIDI default of 2 semitones was used. if the bends sound too shallow, set Bend Range in the import options to whatever made the file");
     }
 
