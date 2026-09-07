@@ -321,6 +321,7 @@ JSON serializeInstrument(DivInstrument* ins) {
   bool featureS2=false;
   bool featureS3=false;
   bool featureKT=false;
+  bool featureDU=false;
   switch (ins->type) {
     case DIV_INS_FM: featureFM=true; break;
     case DIV_INS_GB:
@@ -441,6 +442,9 @@ JSON serializeInstrument(DivInstrument* ins) {
       break;
     case DIV_INS_KLATTSCH:
       featureKT=true;
+      break;
+    case DIV_INS_DUMMY:
+      featureDU=true;
       break;
     case DIV_INS_STD:
     case DIV_INS_TIA:
@@ -906,6 +910,11 @@ JSON serializeInstrument(DivInstrument* ins) {
     SET_VALUE(klattsch,bandwidth);
     SET_VALUE(klattsch,formantShift);
     json["klattsch"]=klattsch;
+  }
+  if (featureDU) {
+    JSON dummy;
+    SET_VALUE(dummy,sound);
+    json["dummy"]=dummy;
   }
 
   return json;

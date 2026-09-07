@@ -102,6 +102,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_UPD1771C=65,
   DIV_INS_SID3=66,
   DIV_INS_KLATTSCH=67,
+  DIV_INS_DUMMY=69,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -1067,6 +1068,16 @@ struct DivInstrumentKlattsch {
     formantShift(0) {}
 };
 
+struct DivInstrumentDummy {
+  int sound;
+  bool operator==(const DivInstrumentDummy& other);
+  bool operator!=(const DivInstrumentDummy& other) {
+    return !(*this==other);
+  }
+  DivInstrumentDummy():
+    sound(0) {}
+};
+
 struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
@@ -1087,6 +1098,7 @@ struct DivInstrumentPOD {
   DivInstrumentSID2 sid2;
   DivInstrumentSID3 sid3;
   DivInstrumentKlattsch klattsch;
+  DivInstrumentDummy dummy;
 
   DivInstrumentPOD() :
     type(DIV_INS_FM) {
@@ -1203,6 +1215,7 @@ struct DivInstrument: DivInstrumentPOD {
   void writeFeatureS2(SafeWriter* w);
   void writeFeatureS3(SafeWriter* w);
   void writeFeatureKT(SafeWriter* w);
+  void writeFeatureDU(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -1230,6 +1243,7 @@ struct DivInstrument: DivInstrumentPOD {
   void readFeatureS2(SafeReader& reader, short version);
   void readFeatureS3(SafeReader& reader, short version);
   void readFeatureKT(SafeReader& reader, short version);
+  void readFeatureDU(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

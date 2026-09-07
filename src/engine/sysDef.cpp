@@ -2779,7 +2779,7 @@ void DivEngine::registerSystems() {
     _("Dummy System"), NULL, 0xfd, 0, 8, 1, 128,
     false, true, 0, false, 0, 0, 0,
     _("this is a system designed for testing purposes."),
-    DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_STD>)
+    DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_DUMMY>)
   );
 
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {

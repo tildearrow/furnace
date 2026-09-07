@@ -552,11 +552,11 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     const int voiceChans=DIV_MAX_CHANS-1;
 
     ds.systemLen=1;
-    ds.system[0]=DIV_SYSTEM_PCM_DAC;
+    ds.system[0]=DIV_SYSTEM_DUMMY;
     ds.systemChans[0]=(unsigned short)DIV_MAX_CHANS;
     ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0.0f;
-    ds.systemName="Generic PCM DAC";
+    ds.systemName="Dummy System";
 
     int chanDefIdx=0;
     DivInstrumentType pcmInsType=DivEngine::getSystemDef(ds.system[0])->getChanDef(chanDefIdx).insType[0];
@@ -893,13 +893,16 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
                     } else {
                       if (insKey.second>=MIDI_DRUM_FIRST && insKey.second<=MIDI_DRUM_LAST) {
                         ins->name=midiGMDrumNames[insKey.second-MIDI_DRUM_FIRST];
+                        ins->dummy.sound=0x81+(insKey.second-MIDI_DRUM_FIRST);
                       } else {
                         ins->name=fmt::sprintf("Drum %d",insKey.second);
+                        ins->dummy.sound=0x80;
                       }
                       if (kit!=0) ins->name+=fmt::sprintf(" (Kit %d)",kit);
                     }
                   } else {
                     ins->name=midiGMInstrumentNames[insKey.second&0x7f];
+                    ins->dummy.sound=insKey.second&0x7f;
                   }
                   ds.ins.push_back(ins);
                   insMap[insKey]=insIndex;

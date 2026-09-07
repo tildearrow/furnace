@@ -134,6 +134,8 @@ the following instrument types are available:
 - 65: µPD1771C
 - 66: SID3
 - 67: Klattsch
+- 68: SGU-1
+- 69: Dummy System
 
 the following feature codes are recognized:
 
@@ -166,6 +168,7 @@ the following feature codes are recognized:
 - `S2`: SID2 ins data
 - `S3`: SID3 ins data
 - `KT`: Klattsch voice profile
+- `DU`: Dummy System ins data
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there are sample/wave lists.
@@ -868,4 +871,12 @@ size | description
   1  | gain (`00`: bank value; otherwise value/16; default `38`)
   1  | formant bandwidth scale (`00`: neutral; otherwise value/64)
   1  | formant shift (`00`: neutral; otherwise value/64)
+```
+
+# Dummy System data (DU)
+
+```
+size | description
+-----|------------------------------------
+  4  | sound
 ```

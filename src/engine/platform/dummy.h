@@ -22,25 +22,42 @@
 // the dummy platform outputs saw waves.
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
+  struct Oscillator {
+    int env;
+    unsigned int pos;
+    unsigned char envState;
+    unsigned int xorPos;
+    int out;
+    Oscillator():
+      env(0),
+      pos(0),
+      envState(0),
+      xorPos(0),
+      out(0) {}
+  };
   struct Channel: SharedChannel {
+    Oscillator osc[2];
+    int sound;
     unsigned short pos;
-    signed char amp;
+    int advance();
+    void start();
     Channel(bool linear=true):
       SharedChannel(0,linear),
-      pos(0),
-      amp(64) {}
+      sound(0),
+      pos(0) {}
   };
   Channel chan[128];
   DivDispatchOscBuffer* oscBuf[128];
   DivPitchTable pitchTable;
   bool isMuted[128];
-  unsigned char chans;  
+  unsigned char chans;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short** buf, size_t len);
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
+    void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
     unsigned int getMaxFreq(int ch);

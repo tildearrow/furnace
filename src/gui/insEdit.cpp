@@ -8451,6 +8451,10 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_DUMMY) if (ImGui::BeginTabItem("Dummy")) {
+          P(ImGui::InputInt("Sound",&ins->dummy.sound,0,255));
+          ImGui::EndTabItem();
+        }
         if (ins->type==DIV_INS_GB ||
             (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
             (ins->type==DIV_INS_GBA_DMA && ins->amiga.useWave) ||
@@ -9163,6 +9167,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
               }
               break;
+            case DIV_INS_DUMMY:
             case DIV_INS_MAX:
             case DIV_INS_NULL:
               break;

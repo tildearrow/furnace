@@ -893,6 +893,10 @@ bool DivInstrumentKlattsch::operator==(const DivInstrumentKlattsch& other) {
   );
 }
 
+bool DivInstrumentDummy::operator==(const DivInstrumentDummy& other) {
+  return _C(sound);
+}
+
 #undef _C
 
 #define CONSIDER(x,t) \
@@ -1746,6 +1750,14 @@ void DivInstrument::writeFeatureKT(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureDU(SafeWriter* w) {
+  FEATURE_BEGIN("DU");
+
+  w->writeI(dummy.sound);
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1794,6 +1806,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featureS2=false;
   bool featureS3=false;
   bool featureKT=false;
+  bool featureDU=false;
 
   bool checkForWL=false;
 
@@ -2053,6 +2066,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         break;
       case DIV_INS_UPD1771C:
         break;
+      case DIV_INS_DUMMY:
+        featureDU=true;
+        break;
       case DIV_INS_MAX:
         break;
       case DIV_INS_NULL:
@@ -2114,6 +2130,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (klattsch!=defaultIns.klattsch) {
       featureKT=true;
+    }
+    if (dummy!=defaultIns.dummy) {
+      featureDU=true;
     }
   }
 
@@ -2273,6 +2292,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   }
   if (featureKT) {
     writeFeatureKT(w);
+  }
+  if (featureDU) {
+    writeFeatureDU(w);
   }
 
   if (fui && (featureSL || featureWL)) {
@@ -3402,6 +3424,14 @@ void DivInstrument::readFeatureKT(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureDU(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  dummy.sound=reader.readI();
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -3484,6 +3514,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureS3(reader,version);
     } else if (memcmp(featCode,"KT",2)==0) { // Klattsch
       readFeatureKT(reader,version);
+    } else if (memcmp(featCode,"DU",2)==0) { // Dummy
+      readFeatureDU(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0) || (memcmp(featCode,"LS",2)==0) || (memcmp(featCode,"LW",2)==0))) {
         // nothing
