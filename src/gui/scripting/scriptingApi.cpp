@@ -1177,7 +1177,7 @@ _CF(exchangeIns) {
   return 0;
 }
 
-_CF(exchangeWave) {
+/*_CF(exchangeWave) {
   CHECK_ARGS(2)
   CHECK_TYPE_INTEGER(1)
   CHECK_TYPE_INTEGER(2)
@@ -1186,7 +1186,7 @@ _CF(exchangeWave) {
   two=lua_tointeger(s,2);
   e->exchangeWave(one,two);
   return 0;
-}
+}*/
 
 _CF(exchangeSample) {
   CHECK_ARGS(2)

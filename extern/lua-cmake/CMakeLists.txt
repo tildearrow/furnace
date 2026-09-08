@@ -1,6 +1,6 @@
 # MODIFIED version - see README.md for details.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5...3.20)
 project(lua-cmake VERSION 1.0.0 DESCRIPTION "Lua build for a project subdirectory" LANGUAGES C)
 
 set(srcFiles

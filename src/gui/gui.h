@@ -41,7 +41,7 @@
 
 #include <lua.hpp>
 typedef int luaFunction;
-typedef std::map<String,std::pair<lua_State*,luaFunction>> scriptCallbackList;
+typedef std::unordered_map<String,std::pair<lua_State*,luaFunction>> scriptCallbackList;
 
 #include "fileDialog.h"
 #include "newFilePicker.h"
@@ -3108,13 +3108,13 @@ class FurnaceGUI {
   std::vector<int> selectedUserPreset;
 
   // scripting
-  std::map<String,std::map<String,FurnaceGUIScriptAction>> scriptMenus;
+  std::unordered_map<String,std::unordered_map<String,FurnaceGUIScriptAction>> scriptMenus;
   struct ScriptWindow {
     lua_State* state;
     luaFunction function;
     bool open;
   };
-  std::map<String,ScriptWindow> scriptWindows;
+  std::unordered_map<String,ScriptWindow> scriptWindows;
   struct LoadedScript {
     String path;
     bool enabled;
