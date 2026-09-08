@@ -26,6 +26,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_sdl2.h"
+#include "oscTrigger.h"
 #include <SDL.h>
 #include <fftw3.h>
 #include <stdint.h>
@@ -1897,6 +1898,11 @@ class FurnaceGUI {
   int pendingRawSampleDepth, pendingRawSampleChannels, pendingRawSampleRate;
   bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles, pendingRawSampleReplace;
 
+  // a .mid is held here while the import dialog is up. midiImportPending tells
+  // load() the options have been picked, so it doesn't bounce the file back.
+  String pendingMIDIPath;
+  bool displayMIDIImport, midiImportPending;
+
   ImGuiWindowFlags globalWinFlags;
 
   FurnaceGUIFileDialogs curFileDialog;
@@ -2088,6 +2094,7 @@ class FurnaceGUI {
     int opllCore;
     int ayCore;
     int swanCore;
+    int opzCore;
     int dsidQuality;
     int gbQuality;
     int pnQuality;
@@ -2109,6 +2116,7 @@ class FurnaceGUI {
     int opllCoreRender;
     int ayCoreRender;
     int swanCoreRender;
+    int opzCoreRender;
     int dsidQualityRender;
     int gbQualityRender;
     int pnQualityRender;
@@ -2343,6 +2351,7 @@ class FurnaceGUI {
       opllCore(0),
       ayCore(0),
       swanCore(0),
+      opzCore(0),
       dsidQuality(3),
       gbQuality(3),
       pnQuality(3),
@@ -2364,6 +2373,7 @@ class FurnaceGUI {
       opllCoreRender(0),
       ayCoreRender(0),
       swanCoreRender(0),
+      opzCoreRender(0),
       dsidQualityRender(3),
       gbQualityRender(3),
       pnQualityRender(3),
@@ -2827,12 +2837,15 @@ class FurnaceGUI {
   ImVec2 subPortPos;
 
   // oscilloscope
+  TriggerAnalog* trigger[DIV_MAX_OUTPUTS];
   int oscTotal, oscWidth;
   float* oscValues[DIV_MAX_OUTPUTS];
   float* oscValuesAverage;
   float oscZoom;
   float oscWindowSize;
   float oscInput, oscInput1;
+  float triggerLevel;
+  int triggerState;
   bool oscZoomSlider;
 
   // per-channel oscilloscope

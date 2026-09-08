@@ -104,6 +104,8 @@ the format versions are:
 
 versions that do not appear in this list are `dev???` ones.
 
+check out [versions.md](versions.md) for details on format and behavior changes across versions.
+
 # header
 
 the header is 32 bytes long.

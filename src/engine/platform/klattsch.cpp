@@ -414,6 +414,11 @@ void DivPlatformKlattsch::tick(bool sysTick) {
     if (chan[i].std.ex5.had) {
       setFormantShift(chan[i],(float)CLAMP(chan[i].std.ex5.val,1,255)/64.0f);
     }
+    if (sysTick && !chan[i].phonemeQueue.empty()) {
+      chan[i].phonemeIndex=chan[i].phonemeQueue.front();
+      chan[i].phonemeQueue.pop();
+      chan[i].phonemeChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff || chan[i].phonemeChanged) {
       const unsigned int txnSamples=transitionSamples(chan[i]);
       // use a fixed short release so Txx cannot make note-off sluggish.
@@ -570,7 +575,7 @@ int DivPlatformKlattsch::dispatch(DivCommand c) {
     case DIV_CMD_KLATTSCH_PHONEME: {
       const klattsch::PhonemeRecord* rec=phonemeAt(c.value);
       if (rec) {
-        chan[c.chan].phonemeIndex=c.value;
+        chan[c.chan].phonemeQueue.push(c.value);
         // Defer application until tick(), after every effect column on the row
         // has supplied its transition time and direct parameter overrides.
         chan[c.chan].phonemeChanged=true;
@@ -724,6 +729,7 @@ void DivPlatformKlattsch::reset() {
   for (int i=0; i<chans; i++) {
     std::unique_ptr<klattsch::Synth> synth=std::move(chan[i].synth);
     chan[i]=DivPlatformKlattsch::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].phonemeQueue.clear();
     chan[i].std.setEngine(parent);
     if (synth) {
       synth->reset();

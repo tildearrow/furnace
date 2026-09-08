@@ -333,8 +333,8 @@ enum DivDispatchCmds {
   DIV_CMD_FM_ALG,
   DIV_CMD_FM_FMS,
   DIV_CMD_FM_AMS,
-  DIV_CMD_FM_FMS2,
-  DIV_CMD_FM_AMS2,
+  DIV_CMD_FM_LFO3,
+  DIV_CMD_FM_LFO4,
 
   DIV_CMD_KLATTSCH_PHONEME,
   DIV_CMD_KLATTSCH_TRANSITION,
@@ -355,7 +355,7 @@ enum DivDispatchCmds {
 
 // These values are part of the unversioned FCS command stream format.
 static_assert(DIV_CMD_FDS_MOD_AUTO==0xb8,"legacy FCS command IDs changed");
-static_assert(DIV_CMD_FM_AMS2==0xe2,"legacy FCS command IDs changed");
+static_assert(DIV_CMD_FM_LFO4==0xe2,"legacy FCS command IDs changed");
 static_assert(DIV_CMD_KLATTSCH_PHONEME==0xe3,"Klattsch FCS command IDs changed");
 
 

@@ -668,6 +668,7 @@ extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
 extern/YM2151-LLE/fmopm.c
+extern/YM2414-LLE/opz_lle.c
 
 extern/pwrnoise/pwrnoise.c
 
@@ -816,6 +817,7 @@ src/engine/fileOps/fc.cpp
 src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/it.cpp
+src/engine/fileOps/midi.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
@@ -1043,6 +1045,7 @@ src/gui/klattschInput.cpp
 src/gui/about.cpp
 src/gui/backupsManager.cpp
 src/gui/channels.cpp
+src/gui/oscTrigger.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
 src/gui/commandPalette.cpp
