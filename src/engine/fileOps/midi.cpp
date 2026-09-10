@@ -94,8 +94,8 @@ struct MIDIInvalidException {
 
 #define MIDI_BASE_HZ 60.0
 
-static void midiComputeBaseGroove(int R, int tempo0, DivGroovePattern& groove) {
-  double rowsPerSecond=(double)R*1000000.0/(double)tempo0;
+static void midiComputeBaseGroove(int R, int tempo, DivGroovePattern& groove) {
+  double rowsPerSecond=(double)R*1000000.0/(double)tempo;
   if (rowsPerSecond<=0.0) rowsPerSecond=8.0;
   double avgSpeed=MIDI_BASE_HZ/rowsPerSecond;
   if (avgSpeed<1.0) avgSpeed=1.0;
