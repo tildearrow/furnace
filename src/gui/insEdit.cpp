@@ -264,10 +264,10 @@ struct SGUWparEntry { unsigned char val; const char* name; };
 // bit 3 set quantizes the table lookup by zeroing (bits 0..2 + 1) low phase bits
 static const SGUWparEntry sguWparShaped[13]={
   {0,_N("None")},
-  {1,_N("Half (low)")},
-  {2,_N("Half (high)")},
-  {3,_N("Abs (low)")},
-  {4,_N("Abs (high)")},
+  {1,_N("Half (before duty)")},
+  {2,_N("Half (after duty)")},
+  {3,_N("Abs (before duty)")},
+  {4,_N("Abs (after duty)")},
   {8,_N("Quantize 1 bit")},
   {9,_N("Quantize 2 bits")},
   {10,_N("Quantize 3 bits")},
