@@ -10250,6 +10250,7 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileIndex(0),
   sampleCompileSize(0),
   lastTapTime(0),
+  lastTapDelta(0.0),
   grooveTargetBPM(150.0f),
   warnIsOpen(false) {
   // value keys
