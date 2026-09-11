@@ -139,7 +139,6 @@ class DivPlatformKlattsch: public DivDispatch {
   float samplesPerTick();
   unsigned int transitionSamples(const Channel& ch);
   unsigned int msToSamples(float ms);
-  unsigned int slotSamples();
   void setTarget(Channel& ch, const klattsch::ParamUpdate& update, unsigned int transitionSamples, bool sticky);
   void rememberTransitionUpdate(Channel& ch, const klattsch::ParamUpdate& update);
   void setEffectTarget(Channel& ch, const klattsch::ParamUpdate& update, bool sticky);

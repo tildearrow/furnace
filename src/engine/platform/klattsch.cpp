@@ -129,12 +129,6 @@ unsigned int DivPlatformKlattsch::msToSamples(float ms) {
   return MAX((unsigned int)(ms*(float)KLATTSCH_RATE/1000.0f),1u);
 }
 
-unsigned int DivPlatformKlattsch::slotSamples() {
-  const int speed=parent->getPreviewSpeed();
-  const float ticks=(float)MAX(speed,1);
-  return MAX((unsigned int)(ticks*samplesPerTick()),1u);
-}
-
 void DivPlatformKlattsch::applyPhoneme(Channel& ch, const klattsch::PhonemeRecord& rec, float f0Hz, unsigned int txnSamples) {
   ch.formantOverridden[0]=false;
   ch.formantOverridden[1]=false;
@@ -142,23 +136,6 @@ void DivPlatformKlattsch::applyPhoneme(Channel& ch, const klattsch::PhonemeRecor
   if (!ch.synth) return;
   ch.synth->clearSchedule();
   ch.queuedEventKind=Channel::QueuedEventKind::None;
-  // follow the reference sequencer's closure/burst timing for stops.
-  if (rec.isStop) {
-    const float slotMs=1000.0f*(float)slotSamples()/(float)KLATTSCH_RATE;
-    const float burstMs=MIN(25.0f,slotMs*0.3f);
-    const float silenceMs=slotMs-burstMs;
-    klattsch::ParamUpdate closure;
-    closure.set(klattsch::ParamId::A1,0.0f);
-    closure.set(klattsch::ParamId::A2,0.0f);
-    closure.set(klattsch::ParamId::A3,0.0f);
-    ch.synth->setTarget(closure,msToSamples(MIN(20.0f,silenceMs*0.4f)));
-    ch.queuedEvent.atSample=msToSamples(silenceMs);
-    ch.queuedEvent.transitionSamples=msToSamples(MIN(5.0f,burstMs*0.2f));
-    ch.queuedEvent.target=klattsch::paramsToFullUpdate(shapedParams(rec.params,ch,f0Hz));
-    ch.queuedEventKind=Channel::QueuedEventKind::Stop;
-    ch.synth->setScheduleView(&ch.queuedEvent,1);
-    return;
-  }
   // glide records use Txx for both the onset and terminal target.
   // Txx=0 applies only the onset.
   if (rec.hasGlide && txnSamples>1) {
