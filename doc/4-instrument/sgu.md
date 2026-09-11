@@ -89,7 +89,7 @@ this table contains a list of modulation input/output level values which resembl
 
 ### waveforms
 
-each operator can use one of 8 waveforms. the **Waveform Parameter (WPAR)** provides per-operator wave shaping whose meaning depends on the selected waveform.
+each operator can use one of 7 waveforms. the **Waveform Parameter (WPAR)** provides per-operator wave shaping whose meaning depends on the selected waveform.
 
 - `0`: **sine.**
   - shared WPAR behavior with triangle and sawtooth:
@@ -116,7 +116,6 @@ each operator can use one of 8 waveforms. the **Waveform Parameter (WPAR)** prov
     - `2`: taps 0,2,3 (~63 states)
     - `3`: taps 0,2,3,5 (~63 states)
   - this is per-operator, allowing different noise timbres in each operator.
-- `6`: **reserved.** outputs silence.
 - `7`: **sample.** uses PCM sample data as the operator waveform.
   - reads a 1024-sample chunk from sample memory starting at the channel's PCM reset address.
   - the phase (0-1023) indexes into this region, looping naturally through phase wraparound.

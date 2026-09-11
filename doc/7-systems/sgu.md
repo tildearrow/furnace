@@ -13,7 +13,7 @@ it has the following capabilities:
 
 - 9 channels of 4-operator FM synthesis
 - stereo sound
-- 8 waveforms per operator (sine, triangle, sawtooth, pulse, noise, periodic noise, reserved, sample)
+- 7 waveforms per operator (sine, triangle, sawtooth, pulse, noise, periodic noise, sample)
 - per-operator waveform parameter (WPAR) for wave shaping
 - flexible ESFM-style operator routing (per-operator output and modulation input levels)
 - per-operator hard sync and ring modulation
