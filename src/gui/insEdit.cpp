@@ -221,6 +221,34 @@ const char* sguWaveforms[8]={
   _N("Sample")
 };
 
+// SGU-1 operator waveform dropdown rows. Each row is a WAVE (op.ws) + WPAR pair so the
+// musician picks a shape by name and both registers follow; the WPAR combo below it edits
+// the same nibble on its own, so a pair with no row here is still reachable and is shown
+// as "<wave> (<WPAR name>)". OPL3 names are used where a pair reproduces an OPL3 waveform
+// (Half Sine = SINE+2, Absolute Sine = SINE+4, Square = PULSE+8) so OPL patches port by
+// name; HALF/ABS split at the channel duty, so that holds at the default duty (63/128,
+// drawn here as a nominal 50%). Quantized rows zero 5 low
+// phase bits (WPAR 12, 32 steps per period): coarse enough to read as stepped in a
+// thumbnail while the shape stays recognisable; other depths come from the WPAR combo.
+// WAVE 6 is reserved on the chip (produces silence) and has no row. The periodic-noise
+// rows spell the same tap sets as sguWparPNoise below; keep the two in step.
+struct SGUWaveEntry { unsigned char ws, wpar; const char* name; };
+static const SGUWaveEntry sguWaveEntries[]={
+  {0,0,_N("Sine")},     {0,2,_N("Half Sine")},     {0,4,_N("Absolute Sine")},     {0,12,_N("Quantized Sine")},
+  {1,0,_N("Triangle")}, {1,2,_N("Half Triangle")}, {1,4,_N("Absolute Triangle")}, {1,12,_N("Quantized Triangle")},
+  {2,0,_N("Sawtooth")}, {2,2,_N("Half Sawtooth")}, {2,4,_N("Absolute Sawtooth")}, {2,12,_N("Quantized Sawtooth")},
+  {3,0,_N("Pulse")},    {3,8,_N("Square")},
+  {4,0,_N("Noise")},
+  {5,0,_N("Periodic Noise (taps 3,4)")},   {5,1,_N("Periodic Noise (taps 2,3)")},
+  {5,2,_N("Periodic Noise (taps 0,2,3)")}, {5,3,_N("Periodic Noise (taps 0,2,3,5)")},
+  {7,0,_N("Sample")}
+};
+static const int sguWaveEntryCount=sizeof(sguWaveEntries)/sizeof(sguWaveEntries[0]);
+
+// points in one drawn SGU waveform (64 segments), shared by the point builder and
+// every buffer handed to it
+static const int sguWavePoints=65;
+
 // SGU-1 wave parameter (WPAR): a 4-bit per-operator field whose MEANING depends on the
 // operator's selected waveform, so a bare number tells the musician nothing. This table
 // names every reachable value per waveform; sguWparEntries() hands the right list to the
@@ -1278,12 +1306,112 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
   }
 }
 
+// fills out[0..sguWavePoints-1] with the operator waveform for (type,wpar) mapped into
+// rect. Shared by the operator preview and the waveform dropdown thumbnails so both draw
+// the same shape. sampleIdx is only read for the sample waveform and is range-checked here.
+void FurnaceGUI::sguWaveformPoints(unsigned char type, unsigned char wpar, int sampleIdx, const ImRect& rect, ImVec2* out) {
+  const int waveformLen=sguWavePoints-1;
+  // start flat: 6 is reserved on the chip and produces silence, and an empty sample slot
+  // plays nothing, so a flat line is the accurate rendering for both. The shapes below
+  // overwrite it.
+  for (int i=0; i<=waveformLen; i++) {
+    out[i]=ImLerp(rect.Min,rect.Max,ImVec2((float)i/(float)waveformLen,0.5));
+  }
+  switch (type) {
+    case 0: // sine
+    case 1: // triangle
+    case 2: { // sawtooth (rising, two cycles)
+        // These three share one WPAR scheme on the chip, so they share one branch here.
+        // bit 3 set quantizes the table lookup by zeroing (bits 0..2 + 1) low phase bits;
+        // otherwise bits 0..2 pick an OPL-style variant split at the channel duty. The
+        // channel duty is not an instrument property, so the split is a nominal 50%.
+        const bool quant=(wpar&8);
+        const int quantBits=(wpar&7)+1;
+        const int variant=quant?0:(wpar&7);
+        for (int i=0; i<=waveformLen; i++) {
+          float x=(float)i/(float)waveformLen;
+          // walk a 10-bit phase like the chip so quantization steps land where they will
+          int ph=(int)(x*1024.0f)&1023;
+          if (quant) ph&=~((1<<quantBits)-1);
+          float p=(float)ph/1024.0f;
+          float sp=(type==2)?fmodf(p*2.0f,1.0f):p;
+          float y;
+          switch (type) {
+            case 0: y=sinf(sp*2.0f*(float)M_PI); break;
+            case 1: y=(sp<0.25f)?(sp*4.0f):((sp<0.75f)?(2.0f-sp*4.0f):(sp*4.0f-4.0f)); break;
+            default: y=2.0f*sp-1.0f; break;
+          }
+          const bool high=(sp>=0.5f);
+          switch (variant) {
+            case 1: if (!high) y=0.0f; break; // HALF_L: before the split is silenced
+            case 2: if (high) y=0.0f; break;  // HALF_H: after the split is silenced
+            case 3: if (!high) y=-y; break;   // ABS_L: before the split is negated
+            case 4: if (high) y=-y; break;    // ABS_H: after the split is negated
+            default: break;
+          }
+          out[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+        }
+      }
+      break;
+    case 3: { // pulse
+        // WPAR 0 takes the channel duty (nominal 50% here), 1..15 a fixed x/16 width.
+        // |duty| is the LOW run and it sits at the START of the period, so the low half
+        // comes first -- matching sgu_duty_high() rather than the old high-first sketch.
+        const float width=(wpar&15)?((float)(wpar&15)/16.0f):0.5f;
+        for (int i=0; i<=waveformLen; i++) {
+          float x=(float)i/(float)waveformLen;
+          float y=(x<width)?-1.0f:1.0f;
+          out[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+        }
+      }
+      break;
+    case 4: // noise
+      for (int i=0; i<=waveformLen; i++) {
+        float x=(float)i/(float)waveformLen;
+        // deterministic pseudo-random for stable display
+        unsigned int seed=i*2654435761u;
+        seed^=seed>>16;
+        float y=((float)(seed&0xffff)/32768.0f)-1.0f;
+        out[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+      }
+      break;
+    case 5: { // periodic noise
+        // WPAR bits 1..0 pick the 6-bit LFSR taps: configs 0/1 run ~31 states, 2/3 run
+        // ~63, so the longer ones repeat half as often and read as a different timbre
+        const int period=((wpar&3)<2)?8:16;
+        for (int i=0; i<=waveformLen; i++) {
+          float x=(float)i/(float)waveformLen;
+          int step=(i*period/waveformLen)%period;
+          // deterministic per (config,step) so the display is stable but each tap
+          // configuration looks distinct
+          unsigned int seed=((unsigned int)step*2654435761u)^((unsigned int)(wpar&3)*0x9e3779b9u);
+          seed^=seed>>16;
+          float y=((float)(seed&0xffff)/32768.0f)-1.0f;
+          out[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+        }
+      }
+      break;
+    case 7: { // sample
+        DivSample* smp=(sampleIdx>=0 && sampleIdx<e->song.sampleLen)?e->song.sample[sampleIdx]:NULL;
+        if (smp==NULL || smp->data8==NULL || smp->length8<=0) break;
+        int sLen=MIN(smp->length8,1024);
+        for (int i=0; i<=waveformLen; i++) {
+          float x=(float)i/(float)waveformLen;
+          int pos=(int)(x*sLen);
+          if (pos>=sLen) pos=sLen-1;
+          float y=(float)((signed char)smp->data8[pos])/128.0f;
+          out[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
+        }
+      }
+      break;
+  }
+}
+
 void FurnaceGUI::drawWaveformSGU(unsigned char type, unsigned char wpar, const ImVec2& size, int sampleIdx) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
-  ImVec2 waveform[65];
-  const size_t waveformLen=64;
+  ImVec2 waveform[sguWavePoints];
 
   ImVec2 minArea=window->DC.CursorPos;
   ImVec2 maxArea=ImVec2(
@@ -1296,113 +1424,8 @@ void FurnaceGUI::drawWaveformSGU(unsigned char type, unsigned char wpar, const I
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("wsDisplay"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
-    switch (type) {
-      case 0: // sine
-      case 1: // triangle
-      case 2: { // sawtooth (rising, two cycles)
-          // These three share one WPAR scheme on the chip, so they share one branch here.
-          // bit 3 set quantizes the table lookup by zeroing (bits 0..2 + 1) low phase bits;
-          // otherwise bits 0..2 pick an OPL-style variant split at the channel duty. The
-          // channel duty is not an instrument property, so the split is a nominal 50%.
-          const bool quant=(wpar&8);
-          const int quantBits=(wpar&7)+1;
-          const int variant=quant?0:(wpar&7);
-          for (size_t i=0; i<=waveformLen; i++) {
-            float x=(float)i/(float)waveformLen;
-            // walk a 10-bit phase like the chip so quantization steps land where they will
-            int ph=(int)(x*1024.0f)&1023;
-            if (quant) ph&=~((1<<quantBits)-1);
-            float p=(float)ph/1024.0f;
-            float sp=(type==2)?fmodf(p*2.0f,1.0f):p;
-            float y;
-            switch (type) {
-              case 0: y=sinf(sp*2.0f*(float)M_PI); break;
-              case 1: y=(sp<0.25f)?(sp*4.0f):((sp<0.75f)?(2.0f-sp*4.0f):(sp*4.0f-4.0f)); break;
-              default: y=2.0f*sp-1.0f; break;
-            }
-            const bool high=(sp>=0.5f);
-            switch (variant) {
-              case 1: if (!high) y=0.0f; break; // HALF_L: before the split is silenced
-              case 2: if (high) y=0.0f; break;  // HALF_H: after the split is silenced
-              case 3: if (!high) y=-y; break;   // ABS_L: before the split is negated
-              case 4: if (high) y=-y; break;    // ABS_H: after the split is negated
-              default: break;
-            }
-            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-          }
-        }
-        break;
-      case 3: { // pulse
-          // WPAR 0 takes the channel duty (nominal 50% here), 1..15 a fixed x/16 width.
-          // |duty| is the LOW run and it sits at the START of the period, so the low half
-          // comes first -- matching sgu_duty_high() rather than the old high-first sketch.
-          const float width=(wpar&15)?((float)(wpar&15)/16.0f):0.5f;
-          for (size_t i=0; i<=waveformLen; i++) {
-            float x=(float)i/(float)waveformLen;
-            float y=(x<width)?-1.0f:1.0f;
-            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-          }
-        }
-        break;
-      case 4: // noise
-        for (size_t i=0; i<=waveformLen; i++) {
-          float x=(float)i/(float)waveformLen;
-          // deterministic pseudo-random for stable display
-          unsigned int seed=i*2654435761u;
-          seed^=seed>>16;
-          float y=((float)(seed&0xffff)/32768.0f)-1.0f;
-          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-        }
-        break;
-      case 5: { // periodic noise
-          // WPAR bits 1..0 pick the 6-bit LFSR taps: configs 0/1 run ~31 states, 2/3 run
-          // ~63, so the longer ones repeat half as often and read as a different timbre
-          const int period=((wpar&3)<2)?8:16;
-          for (size_t i=0; i<=waveformLen; i++) {
-            float x=(float)i/(float)waveformLen;
-            int step=(int)(i*period/waveformLen)%period;
-            // deterministic per (config,step) so the display is stable but each tap
-            // configuration looks distinct
-            unsigned int seed=((unsigned int)step*2654435761u)^((unsigned int)(wpar&3)*0x9e3779b9u);
-            seed^=seed>>16;
-            float y=((float)(seed&0xffff)/32768.0f)-1.0f;
-            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-          }
-        }
-        break;
-      case 6: // reserved
-        for (size_t i=0; i<=waveformLen; i++) {
-          float x=(float)i/(float)waveformLen;
-          waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5));
-        }
-        break;
-      case 7: // sample
-        if (sampleIdx>=0 && sampleIdx<e->song.sampleLen) {
-          DivSample* s=e->song.sample[sampleIdx];
-          if (s!=NULL && s->data8!=NULL && s->length8>0) {
-            int sLen=MIN(s->length8,1024);
-            for (size_t i=0; i<=waveformLen; i++) {
-              float x=(float)i/(float)waveformLen;
-              int pos=(int)(x*sLen);
-              if (pos>=sLen) pos=sLen-1;
-              float y=(float)((signed char)s->data8[pos])/128.0f;
-              waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5-y*0.4));
-            }
-          } else {
-            for (size_t i=0; i<=waveformLen; i++) {
-              float x=(float)i/(float)waveformLen;
-              waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5));
-            }
-          }
-        } else {
-          for (size_t i=0; i<=waveformLen; i++) {
-            float x=(float)i/(float)waveformLen;
-            waveform[i]=ImLerp(rect.Min,rect.Max,ImVec2(x,0.5));
-          }
-        }
-        break;
-    }
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    sguWaveformPoints(type,wpar,sampleIdx,rect,waveform);
+    dl->AddPolyline(waveform,sguWavePoints,color,dpiScale,ImDrawFlags_None);
   }
 }
 
@@ -4374,6 +4397,112 @@ void FurnaceGUI::drawSGUWpar(DivInstrument* ins, int opIdx, const DivInstrumentF
   }
 }
 
+// one dropdown row: an invisible-label Selectable with the thumbnail and name drawn over
+// it, so hover, click and the selection highlight all belong to a single item
+bool FurnaceGUI::drawSGUWaveRow(unsigned char ws, unsigned char wpar, int sampleIdx, const char* name, bool selected) {
+  const float rowH=ImGui::GetTextLineHeight()*1.6f;
+  const float thumbW=40.0f*dpiScale;
+  const float pad=ImGui::GetStyle().ItemInnerSpacing.x;
+  // size the row to its content: the popup auto-fits to submitted item sizes only, and
+  // the name is painted afterwards with AddText, which counts for nothing
+  const float rowW=ImMax(ImGui::GetContentRegionAvail().x,thumbW+pad*3.0f+ImGui::CalcTextSize(name).x);
+  const bool clicked=ImGui::Selectable("##row",selected,0,ImVec2(rowW,rowH));
+  // open the popup scrolled to the current row rather than at the top of a long list
+  if (selected && ImGui::IsWindowAppearing()) ImGui::SetScrollHereY();
+  // a scrolled-out row still gets its Selectable (it keeps the layout), but there is no
+  // point building and submitting a polyline nobody can see
+  if (!ImGui::IsItemVisible()) return clicked;
+
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  const ImVec2 rMin=ImGui::GetItemRectMin();
+  ImVec2 pts[sguWavePoints];
+  sguWaveformPoints(ws,wpar,sampleIdx,ImRect(ImVec2(rMin.x+pad,rMin.y),ImVec2(rMin.x+pad+thumbW,rMin.y+rowH)),pts);
+  dl->AddPolyline(pts,sguWavePoints,ImGui::GetColorU32(uiColors[GUI_COLOR_FM_WAVE]),dpiScale,ImDrawFlags_None);
+  dl->AddText(ImVec2(rMin.x+pad*2.0f+thumbW,rMin.y+(rowH-ImGui::GetTextLineHeight())*0.5f),ImGui::GetColorU32(ImGuiCol_Text),name);
+  return clicked;
+}
+
+// The waveform dropdown: every row presets WAVE and WPAR together (see sguWaveEntries).
+// It and drawSGUWpar() both read op.ws and wpar each frame, so a pick in either shows up
+// in the other without any state of its own. A pair with no row is shown as a temporary
+// selected item "<wave> (<WPAR name>)": the patch is never rewritten behind the musician's
+// back, and the WPAR is spelled with the WPAR combo's own names so the two never disagree.
+// previewSize, when non-empty, also draws the operator waveform preview above the combo,
+// so a layout that shows one needs a single call here rather than a preview+combo pair.
+void FurnaceGUI::drawSGUWaveSelect(DivInstrument* ins, int opIdx, DivInstrumentFM::Operator& op, const ImVec2& previewSize) {
+  const unsigned char ws=op.ws&7;
+  const unsigned char cur=ins->sgu.op[opIdx].wpar&0x0f;
+  const int sampleIdx=ins->amiga.initSample;
+
+  // match on the bits the chip reads for this waveform: periodic noise reads WPAR[1:0]
+  // only and noise/sample/reserved read none, so a stray nibble there is the same sound
+  // as the row and is highlighted as such
+  int wparCount=0;
+  bool wparUsed=false;
+  const SGUWparEntry* wparEntries=sguWparEntries(ws,wparCount,wparUsed);
+  const unsigned char readMask=(!wparUsed)?0:((ws==5)?0x03:0x0f);
+  int sel=-1;
+  for (int j=0; j<sguWaveEntryCount; j++) {
+    if (sguWaveEntries[j].ws==ws && ((sguWaveEntries[j].wpar^cur)&readMask)==0) {
+      sel=j;
+      break;
+    }
+  }
+
+  String label;
+  if (sel>=0) {
+    label=_(sguWaveEntries[sel].name);
+  } else if (!wparUsed) {
+    label=_(sguWaveforms[ws]);
+  } else {
+    const char* wparName=NULL;
+    for (int j=0; j<wparCount; j++) {
+      if (wparEntries[j].val==cur) {
+        wparName=_(wparEntries[j].name);
+        break;
+      }
+    }
+    if (wparName!=NULL) {
+      label=fmt::sprintf("%s (%s)",_(sguWaveforms[ws]),wparName);
+    } else {
+      label=fmt::sprintf(_("%s (Raw: %X)"),_(sguWaveforms[ws]),cur);
+    }
+  }
+
+  if (previewSize.x>0.0f) {
+    drawWaveformSGU(ws,cur,previewSize,sampleIdx);
+  }
+
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::BeginCombo("##SGUWave",label.c_str(),ImGuiComboFlags_HeightLargest)) {
+    if (sel<0) {
+      // the current, unlisted pair; it already is the state, so clicking it changes nothing
+      ImGui::PushID("cur");
+      drawSGUWaveRow(ws,cur,sampleIdx,label.c_str(),true);
+      ImGui::PopID();
+      ImGui::Separator();
+    }
+    int lastWs=-1;
+    for (int j=0; j<sguWaveEntryCount; j++) {
+      const SGUWaveEntry& en=sguWaveEntries[j];
+      if (en.ws!=lastWs) {
+        ImGui::SeparatorText(_(sguWaveforms[en.ws]));
+        lastWs=en.ws;
+      }
+      ImGui::PushID(j);
+      if (drawSGUWaveRow(en.ws,en.wpar,sampleIdx,_(en.name),j==sel)) { PARAMETER
+        op.ws=en.ws;
+        ins->sgu.op[opIdx].wpar=en.wpar;
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndCombo();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(_("WS: %d, WPAR: %X"),ws,cur);
+  }
+}
+
 void FurnaceGUI::insTabFMModernHeader(DivInstrument* ins) {
   ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
   ImGui::TableNextColumn();
@@ -5540,12 +5669,12 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
 
             if (ins->type==DIV_INS_SGU) {
-              drawWaveformSGU(op.ws&wsMax,ins->sgu.op[i].wpar&0x0f,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()),((op.ws&7)==7)?ins->amiga.initSample:-1);
+              drawSGUWaveSelect(ins,i,op,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()));
             } else {
               drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
             }
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
             if (ins->type==DIV_INS_ESFM && fixedOn) {
               if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
                 op.vib=vibOn;
@@ -5925,7 +6054,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 // waveform
                 drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5977,7 +6106,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 // waveform
                 drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -6037,12 +6166,12 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               case DIV_INS_ESFM:
                 // waveform
                 if (ins->type==DIV_INS_SGU) {
-                  drawWaveformSGU(op.ws&wsMax,ins->sgu.op[i].wpar&0x0f,ImVec2(waveWidth,waveHeight),((op.ws&7)==7)?ins->amiga.initSample:-1);
+                  drawSGUWaveSelect(ins,i,op,ImVec2(waveWidth,waveHeight));
                 } else {
                   drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
                 }
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
 
                 if (ins->type==DIV_INS_SGU&&(op.ws&7)==7) {
                   String sName;
@@ -6868,8 +6997,12 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_ESFM || ins->type==DIV_INS_SGU) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
+              if (ins->type==DIV_INS_SGU) {
+                drawSGUWaveSelect(ins,i,op);
+              } else {
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
+              }
               ImGui::TableNextColumn();
               ImGui::Text("%s",FM_NAME(FM_WS));
             }

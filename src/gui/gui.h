@@ -3106,7 +3106,10 @@ class FurnaceGUI {
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
+  void sguWaveformPoints(unsigned char type, unsigned char wpar, int sampleIdx, const ImRect& rect, ImVec2* out);
   void drawWaveformSGU(unsigned char type, unsigned char wpar, const ImVec2& size, int sampleIdx=-1);
+  bool drawSGUWaveRow(unsigned char ws, unsigned char wpar, int sampleIdx, const char* name, bool selected);
+  void drawSGUWaveSelect(DivInstrument* ins, int opIdx, DivInstrumentFM::Operator& op, const ImVec2& previewSize=ImVec2(0.0f,0.0f));
   void drawSGUWpar(DivInstrument* ins, int opIdx, const DivInstrumentFM::Operator& op, bool prefixLabel=true);
   void drawFMKsr(DivInstrument* ins, DivInstrumentFM::Operator& op, bool shortName=false);
   void drawWaveformSID3(unsigned char type, const ImVec2& size);

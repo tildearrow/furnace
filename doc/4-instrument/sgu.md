@@ -50,8 +50,8 @@ these apply to each operator:
   - SGU-1 uses Yamaha's sign-magnitude encoding, as OPN/OPM DT1 does: bit 2 is the sign and bits 1:0 the magnitude, so there are two zeroes.
   - mapping is: `0=+0`, `1=+1`, `2=+2`, `3=+3`, `4=-0`, `5=-1`, `6=-2`, `7=-3`.
   - neutral is `0`, not `3`.
-- **Waveform Select (WS)**: changes the waveform of the operator (0 to 7). see [waveforms](#waveforms) below.
-- **Waveform Parameter (WPAR)**: per-operator wave shaping parameter. the editor names the available settings for the operator's currently selected waveform (wave variant, quantization, pulse width, or LFSR taps) — see [waveforms](#waveforms) below. a value the selected waveform does not define is shown as `Raw: x` and left alone.
+- **Waveform Select (WS)**: a dropdown of named waveforms, each with a thumbnail. besides the seven base waveforms it lists shapes that also preset WPAR: half and absolute variants (`Half Sine`, `Absolute Sawtooth`, ...), a quantized variant of each, `Square`, and the four periodic-noise tap configurations. picking an entry sets both WS and WPAR; picking a base waveform such as `Sine` clears WPAR. OPL3 names are used where an entry reproduces an OPL3 waveform at the default channel duty. a WS+WPAR pair with no entry of its own (set through the WPAR control below) is shown as e.g. `Sine (Quantize 3 bits)` and left as it is. hover for the raw WS and WPAR numbers. see [waveforms](#waveforms) below.
+- **Waveform Parameter (WPAR)**: per-operator wave shaping parameter. the editor names the available settings for the operator's currently selected waveform (wave variant, quantization, pulse width, or LFSR taps) — see [waveforms](#waveforms) below. it edits the same value the waveform dropdown presets, so the two follow each other. a value the selected waveform does not define is shown as `Raw: x` and left alone.
 - **Hard Sync (SYNC)**: when enabled, this operator's phase resets whenever the previous operator's phase wraps around. creates hard-edged, harmonically rich timbres. for operator 1, the previous operator is operator 4.
 - **Ring Modulation (RING)**: when enabled, this operator's output is multiplied by the previous operator's output, producing sum and difference frequencies for bell-like or metallic tones. for operator 1, the previous operator is operator 4.
 - **Vibrato (VIB)**: makes the operator affected by LFO vibrato. the LFO PM waveform shape is selectable per channel via the FM Macros tab.
@@ -95,9 +95,9 @@ each operator can use one of 7 waveforms. the **Waveform Parameter (WPAR)** prov
   - shared WPAR behavior with triangle and sawtooth:
     - bit 3 = `0`: bits 0..2 select an OPL-style waveform variant:
       - `1` (**HALF_L**): half-sine; part of the wave before duty is silenced.
-      - `2` (**HALF_H**): half-sine; part of the wave after duty is silenced.
+      - `2` (**HALF_H**): half-sine; part of the wave after duty is silenced. on sine at the default duty this is OPL3 waveform 1.
       - `3` (**ABS_L**): absolute-sine; part of the wave before duty is negated.
-      - `4` (**ABS_H**): absolute-sine; part of the wave after duty is negated.
+      - `4` (**ABS_H**): absolute-sine; part of the wave after duty is negated. on sine at the default duty this is OPL3 waveform 2.
       - "before" and "after" are relative to the channel duty's split point, so a negative duty (see `3`: pulse below) swaps which side of the wave each of these four affects.
     - bit 3 = `1`: quantizes waveform table lookup by zeroing low bits (stepped waveforms).
       - bits 0..2 select how many low bits are zeroed: `(bits 0..2 + 1)`.
@@ -107,7 +107,7 @@ each operator can use one of 7 waveforms. the **Waveform Parameter (WPAR)** prov
   - same WPAR behavior as sine and triangle (see `0` above).
 - `3`: **pulse.**
   - WPAR `0`: uses the channel pulse width (set with the Duty macro or `12xx` effect). the value is signed: its magnitude is the low run's length out of 128, and the sign places that run at the start of the period (positive, `____|~~~~`) or at the end (negative, `~~~~|____`). negating it mirrors the wave in time.
-  - WPAR `1` to `15`: fixed per-operator pulse width of x/16 (x low units, 16-x high units).
+  - WPAR `1` to `15`: fixed per-operator pulse width of x/16 (x low units, 16-x high units). `8` is a square wave, OPL3 waveform 6.
 - `4`: **noise.** white noise using a 32-bit LFSR.
 - `5`: **periodic noise.** metallic/tonal noise using a configurable 6-bit LFSR.
   - WPAR bits 1:0 select the tap configuration:
