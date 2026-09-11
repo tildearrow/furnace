@@ -850,7 +850,7 @@ size | description
   1  | cutoff scaling level
   1  | cutoff scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
   1  | resonance scaling level
-  1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
+  1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9` 
 ```
 
 # SGU data (SG)

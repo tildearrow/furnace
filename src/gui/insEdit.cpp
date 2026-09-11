@@ -1415,14 +1415,14 @@ WaveFunc waveFuncsIns[]={
   quartSin,
   squiSin,
   squiAbsSin,
-
+  
   rectSaw,
   absSaw,
-
+  
   cubSaw,
   rectCubSaw,
   absCubSaw,
-
+  
   cubSine,
   rectCubSin,
   absCubSin,
@@ -2203,7 +2203,7 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID("gbEnv"))) {
     ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
-
+    
     float volY=1.0-((float)vol/15.0);
     float lenPos=(sLen>63)?1.0:((float)sLen/384.0);
     float envEndPoint=((float)len/7.0)*((float)(dir?(15-vol):vol)/15.0);
@@ -2801,7 +2801,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::TableNextColumn();
-
+          
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Release"));
@@ -3167,7 +3167,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
           ImGui::TableNextColumn();
 
           if (++curColumn>=columns) curColumn=0;
-
+          
           float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
           int totalFit=i.macro->len;
           if (totalFit<1) totalFit=1;
@@ -4656,7 +4656,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           if (ImGui::Button(_("Request from TX81Z"))) {
             doAction(GUI_ACTION_TX81Z_REQUEST);
           }
-          /*
+          /* 
           ImGui::SameLine();
           if (ImGui::Button("Send to TX81Z")) {
             showError("Coming soon!");
@@ -4783,14 +4783,10 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
         }
         case DIV_INS_ESFM: {
           ImGui::TableNextColumn();
-          if (ins->type!=DIV_INS_SGU) {
-            P(CWSliderScalar(ESFM_LONG_NAME(ESFM_NOISE),ImGuiDataType_U8,&ins->esfm.noise,&_ZERO,&_THREE,_(esfmNoiseModeNames[ins->esfm.noise&3]))); rightClickable
-            ImGui::TextUnformatted(_(esfmNoiseModeDescriptions[ins->esfm.noise&3]));
-          }
+          P(CWSliderScalar(ESFM_LONG_NAME(ESFM_NOISE),ImGuiDataType_U8,&ins->esfm.noise,&_ZERO,&_THREE,_(esfmNoiseModeNames[ins->esfm.noise&3]))); rightClickable
+          ImGui::TextUnformatted(_(esfmNoiseModeDescriptions[ins->esfm.noise&3]));
           ImGui::TableNextColumn();
-          if (ins->type!=DIV_INS_SGU) {
-            P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
-          }
+          P(CWSliderScalar(FM_NAME(FM_BLOCK),ImGuiDataType_U8,&ins->fm.block,&_ZERO,&_EIGHT,blockTxt.c_str())); rightClickable
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
@@ -5154,7 +5150,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           op.tl&=maxTl;
           CENTER_VSLIDER;
-          P(CWVSliderScalar("##TL",ImVec2((maxTl>99?26.0f:20.0f)*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
+          // SGU-1 shows a three-digit TL in the ESFM-style layout; 20px clips the label
+          P(CWVSliderScalar("##TL",ImVec2(((ins->type==DIV_INS_SGU)?26.0f:20.0f)*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
 
           if (settings.susPosition==3) {
             ImGui::TableNextColumn();
@@ -5549,9 +5546,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             }
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
-            if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-            }
             if (ins->type==DIV_INS_ESFM && fixedOn) {
               if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
                 op.vib=vibOn;
@@ -5804,7 +5798,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
             ImGui::SetCursorPos(prevCurPos);
             ImGui::Dummy(ImVec2(0,0));
-
+            
             ImGui::TableNextColumn();
             switch (ins->type) {
               case DIV_INS_FM: {
@@ -5821,7 +5815,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 if (CWSliderScalar("##SSG",ImGuiDataType_U8,&ssgEnv,&_ZERO,&_SEVEN,_(ssgEnvTypes[ssgEnv]))) { PARAMETER
                   op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                 }
-
+                
                 // params
                 ImGui::Separator();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5913,7 +5907,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   if (ImGui::Checkbox(FM_NAME(FM_EGS),&ssgOn)) { PARAMETER
                     op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                   }
-
+                  
                   ImGui::EndTable();
                 }
 
@@ -5932,9 +5926,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
-                if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-                }
 
                 // params
                 ImGui::Separator();
@@ -5957,11 +5948,11 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   if (ImGui::Checkbox(FM_NAME(FM_SUS),&susOn)) { PARAMETER
                     op.sus=susOn;
                   }
-
+                  
                   ImGui::EndTable();
                 }
 
-                pushWarningColor(ins->type==DIV_INS_OPL_DRUMS && i==0);
+                pushWarningColor(ins->type==DIV_INS_OPL_DRUMS && i==0);          
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_MULT));
                 P(CWSliderScalar("##MULT",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN,tempID)); rightClickable
@@ -5987,9 +5978,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
-                if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-                }
 
                 // params
                 ImGui::Separator();
@@ -6006,7 +5994,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                       if (block>7) block=7;
                       op.dt=block;
                     }
-
+                    
                     ImGui::Text(_("Freq"));
                     ImGui::SameLine();
                     ImGui::SetCursorPos(ImVec2(cursorAlign.x,ImGui::GetCursorPosY()));
@@ -6338,7 +6326,8 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
             ImGui::TableNextColumn();
             op.tl&=maxTl;
-            float tlSliderWidth=(maxTl>99?26.0f:20.0f)*dpiScale;
+            float tlSliderWidth=(ins->type==DIV_INS_ESFM)?20.0f*dpiScale:ImGui::GetFrameHeight();
+            if (ins->type==DIV_INS_SGU) tlSliderWidth=26.0f*dpiScale; // three-digit TL in the ESFM-style layout
             float tlSliderHeight=sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f);
             float textX_tl=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##TL",ImVec2(tlSliderWidth,tlSliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
@@ -6674,7 +6663,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::Separator();
             ImGui::TableNextColumn();
             ImGui::Separator();
-
+            
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -6795,7 +6784,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 ImGui::Text("%s",FM_NAME(FM_MULT));
               }
             }
-
+            
             if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM || ins->type==DIV_INS_SGU) {
               if (!(ins->type==DIV_INS_OPZ && op.egt) && !(ins->type==DIV_INS_SGU && opE.fixed)) {
                 int detune=detuneMap[settings.unsignedDetune?1:0][op.dt&7];
@@ -6881,9 +6870,6 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
               P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,((ins->type==DIV_INS_SGU)?sguWaveforms[op.ws&wsMax]:(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax])))); rightClickable
-              if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-              }
               ImGui::TableNextColumn();
               ImGui::Text("%s",FM_NAME(FM_WS));
             }
@@ -7147,7 +7133,7 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
 
       ImGui::EndTable();
     }
-
+    
     if (!ins->sid3.doWavetable) {
       strncpy(buffer,macroSID3WaveMixMode(0,(float)ins->sid3.mixMode,NULL).c_str(),40);
       P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid3.mixMode,&_ZERO,&_FOUR,buffer));
@@ -7636,7 +7622,7 @@ void FurnaceGUI::drawInsEdit() {
 
         ImGui::EndTable();
       }
-
+      
 
       if (ImGui::BeginTabBar("insEditTab")) {
         std::vector<FurnaceGUIMacroDesc> macroList;
@@ -7884,7 +7870,7 @@ void FurnaceGUI::drawInsEdit() {
                     macroList.push_back(FurnaceGUIMacroDesc(_("Op. Pitch"),&ins->std.opMacros[ordi].susMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode,NULL,false,NULL,false,NULL,false,true));
                   }
                 }
-
+                
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AR),&ins->std.opMacros[ordi].arMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DR),&ins->std.opMacros[ordi].drMacro,0,maxArDr,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_D2R),&ins->std.opMacros[ordi].d2rMacro,0,31,64,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
@@ -8242,7 +8228,7 @@ void FurnaceGUI::drawInsEdit() {
 
           P(ImGui::Checkbox(_("Enable filter"),&ins->c64.toFilter));
           P(ImGui::Checkbox(_("Initialize filter"),&ins->c64.initFilter));
-
+          
           if (ins->type==DIV_INS_SID2) {
             P(CWSliderScalar(_("Cutoff"),ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
             P(CWSliderScalar(_("Resonance"),ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
@@ -8729,7 +8715,7 @@ void FurnaceGUI::drawInsEdit() {
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             ImGui::InhibitInertialScroll();
           }
-
+          
           if (ImGui::Button(modTableHex?"Hex##MTHex":"Dec##MTHex")) {
             modTableHex=!modTableHex;
           }
@@ -9020,7 +9006,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_NAMCO ||
             ins->type==DIV_INS_SM8521 ||
-            (ins->type==DIV_INS_GBA_MINMOD && ins->amiga.useWave))
+            (ins->type==DIV_INS_GBA_MINMOD && ins->amiga.useWave)) 
         {
           insTabWavetable(ins);
         }
@@ -9363,18 +9349,18 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Special"),&ins->std.ex1Macro,0,5,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
               macroList.push_back(FurnaceGUIMacroDesc(_("Gain"),&ins->std.ex2Macro,0,255,256,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,macroHoverGain,false));
               break;
-              case DIV_INS_SU:
-              case DIV_INS_SGU:
+            case DIV_INS_SU:
+            case DIV_INS_SGU:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
               macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              if (ins->type != DIV_INS_SGU) {
-                macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
-              } else {
+              if (ins->type==DIV_INS_SGU) {
+                // SGU-1's pulse width register is a signed split point, and its waveform is
+                // picked per operator (wsMacro): waveMacro is this chip's LFO AM Shape on the
+                // FM Macros tab, so there is no "Waveform" entry here.
                 macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,-128,127,160,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroHoverSGUDuty));
-                // NO "Waveform" entry here for SGU: waveMacro is the LFO AM Shape on this
-                // chip (see the FM Macros tab) and the per-operator oscillator is wsMacro.
-                // Listing it here as a 0..7 Sound Unit waveform was the same macro under a
-                // second name, range and vocabulary.
+              } else {
+                macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,127,160,uiColors[GUI_COLOR_MACRO_NOISE]));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSoundUnitWaves,false,NULL));
               }
               macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,-127,127,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
@@ -9709,7 +9695,7 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Ring Mod Source"),&ins->std.fmsMacro,0,SID3_NUM_CHANNELS,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
               macroList.push_back(FurnaceGUIMacroDesc(_("Hard Sync Source"),&ins->std.amsMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
               macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
-
+              
               if (!ins->sid3.doWavetable) {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Feedback"),&ins->std.opMacros[3].arMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               }
@@ -9921,7 +9907,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         ImGui::EndMenu();
       }
-
+      
       ImGui::EndPopup();
     }
   }
