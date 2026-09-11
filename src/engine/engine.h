@@ -66,6 +66,7 @@ class DivWorkPool;
 #define DIV_VERSION_TFE 0xff05
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
+#define DIV_VERSION_MIDI 0xff08
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -361,6 +362,42 @@ struct DivEffectContainer {
   }
 };
 
+struct DivMIDIImportOptions {
+  bool useBaseTempo;
+  bool importVelocity;
+  bool importCC7;
+  bool importCC11;
+  bool importSustain;
+  bool importPan;
+  bool importVibrato;
+  bool importPitchBend;
+  bool splitDrums;
+  int quantize;
+  int ticksPerRow;
+  int patternLen;
+  int drumChannel;
+  int vibratoRate;
+  int vibratoDepth;
+  int bendRange;
+  DivMIDIImportOptions():
+    useBaseTempo(true),
+    importVelocity(true),
+    importCC7(true),
+    importCC11(true),
+    importSustain(true),
+    importPan(true),
+    importVibrato(true),
+    importPitchBend(true),
+    splitDrums(true),
+    quantize(32),
+    ticksPerRow(6),
+    patternLen(64),
+    drumChannel(10),
+    vibratoRate(5),
+    vibratoDepth(8),
+    bendRange(0) {}
+};
+
 extern const char* cmdName[];
 
 class DivEngine {
@@ -548,6 +585,7 @@ class DivEngine {
   bool loadFC(unsigned char* file, size_t len);
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
+  bool loadMIDI(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -630,6 +668,9 @@ class DivEngine {
     std::atomic<size_t> processTime;
 
     float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
+
+    // ugh...
+    DivMIDIImportOptions midiImportOptions;
 
     void runExportThread();
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size, bool calledFromExport=false);

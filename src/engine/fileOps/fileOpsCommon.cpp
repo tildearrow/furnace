@@ -156,6 +156,8 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
     return loadTFMv2(file,len);
   } else if (memcmp(file,DIV_IT_MAGIC,4)==0) {
     return loadIT(file,len);
+  } else if (memcmp(file,DIV_MIDI_MAGIC,4)==0) {
+    return loadMIDI(file,len);
   } else if (len>=48) {
     if (memcmp(&file[0x2c],DIV_S3M_MAGIC,4)==0) {
       return loadS3M(file,len);
