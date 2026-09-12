@@ -223,6 +223,7 @@ void FurnaceGUI::drawPalette() {
     case CMDPAL_TYPE_ADD_CHIP:
       for (int i=0; availableSystems[i]; i++) {
         int ds=availableSystems[i];
+        if (!settings.hiddenSystems && CHECK_HIDDEN_SYSTEM(ds)) continue;
         const char* sysname=getSystemName((DivSystem)ds);
         evaluate(ds,sysname,strlen(sysname));
       }
