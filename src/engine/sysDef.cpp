@@ -2258,6 +2258,32 @@ void DivEngine::registerSystems() {
     suEffectHandlerMap
   );
 
+  // SGU-1 shares Sound Unit's effects, except that its pulse width register is a
+  // signed split point, so 12xx spans a whole byte instead of Sound Unit's 0..7F.
+  EffectHandlerMap sguEffectHandlerMap=suEffectHandlerMap;
+  // SGU-1 picks a waveform per operator in the instrument editor, so it has no
+  // per-channel waveform for 10xx to set.
+  sguEffectHandlerMap.erase(0x10);
+  sguEffectHandlerMap.erase(0x12);
+  sguEffectHandlerMap.emplace(0x12, EffectHandler(DIV_CMD_STD_NOISE_MODE, _("12xx: Set pulse width (00 to 7F at period start, 80 to FF at period end)")));
+
+  sysDefs[DIV_SYSTEM_SGU]=new DivSysDef(
+    _("SGU-1"), NULL, 0xe6, 0, 9, 9, 9,
+    true, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    _("what if you cherry-picked the best features of OPL/ESFM, OPM, SID, POKEY, and Paula and glued them together?"),
+    DivChanDefFunc([](unsigned short ch) -> DivChanDef {
+      return DivChanDef(
+        fmt::sprintf(_("Channel %d"),ch+1),
+        fmt::sprintf(_("CH%d"),ch+1),
+        DIV_CH_NOISE,
+        DIV_INS_SGU,
+        DIV_INS_AMIGA
+      );
+    }),
+    {},
+    sguEffectHandlerMap
+  );
+
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
     _("OKI MSM6295"), NULL, 0xaa, 0, 4, 4, 4,
     false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,

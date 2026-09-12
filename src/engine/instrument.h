@@ -102,6 +102,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_UPD1771C=65,
   DIV_INS_SID3=66,
   DIV_INS_KLATTSCH=67,
+  DIV_INS_SGU=68,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -1067,6 +1068,39 @@ struct DivInstrumentKlattsch {
     formantShift(0) {}
 };
 
+struct DivInstrumentSGU {
+  struct Operator {
+    unsigned char wpar; // 4-bit waveform parameter; its meaning depends on the operator's
+                        // selected WAVE (see doc/4-instrument/sgu.md "waveforms"):
+                        //   SINE/TRIANGLE/SAWTOOTH: one scheme shared by all three --
+                        //     bit 3 clear: bits 0-2 pick an OPL-style variant of the base
+                        //       wave, split at the channel duty. 1=half low, 2=half high,
+                        //       3=abs low, 4=abs high; 0 is unshaped and 5-7 are no-ops
+                        //     bit 3 set: quantize the table lookup by zeroing
+                        //       (bits 0-2 + 1) low phase bits, giving stepped waveforms
+                        //   PULSE: 0=take the channel pulse width, 1-15=fixed width x/16
+                        //   PERIODIC_NOISE: bits 1-0 pick the 6-bit LFSR tap configuration
+                        //   NOISE/RESERVED/SAMPLE: unread
+    bool sync;          // hard sync to previous operator
+    bool ring;          // ring modulation from previous operator
+
+    bool operator==(const Operator& other);
+    bool operator!=(const Operator& other) {
+      return !(*this==other);
+    }
+    Operator():
+      wpar(0),
+      sync(false),
+      ring(false) {}
+  } op[4];
+
+  bool operator==(const DivInstrumentSGU& other);
+  bool operator!=(const DivInstrumentSGU& other) {
+    return !(*this==other);
+  }
+  DivInstrumentSGU() {}
+};
+
 struct DivInstrumentPOD {
   DivInstrumentType type;
   DivInstrumentFM fm;
@@ -1087,6 +1121,7 @@ struct DivInstrumentPOD {
   DivInstrumentSID2 sid2;
   DivInstrumentSID3 sid3;
   DivInstrumentKlattsch klattsch;
+  DivInstrumentSGU sgu;
 
   DivInstrumentPOD() :
     type(DIV_INS_FM) {
@@ -1203,6 +1238,7 @@ struct DivInstrument: DivInstrumentPOD {
   void writeFeatureS2(SafeWriter* w);
   void writeFeatureS3(SafeWriter* w);
   void writeFeatureKT(SafeWriter* w);
+  void writeFeatureSG(SafeWriter* w);
 
   void readFeatureNA(SafeReader& reader, short version);
   void readFeatureFM(SafeReader& reader, short version);
@@ -1230,6 +1266,7 @@ struct DivInstrument: DivInstrumentPOD {
   void readFeatureS2(SafeReader& reader, short version);
   void readFeatureS3(SafeReader& reader, short version);
   void readFeatureKT(SafeReader& reader, short version);
+  void readFeatureSG(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
