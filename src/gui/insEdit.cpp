@@ -2318,7 +2318,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     }
     ImGui::PopStyleVar();
   } else {
-    const int actualMax=i.isBitfield?((1<<i.max)-1):i.max;
+    const unsigned int actualMax=i.isBitfield?((i.max==32)?0xffffffff:(1<<i.max)-1):i.max;
     if (i.macro->open&2) {
       const bool compact=(availableWidth<300.0f*dpiScale);
       bool adsrClamp=false;
@@ -2708,7 +2708,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 \
       /* if ADSR/LFO, populate min/max */ \
       if (i.macro->open&6) { \
-        const int actualMax=i.isBitfield?((1<<i.max)-1):i.max; \
+        const unsigned int actualMax=i.isBitfield?((i.max==32)?0xffffffff:(1<<i.max)-1):i.max; \
         if (i.macro->val[0]==0 && i.macro->val[1]==0) { \
           i.macro->val[0]=i.min; \
           i.macro->val[1]=actualMax; \
