@@ -3102,6 +3102,7 @@ class FurnaceGUI {
 
   // speed window specific
   Uint64 lastTapTime;
+  double lastTapDelta;
   float grooveTargetBPM;
 
   // user presets window
