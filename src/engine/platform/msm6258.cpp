@@ -308,6 +308,10 @@ void DivPlatformMSM6258::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+int DivPlatformMSM6258::getSampleGroup(int chan) {
+  return msmRates[rateSel&3];
+}
+
 void DivPlatformMSM6258::reset() {
   while (!writes.empty()) writes.pop();
   msm->device_reset();
