@@ -1657,7 +1657,15 @@ void FurnaceGUI::drawPattern() {
           xAmount*=MAX(1,editStepCoarse);
           yAmount*=MAX(1,editStepCoarse);
         }
+        bool hasSelection=!(selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && selStart.order==selEnd.order);
+        auto savedSelStart=selStart;
+        auto savedSelEnd=selEnd;
+
         moveCursor(xAmount,yAmount,false);
+        if (hasSelection) {
+          selStart=savedSelStart;
+          selEnd=savedSelEnd;
+        }
       }
     }
 
