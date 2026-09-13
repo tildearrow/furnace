@@ -1962,6 +1962,10 @@ void DivPlatformYM2608::setSkipRegisterWrites(bool value) {
   ay->setSkipRegisterWrites(value);
 }
 
+size_t DivPlatformYM2608::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformYM2608::getSampleMem(int index) {
   return index == 0 ? adpcmBMem : NULL;
 }

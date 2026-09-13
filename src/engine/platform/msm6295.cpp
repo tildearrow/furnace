@@ -347,6 +347,10 @@ unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
   return 0;
 }
 
+size_t DivPlatformMSM6295::getSampleMemNum() {
+  return 1;
+}
+
 const void* DivPlatformMSM6295::getSampleMem(int index) {
   return index == 0 ? adpcmMem : NULL;
 }
