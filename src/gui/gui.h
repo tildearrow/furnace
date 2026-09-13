@@ -390,6 +390,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_UPD1771C,
   GUI_COLOR_INSTR_SID3,
   GUI_COLOR_INSTR_KLATTSCH,
+  GUI_COLOR_INSTR_SGU,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1874,6 +1875,7 @@ class FurnaceGUI {
   void* fmPreviewOPZ;
   void* fmPreviewOPZInterface;
   void* fmPreviewESFM;
+  void* fmPreviewSGU;
   String* editString;
   SDL_Event userEvent;
 
@@ -3114,6 +3116,12 @@ class FurnaceGUI {
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
+  void sguWaveformPoints(unsigned char type, unsigned char wpar, int sampleIdx, const ImRect& rect, ImVec2* out);
+  void drawWaveformSGU(unsigned char type, unsigned char wpar, const ImVec2& size, int sampleIdx=-1);
+  bool drawSGUWaveRow(unsigned char ws, unsigned char wpar, int sampleIdx, const char* name, bool selected);
+  void drawSGUWaveSelect(DivInstrument* ins, int opIdx, DivInstrumentFM::Operator& op, const ImVec2& previewSize=ImVec2(0.0f,0.0f));
+  void drawSGUWpar(DivInstrument* ins, int opIdx, const DivInstrumentFM::Operator& op, bool prefixLabel=true);
+  void drawFMKsr(DivInstrument* ins, DivInstrumentFM::Operator& op, bool shortName=false);
   void drawWaveformSID3(unsigned char type, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawESFMAlgorithm(DivInstrumentESFM& esfm, const ImVec2& size);
@@ -3130,6 +3138,7 @@ class FurnaceGUI {
   void renderFMPreviewOPL(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewOPZ(const DivInstrumentFM& params, int pos=0);
   void renderFMPreviewESFM(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, int pos=0);
+  void renderFMPreviewSGU(const DivInstrumentFM& params, const DivInstrumentESFM& esfmParams, const DivInstrumentSGU& sguParams, int sampleIdx, int pos=0);
 
   void VerticalText(const char* fmt, ...);
   void VerticalText(float maxSize, bool centered, const char* fmt, ...);

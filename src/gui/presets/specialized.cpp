@@ -111,6 +111,11 @@ void initSystemPresetsSpecialized(std::vector<FurnaceGUISysCategory>& sysCategor
     }
   );
   ENTRY(
+    _("SGU-1"), {
+      CH(DIV_SYSTEM_SGU, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     _("PowerNoise"), {
       CH(DIV_SYSTEM_POWERNOISE, 1.0f, 0, "")
     }
