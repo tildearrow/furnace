@@ -320,6 +320,7 @@ TAParamResult pVersion(String) {
   printf("- JSON for Modern C++ by Niels Lohmann (MIT)\n");
 #endif
   printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
+  printf("- Lua (MIT)\n");
   printf("- Nuked-OPM by nukeykt (LGPLv2.1)\n");
   printf("- Nuked-OPN2 by nukeykt (LGPLv2.1)\n");
   printf("- Nuked-OPL3-fast by nukeykt and Tony Gies (LGPLv2.1)\n");

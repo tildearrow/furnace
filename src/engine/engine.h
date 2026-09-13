@@ -623,13 +623,6 @@ class DivEngine {
   void registerROMExports();
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
-  void exchangeIns(int one, int two);
-  void exchangeWave(int one, int two);
-  void exchangeSample(int one, int two);
-
-  void copyChannel(int src, int dest);
-  void swapChannels(int src, int dest);
-  void stompChannel(int ch);
   bool sysChanCountChange(int firstChan, int before, int after);
 
   // recalculate patchbay (UNSAFE)
@@ -998,6 +991,7 @@ class DivEngine {
     void virtualTempoChanged();
 
     // get time
+    int getTotalTicksR(); // engine ticks
     TimeMicros getCurTime();
 
     // get repeat pattern
@@ -1020,6 +1014,9 @@ class DivEngine {
 
     // is running
     bool isRunning();
+
+    // is freelance
+    bool isFreelance();
 
     // is stepping
     bool isStepping();
@@ -1121,6 +1118,15 @@ class DivEngine {
     bool swapInstruments(int a, int b);
     bool swapWaves(int a, int b);
     bool swapSamples(int a, int b);
+
+    // other thing things
+    void exchangeIns(int one, int two);
+    void exchangeWave(int one, int two);
+    void exchangeSample(int one, int two);
+
+    void copyChannel(int src, int dest);
+    void swapChannels(int src, int dest);
+    void stompChannel(int ch);
 
     // automatic patchbay
     void autoPatchbay();

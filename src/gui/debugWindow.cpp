@@ -116,6 +116,74 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
     } \
   }
 
+#define SCRIPTING_STATE_DEBUG(_state) { \
+  ImGui::PushID(_state); \
+  const int stackTop=lua_gettop(_state); \
+  ImGui::Text("state address: %p\nstack top: %d",_state,stackTop); \
+  if (ImGui::BeginTable("stackdump",3,ImGuiTableFlags_RowBg)) { \
+    ImGui::TableSetupColumn("n",ImGuiTableColumnFlags_WidthFixed); \
+    ImGui::TableSetupColumn("t",ImGuiTableColumnFlags_WidthFixed); \
+    ImGui::TableSetupColumn("v",ImGuiTableColumnFlags_WidthStretch); \
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("N"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("type"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("value"); \
+    for (int i=1; i<=stackTop; i++) { \
+      ImGui::TableNextRow(); \
+      ImGui::TableNextColumn(); \
+      ImGui::Text("%d",i); \
+      int type=lua_type(_state,i); \
+      ImGui::TableNextColumn(); \
+      ImGui::Text("%s",lua_typename(_state,type)); \
+      ImGui::TableNextColumn(); \
+      switch (type) { \
+        case LUA_TSTRING: \
+          ImGui::TextUnformatted(lua_tostring(_state,i)); \
+          break; \
+        case LUA_TBOOLEAN: \
+          ImGui::TextUnformatted(lua_toboolean(_state,i)?"true":"false"); \
+          break; \
+        case LUA_TNUMBER: \
+          ImGui::Text("%g",lua_tonumber(_state,i)); \
+          break; \
+        default: break; \
+      } \
+    } \
+    ImGui::EndTable(); \
+  } \
+  ImGui::PopID(); \
+}
+
+#define SCRIPTING_CALLBACK_DEBUG(_c) \
+  if (ImGui::BeginTable("scriptCallback" #_c,4,ImGuiTableFlags_RowBg)) { \
+    ImGui::TableNextRow(ImGuiTableRowFlags_Headers); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("ID"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("State"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("Function"); \
+    ImGui::TableNextColumn(); \
+    ImGui::TextUnformatted("Call"); \
+    for (auto c:scriptCallbacks._c) { \
+      ImGui::TableNextRow(); \
+      ImGui::TableNextColumn(); \
+      ImGui::TextUnformatted(c.first.c_str()); \
+      ImGui::TableNextColumn(); \
+      ImGui::Text("%p",c.second.first); \
+      ImGui::TableNextColumn(); \
+      ImGui::Text("%d",c.second.second); \
+      ImGui::TableNextColumn(); \
+      if (ImGui::Button(ICON_FA_PLAY)) { \
+        runScriptFunction(c.second.first,c.second.second); \
+      } \
+    } \
+    ImGui::EndTable(); \
+  }
+
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
   static int bpRow;
@@ -1265,6 +1333,58 @@ void FurnaceGUI::drawDebug() {
         }
       }
       ImGui::EndChild();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Scripting")) {
+      if (ImGui::BeginTabBar("scriptingDebug")) {
+        if (ImGui::BeginTabItem("Global state")) {
+          SCRIPTING_STATE_DEBUG(globalState.state)
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Playground state")) {
+          SCRIPTING_STATE_DEBUG(playground.state)
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Callbacks")) {
+          if (ImGui::BeginTabBar("scriptingDebug")) {
+            if (ImGui::BeginTabItem("Pattern")) {
+              SCRIPTING_CALLBACK_DEBUG(pattern)
+              ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+          }
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem("Windows")) {
+          if (ImGui::BeginTable("scriptWin",4,ImGuiTableFlags_RowBg)) {
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("ID");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("State");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Function");
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted("Open");
+            for (auto &c:scriptWindows) {
+              ImGui::PushID(&c);
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::TextUnformatted(c.first.c_str());
+              ImGui::TableNextColumn();
+              ImGui::Text("%p",c.second.state);
+              ImGui::TableNextColumn();
+              ImGui::Text("%d",c.second.function);
+              ImGui::TableNextColumn();
+              ImGui::Checkbox("##winOpen",&c.second.open);
+              ImGui::PopID();
+            }
+            ImGui::EndTable();
+          }
+          ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {
