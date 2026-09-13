@@ -366,9 +366,11 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_USER_PRESETS:
       nextWindow=GUI_WINDOW_USER_PRESETS;
       break;
+#ifdef HAVE_SNDFIE
     case GUI_ACTION_WINDOW_REF_PLAYER:
       nextWindow=GUI_WINDOW_REF_PLAYER;
       break;
+#endif
     case GUI_ACTION_WINDOW_MULTI_INS_SETUP:
       nextWindow=GUI_WINDOW_MULTI_INS_SETUP;
       break;
@@ -483,9 +485,11 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_USER_PRESETS:
           userPresetsOpen=false;
           break;
+#ifdef HAVE_SNDFILE
         case GUI_WINDOW_REF_PLAYER:
           refPlayerOpen=false;
           break;
+#endif
         case GUI_WINDOW_MULTI_INS_SETUP:
           multiInsSetupOpen=false;
           break;
