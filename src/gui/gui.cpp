@@ -7997,13 +7997,8 @@ bool FurnaceGUI::loop() {
           ImGui::Separator();
           ImGui::Indent();
           if (ImGui::RadioButton(_("Base Tempo"),e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=true;
-          if (ImGui::RadioButton(_("Groove Approximation"),!e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=false;
+          if (ImGui::RadioButton(_("Virtual Tempo"),!e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=false;
           ImGui::Unindent();
-          if (e->midiImportOptions.useBaseTempo) {
-            ImGui::TextWrapped(_("Sets the song's tick rate from the MIDI's own BPM. Exact tempo, a flat speed, and sub-row timing carried in note delays, at the cost of an unusual tick rate."));
-          } else {
-            ImGui::TextWrapped(_("Keeps the tick rate at 60Hz and carries the tempo in the groove. Notes land on whole rows, so timing is coarser."));
-          }
 
           ImGui::Spacing();
           ImGui::PushFont(headFont);
