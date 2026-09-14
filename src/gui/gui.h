@@ -697,6 +697,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
+  GUI_FILE_EXPORT_S98,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_TEXT,
 #ifdef WITH_JSON
@@ -758,6 +759,7 @@ enum FurnaceGUIExportTypes {
 
   GUI_EXPORT_AUDIO=0,
   GUI_EXPORT_VGM,
+  GUI_EXPORT_S98,
   GUI_EXPORT_ROM,
   GUI_EXPORT_CMD_STREAM,
   GUI_EXPORT_TEXT,
@@ -1801,7 +1803,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery, sampleBankSearchQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
-  String workingDirVGMExport, workingDirROMExport;
+  String workingDirVGMExport, workingDirS98Export, workingDirROMExport;
   String workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirMusic, workingDirTest;
   String workingDirConfig;
@@ -3062,6 +3064,11 @@ class FurnaceGUI {
   DivJSONExportOptions jsonExportOptions;
 #endif
 
+  // S98 export options
+  float s98ExportTickRate;
+  bool s98ExportLoop;
+  int s98ExportTrailingTicks;
+
   // ROM export specific
   DivROMExportOptions romTarget;
   DivConfig romConfig;
@@ -3104,6 +3111,7 @@ class FurnaceGUI {
 
   void drawExportAudio(bool onWindow=false);
   void drawExportVGM(bool onWindow=false);
+  void drawExportS98(bool onWindow=false);
   void drawExportROM(bool onWindow=false);
   void drawExportText(bool onWindow=false);
 #ifdef WITH_JSON

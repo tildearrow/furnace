@@ -32,7 +32,6 @@ enum DivROMExportOptions {
   DIV_ROM_ZSM,
   DIV_ROM_TIUNA,
   DIV_ROM_SAP_R,
-  DIV_ROM_S98,
   DIV_ROM_IPOD,
   DIV_ROM_GRUB,
 

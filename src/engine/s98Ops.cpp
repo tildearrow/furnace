@@ -17,10 +17,39 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "s98.h"
-#include "../engine.h"
-#include "../ta-log.h"
+#include "engine.h"
 #include <fmt/printf.h>
+
+bool DivEngine::supportedByS98(DivSystem which) {
+  switch (which) {
+    case DIV_SYSTEM_AY8910:
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_CSM:
+    case DIV_SYSTEM_YM2203_EXT:
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_CSM:
+    case DIV_SYSTEM_YM2608_EXT:
+    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_CSM:
+    case DIV_SYSTEM_YM2612_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2151:
+    case DIV_SYSTEM_OPLL:
+    case DIV_SYSTEM_OPLL_DRUMS:
+    case DIV_SYSTEM_OPL:
+    case DIV_SYSTEM_OPL_DRUMS:
+    case DIV_SYSTEM_OPL2:
+    case DIV_SYSTEM_OPL2_DRUMS:
+    case DIV_SYSTEM_OPL3:
+    case DIV_SYSTEM_OPL3_DRUMS:
+    case DIV_SYSTEM_SMS:
+      return true;
+    default:
+      return false;
+  }
+  return false;
+}
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
@@ -44,19 +73,15 @@ static void writeCmd(std::vector<uint8_t>& data, DivSystem sys, uint8_t cmdID, u
   data.insert(data.end(),{cmdID,(uint8_t)(addr&0xff),val});
 }
 
-void DivExportS98::run() {
+SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int trailingTicks) {
   SafeWriter* w;
 
   // config
-  float tickRate=conf.getFloat("s98rate",e->getHz());
-  bool loop=conf.getBool("loop",true);
-  int trailingTicks=conf.getInt("trailingTicks",-1);
+  if (tickRate<1.0f) tickRate=getHz();
   std::vector<int> toExport=conf.getIntList("toExport",{});
   if (toExport.empty()) {
-    logAppend("ERROR: No systems selected for S98");
-    failed=true;
-    running=false;
-    return;
+    logE("No systems selected for S98");
+    return NULL;
   }
   int dataPos=0;
   int loopPos=-1;
@@ -80,10 +105,10 @@ void DivExportS98::run() {
   w->writeI(0); // loop offset, will be written later
   w->writeI(toExport.size());
   for (int i: toExport) {
-    DivDispatch* dispatch=e->disCont[i].dispatch;
-    DivConfig& flags=e->song.systemFlags[i];
+    DivDispatch* dispatch=disCont[i].dispatch;
+    DivConfig& flags=song.systemFlags[i];
     int sys=0;
-    switch (e->song.system[i]) {
+    switch (song.system[i]) {
       case DIV_SYSTEM_AY8910:
         // S98 permanently has half clock for YM2149F, so convert to AY-3-8910 for those without it
         // S5B has half clock regardless of the flag
@@ -136,9 +161,9 @@ void DivExportS98::run() {
     }
     int pan=0;
     int mixPan=0;
-    if (e->song.systemPan[i]<-0.5f) mixPan=0b10;
-    else if (e->song.systemPan[i]>0.5f) mixPan=0b01;
-    switch (e->song.system[i]) {
+    if (song.systemPan[i]<-0.5f) mixPan=0b10;
+    else if (song.systemPan[i]>0.5f) mixPan=0b01;
+    switch (song.system[i]) {
       case DIV_SYSTEM_AY8910:
       case DIV_SYSTEM_YM2203:
       case DIV_SYSTEM_YM2203_CSM:
@@ -165,26 +190,26 @@ void DivExportS98::run() {
   dataPos=w->tell();
 
   std::vector<uint8_t> data;
-  e->stop();
-  e->repeatPattern=false;
-  e->shallStop=false;
-  e->setOrder(0);
-  e->synchronizedSoft([this, &data, tickRate, loop, trailingTicks, toExport, &loopPos]() {
-    double origRate=e->got.rate;
-    e->got.rate=tickRate;
+  stop();
+  repeatPattern=false;
+  shallStop=false;
+  setOrder(0);
+  synchronizedSoft([this, &data, tickRate, loop, trailingTicks, toExport, &loopPos]() {
+    double origRate=got.rate;
+    got.rate=tickRate;
 
     // determine loop point
-    e->calcSongTimestamps();
-    int loopOrder=e->curSubSong->ts.loopStart.order;
-    int loopRow=e->curSubSong->ts.loopStart.row;
-    logAppendf("loop point: %d %d",loopOrder,loopRow);
+    calcSongTimestamps();
+    int loopOrder=curSubSong->ts.loopStart.order;
+    int loopRow=curSubSong->ts.loopStart.row;
+    logD("loop point: %d %d",loopOrder,loopRow);
 
     // reset the playback state
-    e->curOrder=0;
-    e->freelance=false;
-    e->playing=false;
-    e->extValuePresent=false;
-    e->remainingLoops=-1;
+    curOrder=0;
+    freelance=false;
+    playing=false;
+    extValuePresent=false;
+    remainingLoops=-1;
 
     // render samples
     uint8_t cmdIDs[DIV_MAX_CHIPS];
@@ -193,14 +218,14 @@ void DivExportS98::run() {
       int i=toExport[idx];
       if (i>=0 && i<DIV_MAX_CHIPS) cmdIDs[i]=idx*2;
       else continue;
-      e->disCont[i].dispatch->toggleRegisterDump(true);
+      disCont[i].dispatch->toggleRegisterDump(true);
       // Unlike VGM, S98 doesn't have a provision for initial RAM data
       // So we need to write them as register write commands...
-      switch (e->song.system[i]) {
+      switch (song.system[i]) {
         case DIV_SYSTEM_YM2608:
         case DIV_SYSTEM_YM2608_CSM:
         case DIV_SYSTEM_YM2608_EXT: {
-          DivDispatch* dis=e->disCont[i].dispatch;
+          DivDispatch* dis=disCont[i].dispatch;
           size_t memLen=dis->getSampleMemUsage(0);
           if (memLen==0) break;
           const uint8_t* mem=(const uint8_t*)dis->getSampleMem(0);
@@ -228,10 +253,7 @@ void DivExportS98::run() {
         }
         default: break;
       }
-      progress[0].amount=(float)idx/toExport.size();
     }
-
-    progress[0].amount=1.f;
 
     // Prepare to write song data
     unsigned int totalWait=0;
@@ -245,40 +267,34 @@ void DivExportS98::run() {
     int countDown=MAX(0,trailingTicks)+1;
     std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
 
-    e->playSub(false);
+    playSub(false);
 
     while (!done) {
-      if (mustAbort) {
-        logAppend("aborted!");
-        failed=true;
-        running=false;
-        return;
-      }
       if (loopPos==-1) {
-        if (loopOrder==e->curOrder && loopRow==e->curRow) {
-          if ((e->ticks-((e->tempoAccum+e->virtualTempoN)/e->virtualTempoD))<=0) {
+        if (loopOrder==curOrder && loopRow==curRow) {
+          if ((ticks-((tempoAccum+virtualTempoN)/virtualTempoD))<=0) {
             writeLoop=true;
           }
         }
       }
       tickPos.push_back(data.size());
-      if (e->nextTick(false,true)) {
+      if (nextTick(false,true)) {
         if (trailing) beenOneLoopAlready=true;
         trailing=true;
         if (!loop) countDown=0;
-        for (int i=0; i<e->song.chans; i++) {
-        if (cmdIDs[e->song.dispatchOfChan[i]]==0xff) continue;
-          e->chan[i].wentThroughNote=false;
+        for (int i=0; i<song.chans; i++) {
+        if (cmdIDs[song.dispatchOfChan[i]]==0xff) continue;
+          chan[i].wentThroughNote=false;
         }
       }
       if (trailing) {
         switch (trailingTicks) {
           case -1: { // automatic
             bool stillHaveTo=false;
-            for (int i=0; i<e->song.chans; i++) {
-              if (cmdIDs[e->song.dispatchOfChan[i]]==0xff) continue;
-              if (e->chan[i].goneThroughNote) continue;
-              if (e->chan[i].wentThroughNote) {
+            for (int i=0; i<song.chans; i++) {
+              if (cmdIDs[song.dispatchOfChan[i]]==0xff) continue;
+              if (chan[i].goneThroughNote) continue;
+              if (chan[i].wentThroughNote) {
                 stillHaveTo=true;
                 break;
               }
@@ -292,33 +308,33 @@ void DivExportS98::run() {
             countDown--;
             break;
         }
-        if (e->song.compatFlags.loopModality!=2) countDown=0;
+        if (song.compatFlags.loopModality!=2) countDown=0;
       }
-      if (countDown<=0 || !e->playing || beenOneLoopAlready) {
+      if (countDown<=0 || !playing || beenOneLoopAlready) {
         done=true;
         if (!loop) {
-          for (int i=0; i<e->song.systemLen; i++) {
-            e->disCont[i].dispatch->getRegisterWrites().clear();
+          for (int i=0; i<song.systemLen; i++) {
+            disCont[i].dispatch->getRegisterWrites().clear();
           }
           break;
         }
-        if (!e->playing) {
+        if (!playing) {
           writeLoop=false;
           loopPos=-1;
         }
       }
 
       // calculate number of samples in this tick
-      int wait=e->cycles>>MASTER_CLOCK_PREC;
+      int wait=cycles>>MASTER_CLOCK_PREC;
 
       // get register dumps and put them into delayed writes
       int writeNum=0;
-      for (int i=0; i<e->song.systemLen; i++) {
+      for (int i=0; i<song.systemLen; i++) {
         int curDelay=0;
-        std::vector<DivRegWrite>& writes=e->disCont[i].dispatch->getRegisterWrites();
+        std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
         for (DivRegWrite& j: writes) {
           if (j.addr==0xfffffffe) { // delay
-            curDelay+=(double)j.val*(tickRate/(double)e->disCont[i].dispatch->rate);
+            curDelay+=(double)j.val*(tickRate/(double)disCont[i].dispatch->rate);
             if (curDelay>wait) curDelay=wait-1;
           } else {
             sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,DivDelayedWrite(curDelay,writeNum++,j.addr,j.val)));
@@ -348,11 +364,11 @@ void DivExportS98::run() {
           // write write
           uint8_t cmdID=cmdIDs[i.first];
           if (cmdID==0xff) continue;
-          DivSystem sys=e->song.system[i.first];
+          DivSystem sys=song.system[i.first];
           writeWait(data,totalWait);
           totalWait=0;
           if (i.second.write.addr==0xffffffff) { // Furnace fake reset
-            for (auto& j: e->generateResetWrites(sys)) {
+            for (auto& j: generateResetWrites(sys)) {
               writeCmd(data,sys,cmdID,j.addr,j.val);
             }
           }
@@ -376,25 +392,24 @@ void DivExportS98::run() {
     writeWait(data,totalWait);
     data.push_back(0xfd);
 
-    e->got.rate=origRate;
+    got.rate=origRate;
     for (int i: toExport) {
-      e->disCont[i].dispatch->toggleRegisterDump(false);
+      disCont[i].dispatch->toggleRegisterDump(false);
     }
 
-    e->remainingLoops=-1;
-    e->playing=false;
-    e->freelance=false;
-    e->extValuePresent=false;
+    remainingLoops=-1;
+    playing=false;
+    freelance=false;
+    extValuePresent=false;
   });
 
-  logAppend("writing data...");
-  progress[1].amount=0.95f;
+  logI("writing data...");
   w->write(data.data(),data.size());
 
   // write tags
   int tagPos=w->tell();
   String notes;
-  for (char i: e->song.notes) {
+  for (char i: song.notes) {
     if (i=='\n') notes.append("\ncomment=");
     else notes.push_back(i);
   }
@@ -408,7 +423,7 @@ void DivExportS98::run() {
     "s98by=Furnace (chiptune tracker)\n"
     "comment={}\n"
     "\0",
-    e->song.name,e->song.author,e->song.category,e->song.systemName,notes
+    song.name,song.author,song.category,song.systemName,notes
   ),false);
 
   // finalize header
@@ -417,47 +432,6 @@ void DivExportS98::run() {
   w->writeI(dataPos);
   w->writeI(loopPos==-1?0:loopPos);
 
-  output.emplace_back("out.s98",w);
-  progress[1].amount=1.0f;
-  logAppend("finished!");
-  running=false;
-}
-
-bool DivExportS98::go(DivEngine* eng) {
-  progress[0].name="Samples";
-  progress[0].amount=0.0f;
-  progress[1].name="Song Data";
-  progress[1].amount=0.0f;
-
-  e=eng;
-  running=true;
-  failed=false;
-  mustAbort=false;
-  exportThread=new std::thread(&DivExportS98::run,this);
-  return true;
-}
-
-void DivExportS98::wait() {
-  if (exportThread!=NULL) {
-    exportThread->join();
-    delete exportThread;
-  }
-}
-
-void DivExportS98::abort() {
-  mustAbort=true;
-  wait();
-}
-
-bool DivExportS98::isRunning() {
-  return running;
-}
-
-bool DivExportS98::hasFailed() {
-  return failed;
-}
-
-DivROMExportProgress DivExportS98::getProgress(int index) {
-  if (index<0 || index>2) return progress[2];
-  return progress[index];
+  logI("finished!");
+  return w;
 }

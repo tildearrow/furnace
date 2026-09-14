@@ -20,7 +20,6 @@
 #include "engine.h"
 
 #include "export/amigaValidation.h"
-#include "export/s98.h"
 #include "export/sapr.h"
 #include "export/tiuna.h"
 #include "export/zsm.h"
@@ -41,9 +40,6 @@ DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_SAP_R:
       exporter=new DivExportSAPR;
-      break;
-    case DIV_ROM_S98:
-      exporter=new DivExportS98;
       break;
     case DIV_ROM_IPOD:
       exporter=new DivExportiPod;
