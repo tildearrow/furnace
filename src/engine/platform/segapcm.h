@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
-      bool furnacePCM, isNewSegaPCM, setPos;
+    struct Channel: public SharedChannel {
+      bool isNewSegaPCM, setPos;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
       int macroVolMul;
@@ -37,12 +37,11 @@ class DivPlatformSegaPCM: public DivDispatch {
         int sample;
         unsigned int pos; // <<8
         unsigned short len;
-        unsigned char freq;
-        PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
+        short freq;
+        PCMChannel(): sample(-1), pos(0), len(0), freq(-1) {}
       } pcm;
-      Channel():
-        SharedChannel<int>(127),
-        furnacePCM(false),
+      Channel(bool linear=true):
+        SharedChannel(127,linear),
         isNewSegaPCM(false),
         setPos(false),
         chVolL(127),
@@ -65,10 +64,13 @@ class DivPlatformSegaPCM: public DivDispatch {
     };
     FixedQueue<QueuedWrite,1024> writes;
     segapcm_device pcm;
+    DivPitchTableManager samplePitchTable;
     int delay;
     int pcmL, pcmR, pcmCycles;
-    bool oldSlides;
-    unsigned char sampleBank;
+    int maxChans;
+    bool oldSlides, isDiscrete;
+    unsigned int sampleMemSize;
+    unsigned char bankShift;
     unsigned char lastBusy;
 
     unsigned char regPool[256];
@@ -78,9 +80,9 @@ class DivPlatformSegaPCM: public DivDispatch {
     short oldWrites[256];
     short pendingWrites[256];
 
-    unsigned int sampleOffSegaPCM[256];
-    unsigned char sampleEndSegaPCM[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffSegaPCM;
+    unsigned char* sampleEndSegaPCM;
+    bool* sampleLoaded;
 
     DivMemoryComposition memCompo;
   
@@ -90,7 +92,7 @@ class DivPlatformSegaPCM: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -103,9 +105,12 @@ class DivPlatformSegaPCM: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     bool getLegacyAlwaysSetVolume();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -116,6 +121,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformSegaPCM();
     ~DivPlatformSegaPCM();
 };
 #endif

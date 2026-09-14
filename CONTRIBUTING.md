@@ -16,7 +16,7 @@ see the Discussions section.
 
 ## Getting ready
 
-log into your Github account, and click the Fork button in the header of the project's page.
+log into your GitHub account, and click the Fork button in the header of the project's page.
 
 then open a terminal and clone your fork:
 
@@ -96,21 +96,19 @@ additional guidelines:
 - on a switch block, **always** put `default` last and not in any other position.
   - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
-### Do NOT Force-Push after submitting Pull Request
+### ***Do NOT Force-Push after submitting Pull Request***
 
-if you do so, your pull request will be closed.
+**if you do so, your pull request will be closed.**
+
+The reason we do not allow force-pushing is:
+1. force-pushing allows people to insert malicious commits and (perhaps) go un-noticed,
+2. force-pushing makes life harder for other collaborators as now they have to merge their work and potentially differing commits, or do `git reset --hard`,
+
+so please don't.
 
 ### Demo Songs
 
-just put your demo song in `demos/`! be noted there are some guidelines:
-
-- avoid Nintendo song covers.
-- avoid big label song covers.
-- low effort compositions/covers may not be accepted at all.
-- the following systems are not acceptable:
-  - YMU759/MA-2: exists only for compatibility.
-  - Pong: it is a joke system.
-- the song shall be in Furnace file format.
+we are not accepting demo song submissions at the moment. sorry!
 
 ## Finishing
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-#define FURNACE_FFT_SIZE 4096
-#define FURNACE_FFT_RATE 80.0
-#define FURNACE_FFT_CUTOFF 0.1
+#define FURNACE_CHANOSC_FFT_SIZE 4096
+#define FURNACE_CHANOSC_FFT_RATE 80.0
+#define FURNACE_CHANOSC_FFT_CUTOFF 0.1
 
 const char* chanOscRefs[]={
   _N("None (0%)"),
@@ -56,7 +56,7 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   }
 }
 
-float FurnaceGUI::computeGradPos(int type, int chan) {
+float FurnaceGUI::computeGradPos(int type, int chan, int totalChans) {
   switch (type) {
     case GUI_OSCREF_NONE:
       return 0.0f;
@@ -74,10 +74,10 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
       return chanOscVol[chan];
       break;
     case GUI_OSCREF_CHANNEL:
-      return (float)chan/(float)(e->getTotalChannelCount()-1);
+      return (float)chan/(float)(totalChans-1);
       break;
     case GUI_OSCREF_BRIGHT:
-      return chanOscBright[chan];
+      return chanOscBright[chan]; // this array is set to only 0 (???)
       break;
     case GUI_OSCREF_NOTE_TRIGGER:
       return keyHit1[chan];
@@ -87,10 +87,6 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
 }
 
 void FurnaceGUI::calcChanOsc() {
-  std::vector<DivDispatchOscBuffer*> oscBufs;
-  std::vector<ChanOscStatus*> oscFFTs;
-  std::vector<int> oscChans;
-
   int chans=e->getTotalChannelCount();
   
   for (int i=0; i<chans; i++) {
@@ -102,14 +98,14 @@ void FurnaceGUI::calcChanOsc() {
     }
     if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
       // 30ms should be enough
-      int displaySize=(float)(buf->rate)*0.03f;
+      int displaySize=65536.0f*0.03f;
       if (e->isRunning()) {
         short minLevel=32767;
         short maxLevel=-32768;
-        unsigned short needlePos=buf->needle;
-        needlePos-=displaySize;
-        for (unsigned short i=0; i<512; i++) {
-          short y=buf->data[(unsigned short)(needlePos+(i*displaySize/512))];
+        unsigned short needlePos=buf->needle>>16;
+        for (unsigned short i=needlePos-displaySize; i!=needlePos; i++) {
+          short y=buf->data[i];
+          if (y==-1) continue;
           if (minLevel>y) minLevel=y;
           if (maxLevel<y) maxLevel=y;
         }
@@ -143,10 +139,12 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text(_("Columns"));
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::BeginDisabled(chanOscAutoCols);
         if (ImGui::InputInt("##COSColumns",&chanOscCols,1,3)) {
           if (chanOscCols<1) chanOscCols=1;
           if (chanOscCols>64) chanOscCols=64;
         }
+        ImGui::EndDisabled();
 
         ImGui::TableNextColumn();
         ImGui::Text(_("Size (ms)"));
@@ -160,18 +158,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
-        ImGui::Text(_("Automatic columns"));
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        const char* previewColType=autoColsTypes[chanOscAutoColsType&3];
-        if (ImGui::BeginCombo("##AutoCols",previewColType)) {
-          for (int j=0; j<4; j++) {
-            const bool isSelected=(chanOscAutoColsType==j);
-            if (ImGui::Selectable(autoColsTypes[j],isSelected)) chanOscAutoColsType=j;
-            if (isSelected) ImGui::SetItemDefaultFocus();
-          }
-          ImGui::EndCombo();
-        }
+        ImGui::Checkbox(_("Automatic columns"),&chanOscAutoCols);
 
         ImGui::TableNextColumn();
         if (ImGui::Checkbox(_("Center waveform"),&chanOscWaveCorr)) {
@@ -181,6 +168,21 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Checkbox(_("Randomize phase on note"),&chanOscRandomPhase)) {
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::Text("DC offset correction");
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Off###_cocs0",chanOscCenterStrat==0)) {
+          chanOscCenterStrat=0;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Normal###_cocs1",chanOscCenterStrat==1)) {
+          chanOscCenterStrat=1;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("High-pass###_cocs2",chanOscCenterStrat==2)) {
+          chanOscCenterStrat=2;
         }
 
         ImGui::TableNextRow();
@@ -335,9 +337,30 @@ void FurnaceGUI::drawChanOsc() {
           }
 
           ImGui::TableNextColumn();
-          if (ImGui::ColorEdit4(_("Background"),(float*)&chanOscGrad.bgColor)) {
+          ImGui::Text(_("Background:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Solid color"),chanOscColorMode==0)) {
+            chanOscColorMode=0;
             updateChanOscGradTex=true;
           }
+          if (chanOscColorMode==0) {
+            ImGui::Indent();
+            if (ImGui::ColorEdit4(_("Color"),(float*)&chanOscGrad.bgColor)) {
+              updateChanOscGradTex=true;
+            }
+            ImGui::Unindent();
+          }
+          if (ImGui::RadioButton(_("Channel color"),chanOscColorMode==1)) {
+            chanOscColorMode=1;
+            chanOscGrad.bgColor.x=0.0f;
+            chanOscGrad.bgColor.y=0.0f;
+            chanOscGrad.bgColor.z=0.0f;
+            chanOscGrad.bgColor.w=0.0f;
+            updateChanOscGradTex=true;
+          }
+          // in preparation of image texture
+          ImGui::Unindent();
+
           ImGui::Combo(_("X Axis##AxisX"),&chanOscColorX,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
           ImGui::Combo(_("Y Axis##AxisY"),&chanOscColorY,LocalizedComboGetter,chanOscRefs,GUI_OSCREF_MAX);
 
@@ -345,7 +368,13 @@ void FurnaceGUI::drawChanOsc() {
         }
       } else {
         ImGui::SetNextItemWidth(400.0f*dpiScale);
-        ImGui::ColorPicker4(_("Color"),(float*)&chanOscColor);
+        bool chanOscColorModeB=chanOscColorMode;
+        ImGui::BeginDisabled(chanOscColorModeB);
+        ImGui::ColorEdit4(_("Color"),(float*)&chanOscColor);
+        ImGui::EndDisabled();
+        if (ImGui::Checkbox(_("Set to channel color"), &chanOscColorModeB)) {
+          chanOscColorMode=chanOscColorModeB;
+        }
       }
 
       ImGui::AlignTextToFramePadding();
@@ -386,9 +415,12 @@ void FurnaceGUI::drawChanOsc() {
       ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
       float availY=ImGui::GetContentRegionAvail().y;
       if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
-        std::vector<DivDispatchOscBuffer*> oscBufs;
-        std::vector<ChanOscStatus*> oscFFTs;
-        std::vector<int> oscChans;
+        struct OscData {
+          DivDispatchOscBuffer* buf;
+          ChanOscStatus* fft;
+          int chan;
+        };
+        std::vector<OscData> oscData;
         int chans=e->getTotalChannelCount();
         ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -405,33 +437,31 @@ void FurnaceGUI::drawChanOsc() {
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
           if (buf!=NULL && e->curSubSong->chanShowChanOsc[i]) {
-            oscBufs.push_back(buf);
-            oscFFTs.push_back(&chanOscChan[i]);
-            oscChans.push_back(i);
+            oscData.push_back({buf,&chanOscChan[i],i});
           }
         }
 
         // process
-        for (size_t i=0; i<oscBufs.size(); i++) {
-          ChanOscStatus* fft_=oscFFTs[i];
+        for (size_t i=0; i<oscData.size(); i++) {
+          ChanOscStatus* fft_=oscData[i].fft;
 
-          fft_->relatedBuf=oscBufs[i];
-          fft_->relatedCh=oscChans[i];
+          fft_->relatedBuf=oscData[i].buf;
+          fft_->relatedCh=oscData[i].chan;
 
           if (fft_->relatedBuf!=NULL) {
             // prepare
             if (centerSettingReset) {
-              fft_->relatedBuf->readNeedle=fft_->relatedBuf->needle;
+              fft_->relatedBuf->readNeedle=fft_->relatedBuf->needle>>16;
             }
 
             // check FFT status existence
             if (!fft_->ready) {
               logD(_("creating FFT plan for channel %d"),fft_->relatedCh);
-              fft_->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-              fft_->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
-              fft_->corrBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-              fft_->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft_->inBuf,fft_->outBuf,FFTW_ESTIMATE);
-              fft_->planI=fftw_plan_dft_c2r_1d(FURNACE_FFT_SIZE,fft_->outBuf,fft_->corrBuf,FFTW_ESTIMATE);
+              fft_->inBuf=(double*)fftw_malloc(FURNACE_CHANOSC_FFT_SIZE*sizeof(double));
+              fft_->outBuf=(fftw_complex*)fftw_malloc(FURNACE_CHANOSC_FFT_SIZE*sizeof(fftw_complex));
+              fft_->corrBuf=(double*)fftw_malloc(FURNACE_CHANOSC_FFT_SIZE*sizeof(double));
+              fft_->plan=fftw_plan_dft_r2c_1d(FURNACE_CHANOSC_FFT_SIZE,fft_->inBuf,fft_->outBuf,FFTW_ESTIMATE);
+              fft_->planI=fftw_plan_dft_c2r_1d(FURNACE_CHANOSC_FFT_SIZE,fft_->outBuf,fft_->corrBuf,FFTW_ESTIMATE);
               if (fft_->plan==NULL) {
                 logE(_("failed to create plan!"));
               } else if (fft_->planI==NULL) {
@@ -462,15 +492,33 @@ void FurnaceGUI::drawChanOsc() {
 
                 // initialization
                 double phase=0.0;
-                int displaySize=(float)(buf->rate)*(fft->windowSize/1000.0f);
+                int displaySize=65536.0f*(fft->windowSize/1000.0f);
+                int displaySize2=65536.0f*(fft->windowSize/500.0f);
                 fft->loudEnough=false;
-                fft->needle=buf->needle;
+                fft->needle=buf->needle>>16;
 
                 // first FFT
-                for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                  fft->inBuf[j]=(double)buf->data[(unsigned short)(fft->needle-displaySize*2+((j*displaySize*2)/(FURNACE_FFT_SIZE)))]/32768.0;
-                  if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
-                  fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_FFT_SIZE>>1));
+                int k=0;
+                short lastSample=0;
+                memset(fft->inBuf,0,FURNACE_CHANOSC_FFT_SIZE*sizeof(double));
+                if (displaySize2<FURNACE_CHANOSC_FFT_SIZE) {
+                  for (int j=-FURNACE_CHANOSC_FFT_SIZE; j<FURNACE_CHANOSC_FFT_SIZE; j++) {
+                    const short newData=buf->data[(unsigned short)(fft->needle-displaySize2+((j*displaySize2)/(FURNACE_CHANOSC_FFT_SIZE)))];
+                    if (newData!=-1) lastSample=newData;
+                    if (j<0) continue;
+                    fft->inBuf[j]=(double)lastSample/32768.0;
+                    if (fft->inBuf[j]>0.001 || fft->inBuf[j]<-0.001) fft->loudEnough=true;
+                    fft->inBuf[j]*=0.55-0.45*cos(M_PI*(double)j/(double)(FURNACE_CHANOSC_FFT_SIZE>>1));
+                  }
+                } else {
+                  for (unsigned short j=fft->needle-displaySize2; j!=fft->needle; j++, k++) {
+                    const int kIn=(k*FURNACE_CHANOSC_FFT_SIZE)/displaySize2;
+                    if (kIn>=FURNACE_CHANOSC_FFT_SIZE) break;
+                    if (buf->data[j]!=-1) lastSample=buf->data[j];
+                    fft->inBuf[kIn]=(double)lastSample/32768.0;
+                    if (fft->inBuf[kIn]>0.001 || fft->inBuf[kIn]<-0.001) fft->loudEnough=true;
+                    fft->inBuf[kIn]*=0.55-0.45*cos(M_PI*(double)kIn/(double)(FURNACE_CHANOSC_FFT_SIZE>>1));
+                  }
                 }
 
                 // only proceed if not quiet
@@ -478,9 +526,9 @@ void FurnaceGUI::drawChanOsc() {
                   fftw_execute(fft->plan);
 
                   // auto-correlation and second FFT
-                  for (int j=0; j<FURNACE_FFT_SIZE; j++) {
-                    fft->outBuf[j][0]/=FURNACE_FFT_SIZE;
-                    fft->outBuf[j][1]/=FURNACE_FFT_SIZE;
+                  for (int j=0; j<FURNACE_CHANOSC_FFT_SIZE; j++) {
+                    fft->outBuf[j][0]/=FURNACE_CHANOSC_FFT_SIZE;
+                    fft->outBuf[j][1]/=FURNACE_CHANOSC_FFT_SIZE;
                     fft->outBuf[j][0]=fft->outBuf[j][0]*fft->outBuf[j][0]+fft->outBuf[j][1]*fft->outBuf[j][1];
                     fft->outBuf[j][1]=0;
                   }
@@ -491,19 +539,19 @@ void FurnaceGUI::drawChanOsc() {
                   fftw_execute(fft->planI);
 
                   // window
-                  for (int j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
-                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_FFT_SIZE<<1));
+                  for (int j=0; j<(FURNACE_CHANOSC_FFT_SIZE>>1); j++) {
+                    fft->corrBuf[j]*=1.0-((double)j/(double)(FURNACE_CHANOSC_FFT_SIZE<<1));
                   }
 
                   // find size of period
                   double waveLenCandL=DBL_MAX;
                   double waveLenCandH=DBL_MIN;
-                  fft->waveLen=FURNACE_FFT_SIZE-1;
+                  fft->waveLen=FURNACE_CHANOSC_FFT_SIZE-1;
                   fft->waveLenBottom=0;
                   fft->waveLenTop=0;
 
                   // find lowest point
-                  for (int j=(FURNACE_FFT_SIZE>>2); j>2; j--) {
+                  for (int j=(FURNACE_CHANOSC_FFT_SIZE>>2); j>2; j--) {
                     if (fft->corrBuf[j]<waveLenCandL) {
                       waveLenCandL=fft->corrBuf[j];
                       fft->waveLenBottom=j;
@@ -511,7 +559,7 @@ void FurnaceGUI::drawChanOsc() {
                   }
                   
                   // find highest point
-                  for (int j=(FURNACE_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
+                  for (int j=(FURNACE_CHANOSC_FFT_SIZE>>1)-1; j>fft->waveLenBottom; j--) {
                     if (fft->corrBuf[j]>waveLenCandH) {
                       waveLenCandH=fft->corrBuf[j];
                       fft->waveLen=j;
@@ -520,18 +568,21 @@ void FurnaceGUI::drawChanOsc() {
                   fft->waveLenTop=fft->waveLen;
 
                   // did we find the period size?
-                  if (fft->waveLen<(FURNACE_FFT_SIZE-32)) {
+                  if (fft->waveLen<(FURNACE_CHANOSC_FFT_SIZE-32)) {
                     // we got pitch
-                    fft->pitch=pow(1.0-(fft->waveLen/(double)(FURNACE_FFT_SIZE>>1)),4.0);
+                    fft->pitch=pow(1.0-(fft->waveLen/(double)(FURNACE_CHANOSC_FFT_SIZE>>1)),4.0);
                     
-                    fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_FFT_SIZE;
+                    fft->waveLen*=(double)displaySize*2.0/(double)FURNACE_CHANOSC_FFT_SIZE;
 
                     // DFT of one period (x_1)
                     double dft[2];
                     dft[0]=0.0;
                     dft[1]=0.0;
-                    for (int j=fft->needle-1-(displaySize>>1)-(int)fft->waveLen, k=0; k<fft->waveLen; j++, k++) {
-                      double one=((double)buf->data[j&0xffff]/32768.0);
+                    lastSample=0;
+                    for (int j=fft->needle-1-displaySize-(int)fft->waveLen, k=-(displaySize>>1); k<fft->waveLen; j++, k++) {
+                      if (buf->data[j&0xffff]!=-1) lastSample=buf->data[j&0xffff];
+                      if (k<0) continue;
+                      double one=((double)lastSample/32768.0);
                       double two=(double)k*(-2.0*M_PI)/fft->waveLen;
                       dft[0]+=one*cos(two);
                       dft[1]+=one*sin(two);
@@ -539,6 +590,8 @@ void FurnaceGUI::drawChanOsc() {
 
                     // calculate and lock into phase
                     phase=(0.5+(atan2(dft[1],dft[0])/(2.0*M_PI)));
+
+                    fft->debugPhase=phase;
 
                     if (fft->waveCorr) {
                       fft->needle-=(phase+(fft->phaseOff*2))*fft->waveLen;
@@ -552,35 +605,22 @@ void FurnaceGUI::drawChanOsc() {
           }
         }
         chanOscWorkPool->wait();
-
-        // 0: none
-        // 1: sqrt(chans)
-        // 2: sqrt(chans+1)
-        // 3: sqrt(chans)+1
-        switch (chanOscAutoColsType) {
-          case 1:
-            chanOscCols=sqrt(oscChans.size());
-            break;
-          case 2:
-            chanOscCols=sqrt(oscChans.size()+1);
-            break;
-          case 3:
-            chanOscCols=sqrt(oscChans.size())+1;
-            break;
-        }
-        if (chanOscCols<1) chanOscCols=1;
-        if (chanOscCols>64) chanOscCols=64;
         
-        int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
+        if (chanOscAutoCols) {
+          chanOscCols=sqrt(oscData.size());
+          if (chanOscCols>64) chanOscCols=64;
+          if (chanOscCols<1) chanOscCols=1;
+        }
+        int rows=(oscData.size()+(chanOscCols-1))/chanOscCols;
 
         // render
-        for (size_t i=0; i<oscBufs.size(); i++) {
+        for (size_t i=0; i<oscData.size(); i++) {
           if (i%chanOscCols==0) ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
-          DivDispatchOscBuffer* buf=oscBufs[i];
-          ChanOscStatus* fft=oscFFTs[i];
-          int ch=oscChans[i];
+          DivDispatchOscBuffer* buf=oscData[i].buf;
+          ChanOscStatus* fft=oscData[i].fft;
+          int ch=oscData[i].chan;
           if (buf==NULL) {
             ImGui::Text(_("Error!"));
           } else {
@@ -615,16 +655,16 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
               } else {
-                int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+                int displaySize=65536.0f*(chanOscWindowSize/1000.0f);
+                int displaySize2=65536.0f*(chanOscWindowSize/500.0f);
 
                 float minLevel=1.0f;
                 float maxLevel=-1.0f;
-                float dcOff=0.0f;
 
                 if (debugFFT) {
                   // FFT debug code!
                   double maxavg=0.0;
-                  for (unsigned short j=0; j<(FURNACE_FFT_SIZE>>1); j++) {
+                  for (unsigned short j=0; j<(FURNACE_CHANOSC_FFT_SIZE>>1); j++) {
                     if (fabs(fft->corrBuf[j]>maxavg)) {
                       maxavg=fabs(fft->corrBuf[j]);
                     }
@@ -635,9 +675,9 @@ void FurnaceGUI::drawChanOsc() {
                     for (unsigned short j=0; j<precision && j<2048; j++) {
                       float y;
                       if (j>=precision/2) {
-                        y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                        y=fft->inBuf[((j-(precision/2))*FURNACE_CHANOSC_FFT_SIZE*2)/(precision)];
                       } else {
-                        y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                        y=fft->corrBuf[(j*FURNACE_CHANOSC_FFT_SIZE)/precision]*maxavg;
                       }
                       fft->oscTex[j]=y*2.0;
                     }
@@ -646,26 +686,31 @@ void FurnaceGUI::drawChanOsc() {
                       float x=(float)j/(float)precision;
                       float y;
                       if (j>=precision/2) {
-                        y=fft->inBuf[((j-(precision/2))*FURNACE_FFT_SIZE*2)/(precision)];
+                        y=fft->inBuf[((j-(precision/2))*FURNACE_CHANOSC_FFT_SIZE*2)/(precision)];
                       } else {
-                        y=fft->corrBuf[(j*FURNACE_FFT_SIZE)/precision]*maxavg;
+                        y=fft->corrBuf[(j*FURNACE_CHANOSC_FFT_SIZE)/precision]*maxavg;
                       }
                       waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
                     }
                   }
                   if (fft->loudEnough) {
-                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)",fft->waveLen,fft->waveLenBottom,fft->waveLenTop);
+                    String cPhase=fmt::sprintf("\n%.1f (b: %d t: %d)\nSIZES: %d, %d, %d\nPHASE %f",fft->waveLen,fft->waveLenBottom,fft->waveLenTop,displaySize,displaySize2,FURNACE_CHANOSC_FFT_SIZE,fft->debugPhase);
                     dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
 
                     dl->AddLine(
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_FFT_SIZE,0.0)),
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_FFT_SIZE,1.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_CHANOSC_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenBottom/(double)FURNACE_CHANOSC_FFT_SIZE,1.0)),
                       0xffffff00
                     );
                     dl->AddLine(
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,0.0)),
-                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_FFT_SIZE,1.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_CHANOSC_FFT_SIZE,0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2((double)fft->waveLenTop/(double)FURNACE_CHANOSC_FFT_SIZE,1.0)),
                       0xff00ff00
+                    );
+                    dl->AddLine(
+                      ImLerp(inRect.Min,inRect.Max,ImVec2(0.75-(fft->debugPhase*0.25),0.0)),
+                      ImLerp(inRect.Min,inRect.Max,ImVec2(0.75-(fft->debugPhase*0.25),1.0)),
+                      0xff00ffff
                     );
                   } else {
                     if (debugFFT) {
@@ -673,68 +718,122 @@ void FurnaceGUI::drawChanOsc() {
                     }
                   }
                 } else {
-                  for (unsigned short j=0; j<precision; j++) {
-                    float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                    if (minLevel>y) minLevel=y;
-                    if (maxLevel<y) maxLevel=y;
+                  // find the first sample
+                  float y=0;
+                  for (int j=0; j<32768; j++) {
+                    const short y_s=buf->data[(fft->needle-j)&0xffff];
+                    if (y_s!=-1) {
+                      y=(float)y_s/32768.0f;
+                      break;
+                    }
                   }
-                  dcOff=(minLevel+maxLevel)*0.5f;
-
-                  if (rend->supportsDrawOsc() && settings.shaderOsc) {
-                    for (unsigned short j=0; j<precision; j++) {
-                      float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                      y-=dcOff;
-                      if (y<-0.5f) y=-0.5f;
-                      if (y>0.5f) y=0.5f;
-                      y*=chanOscAmplify*2.0f;
-                      fft->oscTex[j]=y;
+                  if (chanOscCenterStrat==0) { // DC correction off
+                    fft->dcOff=0;
+                  } else if (chanOscCenterStrat==1) { // normal DC correction
+                    float y1=y;
+                    if (minLevel>y1) minLevel=y1;
+                    if (maxLevel<y1) maxLevel=y1;
+                    for (unsigned short j=fft->needle; j!=((fft->needle+displaySize)&0xffff); j++) {
+                      const short y_s=buf->data[j];
+                      if (y_s!=-1) {
+                        y1=(float)y_s/32768.0f;
+                        if (minLevel>y1) minLevel=y1;
+                        if (maxLevel<y1) maxLevel=y1;
+                      }
+                    }
+                    fft->dcOff=(minLevel+maxLevel)*0.5f;
+                  }
+                  // render chan osc
+                  if (displaySize<precision) {
+                    for (int j=0; j<precision; j++) {
+                      const short y_s=buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))];
+                      if (y_s!=-1) {
+                        y=(float)y_s/32768.0f;
+                        if (j<0) continue;
+                        if (minLevel>y) minLevel=y;
+                        if (maxLevel<y) maxLevel=y;
+                      }
+                      if (j<0) continue;
+                      float yOut=y-fft->dcOff;
+                      if (chanOscCenterStrat==2) {
+                        fft->dcOff+=(y-fft->dcOff)*0.001;
+                      }
+                      if (yOut<-0.5f) yOut=-0.5f;
+                      if (yOut>0.5f) yOut=0.5f;
+                      yOut*=chanOscAmplify*2.0f;
+                      fft->oscTex[j]=yOut;
                     }
                   } else {
+                    int k=0;
+                    for (unsigned short j=fft->needle; j!=((fft->needle+displaySize)&0xffff); j++, k++) {
+                      const short y_s=buf->data[j];
+                      const int kTex=(k*precision)/displaySize;
+                      if (kTex>=precision) break;
+                      if (y_s!=-1) {
+                        y=(float)y_s/32768.0f;
+                        if (k<0) continue;
+                        if (minLevel>y) minLevel=y;
+                        if (maxLevel<y) maxLevel=y;
+                      }
+                      if (kTex<0) continue;
+                      float yOut=y-fft->dcOff;
+                      if (chanOscCenterStrat==2) {
+                        fft->dcOff+=(y-fft->dcOff)*0.001;
+                      }
+                      if (yOut<-0.5f) yOut=-0.5f;
+                      if (yOut>0.5f) yOut=0.5f;
+                      yOut*=chanOscAmplify*2.0f;
+                      fft->oscTex[kTex]=yOut;
+                    }
+                  }
+
+                  if (!(rend->supportsDrawOsc() && settings.shaderOsc)) {
                     for (unsigned short j=0; j<precision; j++) {
                       float x=(float)j/(float)precision;
-                      float y=(float)buf->data[(unsigned short)(fft->needle+(j*displaySize/precision))]/32768.0f;
-                      y-=dcOff;
-                      if (y<-0.5f) y=-0.5f;
-                      if (y>0.5f) y=0.5f;
-                      y*=chanOscAmplify;
-                      waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                      waveform[j]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-fft->oscTex[j]*0.5f));
                     }
                   }
                 }
               }
-              ImU32 color=ImGui::GetColorU32(chanOscColor);
+              ImU32 color=0;
+              switch (chanOscColorMode) {
+                case 0:
+                  color=ImGui::GetColorU32(chanOscColor);
+                  break;
+                case 1:
+                  color=ImGui::GetColorU32(channelColor(oscData[i].chan));
+                  break;
+                default: break;
+              }
               if (chanOscUseGrad) {
-                float xVal=computeGradPos(chanOscColorX,ch);
-                float yVal=computeGradPos(chanOscColorY,ch);
+                float xVal=computeGradPos(chanOscColorX,ch,oscData.size());
+                float yVal=computeGradPos(chanOscColorY,ch,oscData.size());
 
                 xVal=CLAMP(xVal,0.0f,1.0f);
                 yVal=CLAMP(yVal,0.0f,1.0f);
 
-                color=chanOscGrad.get(xVal,1.0f-yVal);
+                switch (chanOscColorMode) {
+                  case 0:
+                    color=chanOscGrad.get(xVal,1.0f-yVal);
+                    break;
+                  case 1:
+                    color=ImAlphaBlendColors(color,chanOscGrad.get(xVal,1.0f-yVal));
+                    break;
+                  default: break;
+                }
+                // gradient xy debug thing
+                // char buf[256];
+                // snprintf(buf, 256, "%f:%f",xVal,yVal);
+                // dl->AddText(inRect.Min,-1,buf);
+                // dl->AddCircleFilled(
+                //   ImVec2(
+                //     ImLerp(inRect.Min.x,inRect.Max.x,xVal),
+                //     ImLerp(inRect.Min.y,inRect.Max.y,1.0f-yVal)
+                //   ), 2, 0xffff0000);
               }
 
-              if (rend->supportsDrawOsc() && settings.shaderOsc) {
-                fft->drawOp.gui=this;
-                fft->drawOp.data=fft->oscTex;
-                fft->drawOp.len=precision;
-                fft->drawOp.pos0=inRect.Min;
-                fft->drawOp.pos1=inRect.Max;
-                fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
-                fft->drawOp.lineSize=dpiScale*chanOscLineSize;
-
-                dl->AddCallback(_drawOsc,&fft->drawOp);
-                dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
-              } else {
-                //ImGui::PushClipRect(inRect.Min,inRect.Max,false);
-                //ImDrawListFlags prevFlags=dl->Flags;
-                //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
-                dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale*chanOscLineSize);
-                //dl->Flags=prevFlags;
-                //ImGui::PopClipRect();
-              }
-
-              //ImGui::PushClipRect(inRect.Min,inRect.Max,false);
               if (!chanOscTextFormat.empty()) {
+                ImGui::PushClipRect(inRect.Min,inRect.Max,false);
                 String text;
                 bool inFormat=false;
 
@@ -777,15 +876,15 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       }
                       case 's': {
-                        text+=e->getSystemName(e->sysOfChan[ch]);
+                        text+=e->getSystemName(e->song.sysOfChan[ch]);
                         break;
                       }
                       case 'p': {
-                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch],e->song.systemFlags[e->dispatchOfChan[ch]]);
+                        text+=FurnaceGUI::getSystemPartNumber(e->song.sysOfChan[ch],e->song.systemFlags[e->song.dispatchOfChan[ch]]);
                         break;
                       }
                       case 'S': {
-                        text+=fmt::sprintf("%d",e->dispatchOfChan[ch]);
+                        text+=fmt::sprintf("%d",e->song.dispatchOfChan[ch]);
                         break;
                       }
                       case 'v': {
@@ -797,9 +896,9 @@ void FurnaceGUI::drawChanOsc() {
                       case 'V': {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL) break;
-                        int volMax=chanState->volMax>>8;
+                        double volMax=chanState->volMax>>8;
                         if (volMax<1) volMax=1;
-                        text+=fmt::sprintf("%d%%",(chanState->volume>>8)/volMax);
+                        text+=fmt::sprintf("%.1f%%",((double)(chanState->volume>>8)/volMax)*100);
                         break;
                       }
                       case 'b': {
@@ -810,17 +909,19 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
-                        if (chanState==NULL || !(chanState->keyOn)) break;
-                        short tempNote=chanState->note; //all of this conversion is necessary because notes 100-102 are special chars
-                        short noteMod=tempNote%12+12; //also note 0 is a BUG, hence +12 on the note and -1 on the octave
-                        short oct=tempNote/12-1; 
-                        text+=fmt::sprintf("%s",noteName(noteMod,oct));
+                        if (chanState==NULL) {
+                          text+="---";
+                        } else if (!chanState->keyOn) {
+                          text+="---";
+                        } else {
+                          // no more conversion necessary after the note/octave unification :>
+                          text+=fmt::sprintf("%s",noteName(chanState->note));
+                        }
                         break;
                       }
-                      case 'l': {
+                      case 'l':
                         text+='\n';
                         break;
-                      }
                       case '%':
                         text+='%';
                         break;
@@ -839,9 +940,28 @@ void FurnaceGUI::drawChanOsc() {
                   }
                 }
                 dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
+                ImGui::PopClipRect();
               }
 
-              //ImGui::PopClipRect();
+              if (rend->supportsDrawOsc() && settings.shaderOsc) {
+                fft->drawOp.gui=this;
+                fft->drawOp.data=fft->oscTex;
+                fft->drawOp.len=precision;
+                fft->drawOp.pos0=inRect.Min;
+                fft->drawOp.pos1=inRect.Max;
+                fft->drawOp.color=ImGui::ColorConvertU32ToFloat4(color);
+                fft->drawOp.lineSize=dpiScale*chanOscLineSize;
+
+                dl->AddCallback(_drawOsc,&fft->drawOp);
+                dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
+              } else {
+                // ImGui::PushClipRect(inRect.Min,inRect.Max,false);
+                //ImDrawListFlags prevFlags=dl->Flags;
+                //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
+                dl->AddPolyline(waveform,precision,color,dpiScale*chanOscLineSize,ImDrawFlags_None);
+                //dl->Flags=prevFlags;
+                // ImGui::PopClipRect();
+              }
             }
           }
         }

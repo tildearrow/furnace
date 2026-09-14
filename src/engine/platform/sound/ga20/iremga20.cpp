@@ -77,6 +77,7 @@ void iremga20_device::device_reset()
 	{
 		m_channel[i].rate = 0;
 		m_channel[i].pos = 0;
+		m_channel[i].sample = 0;
 		m_channel[i].counter = 0;
 		m_channel[i].end = 0;
 		m_channel[i].volume = 0;
@@ -88,33 +89,32 @@ void iremga20_device::device_reset()
 //  sound_stream_update - handle a stream update
 //-------------------------------------------------
 
-void iremga20_device::sound_stream_update(short** outputs, int len)
+void iremga20_device::sound_stream_update(short* outputs, int len)
 {
-	for (int i = 0; i < len; i++)
+	for (int j = 0; j < 4; j++)
 	{
-		for (int j = 0; j < 4; j++)
+		channel_def &ch = m_channel[j];
+		if (ch.play)
 		{
-			s32 sampleout = 0;
-
-			channel_def &ch = m_channel[j];
-			if (ch.play)
+			if (ch.sample == 0x00) // check for sample end marker
+				ch.play = false;
+			else
 			{
-				int sample = m_intf.read_byte(ch.pos);
-				if (sample == 0x00) // check for sample end marker
-					ch.play = false;
-				else
+  if (ch.hot) {
+    ch.hot=false;
+				  ch.output = ch.mute ? 0 : (ch.sample - 0x80) * (s32)ch.volume;
+  }
+				ch.counter-=len;
+				if (ch.counter <= ch.rate)
 				{
-					sampleout = ch.mute ? 0 : (sample - 0x80) * (s32)ch.volume;
-					ch.counter--;
-					if (ch.counter <= ch.rate)
-					{
-						ch.pos++;
-						ch.counter = 0x100;
-					}
+					ch.pos++;
+					ch.counter = 0x100;
+			                ch.sample = m_intf.read_byte(ch.pos);
+                ch.hot=true;
 				}
 			}
-			outputs[j][i] = sampleout;
 		}
+		outputs[j] = ch.output;
 	}
 }
 
@@ -140,6 +140,7 @@ void iremga20_device::write(u32 offset, u8 data)
 
 		case 5:
 			m_channel[ch].volume = (data * 256) / (data + 10);
+      m_channel[ch].hot=true;
 			break;
 
 		case 6:
@@ -150,6 +151,8 @@ void iremga20_device::write(u32 offset, u8 data)
 				m_channel[ch].pos = (m_regs[ch << 3 | 0] | m_regs[ch << 3 | 1] << 8) << 4;
 				m_channel[ch].end = (m_regs[ch << 3 | 2] | m_regs[ch << 3 | 3] << 8) << 4;
 				m_channel[ch].counter = 0x100;
+				                                           m_channel[ch].sample = m_intf.read_byte(m_channel[ch].pos);
+                                                   m_channel[ch].hot=true;
 			}
 			else
 				m_channel[ch].play = false;

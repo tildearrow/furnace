@@ -155,7 +155,6 @@ sn76496_base_device::sn76496_base_device(
 		int noisetap2,
 		bool negate,
 		bool stereo,
-		int clockdivider,
 		bool ncr,
 		bool sega)
 	: m_feedback_mask(feedbackmask)
@@ -164,59 +163,58 @@ sn76496_base_device::sn76496_base_device(
 	, m_whitenoise_tap2(noisetap2)
 	, m_negate(negate)
 	, m_stereo(stereo)
-	, m_clock_divider(clockdivider)
 	, m_ncr_style_psg(ncr)
 	, m_sega_style_psg(sega)
 {
 }
 
 sn76496_device::sn76496_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1/*8*/, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, false, true)
 {
 }
 
 y2404_device::y2404_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1/*8*/, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, false, true)
 {
 }
 
 sn76489_device::sn76489_device()
-	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, 1/*8*/, false, true)
+	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, false, true)
 {
 }
 
 sn76489a_device::sn76489a_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1/*8*/, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, false, true)
 {
 }
 
 sn76494_device::sn76494_device()
-	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, 1, false, true)
+	: sn76496_base_device(0x10000, 0x04, 0x08, false, false, false, true)
 {
 }
 
 sn94624_device::sn94624_device()
-	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, 1, false, true)
+	: sn76496_base_device(0x4000, 0x01, 0x02, true, false, false, true)
 {
 }
 
 ncr8496_device::ncr8496_device()
-	: sn76496_base_device(0x8000, 0x02, 0x20, true, false, 1/*8*/, true, true)
+	: sn76496_base_device(0x8000, 0x02, 0x20, true, false, true, true)
 {
 }
 
 pssj3_device::pssj3_device()
-	: sn76496_base_device(0x8000, 0x02, 0x20, false, false, 1/*8*/, true, true)
+	: sn76496_base_device(0x8000, 0x02, 0x20, false, false, true, true)
 {
 }
 
 gamegear_device::gamegear_device()
-	: sn76496_base_device(0x8000, 0x01, 0x08, true, true, 1/*8*/, false, false)
+	: sn76496_base_device(0x8000, 0x01, 0x08, true, true, false, false)
 {
 }
 
 segapsg_device::segapsg_device()
-	: sn76496_base_device(0x8000, 0x01, 0x08, true, false, 1/*8*/, false, false)
+	: sn76496_base_device(0x8000, 0x01, 0x08, true, false, false, false)
 {
 }
 
@@ -246,7 +244,6 @@ void sn76496_base_device::device_start()
 	m_output[3] = m_RNG & 1;
 
 	m_stereo_mask = 0xFF;           // all channels enabled
-	m_current_clock = m_clock_divider-1;
 
 	// set gain
 	gain = 0;
@@ -337,81 +334,68 @@ inline bool sn76496_base_device::in_noise_mode()
 	return ((m_register[6] & 4)!=0);
 }
 
-void sn76496_base_device::sound_stream_update(short** outputs, int outLen)
+void sn76496_base_device::sound_stream_update(short* outputs, int advance)
 {
-	int i;
+  int i;
 
-	int16_t out;
-	int16_t out2 = 0;
+  int16_t out;
+  int16_t out2 = 0;
 
-	for (int sampindex = 0; sampindex < outLen; sampindex++)
-	{
-		// clock chip once
-		if (m_current_clock > 0) // not ready for new divided clock
-		{
-			m_current_clock--;
-		}
-		else // ready for new divided clock, make a new sample
-		{
-			m_current_clock = m_clock_divider-1;
+  // handle channels 0,1,2
+  for (i = 0; i < 3; i++)
+  {
+    m_count[i]-=advance;
+    if (m_count[i] <= 0)
+    {
+      m_output[i] ^= 1;
+      m_count[i] = m_period[i];
+    }
+  }
 
-			// handle channels 0,1,2
-			for (i = 0; i < 3; i++)
-			{
-				m_count[i]--;
-				if (m_count[i] <= 0)
-				{
-					m_output[i] ^= 1;
-					m_count[i] = m_period[i];
-				}
-			}
+  // handle channel 3
+  m_count[3]-=advance;
+  if (m_count[3] <= 0)
+  {
+    // if noisemode is 1, both taps are enabled
+    // if noisemode is 0, the lower tap, whitenoisetap2, is held at 0
+    // The != was a bit-XOR (^) before
+    if (((m_RNG & m_whitenoise_tap1)!=0) != (((int32_t)(m_RNG & m_whitenoise_tap2)!=(m_ncr_style_psg?m_whitenoise_tap2:0)) && in_noise_mode()))
+    {
+      m_RNG >>= 1;
+      m_RNG |= m_feedback_mask;
+    }
+    else
+    {
+      m_RNG >>= 1;
+    }
+    m_output[3] = m_RNG & 1;
 
-			// handle channel 3
-			m_count[3]--;
-			if (m_count[3] <= 0)
-			{
-				// if noisemode is 1, both taps are enabled
-				// if noisemode is 0, the lower tap, whitenoisetap2, is held at 0
-				// The != was a bit-XOR (^) before
-				if (((m_RNG & m_whitenoise_tap1)!=0) != (((int32_t)(m_RNG & m_whitenoise_tap2)!=(m_ncr_style_psg?m_whitenoise_tap2:0)) && in_noise_mode()))
-				{
-					m_RNG >>= 1;
-					m_RNG |= m_feedback_mask;
-				}
-				else
-				{
-					m_RNG >>= 1;
-				}
-				m_output[3] = m_RNG & 1;
+    m_count[3] = m_period[3];
+  }
 
-				m_count[3] = m_period[3];
-			}
-		}
+  if (m_stereo)
+  {
+    out = ((((m_stereo_mask & 0x10)!=0) && (m_output[0]!=0))? m_volume[0] : 0)
+      + ((((m_stereo_mask & 0x20)!=0) && (m_output[1]!=0))? m_volume[1] : 0)
+      + ((((m_stereo_mask & 0x40)!=0) && (m_output[2]!=0))? m_volume[2] : 0)
+      + ((((m_stereo_mask & 0x80)!=0) && (m_output[3]!=0))? m_volume[3] : 0);
 
-		if (m_stereo)
-		{
-			out = ((((m_stereo_mask & 0x10)!=0) && (m_output[0]!=0))? m_volume[0] : 0)
-				+ ((((m_stereo_mask & 0x20)!=0) && (m_output[1]!=0))? m_volume[1] : 0)
-				+ ((((m_stereo_mask & 0x40)!=0) && (m_output[2]!=0))? m_volume[2] : 0)
-				+ ((((m_stereo_mask & 0x80)!=0) && (m_output[3]!=0))? m_volume[3] : 0);
+    out2= ((((m_stereo_mask & 0x1)!=0) && (m_output[0]!=0))? m_volume[0] : 0)
+      + ((((m_stereo_mask & 0x2)!=0) && (m_output[1]!=0))? m_volume[1] : 0)
+      + ((((m_stereo_mask & 0x4)!=0) && (m_output[2]!=0))? m_volume[2] : 0)
+      + ((((m_stereo_mask & 0x8)!=0) && (m_output[3]!=0))? m_volume[3] : 0);
+  }
+  else
+  {
+    out= ((m_output[0]!=0)? m_volume[0]:0)
+      +((m_output[1]!=0)? m_volume[1]:0)
+      +((m_output[2]!=0)? m_volume[2]:0)
+      +((m_output[3]!=0)? m_volume[3]:0);
+  }
 
-			out2= ((((m_stereo_mask & 0x1)!=0) && (m_output[0]!=0))? m_volume[0] : 0)
-				+ ((((m_stereo_mask & 0x2)!=0) && (m_output[1]!=0))? m_volume[1] : 0)
-				+ ((((m_stereo_mask & 0x4)!=0) && (m_output[2]!=0))? m_volume[2] : 0)
-				+ ((((m_stereo_mask & 0x8)!=0) && (m_output[3]!=0))? m_volume[3] : 0);
-		}
-		else
-		{
-			out= ((m_output[0]!=0)? m_volume[0]:0)
-				+((m_output[1]!=0)? m_volume[1]:0)
-				+((m_output[2]!=0)? m_volume[2]:0)
-				+((m_output[3]!=0)? m_volume[3]:0);
-		}
+  if (m_negate) { out = -out; out2 = -out2; }
 
-		if (m_negate) { out = -out; out2 = -out2; }
-
-		outputs[0][sampindex]=out;
-		if (m_stereo && (outputs[1] != nullptr))
-			outputs[1][sampindex]=out2;
-	}
+  outputs[0]=out;
+  if (m_stereo)
+    outputs[1]=out2;
 }

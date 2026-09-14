@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include "gui.h"
 #include "../fileutils.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 
@@ -75,7 +76,7 @@ const char* mobileButtonLabels[32]={
 
   // page 4
   _N("fade"),
-  _N("randomize"),
+  _N("menu"),
   _N("opmask"),
   _N("scroll\nmode"),
   _N("input\nlatch"),
@@ -106,7 +107,7 @@ const int mobileButtonActions[32]={
   0,
 
   // page 3
-  0,
+  GUI_ACTION_CMDPAL_INSTRUMENT_CHANGE,
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_PAT_COLLAPSE_ROWS,
   GUI_ACTION_PAT_EXPAND_ROWS,
@@ -117,7 +118,7 @@ const int mobileButtonActions[32]={
 
   // page 4
   GUI_ACTION_PAT_FADE,
-  0,
+  GUI_ACTION_OPEN_EDIT_MENU,
   0,
   GUI_ACTION_PAT_SCROLL_MODE,
   0,
@@ -167,6 +168,20 @@ const bool mobileButtonPersist[32]={
   false,
   false,
 };
+
+const char* noteInputModes[4]={
+  _N("Mono##PolyInput"),
+  _N("Poly##PolyInput"),
+  _N("Chord##PolyInput"),
+  // unused
+  _N("Of fuckin' course!##PolyInput")
+};
+
+#define CHANGE_NOTE_INPUT_MODE \
+  noteInputMode++; \
+  if (noteInputMode>GUI_NOTE_INPUT_CHORD) noteInputMode=GUI_NOTE_INPUT_MONO; \
+  if (noteInputMode==GUI_NOTE_INPUT_MONO) memset(multiIns,-1,7*sizeof(int)); \
+  e->setAutoNotePoly(noteInputMode!=GUI_NOTE_INPUT_MONO);
 
 void FurnaceGUI::drawMobileControls() {
   float timeScale=60.0*ImGui::GetIO().DeltaTime;
@@ -395,7 +410,7 @@ void FurnaceGUI::drawMobileControls() {
     bool metro=e->getMetronome();
     pushToggleColors(metro);
     if (portrait) ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+    if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
     }
     popToggleColors();
@@ -546,6 +561,7 @@ void FurnaceGUI::drawMobileControls() {
         break;
       case GUI_SCENE_CHIPS:
         ImGui::Text(_("Chips here..."));
+        ImGui::Text("Built");
         break;
       case GUI_SCENE_MIXER:
         ImGui::Text(_("What the hell..."));
@@ -594,8 +610,16 @@ void FurnaceGUI::drawMobileControls() {
           userPresetsOpen=!userPresetsOpen;
         }
         ImGui::SameLine();
+        if (ImGui::Button(_("Backups"))) {
+          backupsManagerOpen=!backupsManagerOpen;
+        }
+        ImGui::SameLine();
         if (ImGui::Button(_("PatManager"))) {
           patManagerOpen=!patManagerOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("CSPlayer"))) {
+          csPlayerOpen=!csPlayerOpen;
         }
 
         ImGui::Separator();
@@ -620,9 +644,23 @@ void FurnaceGUI::drawMobileControls() {
           mobileMenuPos=0.0f;
           aboutOpen=true;
         }
-        ImGui::SameLine();
         if (ImGui::Button(_("WelcPopup"))) {
           tutorial.protoWelcome=false;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("EffectList"))) {
+          effectListOpen=!effectListOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("RefPlayer"))) {
+          refPlayerOpen=!refPlayerOpen;
+        }
+        if (ImGui::Button(_("Tuner"))) {
+          tunerOpen=!tunerOpen;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(_("Spectrum"))) {
+          spectrumOpen=!spectrumOpen;
         }
         if (ImGui::Button(_("Switch to Desktop Mode"))) {
           toggleMobileUI(!mobileUI);
@@ -714,6 +752,11 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         ImGui::Checkbox(_("Edit"),&edit);
         ImGui::SameLine();
+        bool ol=orderLock;
+        if (ImGui::Checkbox(_("Lock"),&ol)) {
+          doAction(GUI_ACTION_ORDER_LOCK);
+        }
+        ImGui::SameLine();
         bool metro=e->getMetronome();
         if (ImGui::Checkbox(_("Metronome"),&metro)) {
           e->setMetronome(metro);
@@ -740,10 +783,9 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::SameLine();
-        pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?(_("Poly##PolyInput")):(_("Mono##PolyInput")))) {
-          noteInputPoly=!noteInputPoly;
-          e->setAutoNotePoly(noteInputPoly);
+        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
+        if (ImGui::Button(_(noteInputModes[noteInputMode&3]))) {
+          CHANGE_NOTE_INPUT_MODE;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Polyphony"));
@@ -801,9 +843,19 @@ void FurnaceGUI::drawEditControls() {
         popToggleColors();
 
         ImGui::SameLine();
+        pushToggleColors(orderLock);
+        if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
+          doAction(GUI_ACTION_ORDER_LOCK);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Lock cursor/selection to this order"));
+        }
+        popToggleColors();
+
+        ImGui::SameLine();
         bool metro=e->getMetronome();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -860,10 +912,9 @@ void FurnaceGUI::drawEditControls() {
         unimportant(ImGui::Checkbox(_("Pattern"),&followPattern));
 
         ImGui::SameLine();
-        pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?_("Poly##PolyInput"):_("Mono##PolyInput"))) {
-          noteInputPoly=!noteInputPoly;
-          e->setAutoNotePoly(noteInputPoly);
+        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
+        if (ImGui::Button(_(noteInputModes[noteInputMode&3]))) {
+          CHANGE_NOTE_INPUT_MODE;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Polyphony"));
@@ -917,9 +968,18 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
+        pushToggleColors(orderLock);
+        if (ImGui::Button(ICON_FA_LOCK "##OrderLock",buttonSize)) {
+          doAction(GUI_ACTION_ORDER_LOCK);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Lock cursor/selection to this order"));
+        }
+        popToggleColors();
+
         bool metro=e->getMetronome();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome",buttonSize)) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -989,10 +1049,9 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
-        pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?_("Poly##PolyInput"):_("Mono##PolyInput"))) {
-          noteInputPoly=!noteInputPoly;
-          e->setAutoNotePoly(noteInputPoly);
+        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
+        if (ImGui::Button(_(noteInputModes[noteInputMode&3]))) {
+          CHANGE_NOTE_INPUT_MODE;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Polyphony"));
@@ -1056,10 +1115,20 @@ void FurnaceGUI::drawEditControls() {
         }
         popToggleColors();
 
+        ImGui::SameLine();
+        pushToggleColors(orderLock);
+        if (ImGui::Button(ICON_FA_LOCK "##OrderLock")) {
+          doAction(GUI_ACTION_ORDER_LOCK);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("Lock cursor/selection to this order"));
+        }
+        popToggleColors();
+
         bool metro=e->getMetronome();
         ImGui::SameLine();
         pushToggleColors(metro);
-        if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
+        if (ImGui::Button(ICON_FUR_METRONOME "##Metronome")) {
           e->setMetronome(!metro);
         }
         if (ImGui::IsItemHovered()) {
@@ -1079,10 +1148,9 @@ void FurnaceGUI::drawEditControls() {
         popToggleColors();
 
         ImGui::SameLine();
-        pushToggleColors(noteInputPoly);
-        if (ImGui::Button(noteInputPoly?_("Poly##PolyInput"):_("Mono##PolyInput"))) {
-          noteInputPoly=!noteInputPoly;
-          e->setAutoNotePoly(noteInputPoly);
+        pushToggleColors(noteInputMode!=GUI_NOTE_INPUT_MONO);
+        if (ImGui::Button(_(noteInputModes[noteInputMode&3]))) {
+          CHANGE_NOTE_INPUT_MODE;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("Polyphony"));

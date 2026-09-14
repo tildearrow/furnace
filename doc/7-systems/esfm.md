@@ -70,9 +70,9 @@ thanks to ESS's decision to not release any documentation to developers and lock
     - `C` to `F` for operator 4
   - `y` are the lower bits of f-num.
 - `40xx`: **set operator 1 detune.**
-- `41xx`: **set operator 1 detune.**
-- `42xx`: **set operator 1 detune.**
-- `43xx`: **set operator 1 detune.**
+- `41xx`: **set operator 2 detune.**
+- `42xx`: **set operator 3 detune.**
+- `43xx`: **set operator 4 detune.**
 - `50xy`: **set AM of operator.**
   - `x` is the operator from 1 to 4. a value of `0` means "all operators".
   - `y` determines whether AM is on.

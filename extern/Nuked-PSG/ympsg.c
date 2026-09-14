@@ -141,19 +141,19 @@ static void YMPSG_ClockInternal1(ympsg_t *chip)
     {
         chan_sel = 0;
     }
-    if (chip->chan_sel & 1)
+    if (chan_sel & 1)
     {
         freq |= chip->freq[0];
     }
-    if (chip->chan_sel & 2)
+    if (chan_sel & 2)
     {
         freq |= chip->freq[1];
     }
-    if (chip->chan_sel & 4)
+    if (chan_sel & 4)
     {
         freq |= chip->freq[2];
     }
-    if (chip->chan_sel & 8)
+    if (chan_sel & 8)
     {
         if ((chip->noise_data & 3) == 0)
         {

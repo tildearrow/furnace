@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,12 @@
 #include "sound/supervision.h"
 
 class DivPlatformSupervision: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned int duty, len, pan, pcm; // pcm is channel 3 ONLY
     int sample, hasOffset; // again, for channel 3 ONLY
     bool setPos, kon, initWrite;
-    Channel():
-      SharedChannel<signed char>(63),
+    Channel(bool linear=true):
+      SharedChannel(63,linear),
       duty(0),
       len(0x1f),
       pan(3),
@@ -50,15 +50,16 @@ class DivPlatformSupervision: public DivDispatch {
     QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
+  DivPitchTable pitchTable;
 
   int curChan;
   int tempL[32];
   int tempR[32];
   int coreQuality;
   unsigned char regPool[64];
-  unsigned int sampleOff[256];
-  unsigned int sampleLen[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  unsigned int* sampleLen;
+  bool* sampleLoaded;
   DivMemoryComposition memCompo;
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -73,7 +74,7 @@ class DivPlatformSupervision: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -86,6 +87,8 @@ class DivPlatformSupervision: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
@@ -98,6 +101,7 @@ class DivPlatformSupervision: public DivDispatch {
     bool getDCOffRequired();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformSupervision();
     ~DivPlatformSupervision();
 };
 

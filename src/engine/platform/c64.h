@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,17 +31,25 @@
 // - ex4 (test) compatibility
 
 class DivPlatformC64: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq, testWhen;
+    unsigned int audPos;
+    int pcmPos, sample, pcmPeriod, pcmRate, pcmOut;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
-    bool sweepChanged, filter;
+    bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
     short pw_slide;
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       testWhen(0),
+      audPos(0),
+      pcmPos(0),
+      sample(-1),
+      pcmPeriod(0),
+      pcmRate(0),
+      pcmOut(15),
       sweep(0),
       wave(0),
       attack(0),
@@ -51,6 +59,8 @@ class DivPlatformC64: public DivDispatch {
       duty(0),
       sweepChanged(false),
       filter(false),
+      setPos(false),
+      pcm(false),
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
@@ -60,11 +70,11 @@ class DivPlatformC64: public DivDispatch {
       test(false),
       pw_slide(0) {}
   };
-  Channel chan[3];
-  DivDispatchOscBuffer* oscBuf[3];
-  bool isMuted[3];
-  float fakeLow[3];
-  float fakeBand[3];
+  Channel chan[4];
+  DivDispatchOscBuffer* oscBuf[4];
+  bool isMuted[4];
+  float fakeLow[4];
+  float fakeBand[4];
   float fakeCutTable[2048];
   struct QueuedWrite {
       unsigned char addr;
@@ -73,14 +83,17 @@ class DivPlatformC64: public DivDispatch {
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;
   unsigned char sidCore;
   int filtCut, resetTime, initResetTime;
+  int pcmCycle, lineRate;
   short cutoff_slide;
 
-  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace;
+  bool keyPriority, sidIs6581, needInitTables, no1EUpdate, multiplyRel, macroRace, noSoftPCM;
   unsigned char chanOrder[3];
   unsigned char testAD, testSR;
 
@@ -95,14 +108,16 @@ class DivPlatformC64: public DivDispatch {
 
   inline short runFakeFilter(unsigned char ch, int in);
 
+  void processDAC(int sRate);
   void acquire_classic(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_fp(short* bufL, short* bufR, size_t start, size_t len);
 
   void updateFilter();
+  void updateVolume();
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -120,6 +135,8 @@ class DivPlatformC64: public DivDispatch {
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
@@ -127,6 +144,7 @@ class DivPlatformC64: public DivDispatch {
     void setChipModel(bool is6581);
     void setCore(unsigned char which);
     void setCoreQuality(unsigned char q);
+    void setSoftPCM(bool isSoft);
     void quit();
     ~DivPlatformC64();
 };

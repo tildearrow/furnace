@@ -1,1 +1,1 @@
-libjack-jackd2-dev git cmake libpulse-dev libx11-dev libx11-xcb-dev libasound-dev libgl1-mesa-dev libxinerama-dev x11proto-*-dev libwayland-dev wayland-protocols xwayland libxrandr-dev libxcb-*-dev libxi-dev wget fuse
+libjack-jackd2-dev git cmake libpulse-dev libx11-dev libx11-xcb-dev libasound-dev libgl1-mesa-dev libxinerama-dev x11proto-*-dev libwayland-dev wayland-protocols xwayland libxrandr-dev libxcb-*-dev libxi-dev wget

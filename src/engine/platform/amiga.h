@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     unsigned short audLen, irLocL, irLocH, irLen;
     unsigned int audPos;
     int audSub;
@@ -33,8 +33,8 @@ class DivPlatformAmiga: public DivDispatch {
     int sample, wave;
     bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol, updateWave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<signed char>(64),
+    Channel(bool linear=true):
+      SharedChannel(64,linear),
       audLen(0),
       irLocL(0),
       irLocH(0),
@@ -61,6 +61,7 @@ class DivPlatformAmiga: public DivDispatch {
   bool filterOn;
   bool updateADKCon;
   short delay;
+  short oldOut[2];
 
   struct Amiga {
     // register state
@@ -108,8 +109,10 @@ class DivPlatformAmiga: public DivDispatch {
 
   unsigned char volTable[64][64];
 
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
+  DivPitchTableManager samplePitchTable;
+  DivPitchTable wavePitchTable;
 
   unsigned short regPool[256];
 
@@ -138,8 +141,10 @@ class DivPlatformAmiga: public DivDispatch {
 
   public:
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
+    void postProcess(short* buf, int outIndex, size_t len, int sampleRate);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -150,12 +155,15 @@ class DivPlatformAmiga: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void renderSamples(int chipID);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -167,6 +175,8 @@ class DivPlatformAmiga: public DivDispatch {
     const DivMemoryComposition* getMemCompo(int index);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    DivPlatformAmiga();
+    ~DivPlatformAmiga();
 };
 
 #endif

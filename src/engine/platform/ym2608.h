@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,10 +31,9 @@ extern "C" {
 class DivYM2608Interface: public DivOPNInterface {
   public:
     unsigned char* adpcmBMem;
-    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
-    DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
+    DivYM2608Interface(): adpcmBMem(NULL) {}
 };
 
 class DivPlatformYM2608: public DivPlatformOPN {
@@ -54,6 +53,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
     fmopna_t fm_lle;
+    DivPitchTableManager samplePitchTable;
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];
@@ -67,16 +67,15 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivYM2608Interface iface;
-    unsigned int sampleOffB[256];
-    bool sampleLoaded[256];
+    unsigned int* sampleOffB;
+    bool* sampleLoaded;
   
     DivPlatformAY8910* ay;
-    unsigned char sampleBank;
     unsigned char writeRSSOff, writeRSSOn;
     int globalRSSVolume;
 
     bool extMode, noExtMacros;
-    unsigned char prescale, nukedMult;
+    unsigned char prescale, nukedMult, memConfig;
 
     DivMemoryComposition memCompo;
   
@@ -96,7 +95,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -110,6 +109,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -124,10 +125,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setCSM(bool isCSM);
     void quit();
-    DivPlatformYM2608():
-      DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32, false, 16),
-      prescale(0x2d),
-      isCSM(0) {}
+    DivPlatformYM2608();
     ~DivPlatformYM2608();
 };
 #endif

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     };
 
     struct Channel: public FMChannelStereo {
-      bool furnaceDac;
       bool dacMode;
       int dacPeriod;
       int dacRate;
@@ -46,11 +45,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
       int dacDelay;
       bool dacDirection;
       bool setPos;
-      unsigned char sampleBank;
       signed char dacOutput;
-      Channel():
-        FMChannelStereo(),
-        furnaceDac(false),
+      Channel(bool linear=true):
+        FMChannelStereo(linear),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -59,7 +56,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacDelay(0),
         dacDirection(false),
         setPos(false),
-        sampleBank(0),
         dacOutput(0) {}
     };
     Channel chan[10];
@@ -71,6 +67,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivOPNInterface iface;
+
+    DivPitchTableManager samplePitchTable;
 
     int softPCMTimer;
 
@@ -94,7 +92,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     inline void processDAC(int iRate);
     inline void commitState(int ch, DivInstrument* ins);
-    void acquire276OscSub();
+    inline void acquire276OscSub(int h);
     void acquire_nuked(short** buf, size_t len);
     void acquire_nuked276(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
@@ -105,7 +103,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -126,6 +124,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);

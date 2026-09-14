@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,26 +23,33 @@
 #include "../dispatch.h"
 
 class DivPlatformMMC5: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char duty, sweep;
-    bool sweepChanged, furnaceDac, setPos;
-    Channel():
-      SharedChannel<signed char>(15),
+    bool sweepChanged, setPos;
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       prevFreq(65535),
       duty(0),
       sweep(8),
       sweepChanged(false),
-      furnaceDac(false),
       setPos(false) {}
   };
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[5];
+  struct QueuedWrite {
+      unsigned short addr;
+      unsigned char val;
+      QueuedWrite(): addr(0), val(0) {}
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+  };
+  FixedQueue<QueuedWrite,128> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];
@@ -51,9 +58,9 @@ class DivPlatformMMC5: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -63,9 +70,12 @@ class DivPlatformMMC5: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     float getPostAmp();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

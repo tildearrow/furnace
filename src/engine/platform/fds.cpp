@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@ const char** DivPlatformFDS::getRegisterSheet() {
 }
 
 void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     extcl_apu_tick_FDS(fds);
     int sample=isMuted[0]?0:fds->snd.main.output;
@@ -64,25 +65,25 @@ void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
     buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf->data[oscBuf->needle++]=sample*3;
+      oscBuf->putSample(i,sample*3);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
   int out[2];
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
-    fds_NP->Tick(1);
+    fds_NP->Tick(16);
     fds_NP->Render(out);
     int sample=isMuted[0]?0:(out[0]<<1);
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     buf[i]=sample;
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf->data[oscBuf->needle++]=sample*3;
-    }
+    oscBuf->putSample(i,sample*3);
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
@@ -121,9 +122,9 @@ void DivPlatformFDS::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -131,7 +132,7 @@ void DivPlatformFDS::tick(bool sysTick) {
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
       if (i==3) {
-        if (parent->song.properNoiseLayout) {
+        if (parent->song.compatFlags.properNoiseLayout) {
           chan[i].duty&=1;
         } else if (chan[i].duty>1) {
           chan[i].duty=1;
@@ -189,9 +190,11 @@ void DivPlatformFDS::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOn) {
         // ???
       }
@@ -221,7 +224,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FDS);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -263,7 +266,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].wave<0) {
@@ -359,7 +362,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       rWrite(0x4084,(chan[c.chan].modOn<<7)|0x40|chan[c.chan].modDepth);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -383,15 +386,15 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -424,7 +427,7 @@ void DivPlatformFDS::forceIns() {
   updateWave();
 }
 
-void* DivPlatformFDS::getChanState(int ch) {
+SharedChannel* DivPlatformFDS::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -446,7 +449,8 @@ int DivPlatformFDS::getRegisterPoolSize() {
 
 void DivPlatformFDS::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformFDS::Channel();
+    chan[i]=DivPlatformFDS::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   ws.setEngine(parent);
@@ -485,18 +489,31 @@ void DivPlatformFDS::setFlags(const DivConfig& flags) {
     chipClock=COLOR_NTSC/2.0;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock;
-  oscBuf->rate=rate/32;
   if (useNP) {
-    fds_NP->SetClock(rate);
+    rate=chipClock/16;
+    oscBuf->setRate(rate);
+    fds_NP->SetClock(chipClock);
     fds_NP->SetRate(rate);
+  } else {
+    rate=chipClock;
+    oscBuf->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformFDS::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformFDS::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformFDS::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 float DivPlatformFDS::getPostAmp() {

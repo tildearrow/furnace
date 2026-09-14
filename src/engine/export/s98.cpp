@@ -174,10 +174,9 @@ void DivExportS98::run() {
     e->got.rate=tickRate;
 
     // determine loop point
-    int loopOrder=0;
-    int loopRow=0;
-    int loopEnd=0;
-    e->walkSong(loopOrder,loopRow,loopEnd);
+    e->calcSongTimestamps();
+    int loopOrder=e->curSubSong->ts.loopStart.order;
+    int loopRow=e->curSubSong->ts.loopStart.row;
     logAppendf("loop point: %d %d",loopOrder,loopRow);
 
     // reset the playback state
@@ -267,8 +266,8 @@ void DivExportS98::run() {
         if (trailing) beenOneLoopAlready=true;
         trailing=true;
         if (!loop) countDown=0;
-        for (int i=0; i<e->chans; i++) {
-        if (cmdIDs[e->dispatchOfChan[i]]==0xff) continue;
+        for (int i=0; i<e->song.chans; i++) {
+        if (cmdIDs[e->song.dispatchOfChan[i]]==0xff) continue;
           e->chan[i].wentThroughNote=false;
         }
       }
@@ -276,8 +275,8 @@ void DivExportS98::run() {
         switch (trailingTicks) {
           case -1: { // automatic
             bool stillHaveTo=false;
-            for (int i=0; i<e->chans; i++) {
-              if (cmdIDs[e->dispatchOfChan[i]]==0xff) continue;
+            for (int i=0; i<e->song.chans; i++) {
+              if (cmdIDs[e->song.dispatchOfChan[i]]==0xff) continue;
               if (e->chan[i].goneThroughNote) continue;
               if (e->chan[i].wentThroughNote) {
                 stillHaveTo=true;
@@ -293,7 +292,7 @@ void DivExportS98::run() {
             countDown--;
             break;
         }
-        if (e->song.loopModality!=2) countDown=0;
+        if (e->song.compatFlags.loopModality!=2) countDown=0;
       }
       if (countDown<=0 || !e->playing || beenOneLoopAlready) {
         done=true;

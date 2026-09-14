@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,33 +23,127 @@
 #include <math.h>
 
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
-#define NOTE_ES5506(c,note) ((amigaPitch && parent->song.linearPitch!=2)?parent->calcBaseFreq(COLOR_NTSC,chan[c].pcm.freqOffs,note,true):parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
 #define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
-#define pageWrite(p,a,...) \
+#define pageWrite(p,a,d) \
   if (!skipRegisterWrites) { \
     if (curPage!=(p)) { \
       curPage=(p); \
-      rWrite(0xf,curPage); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
-    rWrite((a),__VA_ARGS__); \
+    rWrite((a),(d)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
   }
 
-#define pageWriteMask(p,pm,a,...) \
+#define pageWriteDelayed(p,a,d,dl) \
+  if (!skipRegisterWrites) { \
+    if (curPage!=(p)) { \
+      curPage=(p); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
+    } \
+    rWrite((a),(d),(dl)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
+  }
+
+#define pageWriteMask(p,pm,a,d) \
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
-    rWrite((a),__VA_ARGS__); \
+    rWrite((a),(d)) \
+    if (dumpWrites) { \
+      addWrite(((a)<<2)|0,((d)>>24)&0xff) \
+      addWrite(((a)<<2)|1,((d)>>16)&0xff) \
+      addWrite(((a)<<2)|2,((d)>>8)&0xff) \
+      addWrite(((a)<<2)|3,((d)>>0)&0xff) \
+    } \
+  }
+
+#define crWrite(c,d) \
+  if (!skipRegisterWrites) { \
+    if ((curPage&0x5f)!=((c)&0x5f)) { \
+      curPage=(curPage&~0x5f)|((c)&0x5f); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
+    } \
+    chan[c].cr=(d); \
+    rWrite(0,chan[c].cr) \
+    if (dumpWrites) { \
+      addWrite(0x0,0) \
+      addWrite(0x1,0) \
+      addWrite(0x2,(chan[c].cr>>8)&0xff) \
+      addWrite(0x3,(chan[c].cr>>0)&0xff) \
+    } \
+  }
+
+#define crWriteMask(c,d,m) \
+  if (!skipRegisterWrites) { \
+    if ((curPage&0x5f)!=((c)&0x5f)) { \
+      curPage=(curPage&~0x5f)|((c)&0x5f); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage); \
+      } \
+    } \
+    chan[c].cr=(chan[c].cr&~(m))|((d)&(m)); \
+    rWrite(0,chan[c].cr) \
+    if (dumpWrites) { \
+      addWrite(0x0,0) \
+      addWrite(0x1,0) \
+      addWrite(0x2,(chan[c].cr>>8)&0xff) \
+      addWrite(0x3,(chan[c].cr>>0)&0xff) \
+    } \
   }
 
 #define pageReadMask(p,pm,a,st,...) \
   if (!skipRegisterWrites) { \
     if ((curPage&(pm))!=((p)&(pm))) { \
       curPage=(curPage&~(pm))|((p)&(pm)); \
-      rWrite(0xf,curPage,(pm)); \
+      rWrite(0xf,curPage) \
+      if (dumpWrites) { \
+        addWrite(0x3c,0) \
+        addWrite(0x3d,0) \
+        addWrite(0x3e,0) \
+        addWrite(0x3f,curPage) \
+      } \
     } \
     rRead(st,(a),__VA_ARGS__); \
   }
@@ -111,20 +205,23 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
+  for (int i=0; i<=chanMax; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
       if (w.isRead && (w.read!=NULL)) {
-        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read,w.mask));
-        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.mask,w.delay));
+        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read));
+        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.delay));
       } else {
-        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val,w.mask));
-        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.mask,w.delay));
+        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val));
+        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.delay));
       }
       hostIntf32.pop();
     }
@@ -139,24 +236,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
         logE("READING?!");
         hostIntf8.pop();
       } else {
-        unsigned int mask=(w.mask>>shift)&0xff;
-        if ((mask==0xff) || isMasked) {
-          if (mask==0xff) {
-            maskedVal=(w.val>>shift)&0xff;
-          }
-          es5506.host_w((w.addr<<2)+w.step,maskedVal);
-          if(dumpWrites) {
-            addWrite((w.addr<<2)+w.step,maskedVal);
-          }
-          isMasked=false;
-          if ((w.step==3) && (w.delay>0)) {
-            cycle+=w.delay;
-          }
-          hostIntf8.pop();
-        } else if (!isMasked) {
-          maskedVal=((w.val>>shift)&mask)|(es5506.host_r((w.addr<<2)+w.step)&~mask);
-          isMasked=true;
+        es5506.host_w((w.addr<<2)+w.step,(w.val>>shift)&0xff);
+        if ((w.step==3) && (w.delay>0)) {
+          cycle+=w.delay;
         }
+        hostIntf8.pop();
         if (cycle>0) break;
       }
     }
@@ -166,8 +250,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       buf[(o<<1)|1][h]=es5506.rout(o);
     }
     for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+      oscBuf[i]->putSample(h,(es5506.voice_lout(i)+es5506.voice_rout(i))>>5);
     }
+  }
+  for (int i=0; i<=chanMax; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -227,14 +314,14 @@ void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
     if (chan[ch].noteChanged.offs) {
       if (chan[ch].pcm.freqOffs!=chan[ch].pcm.nextFreqOffs) {
         chan[ch].pcm.freqOffs=chan[ch].pcm.nextFreqOffs;
-        chan[ch].nextFreq=NOTE_ES5506(ch,chan[ch].currNote);
+        chan[ch].nextFreq=chan[ch].calcBaseFreq(chan[ch].currNote);
         chan[ch].noteChanged.freq=1;
         chan[ch].freqChanged=true;
       }
     }
     if (chan[ch].noteChanged.note) {
       chan[ch].currNote=chan[ch].nextNote;
-      const int nextFreq=NOTE_ES5506(ch,chan[ch].nextNote);
+      const int nextFreq=chan[ch].calcBaseFreq(chan[ch].nextNote);
       if (chan[ch].nextFreq!=nextFreq) {
         chan[ch].nextFreq=nextFreq;
         chan[ch].noteChanged.freq=1;
@@ -250,10 +337,136 @@ void DivPlatformES5506::updateNoteChangesAsNeeded(int ch) {
   }
 }
 
+void DivPlatformES5506::updatePCMChanges(int i) {
+  if (chan[i].pcmChanged.changed) {
+    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
+    if (chan[i].pcmChanged.index) {
+      // TODO: this is a mess. it needs to be cleaned up.
+      const int next=chan[i].pcm.next;
+      bool sampleValid=false;
+      if (((ins->amiga.useNoteMap) && (next>=0 && next<180)) ||
+          ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
+        int sample=next;
+        if (ins->amiga.useNoteMap) {
+          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
+          sample=noteMapind.map;
+        }
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          const unsigned int offES5506=sampleOffES5506[sample];
+          sampleValid=true;
+          chan[i].pcm.index=sample;
+          chan[i].pcm.isNoteMap=ins->amiga.useNoteMap;
+          DivSample* s=parent->getSample(sample);
+          // get frequency offset
+          double off=1.0;
+          double center=(double)s->centerRate;
+          if (center<1) {
+            off=1.0;
+          } else {
+            off=(double)center/parent->getCenterRate();
+          }
+          if (ins->amiga.useNoteMap) {
+            //chan[i].pcm.note=next;
+          }
+          // get loop mode
+          DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
+          const unsigned int start=offES5506<<10;
+          const unsigned int length=s->samples-1;
+          const unsigned int end=start+(length<<11);
+          const unsigned int nextBank=(offES5506>>22)&3;
+          const double nextFreqOffs=((amigaPitch && !parent->song.compatFlags.linearPitch)?16:PITCH_OFFSET)*off;
+          chan[i].pcm.loopMode=loopMode;
+          chan[i].pcm.bank=nextBank;
+          chan[i].pcm.start=start;
+          chan[i].pcm.end=end;
+          chan[i].pcm.length=length;
+          if ((chan[i].pcm.loopMode!=loopMode) || (chan[i].pcm.bank!=nextBank)) {
+            chan[i].pcm.loopMode=loopMode;
+            chan[i].pcm.bank=nextBank;
+            chan[i].pcmChanged.loopBank=1;
+          }
+          if (chan[i].pcm.nextFreqOffs!=nextFreqOffs) {
+            chan[i].pcm.nextFreqOffs=nextFreqOffs;
+            chan[i].noteChanged.offs=1;
+          }
+        }
+      }
+      if (sampleValid) {
+        if (!chan[i].keyOn) {
+          pageWrite(0x20|i,0x03,(chan[i].pcm.direction)?chan[i].pcm.end:chan[i].pcm.start);
+        }
+        chan[i].pcmChanged.slice=1;
+      }
+      chan[i].pcmChanged.index=0;
+    }
+    if (chan[i].pcmChanged.slice) {
+      if (!chan[i].keyOn) {
+        if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
+          // get loop mode
+          DivSample* s=parent->getSample(chan[i].pcm.index);
+          const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
+          const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
+          const unsigned int nextLoopEnd=(start+((s->loopEnd)<<11))&0xffffff80;
+          if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
+            chan[i].pcm.loopStart=nextLoopStart;
+            chan[i].pcm.loopEnd=nextLoopEnd;
+            chan[i].pcmChanged.position=1;
+          }
+        }
+      }
+      chan[i].pcmChanged.slice=0;
+    }
+    if (chan[i].pcmChanged.position) {
+      if (!chan[i].keyOn) {
+        pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
+        pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
+      }
+      chan[i].pcmChanged.position=0;
+    }
+    if (chan[i].pcmChanged.loopBank) {
+      if (!chan[i].keyOn) {
+        unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.direction?0x0040:0x0000);
+        chan[i].isReverseLoop=false;
+        switch (chan[i].pcm.loopMode) {
+          case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
+            loopFlag|=0x0008;
+            break;
+          /*
+          case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
+            loopFlag|=0x0038;
+            chan[i].isReverseLoop=true;
+            break;
+          */
+          case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
+            loopFlag|=0x0018;
+            break;
+          case DIV_SAMPLE_LOOP_MAX: // no loop
+          default:
+            break;
+        }
+        // Set loop mode & Bank
+        chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0xe0fd)|loopFlag;
+        chan[i].crDirValChanged=true;
+        chan[i].crChanged=true;
+      }
+      chan[i].pcmChanged.loopBank=0;
+    }
+    chan[i].pcmChanged.dummy=0;
+  }
+}
+
 void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
+    if (chan[i].crDirValInit) {
+      chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
+      chan[i].crDirValInit=false;
+    }
+    if (!chan[i].crDirValChanged) {
+      chan[i].crDirVal=es5506.regs_r(i,0,false)&0x41;
+    }
     chan[i].std.next();
-    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
@@ -286,7 +499,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     // arpeggio/pitch macros, frequency related
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
@@ -393,14 +606,14 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     // filter slide
     if (!chan[i].keyOn) {
-      if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
+      if (chan[i].k1Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k1+chan[i].k1Slide,0,65535);
         if (chan[i].filter.k1!=next) {
           chan[i].filter.k1=next;
           chan[i].filterChanged.k1=1;
         }
       }
-      if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
+      if (chan[i].k2Slide!=0) {
         signed int next=CLAMP(chan[i].filter.k2+chan[i].k2Slide,0,65535);
         if (chan[i].filter.k2!=next) {
           chan[i].filter.k2=next;
@@ -423,13 +636,18 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].pcm.pause!=(bool)(chan[i].std.alg.val&1)) {
         chan[i].pcm.pause=chan[i].std.alg.val&1;
         if (!chan[i].keyOn) {
-          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.pause?0x0002:0x0000,0x0002);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|(chan[i].crDirVal);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x0002)|(chan[i].pcm.pause?0x0002:0x0000);
+          chan[i].crChanged=true;
         }
       }
       if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
         chan[i].pcm.direction=chan[i].std.alg.val&2;
         if (!chan[i].keyOn) {
-          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.direction?0x0040:0x0000,0x0040);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
         }
       }
     }
@@ -463,125 +681,19 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
       if (chan[i].volChanged.ca) {
-        pageWriteMask(0x00|i,0x5f,0x00,(chan[i].ca<<10),0x1c00);
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+        chan[i].crWriteVal=(chan[i].crWriteVal&~0x1c00)|(chan[i].ca<<10);
+        chan[i].crChanged=true;
       }
       chan[i].volChanged.changed=0;
     }
-    if (chan[i].pcmChanged.changed) {
-      if (chan[i].pcmChanged.index) {
-        const int next=chan[i].pcm.next;
-        bool sampleValid=false;
-        if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
-            ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
-          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
-          int sample=next;
-          if (ins->amiga.useNoteMap) {
-            sample=noteMapind.map;
-          }
-          if (sample>=0 && sample<parent->song.sampleLen) {
-            const unsigned int offES5506=sampleOffES5506[sample];
-            sampleValid=true;
-            chan[i].pcm.index=sample;
-            chan[i].pcm.isNoteMap=ins->amiga.useNoteMap;
-            DivSample* s=parent->getSample(sample);
-            // get frequency offset
-            double off=1.0;
-            double center=(double)s->centerRate;
-            if (center<1) {
-              off=1.0;
-            } else {
-              off=(double)center/8363.0;
-            }
-            if (ins->amiga.useNoteMap) {
-              //chan[i].pcm.note=next;
-            }
-            // get loop mode
-            DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
-            const unsigned int start=offES5506<<10;
-            const unsigned int length=s->samples-1;
-            const unsigned int end=start+(length<<11);
-            const unsigned int nextBank=(offES5506>>22)&3;
-            const double nextFreqOffs=((amigaPitch && parent->song.linearPitch!=2)?16:PITCH_OFFSET)*off;
-            chan[i].pcm.loopMode=loopMode;
-            chan[i].pcm.bank=nextBank;
-            chan[i].pcm.start=start;
-            chan[i].pcm.end=end;
-            chan[i].pcm.length=length;
-            if ((chan[i].pcm.loopMode!=loopMode) || (chan[i].pcm.bank!=nextBank)) {
-              chan[i].pcm.loopMode=loopMode;
-              chan[i].pcm.bank=nextBank;
-              chan[i].pcmChanged.loopBank=1;
-            }
-            if (chan[i].pcm.nextFreqOffs!=nextFreqOffs) {
-              chan[i].pcm.nextFreqOffs=nextFreqOffs;
-              chan[i].noteChanged.offs=1;
-            }
-          }
-        }
-        if (sampleValid) {
-          if (!chan[i].keyOn) {
-            pageWrite(0x20|i,0x03,(chan[i].pcm.direction)?chan[i].pcm.end:chan[i].pcm.start);
-          }
-          chan[i].pcmChanged.slice=1;
-        }
-        chan[i].pcmChanged.index=0;
-      }
-      if (chan[i].pcmChanged.slice) {
-        if (!chan[i].keyOn) {
-          if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
-            // get loop mode
-            DivSample* s=parent->getSample(chan[i].pcm.index);
-            const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
-            const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
-            const unsigned int nextLoopEnd=(start+((s->loopEnd)<<11))&0xffffff80;
-            if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
-              chan[i].pcm.loopStart=nextLoopStart;
-              chan[i].pcm.loopEnd=nextLoopEnd;
-              chan[i].pcmChanged.position=1;
-            }
-          }
-        }
-        chan[i].pcmChanged.slice=0;
-      }
-      if (chan[i].pcmChanged.position) {
-        if (!chan[i].keyOn) {
-          pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
-          pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
-        }
-        chan[i].pcmChanged.position=0;
-      }
-      if (chan[i].pcmChanged.loopBank) {
-        if (!chan[i].keyOn) {
-          unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.direction?0x0040:0x0000);
-          chan[i].isReverseLoop=false;
-          switch (chan[i].pcm.loopMode) {
-            case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
-              loopFlag|=0x0008;
-              break;
-            /*
-            case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
-              loopFlag|=0x0038;
-              chan[i].isReverseLoop=true;
-              break;
-            */
-            case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
-              loopFlag|=0x0018;
-              break;
-            case DIV_SAMPLE_LOOP_MAX: // no loop
-            default:
-              break;
-          }
-          // Set loop mode & Bank
-          pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0xe0fd);
-        }
-        chan[i].pcmChanged.loopBank=0;
-      }
-      chan[i].pcmChanged.dummy=0;
-    }
+    updatePCMChanges(i);
     if (chan[i].filterChanged.changed) {
       if (!chan[i].keyOn) {
         if (chan[i].filterChanged.mode) {
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].filter.mode<<8),0x0300);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x0300)|(chan[i].filter.mode<<8);
+          chan[i].crChanged=true;
         }
         if (chan[i].filterChanged.k2) {
           if (chan[i].std.ex2.mode!=0) { // Relative
@@ -609,7 +721,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             pageWrite(0x00|i,0x05,((unsigned char)chan[i].envelope.rVRamp)<<8);
           }
           if (chan[i].envChanged.ecount) {
-            pageWrite(0x00|i,0x06,chan[i].envelope.ecount);
+            pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount);
           }
           if (chan[i].envChanged.k2Ramp) {
             pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
@@ -638,11 +750,19 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].pcm.nextPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (amigaPitch && parent->song.linearPitch!=2) {
-        chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,2,chan[i].pitch2,COLOR_NTSC,chan[i].pcm.freqOffs),1,0xffff);
-        chan[i].freq=32768*(COLOR_NTSC/chan[i].freq)/(chipClock/32.0);
+      if (amigaPitch && !parent->song.compatFlags.linearPitch) {
+        // TODO: why is it 2???
+        chan[i].freq=chan[i].calcFreq(2);
+        if (chan[i].rawFreq) {
+          chan[i].freq&=65535;
+        }
+        chan[i].freq=PITCH_OFFSET*(COLOR_NTSC/chan[i].freq)/(chipClock/16.0);
+        chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
       } else {
-        chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
+        chan[i].freq=chan[i].calcFreq(2);
+        if (!chan[i].rawFreq) {
+          chan[i].freq=CLAMP(chan[i].freq,0,0x1ffff);
+        }
       }
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
@@ -654,11 +774,12 @@ void DivPlatformES5506::tick(bool sysTick) {
           if (center<1) {
             off=1.0;
           } else {
-            off=(double)center/8363.0;
+            off=(double)center/parent->getCenterRate();
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd)<<11))&0xffffff80;
-          chan[i].pcm.freqOffs=((amigaPitch && parent->song.linearPitch!=2)?16:PITCH_OFFSET)*off;
+          chan[i].pcm.freqOffs=((amigaPitch && !parent->song.compatFlags.linearPitch)?16:PITCH_OFFSET)*off;
+          chan[i].pitchTable=samplePitchTable.get(ind); // ?????
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
@@ -668,11 +789,11 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           chan[i].k1Prev=0xffff;
           chan[i].k2Prev=0xffff;
-          pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
+          crWrite(0x00|i,0x0303); // Wipeout CR
           pageWrite(0x00|i,0x06,0); // Clear ECOUNT
           pageWrite(0x20|i,0x03,startPos); // Set ACCUM to start address
           pageWrite(0x00|i,0x07,0xffff); // Set K1 and K2 to 0xffff
-          pageWrite(0x00|i,0x09,0xffff,~0,(chanMax+1)*4*2); // needs to 4 sample period delay
+          pageWriteDelayed(0x00|i,0x09,0xffff,(chanMax+1)*4*2); // needs to 4 sample period delay
           pageWrite(0x00|i,0x01,chan[i].freq);
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
@@ -714,7 +835,8 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x0a,((unsigned char)(chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
           pageWrite(0x00|i,0x08,((unsigned char)(chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0xc300)|((chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8));
+          chan[i].crChanged=true;
           if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
             k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
@@ -754,12 +876,18 @@ void DivPlatformES5506::tick(bool sysTick) {
             loopFlag|=0x0002;
           }
           // Run sample
-          pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
-          pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
+          chan[i].crDirVal=(chan[i].crDirVal&~0x0040)|(chan[i].pcm.direction?0x0040:0x0000);
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x41)|chan[i].crDirVal;
+          chan[i].crWriteVal=(chan[i].crWriteVal&~0x3cff)|loopFlag;
+          chan[i].crDirValChanged=true;
+          chan[i].crChanged=true;
+          pageWrite(0x00|i,0x06,(unsigned int)chan[i].envelope.ecount); // Clear ECOUNT
         }
       }
       if (chan[i].keyOff) {
-        pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
+        chan[i].crWriteVal=0x0303;
+        chan[i].crChanged=true;
+        crWrite(0x00|i,0x0303); // Wipeout CR
       } else if (!chan[i].keyOn && chan[i].active) {
         pageWrite(0x00|i,0x01,chan[i].freq);
       }
@@ -775,6 +903,14 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].k1Prev!=k1) {
         pageWrite(0x00|i,0x09,k1);
         chan[i].k1Prev=k1;
+      }
+    }
+    if (chan[i].crChanged) {
+      crWrite(0x00|i,chan[i].crWriteVal);
+      chan[i].crChanged=false;
+      if (chan[i].crDirValChanged) {
+        chan[i].crDirValInit=true;
+        chan[i].crDirValChanged=false;
       }
     }
   }
@@ -793,6 +929,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       bool sampleValid=false;
       if (c.value!=DIV_NOTE_NULL) {
         int sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(sample);
         chan[c.chan].sampleNote=c.value;
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
@@ -809,6 +946,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         }
       } else {
         int sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+        chan[c.chan].pitchTable=samplePitchTable.get(sample);
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
           chan[c.chan].volMacroMax=(ins->type==DIV_INS_AMIGA || amigaVol)?64:0xfff;
@@ -836,6 +974,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].pcmChanged.changed=0xff;
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;
+        updatePCMChanges(c.chan);
         updateNoteChangesAsNeeded(c.chan);
       }
       if (!chan[c.chan].std.vol.will) {
@@ -1078,14 +1217,19 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active) {
         if (chan[c.chan].pcm.pause!=(bool)(c.value&1)) {
           chan[c.chan].pcm.pause=c.value&1;
-          pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.pause?0x0002:0x0000,0x0002);
+          chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x41)|chan[c.chan].crDirVal;
+          chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x0002)|(chan[c.chan].pcm.pause?0x0002:0x0000);
+          chan[c.chan].crChanged=true;
         }
       }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int nextFreq=chan[c.chan].baseFreq;
-      int destFreq=NOTE_ES5506(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
+      if (amigaPitch && !parent->song.compatFlags.linearPitch) {
+        c.value*=16;
+      }
       if (destFreq>nextFreq) {
         nextFreq+=c.value;
         if (nextFreq>=destFreq) {
@@ -1115,9 +1259,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
         chan[c.chan].nextNote=chan[c.chan].note;
         chan[c.chan].noteChanged.note=1;
       }
@@ -1131,7 +1275,10 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (chan[c.chan].pcm.direction!=(bool)(c.value&1)) {
         chan[c.chan].pcm.direction=c.value&1;
-        pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.direction?0x0040:0x0000,0x0040);
+        chan[c.chan].crDirVal=(chan[c.chan].crDirVal&~0x0040)|(chan[c.chan].pcm.direction?0x0040:0x0000);
+        chan[c.chan].crWriteVal=(chan[c.chan].crWriteVal&~0x41)|chan[c.chan].crDirVal;
+        chan[c.chan].crDirValChanged=true;
+        chan[c.chan].crChanged=true;
       }
       break;
     }
@@ -1170,7 +1317,7 @@ void DivPlatformES5506::forceIns() {
   }
 }
 
-void* DivPlatformES5506::getChanState(int ch) {
+SharedChannel* DivPlatformES5506::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1190,7 +1337,8 @@ void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();
   for (int i=0; i<32; i++) {
-    chan[i]=DivPlatformES5506::Channel();
+    chan[i]=DivPlatformES5506::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].vol=amigaVol?64:255;
     chan[i].outVol=amigaVol?64:255;
     chan[i].std.setEngine(parent);
@@ -1202,13 +1350,15 @@ void DivPlatformES5506::reset() {
 
   cycle=0;
   curPage=0;
-  maskedVal=0;
   irqv=0x80;
-  isMasked=false;
   irqTrigger=false;
   chanMax=initChanMax;
 
-  pageWriteMask(0x00,0x60,0x0b,chanMax);
+  if (dumpWrites) {
+    addWrite(0xffffffff,0);
+  }
+
+  pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
   pageWriteMask(0x00,0x60,0x0b,0x1f);
   // set serial output to I2S-ish, 16 bit
   pageWriteMask(0x20,0x60,0x0a,0x01);
@@ -1219,6 +1369,10 @@ void DivPlatformES5506::reset() {
 
 int DivPlatformES5506::getOutputCount() {
   return 12;
+}
+
+bool DivPlatformES5506::hasSoftPan(int ch) {
+  return true;
 }
 
 bool DivPlatformES5506::keyOffAffectsArp(int ch) {
@@ -1242,6 +1396,18 @@ void DivPlatformES5506::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformES5506::notifyPitchTable(int sample) {
+  if (amigaPitch && !parent->song.compatFlags.linearPitch) {
+    samplePitchTable.update<Channel>(chan,32,parent->song.tuning,COLOR_NTSC,1,0xffff,true,parent->song.compatFlags.linearPitch,sample);
+  } else {
+    samplePitchTable.update<Channel>(chan,32,parent->song.tuning,chipClock,PITCH_OFFSET,0x1ffff,false,parent->song.compatFlags.linearPitch,sample);
+  }
+}
+
+unsigned int DivPlatformES5506::getMaxFreq(int ch) {
+  return 0x1ffff;
+}
+
 void DivPlatformES5506::setFlags(const DivConfig& flags) {
   chipClock=16000000;
   CHECK_CUSTOM_CLOCK;
@@ -1251,12 +1417,14 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
   amigaVol=flags.getBool("amigaVol",false);
   amigaPitch=flags.getBool("amigaPitch",false);
   chanMax=initChanMax;
-  pageWriteMask(0x00,0x60,0x0b,chanMax);
+  pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
 
   rate=chipClock/(16*(initChanMax+1)); // 2 E clock tick (16 CLKIN tick) per voice / 4
   for (int i=0; i<32; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformES5506::poke(unsigned int addr, unsigned short val) {
@@ -1299,9 +1467,13 @@ size_t DivPlatformES5506::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+size_t DivPlatformES5506::getSampleMemOffset(int index) {
+  return index == 0 ? 128 : 0;
+}
+
 bool DivPlatformES5506::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -1312,13 +1484,13 @@ const DivMemoryComposition* DivPlatformES5506::getMemCompo(int index) {
 
 void DivPlatformES5506::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffES5506,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffES5506,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample Memory";
 
-  size_t memPos=128; // add silent at begin and end of each bank for reverse playback and add 1 for loop
+  size_t memPos=getSampleMemOffset(); // add silent at begin and end of each bank for reverse playback and add 1 for loop
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -1328,18 +1500,18 @@ void DivPlatformES5506::renderSamples(int sysID) {
 
     unsigned int length=s->length16;
     // fit sample size to single bank size
-    if (length>(4194304-128)) {
-      length=4194304-128;
+    if (length>(4194304-getSampleMemOffset())) {
+      length=4194304-getSampleMemOffset();
     }
-    if ((memPos&0xc00000)!=((memPos+length+128)&0xc00000)) {
-      memPos=((memPos+0x3fffff)&0xc00000)+128;
+    if ((memPos&0xc00000)!=((memPos+length+getSampleMemOffset())&0xc00000)) {
+      memPos=((memPos+0x3fffff)&0xffc00000)+getSampleMemOffset();
     }
-    if (memPos>=(getSampleMemCapacity()-128)) {
+    if (memPos>=(getSampleMemCapacity()-getSampleMemOffset())) {
       logW("out of ES5506 memory for sample %d!",i);
       break;
     }
-    if (memPos+length>=(getSampleMemCapacity()-128)) {
-      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-128)-memPos);
+    if (memPos+length>=(getSampleMemCapacity()-getSampleMemOffset())) {
+      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity()-getSampleMemOffset())-memPos);
       logW("out of ES5506 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
@@ -1364,6 +1536,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   sampleMem=new signed short[getSampleMemCapacity()/sizeof(short)];
   sampleMemLen=0;
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   volScale=0;
@@ -1385,4 +1558,19 @@ void DivPlatformES5506::quit() {
   for (int i=0; i<32; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformES5506::DivPlatformES5506():
+  DivDispatch(),
+  es550x_intf(),
+  es5506(*this) {
+  sampleOffES5506=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformES5506::~DivPlatformES5506() {
+  delete[] sampleOffES5506;
+  delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,32);
 }

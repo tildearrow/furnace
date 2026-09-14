@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ const char** DivPlatformNES::getRegisterSheet() {
   return regCheatSheetNES;
 }
 
-void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
+void DivPlatformNES::doWrite(int ts, unsigned short addr, unsigned char data) {
   if (useNP) {
     if (isE) {
       e1_NP->Write(addr,data);
@@ -72,13 +72,13 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
       nes2_NP->Write(addr,data);
     }
   } else {
-    apu_wr_reg(nes,addr,data);
+    apu_wr_reg(nes,ts,addr,data);
   }
 }
 
 #define doPCM \
   if (!dpcmMode && dacSample!=-1) { \
-    dacPeriod+=dacRate; \
+    dacPeriod+=dacRate*pcmAdvance; \
     if (dacPeriod>=rate) { \
       DivSample* s=parent->getSample(dacSample); \
       if (s->samples>0 && dacPos<s->samples) { \
@@ -86,10 +86,10 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
           unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1; \
           if (dacAntiClickOn && dacAntiClick<next) { \
             dacAntiClick+=8; \
-            doWrite(0x4011,dacAntiClick); \
+            doWrite(i,0x4011,dacAntiClick); \
           } else { \
             dacAntiClickOn=false; \
-            doWrite(0x4011,next); \
+            doWrite(i,0x4011,next); \
           } \
         } \
         dacPos++; \
@@ -105,50 +105,69 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
     } \
   }
 
-void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
+void DivPlatformNES::acquire_puNES(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+    nes->oscBuf[i]=oscBuf[i];
+  }
+
+  nes->timestamp=0;
+  nes->bb=bb[0];
+
   for (size_t i=0; i<len; i++) {
-    doPCM;
+    // heuristic
+    int pcmAdvance=1;
+    if (writes.empty()) {
+      if (dpcmMode || dacSample==-1) {
+        break;
+      } else {
+        pcmAdvance=len-i;
+        if (dacRate>0) {
+          int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
+          if (remainTime<pcmAdvance) pcmAdvance=remainTime;
+          if (remainTime<1) pcmAdvance=1;
+        }
+      }
+    }
 
     if (!writes.empty()) {
+      pcmAdvance=1;
       QueuedWrite w=writes.front();
-      doWrite(w.addr,w.val);
+      doWrite(i,w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
-    apu_tick(nes,NULL);
-    nes->apu.odd_cycle=!nes->apu.odd_cycle;
-    if (nes->apu.clocked) {
-      nes->apu.clocked=false;
-    }
-    int sample=(pulse_output(nes)+tnd_output(nes))<<6;
-    if (sample>32767) sample=32767;
-    if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:(nes->S1.output<<11);
-      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:(nes->S2.output<<11);
-      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:(nes->TR.output<<11);
-      oscBuf[3]->data[oscBuf[3]->needle++]=isMuted[3]?0:(nes->NS.output<<11);
-      oscBuf[4]->data[oscBuf[4]->needle++]=isMuted[4]?0:(nes->DMC.output<<8);
-    }
+
+    i+=pcmAdvance-1;
+
+    doPCM;
+  }
+  apu_tick(nes,len);
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
   int out1[2];
   int out2[2];
+  const int pcmAdvance=1;
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     doPCM;
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      doWrite(w.addr,w.val);
+      doWrite(i,w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
+
     nes1_NP->Tick(8);
     nes2_NP->TickFrameSequence(8);
     nes2_NP->Tick(8);
@@ -161,28 +180,38 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
     buf[0][i]=sample;
     if (++writeOscBuf>=4) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=nes1_NP->out[0]<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=nes1_NP->out[1]<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=nes2_NP->out[0]<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes2_NP->out[1]<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=nes2_NP->out[2]<<8;
+      oscBuf[0]->putSample(i,nes1_NP->out[0]<<11);
+      oscBuf[1]->putSample(i,nes1_NP->out[1]<<11);
+      oscBuf[2]->putSample(i,nes2_NP->out[0]<<11);
+      oscBuf[3]->putSample(i,nes2_NP->out[1]<<11);
+      oscBuf[4]->putSample(i,nes2_NP->out[2]<<8);
     }
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
   int out1[2];
   int out2[2];
+  const int pcmAdvance=1;
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) {
     doPCM;
 
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      doWrite(w.addr,w.val);
+      doWrite(i,w.addr,w.val);
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-  
+
     e1_NP->Tick(8);
     e2_NP->TickFrameSequence(8);
     e2_NP->Tick(8);
@@ -195,25 +224,31 @@ void DivPlatformNES::acquire_NSFPlayE(short** buf, size_t len) {
     buf[0][i]=sample;
     if (++writeOscBuf>=4) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=e1_NP->out[0]<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=e1_NP->out[1]<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=e2_NP->out[0]<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=e2_NP->out[1]<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=e2_NP->out[2]<<8;
+      oscBuf[0]->putSample(i,e1_NP->out[0]<<11);
+      oscBuf[1]->putSample(i,e1_NP->out[1]<<11);
+      oscBuf[2]->putSample(i,e2_NP->out[0]<<11);
+      oscBuf[3]->putSample(i,e2_NP->out[1]<<11);
+      oscBuf[4]->putSample(i,e2_NP->out[2]<<8);
     }
+  }
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformNES::acquire(short** buf, size_t len) {
-  if (useNP) {
-    if (isE) {
-      acquire_NSFPlayE(buf,len);
-    } else {
-      acquire_NSFPlay(buf,len);
-    }
+  if (!useNP) return;
+  if (isE) {
+    acquire_NSFPlayE(buf,len);
   } else {
-    acquire_puNES(buf,len);
+    acquire_NSFPlay(buf,len);
   }
+}
+
+void DivPlatformNES::acquireDirect(blip_buffer_t** bb, size_t len) {
+  if (useNP) return;
+  acquire_puNES(bb,len);
 }
 
 static unsigned char noiseTable[253]={
@@ -276,14 +311,15 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        if (chan[i].baseFreq>255) chan[i].baseFreq=255;
-        if (chan[i].baseFreq<0) chan[i].baseFreq=0;
+        // this is awkward
+        if (chan[i].baseFreq>255+60) chan[i].baseFreq=255+60;
+        if (chan[i].baseFreq<60) chan[i].baseFreq=60;
       } else {
         if (!chan[i].inPorta) {
-          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+          chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
         }
       }
       chan[i].freqChanged=true;
@@ -291,7 +327,7 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
       if (i==3) {
-        if (parent->song.properNoiseLayout) {
+        if (parent->song.compatFlags.properNoiseLayout) {
           chan[i].duty&=1;
         } else if (chan[i].duty>1) {
           chan[i].duty=1;
@@ -317,9 +353,6 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
-      if (i==0) {
-        // rWrite(16+i*5,chan[i].sweep);
-      }
     }
     if (i<3) if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
@@ -329,28 +362,35 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq;
-        if (NEW_ARP_STRAT) {
-          if (chan[i].fixedArp) {
-            ntPos=chan[i].baseNoteOverride;
+        if (chan[i].rawFreq) {
+          chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&15;
+        } else {
+          int ntPos=chan[i].baseFreq-60;
+          if (NEW_ARP_STRAT) {
+            if (chan[i].fixedArp) {
+              ntPos=chan[i].baseNoteOverride-60;
+            } else {
+              ntPos+=chan[i].arpOff;
+            }
+          }
+          ntPos+=chan[i].pitch2;
+          if (isE) {
+            chan[i].freq=31-(ntPos&31);
+          } else if (parent->song.compatFlags.properNoiseLayout) {
+            chan[i].freq=15-(ntPos&15);
           } else {
-            ntPos+=chan[i].arpOff;
+            if (ntPos<0) ntPos=0;
+            if (ntPos>252) ntPos=252;
+            chan[i].freq=noiseTable[ntPos];
           }
         }
-        ntPos+=chan[i].pitch2;
-        if (isE) {
-          chan[i].freq=31-(ntPos&31);
-        } else if (parent->song.properNoiseLayout) {
-          chan[i].freq=15-(ntPos&15);
-        } else {
-          if (ntPos<0) ntPos=0;
-          if (ntPos>252) ntPos=252;
-          chan[i].freq=noiseTable[ntPos];
-        }
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
-        if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        chan[i].freq=chan[i].calcFreq();
+        if (!chan[i].rawFreq) {
+          chan[i].freq--;
+          if (chan[i].freq>2047) chan[i].freq=2047;
+          if (chan[i].freq<0) chan[i].freq=0;
+        }
       }
       if (chan[i].keyOn) {
         // retrigger if sweep is on
@@ -386,80 +426,79 @@ void DivPlatformNES::tick(bool sysTick) {
 
   // PCM
   if (chan[4].freqChanged || chan[4].keyOn) {
-    chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,chan[4].fixedArp?chan[4].baseNoteOverride:chan[4].arpOff,chan[4].fixedArp,false);
-    if (chan[4].furnaceDac) {
-      double off=1.0;
-      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
-      }
-      dacRate=MIN(chan[4].freq*off,32000);
-      if (chan[4].keyOn) {
-        if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
-          unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
-          int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
-          if (dpcmLen<0) dpcmLen=0;
-          if (dpcmLen>255) dpcmLen=255;
-          goingToLoop=parent->getSample(dacSample)->isLoopable();
-          // write DPCM
-          rWrite(0x4015,15);
-          if (nextDPCMFreq>=0) {
-            rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
-            nextDPCMFreq=-1;
-          } else {
-            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
-          }
-          if (nextDPCMDelta>=0) {
-            rWrite(0x4011,nextDPCMDelta);
-            nextDPCMDelta=-1;
-          }
-          rWrite(0x4012,(dpcmAddr>>6)&0xff);
-          rWrite(0x4013,dpcmLen&0xff);
-          rWrite(0x4015,31);
-          if (dpcmBank!=(dpcmAddr>>14)) {
-            dpcmBank=dpcmAddr>>14;
-            logV("switching bank to %d",dpcmBank);
-            if (dumpWrites) addWrite(0xffff0004,dpcmBank);
-          }
-
-          // sample custom loop point...
-          DivSample* lsamp=parent->getSample(dacSample);
-
-          // how it works:
-          // when the initial sample info is written (see above) and playback is launched,
-          // the parameters (start point in memory and length) are locked until sample end
-          // is reached.
-
-          // thus, if we write new data after just several APU clock cycles, it will be used only when
-          // sample finishes one full loop.
-
-          // thus we can write sample's loop point as "start address" and sample's looped part length
-          // as "full sample length".
-
-          // APU will play full sample once and then repeatedly cycle through the looped part.
-
-          // sources:
-          // https://www.nesdev.org/wiki/APU_DMC
-          // https://www.youtube.com/watch?v=vB4P8x2Am6Y
-
-          if (lsamp->loopEnd>lsamp->loopStart && goingToLoop) {
-            int loopStartAddr=sampleOffDPCM[dacSample]+(lsamp->loopStart>>3);
-            int loopLen=(lsamp->loopEnd-lsamp->loopStart)>>3;
-
-            rWrite(0x4012,(loopStartAddr>>6)&0xff);
-            rWrite(0x4013,(loopLen>>4)&0xff);
-          }
-        }
-      } else {
+    chan[4].freq=chan[4].calcFreq();
+    if (chan[4].rawFreq) {
+      dacRate=32000;
+      nextDPCMFreq=chan[4].freq;
+    } else {
+      dacRate=MIN(chan[4].freq,48000);
+    }
+    if (chan[4].keyOn) {
+      if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
+        unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
+        int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
+        if (dpcmLen<0) dpcmLen=0;
+        if (dpcmLen>255) dpcmLen=255;
+        goingToLoop=parent->getSample(dacSample)->isLoopable();
+        // write DPCM
+        rWrite(0x4015,15);
         if (nextDPCMFreq>=0) {
           rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
           nextDPCMFreq=-1;
         } else {
           rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
         }
+        if (nextDPCMDelta>=0) {
+          rWrite(0x4011,nextDPCMDelta);
+          nextDPCMDelta=-1;
+        }
+        rWrite(0x4012,(dpcmAddr>>6)&0xff);
+        rWrite(0x4013,dpcmLen&0xff);
+        rWrite(0x4015,31);
+        if (dpcmBank!=(dpcmAddr>>14)) {
+          dpcmBank=dpcmAddr>>14;
+          logV("switching bank to %d",dpcmBank);
+          if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+        }
+
+        // sample custom loop point...
+        DivSample* lsamp=parent->getSample(dacSample);
+
+        // how it works:
+        // when the initial sample info is written (see above) and playback is launched,
+        // the parameters (start point in memory and length) are locked until sample end
+        // is reached.
+
+        // thus, if we write new data after just several APU clock cycles, it will be used only when
+        // sample finishes one full loop.
+
+        // thus we can write sample's loop point as "start address" and sample's looped part length
+        // as "full sample length".
+
+        // APU will play full sample once and then repeatedly cycle through the looped part.
+
+        // sources:
+        // https://www.nesdev.org/wiki/APU_DMC
+        // https://www.youtube.com/watch?v=vB4P8x2Am6Y
+
+        if (lsamp->loopEnd>lsamp->loopStart && goingToLoop) {
+          int loopStartAddr=sampleOffDPCM[dacSample]+(lsamp->loopStart>>3);
+          int loopLen=(lsamp->loopEnd-lsamp->loopStart)>>3;
+
+          rWrite(0x4012,(loopStartAddr>>6)&0xff);
+          rWrite(0x4013,(loopLen>>4)&0xff);
+        }
       }
-      if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
+    } else {
+      if (nextDPCMFreq>=0) {
+        rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+        nextDPCMFreq=-1;
+      } else {
+        rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+      }
     }
+    if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
+
     if (chan[4].keyOn) chan[4].keyOn=false;
     chan[4].freqChanged=false;
   }
@@ -472,119 +511,83 @@ int DivPlatformNES::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==4) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_NES);
-        if (ins->type==DIV_INS_AMIGA || (ins->type==DIV_INS_NES && !parent->song.oldDPCM)) {
-          if (ins->type==DIV_INS_NES) {
-            if (!dpcmMode) {
-              dpcmMode=true;
-              if (dumpWrites) addWrite(0xffff0002,0);
-              dacSample=-1;
-              rWrite(0x4015,15);
-              rWrite(0x4010,0);
-              rWrite(0x4012,0);
-              rWrite(0x4013,0);
-              rWrite(0x4015,31);
-            }
-
-            if (ins->amiga.useNoteMap) {
-              nextDPCMFreq=ins->amiga.getDPCMFreq(c.value);
-              if (nextDPCMFreq<0 || nextDPCMFreq>15) nextDPCMFreq=lastDPCMFreq;
-              lastDPCMFreq=nextDPCMFreq;
-              nextDPCMDelta=ins->amiga.getDPCMDelta(c.value);
-            } else {
-              if (c.value==DIV_NOTE_NULL) {
-                nextDPCMFreq=lastDPCMFreq;
-              } else {
-                nextDPCMFreq=c.value&15;
-              }
-            }
-          }
-          if (c.value!=DIV_NOTE_NULL) {
-            dacSample=(int)ins->amiga.getSample(c.value);
-            if (ins->type==DIV_INS_AMIGA) {
-              chan[c.chan].sampleNote=c.value;
-              c.value=ins->amiga.getFreq(c.value);
-              chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-            }
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            dacSample=(int)ins->amiga.getSample(chan[c.chan].sampleNote);
-            if (ins->type==DIV_INS_AMIGA) {
-              c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-            }
-          }
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+        if (ins->type==DIV_INS_NES) {
+          if (!dpcmMode) {
+            dpcmMode=true;
+            if (dumpWrites) addWrite(0xffff0002,0);
             dacSample=-1;
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-          chan[c.chan].furnaceDac=true;
-        } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
-          chan[c.chan].furnaceDac=false;
-          if (dpcmMode && !skipRegisterWrites) {
-            unsigned int dpcmAddr=sampleOffDPCM[dacSample]+(dacPos>>3);
-            int dpcmLen=(parent->getSample(dacSample)->lengthDPCM-(dacPos>>3))>>4;
-            if (dpcmLen<0) dpcmLen=0;
-            if (dpcmLen>255) dpcmLen=255;
-            goingToLoop=parent->getSample(dacSample)->isLoopable();
-            // write DPCM
             rWrite(0x4015,15);
-            if (nextDPCMFreq>=0) {
-              rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
-              nextDPCMFreq=-1;
-            } else {
-              rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
-            }
-            rWrite(0x4012,(dpcmAddr>>6)&0xff);
-            rWrite(0x4013,dpcmLen&0xff);
+            rWrite(0x4010,0);
+            rWrite(0x4012,0);
+            rWrite(0x4013,0);
             rWrite(0x4015,31);
-            if (dpcmBank!=(dpcmAddr>>14)) {
-              dpcmBank=dpcmAddr>>14;
-              logV("switching bank to %d",dpcmBank);
-              if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+          }
+
+          if (ins->amiga.useNoteMap) {
+            nextDPCMFreq=ins->amiga.getDPCMFreq(c.value);
+            if (nextDPCMFreq<0 || nextDPCMFreq>15) nextDPCMFreq=lastDPCMFreq;
+            lastDPCMFreq=nextDPCMFreq;
+            nextDPCMDelta=ins->amiga.getDPCMDelta(c.value);
+          } else {
+            if (c.value==DIV_NOTE_NULL) {
+              nextDPCMFreq=lastDPCMFreq;
+            } else if (c.value&DIV_NOTE_RAW_FLAG) {
+              nextDPCMFreq=(c.value)&15;
+            } else {
+              nextDPCMFreq=(c.value-60)&15;
             }
           }
         }
+        if (c.value!=DIV_NOTE_NULL) {
+          dacSample=(int)ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(dacSample);
+          if (ins->type==DIV_INS_AMIGA) {
+            chan[c.chan].sampleNote=c.value;
+            c.value=ins->amiga.getFreq(c.value);
+            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+          }
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          dacSample=(int)ins->amiga.getSample(chan[c.chan].sampleNote);
+          chan[c.chan].pitchTable=samplePitchTable.get(dacSample);
+          if (ins->type==DIV_INS_AMIGA) {
+            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
+          }
+        }
+        if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+          dacSample=-1;
+          if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
+          break;
+        } else {
+          if (dumpWrites && !dpcmMode) addWrite(0xffff0000,dacSample);
+        }
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          dacPos=0;
+        }
+        dacPeriod=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          if (c.value&DIV_NOTE_RAW_FLAG) {
+            chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+            chan[c.chan].rawFreq=true;
+          } else {
+            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+            chan[c.chan].rawFreq=false;
+          }
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
         break;
       } else if (c.chan==3) { // noise
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=c.value;
+          chan[c.chan].baseFreq=c.value&(~DIV_NOTE_RAW_FLAG);
+          chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         }
       } else {
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -594,13 +597,20 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (c.chan==2) {
         rWrite(0x4000+c.chan*4,linearCount);
-      } else if (!parent->song.brokenOutVol2) {
+      } else if (!parent->song.compatFlags.brokenOutVol2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
+      }
+      if (resetSweep && c.chan<2) {
+        if (chan[c.chan].sweep!=0x08 && !chan[c.chan].sweepChanged) {
+          chan[c.chan].sweep=0x08;
+          chan[c.chan].prevFreq=-1;
+          rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+        }
       }
       break;
     case DIV_CMD_NOTE_OFF:
@@ -645,7 +655,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==4)?(parent->calcBaseFreq(1,1,c.value2+chan[c.chan].sampleNoteDelta,false)):(NOTE_PERIODIC(c.value2));
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -689,6 +699,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
       }
       rWrite(0x4001+(c.chan*4),chan[c.chan].sweep);
+      chan[c.chan].sweepChanged=true;
       break;
     case DIV_CMD_NES_ENV_MODE:
       chan[c.chan].envMode=c.value&3;
@@ -739,12 +750,6 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       break;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       if (c.chan!=4) break;
       dacPos=c.value;
@@ -756,19 +761,15 @@ int DivPlatformNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      if (c.chan==4) {
-        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
-      } else {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
-      }
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_NES));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -808,13 +809,20 @@ void DivPlatformNES::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
+    if (i<4) {
+      if (i==2) { // triangle
+        rWrite(0x4000+i*4,(chan[i].outVol==0 || !chan[i].active)?0:linearCount);
+      } else {
+        rWrite(0x4000+i*4,(chan[i].envMode<<4)|(chan[i].active?chan[i].outVol:0)|((chan[i].duty&3)<<6));
+      }
+    }
   }
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
   rWrite(0x4017,countMode?0x80:0);
 }
 
-void* DivPlatformNES::getChanState(int ch) {
+SharedChannel* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -841,19 +849,22 @@ float DivPlatformNES::getPostAmp() {
 void DivPlatformNES::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformNES::Channel();
+    chan[i]=DivPlatformNES::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
 
+  // set DPCM pitch table
+  chan[4].pitchTable=samplePitchTable.get(-1);
+
   dacPeriod=0;
   dacPos=0;
   dpcmPos=0;
   dacRate=0;
   dacSample=-1;
-  sampleBank=0;
   dpcmBank=0;
   dpcmMode=dpcmModeDefault;
   goingToLoop=false;
@@ -886,12 +897,26 @@ void DivPlatformNES::reset() {
   rWrite(0x4001,chan[0].sweep);
   rWrite(0x4005,chan[1].sweep);
 
+  for (int i=0; i<4; i++) {
+    if (i<4) {
+      if (i==2) { // triangle
+        rWrite(0x4000+i*4,0);
+      } else {
+        rWrite(0x4000+i*4,(chan[i].envMode<<4)|0|((chan[i].duty&3)<<6));
+      }
+    }
+  }
+
   dacAntiClickOn=true;
   dacAntiClick=0;
 }
 
 bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
+}
+
+bool DivPlatformNES::hasAcquireDirect() {
+  return (!useNP && !isE);
 }
 
 void DivPlatformNES::setFlags(const DivConfig& flags) {
@@ -929,16 +954,29 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
     rate/=8;
   }
   for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate/(useNP?4:32);
+    oscBuf[i]->setRate(rate);
   }
-  
+
   dpcmModeDefault=flags.getBool("dpcmMode",true);
+  resetSweep=flags.getBool("resetSweep",false);
+
+  notifyPitchTable();
 }
 
 void DivPlatformNES::notifyInsDeletion(void* ins) {
   for (int i=0; i<5; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformNES::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x800,true,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,5,parent->song.tuning,1,1,32000,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformNES::getMaxFreq(int ch) {
+  if (ch>=3) return 15; // noise/DPCM
+  return 0x7ff;
 }
 
 void DivPlatformNES::poke(unsigned int addr, unsigned short val) {
@@ -977,7 +1015,7 @@ size_t DivPlatformNES::getSampleMemUsage(int index) {
 
 bool DivPlatformNES::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -988,7 +1026,8 @@ const DivMemoryComposition* DivPlatformNES::getMemCompo(int index) {
 
 void DivPlatformNES::renderSamples(int sysID) {
   memset(dpcmMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffDPCM,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="DPCM";
@@ -1032,6 +1071,7 @@ void DivPlatformNES::renderSamples(int sysID) {
 
 int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   if (useNP) {
@@ -1094,5 +1134,14 @@ void DivPlatformNES::quit() {
   }
 }
 
+// initialization of important arrays
+DivPlatformNES::DivPlatformNES() {
+  sampleOffDPCM=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
 DivPlatformNES::~DivPlatformNES() {
+  delete[] sampleOffDPCM;
+  delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,5);
 }

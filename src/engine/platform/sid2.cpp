@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,8 +73,11 @@ const char** DivPlatformSID2::getRegisterSheet() {
   return regCheatSheetSID2;
 }
 
-void DivPlatformSID2::acquire(short** buf, size_t len) 
-{
+void DivPlatformSID2::acquire(short** buf, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t i=0; i<len; i++) 
   {
     if (!writes.empty()) 
@@ -96,9 +99,13 @@ void DivPlatformSID2::acquire(short** buf, size_t len)
         int co=sid2->chan_out[j]>>2;
         if (co<-32768) co=-32768;
         if (co>32767) co=32767;
-        oscBuf[j]->data[oscBuf[j]->needle++]=co;
+        oscBuf[j]->putSample(i,co);
       }
     }
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -138,9 +145,9 @@ void DivPlatformSID2::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -239,9 +246,11 @@ void DivPlatformSID2::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x1ffff) chan[i].freq=0x1ffff;
+      }
       if (chan[i].keyOn) 
       {
         if(!chan[i].resetMask)
@@ -254,7 +263,7 @@ void DivPlatformSID2::tick(bool sysTick) {
           rWrite(i*7+6,(chan[i].sustain<<4)|(chan[i].release));
         }
 
-        rWrite(i*7+3, (chan[i].duty>>8) | (isMuted[i] ? 0 : (chan[i].outVol << 4))); //set volume
+        rWrite(i*7+3, (chan[i].duty>>8) | (chan[i].outVol << 4)); //set volume
 
         rWrite(0x1e, (chan[0].noise_mode) | (chan[1].noise_mode << 2) | (chan[2].noise_mode << 4) | ((chan[0].freq >> 16) << 6) | ((chan[1].freq >> 16) << 7));
         rWrite(0x1f, (chan[0].mix_mode) | (chan[1].mix_mode << 2) | (chan[2].mix_mode << 4) | ((chan[2].freq >> 16) << 6));
@@ -307,7 +316,7 @@ int DivPlatformSID2::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SID2);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -399,7 +408,7 @@ int DivPlatformSID2::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -432,18 +441,18 @@ int DivPlatformSID2::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta || parent->song.preNoteNoEffect) {
+        if (parent->song.compatFlags.resetMacroOnPorta || parent->song.compatFlags.preNoteNoEffect) {
           chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SID2));
           chan[c.chan].keyOn=true;
         }
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -590,7 +599,15 @@ void DivPlatformSID2::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformSID2::getChanState(int ch) {
+void DivPlatformSID2::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x1ffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSID2::getMaxFreq(int ch) {
+  return 0x1ffff;
+}
+
+SharedChannel* DivPlatformSID2::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -660,7 +677,8 @@ float DivPlatformSID2::getPostAmp() {
 void DivPlatformSID2::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformSID2::Channel();
+    chan[i]=DivPlatformSID2::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     fakeLow[i]=0;
     fakeBand[i]=0;
@@ -710,7 +728,7 @@ void DivPlatformSID2::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate/16;
+    oscBuf[i]->setRate(rate);
   }
   keyPriority=flags.getBool("keyPriority",true);
 
@@ -724,6 +742,8 @@ void DivPlatformSID2::setFlags(const DivConfig& flags) {
     c=1-exp(c*cutRatio);
     fakeCutTable[i]=c;
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformSID2::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

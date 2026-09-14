@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ extern "C" {
 #include "../../extern/Nuked-OPLL/opll.h"
 }
 #include "../engine/platform/sound/ymfm/ymfm_opz.h"
+#include "../engine/bsr.h"
 
 #define OPN_WRITE(addr,val) \
   OPN2_Write((ym3438_t*)fmPreviewOPN,0,(addr)); \
@@ -121,7 +122,7 @@ void FurnaceGUI::renderFMPreviewOPM(const DivInstrumentFM& params, int pos) {
   bool mult0=false;
 
   if (pos==0) {
-    OPM_Reset((opm_t*)fmPreviewOPM);
+    OPM_Reset((opm_t*)fmPreviewOPM,0);
 
     // set params
     for (int i=0; i<4; i++) {
@@ -332,8 +333,7 @@ void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
       OPZ_WRITE(baseAddr+0xc0,(op.dam&7)|(op.ksl<<6)|0x20);
       OPZ_WRITE(baseAddr+0xe0,(op.rr&15)|(op.sl<<4));
     }
-    OPZ_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3));
-    OPZ_WRITE(0x38,((params.fms2&7)<<4)|(params.ams2&3)|0x84);
+    OPZ_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3)|(params.fmsLFO?0x80:0)|(params.amsLFO?0x04:0)|(params.tremLFO?0x08:0));
     OPZ_WRITE(0x28,mult0?0x39:0x29); // frequency
     OPZ_WRITE(0x30,0xe7);
     OPZ_WRITE(0x20,(params.alg&7)|((params.fb&7)<<3)|0x40); // key on
@@ -388,9 +388,9 @@ void FurnaceGUI::renderFMPreviewESFM(const DivInstrumentFM& params, const DivIns
         double fbase=(mult0?2048.0:1024.0)*pow(2.0,(float)offset/(128.0*12.0));
         int bf=round(fbase);
         int block=0;
-        while (bf>0x3ff) {
-          bf>>=1;
-          block++;
+        if (bf>0x3ff) {
+          block=bsr32(bf)-10;
+          bf>>=block;
         }
         freqL=bf&0xff;
         freqH=((block&7)<<2)|((bf>>8)&3);

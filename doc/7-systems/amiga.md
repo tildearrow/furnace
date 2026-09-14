@@ -45,6 +45,7 @@ this chip uses the [Generic Sample](../4-instrument/sample.md) instrument editor
 - the maximum rate for sample playback is technically 31469Hz but anything higher than 28867Hz will sound glitchy on hardware.
 - sample lengths and loop will be set to an even number.
 - samples can't be longer than 131070.
+- samples must be 8-bit. Furnace handles conversion automatically.
 
 ## chip config
 

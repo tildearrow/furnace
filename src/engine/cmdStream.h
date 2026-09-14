@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,30 +17,48 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// cmdStream.h: reference command stream player.
+
 #ifndef _CMD_STREAM_H
 #define _CMD_STREAM_H
 
 #include "defines.h"
 #include "safeReader.h"
 
+// size of the trace log (per channel)
 #define DIV_MAX_CSTRACE 64
+// stack size
+#define DIV_MAX_CSSTACK 128
 
 class DivEngine;
 
+/**
+ * state for a channel in the command stream player.
+ * this sort of resembles DivChannelState but is minimal.
+ */
 struct DivCSChannelState {
+  // initial program counter address.
   unsigned int startPos;
+  // the current "program counter" (position within the command stream) address.
   unsigned int readPos;
+  // number of ticks to wait before processing. set by the wait command.
   int waitTicks;
+  // length of the last wait command.
   int lastWaitLen;
 
+  // I don't think I have to explain these.
   int note, pitch;
   int volume, volMax, volSpeed, volSpeedTarget;
-  int vibratoDepth, vibratoRate, vibratoPos;
+  int vibratoDepth, vibratoRate, vibratoPos, vibratoRange, vibratoShape;
+  int tremoloDepth, tremoloRate, tremoloPos;
+  int panbrelloDepth, panbrelloRate, panbrelloPos;
   int portaTarget, portaSpeed;
   unsigned char arp, arpStage, arpTicks;
+  unsigned char panL, panR;
+  signed char panSpeed;
 
-  unsigned int callStack[8];
-  unsigned char callStackPos;
+  unsigned int callStack[DIV_MAX_CSSTACK];
+  unsigned char callStackPos, callStackSize;
 
   unsigned int trace[DIV_MAX_CSTRACE];
   unsigned char tracePos;
@@ -60,12 +78,24 @@ struct DivCSChannelState {
     vibratoDepth(0),
     vibratoRate(0),
     vibratoPos(0),
+    vibratoRange(15),
+    vibratoShape(0),
+    tremoloDepth(0),
+    tremoloRate(0),
+    tremoloPos(0),
+    panbrelloDepth(0),
+    panbrelloRate(0),
+    panbrelloPos(0),
     portaTarget(0),
     portaSpeed(0),
     arp(0),
     arpStage(0),
     arpTicks(0),
+    panL(255),
+    panR(255),
+    panSpeed(0),
     callStackPos(0),
+    callStackSize(0),
     tracePos(0) {
     for (int i=0; i<DIV_MAX_CSTRACE; i++) {
       trace[i]=0;
@@ -76,28 +106,83 @@ struct DivCSChannelState {
 class DivCSPlayer {
   DivEngine* e;
   unsigned char* b;
+  unsigned short* bAccessTS;
   size_t bLen;
   SafeReader stream;
   DivCSChannelState chan[DIV_MAX_CHANS];
   unsigned char fastDelays[16];
-  unsigned char fastCmds[16];
+  unsigned char fastIns[6];
+  unsigned char fastVols[6];
+  unsigned char fastCmds[4];
   unsigned char arpSpeed;
+  unsigned int fileChans;
+  unsigned int curTick, fastDelaysOff, fastInsOff, fastVolsOff, fastCmdsOff, deltaCyclePos;
+  bool longPointers;
+  bool bigEndian;
 
   short vibTable[64];
+  short tremTable[128];
   public:
     unsigned char* getData();
+    unsigned short* getDataAccess();
     size_t getDataLen();
     DivCSChannelState* getChanState(int ch);
+    unsigned int getFileChans();
     unsigned char* getFastDelays();
+    unsigned char* getFastIns();
+    unsigned char* getFastVols();
     unsigned char* getFastCmds();
+    unsigned int getCurTick();
     void cleanup();
     bool tick();
     bool init();
     DivCSPlayer(DivEngine* en, unsigned char* buf, size_t len):
       e(en),
       b(buf),
+      bAccessTS(NULL),
       bLen(len),
       stream(buf,len) {}
+};
+
+struct DivCSProgress {
+  int stage, count, total;
+  int optStage, findTotal;
+  int optCurrent, optTotal;
+  int findCurrent, expandCurrent;
+  int origCurrent, origCount;
+  DivCSProgress():
+    stage(0),
+    count(0),
+    total(0),
+    optStage(0),
+    findTotal(0),
+    optCurrent(0),
+    optTotal(0),
+    findCurrent(0),
+    expandCurrent(0),
+    origCurrent(0),
+    origCount(0) {}
+};
+
+struct DivCSOptions {
+  bool longPointers;
+  bool bigEndian;
+  bool noCmdCallOpt;
+  bool noDelayCondense;
+  bool noSubBlock;
+
+  DivCSOptions():
+    longPointers(false),
+    bigEndian(false),
+    noCmdCallOpt(false),
+    noDelayCondense(false),
+    noSubBlock(false) {}
+};
+
+// command stream utilities
+namespace DivCS {
+  int getCmdLength(unsigned char ext);
+  int getInsLength(unsigned char ins, unsigned char ext=0, unsigned char* speedDial=NULL);
 };
 
 #endif

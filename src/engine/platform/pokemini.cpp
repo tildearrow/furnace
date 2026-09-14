@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,6 +88,7 @@ void DivPlatformPokeMini::rWrite(unsigned char addr, unsigned char val) {
 
 void DivPlatformPokeMini::acquire(short** buf, size_t len) {
   int out=0;
+  oscBuf->begin(len);
   for (size_t i=0; i<len; i++) {
     for (int j=0; j<PCSPKR_DIVIDER; j++) {
       elapsedMain++;
@@ -103,12 +104,13 @@ void DivPlatformPokeMini::acquire(short** buf, size_t len) {
     if (on) {
       out=(pos>=pivot && !isMuted[0])?volTable[vol&3]:0;
       buf[0][i]=out;
-      oscBuf->data[oscBuf->needle++]=out;
+      oscBuf->putSample(i,out);
     } else {
       buf[0][i]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(i,0);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPokeMini::tick(bool sysTick) {
@@ -120,9 +122,9 @@ void DivPlatformPokeMini::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -140,9 +142,12 @@ void DivPlatformPokeMini::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       if (chan[i].keyOn) {
         rWrite(0x48,4);
       }
@@ -165,7 +170,7 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -173,7 +178,7 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -210,7 +215,7 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -233,15 +238,15 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -272,7 +277,7 @@ void DivPlatformPokeMini::forceIns() {
   }
 }
 
-void* DivPlatformPokeMini::getChanState(int ch) {
+SharedChannel* DivPlatformPokeMini::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -294,7 +299,8 @@ int DivPlatformPokeMini::getRegisterPoolSize() {
 
 void DivPlatformPokeMini::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformPokeMini::Channel();
+    chan[i]=DivPlatformPokeMini::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -323,13 +329,23 @@ void DivPlatformPokeMini::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
 
   rate=chipClock/PCSPKR_DIVIDER;
-  oscBuf->rate=rate;
+  oscBuf->setRate(rate);
+
+  notifyPitchTable();
 }
 
 void DivPlatformPokeMini::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformPokeMini::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformPokeMini::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformPokeMini::poke(unsigned int addr, unsigned short val) {

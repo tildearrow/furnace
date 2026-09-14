@@ -1,5 +1,4 @@
 #include "fileDialog.h"
-#include "ImGuiFileDialog.h"
 #include "util.h"
 #include "../ta-log.h"
 
@@ -7,7 +6,7 @@
 #include <nfd.h>
 #elif defined(ANDROID)
 #include <SDL.h>
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
 #include "../../extern/pfd-fixed/portable-file-dialogs.h"
 #endif
 
@@ -176,9 +175,12 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
     jniEnv->DeleteLocalRef(class_);
     jniEnv->DeleteLocalRef(activity);
     return true;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     dialogO=new pfd::open_file(header,path,filter,allowMultiple?(pfd::opt::multiselect):(pfd::opt::none));
     hasError=!pfd::settings::available();
+#else
+    hasError=true;
+    return false;
 #endif
   } else {
     hasError=false;
@@ -189,13 +191,8 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, S
     }
 #endif
 
-    convertFilterList(filter);
-
-    ImGuiFileDialog::Instance()->singleClickSel=mobileUI;
-    ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->mobileMode=mobileUI;
-    ImGuiFileDialog::Instance()->homePath=getHomeDir();
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,filter.empty()?NULL:noSysFilter,path,hint,allowMultiple?999:1,nullptr,0,clickCallback);
+    newFilePicker->setHomeDir(getHomeDir());
+    newFilePicker->open(header+"###FileDialog",path,hint,FP_FLAGS_MODAL|(allowMultiple?FP_FLAGS_MULTI_SELECT:0),filter,clickCallback);
   }
   opened=true;
   return true;
@@ -268,20 +265,18 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, S
     jniEnv->DeleteLocalRef(class_);
     jniEnv->DeleteLocalRef(activity);
     return true;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     dialogS=new pfd::save_file(header,path,filter);
     hasError=!pfd::settings::available();
+#else
+    hasError=true;
+    return false;
 #endif
   } else {
     hasError=false;
 
-    convertFilterList(filter);
-
-    ImGuiFileDialog::Instance()->singleClickSel=false;
-    ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->mobileMode=mobileUI;
-    ImGuiFileDialog::Instance()->homePath=getHomeDir();
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,hint,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
+    newFilePicker->setHomeDir(getHomeDir());
+    newFilePicker->open(header+"###FileDialog",path,hint,FP_FLAGS_MODAL|FP_FLAGS_SAVE,filter);
   }
   opened=true;
   return true;
@@ -312,9 +307,12 @@ bool FurnaceGUIFileDialog::openSelectDir(String header, String path, double dpiS
 #elif defined(ANDROID)
     hasError=true;
     return false;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     dialogF=new pfd::select_folder(header,path);
     hasError=!pfd::settings::available();
+#else
+    hasError=true;
+    return false;
 #endif
   } else {
     hasError=false;
@@ -325,11 +323,8 @@ bool FurnaceGUIFileDialog::openSelectDir(String header, String path, double dpiS
     }
 #endif
 
-    ImGuiFileDialog::Instance()->singleClickSel=mobileUI;
-    ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->mobileMode=mobileUI;
-    ImGuiFileDialog::Instance()->homePath=getHomeDir();
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,NULL,path,hint,1,nullptr,0);
+    newFilePicker->setHomeDir(getHomeDir());
+    newFilePicker->open(header+"###FileDialog",path,hint,FP_FLAGS_MODAL|FP_FLAGS_DIR_SELECT,{});
   }
   opened=true;
   return true;
@@ -339,7 +334,7 @@ bool FurnaceGUIFileDialog::accepted() {
   if (sysDialog) {
     return (!fileName.empty());
   } else {
-    return ImGuiFileDialog::Instance()->IsOk();
+    return (newFilePicker->getStatus()==FP_STATUS_ACCEPTED);
   }
 }
 
@@ -382,7 +377,7 @@ void FurnaceGUIFileDialog::close() {
     dialogOK=false;
 #endif
   } else {
-    ImGuiFileDialog::Instance()->Close();
+    newFilePicker->close();
   }
   opened=false;
 }
@@ -407,7 +402,7 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
 #elif defined(ANDROID)
     // TODO: detect when file picker is closed
     return false;
-#else
+#elif (!defined(SUPPORT_XP) || !defined(_WIN32))
     if (dialogType==2) {
       if (dialogF!=NULL) {
         if (dialogF->ready(0)) {
@@ -455,9 +450,12 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
       logE("what!");
     }
     return false;
+#else
+    return false;
 #endif
   } else {
-    return ImGuiFileDialog::Instance()->Display("FileDialog",ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse,min,max);
+    newFilePicker->setSizeConstraints(min,max);
+    return newFilePicker->draw(ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse);
   }
 }
 
@@ -479,7 +477,7 @@ String FurnaceGUIFileDialog::getPath() {
     logD("curPath: %s",curPath.c_str());
     return curPath;
   } else {
-    return ImGuiFileDialog::Instance()->GetCurrentPath();
+    return newFilePicker->getPath();
   }
 }
 
@@ -488,14 +486,7 @@ std::vector<String>& FurnaceGUIFileDialog::getFileName() {
     return fileName;
   } else {
     fileName.clear();
-    if (dialogType!=0) {
-      fileName.push_back(ImGuiFileDialog::Instance()->GetFilePathName());
-    } else {
-      for (auto& i: ImGuiFileDialog::Instance()->GetSelection()) {
-        fileName.push_back(i.second);
-      }
-    }
-    //
+    fileName=newFilePicker->getSelected();
     return fileName;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,36 +39,47 @@ const char** DivPlatformBubSysWSG::getRegisterSheet() {
   return regCheatSheetBubSysWSG;
 }
 
-void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
+void DivPlatformBubSysWSG::acquireDirect(blip_buffer_t** bb, size_t len) {
   int chanOut=0;
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
+    int advance=len-h;
+    // heuristic
+    for (int i=0; i<2; i++) {
+      const int remain=k005289.m_timer[i].m_counter;
+      if (remain<advance) advance=remain;
+    }
+    if (advance<1) advance=1;
+
     signed int out=0;
     // K005289 part
-    k005289.tick(coreQuality);
+    k005289.tick(advance);
+
+    h+=advance-1;
 
     // Wavetable part
     for (int i=0; i<2; i++) {
       if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        oscBuf[i]->putSample(h,0);
         continue;
       } else {
         chanOut=chan[i].waveROM[k005289.addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
-        if (writeOscBuf==0) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
-        }
+        oscBuf[i]->putSample(h,chanOut<<7);
       }
     }
 
-    if (++writeOscBuf>=8) writeOscBuf=0;
-
     out<<=6; // scale output to 16 bit
 
-    if (out<-32768) out=-32768;
-    if (out>32767) out=32767;
-
-    //printf("out: %d\n",out);
-    buf[0][h]=out;
+    if (out!=lastOut) {
+      blip_add_delta(bb[0],h,out-lastOut);
+      lastOut=out;
+    }
+  }
+  for (int i=0; i<2; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -92,9 +103,9 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -120,10 +131,12 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SCC);
-      chan[i].freq=0x1000-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq=0x1000-chan[i].freq;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+      }
       k005289.load(i,chan[i].freq);
       rWrite(i,chan[i].freq);
       k005289.update(i);
@@ -145,7 +158,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SCC);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -153,7 +166,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       rWrite(2+c.chan,(chan[c.chan].wave<<5)|chan[c.chan].vol);
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].wave<0) {
@@ -203,7 +216,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -226,15 +239,15 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SCC));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SCC));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -268,7 +281,7 @@ void DivPlatformBubSysWSG::forceIns() {
   }
 }
 
-void* DivPlatformBubSysWSG::getChanState(int ch) {
+SharedChannel* DivPlatformBubSysWSG::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -295,7 +308,8 @@ int DivPlatformBubSysWSG::getRegisterPoolDepth() {
 void DivPlatformBubSysWSG::reset() {
   memset(regPool,0,4*2);
   for (int i=0; i<2; i++) {
-    chan[i]=DivPlatformBubSysWSG::Channel();
+    chan[i]=DivPlatformBubSysWSG::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent,8);
     chan[i].ws.init(NULL,32,15,false);
@@ -304,6 +318,7 @@ void DivPlatformBubSysWSG::reset() {
     addWrite(0xffffffff,0);
   }
   k005289.reset();
+  lastOut=0;
 }
 
 int DivPlatformBubSysWSG::getOutputCount() {
@@ -311,6 +326,10 @@ int DivPlatformBubSysWSG::getOutputCount() {
 }
 
 bool DivPlatformBubSysWSG::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformBubSysWSG::hasAcquireDirect() {
   return true;
 }
 
@@ -329,13 +348,23 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformBubSysWSG::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformBubSysWSG::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/coreQuality;
+  rate=chipClock;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate/8;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
@@ -344,32 +373,6 @@ void DivPlatformBubSysWSG::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformBubSysWSG::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=64;
-      break;
-    case 1:
-      coreQuality=32;
-      break;
-    case 2:
-      coreQuality=16;
-      break;
-    case 3:
-      coreQuality=8;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=8;
-      break;
-  }
 }
 
 int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

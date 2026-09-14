@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,10 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
 }
 
 void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
+  for (int i=0; i<1; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   bool o=false;
   for (size_t h=0; h<len; h++) {
     // clock here
@@ -47,7 +51,7 @@ void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
       }
       o=sampleOut;
       buf[0][h]=o?16384:0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
+      oscBuf[0]->putSample(h,o?16384:-16384);
       continue;
     }
 
@@ -65,7 +69,11 @@ void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
     if (++curChan>=6) curChan=0;
     
     buf[0][h]=o?16384:0;
-    oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
+    oscBuf[0]->putSample(h,o?16384:-16384);
+  }
+
+  for (int i=0; i<1; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -81,9 +89,9 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -98,9 +106,11 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-        if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>65535) chan[i].freq=65535;
+        chan[i].freq=chan[i].calcFreq(2);
+        if (!chan[i].rawFreq) {
+          if (chan[i].freq<0) chan[i].freq=0;
+          if (chan[i].freq>65535) chan[i].freq=65535;
+        }
       }
       if (chan[i].keyOn) {
         //rWrite(16+i*5,0x80);
@@ -121,7 +131,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -166,7 +176,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -198,15 +208,15 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       curSamplePeriod=0;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -238,7 +248,7 @@ void DivPlatformZXBeeper::forceIns() {
   }
 }
 
-void* DivPlatformZXBeeper::getChanState(int ch) {
+SharedChannel* DivPlatformZXBeeper::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -262,7 +272,8 @@ int DivPlatformZXBeeper::getRegisterPoolSize() {
 void DivPlatformZXBeeper::reset() {
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformZXBeeper::Channel();
+    chan[i]=DivPlatformZXBeeper::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -294,6 +305,14 @@ void DivPlatformZXBeeper::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformZXBeeper::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformZXBeeper::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   // TODO: where's ZX Spectrum 48K?!
   if (flags.getInt("clockSel",0)) {
@@ -304,8 +323,10 @@ void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformZXBeeper::poke(unsigned int addr, unsigned short val) {

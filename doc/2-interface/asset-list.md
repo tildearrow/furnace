@@ -6,6 +6,15 @@ an "asset" refers to an instrument, wavetable or sample.
 
 ![instruments window](instruments.png)
 
+this window displays the list of instruments. each entry contains an icon representing an instrument's type and its name.
+
+the following actions can be done when hovering on an entry:
+
+- left click to set it as the current instrument.
+- double click to open the instrument editor.
+- right click to open a menu with options.
+- shift-left click to start multi-instrument playback. in this mode you will be able to play more than one instrument at once. see [multi-instrument](../8-advanced/multi-ins.md) for more information.
+
 buttons from left to right:
 
 - **Add**: pops up a menu to select which type of instrument to add. if only one instrument type is available, the menu is skipped.
@@ -24,6 +33,8 @@ buttons from left to right:
 - **Move down**: same, but downward.
 - **Delete**: deletes the currently selected instrument. pattern data will be adjusted to use the next available instrument in the list.
 
+instruments may be dragged and dropped to reorder them. this will change instrument numbers throughout the module accordingly.
+
 ## folder view
 
 ![instruments window in folder view](instruments-folder.png)
@@ -39,7 +50,7 @@ right-clicking on a folder allows one to rename or delete it. deleting a folder 
 
 ![wavetables window](wavetables.png)
 
-everything from the instrument list applies here also, with one major difference: moving waves around with the buttons will change their associated numbers in the list but **not** in pattern or instrument data. be careful!
+everything from the instrument list applies here also, with one major difference: moving waves around with the buttons or dragging them will change their associated numbers in the list but **not** in pattern or instrument data. be careful!
 
 wavetables are saved as Furnace wavetable (.fuw) files. 
 

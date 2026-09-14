@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 
 #define CHIP_DIVIDER 16
 
-#define rWrite(a,v) if (!skipRegisterWrites) {extcl_cpu_wr_mem_MMC5(mmc5,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite((a),v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetMMC5[]={
   "S0Volume", "5000",
@@ -43,15 +43,48 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-void DivPlatformMMC5::acquire(short** buf, size_t len) {
+void DivPlatformMMC5::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+    mmc5->oscBuf[i]=oscBuf[i];
+  }
+
+  mmc5->bb=bb[0];
+  mmc5->timestamp=0;
+
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    regPool[(w.addr)&0x7f]=w.val;
+    extcl_cpu_wr_mem_MMC5(mmc5,0,w.addr,w.val);
+    writes.pop();
+  }
+
+  // TODO: does this matter?
+  extcl_envelope_clock_MMC5(mmc5);
+  extcl_length_clock_MMC5(mmc5);
   for (size_t i=0; i<len; i++) {
+    // heuristic
+    int pcmAdvance=1;
+    if (dacSample==-1) {
+      break;
+    } else {
+      pcmAdvance=len-i;
+      if (dacRate>0) {
+        int remainTime=(rate-dacPeriod+dacRate-1)/dacRate;
+        if (remainTime<pcmAdvance) pcmAdvance=remainTime;
+        if (remainTime<1) pcmAdvance=1;
+      }
+    }
+
+    i+=pcmAdvance-1;
+
     if (dacSample!=-1) {
-      dacPeriod+=dacRate;
+      dacPeriod+=dacRate*pcmAdvance;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
         if (s->samples>0 && dacPos<s->samples) {
           if (!isMuted[2]) {
-            rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
+            extcl_cpu_wr_mem_MMC5(mmc5,i,0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
           dacPos++;
           if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
@@ -65,30 +98,11 @@ void DivPlatformMMC5::acquire(short** buf, size_t len) {
         }
       }
     }
-  
-    extcl_envelope_clock_MMC5(mmc5);
-    extcl_length_clock_MMC5(mmc5);
-    extcl_apu_tick_MMC5(mmc5);
-    if (mmc5->clocked) {
-      mmc5->clocked=false;
-    }
-    int sample=isMuted[0]?0:(mmc5->S3.output*10);
-    if (!isMuted[1]) {
-      sample+=mmc5->S4.output*10;
-    }
-    if (!isMuted[2]) {
-      sample+=mmc5->pcm.output*2;
-    }
-    if (sample>32767) sample=32767;
-    if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
+  }
+  extcl_apu_tick_MMC5(mmc5,len);
 
-    if (++writeOscBuf>=32) {
-      writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:((mmc5->S3.output)<<11);
-      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:((mmc5->S4.output)<<11);
-      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:((mmc5->pcm.output)<<7);
-    }
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -104,9 +118,9 @@ void DivPlatformMMC5::tick(bool sysTick) {
     // TODO: arp macros on NES PCM?
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -130,9 +144,12 @@ void DivPlatformMMC5::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
-      if (chan[i].freq>2047) chan[i].freq=2047;
-      if (chan[i].freq<0) chan[i].freq=0;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq>2047) chan[i].freq=2047;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
@@ -156,16 +173,9 @@ void DivPlatformMMC5::tick(bool sysTick) {
 
   // PCM
   if (chan[2].freqChanged) {
-    chan[2].freq=parent->calcFreq(chan[2].baseFreq,chan[2].pitch,chan[2].fixedArp?chan[2].baseNoteOverride:chan[2].arpOff,chan[2].fixedArp,false,0,chan[2].pitch2,1,1);
-    if (chan[2].furnaceDac) {
-      double off=1.0;
-      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
-      }
-      dacRate=MIN(chan[2].freq*off,32000);
-      if (dumpWrites) addWrite(0xffff0001,dacRate);
-    }
+    chan[2].freq=chan[2].calcFreq();
+    dacRate=MIN(chan[2].freq,32000);
+    if (dumpWrites) addWrite(0xffff0001,dacRate);
     chan[2].freqChanged=false;
   }
 }
@@ -175,63 +185,41 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       if (c.chan==2) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
-        if (ins->type==DIV_INS_AMIGA) {
-          if (c.value!=DIV_NOTE_NULL) {
-            dacSample=ins->amiga.getSample(c.value);
-            chan[c.chan].sampleNote=c.value;
-            c.value=ins->amiga.getFreq(c.value);
-            chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
-          } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
-            dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
-            c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
-          }
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-          chan[c.chan].furnaceDac=true;
-        } else {
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
-            dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002,0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000,dacSample);
-          }
-          if (chan[c.chan].setPos) {
-            chan[c.chan].setPos=false;
-          } else {
-            dacPos=0;
-          }
-          dacPeriod=0;
-          dacRate=parent->getSample(dacSample)->rate;
-          if (dumpWrites) addWrite(0xffff0001,dacRate);
-          chan[c.chan].furnaceDac=false;
+        if (c.value!=DIV_NOTE_NULL) {
+          dacSample=ins->amiga.getSample(c.value);
+          chan[c.chan].pitchTable=samplePitchTable.get(dacSample);
+          chan[c.chan].sampleNote=c.value;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
+        } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
+          dacSample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          chan[c.chan].pitchTable=samplePitchTable.get(dacSample);
+          c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
+        if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+          dacSample=-1;
+          if (dumpWrites) addWrite(0xffff0002,0);
+          break;
+        } else {
+          if (dumpWrites) addWrite(0xffff0000,dacSample);
+        }
+        if (chan[c.chan].setPos) {
+          chan[c.chan].setPos=false;
+        } else {
+          dacPos=0;
+        }
+        dacPeriod=0;
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].note=c.value;
+        }
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
         break;
       } else {
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -241,7 +229,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       rWrite(0x5000+c.chan*4,0x30|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
@@ -283,7 +271,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==2)?(parent->calcBaseFreq(1,1,c.value2+chan[c.chan].sampleNoteDelta,false)):(NOTE_PERIODIC(c.value2));
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -309,31 +297,21 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       chan[c.chan].duty=c.value;
       rWrite(0x5000+c.chan*4,0x30|(chan[c.chan].active?chan[c.chan].outVol:0)|((chan[c.chan].duty&3)<<6));
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_POS:
       if (c.chan!=2) break;
       dacPos=c.value;
       chan[c.chan].setPos=true;
       break;
     case DIV_CMD_LEGATO:
-      if (c.chan==2) {
-        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
-      } else {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
-      }
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -356,16 +334,21 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
 
 void DivPlatformMMC5::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  mmc5->muted[ch]=mute;
 }
 
 void DivPlatformMMC5::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
     chan[i].prevFreq=65535;
+    if (i<2) {
+      // TODO: implement envelope mode
+      rWrite(0x5000+i*4,(0x30)|(chan[i].active?chan[i].outVol:0)|((chan[i].duty&3)<<6));
+    }
   }
 }
 
-void* DivPlatformMMC5::getChanState(int ch) {
+SharedChannel* DivPlatformMMC5::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -390,28 +373,44 @@ float DivPlatformMMC5::getPostAmp() {
 }
 
 void DivPlatformMMC5::reset() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformMMC5::Channel();
+    chan[i]=DivPlatformMMC5::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
 
+  // set pitch table for PCM channel
+  chan[2].pitchTable=samplePitchTable.get(-1);
+
   dacPeriod=0;
   dacPos=0;
   dacRate=0;
   dacSample=-1;
-  sampleBank=0;
 
   map_init_MMC5(mmc5);
   memset(regPool,0,128);
 
+  mmc5->muted[0]=isMuted[0];
+  mmc5->muted[1]=isMuted[1];
+  mmc5->muted[2]=isMuted[2];
+
   rWrite(0x5015,0x03);
   rWrite(0x5010,0x00);
+
+  for (int i=0; i<2; i++) {
+    rWrite(0x5000+i*4,(0x30)|0|((chan[i].duty&3)<<6));
+  }
 }
 
 bool DivPlatformMMC5::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformMMC5::hasAcquireDirect() {
   return true;
 }
 
@@ -427,14 +426,26 @@ void DivPlatformMMC5::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate/32;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformMMC5::notifyInsDeletion(void* ins) {
   for (int i=0; i<3; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformMMC5::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x800,true,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,3,parent->song.tuning,1,1,32000,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformMMC5::getMaxFreq(int ch) {
+  if (ch>=2) return 0x7fff;
+  return 0x7ff;
 }
 
 void DivPlatformMMC5::poke(unsigned int addr, unsigned short val) {
@@ -447,6 +458,7 @@ void DivPlatformMMC5::poke(std::vector<DivRegWrite>& wlist) {
 
 int DivPlatformMMC5::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   writeOscBuf=0;
@@ -471,4 +483,5 @@ void DivPlatformMMC5::quit() {
 }
 
 DivPlatformMMC5::~DivPlatformMMC5() {
+  samplePitchTable.destroy<Channel>(chan,3);
 }

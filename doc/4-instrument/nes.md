@@ -27,6 +27,8 @@ after enabling this option, a table appears with the contents of the sample map.
   - you may press Delete to clear it. if no value is specified, the delta counter isn't altered.
 - the fifth and last column provides a combo box for selecting a sample.
 
+you may click and drag in the sample number, pitch, and delta columns to select a range. typing a value will change the entire range.
+
 you may right-click anywhere in the number, pitch and delta columns for additional options:
 - **set entire map to this pitch**: sets the DPCM pitch of all notes to the selected cell's.
 - **set entire map to this delta counter value**: sets the initial delta counter value of all notes to the selected cell's.

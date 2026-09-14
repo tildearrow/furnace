@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,14 +81,20 @@ const char** DivPlatformSCC::getRegisterSheet() {
 }
 
 void DivPlatformSCC::acquire(short** buf, size_t len) {
-  for (size_t h=0; h<len; h++) {
-    scc->tick(coreQuality);
-    short out=(short)scc->out()<<5;
-    buf[0][h]=out;
+}
 
-    for (int i=0; i<5; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=scc->voice_out(i)<<7;
-    }
+void DivPlatformSCC::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  scc->tick(len,bb[0],oscBuf);
+    //for (int i=0; i<5; i++) {
+    //  oscBuf[i]->putSample(h,scc->voice_out(i)<<7);
+    //}
+
+  for (int i=0; i<5; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -113,9 +119,9 @@ void DivPlatformSCC::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -140,9 +146,12 @@ void DivPlatformSCC::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+      }
       if (!chan[i].freqInit || regPool[regBase+0+i*2]!=(chan[i].freq&0xff)) {
         rWrite(regBase+0+i*2,chan[i].freq&0xff);
       }
@@ -160,14 +169,17 @@ int DivPlatformSCC::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SCC);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-        chan[c.chan].outVol=chan[c.chan].vol;
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
+        if (chan[c.chan].outVol!=chan[c.chan].vol) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          rWrite(regBase+10+c.chan,chan[c.chan].outVol);
+        }
       }
       if (!isMuted[c.chan]) {
         rWrite(regBase+15,regPool[regBase+15]|(1<<c.chan));
@@ -218,7 +230,7 @@ int DivPlatformSCC::dispatch(DivCommand c) {
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -241,15 +253,15 @@ int DivPlatformSCC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SCC));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SCC));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -296,7 +308,7 @@ void DivPlatformSCC::forceIns() {
   }
 }
 
-void* DivPlatformSCC::getChanState(int ch) {
+SharedChannel* DivPlatformSCC::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -320,7 +332,8 @@ void DivPlatformSCC::reset() {
   memset(regPool,0,225);
   scc->reset();
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformSCC::Channel();
+    chan[i]=DivPlatformSCC::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent,128);
     chan[i].ws.init(NULL,32,255,false);
@@ -338,6 +351,10 @@ int DivPlatformSCC::getOutputCount() {
   return 1;
 }
 
+bool DivPlatformSCC::hasAcquireDirect() {
+  return true;
+}
+
 void DivPlatformSCC::notifyWaveChange(int wave) {
   for (int i=0; i<5; i++) {
     if (chan[i].wave==wave) {
@@ -353,6 +370,14 @@ void DivPlatformSCC::notifyInsDeletion(void* ins) {
   for (int i=0; i<5; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformSCC::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xfff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSCC::getMaxFreq(int ch) {
+  return 0xfff;
 }
 
 void DivPlatformSCC::poke(unsigned int addr, unsigned short val) {
@@ -383,36 +408,12 @@ void DivPlatformSCC::setFlags(const DivConfig& flags) {
       break;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/(coreQuality>>1);
+  rate=chipClock*2;
   for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
-}
 
-void DivPlatformSCC::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=128;
-      break;
-    case 1:
-      coreQuality=64;
-      break;
-    case 2:
-      coreQuality=32;
-      break;
-    case 3:
-      coreQuality=16;
-      break;
-    case 4:
-      coreQuality=8;
-      break;
-    case 5:
-      coreQuality=2;
-      break;
-    default:
-      coreQuality=16;
-      break;
-  }
+  notifyPitchTable();
 }
 
 int DivPlatformSCC::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

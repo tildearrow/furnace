@@ -8,15 +8,15 @@ else {
 }
 
 android {
+    if (buildAsApplication) {
+        namespace "org.tildearrow.furnace"
+    }
     compileSdkVersion 26
     defaultConfig {
-        if (buildAsApplication) {
-            applicationId "org.tildearrow.furnace"
-        }
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 219
-        versionName "0.6.7"
+        versionCode 228
+        versionName "0.6.8.1"
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_APP_PLATFORM=android-21", "-DANDROID_STL=c++_static", "-DWARNINGS_ARE_ERRORS=ON", "-DWITH_LOCALE=ON", "-DUSE_MOMO=ON"
@@ -31,6 +31,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    applicationVariants.all { variant ->
+        tasks["merge${variant.name.capitalize()}Assets"]
+            .dependsOn("externalNativeBuild${variant.name.capitalize()}")
+    }
     if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
         sourceSets.main {
             jniLibs.srcDir 'libs'
@@ -42,10 +46,10 @@ android {
         }
        
     }
-    lintOptions {
+    lint {
         abortOnError false
     }
-    
+
     if (buildAsLibrary) {
         libraryVariants.all { variant ->
             variant.outputs.each { output ->

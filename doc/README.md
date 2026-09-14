@@ -29,11 +29,11 @@ the index follows.
 
 ## information
 
-copyright © 2024 tildearrow and other authors.
+copyright © 2026 tildearrow and other authors.
 
 this documentation is under the [Creative Commons Attribution 3.0 Unported](https://creativecommons.org/licenses/by/3.0/) license.
 you may reproduce, modify and/or distribute this documentation provided this copyright notice (including license and attribution) is present and any necessary disclaimers whether modifications have been made.
 
 this documentation is provided as-is and without warranty of any kind. 
 
-
+**note:** online documentation may include new features in development or other information that doesn't apply to the most current release. the PDF included with Furnace will be most accurate to that release.

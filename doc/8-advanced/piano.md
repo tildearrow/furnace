@@ -24,10 +24,40 @@ right-clicking on the piano keys will make the buttons disappear; right-clicking
 
 ## options
 
-key layout:
+**Key layout:**
 - **Automatic**
 - **Standard**: black keys are 2/3 length.
 - **Continuous**: black keys are full length.
 
+**Value input pad:**
+- **Disabled**
+- **Replace piano**: replaces the piano with buttons for hexadecimal numeric entry when needed (when the pattern editor's cursor is in a hex column).
+- **Split (automatic)**: displays a separate entry pad when needed.
+- **Split (always visible)**: always displays the entry pad.
+
+**Key labels:**
+- **Off**
+- **Octaves**
+- **Notes**
+- **Notes (with octave)**
+- **Octaves (with C)**
+- **Notes + Octaves**
+
+**Key colors:**
+- **Single color**
+- **Channel color**
+- **Instrument color**
+
 **Share play/edit offset/range**: if disabled, the piano will keep different octave and range values for playback and non-playback states.
-**Read-only (can't input notes): prevents note entry.
+
+**Read-only (can't input notes)**: prevents note entry.
+
+## settings
+
+this setting can be found in the main Furnace settings dialog, "Appearance" tab, "Channel" section:
+- **Channel feedback style:** sets how channel headers and piano keys highlight.
+  - **Off**: no indicator.
+  - **Note**: flash at the start of a note, then fades.
+  - **Volume**: change intensity with channel volume.
+  - **Active**: stay fully on while a note is held.
+  - **Volume (real)**: change intensity with output loudness.

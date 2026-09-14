@@ -352,6 +352,11 @@ double dSID_render(struct SID_chip* sid) {
     sid->SIDct->plp = tmp;
     if (sid->M[0x18] & LP)
         output += tmp;
+
+    // tildearrow: 6581 bias for software PCM
+    if (sid->g.model==6581) {
+      return (0.03 + (output / SID_OUT_SCALE)) * (sid->M[0x18] & 0xF);
+    }
     return (output / SID_OUT_SCALE) * (sid->M[0x18] & 0xF);
 }
 

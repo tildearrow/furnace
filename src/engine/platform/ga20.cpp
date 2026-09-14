@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,41 +52,78 @@ inline void DivPlatformGA20::chWrite(unsigned char ch, unsigned int addr, unsign
 }
 
 void DivPlatformGA20::acquire(short** buf, size_t len) {
-  if (ga20BufLen<len) {
-    ga20BufLen=len;
-    for (int i=0; i<4; i++) {
-      delete[] ga20Buf[i];
-      ga20Buf[i]=new short[ga20BufLen];
-    }
+  thread_local short ga20Buf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
-    if ((--delay)<=0) {
-      delay=MAX(0,delay);
-      if (!writes.empty()) {
-        QueuedWrite& w=writes.front();
-        ga20.write(w.addr,w.val);
-        regPool[w.addr]=w.val;
-        writes.pop();
-        delay=1;
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      ga20.write(w.addr,w.val);
+      regPool[w.addr]=w.val;
+      writes.pop();
+    }
+    ga20.sound_stream_update(ga20Buf,1);
+    buf[0][h]=(signed int)(ga20Buf[0]+ga20Buf[1]+ga20Buf[2]+ga20Buf[3])>>2;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,ga20Buf[i]>>1);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
+  }
+}
+
+void DivPlatformGA20::acquireDirect(blip_buffer_t** bb, size_t len) {
+  thread_local short ga20Buf[4];
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
+    size_t advance=0;
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      ga20.write(w.addr,w.val);
+      regPool[w.addr]=w.val;
+      writes.pop();
+    } else {
+      // heuristic
+      advance=len-h-1;
+
+      for (int i=0; i<4; i++) {
+        if (!ga20.m_channel[i].play) continue;
+        if (ga20.m_channel[i].hot) {
+          advance=0;
+          break;
+        }
+        const size_t newAdvance=ga20.m_channel[i].counter-ga20.m_channel[i].rate-1;
+        if (newAdvance<advance) advance=newAdvance;
       }
     }
-    short *buffer[4]={
-      &ga20Buf[0][h],
-      &ga20Buf[1][h],
-      &ga20Buf[2][h],
-      &ga20Buf[3][h]
-    };
-    ga20.sound_stream_update(buffer,1);
-    buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
-    for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;
+    ga20.sound_stream_update(ga20Buf,advance+1);
+    h+=advance;
+    const int out=(signed int)(ga20Buf[0]+ga20Buf[1]+ga20Buf[2]+ga20Buf[3])>>2;
+    if (out!=oldOut) {
+      blip_add_delta(bb[0],h,out-oldOut);
+      oldOut=out;
     }
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->putSample(h,ga20Buf[i]>>1);
+    }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 u8 DivPlatformGA20::read_byte(u32 address) {
-  if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
+  if ((sampleMem!=NULL) && (address<0x100000)) {
     return sampleMem[address&0xfffff];
   }
   return 0;
@@ -104,9 +141,9 @@ void DivPlatformGA20::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -138,20 +175,13 @@ void DivPlatformGA20::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      double off=1.0;
-      int sample=chan[i].sample;
-      if (sample>=0 && sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=8363.0/s->centerRate;
-        }
-      }
       DivSample* s=parent->getSample(chan[i].sample);
-      chan[i].freq=0x100-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
-      if (chan[i].freq>255) chan[i].freq=255;
-      if (chan[i].freq<0) chan[i].freq=0;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq=0x100-chan[i].freq;
+        if (chan[i].freq>255) chan[i].freq=255;
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       if (chan[i].keyOn) {
         unsigned int start=0;
         unsigned int end=0;
@@ -207,12 +237,13 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
         chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -224,7 +255,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         chan[c.chan].volumeChanged=true;
       }
@@ -265,7 +296,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      const int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      const int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -288,16 +319,16 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -338,7 +369,7 @@ void DivPlatformGA20::forceIns() {
   }
 }
 
-void* DivPlatformGA20::getChanState(int ch) {
+SharedChannel* DivPlatformGA20::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -366,15 +397,20 @@ void DivPlatformGA20::reset() {
   writes.clear();
   memset(regPool,0,32);
   ga20.device_reset();
-  delay=0;
+  oldOut=0;
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformGA20::Channel();
+    chan[i]=DivPlatformGA20::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     // keyoff all channels
     chWrite(i,5,0);
     chWrite(i,6,0);
     if (isMuted[i]) ga20.set_mute(i,true);
   }
+}
+
+bool DivPlatformGA20::hasAcquireDirect() {
+  return true;
 }
 
 int DivPlatformGA20::getOutputCount() {
@@ -398,13 +434,23 @@ void DivPlatformGA20::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformGA20::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_DIVIDER,0x100,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformGA20::getMaxFreq(int ch) {
+  return 0xff;
+}
+
 void DivPlatformGA20::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformGA20::poke(unsigned int addr, unsigned short val) {
@@ -437,7 +483,7 @@ size_t DivPlatformGA20::getSampleMemUsage(int index) {
 
 bool DivPlatformGA20::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -448,8 +494,8 @@ const DivMemoryComposition* DivPlatformGA20::getMemCompo(int index) {
 
 void DivPlatformGA20::renderSamples(int sysID) {
   memset(sampleMem,0x00,getSampleMemCapacity());
-  memset(sampleOffGA20,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOffGA20,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -493,6 +539,7 @@ void DivPlatformGA20::renderSamples(int sysID) {
 
 int DivPlatformGA20::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
 
@@ -502,7 +549,6 @@ int DivPlatformGA20::init(DivEngine* p, int channels, int sugRate, const DivConf
   }
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
-  delay=0;
   setFlags(flags);
   ga20BufLen=65536;
   for (int i=0; i<4; i++) ga20Buf[i]=new short[ga20BufLen];
@@ -517,4 +563,19 @@ void DivPlatformGA20::quit() {
     delete[] ga20Buf[i];
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformGA20::DivPlatformGA20():
+  DivDispatch(),
+  iremga20_intf(),
+  ga20(*this) {
+  sampleOffGA20=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformGA20::~DivPlatformGA20() {
+  delete[] sampleOffGA20;
+  delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,4);
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,11 +31,35 @@
 #define DIV_MAX_COLS 32
 #define DIV_MAX_EFFECTS 8
 
+// pattern fields
+#define DIV_PAT_NOTE 0
+#define DIV_PAT_INS 1
+#define DIV_PAT_VOL 2
+#define DIV_PAT_FX(_x) (3+((_x)<<1))
+#define DIV_PAT_FXVAL(_x) (4+((_x)<<1))
+
+#define DIV_PAT_NOTE_BUFFER 27
+#define DIV_PAT_RAW0 28
+#define DIV_PAT_RAW1 29
+#define DIV_PAT_RAW2 30
+#define DIV_PAT_RAW3 31
+
+// column type checks
+#define DIV_PAT_IS_EFFECT(_x) ((_x)>DIV_PAT_VOL && ((_x)&1))
+#define DIV_PAT_IS_EFFECT_VAL(_x) ((_x)>DIV_PAT_VOL && (!((_x)&1)))
+
+#define DIV_NOTE_RAW 251
+#define DIV_NOTE_NULL_PAT 252
+#define DIV_NOTE_OFF 253
+#define DIV_NOTE_REL 254
+#define DIV_MACRO_REL 255
+
 // sample related
 #define DIV_MAX_SAMPLE_TYPE 4
 
 // dispatch
 #define DIV_MAX_OUTPUTS 16
 #define DIV_NOTE_NULL 0x7fffffff
+#define DIV_NOTE_RAW_FLAG 0x80000000
 
 #endif

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,8 +32,8 @@ int logLevel=LOGLEVEL_TRACE;
 int logLevel=LOGLEVEL_TRACE; // until done
 #endif
 
-FILE* logOut;
-FILE* logFile;
+FILE* logOut=NULL;
+FILE* logFile=NULL;
 char* logFileBuf;
 char* logFileWriteBuf;
 unsigned int logFilePosI;
@@ -43,6 +43,7 @@ std::mutex logFileLock;
 std::mutex logFileLockI;
 std::condition_variable logFileNotify;
 std::atomic<bool> logFileAvail(false);
+std::atomic<bool> iAmReallyDead(false);
 
 std::atomic<unsigned short> logPosition;
 
@@ -99,7 +100,19 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
   int pos=(logPosition.fetch_add(1))&TA_LOG_MASK;
 
 #if FMT_VERSION >= 100100
+#ifdef _MSVC_LANG
+#if _MSVC_LANG >= 201703L
+  logEntries[pos].text.assign(fmt::vsprintf(std::basic_string_view(msg),args));
+#else
   logEntries[pos].text.assign(fmt::vsprintf(fmt::basic_string_view<char>(msg),args));
+#endif
+#else
+#if __cplusplus >= 201703L
+  logEntries[pos].text.assign(fmt::vsprintf(std::basic_string_view(msg),args));
+#else
+  logEntries[pos].text.assign(fmt::vsprintf(fmt::basic_string_view<char>(msg),args));
+#endif
+#endif
 #else
   logEntries[pos].text.assign(fmt::vsprintf(msg,args));
 #endif
@@ -127,6 +140,7 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
   }
 
   if (logLevel<level) return 0;
+  if (logOut==NULL) return -1;
   switch (level) {
     case LOGLEVEL_ERROR:
       return fmt::fprintf(logOut,"\x1b[1;31m[ERROR]\x1b[m %s\n",logEntries[pos].text);
@@ -188,6 +202,7 @@ void _logFileThread() {
       logFileNotify.wait(lock);
     }
   }
+  iAmReallyDead=true;
 }
 
 bool startLogFile(const char* path) {
@@ -235,10 +250,16 @@ bool finishLogFile() {
   if (!logFileAvail) return false;
 
   logFileAvail=false;
+  iAmReallyDead=false;
 
   // flush
   logFileLockI.lock();
-  logFileNotify.notify_one();
+  while (!iAmReallyDead) {
+    logFileNotify.notify_one();
+    std::this_thread::yield();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  // this join is guaranteed to work
   logFileThread->join();
   logFileLockI.unlock();
 

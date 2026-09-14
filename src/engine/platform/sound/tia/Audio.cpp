@@ -34,6 +34,14 @@ namespace {
 
 namespace TIA {
 
+static const int phaseCounters[5]={
+  9,
+  28,
+  44,
+  68,
+  79
+};
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Audio::Audio()
 {
@@ -46,7 +54,8 @@ Audio::Audio()
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Audio::reset(bool st)
 {
-  myCounter = 0;
+  myCounter = 9;
+  myPhase = 0;
   mySampleIndex = 0;
   stereo = st;
 
@@ -61,23 +70,32 @@ void Audio::reset(bool st)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Audio::tick()
+// steps: (228 total)
+// 0 - wait
+// 1 - 9: phase0
+// 2 - 37: phase1
+// 3 - 81: phase0
+// 4 - 149: phase1
+// 5 - 228: go back to step 0
+void Audio::tick(int len)
 {
-  switch (myCounter) {
-    case 9:
-    case 81:
-      myChannel0.phase0();
-      myChannel1.phase0();
+  myCounter-=len;
+  while (myCounter<=0) {
+    switch (myPhase) {
+      case 0:
+      case 2:
+        myChannel0.phase0();
+        myChannel1.phase0();
+        break;
 
-      break;
-
-    case 37:
-    case 149:
-      phase1();
-      break;
+      case 1:
+      case 3:
+        phase1();
+        break;
+    }
+    if (++myPhase>4) myPhase=0;
+    myCounter+=phaseCounters[myPhase];
   }
-
-  if (++myCounter == 228) myCounter = 0;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

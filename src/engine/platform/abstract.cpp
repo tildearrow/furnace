@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,13 +23,19 @@
 void DivDispatch::acquire(short** buf, size_t len) {
 }
 
+void DivDispatch::acquireDirect(blip_buffer_t** bb, size_t len) {
+}
+
 void DivDispatch::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+}
+
+void DivDispatch::postProcess(short* buf, int outIndex, size_t len, int sampleRate) {
 }
 
 void DivDispatch::tick(bool sysTick) {
 }
 
-void* DivDispatch::getChanState(int chan) {
+SharedChannel* DivDispatch::getChanState(int chan) {
   return NULL;
 }
 
@@ -101,6 +107,10 @@ bool DivDispatch::isVolGlobal() {
   return false;
 }
 
+bool DivDispatch::hasSoftPan(int ch) {
+  return false;
+}
+
 int DivDispatch::mapVelocity(int ch, float vel) {
   const int volMax=MAX(1,dispatch(DivCommand(DIV_CMD_GET_VOLMAX,MAX(ch,0))));
   return round(vel*volMax);
@@ -111,8 +121,13 @@ float DivDispatch::getGain(int ch, int vol) {
   return (float)vol/volMax;
 }
 
+// by default we return 0xffff. I hope it's a good one.
+unsigned int DivDispatch::getMaxFreq(int ch) {
+  return 0xffff;
+}
+
 int DivDispatch::getPortaFloor(int ch) {
-  return 0x00;
+  return 60;
 }
 
 bool DivDispatch::getLegacyAlwaysSetVolume() {
@@ -124,6 +139,10 @@ float DivDispatch::getPostAmp() {
 }
 
 bool DivDispatch::getDCOffRequired() {
+  return false;
+}
+
+bool DivDispatch::hasAcquireDirect() {
   return false;
 }
 
@@ -150,7 +169,15 @@ void DivDispatch::notifyInsChange(int ins) {
 
 }
 
-void DivDispatch::notifyWaveChange(int ins) {
+void DivDispatch::notifyWaveChange(int wave) {
+
+}
+
+void DivDispatch::notifySampleChange(int sample) {
+
+}
+
+void DivDispatch::notifyInsAddition(int sysID) {
 
 }
 
@@ -203,7 +230,19 @@ size_t DivDispatch::getSampleMemUsage(int index) {
   return 0;
 }
 
+bool DivDispatch::hasSamplePtrHeader(int index) {
+  return false;
+}
+
+size_t DivDispatch::getSampleMemOffset(int index) {
+  return 0;
+}
+
 const DivMemoryComposition* DivDispatch::getMemCompo(int index) {
+  return NULL;
+}
+
+const void* DivDispatch::compileSampleMem(int index, size_t& size) {
   return NULL;
 }
 
@@ -216,7 +255,7 @@ void DivDispatch::renderSamples(int sysID) {
   
 }
 
-void DivDispatch::notifyPitchTable() {
+void DivDispatch::notifyPitchTable(int sample) {
 }
 
 int DivDispatch::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

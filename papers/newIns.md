@@ -130,6 +130,10 @@ the following instrument types are available:
 - 61: GBA MinMod
 - 62: Bifurcator
 - 63: SID2
+- 64: Supervision
+- 65: µPD1771C
+- 66: SID3
+- 67: Klattsch
 
 the following feature codes are recognized:
 
@@ -148,8 +152,10 @@ the following feature codes are recognized:
 - `N1`: Namco 163 ins data
 - `FD`: FDS/Virtual Boy ins data
 - `WS`: wavetable synth data
-- `SL`: list of samples
-- `WL`: list of wavetables
+- `SL`: list of samples (<233)
+- `WL`: list of wavetables (<233)
+- `LS`: list of samples (>=233)
+- `LW`: list of wavetables (>=233)
 - `MP`: MultiPCM ins data
 - `SU`: Sound Unit ins data
 - `ES`: ES5506 ins data
@@ -159,6 +165,7 @@ the following feature codes are recognized:
 - `PN`: PowerNoise ins data
 - `S2`: SID2 ins data
 - `S3`: SID3 ins data
+- `KT`: Klattsch voice profile
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there are sample/wave lists.
@@ -178,6 +185,14 @@ size | description
   - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
   - 1/2/?/? (? = unused) for OPL 2-op and OPLL
 
+- the bits for res and T were FMS2 before version 251. this is now:
+  - T: OPZ tremolo LFO selector
+  - res: reserved
+- `SEL` was AMS2 before version 251. this is now a 2-bit FMS/AMS OPZ LFO selector.
+  - the upper bit selects the LFO for FMS.
+  - the lower bit selects the LFO for AMS.
+- to convert, use the greatest value for each FMS/AMS option and select respective LFOs.
+
 ```
 size | description
 -----|------------------------------------
@@ -190,8 +205,9 @@ size | description
      | **base data**
      | /7 6 5 4 3 2 1 0|
   1  | |x| ALG |x| FB  |
-  1  | |FMS2 |AMS| FMS |
-  1  | |AM2|4| LLPatch |
+  1  | |res|T|AMS| FMS |
+  1  | |SEL|4| LLPatch |
+  1  | |xxxxxxx| Block | (>=224)
 -----|------------------------------------
      | **operator data × opCount**
      | /7 6 5 4 3 2 1 0|
@@ -220,6 +236,7 @@ notes:
 - meaning of panning macros varies depending on instrument type:
   - for hard-panned chips (e.g. FM and Game Boy): left panning is 2-bit panning macro (left/right)
   - otherwise both left and right panning macros are used
+- ADSR/LFO macros before version 245 have different behavior. see the sub-section at the bottom for more information.
 
 ```
 size | description
@@ -254,6 +271,8 @@ size | description
      | - 17: ex6
      | - 18: ex7
      | - 19: ex8
+     | - 20: ex9
+     | - 21: ex10
      | - 255: stop reading and move on
   1  | macro length
   1  | macro loop
@@ -279,7 +298,7 @@ size | description
 
 ## interpreting macro mode values
 
-- sequence (normal): I think this is obvious...
+- sequence (normal): I know you've got it
 - ADSR:
   - `val[0]`: bottom
   - `val[1]`: top
@@ -299,6 +318,44 @@ size | description
   - `val[13]`: phase
   - `val[14]`: loop
   - `val[15]`: global (not sure how will I implement this)
+
+## ADSR/LFO macro behavior
+
+ADSR/LFO macros work by altering an accumulator. this accumulator is a fixed-point number with 8-bit fractional precision.
+
+in ADSR mode, the accumulator is set to the bottom and increased by the attack rate. then it is decreased by decay rate until it hits the sustain level, and so on.
+all rates are fixed-point numbers and the levels (bottom, top and sustain level) are integers.
+the output value is the accumulator's integer part.
+
+in LFO mode, the accumulator is altered depending on the shape:
+- saw: goes from bottom to top and then wraps around
+- triangle: goes from bottom to top, then back to bottom
+- pulse: goes from 0 to 255.255, then it wraps around.
+the speed is a fixed-point number, and the phase goes from 0 to 1023, determining the starting phase of the accumulator.
+the output value for saw and triangle is thr accumulator's integer part. for pulse, it is top if greater or equal than 128, and bottom otherwise.
+
+### ADSR/LFO macro behavior before version 245
+
+in previous versions of Furnace, ADSR macros used an integer accumulator with a range of 0-255. the output was this accumulator scaled between bottom and top.
+
+LFO macros were different as well. the accumulator was an integer with a range of 0-1023. this determined the position in the LFO shape, so that:
+- saw: 0 is bottom; 1023 is top
+- triangle: 0 is bottom; 512 is top; 1023 is bottom
+- pulse: 0-511 are bottom; 512-1023 are top
+
+Furnace will convert instruments and adapt them to the new behavior. these are the formulas I employ for conversion.
+
+1. if the bottom is higher than the top (an "inverted" range), a Furnace bug would result in these macros not using the full range. compensate for that by setting the bottom to `top+((255+(bottom-top)*255)/256)`.
+2. calculate the range: `abs(top-bottom)`.
+2. for ADSR macros:
+  - set all rates to (rate*range*256)/255.
+  - set the sustain level to `bottom+(((top-bottom)*susLevel)/255)`.
+3. otherwise, for LFO macros, convert the speed:
+  - triangle: `(range*speed)/2`
+  - saw: `(range*speed)/4`
+  - square: `speed*64`
+
+this change has been made in order to avoid a multiplication and therefore simplify hardware playback drivers.
 
 # C64 data (64)
 
@@ -423,7 +480,7 @@ size | description
      | - bit 1: use sample
      | - bit 0: use sample map
   1  | waveform length
- 4?? | sample map... (120 entries)
+ 4?? | sample map... (120 entries (<246) or 180 entries (>=246))
      | - only read if sample map is enabled
 ```
 
@@ -433,6 +490,8 @@ the sample map format:
 size | description
 -----|------------------------------------
   2  | note to play (>=152) or reserved
+     | - (<246) 0 is C-0 and 119 is B-9
+     | - (>=246) 0 is C-(-5), 60 is C-0 and 179 is B-9
   2  | sample to play
 ```
 
@@ -549,7 +608,7 @@ size | description
   1  | parameter 4
 ```
 
-# list of samples (SL)
+# old list of samples (SL) (<233)
 
 ```
 size | description
@@ -560,13 +619,35 @@ size | description
      | - these use the Furnace sample format.
 ```
 
-# list of wavetables (WL)
+# old list of wavetables (WL) (<233)
 
 ```
 size | description
 -----|------------------------------------
   1  | number of wavetables
  1?? | wavetable indexes...
+ 4?? | pointers to wavetables...
+     | - these use the Furnace wavetable format.
+```
+
+# new list of samples (LS) (>=233)
+
+```
+size | description
+-----|------------------------------------
+  2  | number of samples
+ 2?? | sample indexes...
+ 4?? | pointers to samples...
+     | - these use the Furnace sample format.
+```
+
+# new list of wavetables (LW) (>=233)
+
+```
+size | description
+-----|------------------------------------
+  2  | number of wavetables
+ 2?? | wavetable indexes...
  4?? | pointers to wavetables...
      | - these use the Furnace wavetable format.
 ```
@@ -660,7 +741,7 @@ size | description
 size | description
 -----|------------------------------------
   1  | use sample map
- 2?? | DPCM sample map... (120 entries)
+ 2?? | DPCM sample map... (120 entries (<246) or 180 entries (>=246))
      | - only read if sample map is enabled
 ```
 
@@ -768,4 +849,23 @@ size | description
   1  | cutoff scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
   1  | resonance scaling level
   1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9` 
+```
+
+# Klattsch voice profile (KT)
+
+all values use the same byte encoding as the corresponding Klattsch effect.
+
+```
+size | description
+-----|------------------------------------
+  1  | transition time in ticks (default 2)
+  1  | voicing (`FF`: bank value)
+  1  | aspiration (`FF`: bank value; default `00`)
+  1  | spectral tilt (`00`-`FE`: signed effect value; `FF`: bank value; default `00`)
+  1  | glottal effort (`FF`: bank value; default `80`)
+  1  | vibrato (`high nibble`: rate; `low nibble`: depth; default `50`)
+  1  | tremolo (`high nibble`: rate; `low nibble`: depth; default `50`)
+  1  | gain (`00`: bank value; otherwise value/16; default `38`)
+  1  | formant bandwidth scale (`00`: neutral; otherwise value/64)
+  1  | formant shift (`00`: neutral; otherwise value/64)
 ```

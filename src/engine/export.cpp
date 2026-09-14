@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@
 #include "export/sapr.h"
 #include "export/tiuna.h"
 #include "export/zsm.h"
+#include "export/ipod.h"
+#include "export/grub.h"
 
 DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -42,6 +44,12 @@ DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_S98:
       exporter=new DivExportS98;
+      break;
+    case DIV_ROM_IPOD:
+      exporter=new DivExportiPod;
+      break;
+    case DIV_ROM_GRUB:
+      exporter=new DivExportGRUB;
       break;
     default:
       exporter=new DivROMExport;
@@ -135,10 +143,10 @@ std::vector<DivRegWrite> DivEngine::generateResetWrites(DivSystem sys) {
         w.emplace_back(i<<3,0);
       }
       break;
-    case DIV_SYSTEM_YM2610:
+    case DIV_SYSTEM_YM2610_CRAP:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_CRAP_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B_EXT:
       // TODO: YM2610B channels 1 and 4 and ADPCM-B

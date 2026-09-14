@@ -22,11 +22,16 @@
 #ifndef __VB_VSU_H
 #define __VB_VSU_H
 
+#include "blip_buf.h"
+#include "../../dispatch.h"
+
 class VSU
 {
  public:
 
  int last_output[6][2];
+ blip_buffer_t* bb[2];
+ DivDispatchOscBuffer* oscBuf[6];
 
  VSU();
  ~VSU();
@@ -69,7 +74,8 @@ class VSU
  //
  //
  int EffFreq[6];
- int Envelope[6];
+ int EnvelopeValue[6];
+ int EnvelopeReload[6];
 
  int WavePos[6];
  int ModWavePos;
@@ -81,11 +87,18 @@ class VSU
  int EnvelopeCounter[6];
  int SweepModCounter;
 
+ int SampleClockDivider[6];
  int EffectsClockDivider[6];
  int IntervalClockDivider[6];
  int EnvelopeClockDivider[6];
  int SweepModClockDivider;
 
+  public:
+ int EnvelopeModMask[6];
+ int ModState;
+ int ModLock;
+
+private:
  int NoiseLatcherClockDivider;
  unsigned int NoiseLatcher;
 

@@ -1,0 +1,128 @@
+name: CMake build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            install_dir: ~/portaudio
+            vcpkg_triplet: x64-linux
+            cmake_generator: "Unix Makefiles"
+            cmake_options:
+              -DPA_USE_OSS=ON
+              -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+          - name: Ubuntu MinGW
+            os: ubuntu-latest
+            install_dir: ~/portaudio
+            asio_sdk_cache_path: asiosdk.zip
+            dependencies_extras: mingw-w64
+            # FIXME: linking JACK fails with vcpkg. Switch the CMake toolchain file to use vcpkg. The
+            # toolchain file in this repository is not needed when using a MinGW triplet with vcpkg.
+            vcpkg_triplet: x64-mingw-static
+            cmake_generator: "Unix Makefiles"
+            cmake_options:
+              -DPA_USE_ASIO=ON
+              -DASIO_SDK_ZIP_PATH=asiosdk.zip
+              -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/i686-w64-mingw32.cmake
+          - name: Windows MSVC
+            os: windows-latest
+            install_dir: C:\portaudio
+            vcpkg_triplet: x64-windows
+            cmake_generator: "Visual Studio 17 2022"
+            # ASIO_SDK_ZIP_PATH needs to be quoted or CMake will save the download to
+            # asiosdk instead of asiosdk.zip.
+            asio_sdk_cache_path: "asiosdk.zip"
+            # Somehow CMake fails to find the toolchain file if a relative path is used on Windows.
+            cmake_options:
+              -DPA_USE_ASIO=ON
+              -DASIO_SDK_ZIP_PATH="asiosdk.zip"
+              -DCMAKE_TOOLCHAIN_FILE=D:\a\portaudio\portaudio\vcpkg\scripts\buildsystems\vcpkg.cmake
+          - name: Windows MinGW
+            os: windows-latest
+            install_dir: C:\portaudio
+            vcpkg_triplet: x64-mingw-static
+            cmake_generator: "MinGW Makefiles"
+            # ASIO_SDK_ZIP_PATH needs to be quoted or CMake will save the download to
+            # asiosdk instead of asiosdk.zip.
+            asio_sdk_cache_path: "asiosdk.zip"
+            # Somehow CMake fails to find the toolchain file if a relative path is used on Windows.
+            cmake_options:
+              -DPA_USE_ASIO=ON
+              -DASIO_SDK_ZIP_PATH="asiosdk.zip"
+              -DCMAKE_TOOLCHAIN_FILE=D:\a\portaudio\portaudio\vcpkg\scripts\buildsystems\vcpkg.cmake
+          - name: macOS Clang
+            os: macOS-latest
+            install_dir: ~/portaudio
+            vcpkg_triplet: x64-osx
+            cmake_generator: "Unix Makefiles"
+            cmake_options:
+              -DCMAKE_FRAMEWORK=OFF
+              -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+          - name: macOS Clang framework
+            os: macOS-latest
+            install_dir: ~/portaudio
+            vcpkg_triplet: x64-osx
+            cmake_generator: "Unix Makefiles"
+            cmake_options:
+              -DCMAKE_FRAMEWORK=ON
+              -DCMAKE_TOOLCHAIN_FILE=vcpkg/scripts/buildsystems/vcpkg.cmake
+
+    runs-on: ${{ matrix.os }}
+    name: ${{ matrix.name }}
+    env:
+      cmake_build_type: RelWithDebInfo
+    steps:
+    - name: checkout Git repository
+      uses: actions/checkout@v2
+    - name: "[Ubuntu] install dependencies"
+      run: |
+        sudo apt-get update
+        sudo apt-get install libasound2-dev ${{ matrix.dependencies_extras }}
+      if: matrix.os == 'ubuntu-latest'
+    - name: "[macOS] install dependencies"
+      # https://github.com/PortAudio/portaudio/issues/767
+      run: brew install pkg-config
+      if: matrix.os == 'macOS-latest'
+    - name: "[Windows/MinGW] set up ASIO SDK cache"
+      uses: actions/cache@v2
+      if: matrix.asio_sdk_cache_path != null
+      with:
+        path: ${{ matrix.asio_sdk_cache_path }}
+        key: ${{ hashFiles('.github/asiosdk-version.txt') }}
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v7
+      if: ${{ matrix.vcpkg_triplet }} != null
+      with:
+        vcpkgTriplet: ${{ matrix.vcpkg_triplet }}
+        appendedCacheKey: ${{ hashFiles( '**/vcpkg.json' ) }}
+        additionalCachedPaths: build/vcpkg_installed
+        vcpkgGitCommitId: f30786c9c4c901f21a13e2d524349e39cc359a90
+        # Required when using vcpkg.json manifest in repository
+        setupOnly: true
+    - name: configure
+      run: cmake
+           -G "${{ matrix.cmake_generator }}"
+           ${{ matrix.cmake_options }}
+           -DCMAKE_INSTALL_PREFIX=${{ matrix.install_dir }}
+           -DCMAKE_BUILD_TYPE=${{ env.cmake_build_type }}
+           -DVCPKG_TARGET_TRIPLET=${{ matrix.vcpkg_triplet }}
+           -DPA_USE_SKELETON=ON
+           -DPA_BUILD_TESTS=ON
+           -DPA_BUILD_EXAMPLES=ON
+           -DPA_WARNINGS_ARE_ERRORS=ON
+           -S .
+           -B build
+    - name: build
+      run: cmake --build build --config ${{ env.cmake_build_type }} --parallel 2
+    - name: install
+      run: cmake --install build --config ${{ env.cmake_build_type }}
+    - name: "Upload GitHub Actions artifacts"
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.name }} PortAudio build
+        path: ${{ matrix.install_dir }}

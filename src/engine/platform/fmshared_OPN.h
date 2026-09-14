@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@
 #include "../../../extern/opn/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
-#define PLEASE_HELP_ME(_targetChan) \
-  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
-  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false); \
-  int destFreq=NOTE_FNUM_BLOCK(c.value2,11); \
+#define PLEASE_HELP_ME(_targetChan,blk) \
+  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,60,false); \
+  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,72,false); \
+  int destFreq=NOTE_FNUM_BLOCK(c.value2,11,blk); \
   int newFreq; \
   bool return2=false; \
   if (_targetChan.portaPause) { \
-    if (parent->song.oldOctaveBoundary) { \
+    if (parent->song.compatFlags.oldOctaveBoundary) { \
       if ((_targetChan.portaPauseFreq&0xf800)>(_targetChan.baseFreq&0xf800)) { \
         _targetChan.baseFreq=((_targetChan.baseFreq&0x7ff)>>1)|(_targetChan.portaPauseFreq&0xf800); \
       } else { \
@@ -59,7 +59,7 @@
   /* what the heck! */ \
   if (!_targetChan.portaPause) { \
     if ((newFreq&0x7ff)>boundaryTop && (newFreq&0xf800)<0x3800) { \
-      if (parent->song.fbPortaPause) { \
+      if (parent->song.compatFlags.fbPortaPause) { \
         _targetChan.portaPauseFreq=(boundaryBottom)|((newFreq+0x800)&0xf800); \
         _targetChan.portaPause=true; \
         break; \
@@ -68,7 +68,7 @@
       } \
     } \
     if ((newFreq&0x7ff)<boundaryBottom && (newFreq&0xf800)>0) { \
-      if (parent->song.fbPortaPause) { \
+      if (parent->song.compatFlags.fbPortaPause) { \
         _targetChan.portaPauseFreq=newFreq=(boundaryTop-1)|((newFreq-0x800)&0xf800); \
         _targetChan.portaPause=true; \
         break; \
@@ -120,33 +120,31 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNChannel: public FMChannel {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
-      bool furnacePCM;
       int sample, macroVolMul;
 
-      OPNChannel():
-        FMChannel(),
+      OPNChannel(bool linear=true):
+        FMChannel(linear),
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
-        furnacePCM(false),
         sample(-1),
         macroVolMul(255) {}
     };
 
     struct OPNChannelStereo: public OPNChannel {
       unsigned char pan;
-      OPNChannelStereo():
-        OPNChannel(),
+      OPNChannelStereo(bool linear=true):
+        OPNChannel(linear),
         pan(3) {}
     };
 
-    struct OPNOpChannel: public SharedChannel<int> {
+    struct OPNOpChannel: public SharedChannel {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
       bool mask, hardReset;
-      OPNOpChannel():
-        SharedChannel<int>(0),
+      OPNOpChannel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
@@ -157,8 +155,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNOpChannelStereo: public OPNOpChannel {
     unsigned char pan;
-      OPNOpChannelStereo():
-        OPNOpChannel(),
+      OPNOpChannelStereo(bool linear=true):
+        OPNOpChannel(linear),
         pan(3) {}
     };
 
@@ -167,6 +165,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
+    int tfxRate;
     unsigned char csmChan;
     unsigned char lfoValue;
     unsigned char lastExtChPan;
@@ -176,6 +175,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned char useCombo;
 
     DivConfig ayFlags;
+
+    DivPitchTable csmPitchTable;
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -197,9 +198,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
       extSys(isExtSys),
       fbAllOps(false),
       useCombo(0) {}
+    virtual ~DivPlatformOPN() {}
   public:
     void setCombo(unsigned char combo) {
       useCombo=combo;
+    }
+    virtual unsigned int getMaxFreq(int ch) {
+      return 0x3fff;
     }
     virtual int mapVelocity(int ch, float vel) {
       if (ch==csmChan) return vel*127.0;
@@ -213,6 +218,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
       return DivPlatformFMBase::mapVelocity(ch,vel);
     }
     virtual float getGain(int ch, int vol) {
+      if (extSys) {
+        if (ch>=extChanOffs+4) {
+          ch-=4;
+        } else if (ch>=extChanOffs) {
+          ch=extChanOffs;
+        }
+      }
       if (vol==0) return 0;
       if (ch==csmChan) return 1;
       if (ch==adpcmBChanOffs) return (float)vol/255.0;

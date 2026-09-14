@@ -26,3 +26,4 @@ this chip uses the [VIC](../4-instrument/vic.md) instrument editor.
 the following options are available in the Chip Manager window:
 
 - **PAL**: 1.10MHz instead of 1.02MHz.
+- **Disable filtering**: bypasses the hardware's lowpass filter.

@@ -1,0 +1,249 @@
+mpg123 install hints
+--------------------
+
+0. Prerequesites
+
+You really need:
+
+- a C99 compiler (moderate C99 support)
+
+- an (UNIX-like) operating system with standard tools; mingw-w64 and
+  Cygwin are working for Microsoft Windows, too. We also have users happily
+  playing on OS/2.
+
+- For the library only, you may get lucky with MSVC++ using CMake and
+  ports/cmake as source directory. You can also use CMake on UNIX-like
+  platforms for a full build, but its main purpose is for portability
+  where autotools don't do the trick.
+
+- There used to be some additional ports in ports/, now there is a single
+  CMake structure there that handles most systems that cannot use autotools
+  to at least build the decoder library.
+
+- If building from direct source code repository checkout, as opposed to
+  a release or snapshot tarball, you need GNU autotools installed
+  (see Developer Build below) or have cmake present for ports/cmake/.
+
+You want:
+
+- working assembler (recent GNU binutils) if using certain CPU
+  optimizations
+
+- headers and lib for certain audio output drivers (libasound for alsa,
+  sdl for sdl...)
+
+1. Build
+
+Note: If you want the full range of output modules, you might
+run into cirucular dependencies, as pulseaudio or SDL might also
+want to use parts of the mpg123 distribution. You can split the
+build avoid that circle.
+
+There is one main supported way to get your mpg123 installation
+consisting of
+
+a) the mpg123, mpg123-strip, mpg123-id3dump, out123 program binaries
+  - with libmpg123, libout123, and libsyn123 as shared libraries or
+    statically linked
+  - with audio output plugins for libout123, or one statically linked
+
+b) man pages
+
+(you may want to copy some of the documentation - README, etc - to
+/usr/share/doc/mpg123 or the like, too)
+
+This way is the usual GNU 3-step procedure:
+
+	./configure
+	make
+	make install
+
+If you want to separate components (for avoiding circular dependencies,
+for example), you can split things at various points. Either you build
+all libraries and programs first, then all output modules via
+
+	# Build programs and libs only.
+	./configure --disable-components --enable-programs \
+          --enable-libmpg123 --enable-libsyn123 --enable-libout123 \
+          --with-default-audio=$OUTPUT_MODULES
+	make && make install
+	# Build packges relying on mpg123 libraries.
+	# After that, build out123 modules with external dependencies
+	./configure --disable-components --enable-libout123-modules \
+          --with-audio=$OUTPUT_MODULES
+	make && make install
+
+or you can build each component individually, or just separate out the
+problematic modules by
+
+	# Build all components, but dummy output only. 
+	./configure --with-audio=dummy,$SAFE_MODULES \
+          --with-default-audio=$OUTPUT_MODULES
+	make && install
+	# Build other packages, like SDL, pulse.
+	# After that, build output modules depending on those.
+	# Without --with-audio, auto-detection will build a list.
+	./configure --disable-components --enable-libout123-modules \
+	  --with-audio=$UNSAFE_MODULES
+	make && make install
+
+The variables OUTPUT_MODULES, SAFE_MOULES, and UNSAFE_MODULES are
+supposed to contain comma-separated lists of output modules like
+"oss,pulse,alsa,jack". You need to give a full list when building
+libout123 without modules to setup the default search order. Without
+this, it won't find modules automatically without specifying one with
+mpg123 -o $module. There is no module registry, just a simple build-time
+list and the option to specify a module at runtime.
+
+Run
+
+	./configure --help
+
+for a list of possible parameters you can specify in the configuration
+step. The obvious are --prefix and the normal GNU autotool bunch, but
+others include what audio subsystem to use and what CPU optimizations
+to build in.
+For the optimizations (decoder choice), the default is a build that
+combines all usable optimizations for the platform and chooses one at
+runtime (see --cpu, --list-cpu and --test-cpu parameters).
+
+There are various parameters you can tune, but of course the defaults
+are what is mainly tested.
+
+Also, various library features can be left out via --disable options
+(like output formats, resampling modes). That way, you can strive for a
+minimal build that only does what you really need. Not every combination
+of library features is tested regularily, so you might hit some speed
+bumps, but usually stuff that is easily worked out (at least for the
+mpg123 team when you report it).
+
+An example (working on mpg123 trunk r3062):
+
+	CFLAGS="-Os -s" ./configure --with-cpu=generic	--disable-id3v2
+	--disable-lfs-alias --disable-feature-report --with-seektable=0
+	--disable-16bit --disable-32bit --disable-8bit --disable-messages
+	--disable-feeder --disable-ntom --disable-downsample --disable-icy
+	&& make
+
+That, and further application of `strip --strip-unneeded`, yields a lean
+93 KiB shared library for MPEG layer I/II/III decoding to floating point
+on my x86-64 system (it should be a bit smaller on 32 bit systems). When
+disabling layers I and II, too, that goes down to 81 KiB.
+
+The shared library of a full build weighs 170 KiB after stripping.
+
+
+2. Developer build
+
+This project uses GNU autotools (no specific version, but they should
+be fairly recent), also libtool. You need to have those installed, as
+it is usually the case for build environments based on the GNU toolchain.
+
+One a fresh SCM checkout, or after changing things in configure.ac,
+you need to run
+
+	autoreconf -iv
+
+to prepare the configure script. Then you can build as per point 1.
+
+
+3. Library-only build
+
+Mpg123 uses a non-recursive build. If you want to build only one of the
+libraries, specify it as a target:
+
+	./configure
+	make src/libmpg123/libmpg123.la
+	make src/libsyn123/libsyn123.la
+	make src/libout123/libout123.la
+
+You can then find the library itself under src/lib*123/.libs (libtool
+likes to hide things there).
+
+Alternatively, you can use --disable-components and --enable-foo for
+building only component foo (like libmpg123).
+
+
+4. Exotic platforms
+
+There used to be (and still are in revsion control history) special
+ports for some platforms or language bindings in the ports/ directory.
+
+Right now, there is only ports/cmake for an alternate CMake-based
+build, mainly for libmpg123 itself, but also libsyn123 and possibly
+the full set if the platform is UNIX-like.
+
+If autotools and also ports/cmake do not do the trick, you need to
+construct a src/config.h and build and gather the object files you want.
+The autotools input files should help here, too.
+
+4a. Microsoft Windows
+
+Under Windows, you can use Cygwin, MSYS2 or probably also the WSL
+environment to build mpg123 binaries. If you want binaries that
+work nicely stand-alone, and also at least being able to force correct
+printout of UTF-8 text using chcp 65001 and mpg123 --utf8, the MSYS2
+UCRT64 shell and accompanying toolchain seem to work (see MSYS2
+documentation on how to set up, it is not that hard).
+
+To generate a set of binary builds matching the erstwhile official mpg123
+binaries, run
+
+	sh ./windows-builds.sh x86
+
+or
+
+	sh ./windows-builds.sh x86_64
+
+(optionally followed by a number to indicate the count of parallel make
+tasks).
+
+After some time, you should have some relevant files under releases/
+(or releases\, for Windows people;-).
+You don't just get one build -- there are several variants, corresponding
+to what usually was to be found under https://mpg123.org/download/win32/ and
+https://mpg123.org/download/win64/ .
+
+Notet hat, depending on you msys/mingw variant, you might have to copy
+libwinpthread-1.dll to the respective release directory. This is a quirk
+of the toolchain which insists on linking in a threading runtime. You
+might be able to statically link it in with some extra magic.
+
+You can also run this script on a Linux host with mingw-w64 cross toolchain
+installed, with arguments x86-cross and x86_64-cross.
+
+
+5. Note on large file support
+
+The libmpg123 API includes the generic off_t type for file offsets and
+thus is subject to shape-shifting on systems that change off_t depending
+on build flags.
+To deal with the incompatibilities that can cause, the library needs to
+separate code paths for small and large off_t.
+Since version 1.12.0, a large-file-enabled libmpg123 (the default set
+by configure) provides a dual-mode ABI. Depending on _FILE_OFFSET_BITS,
+the mpg123.h header file selects different library symbols to use for
+your app.
+In both large-file and normal mode, the library should just work for
+your app.
+
+In the meantime a portable API with fixed 64 bit integers (and some irony
+on top) also was added. You can limit yourself to that api by defining
+MPG123_PORTABLE_API in client code.
+
+
+6. Security
+
+If you consider installing the mpg123 binary or any program using
+libout123 as suid root, please don't. Apart from evaluating MPG123_MODDIR
+from the environment and thus possibly loading any code, the purpose of
+libout123 is to write audio data to somewhere. That includes writing raw
+data to files. Any files you specify to the program. You do not install
+dd or gzip suid root, do you?
+
+Programs using libmpg123 should be fine, as that one does not load runtime
+modules and also only has code to read files, not write them. Still,
+if your task involves decoding random MPEG audio files from anywhere,
+it is only sensible to limit the damage of a possible bug triggered by
+certain crafted files. This is not specific to libmpg123 but generally
+a good idea working with data from untrusted sources.

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,20 +26,21 @@
 #include "../../fixedQueue.h"
 
 class DivPlatformSwan: public DivDispatch {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned char pan;
     int wave;
     DivWaveSynth ws;
-    Channel():
-      SharedChannel<int>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       pan(255),
       wave(-1) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
-  bool pcm, sweep, furnaceDac, setPos;
-  unsigned char sampleBank, noise;
+  bool stereo;
+  bool pcm, sweep, setPos;
+  unsigned char noise;
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
@@ -53,15 +54,20 @@ class DivPlatformSwan: public DivDispatch {
   };
   FixedQueue<QueuedWrite,256> writes;
   FixedQueue<DivRegWrite,2048> postDACWrites;
-  int coreQuality;
-  WSwan* ws;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
+
+  swan_sound_t ws;
+  
   void updateWave(int ch);
+  void calcAndWriteOutVol(int ch, int env);
+  void writeOutVol(int ch);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);
@@ -75,17 +81,16 @@ class DivPlatformSwan: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setCoreQuality(unsigned char q);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSwan();
-  private:
-    void calcAndWriteOutVol(int ch, int env);
-    void writeOutVol(int ch);
 };
 
 #endif

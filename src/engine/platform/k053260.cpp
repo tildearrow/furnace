@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,7 +69,11 @@ u8 DivPlatformK053260::read_sample(u32 address) {
 }
 
 void DivPlatformK053260::acquire(short** buf, size_t len) {
-  for (size_t i=0; i<len; i++) {
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->begin(len);
+  }
+
+  for (size_t h=0; h<len; h++) {
     k053260.tick(TICK_DIVIDER);
     int lout=(k053260.output(0)); // scale to 16 bit
     int rout=(k053260.output(1)); // scale to 16 bit
@@ -77,12 +81,16 @@ void DivPlatformK053260::acquire(short** buf, size_t len) {
     if (lout<-32768) lout=-32768;
     if (rout>32767) rout=32767;
     if (rout<-32768) rout=-32768;
-    buf[0][i]=lout;
-    buf[1][i]=rout;
+    buf[0][h]=lout;
+    buf[1][h]=rout;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1;
+      oscBuf[i]->putSample(h,(k053260.voice_out(i,0)+k053260.voice_out(i,1))>>1);
     }
+  }
+
+  for (int i=0; i<4; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -96,9 +104,9 @@ void DivPlatformK053260::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -137,22 +145,17 @@ void DivPlatformK053260::tick(bool sysTick) {
       unsigned char keyoff=keyon&~(0x11<<i);
       unsigned char loopoff=regPool[0x2a]&~(0x11<<i);
       unsigned char loopon=loopoff|(s->isLoopable()?(1<<i):0)|(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K?(0x10<<i):0);
-      double off=1.0;
-      if (sample>=0 && sample<parent->song.sampleLen) {
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=8363.0/s->centerRate;
-        }
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq=0x1000-chan[i].freq;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+        if (chan[i].freq<0) chan[i].freq=0;
       }
-      chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
-      if (chan[i].freq>4095) chan[i].freq=4095;
-      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
         unsigned int start=0;
         unsigned int length=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
-          start=sampleOffK053260[sample];
+          start=sampleOff[sample];
           length=(s->depth==DIV_SAMPLE_DEPTH_ADPCM_K)?s->lengthK:s->length8;
           if (chan[i].reverse) {
             start+=length;
@@ -230,12 +233,13 @@ int DivPlatformK053260::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
         chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
@@ -247,7 +251,7 @@ int DivPlatformK053260::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -293,7 +297,7 @@ int DivPlatformK053260::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -316,16 +320,16 @@ int DivPlatformK053260::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -370,7 +374,7 @@ void DivPlatformK053260::forceIns() {
   }
 }
 
-void* DivPlatformK053260::getChanState(int ch) {
+SharedChannel* DivPlatformK053260::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -391,7 +395,8 @@ void DivPlatformK053260::reset() {
   k053260.reset();
   rWrite(0x28,0); // keyoff all channels
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformK053260::Channel();
+    chan[i]=DivPlatformK053260::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
   }
   updatePanning(0xf);
@@ -400,6 +405,10 @@ void DivPlatformK053260::reset() {
 
 int DivPlatformK053260::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformK053260::hasSoftPan(int ch) {
+  return true;
 }
 
 void DivPlatformK053260::notifyInsChange(int ins) {
@@ -419,6 +428,14 @@ void DivPlatformK053260::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformK053260::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,4,parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformK053260::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformK053260::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: chipClock=4000000; break;
@@ -427,8 +444,10 @@ void DivPlatformK053260::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/TICK_DIVIDER;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformK053260::poke(unsigned int addr, unsigned short val) {
@@ -460,9 +479,13 @@ size_t DivPlatformK053260::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+size_t DivPlatformK053260::getSampleMemOffset(int index) {
+  return index == 0 ? 1 : 0;
+}
+
 bool DivPlatformK053260::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -473,17 +496,17 @@ const DivMemoryComposition* DivPlatformK053260::getMemCompo(int index) {
 
 void DivPlatformK053260::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
-  memset(sampleOffK053260,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
 
-  size_t memPos=1; // for avoid silence
+  size_t memPos=getSampleMemOffset(); // for avoid silence
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
-      sampleOffK053260[i]=0;
+      sampleOff[i]=0;
       continue;
     }
 
@@ -491,10 +514,10 @@ void DivPlatformK053260::renderSamples(int sysID) {
 
     if (s->depth==DIV_SAMPLE_DEPTH_ADPCM_K) {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_ADPCM_K));
-      actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
+      actualLength=MIN((int)(getSampleMemCapacity()-memPos-getSampleMemOffset()),length);
       if (actualLength>0) {
-        sampleOffK053260[i]=memPos-1;
-        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
+        sampleOff[i]=memPos-getSampleMemOffset();
+        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+getSampleMemOffset()));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->dataK[j];
         }
@@ -502,10 +525,10 @@ void DivPlatformK053260::renderSamples(int sysID) {
       }
     } else {
       length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
-      actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
+      actualLength=MIN((int)(getSampleMemCapacity()-memPos-getSampleMemOffset()),length);
       if (actualLength>0) {
-        sampleOffK053260[i]=memPos-1;
-        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+1));
+        sampleOff[i]=memPos-getSampleMemOffset();
+        memCompo.entries.push_back(DivMemoryEntry(DIV_MEMORY_SAMPLE,"Sample",i,memPos,memPos+actualLength+getSampleMemOffset()));
         for (int j=0; j<actualLength; j++) {
           sampleMem[memPos++]=s->data8[j];
         }
@@ -526,6 +549,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
 
 int DivPlatformK053260::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
 
@@ -546,4 +570,19 @@ void DivPlatformK053260::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformK053260::DivPlatformK053260():
+  DivDispatch(),
+  k053260_intf(),
+  k053260(*this) {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformK053260::~DivPlatformK053260() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,4);
 }

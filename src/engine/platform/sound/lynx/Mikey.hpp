@@ -21,7 +21,7 @@ public:
   ~Mikey();
 
   void write( uint8_t address, uint8_t value );
-  void sampleAudio( int16_t* bufL, int16_t* bufR, size_t size, DivDispatchOscBuffer** oscb = NULL );
+  void sampleAudio( int16_t* bufL, int16_t* bufR, size_t size, int* oscb = NULL );
 
   uint8_t const* getRegisterPool();
 

@@ -3076,8 +3076,8 @@ void sid3_clock(SID3* sid3)
 
             if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
             {
-                ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
-                ch->noise_accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+                ch->accumulator += ch->phase_mod_source == (SID3_NUM_CHANNELS - 1) ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+                ch->noise_accumulator += ch->phase_mod_source == (SID3_NUM_CHANNELS - 1) ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
             }
 
             if(ch->feedback)
@@ -3207,7 +3207,7 @@ void sid3_clock(SID3* sid3)
 
         if(ch->flags & SID3_CHAN_ENABLE_PHASE_MOD)
         {
-            ch->accumulator += ch->phase_mod_source == SID3_NUM_CHANNELS - 1 ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
+            ch->accumulator += ch->phase_mod_source == (SID3_NUM_CHANNELS - 1) ? ((uint64_t)sid3->wave_channel_output << 18) : ((uint64_t)sid3->channel_output[ch->phase_mod_source] << 18);
         }
 
         ch->accumulator &= SID3_ACC_MASK;
@@ -3696,6 +3696,18 @@ void sid3_write(SID3* sid3, uint16_t address, uint8_t data)
             else
             {
                 sid3->wave_chan.filt.filt[filter].output_volume = data;
+            }
+            break;
+        }
+        case SID3_REGISTER_PHASE_MOD_SRC:
+        {
+            if(channel != SID3_NUM_CHANNELS - 1)
+            {
+                sid3->chan[channel].phase_mod_source = data;
+            }
+            else
+            {
+                sid3->wave_chan.phase_mod_source = data;
             }
             break;
         }

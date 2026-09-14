@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-#define SV_SAMPLE_RATE ((svision->UNSCALED_CLOCK)/64)
+#define SV_SAMPLE_RATE ((int)((svision->UNSCALED_CLOCK)/64))
 #define SV_DEC_TICK ((SV_SAMPLE_RATE)/60)
 
 void supervision_sound_set_clock(struct svision_t *svision, uint32 clock) {
@@ -191,10 +191,11 @@ void supervision_sound_wave_write(struct svision_t *svision, int which, int offs
             uint16 size;
             size = channel->reg[0] | ((channel->reg[1] & 7) << 8);
             // if size == 0 then channel->size == 0
-			if (size)
+			      if (size) {
                 channel->size = (uint16)(((real)SV_SAMPLE_RATE) * ((real)((size + 1) << 5)) / ((real)svision->UNSCALED_CLOCK));
-            else
+            } else {
                 channel->size = 0;
+            }
             channel->pos = 0;
             // Popo Team
             if (channel->count != 0 || svision->ch[which].size == 0 || channel->size == 0) {
@@ -257,10 +258,11 @@ void supervision_sound_noise_write(struct svision_t *svision, int offset, uint8 
     switch (offset) {
         case 0: {
             uint32 divisor = 8 << (data >> 4);
-			if (divisor)
+			      if (divisor) {
                 svision->m_noise.step = ((real)svision->UNSCALED_CLOCK) / ((real)SV_SAMPLE_RATE * divisor);
-            else
+            } else {
                 svision->m_noise.step = 0;
+            }
 
             svision->m_noise.step = ((real)svision->UNSCALED_CLOCK) / ((real)SV_SAMPLE_RATE * divisor);
             svision->m_noise.volume = data & 0xf;

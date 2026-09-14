@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,12 @@
 
 class DivPlatformTIA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char shape;
       unsigned char curFreq, tuneCtr, tuneFreq;
       int tuneAcc;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         shape(4),
         curFreq(0),
         tuneCtr(0),
@@ -43,10 +43,10 @@ class DivPlatformTIA: public DivDispatch {
     bool softwarePitch;
     bool oldPitch;
     unsigned char mixingType;
-    unsigned char chanOscCounter;
     TIA::Audio tia;
     unsigned char regPool[16];
     int tuneCounter;
+    int prevSample[2];
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
@@ -54,9 +54,9 @@ class DivPlatformTIA: public DivDispatch {
     int dealWithFreqNew(int shape, int bp);
   
   public:
-    void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -69,8 +69,10 @@ class DivPlatformTIA: public DivDispatch {
     float getPostAmp();
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

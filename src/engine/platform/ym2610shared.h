@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,13 +38,11 @@ class DivYM2610Interface: public DivOPNInterface {
   public:
     unsigned char* adpcmAMem;
     unsigned char* adpcmBMem;
-    int sampleBank;
     uint8_t ymfm_external_read(ymfm::access_class type, uint32_t address);
     void ymfm_external_write(ymfm::access_class type, uint32_t address, uint8_t data);
     DivYM2610Interface():
       adpcmAMem(NULL),
-      adpcmBMem(NULL),
-      sampleBank(0) {}
+      adpcmBMem(NULL) {}
 };
 
 class DivPlatformYM2610Base: public DivPlatformOPN {
@@ -58,6 +56,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
     fmopna_2610_t fm_lle;
+    DivPitchTableManager samplePitchTable;
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];
@@ -68,22 +67,20 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char rmpx, pmpx, roe, poe, rssCycle, rssSubCycle;
     unsigned int adMemAddrA;
     unsigned int adMemAddrB;
-  
+
     unsigned char* adpcmAMem;
     size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivYM2610Interface iface;
 
-    unsigned int sampleOffA[256];
-    unsigned int sampleOffB[256];
+    unsigned int* sampleOffA;
+    unsigned int* sampleOffB;
 
-    unsigned char sampleBank;
-  
     bool extMode, noExtMacros;
 
-    bool sampleLoaded[2][256];
-  
+    bool* sampleLoaded[2];
+
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
 
@@ -92,21 +89,26 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
+        chan[ch].rawFreq=note&DIV_NOTE_RAW_FLAG;
+        if (chan[ch].rawFreq) {
+          return note&(~DIV_NOTE_RAW_FLAG);
+        }
         return NOTE_ADPCMB(note);
       } else if (ch>=psgChanOffs) { // PSG
-        return NOTE_PERIODIC(note);
+        // not used.
+        //return NOTE_PERIODIC(note);
       }
       // FM
-      return NOTE_FNUM_BLOCK(note,11);
+      return NOTE_FNUM_BLOCK(note,11,chan[ch].state.block);
     }
     double NOTE_ADPCMB(int note) {
       if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/8363.0;
+        double off=65535.0*(double)(parent->getSample(chan[adpcmBChanOffs].sample)->centerRate)/parent->getCenterRate();
         return parent->calcBaseFreq((double)chipClock/144,off,note,false);
       }
       return 0;
     }
-  
+
   public:
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
       ay->fillStream(stream,sRate,len);
@@ -214,10 +216,10 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     bool isSampleLoaded(int index, int sample) {
       if (index<0 || index>1) return false;
-      if (sample<0 || sample>255) return false;
+      if (sample<0 || sample>32767) return false;
       return sampleLoaded[index][sample];
     }
-    
+
     const DivMemoryComposition* getMemCompo(int index) {
       if (index==0) return &memCompoA;
       if (index==1) return &memCompoB;
@@ -226,9 +228,10 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     void renderSamples(int sysID) {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
-      memset(sampleOffA,0,256*sizeof(unsigned int));
-      memset(sampleOffB,0,256*sizeof(unsigned int));
-      memset(sampleLoaded,0,256*2*sizeof(bool));
+      memset(sampleOffA,0,32768*sizeof(unsigned int));
+      memset(sampleOffB,0,32768*sizeof(unsigned int));
+      memset(sampleLoaded[0],0,32768*sizeof(bool));
+      memset(sampleLoaded[1],0,32768*sizeof(bool));
 
       memCompoA=DivMemoryComposition();
       memCompoA.name="ADPCM-A";
@@ -245,6 +248,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         }
 
         int paddedLen=(s->lengthA+255)&(~0xff);
+        if (paddedLen>1048576) {
+          paddedLen=1048576;
+        }
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;
         }
@@ -279,9 +285,6 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         }
 
         int paddedLen=(s->lengthB+255)&(~0xff);
-        if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-          memPos=(memPos+0xfffff)&0xf00000;
-        }
         if (memPos>=getSampleMemCapacity(1)) {
           logW("out of ADPCM-B memory for sample %d!",i);
           break;
@@ -322,9 +325,15 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       } else {
         rate=fm->sample_rate(chipClock);
       }
+      tfxRate=rate*4;
       for (int i=0; i<17; i++) {
-        oscBuf[i]->rate=rate;
+        oscBuf[i]->setRate(rate);
       }
+
+      ay->setExtClockDiv(chipClock,32);
+      ay->setFlags(ayFlags);
+
+      notifyPitchTable();
     }
 
     int init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -342,15 +351,14 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       adpcmBMemLen=0;
       iface.adpcmAMem=adpcmAMem;
       iface.adpcmBMem=adpcmBMem;
-      iface.sampleBank=0;
       fm=new ymfm::ym2610b(iface);
       fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
-      setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32,144);
       ay->setCore(0);
       ay->init(p,3,sugRate,ayFlags);
       ay->toggleRegisterDump(true);
+      setFlags(flags);
       return 0;
     }
 
@@ -365,7 +373,18 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
-      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {}
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {
+      sampleOffA=new unsigned int[32768];
+      sampleOffB=new unsigned int[32768];
+      sampleLoaded[0]=new bool[32768];
+      sampleLoaded[1]=new bool[32768];
+    }
+    ~DivPlatformYM2610Base() {
+      delete[] sampleOffA;
+      delete[] sampleOffB;
+      delete[] sampleLoaded[0];
+      delete[] sampleLoaded[1];
+    }
 };
 
 #endif

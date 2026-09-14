@@ -85,9 +85,15 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 
 ## info
 
-these chips use the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor. Y8950 ADPCM uses [Generic Sample](../4-instrument/sample.md) and [ADPCM-B](../4-instrument/adpcm-b.md) instrument editors.
+these chips use the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.
+Y8950 ADPCM uses [Generic Sample](../4-instrument/sample.md) and [ADPCM-B](../4-instrument/adpcm-b.md) instrument editors.
+OPL4 PCM uses the [MultiPCM](../4-instrument/multipcm.md) instrument editor.
 
 when two channels are joined for 4-op mode, the channel bar will show `4OP` on a bracket tying them together.
+
+sample lengths on the Y8950 are padded to multiples of 512 samples. ADPCM samples ignore loop points; they may only be loop over the entire sample.
+
+OPL4 maximum sample length is 65535.
 
 ## chip config
 
@@ -102,4 +108,4 @@ additionally, in OPL3:
 
 additionally, in OPL4:
 
-- **RAM Size**: sets the RAM size for sample storage
+- **RAM Size**: sets the RAM size for sample storage.

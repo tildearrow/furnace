@@ -11,7 +11,8 @@ namespace MDFN_IEN_NGP
 
 struct T6W28_Osc
 {
-        Fake_Buffer* outputs[4];
+        blip_buffer_t* outputs[2];
+        DivDispatchOscBuffer* oscBuf;
 	int output_select;
 	
 	int delay;

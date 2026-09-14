@@ -20,6 +20,8 @@ after enabling this option, a table appears with the contents of the sample map.
 - the third one is used to set the note at which the specified sample will play.
 - the fourth and last column provides a combo box for selecting a sample.
 
+you may click and drag in the sample number and note columns to select a range. typing a sample number or note will change the entire range.
+
 you may right-click anywhere in the number and note columns for additional options:
 - **set entire map to this note**: sets the note number of all notes to the selected cell's.
 - **set entire map to this sample**: sets the sample number of all notes to the selected cell's.

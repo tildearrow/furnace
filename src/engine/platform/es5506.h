@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
-  struct Channel : public SharedChannel<int> {
+  struct Channel : public SharedChannel {
     struct PCM {
       bool isNoteMap;
       int index, next;
@@ -67,7 +67,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     int nextFreq, nextNote, currNote, wave;
     int volMacroMax, panMacroMax;
     bool useWave, isReverseLoop;
-    unsigned int cr;
+    unsigned short cr, crWriteVal, crDirVal;
+    bool crChanged, crDirValChanged, crDirValInit;
 
     struct NoteChanged { // Note changed flags
       union { // pack flag bits in single byte
@@ -185,8 +186,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
-    Channel():
-      SharedChannel<int>(0xff),
+    Channel(bool linear=true):
+      SharedChannel(0xff,linear),
       pcm(PCM()),
       nextFreq(0),
       nextNote(0),
@@ -197,6 +198,10 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       useWave(false),
       isReverseLoop(false),
       cr(0),
+      crWriteVal(0),
+      crChanged(false),
+      crDirValChanged(false),
+      crDirValInit(true),
       noteChanged(NoteChanged()),
       volChanged(VolChanged()),
       filterChanged(FilterChanged()),
@@ -227,14 +232,13 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   bool isMuted[32];
   signed short* sampleMem; // ES5506 uses 16 bit data bus for samples
   size_t sampleMemLen;
-  unsigned int sampleOffES5506[256];
-  bool sampleLoaded[256];
+  unsigned int* sampleOffES5506;
+  bool* sampleLoaded;
   struct QueuedHostIntf {
       unsigned char state;
       unsigned char step;
       unsigned char addr;
       unsigned int val;
-      unsigned int mask;
       unsigned int* read;
       unsigned short delay;
       bool isRead;
@@ -243,35 +247,32 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         step(0),
         addr(0),
         val(0),
-        mask(0),
         read(NULL),
         delay(0),
         isRead(false) {}
-      QueuedHostIntf(unsigned char s, unsigned char a, unsigned int v, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+      QueuedHostIntf(unsigned char s, unsigned char a, unsigned int v, unsigned short d=0):
         state(0),
         step(s),
         addr(a),
         val(v),
-        mask(m),
         read(NULL),
         delay(0),
         isRead(false) {}
-      QueuedHostIntf(unsigned char st, unsigned char s, unsigned char a, unsigned int* r, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+      QueuedHostIntf(unsigned char st, unsigned char s, unsigned char a, unsigned int* r, unsigned short d=0):
         state(st),
         step(s),
         addr(a),
         val(0),
-        mask(m),
         read(r),
         delay(d),
         isRead(true) {}
   };
   FixedQueue<QueuedHostIntf,2048> hostIntf32;
   FixedQueue<QueuedHostIntf,2048> hostIntf8;
+  DivPitchTableManager samplePitchTable;
   int cycle, curPage, volScale;
-  unsigned char maskedVal;
   unsigned int irqv;
-  bool isMasked, isReaded;
+  bool isReaded;
   bool irqTrigger, amigaVol, amigaPitch;
   unsigned int curCR;
 
@@ -281,6 +282,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   DivMemoryComposition memCompo;
   unsigned char regPool[4*16*128]; // 7 bit page x 16 registers per page x 32 bit per registers
 
+  void updatePCMChanges(int ch);
   void updateNoteChangesAsNeeded(int ch);
 
   friend void putDispatchChip(void*,int);
@@ -296,7 +298,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
 
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
@@ -307,26 +309,28 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
     virtual bool keyOffAffectsArp(int ch) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual void notifyPitchTable(int sample=-1) override;
+    virtual unsigned int getMaxFreq(int ch) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual const void* getSampleMem(int index = 0) override;
     virtual size_t getSampleMemCapacity(int index = 0) override;
     virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual size_t getSampleMemOffset(int index = 0) override;
     virtual bool isSampleLoaded(int index, int sample) override;
     virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int sysID) override;
     virtual const char** getRegisterSheet() override;
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformES5506():
-      DivDispatch(),
-      es550x_intf(),
-      es5506(*this) {}
+    DivPlatformES5506();
+    ~DivPlatformES5506();
 };
 
 #endif

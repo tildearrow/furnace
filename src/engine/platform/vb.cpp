@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 #include "vb.h"
 #include "../engine.h"
+#include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
@@ -93,32 +95,29 @@ const char** DivPlatformVB::getRegisterSheet() {
   return regCheatSheetVB;
 }
 
-void DivPlatformVB::acquire(short** buf, size_t len) {
+void DivPlatformVB::acquireDirect(blip_buffer_t** bb, size_t len) {
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->begin(len);
+    vb->oscBuf[i]=oscBuf[i];
+  }
+
+  vb->bb[0]=bb[0];
+  vb->bb[1]=bb[1];
+
   for (size_t h=0; h<len; h++) {
-    cycles=0;
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      vb->Write(cycles,w.addr,w.val);
+      vb->Write(h,w.addr,w.val);
       regPool[w.addr>>2]=w.val;
       writes.pop();
+    } else {
+      break;
     }
-    vb->EndFrame(coreQuality);
+  }
+  vb->EndFrame(len);
 
-    tempL=0;
-    tempR=0;
-    for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(vb->last_output[i][0]+vb->last_output[i][1])*8;
-      tempL+=vb->last_output[i][0];
-      tempR+=vb->last_output[i][1];
-    }
-
-    if (tempL<-32768) tempL=-32768;
-    if (tempL>32767) tempL=32767;
-    if (tempR<-32768) tempR=-32768;
-    if (tempR>32767) tempR=32767;
-    
-    buf[0][h]=tempL;
-    buf[1][h]=tempR;
+  for (int i=0; i<6; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -127,8 +126,9 @@ void DivPlatformVB::updateWave(int ch) {
   if (ch>=5) return;
 
   for (int i=0; i<32; i++) {
-    rWrite((ch<<7)+(i<<2),chan[ch].ws.output[i]);
+    rWrite((ch<<7)+(i<<2),chan[ch].ws.output[(i+chan[ch].antiClickWavePos)&31]);
   }
+  chan[ch].antiClickWavePos&=31;
 }
 
 void DivPlatformVB::writeEnv(int ch, bool upperByteToo) {
@@ -139,17 +139,35 @@ void DivPlatformVB::writeEnv(int ch, bool upperByteToo) {
 }
 
 void DivPlatformVB::tick(bool sysTick) {
+  bool mustUpdateWaves=false;
+
   for (int i=0; i<6; i++) {
+    // anti-click
+    int actualFreq=2047-chan[i].freq;
+    if (antiClickEnabled && !screwThis && sysTick && actualFreq>0) {
+      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
+      chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/actualFreq;
+      chan[i].antiClickPeriodCount%=actualFreq;
+    }
+
     chan[i].std.next();
+    // this is handled first to work around an envelope problem
+    // once envelope is over, you cannot enable it again unless you retrigger the channel
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      chWrite(i,0x00,0x80);
+      chan[i].intWritten=true;
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
+    }
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       writeEnv(i);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -190,19 +208,21 @@ void DivPlatformVB::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      chWrite(i,0x00,0x80);
-    }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
-        updateWave(i);
+        if (!romMode) {
+          chan[i].deferredWaveUpdate=true;
+        }
+        mustUpdateWaves=true;
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>2047) chan[i].freq=2047;
-      chan[i].freq=2048-chan[i].freq;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>2047) chan[i].freq=2047;
+        chan[i].freq=2048-chan[i].freq;
+      }
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,chan[i].freq>>8);
       if (chan[i].keyOn) {
@@ -215,6 +235,48 @@ void DivPlatformVB::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
+
+  // trigger wave changes
+  if (mustUpdateWaves && !romMode) {
+    if (!screwThis) {
+      rWrite(0x580,1);
+    }
+    for (int i=0; i<5; i++) {
+      //if (chan[i].deferredWaveUpdate) {
+        //chan[i].deferredWaveUpdate=false;
+        updateWave(i);
+      //}
+    }
+    if (!screwThis) {
+      // restore channel state...
+      for (int i=0; i<6; i++) {
+        if (chan[i].intWritten) {
+          chWrite(i,0x00,0x80);
+        }
+      }
+    }
+  }
+
+  for (int i=0; i<6; i++) {
+    if ((chan[i].envHigh&3)==0) {
+      chan[i].hasEnvWarning=0;
+    } else {
+      switch (vb->EnvelopeModMask[i]) {
+        case 0: // envelope OK
+          chan[i].hasEnvWarning=0;
+          break;
+        case 1: // envelope has finished
+          chan[i].hasEnvWarning=21;
+          break;
+        case 2: // can't envelope
+          chan[i].hasEnvWarning=22;
+          break;
+      }
+    }
+  }
+  /*if (vb->ModLock) {
+    chan[4].hasEnvWarning=4;
+  }*/
 }
 
 int DivPlatformVB::dispatch(DivCommand c) {
@@ -222,20 +284,22 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+      if (c.chan==4 && chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+        chWrite(4,0x00,0x00);
         for (int i=0; i<32; i++) {
           modTable[i]=ins->fds.modTable[i];
           rWrite(0x280+(i<<2),modTable[i]);
         }
+        chWrite(4,0x00,0x80);
       }
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         writeEnv(c.chan);
       }
@@ -292,7 +356,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -355,6 +419,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_FDS_MOD_WAVE: { // set modulation wave
       if (c.chan!=4) break;
       DivWavetable* wt=parent->getWave(c.value);
+      chWrite(4,0x00,0x00);
       for (int i=0; i<32; i++) {
         if (wt->max<1 || wt->len<1) {
           modTable[i]=0;
@@ -367,6 +432,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
           rWrite(0x280+(i<<2),modTable[i]);
         }
       }
+      chWrite(4,0x00,0x80);
       break;
     }
     case DIV_CMD_PANNING: {
@@ -375,15 +441,15 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -424,7 +490,7 @@ void DivPlatformVB::forceIns() {
   }
 }
 
-void* DivPlatformVB::getChanState(int ch) {
+SharedChannel* DivPlatformVB::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -434,6 +500,16 @@ DivMacroInt* DivPlatformVB::getChanMacroInt(int ch) {
 
 unsigned short DivPlatformVB::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
+}
+
+DivChannelModeHints DivPlatformVB::getModeHints(int ch) {
+  DivChannelModeHints ret;
+  //if (ch>4) return ret;
+  ret.count=1;
+  ret.hint[0]=ICON_FA_EXCLAMATION_TRIANGLE;
+  ret.type[0]=chan[ch].hasEnvWarning;
+  
+  return ret;
 }
 
 DivDispatchOscBuffer* DivPlatformVB::getOscBuffer(int ch) {
@@ -456,7 +532,8 @@ void DivPlatformVB::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,0x600);
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformVB::Channel();
+    chan[i]=DivPlatformVB::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,63,false);
@@ -467,15 +544,16 @@ void DivPlatformVB::reset() {
   vb->Power();
   tempL=0;
   tempR=0;
-  cycles=0;
   curChan=-1;
   modulation=0;
   modType=false;
   memset(modTable,0,32);
+  updateROMWaves();
   // set per-channel initial values
   for (int i=0; i<6; i++) {
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
     chWrite(i,0x05,0x00);
+    chan[i].intWritten=true;
     chWrite(i,0x00,0x80);
     if (romMode) {
       chWrite(i,0x06,0);
@@ -483,7 +561,6 @@ void DivPlatformVB::reset() {
       chWrite(i,0x06,i);
     }
   }
-  updateROMWaves();
   delay=500;
 }
 
@@ -491,7 +568,15 @@ int DivPlatformVB::getOutputCount() {
   return 2;
 }
 
+bool DivPlatformVB::hasSoftPan(int ch) {
+  return true;
+}
+
 bool DivPlatformVB::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformVB::hasAcquireDirect() {
   return true;
 }
 
@@ -536,21 +621,33 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformVB::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x7ff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformVB::getMaxFreq(int ch) {
+  return 0x7ff;
+}
+
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/coreQuality;
+  rate=chipClock;
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   romMode=flags.getBool("romMode",false);
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
+  screwThis=flags.getBool("screwThis",false);
 
   if (vb!=NULL) {
     delete vb;
     vb=NULL;
   }
   vb=new VSU;
+
+  notifyPitchTable();
 }
 
 void DivPlatformVB::poke(unsigned int addr, unsigned short val) {
@@ -559,32 +656,6 @@ void DivPlatformVB::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformVB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformVB::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=128;
-      break;
-    case 1:
-      coreQuality=64;
-      break;
-    case 2:
-      coreQuality=32;
-      break;
-    case 3:
-      coreQuality=16;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=16;
-      break;
-  }
 }
 
 int DivPlatformVB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

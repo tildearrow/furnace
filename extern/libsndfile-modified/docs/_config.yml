@@ -1,0 +1,8 @@
+---
+author: "The libsndfile team"
+version: "1.2.2"
+
+markdown: kramdown
+plugins:
+  - jekyll-default-layout
+---

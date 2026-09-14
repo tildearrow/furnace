@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define NOTE_LINEAR(x) ((x)<<7)
+#define NOTE_LINEAR(x) ((x)&DIV_NOTE_RAW_FLAG)?((x)&0xff):((x)<<7)
 
 const char* regCheatSheetMSM5232[]={
   "Select", "0",
@@ -46,6 +46,10 @@ const char** DivPlatformMSM5232::getRegisterSheet() {
 }
 
 void DivPlatformMSM5232::acquire(short** buf, size_t len) {
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -56,7 +60,7 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
 
     for (int i=0; i<8; i++) {
       if (isMuted[i]) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+        oscBuf[i]->putSample(h,0);
       } else {
         int o=(
           ((regPool[12+(i>>2)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
@@ -64,7 +68,7 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
           ((regPool[12+(i>>2)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
           ((regPool[12+(i>>2)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
         )<<2;
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+        oscBuf[i]->putSample(h,CLAMP(o,-32768,32767));
       }
     }
 
@@ -84,6 +88,10 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
       buf[0][h]+=(temp[i]*partVolume[i])>>8;
     }
   }
+
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->end(len);
+  }
 }
 
 const int attackMap[8]={
@@ -102,7 +110,7 @@ void DivPlatformMSM5232::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -147,17 +155,20 @@ void DivPlatformMSM5232::tick(bool sysTick) {
 
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(12<<7);
-      if (!parent->song.oldArpStrategy) {
-        if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(12<<7);
-        } else {
-          chan[i].freq+=chan[i].arpOff<<7;
+      if (chan[i].rawFreq) {
+        chan[i].freq=((chan[i].baseFreq+chan[i].pitch2)&0xff)<<7;
+      } else {
+        chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(72<<7);
+        if (!parent->song.compatFlags.oldArpStrategy) {
+          if (chan[i].fixedArp) {
+            chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(72<<7);
+          } else {
+            chan[i].freq+=chan[i].arpOff<<7;
+          }
         }
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x2aff) chan[i].freq=0x2aff;
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x2aff) chan[i].freq=0x2aff;
       if (chan[i].keyOn) {
         //rWrite(16+i*5,0x80);
         //chWrite(i,0x04,0x80|chan[i].vol);
@@ -192,13 +203,14 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
+        chan[c.chan].rawFreq=(c.value&DIV_NOTE_RAW_FLAG);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       chan[c.chan].insChanged=false;
@@ -241,13 +253,13 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       int destFreq=NOTE_LINEAR(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*parent->song.pitchSlideSpeed;
+        chan[c.chan].baseFreq+=c.value*parent->song.compatFlags.pitchSlideSpeed;
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*parent->song.pitchSlideSpeed;
+        chan[c.chan].baseFreq-=c.value*parent->song.compatFlags.pitchSlideSpeed;
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -283,9 +295,9 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -323,7 +335,7 @@ void DivPlatformMSM5232::forceIns() {
   }
 }
 
-void* DivPlatformMSM5232::getChanState(int ch) {
+SharedChannel* DivPlatformMSM5232::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -347,7 +359,7 @@ void DivPlatformMSM5232::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformMSM5232::Channel();
+    chan[i]=DivPlatformMSM5232::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
@@ -393,6 +405,10 @@ void DivPlatformMSM5232::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformMSM5232::getMaxFreq(int ch) {
+  return 0xff;
+}
+
 void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
   chipClock=2119040;
   CHECK_CUSTOM_CLOCK;
@@ -400,7 +416,7 @@ void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
   msm->set_clock(chipClock+detune*1024);
   rate=msm->get_rate();
   for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
   initPartVolume[0]=flags.getInt("partVolume0",255);
   initPartVolume[1]=flags.getInt("partVolume1",255);

@@ -1,0 +1,39 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "libsndfile",
+    "description": "A library for reading and writing audio files",
+    "version-semver": "1.2.0",
+    "default-features": [
+        "external-libs",
+        "mpeg"
+    ],
+    "features": {
+        "external-libs": {
+            "description": "Enable FLAC, Vorbis, and Opus codecs",
+            "dependencies": [
+                "libvorbis",
+                "libflac",
+                "opus"
+            ]
+        },
+        "mpeg": {
+            "description": "Enable MPEG codecs",
+            "dependencies": [
+                "mpg123",
+                "mp3lame"
+            ]
+        },
+        "regtest": {
+            "description": "Build regtest",
+            "dependencies": [
+                "sqlite3"
+            ]
+        },
+        "experimental": {
+            "description": "Enable experimental code",
+            "dependencies": [
+                "speex"
+            ]
+        }
+    }
+}

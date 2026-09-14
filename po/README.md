@@ -101,7 +101,7 @@ after doing some work, be sure to submit it so you see it in the next version.
 
 you can contact me via email or Discord (be sure to send the translation file), or alternatively send a pull request on GitHub. the latter is preferred if you're going to work frequently.
 
-if sending a pull request, be sure to target the `locale` branch until I merge it into master.
+if sending a pull request, be sure to target the `master` branch.
 
 that's all for now. thank you for helping translate Furnace, and good luck!
 

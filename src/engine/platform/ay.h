@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ class DivPlatformAY8910: public DivDispatch {
       0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct PSGMode {
         // bit 4: timer FX
         // bit 3: DAC
@@ -65,7 +65,7 @@ class DivPlatformAY8910: public DivDispatch {
 
       struct DAC {
         int sample, rate, period, pos, out;
-        bool furnaceDAC, setPos;
+        bool setPos;
 
         DAC():
           sample(-1),
@@ -73,7 +73,6 @@ class DivPlatformAY8910: public DivDispatch {
           period(0),
           pos(0),
           out(0),
-          furnaceDAC(false),
           setPos(false) {}
       } dac;
 
@@ -95,8 +94,8 @@ class DivPlatformAY8910: public DivDispatch {
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel<int>(15),
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
@@ -118,16 +117,20 @@ class DivPlatformAY8910: public DivDispatch {
     FixedQueue<QueuedWrite,128> writes;
     ay8910_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     unsigned char regPool[16];
     unsigned char lastBusy;
   
-    unsigned char sampleBank;
     unsigned char stereoSep;
     unsigned char selCore;
 
     ssg_t ay_atomic;
 
     int delay;
+    int lastOut[2];
+
+    unsigned char atomicTFXDelay;
 
     bool extMode;
     unsigned int extClock;
@@ -145,26 +148,25 @@ class DivPlatformAY8910: public DivDispatch {
     unsigned short ayEnvPeriod;
     short ayEnvSlideLow;
     short ayEnvSlide;
-    short* ayBuf[3];
-    size_t ayBufLen;
 
     void checkWrites();
     void updateOutSel(bool immediate=false);
 
-    void acquire_mame(short** buf, size_t len);
+    void acquire_mame(blip_buffer_t** bb, size_t len);
     void acquire_atomic(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void runDAC(int runRate=0);
-    void runTFX(int runRate=0);
+    void runDAC(int runRate=0, int advance=1);
+    void runTFX(int runRate=0, int advance=1);
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short** buf, size_t len);
+    void acquireDirect(blip_buffer_t** bb, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);
@@ -179,11 +181,14 @@ class DivPlatformAY8910: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
+    bool hasAcquireDirect();
     DivMacroInt* getChanMacroInt(int ch);
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();
     bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

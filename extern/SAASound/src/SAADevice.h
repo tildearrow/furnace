@@ -53,7 +53,7 @@ public:
 	void _SetClockRate(unsigned int nClockRate);
 	void _SetSampleRate(unsigned int nSampleRate);
 	void _SetOversample(unsigned int nOversample);
-	void _TickAndOutputStereo(unsigned int& left_mixed, unsigned int& right_mixed, DivDispatchOscBuffer** oscBuf);
+	void _TickAndOutputStereo(unsigned int& left_mixed, unsigned int& right_mixed, DivDispatchOscBuffer** oscBuf, unsigned int where);
 	void _TickAndOutputSeparate(unsigned int& left_mixed, unsigned int& right_mixed,
 		unsigned int& left0, unsigned int& right0,
 		unsigned int& left1, unsigned int& right1,

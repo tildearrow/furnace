@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.0...3.16)
 
 if (APPLE)
   set(MACOSX_DEPLOYMENT_TARGET 10.9)
@@ -16,11 +16,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_PROJECT_VERSION_MAJOR 0)
 set(CMAKE_PROJECT_VERSION_MINOR 6)
-set(CMAKE_PROJECT_VERSION_PATCH 6)
+set(CMAKE_PROJECT_VERSION_PATCH 8)
 
 set(BUILD_GUI_DEFAULT ON)
 set(USE_SDL2_DEFAULT ON)
 set(USE_SNDFILE_DEFAULT ON)
+set(WITH_OGG_DEFAULT ON)
+set(WITH_MPEG_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
@@ -71,9 +73,11 @@ set(WITH_RENDER_OPENGL_DEFAULT ON)
 if (WIN32)
   set(WITH_RENDER_DX11_DEFAULT ON)
   set(WITH_RENDER_DX9_DEFAULT ON)
+  set(WITH_ASIO_DEFAULT ON)
 else()
   set(WITH_RENDER_DX11_DEFAULT OFF)
   set(WITH_RENDER_DX9_DEFAULT OFF)
+  set(WITH_ASIO_DEFAULT OFF)
 endif()
 if (APPLE)
   set(WITH_RENDER_METAL_DEFAULT ON)
@@ -98,7 +102,7 @@ set(WITH_LOCALE_DEFAULT ON)
 try_compile(HAVE_SETLOCALE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_setlocale.c)
 include(FindIntl)
 
-if (HAVE_SETLOCALE AND Intl_FOUND AND NOT APPLE)
+if (HAVE_SETLOCALE AND Intl_FOUND AND NOT APPLE AND NOT WIN32)
   set(USE_MOMO_DEFAULT OFF)
 else()
   set(USE_MOMO_DEFAULT ON)
@@ -111,7 +115,10 @@ option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAUL
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(USE_MOMO "Build a libintl implementation instead of using the system one." ${USE_MOMO_DEFAULT})
+option(WITH_OGG "Whether to build with Ogg and Vorbis support." ${WITH_OGG_DEFAULT})
+option(WITH_MPEG "Whether to build with MPEG audio support (including MP3)." ${WITH_MPEG_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_ASIO "Whether to build with ASIO support. Upgrades Furnace license to GPLv3." ${WITH_ASIO_DEFAULT})
 option(WITH_PORTAUDIO "Whether to build with PortAudio for audio output." ${WITH_PORTAUDIO_DEFAULT})
 option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
 option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
@@ -119,6 +126,7 @@ option(WITH_RENDER_OPENGL1 "Whether to build with the OpenGL 1.1 render backend.
 option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
 option(WITH_RENDER_DX9 "Whether to build with the DirectX 9 render backend." ${WITH_RENDER_DX9_DEFAULT})
 option(WITH_RENDER_METAL "Whether to build with the Metal render backend." ${WITH_RENDER_METAL_DEFAULT})
+option(WITH_JSON "Whether to build with JSON export support." ON)
 option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
 option(USE_FREETYPE "Use FreeType for font rendering." ON)
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
@@ -130,13 +138,17 @@ option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the ve
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
+option(SUPPORT_VISTA "Build a Windows Vista-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 option(WITH_DEMOS "Install demo songs (NOTE: demo songs are NOT under GPL!)" OFF)
 option(WITH_INSTRUMENTS "Install instruments" ON)
 option(WITH_WAVETABLES "Install wavetables" ON)
 option(SHOW_OPEN_ASSETS_MENU_ENTRY "Show option to open built-in assets directory (on supported platforms)" OFF)
 option(CONSOLE_SUBSYSTEM "Build Furnace with Console subsystem on Windows" OFF)
+option(FORCE_CODEVIEW "Force -gcodeview on MinGW GCC" OFF)
 option(FLATPAK_WORKAROUNDS "Enable Flatpak-specific workaround for system file picker" OFF)
+option(NO_INTRO "Disable intro animation entirely" OFF)
+option(ORIG_NDS_CORE "Use original NDS emulation core (no acquireDirect)" OFF)
 if (APPLE)
   option(FORCE_APPLE_BIN "Force enable binary installation to /bin" OFF)
   option(MAKE_BUNDLE "Make a bundle" OFF)
@@ -146,7 +158,7 @@ else()
   set(MAKE_BUNDLE OFF)
 endif()
 
-set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders src/icon)
+set(DEPENDENCIES_INCLUDE_DIRS extern/IconFontCppHeaders extern/blip_buf src/icon)
 
 if (ANDROID AND NOT TERMUX)
   set(DEPENDENCIES_DEFINES "IS_MOBILE")
@@ -186,8 +198,13 @@ list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 if (WIN32)
   # support Windows XP
   if (SUPPORT_XP)
-    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0500")
     list(APPEND DEPENDENCIES_DEFINES "SUPPORT_XP")
+  else()
+    # support Windows Vista
+    if (SUPPORT_VISTA)
+      list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0600")
+    endif()
   endif()
 endif()
 
@@ -269,6 +286,15 @@ if (BUILD_GUI AND USE_FREETYPE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_FREETYPE)
 endif()
 
+# Opus is mandatory
+set(OPUS_X86_MAY_HAVE_AVX2 OFF CACHE BOOL "Enable AVX2 for Opus" FORCE)
+set(OPUS_FORTIFY_SOURCE OFF CACHE BOOL "Enable Fortify Source" FORCE)
+set(OPUS_STACK_PROTECTOR OFF CACHE BOOL "Enable Fortify Source" FORCE)
+add_subdirectory(extern/opus EXCLUDE_FROM_ALL)
+set(KLATTSCH_BUILD_TEXT_COMPILER OFF CACHE BOOL "Build the Klattsch text-to-phoneme compiler" FORCE)
+add_subdirectory(extern/klattsch-cpp EXCLUDE_FROM_ALL)
+list(APPEND DEPENDENCIES_LIBRARIES klattsch::klattsch)
+
 if (USE_SNDFILE)
   list(APPEND DEPENDENCIES_DEFINES HAVE_SNDFILE)
   if (SYSTEM_LIBSNDFILE)
@@ -282,12 +308,45 @@ if (USE_SNDFILE)
     list(APPEND DEPENDENCIES_LEGACY_LDFLAGS ${LIBSNDFILE_LDFLAGS})
     message(STATUS "Using system-installed libsndfile")
   else()
+    # Ogg, Vorbis, FLAC and MP3
+    if (WITH_OGG)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_OGG)
+      set(OGG_INCLUDE_DIR extern/libogg/include CACHE STRING "Ogg include dir" FORCE)
+      set(OGG_LIBRARY Ogg::ogg CACHE STRING "Ogg library" FORCE)
+      set(Vorbis_Vorbis_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis include dir" FORCE)
+      set(Vorbis_Enc_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis enc include dir" FORCE)
+      set(Vorbis_File_INCLUDE_DIR extern/libvorbis/include CACHE STRING "Vorbis file include dir" FORCE)
+      set(Vorbis_Vorbis_LIBRARY Vorbis::vorbis CACHE STRING "Vorbis library" FORCE)
+      set(Vorbis_Enc_LIBRARY Vorbis::enc CACHE STRING "Vorbis enc library" FORCE)
+      set(Vorbis_File_LIBRARY Vorbis::file CACHE STRING "Vorbis file library" FORCE)
+      set(FLAC_INCLUDE_DIR extern/flac/include CACHE STRING "FLAC include dir" FORCE)
+      set(FLAC_LIBRARY FLAC CACHE STRING "FLAC library" FORCE)
+      set(OPUS_INCLUDE_DIR extern/opus/include CACHE STRING "Opus include dir" FORCE)
+      set(OPUS_LIBRARY opus CACHE STRING "Opus library" FORCE)
+      add_subdirectory(extern/libogg EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/libvorbis EXCLUDE_FROM_ALL)
+      set(WITH_FORTIFY_SOURCE OFF CACHE BOOL "Enable Fortify Source" FORCE)
+      set(WITH_STACK_PROTECTOR OFF CACHE BOOL "Enable Fortify Source" FORCE)
+      add_subdirectory(extern/flac EXCLUDE_FROM_ALL)
+    endif()
+
+    if (WITH_MPEG)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_MP3_EXPORT)
+      set(MP3LAME_INCLUDE_DIR extern/lame/include CACHE STRING "LAME include dir" FORCE)
+      set(MP3LAME_LIBRARY mp3lame CACHE STRING "LAME library" FORCE)
+      add_subdirectory(extern/lame EXCLUDE_FROM_ALL)
+      add_subdirectory(extern/mpg123 EXCLUDE_FROM_ALL)
+      set(mpg123_INCLUDE_DIR extern/mpg123/src/include CACHE STRING "mpg123 include dir" FORCE)
+      set(mpg123_LIBRARY mpg123 CACHE STRING "mpg123 library" FORCE)
+    endif()
+
+    # the rest
     set(BUILD_TESTING OFF CACHE BOOL "aaaaaa" FORCE)
     set(BUILD_PROGRAMS OFF CACHE BOOL "aaa" FORCE)
     set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
-    set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
-    set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
-    add_subdirectory(extern/libsndfile EXCLUDE_FROM_ALL)
+    set(ENABLE_EXTERNAL_LIBS ${WITH_OGG} CACHE BOOL "come on" FORCE)
+    set(ENABLE_MPEG ${WITH_MPEG} CACHE BOOL "come on" FORCE)
+    add_subdirectory(extern/libsndfile-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES sndfile)
     message(STATUS "Using vendored libsndfile")
   endif()
@@ -310,7 +369,7 @@ if (WITH_PORTAUDIO)
     set(PA_BUILD_SHARED_LIBS OFF CACHE BOOL "Build dynamic library" FORCE)
     # don't - Furnace has its own implementation
     set(PA_USE_JACK OFF CACHE BOOL "Enable support for JACK Audio Connection Kit" FORCE)
-    add_subdirectory(extern/portaudio EXCLUDE_FROM_ALL)
+    add_subdirectory(extern/portaudio-modified EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES PortAudio)
     message(STATUS "Using vendored PortAudio")
   endif()
@@ -350,6 +409,7 @@ else()
   set(BUILD_EXAMPLES OFF CACHE BOOL "a" FORCE)
   set(ENABLE_EXTERNAL_LIBS OFF CACHE BOOL "come on" FORCE)
   set(ENABLE_MPEG OFF CACHE BOOL "come on" FORCE)
+  set(ZLIB_BUILD_EXAMPLES OFF CACHE BOOL "come on" FORCE)
   add_subdirectory(extern/zlib EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/zlib ${CMAKE_CURRENT_BINARY_DIR}/extern/zlib)
   list(APPEND DEPENDENCIES_LIBRARIES zlibstatic)
@@ -431,6 +491,14 @@ else()
   endif()
 endif()
 
+if (WITH_JSON)
+  list(APPEND DEPENDENCIES_DEFINES WITH_JSON)
+  set(JSON_BuildTests OFF CACHE INTERNAL "")
+  set(JSON_Install OFF CACHE INTERNAL "")
+  add_subdirectory(extern/json)
+  list(APPEND DEPENDENCIES_LIBRARIES nlohmann_json::nlohmann_json)
+endif()
+
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
 src/audio/midi.cpp
@@ -459,6 +527,25 @@ else()
   message(STATUS "Building without JACK support")
 endif()
 
+if (WITH_ASIO)
+  if (NOT WIN32)
+    message(FATAL_ERROR "ASIO is only available on Windows!")
+  endif()
+  add_subdirectory(extern/asio)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_ASIO)
+  list(APPEND DEPENDENCIES_DEFINES FURNACE_GPL3)
+  list(APPEND AUDIO_SOURCES src/audio/asio.cpp)
+  list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/asio/common extern/asio/host)
+  list(APPEND DEPENDENCIES_LIBRARIES ASIO)
+  message(STATUS "Building with ASIO support")
+  set(FURNACE_LICENSE "GPLv3")
+else()
+  if (WIN32)
+    message(STATUS "Building without ASIO support")
+  endif()
+  set(FURNACE_LICENSE "GPLv2")
+endif()
+
 if (WITH_PORTAUDIO)
   list(APPEND AUDIO_SOURCES src/audio/pa.cpp)
   message(STATUS "Building with PortAudio")
@@ -475,11 +562,24 @@ else()
   message(STATUS "Building without RtMidi")
 endif()
 
+# Preserve the envelope behavior of the Nuked-OPL3 revision that Furnace
+# previously vendored. Its later quad-output update already included the
+# immediate 4-op routing fix, so OPL_COMPAT_DEFERRED_4OP_ALG must remain off.
+set_property(
+  SOURCE extern/opl/opl3.c
+  APPEND PROPERTY COMPILE_DEFINITIONS
+  OPL_COMPAT_OLD_EG=1
+)
+
 set(ENGINE_SOURCES
 src/log.cpp
 src/baseutils.cpp
 src/fileutils.cpp
+src/timeutils.cpp
 src/utfutils.cpp
+
+src/fileutils/abstract.cpp
+src/fileutils/cfile.cpp
 
 extern/itcompress/compression.c
 
@@ -530,6 +630,9 @@ extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
+extern/Nuked-OPL2-Lite/opl2.c
+extern/Nuked-CQM/cqm.c
+extern/YM2203-LLE/fmopn.c
 extern/YM3812-LLE/fmopl2.c
 extern/YMF262-LLE/fmopl3.c
 extern/YMF276-LLE/fmopn2.c
@@ -539,8 +642,12 @@ extern/emu2413/emu2413.c
 extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
+extern/YM2151-LLE/fmopm.c
+extern/YM2414-LLE/opz_lle.c
 
 extern/pwrnoise/pwrnoise.c
+
+extern/blip_buf/blip_buf.c
 
 src/pch.cpp
 
@@ -552,9 +659,9 @@ src/engine/platform/sound/segapcm.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
-src/engine/platform/sound/nes/apu.c
-src/engine/platform/sound/nes/fds.c
-src/engine/platform/sound/nes/mmc5.c
+src/engine/platform/sound/nes/apu.cpp
+src/engine/platform/sound/nes/fds.cpp
+src/engine/platform/sound/nes/mmc5.cpp
 src/engine/platform/sound/vera_psg.c
 src/engine/platform/sound/vera_pcm.c
 src/engine/platform/sound/ymf278b/ymf278.cpp
@@ -627,7 +734,7 @@ src/engine/platform/sound/pokey/AltASAP.cpp
 
 src/engine/platform/sound/qsound.c
 
-src/engine/platform/sound/swan.cpp
+src/engine/platform/sound/swan.c
 
 src/engine/platform/sound/su.cpp
 
@@ -652,7 +759,7 @@ src/engine/platform/sound/sm8521.c
 
 src/engine/platform/sound/supervision.c
 
-src/engine/platform/sound/upd1771c.c
+src/engine/platform/sound/upd1771.cpp
 
 src/engine/platform/sound/d65modified.c
 
@@ -661,8 +768,6 @@ src/engine/platform/sound/ted-sound.c
 src/engine/platform/sound/c140_c219.c
 
 src/engine/platform/sound/dave/dave.cpp
-
-src/engine/platform/sound/nds.cpp
 
 src/engine/platform/sound/sid2/envelope.cc
 src/engine/platform/sound/sid2/filter.cc
@@ -687,6 +792,7 @@ src/engine/fileOps/fc.cpp
 src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/it.cpp
+src/engine/fileOps/midi.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
@@ -701,11 +807,12 @@ src/engine/fileOps/pps.cpp
 src/engine/fileOps/pvi.cpp
 src/engine/fileOps/pzi.cpp
 
-src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
 src/engine/workPool.cpp
+
+src/engine/assetDir.cpp
 src/engine/cmdStream.cpp
 src/engine/cmdStreamOps.cpp
 src/engine/config.cpp
@@ -716,8 +823,10 @@ src/engine/export.cpp
 src/engine/exportDef.cpp
 src/engine/fileOpsIns.cpp
 src/engine/fileOpsSample.cpp
+src/engine/filePlayer.cpp
 src/engine/filter.cpp
 src/engine/instrument.cpp
+src/engine/legacySample.cpp
 src/engine/macroInt.cpp
 src/engine/pattern.cpp
 src/engine/pitchTable.cpp
@@ -790,7 +899,7 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/supervision.cpp
-src/engine/platform/upd1771c.cpp
+src/engine/platform/scvtone.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
@@ -802,8 +911,10 @@ src/engine/platform/gbadma.cpp
 src/engine/platform/gbaminmod.cpp
 src/engine/platform/nds.cpp
 src/engine/platform/bifurcator.cpp
+src/engine/platform/klattsch.cpp
 src/engine/platform/sid2.cpp
 src/engine/platform/sid3.cpp
+src/engine/platform/multipcm.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -813,13 +924,26 @@ src/engine/export/s98.cpp
 src/engine/export/sapr.cpp
 src/engine/export/tiuna.cpp
 src/engine/export/zsm.cpp
+src/engine/export/ipod.cpp
+src/engine/export/grub.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
 )
 
+if (ORIG_NDS_CORE)
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds_unopt.cpp)
+  list(APPEND DEPENDENCIES_DEFINES ORIG_NDS_CORE)
+else()
+  list(APPEND ENGINE_SOURCES src/engine/platform/sound/nds.cpp)
+endif()
+
 if (USE_SNDFILE)
   list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
+endif()
+
+if (WITH_JSON)
+  list(APPEND ENGINE_SOURCES src/engine/fileOps/json.cpp)
 endif()
 
 if (WIN32)
@@ -847,13 +971,26 @@ extern/imgui_patched/imgui_widgets.cpp
 extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_software_renderer/imgui_sw.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
-extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
+
+src/gui/presets/arcadeSystems.cpp
+src/gui/presets/computers.cpp
+src/gui/presets/defleCompat.cpp
+src/gui/presets/fm.cpp
+src/gui/presets/gameConsoles.cpp
+src/gui/presets/sample.cpp
+src/gui/presets/specialized.cpp
+src/gui/presets/square.cpp
+src/gui/presets/user.cpp
+src/gui/presets/wavetable.cpp
 
 src/gui/render.cpp
 src/gui/render/abstract.cpp
 src/gui/render/renderSoftware.cpp
+
+src/gui/settings/allSettings.cpp
+src/gui/settings/loadSettings.cpp
 
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
@@ -871,26 +1008,23 @@ src/gui/fonts.cpp
 src/gui/fontzlib.cpp
 
 src/gui/image_icon.cpp
-src/gui/image_talogo.cpp
-src/gui/image_tachip.cpp
-src/gui/image_logo.cpp
-src/gui/image_wordmark.cpp
-src/gui/image_introbg.cpp
-src/gui/image_pat.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
+src/gui/newFilePicker.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
-
-src/gui/introTune.cpp
+src/gui/klattschInput.cpp
 
 src/gui/about.cpp
+src/gui/backupsManager.cpp
 src/gui/channels.cpp
+src/gui/oscTrigger.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
+src/gui/commandPalette.cpp
 src/gui/compatFlags.cpp
 src/gui/csPlayer.cpp
 src/gui/cursor.cpp
@@ -906,25 +1040,27 @@ src/gui/fmPreview.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
-src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/memory.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
+src/gui/multiInsSetup.cpp
 src/gui/newSong.cpp
-src/gui/commandPalette.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp
 src/gui/pattern.cpp
 src/gui/piano.cpp
 src/gui/presets.cpp
+src/gui/refPlayer.cpp
 src/gui/regView.cpp
 src/gui/sampleEdit.cpp
 src/gui/scaling.cpp
 src/gui/settings.cpp
+src/gui/newSettings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/spectrum.cpp
 src/gui/speed.cpp
 src/gui/spoiler.cpp
 src/gui/stats.cpp
@@ -934,6 +1070,7 @@ src/gui/sysEx.cpp
 src/gui/sysManager.cpp
 src/gui/sysMiscInfo.cpp
 src/gui/sysPicker.cpp
+src/gui/tuner.cpp
 src/gui/tutorial.cpp
 src/gui/userPresets.cpp
 src/gui/util.cpp
@@ -942,6 +1079,21 @@ src/gui/volMeter.cpp
 src/gui/xyOsc.cpp
 src/gui/gui.cpp
 )
+
+if (NOT NO_INTRO)
+  list(APPEND GUI_SOURCES src/gui/introTune.cpp)
+  list(APPEND GUI_SOURCES src/gui/intro.cpp)
+  list(APPEND GUI_SOURCES
+  src/gui/image_talogo.cpp
+  src/gui/image_tachip.cpp
+  src/gui/image_logo.cpp
+  src/gui/image_wordmark.cpp
+  src/gui/image_introbg.cpp
+  src/gui/image_pat.cpp
+  )
+else()
+  list(APPEND DEPENDENCIES_DEFINES NO_INTRO)
+endif()
 
 if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
@@ -1113,15 +1265,7 @@ if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      include(CheckCXXCompilerFlag)
-      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
-      if (GCC_CODEVIEW)
-        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
-        add_compile_options(-gcodeview)
-        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
-      else()
-        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
-      endif()
+      message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
       list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
     endif()
   endif()
@@ -1140,7 +1284,6 @@ if (BUILD_GUI)
     extern/imgui_patched
     extern/imgui_patched/backends
     extern/imgui_software_renderer
-    extern/igfd
   )
   if (WIN32 OR APPLE)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS
@@ -1275,7 +1418,11 @@ if (NOT ANDROID OR TERMUX)
     endif()
     install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
-    install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
+    if (FURNACE_LICENSE STREQUAL "GPLv3")
+      install(FILES LICENSE.GPLv3 DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace RENAME LICENSE)
+    else()
+      install(FILES LICENSE.GPLv2 DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace RENAME LICENSE)
+    endif()
     list(APPEND DEPENDENCIES_DEFINES LOCALE_DIR="${CMAKE_INSTALL_FULL_LOCALEDIR}")
     install(DIRECTORY po/locale/ DESTINATION ${CMAKE_INSTALL_LOCALEDIR})
     if (WITH_DEMOS OR WITH_INSTRUMENTS OR WITH_WAVETABLES)
@@ -1310,3 +1457,5 @@ if (NOT ANDROID OR TERMUX)
 endif()
 
 target_compile_definitions(${FURNACE} PRIVATE ${DEPENDENCIES_DEFINES})
+
+message(STATUS "License: ${FURNACE_LICENSE}")

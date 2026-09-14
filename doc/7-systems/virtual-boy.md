@@ -22,12 +22,15 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
   - `y` sets the speed and direction.
     - `0-7`: down
     - `8-F`: up
+  - IMPORTANT: if the envelope ends, you will not be able to trigger another envelope until you reset the channel's phase! (this is a Virtual Boy hardware bug)
+    - setting a phase reset macro at the beginning will do.
 - `13xy`: **setup sweep.**
   - `x` sets the speed.
     - `0` and `8` are "speed 0" - sweep is ineffective.
   - `y` sets the shift (`0` to `7`).
     - `8` and higher will mute the channel.
   - only in channel 5.
+  - if modulation ends, you cannot sweep until the next phase reset.
 - `14xy`: **setup modulation.**
   - `x` determines whether it's enabled or not.
     - 0: disabled
@@ -38,6 +41,8 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
     - `0` and `8` are "speed 0" - modulation is ineffective.
     - no, you can't really do Yamaha FM using this.
   - only in channel 5.
+  - IMPORTANT: if the modulation ends, you will not be able to trigger another envelope until you reset the channel's phase! (this is a Virtual Boy hardware bug)
+    - setting a phase reset macro at the beginning will do.
 - `15xx`: **set modulation wave.**
   - `xx` points to a wavetable. range is `0` to `FF`.
   - this is an alternative to setting the modulation wave through the instrument.
@@ -46,10 +51,20 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
 
 this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.
 
+## channel status
+
+the following icons are displayed when channel status is enabled in the pattern view:
+
+- ![envelope off](status-VBoy-env-none.png) hardware envelope is disabled or running OK
+- ![envelope warning](status-VBoy-env-warn.png) hardware envelope has finished - attempting to write a new envelope won't work without phase reset!
+- ![envelope error](status-VBoy-env-error.png) can't start hardware envelope - please reset phase
+
 ## chip config
 
 the following options are available in the Chip Manager window:
 
 - **Waveform storage mode**: selects how will waveforms be loaded.
-  - Dynamic: allows switching between many waves, but it is not confirmed whether this really works on hardware.
   - Static: loads the first 5 waves only.
+  - Dynamic: allows switching between more than 5 waves, but loading a new wave forces all channels off and back on again, usually with an audible click.
+    - **Disable anti-phase-reset**: disables the workaround to a phase reset that occurs on all channels when the waveform of any channel is changed.
+    - **I don't care about hardware**: ignores the 5-wave limitation and allows dynamic waveforms without channel resets or clicking. _note:_ this is not hardware accurate!

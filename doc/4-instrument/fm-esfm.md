@@ -24,6 +24,7 @@ these apply to the instrument as a whole:
   - these are normally used for the drum channels in ESFM's OPL3 compatibility mode.
     - however, in ESFM, operator 4 can be modulated by operator 3, whereas in OPL3 drum mode the rhythm channels cannot be modulated.
   - __note__: usage of noise mode "Top" is discouraged for now as it is not properly emulated yet, and results may change when the emulation gets fixed in the future.
+- **Octave**: sets the "block" of the frequency register, which affects note range and precision.
 - **operator routing preview**: shows how operators are connected with each other and with the audio output (at the bottom).
   - left-click pops up a small "operators changes with volume?" dialog where each operator can be toggled to scale with volume level.
   - right-click switches to a preview display of the waveform generated on a new note:

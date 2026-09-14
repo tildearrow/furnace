@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,30 +24,75 @@
 #include <fmt/printf.h>
 #include "IconsFontAwesome4.h"
 
-const float topKeyStarts[5]={
-  0.9f/7.0f, 2.1f/7.0f, 3.9f/7.0f, 5.0f/7.0f, 6.1f/7.0f
-};
-
-const int topKeyNotes[5]={
-  1, 3, 6, 8, 10
-};
-
-const int bottomKeyNotes[7]={
-  0, 2, 4, 5, 7, 9, 11
-};
-
-const bool isTopKey[12]={
-  false, true, false, true, false, false, true, false, true, false, true, false
-};
-
 #define VALUE_DIGIT(x,label) \
   if (ImGui::Button(label,buttonSize)) { \
-    if (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0) { \
-      orderInput(x); \
-    } else { \
-      valueInput(x,false); \
-    } \
+    doValueDigit(x); \
+  } \
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) { \
+    doValueDigitClick(x); \
   }
+
+ImVec4 FurnaceGUI::pianoKeyColor(int chan, ImVec4 fallback) {
+  switch (pianoKeyColorMode) {
+    case PIANO_KEY_COLOR_CHANNEL:
+      return e->curSubSong->chanColor[chan]?ImGui::ColorConvertU32ToFloat4(e->curSubSong->chanColor[chan]):uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(chan)];
+    case PIANO_KEY_COLOR_INSTRUMENT: {
+      DivChannelState* state=e->getChanState(chan);
+      if (state) {
+        int ins=state->lastIns;
+        if (ins>=0) {
+          int type=e->getIns(ins)->type;
+          if (type>DIV_INS_MAX) return uiColors[GUI_COLOR_INSTR_UNKNOWN];
+          else return uiColors[GUI_COLOR_INSTR_STD+type];
+        }
+      }
+    }
+    // intentional fallthrough
+    case PIANO_KEY_COLOR_SINGLE:
+    default:
+      return fallback;
+  }
+}
+
+void FurnaceGUI::pianoLabel(ImDrawList* dl, ImVec2& p0, ImVec2& p1, int note) {
+  switch (pianoLabelsMode) {
+    case PIANO_LABELS_OFF:
+      return;
+    case PIANO_LABELS_OCTAVE:
+    case PIANO_LABELS_OCTAVE_C:
+      if (note%12) return;
+  }
+  String label="";
+  float padding=0.0f;
+  switch (pianoLabelsMode) {
+    case PIANO_LABELS_OCTAVE:
+      label=fmt::sprintf("%d",(note-60)/12);
+      padding=ImGui::GetStyle().ItemSpacing.y;
+      break;
+    case PIANO_LABELS_NOTE:
+      label=noteNames[60+(note%12)][0];
+      padding=ImGui::GetStyle().ItemSpacing.y;
+      break;
+    case PIANO_LABELS_NOTE_C:
+      if ((note%12)==0) {
+        label+=fmt::sprintf("%d\nC",(note-60)/12);
+      } else {
+        label=noteNames[60+(note%12)][0];
+      }
+      break;
+    case PIANO_LABELS_OCTAVE_C:
+      label=fmt::sprintf("C\n%d",(note-60)/12);
+      break;
+    case PIANO_LABELS_OCTAVE_NOTE:
+      label=fmt::sprintf("%c\n%d",noteNames[60+(note%12)][0],(note-60)/12);
+      break;
+  }
+  ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
+  ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
+  pText.x-=labelSize.x*0.5f;
+  pText.y-=labelSize.y+padding;
+  dl->AddText(pText,0xff404040,label.c_str());
+}
 
 void FurnaceGUI::drawPiano() {
   if (nextWindow==GUI_WINDOW_PIANO) {
@@ -60,6 +105,79 @@ void FurnaceGUI::drawPiano() {
     ImGui::SetNextWindowPos(ImVec2(patWindowPos.x,patWindowPos.y+patWindowSize.y));
     ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.4*canvasW):ImVec2(canvasW-(0.16*canvasH),0.3*canvasH));
   }
+
+  PianoInputMode curInputMode=PIANO_INPUT_NOTE;
+  if (cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) {
+    curInputMode=PIANO_INPUT_VALUE;
+  } else if (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0) {
+    curInputMode=PIANO_INPUT_ORDER;
+  } else if (curWindow==GUI_WINDOW_INS_EDIT && sampleMapWaitingInput) {
+    switch (sampleMapColumn) {
+      case 0:
+        curInputMode=PIANO_INPUT_SAMPLE_MAP_VALUE;
+        break;
+      case 1:
+        curInputMode=PIANO_INPUT_SAMPLE_MAP_NOTE;
+        break;
+      case 2:
+        curInputMode=PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ;
+        break;
+      case 3:
+        curInputMode=PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA;
+        break;
+    }
+  } else if (cursor.xCoarse>=0 && cursor.xCoarse<e->getTotalChannelCount() && curOrder>=0 && curOrder<DIV_MAX_PATTERNS && cursor.y>=0 && cursor.y<DIV_MAX_ROWS) {
+    // check for raw note  
+    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],false);
+
+    if (pat->newData[cursor.y][DIV_PAT_NOTE]==DIV_NOTE_RAW) {
+      curInputMode=PIANO_INPUT_RAW_FREQ;
+    }
+  }
+
+  bool curInputIsValue=(
+    curInputMode==PIANO_INPUT_VALUE ||
+    curInputMode==PIANO_INPUT_ORDER ||
+    curInputMode==PIANO_INPUT_SAMPLE_MAP_VALUE ||
+    curInputMode==PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ ||
+    curInputMode==PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA ||
+    curInputMode==PIANO_INPUT_RAW_FREQ
+  );
+
+  auto doValueDigit=[this,curInputMode](int value) {
+    switch (curInputMode) {
+      case PIANO_INPUT_VALUE:
+        valueInput(value,false);
+        break;
+      case PIANO_INPUT_ORDER:
+        orderInput(value);
+        break;
+      case PIANO_INPUT_SAMPLE_MAP_VALUE:
+        alterSampleMap(0,value);
+        break;
+      case PIANO_INPUT_SAMPLE_MAP_DPCM_FREQ:
+        alterSampleMap(2,value);
+        break;
+      case PIANO_INPUT_SAMPLE_MAP_DPCM_DELTA:
+        alterSampleMap(3,value);
+        break;
+      case PIANO_INPUT_RAW_FREQ:
+        rawFreqInput(value);
+        break;
+      default:
+        logE("input pad %d on invalid target!",value);
+        break;
+    }
+  };
+
+  auto doValueDigitClick=[this](int value) {
+    if (curRawNoteState==GUI_RAWNOTE_READY) {
+      if (!e->autoNoteOn(-1,curIns,(curRawNote<<4)|value|DIV_NOTE_RAW_FLAG)) failedNoteOn=true;
+      pendingRawNote=(curRawNote<<4)|value;
+      pendingRawNoteKey=(SDL_Keycode)0;
+    }
+  };
+
   if (ImGui::Begin("Piano",&pianoOpen,((pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags,_("Piano"))) {
     bool oldPianoKeyPressed[180];
     memcpy(oldPianoKeyPressed,pianoKeyPressed,180*sizeof(bool));
@@ -77,7 +195,8 @@ void FurnaceGUI::drawPiano() {
       if (pianoOptions) {
         ImGui::TableNextColumn();
         float optionSizeY=ImGui::GetContentRegionAvail().y*((mobileUI && portrait)?0.3:0.5)-ImGui::GetStyle().ItemSpacing.y;
-        ImVec2 optionSize=ImVec2((mobileUI && portrait)?((ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x*5.0f)/6.0f):(1.2f*optionSizeY),optionSizeY);
+        const int buttonCount=(mobileUI && pianoOptionsSet)?7:6;
+        ImVec2 optionSize=ImVec2((mobileUI && portrait)?((ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x*(float)(buttonCount-1))/((float)buttonCount)):(1.2f*optionSizeY),optionSizeY);
         if (pianoOptionsSet) {
           if (ImGui::Button("OFF##PianoNOff",optionSize)) {
             if (edit) noteInput(0,GUI_NOTE_OFF);
@@ -130,6 +249,39 @@ void FurnaceGUI::drawPiano() {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
           ImGui::Unindent();
+          ImGui::Text(_("Key labels:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Off##keyLabel0"),pianoLabelsMode==PIANO_LABELS_OFF)) {
+            pianoLabelsMode=PIANO_LABELS_OFF;
+          }
+          if (ImGui::RadioButton(_("Octaves##keyLabel1"),pianoLabelsMode==PIANO_LABELS_OCTAVE)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE;
+          }
+          if (ImGui::RadioButton(_("Notes##keyLabel2"),pianoLabelsMode==PIANO_LABELS_NOTE)) {
+            pianoLabelsMode=PIANO_LABELS_NOTE;
+          }
+          if (ImGui::RadioButton(_("Notes (with octave)##keyLabel3"),pianoLabelsMode==PIANO_LABELS_NOTE_C)) {
+            pianoLabelsMode=PIANO_LABELS_NOTE_C;
+          }
+          if (ImGui::RadioButton(_("Octaves (with C)##keyLabel4"),pianoLabelsMode==PIANO_LABELS_OCTAVE_C)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE_C;
+          }
+          if (ImGui::RadioButton(_("Notes + Octaves##keyLabel5"),pianoLabelsMode==PIANO_LABELS_OCTAVE_NOTE)) {
+            pianoLabelsMode=PIANO_LABELS_OCTAVE_NOTE;
+          }
+          ImGui::Unindent();
+          ImGui::Text(_("Key colors:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Single color##keyColor0"),pianoKeyColorMode==PIANO_KEY_COLOR_SINGLE)) {
+            pianoKeyColorMode=PIANO_KEY_COLOR_SINGLE;
+          }
+          if (ImGui::RadioButton(_("Channel color##keyColor1"),pianoKeyColorMode==PIANO_KEY_COLOR_CHANNEL)) {
+            pianoKeyColorMode=PIANO_KEY_COLOR_CHANNEL;
+          }
+          if (ImGui::RadioButton(_("Instrument color##keyColor2"),pianoKeyColorMode==PIANO_KEY_COLOR_INSTRUMENT)) {
+            pianoKeyColorMode=PIANO_KEY_COLOR_INSTRUMENT;
+          }
+          ImGui::Unindent();
           ImGui::Checkbox(_("Share play/edit offset/range"),&pianoSharePosition);
           ImGui::Checkbox(_("Read-only (can't input notes)"),&pianoReadonly);
           ImGui::EndPopup();
@@ -146,6 +298,12 @@ void FurnaceGUI::drawPiano() {
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_TIMES "##PianoDelP",optionSize)) {
             doDelete();
+          }
+          if (mobileUI) {
+            ImGui::SameLine();
+            if (ImGui::Button("RAW##PianoRaw",optionSize)) {
+              if (edit) noteInput(0,GUI_NOTE_RAW);
+            }
           }
         } else {
           if (ImGui::Button(ICON_FA_MINUS "##PianoOctaveDown",optionSize)) {
@@ -170,7 +328,7 @@ void FurnaceGUI::drawPiano() {
       }
 
       ImGui::TableNextColumn();
-      if (pianoInputPadMode==PIANO_INPUT_PAD_REPLACE && ((cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) || (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0))) {
+      if (pianoInputPadMode==PIANO_INPUT_PAD_REPLACE && curInputIsValue) {
         ImVec2 buttonSize=ImGui::GetContentRegionAvail();
         if (ImGui::BeginTable("InputPadP",8,ImGuiTableFlags_SizingFixedSame)) {
           ImGui::TableNextRow();
@@ -252,12 +410,12 @@ void FurnaceGUI::drawPiano() {
               int note=i+12*off;
               if (note<0) continue;
               if (note>=180) continue;
-              float pkh=pianoKeyHit[note];
+              float pkh=pianoKeyHit[note].value;
               ImVec4 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
               if (pianoKeyPressed[note]) {
                 color=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=isTopKey[i%12]?uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]:uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=pianoKeyColor(pianoKeyHit[note].chan,uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]);
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -267,14 +425,7 @@ void FurnaceGUI::drawPiano() {
               ImVec2 p1=ImLerp(rect.Min,rect.Max,ImVec2((float)(i+1)/notes,1.0f));
               p1.x-=dpiScale;
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
-              if ((i%12)==0) {
-                String label=fmt::sprintf("%d",(note-60)/12);
-                ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
-                ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
-                pText.x-=labelSize.x*0.5f;
-                pText.y-=labelSize.y+ImGui::GetStyle().ItemSpacing.y;
-                dl->AddText(pText,0xff404040,label.c_str());
-              }
+              if (isTopKey[i%12]) pianoLabel(dl,p0,p1,note);
             }
           } else {
             int bottomNotes=7*oct;
@@ -317,12 +468,12 @@ void FurnaceGUI::drawPiano() {
               if (note<0) continue;
               if (note>=180) continue;
 
-              float pkh=pianoKeyHit[note];
+              float pkh=pianoKeyHit[note].value;
               ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM];
               if (pianoKeyPressed[note]) {
                 color=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE];
               } else {
-                ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT];
+                ImVec4 colorHit=pianoKeyColor(pianoKeyHit[note].chan,uiColors[GUI_COLOR_PIANO_KEY_BOTTOM_HIT]);
                 color.x+=(colorHit.x-color.x)*pkh;
                 color.y+=(colorHit.y-color.y)*pkh;
                 color.z+=(colorHit.z-color.z)*pkh;
@@ -334,14 +485,7 @@ void FurnaceGUI::drawPiano() {
               p1.x-=dpiScale;
 
               dl->AddRectFilled(p0,p1,ImGui::ColorConvertFloat4ToU32(color));
-              if ((i%7)==0) {
-                String label=fmt::sprintf("%d",(note-60)/12);
-                ImVec2 pText=ImLerp(p0,p1,ImVec2(0.5f,1.0f));
-                ImVec2 labelSize=ImGui::CalcTextSize(label.c_str());
-                pText.x-=labelSize.x*0.5f;
-                pText.y-=labelSize.y+ImGui::GetStyle().ItemSpacing.y;
-                dl->AddText(pText,0xff404040,label.c_str());
-              }
+              pianoLabel(dl,p0,p1,note);
             }
 
             for (int i=0; i<oct; i++) {
@@ -352,12 +496,12 @@ void FurnaceGUI::drawPiano() {
                 int note=topKeyNotes[j]+12*(i+off);
                 if (note<0) continue;
                 if (note>=180) continue;
-                float pkh=pianoKeyHit[note];
+                float pkh=pianoKeyHit[note].value;
                 ImVec4 color=uiColors[GUI_COLOR_PIANO_KEY_TOP];
                 if (pianoKeyPressed[note]) {
                   color=uiColors[GUI_COLOR_PIANO_KEY_TOP_ACTIVE];
                 } else {
-                  ImVec4 colorHit=uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT];
+                  ImVec4 colorHit=pianoKeyColor(pianoKeyHit[note].chan,uiColors[GUI_COLOR_PIANO_KEY_TOP_HIT]);
                   color.x+=(colorHit.x-color.x)*pkh;
                   color.y+=(colorHit.y-color.y)*pkh;
                   color.z+=(colorHit.z-color.z)*pkh;
@@ -376,8 +520,8 @@ void FurnaceGUI::drawPiano() {
 
           const float reduction=ImGui::GetIO().DeltaTime*60.0f*0.12;
           for (int i=0; i<180; i++) {
-            pianoKeyHit[i]-=reduction;
-            if (pianoKeyHit[i]<0) pianoKeyHit[i]=0;
+            pianoKeyHit[i].value-=reduction;
+            if (pianoKeyHit[i].value<0) pianoKeyHit[i].value=0;
           }
         }
 
@@ -387,7 +531,7 @@ void FurnaceGUI::drawPiano() {
 
         // first check released keys
         for (int i=0; i<180; i++) {
-          int note=i-60;
+          int note=i;
           if (!pianoKeyPressed[i]) {
             if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
               switch (curWindow) {
@@ -411,7 +555,7 @@ void FurnaceGUI::drawPiano() {
         }
         // then pressed ones
         for (int i=0; i<180; i++) {
-          int note=i-60;
+          int note=i;
           if (pianoKeyPressed[i]) {
             if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
               switch (curWindow) {
@@ -429,6 +573,11 @@ void FurnaceGUI::drawPiano() {
                   } else {
                     e->synchronized([this,note]() {
                       if (!e->autoNoteOn(-1,curIns,note)) failedNoteOn=true;
+                      for (int mi=0; mi<7; mi++) {
+                        if (multiIns[mi]!=-1) {
+                          e->autoNoteOn(-1,multiIns[mi],note,-1,multiInsTranspose[mi]);
+                        }
+                      }
                     });
                     if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
                   }
@@ -447,9 +596,9 @@ void FurnaceGUI::drawPiano() {
   ImGui::End();
 
   // draw input pad if necessary
-  if ((curWindow==GUI_WINDOW_ORDERS || curWindow==GUI_WINDOW_PATTERN || !mobileUI) && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && (cursor.xFine>0 || (curWindow==GUI_WINDOW_ORDERS && orderEditMode>0))) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
+  if ((curWindow==GUI_WINDOW_ORDERS || curWindow==GUI_WINDOW_PATTERN || !mobileUI) && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && curInputIsValue) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
     if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
-      ImGui::BeginDisabled(cursor.xFine==0 && !(curWindow==GUI_WINDOW_ORDERS && orderEditMode>0));
+      ImGui::BeginDisabled(!curInputIsValue);
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

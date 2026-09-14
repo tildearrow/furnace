@@ -23,16 +23,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 namespace MDFN_IEN_NGP
 {
 
-void fakeBufOffset(int time, int delta, Fake_Buffer* buf) {
-  buf->curValue+=delta;
-}
-
 T6W28_Osc::T6W28_Osc()
 {
 	outputs [0] = NULL; // always stays NULL
 	outputs [1] = NULL;
-	outputs [2] = NULL;
-	outputs [3] = NULL;
+        oscBuf=NULL;
 }
 
 void T6W28_Osc::reset()
@@ -54,6 +49,7 @@ void T6W28_Square::reset()
 	T6W28_Osc::reset();
 }
 
+// <<7 shift needed
 void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 {
 	if ((!volume_left && !volume_right) || period <= 128 )
@@ -61,15 +57,17 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		// ignore 16kHz and higher
 		if ( last_amp_left )
 		{
-			fakeBufOffset( time, -last_amp_left, outputs[2] );
+			blip_add_delta( outputs[0], time, -last_amp_left );
 			last_amp_left = 0;
 		}
 
                 if ( last_amp_right )
                 {
-                        fakeBufOffset( time, -last_amp_right, outputs[1] );
+                        blip_add_delta( outputs[1], time, -last_amp_right );
                         last_amp_right = 0;
                 }
+
+    oscBuf->putSample(time,0);
 
 		time += delay;
 		if ( !period )
@@ -96,21 +94,23 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		 if ( delta_left )
 		 {
 			last_amp_left = amp_left;
-			fakeBufOffset( time, delta_left, outputs[2] );
+			blip_add_delta( outputs[0], time, delta_left );
 		 }
 		
                  if ( delta_right )
                  {
                         last_amp_right = amp_right;
-                        fakeBufOffset( time, delta_right, outputs[1] );
+                        blip_add_delta( outputs[1], time, delta_right );
                  }
+
+      oscBuf->putSample(time,(amp_left+amp_right)>>2);
 		}
 
 		time += delay;
 		if ( time < end_time )
 		{
-			Fake_Buffer* const output_left = this->outputs[2];
-			Fake_Buffer* const output_right = this->outputs[1];
+			blip_buffer_t* const output_left = this->outputs[0];
+			blip_buffer_t* const output_right = this->outputs[1];
 
 			int delta_left = amp_left * 2;
 			int delta_right = amp_right * 2;
@@ -118,11 +118,16 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 			{
 				delta_left = -delta_left;
 				delta_right = -delta_right;
+        phase ^= 1;
+        amp_left = phase ? volume_left : -volume_left;
+		    amp_right = phase ? volume_right : -volume_right;
 
-				fakeBufOffset( time, delta_left, output_left );
-				fakeBufOffset( time, delta_right, output_right );
+				blip_add_delta( output_left, time, delta_left );
+				blip_add_delta( output_right, time, delta_right );
+
+        oscBuf->putSample(time,(amp_left+amp_right)>>2);
 				time += period;
-				phase ^= 1;
+
 			}
 			while ( time < end_time );
 
@@ -140,8 +145,8 @@ static const int noise_periods [3] = { 0x100, 0x200, 0x400 };
 void T6W28_Noise::reset()
 {
 	period = &noise_periods [0];
-	shifter = 0x4000;
-	tap = 13;
+	shifter = 0xfffe;
+	tap = 12;
 	period_extra = 0;
 	T6W28_Osc::reset();
 }
@@ -164,14 +169,16 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 	 if ( delta_left )
 	 {
 		last_amp_left = amp_left;
-		fakeBufOffset( time, delta_left, outputs[2] );
+		blip_add_delta( outputs[0], time, delta_left );
 	 }
 	
          if ( delta_right )
          {
                 last_amp_right = amp_right;
-                fakeBufOffset( time, delta_right, outputs[1] );
+                blip_add_delta( outputs[1], time, delta_right );
          }
+
+    oscBuf->putSample(time,(amp_left+amp_right)>>2);
 	}
 
 	time += delay;
@@ -181,8 +188,8 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 	
 	if ( time < end_time )
 	{
-		Fake_Buffer* const output_left = this->outputs[2];
-		Fake_Buffer* const output_right = this->outputs[1];
+		blip_buffer_t* const output_left = this->outputs[0];
+		blip_buffer_t* const output_right = this->outputs[1];
 
 		unsigned l_shifter = this->shifter;
 		int delta_left = amp_left * 2;
@@ -194,15 +201,24 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 		
 		do
 		{
-			int changed = (l_shifter + 1) & 2; // set if prev and next bits differ
-			l_shifter = (((l_shifter << 14) ^ (l_shifter << tap)) & 0x4000) | (l_shifter >> 1);
-			if ( changed )
+                        int prev_l_shifter=l_shifter;
+                        if (tap==16) {
+			  l_shifter = ((l_shifter >> 14) & 1) | (l_shifter << 1);
+                        } else {
+			  l_shifter = ((((l_shifter >> 15)&1) ^ ((l_shifter >> 12)&1)) & 1) | (l_shifter << 1);
+                        }
+			if ( (prev_l_shifter^l_shifter)&1 )
 			{
 				delta_left = -delta_left;
-				fakeBufOffset( time, delta_left, output_left );
+				blip_add_delta( output_left, time, delta_left );
 
 				delta_right = -delta_right;
-				fakeBufOffset( time, delta_right, output_right );
+				blip_add_delta( output_right, time, delta_right );
+
+        amp_left=-amp_left;
+        amp_right=-amp_right;
+
+        oscBuf->putSample(time,(amp_left+amp_right)>>2);
 			}
 			time += l_period;
 		}
@@ -233,20 +249,20 @@ T6W28_Apu::~T6W28_Apu()
 }
 
 
-void T6W28_Apu::osc_output( int index, Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right )
+void T6W28_Apu::osc_output( int index, DivDispatchOscBuffer* oscBuf )
 {
 	require( (unsigned int) index < osc_count );
-	require( (center && left && right) || (!center && !left && !right) );
 	T6W28_Osc& osc = *oscs [index];
-	osc.outputs [1] = right;
-	osc.outputs [2] = left;
-	osc.outputs [3] = center;
+	osc.oscBuf = oscBuf;
 }
 
-void T6W28_Apu::output( Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right )
+void T6W28_Apu::output( blip_buffer_t* left, blip_buffer_t* right )
 {
-	for ( int i = 0; i < osc_count; i++ )
-		osc_output( i, center, left, right );
+	for ( int i = 0; i < osc_count; i++ ) {
+	        T6W28_Osc& osc = *oscs [i];
+	        osc.outputs[0]=left;
+	        osc.outputs[1]=right;
+        }
 }
 
 void T6W28_Apu::reset()
@@ -291,13 +307,14 @@ bool T6W28_Apu::end_frame( sms_time_t end_time )
 	
 	assert( last_time >= end_time );
 	last_time -= end_time;
+  assert(last_time == 0);
 	
 	return(1);
 }
 
-static const unsigned char volumes [16] = {
+static const int volumes [16] = {
 	// volumes [i] = 64 * pow( 1.26, 15 - i ) / pow( 1.26, 15 )
-	64, 50, 39, 31, 24, 19, 15, 12, 9, 7, 5, 4, 3, 2, 1, 0
+	64<<7, 50<<7, 39<<7, 31<<7, 24<<7, 19<<7, 15<<7, 12<<7, 9<<7, 7<<7, 5<<7, 4<<7, 3<<7, 2<<7, 1<<7, 0
 };
 
 void T6W28_Apu::write_data_left( sms_time_t time, int data )
@@ -357,8 +374,8 @@ void T6W28_Apu::write_data_right( sms_time_t time, int data )
                         noise.period = &noise.period_extra;
 
                 int const tap_disabled = 16;
-                noise.tap = (data & 0x04) ? 13 : tap_disabled;
-                noise.shifter = 0x4000;
+                noise.tap = (data & 0x04) ? 12 : tap_disabled;
+                noise.shifter = 0xfffe;
         }
 }
 

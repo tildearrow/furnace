@@ -24,6 +24,8 @@
 #define __MDFN_HW_SOUND_PCE_PSG_PCE_PSG_H
 
 #include <stdint.h>
+#include "blip_buf.h"
+#include "../../dispatch.h"
 
 class PCE_PSG;
 
@@ -40,6 +42,7 @@ struct psg_channel
   int32_t counter;
 
   void (PCE_PSG::*UpdateOutput)(const int32_t timestamp, psg_channel *ch);
+  DivDispatchOscBuffer* oscBuf;
 
   uint32_t freq_cache;
   uint32_t noise_freq_cache;        // Channel 4,5 only
@@ -130,7 +133,7 @@ class PCE_PSG
   };
 
 
-  PCE_PSG(int32_t* hr_l, int32_t* hr_r, int want_revision);
+  PCE_PSG(int want_revision);
   ~PCE_PSG();
 
   void Power(const int32_t timestamp);
@@ -149,6 +152,8 @@ class PCE_PSG
   void PokeWave(const unsigned int ch, uint32_t Address, uint32_t Length, const uint8_t *Buffer);
   
   psg_channel channel[6];
+
+  blip_buffer_t* bb[2];
 
   private:
 
@@ -182,8 +187,6 @@ class PCE_PSG
 
   int32_t lastts;
   int revision;
-
-  int32_t* HRBufs[2];
 
   int32_t dbtable_volonly[32];
 

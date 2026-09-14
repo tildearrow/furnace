@@ -84,6 +84,15 @@ the following icons are displayed when channel status is enabled in the pattern 
   - ![envelope sustain](status-SNES-env-S.png) envelope sustain
   - ![envelope release](status-SNES-env-R.png) envelope release
 
+## creating looping samples
+
+here's a reliable way to create a perfect sample loop compatible with the SNES:
+
+- open the sample in the sample editor, and switch its type to "16-bit PCM".
+- assuming a song tuning of A=440, make sure the sample's tuning is set so C-4 actually plays middle C.
+- resample it to 16744 Hz (or some multiple of 4186).
+- set the loop to 64 samples long (or a matching multiple of 16) to capture a single cycle of the waveform.
+
 ## chip config
 
 the following options are available in the Chip Manager window:
@@ -97,6 +106,9 @@ the following options are available in the Chip Manager window:
 - **Echo filter**: adjusts echo filter.
 - **Dec/Hex**: toggles decimal or hexadecimal mode for the filter settings text entry box to the right.
   - SnesLab provides [echo filter explanations and examples](https://sneslab.net/wiki/FIR_Filter#Uses). their example filter strings can be pasted directly into the filter settings text entry box if set to Hex mode.
+- **Disable Gaussian interpolation**: removes sample interpolation, resulting in crisper but aliased sound. not accurate to hardware.
+- **Anti-click**: reduces clicks in the output by using hardware envelopes to smooth them out.
+  - make sure your samples start on center, or else you will still hear clicks.
 
 ## ADSR
 

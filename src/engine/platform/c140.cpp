@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,6 +68,9 @@ const char** DivPlatformC140::getRegisterSheet() {
 }
 
 void DivPlatformC140::acquire_219(short** buf, size_t len) {
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -92,15 +95,21 @@ void DivPlatformC140::acquire_219(short** buf, size_t len) {
 
     for (int i=0; i<totalChans; i++) {
       if (c219.voice[i].inv_lout) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout-c219.voice[i].rout)>>10;
+        oscBuf[i]->putSample(h,(c219.voice[i].lout-c219.voice[i].rout)>>10);
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(c219.voice[i].lout+c219.voice[i].rout)>>10;
+        oscBuf[i]->putSample(h,(c219.voice[i].lout+c219.voice[i].rout)>>10);
       }
     }
+  }
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
 void DivPlatformC140::acquire_140(short** buf, size_t len) {
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->begin(len);
+  }
   for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -124,8 +133,11 @@ void DivPlatformC140::acquire_140(short** buf, size_t len) {
     buf[1][h]=c140.rout;
 
     for (int i=0; i<totalChans; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(c140.voice[i].lout+c140.voice[i].rout)>>10;
+      oscBuf[i]->putSample(h,(c140.voice[i].lout+c140.voice[i].rout)>>10);
     }
+  }
+  for (int i=0; i<totalChans; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -147,9 +159,9 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -214,10 +226,11 @@ void DivPlatformC140::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
-      chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       if (is219) {
         ctrl|=(chan[i].active?0x80:0)|((s->isLoopable() || chan[i].noise)?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_C219)?1:0)|(chan[i].invert?0x40:0)|(chan[i].surround?8:0)|(chan[i].noise?4:0);
       } else {
@@ -267,6 +280,7 @@ void DivPlatformC140::tick(bool sysTick) {
               int ch=(i&(~3))|j;
               if (chan[ch].active && !chan[ch].keyOn && (i&3)!=j) {
                 chan[ch].sample=-1;
+                chan[ch].pitchTable=samplePitchTable.get(chan[ch].sample);
                 chan[ch].active=false;
                 chan[ch].keyOff=true;
                 chan[ch].macroInit(NULL);
@@ -328,15 +342,17 @@ int DivPlatformC140::dispatch(DivCommand c) {
       chan[c.chan].macroPanMul=ins->type==DIV_INS_AMIGA?127:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
         chan[c.chan].sampleNote=c.value;
         c.value=ins->amiga.getFreq(c.value);
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
         chan[c.chan].sample=-1;
+        chan[c.chan].pitchTable=samplePitchTable.get(chan[c.chan].sample);
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].freqChanged=true;
@@ -345,7 +361,7 @@ int DivPlatformC140::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         chan[c.chan].volChangedL=true;
         chan[c.chan].volChangedR=true;
@@ -403,7 +419,7 @@ int DivPlatformC140::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -426,16 +442,16 @@ int DivPlatformC140::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -485,7 +501,7 @@ void DivPlatformC140::forceIns() {
   }
 }
 
-void* DivPlatformC140::getChanState(int ch) {
+SharedChannel* DivPlatformC140::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -510,7 +526,8 @@ void DivPlatformC140::reset() {
     c140_reset(&c140);
   }
   for (int i=0; i<totalChans; i++) {
-    chan[i]=DivPlatformC140::Channel();
+    chan[i]=DivPlatformC140::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     rWrite(0x05+(i<<4),0);
   }
@@ -521,6 +538,10 @@ void DivPlatformC140::reset() {
 
 int DivPlatformC140::getOutputCount() {
   return 2;
+}
+
+bool DivPlatformC140::hasSoftPan(int ch) {
+  return true;
 }
 
 void DivPlatformC140::notifyInsChange(int ins) {
@@ -539,6 +560,14 @@ void DivPlatformC140::notifyInsDeletion(void* ins) {
   for (int i=0; i<totalChans; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformC140::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,24,parent->song.tuning,chipClock,CHIP_FREQBASE,0xffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformC140::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformC140::poke(unsigned int addr, unsigned short val) {
@@ -590,7 +619,7 @@ size_t DivPlatformC140::getSampleMemUsage(int index) {
 
 bool DivPlatformC140::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
+  if (sample<0 || sample>32767) return false;
   return sampleLoaded[sample];
 }
 
@@ -601,8 +630,8 @@ const DivMemoryComposition* DivPlatformC140::getMemCompo(int index) {
 
 void DivPlatformC140::renderSamples(int sysID) {
   memset(sampleMem,0,is219?524288:16777216);
-  memset(sampleOff,0,256*sizeof(unsigned int));
-  memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleOff,0,32768*sizeof(unsigned int));
+  memset(sampleLoaded,0,32768*sizeof(bool));
 
   memCompo=DivMemoryComposition();
   memCompo.name="Sample ROM";
@@ -752,12 +781,15 @@ void DivPlatformC140::setFlags(const DivConfig& flags) {
     c140_bank_type(&c140,bankType);
   }
   for (int i=0; i<totalChans; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformC140::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   bankType=0;
@@ -788,4 +820,16 @@ void DivPlatformC140::quit() {
   for (int i=0; i<totalChans; i++) {
     delete oscBuf[i];
   }
+}
+
+// initialization of important arrays
+DivPlatformC140::DivPlatformC140() {
+  sampleOff=new unsigned int[32768];
+  sampleLoaded=new bool[32768];
+}
+
+DivPlatformC140::~DivPlatformC140() {
+  delete[] sampleOff;
+  delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,24);
 }

@@ -47,7 +47,7 @@ class vrcvi_core : public vgsound_emu_core
 
 						void reset()
 						{
-							m_divider = 0;
+							m_divider = 1023;
 							m_enable  = 0;
 						}
 
@@ -75,9 +75,10 @@ class vrcvi_core : public vgsound_emu_core
 				}
 
 				virtual void reset();
-				virtual bool tick();
+				virtual bool tick(int cycles);
+				virtual int predict();
 
-				virtual s8 get_output()
+				virtual s8 get_output(int cycles)
 				{
 					m_out = 0;
 					return 0;
@@ -155,8 +156,8 @@ class vrcvi_core : public vgsound_emu_core
 				}
 
 				virtual void reset() override;
-				virtual bool tick() override;
-				virtual s8 get_output() override;
+				virtual bool tick(int cycles) override;
+				virtual s8 get_output(int cycles) override;
 
 				// getters
 				pulse_control_t &control() { return m_control; }
@@ -177,8 +178,8 @@ class vrcvi_core : public vgsound_emu_core
 				}
 
 				virtual void reset() override;
-				virtual bool tick() override;
-				virtual s8 get_output() override;
+				virtual bool tick(int cycles) override;
+				virtual s8 get_output(int cycles) override;
 
 				// accessors
 				inline void clear_accum() { m_accum = 0; }
@@ -385,7 +386,8 @@ class vrcvi_core : public vgsound_emu_core
 
 		// internal state
 		void reset();
-		void tick();
+		int predict();
+		void tick(int cycles=1);
 
 		// 6 bit output
 		inline s8 out() { return m_out; }

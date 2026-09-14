@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ void DivPlatformPET::rWrite(unsigned int addr, unsigned char val) {
 
 void DivPlatformPET::acquire(short** buf, size_t len) {
   bool hwSROutput=((regPool[11]>>2)&7)==4;
+  oscBuf->begin(len);
   if (chan[0].enable) {
     int reload=regPool[8]*2+4;
     if (!hwSROutput) {
@@ -71,7 +72,7 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
         chan[0].cnt-=SAMP_DIVIDER;
       }
       buf[0][h]=chan[0].out;
-      oscBuf->data[oscBuf->needle++]=chan[0].out;
+      oscBuf->putSample(h,chan[0].out);
     }
     // emulate driver writes to PCR
     if (!hwSROutput) regPool[12]=chan[0].out?0xe0:0xc0;
@@ -79,9 +80,10 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
     chan[0].out=0;
     for (size_t h=0; h<len; h++) {
       buf[0][h]=0;
-      oscBuf->data[oscBuf->needle++]=0;
+      oscBuf->putSample(h,0);
     }
   }
+  oscBuf->end(len);
 }
 
 void DivPlatformPET::writeOutVol() {
@@ -102,9 +104,9 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[0].handleArp();
-  } else if (chan[0].std.arp.had) {
+  } else if (chan[0].std.arp.had && !chan[0].rawFreq) {
     if (!chan[0].inPorta) {
-      chan[0].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[0].note,chan[0].std.arp.val));
+      chan[0].baseFreq=chan[0].calcBaseFreq(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }
     chan[0].freqChanged=true;
   }
@@ -124,9 +126,12 @@ void DivPlatformPET::tick(bool sysTick) {
     chan[0].freqChanged=true;
   }
   if (chan[0].freqChanged || chan[0].keyOn || chan[0].keyOff) {
-    chan[0].freq=parent->calcFreq(chan[0].baseFreq,chan[0].pitch,chan[0].fixedArp?chan[0].baseNoteOverride:chan[0].arpOff,chan[0].fixedArp,true,0,chan[0].pitch2,chipClock,CHIP_DIVIDER)-2;
-    if (chan[0].freq>65535) chan[0].freq=65535;
-    if (chan[0].freq<0) chan[0].freq=0;
+    chan[0].freq=chan[0].calcFreq();
+    if (!chan[0].rawFreq) {
+      chan[0].freq-=2;
+      if (chan[0].freq>65535) chan[0].freq=65535;
+      if (chan[0].freq<0) chan[0].freq=0;
+    }
     rWrite(8,chan[0].freq&0xff);
     rWrite(9,chan[0].freq>>8);
     if (chan[0].keyOn) {
@@ -149,14 +154,14 @@ int DivPlatformPET::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_PET);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[0].baseFreq=NOTE_PERIODIC(c.value);
+        chan[0].baseFreq=chan[0].calcBaseFreq(c.value);
         chan[0].freqChanged=true;
         chan[0].note=c.value;
       }
       chan[0].active=true;
       chan[0].keyOn=true;
       chan[0].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[0].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[0].std.vol.will) {
         chan[0].outVol=chan[0].vol;
       }
       break;
@@ -196,7 +201,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       rWrite(10,chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[0].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[0].baseFreq) {
         chan[0].baseFreq+=c.value;
@@ -219,15 +224,15 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[0].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0)));
+      chan[0].baseFreq=chan[0].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0)));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[0].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_PET));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_PET));
       }
-      if (!chan[0].inPorta && c.value && !parent->song.brokenPortaArp && chan[0].std.arp.will && !NEW_ARP_STRAT) chan[0].baseFreq=NOTE_PERIODIC(chan[0].note);
+      if (!chan[0].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[0].std.arp.will && !NEW_ARP_STRAT) chan[0].baseFreq=chan[0].calcBaseFreq(chan[0].note);
       chan[0].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -259,8 +264,8 @@ void DivPlatformPET::forceIns() {
   writeOutVol();
 }
 
-void* DivPlatformPET::getChanState(int ch) {
-  return &chan;
+SharedChannel* DivPlatformPET::getChanState(int ch) {
+  return &chan[0];
 }
 
 DivMacroInt* DivPlatformPET::getChanMacroInt(int ch) {
@@ -282,6 +287,7 @@ int DivPlatformPET::getRegisterPoolSize() {
 void DivPlatformPET::reset() {
   memset(regPool,0,16);
   chan[0]=Channel();
+  chan[0].pitchTable=&pitchTable;
   chan[0].std.setEngine(parent);
   rWrite(10,chan[0].wave);
 }
@@ -292,6 +298,15 @@ int DivPlatformPET::getOutputCount() {
 
 void DivPlatformPET::notifyInsDeletion(void* ins) {
   chan[0].std.notifyInsDeletion((DivInstrument*)ins);
+}
+
+void DivPlatformPET::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x10001,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformPET::getMaxFreq(int ch) {
+  // the PET's real frequency range is $00 to $FF.
+  return 0xff;
 }
 
 void DivPlatformPET::poke(unsigned int addr, unsigned short val) {
@@ -311,7 +326,8 @@ int DivPlatformPET::init(DivEngine* p, int channels, int sugRate, const DivConfi
   rate=chipClock/SAMP_DIVIDER; // = 250000kHz
   isMuted=false;
   oscBuf=new DivDispatchOscBuffer;
-  oscBuf->rate=rate;
+  oscBuf->setRate(rate);
+  notifyPitchTable();
   reset();
   return 1;
 }

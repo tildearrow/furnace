@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,11 @@
 #include "guiConst.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
-#include <SDL_timer.h>
+#include <inttypes.h>
 #include <fmt/printf.h>
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 PendingDrawOsc _debugDo;
 static float oscDebugData[2048];
@@ -38,6 +39,10 @@ static int oscDebugRepeat=1;
 static int numApples=1;
 static int getGainChan=0;
 static int getGainVol=0;
+static int ptDebugChan=0;
+static int disDebugChan=0;
+static bool disMultiChannel=false;
+static float rotAngle=0.0f;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -46,6 +51,70 @@ static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
     }
   }
 }
+
+#define DISPATCH_DEBUG(_label,...) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(_label); \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    SharedChannel* ch=e->getDispatchChanState(i); \
+    ImGui::TableNextColumn(); \
+    if (ch!=NULL) { \
+      ImGui::Text(__VA_ARGS__); \
+    } \
+  }
+
+#define DISPATCH_DEBUG_NULL(_label,_state) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(_label); \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    SharedChannel* ch=e->getDispatchChanState(i); \
+    ImGui::TableNextColumn(); \
+    if (ch!=NULL) { \
+      if ((_state)==DIV_NOTE_NULL) { \
+        ImGui::Text("null"); \
+      } else { \
+        ImGui::Text("%d",_state); \
+      } \
+    } \
+  }
+
+#define DISPATCH_DEBUG_LED(_label,_state) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(_label); \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    SharedChannel* ch=e->getDispatchChanState(i); \
+    ImGui::TableNextColumn(); \
+    if (ch!=NULL) { \
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[(_state)?GUI_COLOR_TOGGLE_ON:GUI_COLOR_TOGGLE_OFF])); \
+    } \
+  }
+
+#define CHANNEL_DEBUG(_label,...) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(_label); \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    DivChannelState* ch=e->getChanState(i); \
+    ImGui::TableNextColumn(); \
+    if (ch!=NULL) { \
+      ImGui::Text(__VA_ARGS__); \
+    } \
+  }
+
+#define CHANNEL_DEBUG_LED(_label,_state) \
+  ImGui::TableNextRow(); \
+  ImGui::TableNextColumn(); \
+  ImGui::Text(_label); \
+  for (int i=0; i<e->getTotalChannelCount(); i++) { \
+    DivChannelState* ch=e->getChanState(i); \
+    ImGui::TableNextColumn(); \
+    if (ch!=NULL) { \
+      ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[(_state)?GUI_COLOR_TOGGLE_ON:GUI_COLOR_TOGGLE_OFF])); \
+    } \
+  }
 
 void FurnaceGUI::drawDebug() {
   static int bpOrder;
@@ -58,6 +127,8 @@ void FurnaceGUI::drawDebug() {
   static int ptcOctave;
   static int ptcMode;
   static int ptcBlockBits;
+
+  static bool oscDebugApplyPos;
   if (nextWindow==GUI_WINDOW_DEBUG) {
     debugOpen=true;
     ImGui::SetNextWindowFocus();
@@ -79,8 +150,6 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Row Advance")) e->haltWhen(DIV_HALT_ROW);
       ImGui::SameLine();
       if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
-
-      if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
 
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
@@ -113,87 +182,378 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Dispatch Status")) {
-      ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
-      ImGui::Columns(e->getTotalChannelCount());
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
-        void* ch=e->getDispatchChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Ch. %d: %d, %d",i,e->dispatchOfChan[i],e->dispatchChanOfChan[i]);
+      // NEW CODE.
+      ImGui::Checkbox("Multi channel view",&disMultiChannel);
+
+      if (disMultiChannel) {
+        ImGui::PushFont(patFont);
+        if (ImGui::BeginTable("DisStatus",e->getTotalChannelCount()+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetTextLineHeightWithSpacing()*24.0f))) {
+          ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed);
+          for (int i=0; i<e->getTotalChannelCount(); i++) {
+            ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed,oneChar.x*8.0f);
+          }
+          ImGui::TableSetupScrollFreeze(1,1);
+
+          ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+          ImGui::TableNextColumn();
+          for (int i=0; i<e->getTotalChannelCount(); i++) {
+            ImGui::TableNextColumn();
+            ImGui::Text("%d",i);
+          }
+
+          DISPATCH_DEBUG("freq","%x",ch->freq);
+          DISPATCH_DEBUG("base","%x",ch->baseFreq);
+          DISPATCH_DEBUG("pitch","%+d",ch->pitch);
+          DISPATCH_DEBUG("pitch2","%+d",ch->pitch2);
+          DISPATCH_DEBUG("arpOff","%+d",ch->arpOff);
+          DISPATCH_DEBUG("fixed","%d",ch->baseNoteOverride);
+          DISPATCH_DEBUG_NULL("note",ch->note);
+          DISPATCH_DEBUG_NULL("smpNote",ch->sampleNote);
+          DISPATCH_DEBUG("smpND","%d",ch->sampleNoteDelta);
+          DISPATCH_DEBUG("ins","%d",ch->ins);
+          DISPATCH_DEBUG("vol","%d",ch->vol);
+          DISPATCH_DEBUG("outVol","%d",ch->outVol);
+
+          DISPATCH_DEBUG_LED("active",ch->active);
+          DISPATCH_DEBUG_LED("insChanged",ch->insChanged);
+          DISPATCH_DEBUG_LED("freqChanged",ch->freqChanged);
+          DISPATCH_DEBUG_LED("fixedArp",ch->fixedArp);
+          DISPATCH_DEBUG_LED("keyOn",ch->keyOn);
+          DISPATCH_DEBUG_LED("keyOff",ch->keyOff);
+          DISPATCH_DEBUG_LED("portaPause",ch->portaPause);
+          DISPATCH_DEBUG_LED("inPorta",ch->inPorta);
+          DISPATCH_DEBUG_LED("rawFreq",ch->rawFreq);
+
+          ImGui::EndTable();
+        }
+        ImGui::PopFont();
+      } else {
+        ImGui::InputInt("Channel",&disDebugChan,1,1);
+
+        SharedChannel* ch=e->getDispatchChanState(disDebugChan);
+        if (disDebugChan>=0 && disDebugChan<e->getTotalChannelCount()) {
+          ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"%d: dispatch %d, chan %d",disDebugChan,e->song.dispatchOfChan[disDebugChan],e->song.dispatchChanOfChan[disDebugChan]);
+        } else {
+          ImGui::Text("out of range...");
+        }
+
+        ImGui::Separator();
+
         if (ch==NULL) {
           ImGui::Text("NULL");
         } else {
-          putDispatchChan(ch,e->dispatchChanOfChan[i],e->sysOfChan[i]);
+          ImGui::Text("freq: %x (%d)",ch->freq,ch->freq);
+          ImGui::Indent();
+          ImGui::BeginDisabled(ch->fixedArp);
+          ImGui::Text("base: %x (%d)",ch->baseFreq,ch->baseFreq);
+          ImGui::EndDisabled();
+          ImGui::Text("pitch: %+d",ch->pitch);
+          ImGui::Text("pitch2: %+d",ch->pitch2);
+          ImGui::Unindent();
+
+          ImGui::Text("arp: %s",ch->fixedArp?"FIXED":"RELATIVE");
+          ImGui::Indent();
+          ImGui::BeginDisabled(ch->fixedArp);
+          ImGui::Text("arpOff: %d",ch->arpOff);
+          ImGui::EndDisabled();
+          ImGui::BeginDisabled(!ch->fixedArp);
+          ImGui::Text("baseNoteOverride: %d",ch->baseNoteOverride);
+          ImGui::EndDisabled();
+          ImGui::Unindent();
+
+          ImGui::Text("note: %d",ch->note);
+          ImGui::Indent();
+          ImGui::Text("sampleNote: %d",ch->sampleNote);
+          ImGui::Text("sampleNoteDelta: %d",ch->sampleNoteDelta);
+          ImGui::Unindent();
+
+          ImGui::Text("ins: %d",ch->ins);
+
+          ImGui::Text("vol: %d - %d",ch->vol,ch->outVol);
+
+          if (ImGui::BeginTable("DispatchButtons",3,ImGuiTableFlags_SizingStretchSame)) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->active);
+            ImGui::Button("active",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->insChanged);
+            ImGui::Button("ins change",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->freqChanged);
+            ImGui::Button("freq change",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->fixedArp);
+            ImGui::Button("fixed arp",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->keyOn);
+            ImGui::Button("key on",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->keyOff);
+            ImGui::Button("key off",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->portaPause);
+            ImGui::Button("porta pause",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->inPorta);
+            ImGui::Button("in porta",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::TableNextColumn();
+            pushToggleColors(ch->rawFreq);
+            ImGui::Button("raw freq",ImVec2(ImGui::GetContentRegionAvail().x,0));
+            popToggleColors();
+
+            ImGui::EndTable();
+          }
         }
-        ImGui::NextColumn();
       }
-      ImGui::Columns();
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Channel Status")) {
-      ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
-      ImGui::Columns(e->getTotalChannelCount());
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
-        DivChannelState* ch=e->getChanState(i);
-        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Channel %d:",i);
-        if (ch==NULL) {
-          ImGui::Text("NULL");
-        } else {
-          ImGui::Text("* General:");
-          ImGui::Text("- note = %d",ch->note);
-          ImGui::Text("- oldNote = %d",ch->oldNote);
-          ImGui::Text("- pitch = %d",ch->pitch);
-          ImGui::Text("- portaSpeed = %d",ch->portaSpeed);
-          ImGui::Text("- portaNote = %d",ch->portaNote);
-          ImGui::Text("- volume = %.4x",ch->volume);
-          ImGui::Text("- volSpeed = %d",ch->volSpeed);
-          ImGui::Text("- volSpeedTarget = %d",ch->volSpeedTarget);
-          ImGui::Text("- cut = %d",ch->cut);
-          ImGui::Text("- rowDelay = %d",ch->rowDelay);
-          ImGui::Text("- volMax = %.4x",ch->volMax);
-          ImGui::Text("- delayOrder = %d",ch->delayOrder);
-          ImGui::Text("- delayRow = %d",ch->delayRow);
-          ImGui::Text("- retrigSpeed = %d",ch->retrigSpeed);
-          ImGui::Text("- retrigTick = %d",ch->retrigTick);
-          ImGui::PushStyleColor(ImGuiCol_Text,(ch->vibratoDepth>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
-          ImGui::Text("* Vibrato:");
-          ImGui::Text("- depth = %d",ch->vibratoDepth);
-          ImGui::Text("- rate = %d",ch->vibratoRate);
-          ImGui::Text("- pos = %d",ch->vibratoPos);
-          ImGui::Text("- shape = %d",ch->vibratoShape);
-          ImGui::Text("- fine = %d",ch->vibratoFine);
-          ImGui::PopStyleColor();
-          ImGui::PushStyleColor(ImGuiCol_Text,(ch->tremoloDepth>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
-          ImGui::Text("* Tremolo:");
-          ImGui::Text("- depth = %d",ch->tremoloDepth);
-          ImGui::Text("- rate = %d",ch->tremoloRate);
-          ImGui::Text("- pos = %d",ch->tremoloPos);
-          ImGui::PopStyleColor();
-          ImGui::PushStyleColor(ImGuiCol_Text,(ch->arp>0)?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_TEXT]);
-          ImGui::Text("* Arpeggio:");
-          ImGui::Text("- arp = %.2X",ch->arp);
-          ImGui::Text("- stage = %d",ch->arpStage);
-          ImGui::Text("- ticks = %d",ch->arpTicks);
-          ImGui::PopStyleColor();
-          ImGui::Text("* Miscellaneous:");
-          ImGui::TextColored(ch->doNote?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Do Note");
-          ImGui::TextColored(ch->legato?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Legato");
-          ImGui::TextColored(ch->portaStop?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> PortaStop");
-          ImGui::TextColored(ch->keyOn?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Key On");
-          ImGui::TextColored(ch->keyOff?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Key Off");
-          ImGui::TextColored(ch->nowYouCanStop?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> NowYouCanStop");
-          ImGui::TextColored(ch->stopOnOff?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Stop on Off");
-          ImGui::TextColored(ch->arpYield?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> Arp Yield");
-          ImGui::TextColored(ch->delayLocked?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> DelayLocked");
-          ImGui::TextColored(ch->inPorta?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> InPorta");
-          ImGui::TextColored(ch->scheduledSlideReset?uiColors[GUI_COLOR_MACRO_VOLUME]:uiColors[GUI_COLOR_HEADER],">> SchedSlide");
+      // NEW CODE
+      ImGui::PushFont(patFont);
+      if (ImGui::BeginTable("ChanStatus",e->getTotalChannelCount()+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY,ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetTextLineHeightWithSpacing()*30.0f))) {
+        ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed);
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          ImGui::TableSetupColumn(NULL,ImGuiTableColumnFlags_WidthFixed,oneChar.x*8.0f);
         }
-        ImGui::NextColumn();
+        ImGui::TableSetupScrollFreeze(1,1);
+
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",i);
+        }
+
+        CHANNEL_DEBUG("note","%d",ch->note);
+        CHANNEL_DEBUG("oldNote","%d",ch->oldNote);
+        CHANNEL_DEBUG("lastIns","%d",ch->lastIns);
+        CHANNEL_DEBUG("pitch","%+d",ch->pitch);
+
+        CHANNEL_DEBUG("portaSpeed","%d",ch->portaSpeed);
+        CHANNEL_DEBUG("portaNote","%d",ch->portaNote);
+
+        CHANNEL_DEBUG("volume","%x",ch->volume);
+        CHANNEL_DEBUG("volSpeed","%d",ch->volSpeed);
+        CHANNEL_DEBUG("volSpeedTarget","%x",ch->volSpeedTarget);
+        CHANNEL_DEBUG("volMax","%x",ch->volMax);
+
+        CHANNEL_DEBUG("cut","%d",ch->cut);
+        CHANNEL_DEBUG("volCut","%d",ch->volCut);
+
+        CHANNEL_DEBUG("legatoDelay","%d",ch->legatoDelay);
+        CHANNEL_DEBUG("legatoTarget","%d",ch->legatoTarget);
+
+        CHANNEL_DEBUG("rowDelay","%d",ch->rowDelay);
+        CHANNEL_DEBUG("delayPos","%d:%d",ch->delayOrder,ch->delayRow);
+
+        CHANNEL_DEBUG("retrigSpeed","%d",ch->retrigSpeed);
+        CHANNEL_DEBUG("retrigTick","%d",ch->retrigTick);
+
+        CHANNEL_DEBUG("vibratoDepth","%d",ch->vibratoDepth);
+        CHANNEL_DEBUG("vibratoRate","%d",ch->vibratoRate);
+        CHANNEL_DEBUG("vibratoPos","%d",ch->vibratoPos);
+        CHANNEL_DEBUG("vibratoPosGiant","%d",ch->vibratoPosGiant);
+        CHANNEL_DEBUG("vibratoShape","%d",ch->vibratoShape);
+        CHANNEL_DEBUG("vibratoFine","%d",ch->vibratoFine);
+
+        CHANNEL_DEBUG("tremoloDepth","%d",ch->tremoloDepth);
+        CHANNEL_DEBUG("tremoloRate","%d",ch->tremoloRate);
+        CHANNEL_DEBUG("tremoloPos","%d",ch->tremoloPos);
+
+        CHANNEL_DEBUG("panDepth","%d",ch->panDepth);
+        CHANNEL_DEBUG("panRate","%d",ch->panRate);
+        CHANNEL_DEBUG("panPos","%d",ch->panPos);
+        CHANNEL_DEBUG("panSpeed","%d",ch->panSpeed);
+
+        CHANNEL_DEBUG("sampleOff","%d",ch->sampleOff);
+
+        CHANNEL_DEBUG("arp","%d",ch->arp);
+        CHANNEL_DEBUG("arpStage","%d",ch->arpStage);
+        CHANNEL_DEBUG("arpTicks","%d",ch->arpTicks);
+
+        CHANNEL_DEBUG("panL","%d",ch->panL);
+        CHANNEL_DEBUG("panR","%d",ch->panR);
+        CHANNEL_DEBUG("panRL","%d",ch->panRL);
+        CHANNEL_DEBUG("panRR","%d",ch->panRR);
+
+        CHANNEL_DEBUG("lastVibrato","%d",ch->lastVibrato);
+        CHANNEL_DEBUG("lastPorta","%d",ch->lastPorta);
+        CHANNEL_DEBUG("cutType","%d",ch->cutType);
+
+        CHANNEL_DEBUG_LED("doNote",ch->doNote);
+        CHANNEL_DEBUG_LED("legato",ch->legato);
+        CHANNEL_DEBUG_LED("portaStop",ch->portaStop);
+        CHANNEL_DEBUG_LED("keyOn",ch->keyOn);
+        CHANNEL_DEBUG_LED("keyOff",ch->keyOff);
+        CHANNEL_DEBUG_LED("stopOnOff",ch->stopOnOff);
+        CHANNEL_DEBUG_LED("releasing",ch->releasing);
+        CHANNEL_DEBUG_LED("arpYield",ch->arpYield);
+        CHANNEL_DEBUG_LED("delayLocked",ch->delayLocked);
+        CHANNEL_DEBUG_LED("inPorta",ch->inPorta);
+        CHANNEL_DEBUG_LED("schedSlideReset",ch->scheduledSlideReset);
+        CHANNEL_DEBUG_LED("shorthandPorta",ch->shorthandPorta);
+        CHANNEL_DEBUG_LED("wasShortPorta",ch->wasShorthandPorta);
+        CHANNEL_DEBUG_LED("noteOnInhibit",ch->noteOnInhibit);
+        CHANNEL_DEBUG_LED("resetArp",ch->resetArp);
+        CHANNEL_DEBUG_LED("sampleOffSet",ch->sampleOffSet);
+        CHANNEL_DEBUG_LED("wentThroughNote",ch->wentThroughNote);
+        CHANNEL_DEBUG_LED("goneThroughNote",ch->goneThroughNote);
+
+        ImGui::EndTable();
       }
-      ImGui::Columns();
+      ImGui::PopFont();
+
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Playback Status")) {
       String pdi=e->getPlaybackDebugInfo();
       ImGui::TextWrapped("%s",pdi.c_str());
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("GUI Status")) {
+      ImGui::Text("patScroll: %f",patScroll);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Rotation Test")) {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImGui::Text("Rotating...........");
+      drawImage(dl,GUI_IMAGE_ICON,ImVec2(0.5f,0.5f),ImVec2(1.0f,1.0f),rotAngle,ImVec2(0.0f,0.0f),ImVec2(1.0f,1.0f),ImVec4(1.0f,1.0f,1.0f,1.0f));
+      rotAngle+=0.05f;
+      if (rotAngle>2.0*M_PI) rotAngle-=2.0*M_PI;
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Song Timestamps")) {
+      if (ImGui::Button("Recalculate")) {
+        e->calcSongTimestamps();
+      }
+
+      DivSongTimestamps& ts=e->curSubSong->ts;
+
+      String timeFormatted=ts.totalTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      ImGui::Text("song duration: %s (%" PRIu64 " ticks; %d rows)",timeFormatted.c_str(),ts.totalTicks,ts.totalRows);
+      if (ts.isLoopDefined) {
+        ImGui::Text("loop region is defined");
+      } else {
+        ImGui::Text("no loop region");
+      }
+      if (ts.isLoopable) {
+        ImGui::Text("song can loop");
+      } else {
+        ImGui::Text("song will stop");
+      }
+
+      ImGui::Text("loop region: %d:%d - %d:%d",ts.loopStart.order,ts.loopStart.row,ts.loopEnd.order,ts.loopEnd.row);
+      timeFormatted=ts.loopStartTime.toString(-1,TA_TIME_FORMAT_AUTO);
+      ImGui::Text("loop start time: %s",timeFormatted.c_str());
+
+      if (ImGui::TreeNode("Maximum rows")) {
+        for (int i=0; i<e->curSubSong->ordersLen; i++) {
+          ImGui::Text("- Order %d: %d",i,ts.maxRow[i]);
+        }
+        ImGui::TreePop();
+      }
+
+      ImGui::Checkbox("Enable row timestamps (in pattern view)",&debugRowTimestamps);
+
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Macro Int Debug")) {
+      static int ch=0;
+      static int macroIndex=0;
+      ImGui::Text("Damn it, get back to work already!\nMacro indices are the same as macro on/off/restart effect.");
+
+      ImGui::InputInt("Channel...",&ch);
+      ImGui::InputInt("Macro ID...",&macroIndex);
+
+      DivMacroInt* macroInt=e->getMacroInt(ch);
+      if (macroInt==NULL) {
+        ImGui::Text("YAAAAAAAAAAAAAAAAAAAA");
+      } else {
+        DivMacroStruct* macroStruct=macroInt->structByType(macroIndex);
+
+        if (macroStruct==NULL) {
+          ImGui::Text("WAAAAAAAAAAAAAAAAAHHHHH");
+        } else {
+          ImGui::TextColored(macroStruct->has?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"has");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->had?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"had");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->actualHad?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"actualHad");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->finished?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"finished");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->will?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"will");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->linger?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"linger");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->began?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"began");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->masked?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"masked");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->activeRelease?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"activeRelease");
+          ImGui::SameLine();
+          ImGui::TextColored(macroStruct->lfoDir?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF],"lfoDir");
+
+          ImGui::Text("mode: %d - type: %d",macroStruct->mode,macroStruct->type);
+          ImGui::Text("macroType: %d",macroStruct->macroType);
+          ImGui::Text("pos: %d - lastPos: %d - delay: %d",macroStruct->pos,macroStruct->lastPos,macroStruct->delay);
+          ImGui::Text("val: %d",macroStruct->val);
+        }
+      }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("ROM Export Work")) {
+      ImGui::PushFont(headFont);
+      ImGui::TextUnformatted("Instrument");
+      ImGui::PopFont();
+      if (ImGui::BeginCombo("Type",(insCompileType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insCompileType][0]))) {
+        for (int i=0; insTypes[i][0]; i++) {
+          if (ImGui::Selectable(insTypes[i][0],insCompileType==i)) {
+            insCompileType=i;
+          }
+        }
+        ImGui::EndCombo();
+      }
+      if (ImGui::Button("Let's Go!")) {
+        openFileDialog(GUI_FILE_EXPORT_COMPILED_INS);
+      }
+      if (ImGui::Button("Export only the current instrument")) {
+        openFileDialog(GUI_FILE_EXPORT_COMPILED_INS_ONE);
+      }
+
+      ImGui::PushFont(headFont);
+      ImGui::TextUnformatted("Sequence");
+      ImGui::PopFont();
+      if (ImGui::Button("Play Command Stream")) nextWindow=GUI_WINDOW_CS_PLAYER;
+
+      ImGui::PushFont(headFont);
+      ImGui::TextUnformatted("Sample Data");
+      ImGui::PopFont();
+      ImGui::InputInt("Chip Index",&sampleCompileDispatch);
+      ImGui::InputInt("Memory Index",&sampleCompileIndex);
+      if (ImGui::Button("Compile Memory")) {
+        openFileDialog(GUI_FILE_EXPORT_COMPILED_SAMPLE);
+      }
+      ImGui::Text("%d bytes (compile to update)",(int)sampleCompileSize);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Sample Debug")) {
@@ -204,7 +564,6 @@ void FurnaceGUI::drawDebug() {
           continue;
         }
         if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,sample->name).c_str())) {
-          ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);
@@ -233,6 +592,42 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Master Scope Debug")) {
+      ImVec2 size = ImVec2(ImGui::GetContentRegionAvail().x,240.0f);
+      float peakMin=0.0f, peakMax=0.0f;
+      int oscWidth=e->getAudioDescGot().rate*(oscWindowSize/1000.0);
+      if (ImGui::BeginChild("##scopePlotArea",size)) {
+        ImDrawList* dl=ImGui::GetWindowDrawList();
+        ImVec2 origin=ImGui::GetWindowPos();
+        ImVec2 plot[32768];
+        for (int i=0; i<32768; i++) {
+          int offs=(i+(oscDebugApplyPos?e->oscReadPos:0))&0x7fff;
+          plot[i].x=origin.x+((float)i/32768.0f)*size.x;
+          plot[i].y=origin.y+(1.0f-e->oscBuf[0][offs]/2.0f)*size.y/2.0f;
+          if (e->oscBuf[0][offs]>peakMax) peakMax=e->oscBuf[0][offs];
+          if (e->oscBuf[0][offs]<peakMin) peakMin=e->oscBuf[0][offs];
+        }
+        dl->AddPolyline(plot,32768,ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_WAVE]),0,1.0f);
+        if (!oscDebugApplyPos) {
+          dl->AddLine(
+            origin+ImVec2(size.x*e->oscReadPos/32768.0f,0.0f),
+            origin+ImVec2(size.x*e->oscReadPos/32768.0f,size.y),
+            ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_GUIDE])|IM_COL32_A_MASK,
+            dpiScale
+          );
+          dl->AddRect(
+            origin+ImVec2(size.x*(e->oscReadPos)/32768.0f,0.25f*size.y),
+            origin+ImVec2(size.x*(e->oscReadPos+oscWidth)/32768.0f,0.75*size.y),
+            ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_OSC_GUIDE])|IM_COL32_A_MASK,
+            dpiScale
+          );
+        }
+      }
+      ImGui::EndChild();
+      ImGui::Text("read pos: %d\nmin: %f\nmax: %f",e->oscReadPos,peakMin,peakMax);
+      ImGui::Checkbox("center on readPos",&oscDebugApplyPos);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Oscilloscope Debug")) {
       int c=0;
       ImGui::Checkbox("FFT debug view",&debugFFT);
@@ -240,11 +635,12 @@ void FurnaceGUI::drawDebug() {
         DivSystem system=e->song.system[i];
         if (e->getChannelCount(system)>0) {
           if (ImGui::TreeNode(fmt::sprintf("%d: %s",i,e->getSystemName(system)).c_str())) {
-            if (ImGui::BeginTable("OscilloscopeTable",4,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+            if (ImGui::BeginTable("OscilloscopeTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
               ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+              ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -252,9 +648,11 @@ void FurnaceGUI::drawDebug() {
               ImGui::TableNextColumn();
               ImGui::Text("Follow");
               ImGui::TableNextColumn();
-              ImGui::Text("Address");
+              ImGui::Text("Needle");
               ImGui::TableNextColumn();
               ImGui::Text("Data");
+              ImGui::TableNextColumn();
+              ImGui::Text("I am so bored!");
 
               for (int j=0; j<e->getChannelCount(system); j++, c++) {
                 DivDispatchOscBuffer* oscBuf=e->getOscBuffer(c);
@@ -276,15 +674,25 @@ void FurnaceGUI::drawDebug() {
                 ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&oscBuf->follow);
                 // address
                 ImGui::TableNextColumn();
-                int needle=oscBuf->follow?oscBuf->needle:oscBuf->followNeedle;
-                ImGui::BeginDisabled(oscBuf->follow);
-                if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
-                  oscBuf->followNeedle=MIN(MAX(needle,0),65535);
-                }
-                ImGui::EndDisabled();
+                unsigned int needle=oscBuf->needle;
+                ImGui::Text("%.8x",needle);
                 // data
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",oscBuf->data[needle]);
+                ImGui::Text("%d",oscBuf->data[needle>>16]);
+                // save
+                ImGui::TableNextColumn();
+                if (ImGui::Button(fmt::sprintf("Help me!##%d_OSCSaveDamnIt",j).c_str())) {
+                  FILE* f=fopen("/tmp/oscbuf.bin","wb");
+                  if (f==NULL) {
+                    showError(fmt::sprintf("screw this bullshit! it FAILED! %s\nnow I am about to be consumed by the tsunami!\nCOME GET ME FAST, my location is [REDACTED] CQD SOS",strerror(errno)));
+                  } else {
+                    e->synchronized([f,oscBuf]() {
+                      fwrite(oscBuf->data,sizeof(short),65536,f);
+                    });
+                    fclose(f);
+                    showError(fmt::sprintf("DATA WRITTEN TO /tmp/oscbuf.bin\nthe needle was at %.8x during operation ((needle>>16)<<1 = %u for its actual position in the file).\n\nnow go inspect the file and find out who's biting on that stupid triangle before\nyou succumb to the tsunami, tildearrow is stabbed by Codename Redacted and the Furnace factory comes to a\nperennial halt. HURRY UP!!!",needle,needle>>16));
+                  }
+                }
               }
               ImGui::EndTable();
             }
@@ -318,6 +726,54 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("TimeMicros Test")) {
+      static TimeMicros testTS;
+      static String testTSIn;
+      String testTSFormatted=testTS.toString();
+      ImGui::Text("Current Value: %s",testTSFormatted.c_str());
+
+      if (ImGui::InputText("fromString",&testTSIn)) {
+        try {
+          testTS=TimeMicros::fromString(testTSIn);
+        } catch (std::invalid_argument& e) {
+          ImGui::Text("COULD NOT! (%s)",e.what());
+        }
+      }
+
+      ImGui::InputInt("seconds",&testTS.seconds);
+      ImGui::InputInt("micros",&testTS.micros);
+
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("New File Picker Test")) {
+      static bool check0, check1, check2, check3, check4, check5;
+
+      ImGui::Checkbox("Modal",&check0);
+      ImGui::Checkbox("No Close",&check1);
+      ImGui::Checkbox("Save",&check2);
+      ImGui::Checkbox("Multi Select",&check3);
+      ImGui::Checkbox("Dir Select",&check4);
+      ImGui::Checkbox("Embeddable",&check5);
+
+      int fpFlags=(
+        (check0?FP_FLAGS_MODAL:0)|
+        (check1?FP_FLAGS_NO_CLOSE:0)|
+        (check2?FP_FLAGS_SAVE:0)|
+        (check3?FP_FLAGS_MULTI_SELECT:0)|
+        (check4?FP_FLAGS_DIR_SELECT:0)|
+        (check5?FP_FLAGS_EMBEDDABLE:0)
+      );
+
+      if (ImGui::Button("Open")) {
+        newFilePicker->open("New File Picker","/home","",fpFlags,
+          {_("songs"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
+           _("instruments"), "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
+           _("audio"), "*.wav",
+           _("all files"), "*"}
+        );
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("File Selection Test")) {
       if (ImGui::Button("Test Open")) {
         openFileDialog(GUI_FILE_TEST_OPEN);
@@ -348,12 +804,63 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Scroll Text Test")) {
-      /*
-      ImGui::ScrollText(ImGui::GetID("scrolltest1"),"Lorem ipsum, quia dolor sit, amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt, ut labore et dolore magnam aliquam quaerat voluptatem. ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?");
-      ImGui::ScrollText(ImGui::GetID("scrolltest2"),"quis autem vel eum iure reprehenderit");
-      ImGui::ScrollText(ImGui::GetID("scrolltest3"),"qui in ea voluptate velit esse",ImVec2(100.0f*dpiScale,0),true);
-      ImGui::ScrollText(ImGui::GetID("scrolltest4"),"quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?",ImVec2(0,0),true);
-      */
+      ImGui::ScrollText(ImGui::GetID("scrolltest1"),"Lorem ipsum, quia dolor sit, amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt, ut labore et dolore magnam aliquam quaerat voluptatem. ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?",ImGui::GetCursorPos());
+      ImGui::ScrollText(ImGui::GetID("scrolltest2"),"quis autem vel eum iure reprehenderit",ImGui::GetCursorPos());
+      ImGui::ScrollText(ImGui::GetID("scrolltest3"),"qui in ea voluptate velit esse",ImGui::GetCursorPos(),ImVec2(100.0f*dpiScale,0),true);
+      ImGui::ScrollText(ImGui::GetID("scrolltest4"),"quam nihil molestiae consequatur, vel illum, qui dolorem eum fugiat, quo voluptas nulla pariatur?",ImGui::GetCursorPos(),ImVec2(0,0),true);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Vertical Text Test")) {
+      VerticalText("Test");
+      VerticalText("Test 2");
+      ImGui::SameLine();
+      VerticalText("Test 3");
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Pitch Table Debug")) {
+      ImGui::InputInt("Channel",&ptDebugChan,1,1);
+      SharedChannel* ch=e->getDispatchChanState(ptDebugChan);
+      if (ch==NULL) {
+        ImGui::Text("invalid channel or not implemented");
+      } else {
+        DivPitchTable* pt=ch->pitchTable;
+        if (pt==NULL) {
+          ImGui::Text("no pitch table assigned to this channel.");
+        } else {
+          ImGui::Text("%s - %s",pt->period?"period":"frequency",pt->linearity?"linear":"non-linear");
+          ImGui::Text("shift: %d",pt->shift);
+          ImGui::Text("max: %x",pt->maxFreq);
+
+          if (ImGui::BeginTable("PTable",3)) {
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text("note");
+            ImGui::TableNextColumn();
+            ImGui::Text("value");
+            ImGui::TableNextColumn();
+            ImGui::Text("delta (to next)");
+
+            for (int i=0; i<=12; i++) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",baseNoteNames[i%12]);
+              ImGui::TableNextColumn();
+              ImGui::Text("%x (%d)",pt->pitch[i],pt->pitch[i]);
+              ImGui::TableNextColumn();
+              if (i<12) {
+                if (pt->pitchDiff[i]<0) {
+                  ImGui::Text("%x (%d)",-pt->pitchDiff[i],pt->pitchDiff[i]);
+                } else {
+                  ImGui::Text("%x (%d)",pt->pitchDiff[i],pt->pitchDiff[i]);
+                }
+              }
+            }
+
+            ImGui::EndTable();
+          }
+        }
+        ImGui::Text("freq: %d (%d%+d)",ch->freq,ch->baseFreq,ch->pitch);
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Pitch Table Calculator")) {
@@ -434,6 +941,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
       ImGui::Text("Maximized: %d",scrMax);
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::Text("Input Scale: %f",ImGui::GetIO().InputScale);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Audio Debug")) {
@@ -493,7 +1001,7 @@ void FurnaceGUI::drawDebug() {
 
         ImGui::EndTable();
       }
-      
+
       ImGui::Text("particle count: %d",(int)particles.size());
 
       ImGui::TreePop();
@@ -540,7 +1048,7 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Clear")) {
         pgProgram.clear();
       }
-      
+
       ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
@@ -695,7 +1203,7 @@ void FurnaceGUI::drawDebug() {
       for (int i=0; i<oscDebugLen; i++) {
         oscDebugData[i]=oscDebugMin+(oscDebugMax-oscDebugMin)*pow((float)((i*oscDebugRepeat)%oscDebugLen)/(float)oscDebugLen,oscDebugPower);
       }
-      
+
       if (rend->supportsDrawOsc()) {
         ImDrawList* dl=ImGui::GetWindowDrawList();
         ImGuiWindow* window=ImGui::GetCurrentWindow();
@@ -744,7 +1252,7 @@ void FurnaceGUI::drawDebug() {
       auto DrawSpot=[&](const CursorJumpPoint& spot) {
         ImGui::Text("[%d:%d] <%d:%d, %d>", spot.subSong, spot.order, spot.point.xCoarse, spot.point.xFine, spot.point.y);
       };
-      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), true)) {
+      if (ImGui::BeginChild("##CursorUndoDebugChild", ImVec2(0, 300), ImGuiChildFlags_Borders)) {
         if (ImGui::BeginTable("##CursorUndoDebug", 2, ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
           for (size_t row=0; row<MAX(cursorUndoHist.size(),cursorRedoHist.size()); ++row) {
             ImGui::TableNextRow();
@@ -797,7 +1305,7 @@ void FurnaceGUI::drawDebug() {
     if (ImGui::TreeNode("Settings")) {
       if (ImGui::Button("Sync")) syncSettings();
       ImGui::SameLine();
-      if (ImGui::Button("Commit")) commitSettings();
+      if (ImGui::Button("Commit")) willCommit=true;
       ImGui::SameLine();
       if (ImGui::Button("Force Load")) e->loadConf();
       ImGui::SameLine();

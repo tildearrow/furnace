@@ -18,8 +18,10 @@ but don't worry! there also are 15 preset patches that you may select at any tim
 these apply to the instrument as a whole:
 - **Feedback (FB)**: determines how many times operator 1 returns its output to itself (0 to 7).
 - **Sustain (SUS)**: enables the sustain flag (sets the release rate to 5).
-- **DC (half-sine carrier)**: sets the waveform produced by carrier operator to half-sine.
-- **DM (half-sine modulator)**: sets the waveform produced by modulator operator to half-sine.
+
+- **Octave**: sets the "block" of the frequency register, which affects note range and precision.
+- **OP2 Half Sine (DC)**: sets the waveform produced by carrier operator to half-sine.
+- **OP1 Half Sine (DM)**: sets the waveform produced by modulator operator to half-sine.
 - **preset dropdown**: selects OPLL preset instrument.
   - this is the selector for the preset patches I mentioned before.
   - once a preset patch is selected, only the volume is configurable.

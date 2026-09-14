@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,19 +21,23 @@
 #define _NDS_H
 
 #include "../dispatch.h"
+#ifdef ORIG_NDS_CORE
+#include "sound/nds_unopt.hpp"
+#else
 #include "sound/nds.hpp"
+#endif
 
 using namespace nds_sound_emu;
 
 class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
-  struct Channel: public SharedChannel<int> {
+  struct Channel: public SharedChannel {
     unsigned int audPos;
     int sample, wave;
     int panning, duty;
     bool setPos, pcm, busy;
     int macroVolMul;
-    Channel():
-      SharedChannel<int>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       audPos(0),
       sample(-1),
       wave(-1),
@@ -49,12 +53,22 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
   bool isMuted[16];
   bool isDSi;
   int globalVolume;
-  unsigned int sampleOff[256];
-  bool sampleLoaded[256];
+  int lastOut[2];
+  unsigned int* sampleOff;
+  bool* sampleLoaded;
+  struct QueuedWrite {
+    unsigned short addr;
+    unsigned char size;
+    unsigned int val;
+    QueuedWrite(): addr(0), size(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char s, unsigned int v): addr(a), size(s), val(v) {}
+  };
+  FixedQueue<QueuedWrite,2048> writes;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
-  int coreQuality;
   nds_sound_t nds;
   DivMemoryComposition memCompo;
   unsigned char regPool[288];
@@ -65,9 +79,13 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual u8 read_byte(u32 addr) override;
     virtual void write_byte(u32 addr, u8 data) override;
 
+#ifdef ORIG_NDS_CORE
     virtual void acquire(short** buf, size_t len) override;
+#else
+    virtual void acquireDirect(blip_buffer_t** bb, size_t len) override;
+#endif
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual unsigned short getPan(int chan) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
@@ -79,9 +97,13 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual void muteChannel(int ch, bool mute) override;
     virtual float getPostAmp() override;
     virtual int getOutputCount() override;
+    virtual bool hasSoftPan(int ch) override;
+    virtual bool hasAcquireDirect() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual void notifyPitchTable(int sample=-1) override;
+    virtual unsigned int getMaxFreq(int ch) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual const char** getRegisterSheet() override;
@@ -92,13 +114,10 @@ class DivPlatformNDS: public DivDispatch, public nds_sound_intf {
     virtual const DivMemoryComposition* getMemCompo(int index) override;
     virtual void renderSamples(int chipID) override;
     virtual void setFlags(const DivConfig& flags) override;
-    void setCoreQuality(unsigned char q);
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformNDS():
-      DivDispatch(),
-      nds_sound_intf(),
-      nds(*this) {}
+    DivPlatformNDS();
+    ~DivPlatformNDS();
   private:
     void writeOutVol(int ch);
 };

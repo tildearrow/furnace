@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,19 +24,19 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 64
+#define CHIP_DIVIDER 32
 
 const char* regCheatSheetSM8521[]={
   "SGC", "40",
   "SG0L", "42",
   "SG1L", "44",
-  "SG0TL", "46",
-  "SG0TH", "47",
-  "SG1TL", "48",
-  "SG1TH", "49",
+  "SG0TH", "46",
+  "SG0TL", "47",
+  "SG1TH", "48",
+  "SG1TL", "49",
   "SG2L", "4A",
-  "SG2TL", "4C",
-  "SG2TH", "4D",
+  "SG2TH", "4C",
+  "SG2TL", "4D",
   "SGDA", "4E",
   "SG0Wn", "60+n",
   "SG1Wn", "70+n",
@@ -47,20 +47,50 @@ const char** DivPlatformSM8521::getRegisterSheet() {
   return regCheatSheetSM8521;
 }
 
-void DivPlatformSM8521::acquire(short** buf, size_t len) {
+void DivPlatformSM8521::acquireDirect(blip_buffer_t** bb, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     sm8521_write(&sm8521,w.addr,w.val);
     regPool[w.addr&0xff]=w.val;
     writes.pop();
   }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   for (size_t h=0; h<len; h++) {
-    sm8521_sound_tick(&sm8521,coreQuality);
-    buf[0][h]=sm8521.out<<6;
-    for (int i=0; i<2; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<7;
+    int advance=len-h;
+    if (sm8521.sgc&1) {
+      const int remain=(sm8521.sg[0].base.t+1)-sm8521.sg[0].base.counter;
+      if (remain<advance) advance=remain;
     }
-    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<7;
+    if (sm8521.sgc&2) {
+      const int remain=(sm8521.sg[1].base.t+1)-sm8521.sg[1].base.counter;
+      if (remain<advance) advance=remain;
+    }
+    if (sm8521.sgc&4) {
+      const int remain=(sm8521.noise.base.t+1)-sm8521.noise.base.counter;
+      if (remain<advance) advance=remain;
+    }
+    if (advance<1) advance=1;
+    sm8521_sound_tick(&sm8521,advance);
+
+    h+=advance-1;
+
+    int out=sm8521.out<<6;
+    if (out!=lastOut) {
+      blip_add_delta(bb[0],h,out-lastOut);
+      lastOut=out;
+    }
+    for (int i=0; i<2; i++) {
+      oscBuf[i]->putSample(h,sm8521.sg[i].base.out<<7);
+    }
+    oscBuf[2]->putSample(h,sm8521.noise.base.out<<7);
+  }
+
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -101,9 +131,9 @@ void DivPlatformSM8521::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -141,9 +171,12 @@ void DivPlatformSM8521::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>4095) chan[i].freq=4095;
+      }
       rWrite(freqMap[i][0],chan[i].freq>>8);
       rWrite(freqMap[i][1],chan[i].freq&0xff);
       if (chan[i].keyOn) {
@@ -171,14 +204,14 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SM8521);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (chan[c.chan].wave<0) {
@@ -234,16 +267,16 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:8);
+        chan[c.chan].baseFreq+=c.value*((parent->song.compatFlags.linearPitch)?1:8);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:8);
+        chan[c.chan].baseFreq-=c.value*((parent->song.compatFlags.linearPitch)?1:8);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -257,15 +290,15 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SM8521));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SM8521));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -304,7 +337,7 @@ void DivPlatformSM8521::forceIns() {
   }
 }
 
-void* DivPlatformSM8521::getChanState(int ch) {
+SharedChannel* DivPlatformSM8521::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -328,7 +361,8 @@ void DivPlatformSM8521::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);
   for (int i=0; i<3; i++) {
-    chan[i]=DivPlatformSM8521::Channel();
+    chan[i]=DivPlatformSM8521::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
@@ -337,6 +371,7 @@ void DivPlatformSM8521::reset() {
     addWrite(0xffffffff,0);
   }
   sm8521_reset(&sm8521);
+  lastOut=0;
   rWrite(0x40,0x80); // initialize SGC
 }
 
@@ -345,6 +380,10 @@ int DivPlatformSM8521::getOutputCount() {
 }
 
 bool DivPlatformSM8521::keyOffAffectsArp(int ch) {
+  return true;
+}
+
+bool DivPlatformSM8521::hasAcquireDirect() {
   return true;
 }
 
@@ -363,14 +402,24 @@ void DivPlatformSM8521::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformSM8521::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformSM8521::getMaxFreq(int ch) {
+  return 0xfff;
+}
+
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
-  chipClock=11059200;
+  chipClock=10000000;
   CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/4/coreQuality; // CKIN -> fCLK(/2) -> Function blocks (/2)
+  rate=chipClock/2; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformSM8521::poke(unsigned int addr, unsigned short val) {
@@ -379,32 +428,6 @@ void DivPlatformSM8521::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformSM8521::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformSM8521::setCoreQuality(unsigned char q) {
-  switch (q) {
-    case 0:
-      coreQuality=64;
-      break;
-    case 1:
-      coreQuality=32;
-      break;
-    case 2:
-      coreQuality=16;
-      break;
-    case 3:
-      coreQuality=8;
-      break;
-    case 4:
-      coreQuality=4;
-      break;
-    case 5:
-      coreQuality=1;
-      break;
-    default:
-      coreQuality=8;
-      break;
-  }
 }
 
 int DivPlatformSM8521::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

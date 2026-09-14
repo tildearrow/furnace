@@ -1,0 +1,5 @@
+GitHub Actions uses the hash of this file as the cache key for the ASIO SDK.
+Update this file when a new version of the ASIO SDK is released to trigger
+a new download on GitHub Actions instead of using the old cache.
+
+asiosdk_2.3.3_2019-06-14.zip

@@ -27,8 +27,8 @@ the **order list** is a smaller spreadsheet showing the overall song structure.
 
 ## time
 
-- during playback, each **row** lasts a number of ticks determined by the song's **speed** value(s).
 - a **tick** is the smallest measure of time to which all note, effect, and macro times are quantized.
+- during playback, each **row** lasts a number of ticks determined by the song's **speed** value(s).
 
 ## sound
 

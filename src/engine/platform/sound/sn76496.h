@@ -15,7 +15,7 @@ public:
 	void stereo_w(u8 data);
 	void write(u8 data);
 	void device_start();
-	void sound_stream_update(short** outputs, int outLen);
+	void sound_stream_update(short* outputs, int outLen);
 	inline int32_t get_channel_output(int ch) {
 		return ((m_output[ch]!=0)?m_volume[ch]:0);
 	}
@@ -28,7 +28,6 @@ public:
 			int noisetap2,
 			bool negate,
 			bool stereo,
-			int clockdivider,
 			bool ncr,
 			bool sega);
 
@@ -38,7 +37,6 @@ public:
 			int noisetap2,
 			bool negate,
 			bool stereo,
-			int clockdivider,
 			bool ncr,
 			bool sega)
 		: sn76496_base_device(
@@ -48,12 +46,11 @@ public:
 			noisetap2,
 			negate,
 			stereo,
-			clockdivider,
 			ncr,
 			sega)
 		{}
 
-private:
+public: // SORRY....
 	inline bool     in_noise_mode();
 
 	bool            m_ready_state;
@@ -64,7 +61,6 @@ private:
 	const int32_t   m_whitenoise_tap2;  // mask for white noise tap 2 (lower one, usually bit 13)
 	bool            m_negate;           // output negate flag
 	const bool      m_stereo;           // whether we're dealing with stereo or not
-	const int32_t   m_clock_divider;    // clock divider
 	const bool      m_ncr_style_psg;    // flag to ignore writes to regs 1,3,5,6,7 with bit 7 low
 	const bool      m_sega_style_psg;   // flag to make frequency zero acts as if it is one more than max (0x3ff+1) or if it acts like 0; the initial register is pointing to 0x3 instead of 0x0; the volume reg is preloaded with 0xF instead of 0x0
 
@@ -73,7 +69,6 @@ private:
 	int32_t           m_last_register;    // last register written
 	int32_t           m_volume[4];        // db volume of voice 0-2 and noise
 	uint32_t          m_RNG;              // noise generator LFSR
-	int32_t           m_current_clock;
 	int32_t           m_stereo_mask;      // the stereo output mask
 	int32_t           m_period[4];        // Length of 1/2 of waveform
 	int32_t           m_count[4];         // Position within the waveform

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,10 @@
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
-    struct Channel: public SharedChannel<int> {
-      bool furnacePCM;
+    struct Channel: public SharedChannel {
       int sample;
-      Channel():
-        SharedChannel<int>(8),
-        furnacePCM(false),
+      Channel(bool linear=true):
+        SharedChannel(8,linear),
         sample(-1) {}
     };
     Channel chan[4];
@@ -52,8 +50,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
-    bool sampleLoaded[256];
-    unsigned char sampleBank;
+    bool* sampleLoaded;
 
     int delay, updateOsc;
 
@@ -68,7 +65,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
         bank(0),
         phrase(0),
         length(0) {}
-    } bankedPhrase[256];
+    }* bankedPhrase;
 
     DivMemoryComposition memCompo;
   
@@ -79,7 +76,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual u8 read_byte(u32 address) override;
     virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
-    virtual void* getChanState(int chan) override;
+    virtual SharedChannel* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
@@ -93,6 +90,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual float getPostAmp() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyInsDeletion(void* ins) override;
+    virtual unsigned int getMaxFreq(int ch) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual void setFlags(const DivConfig& flags) override;
@@ -106,10 +104,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformMSM6295():
-      DivDispatch(),
-      vgsound_emu_mem_intf(),
-      msm(*this) {}
+    DivPlatformMSM6295();
     ~DivPlatformMSM6295();
 };
 #endif

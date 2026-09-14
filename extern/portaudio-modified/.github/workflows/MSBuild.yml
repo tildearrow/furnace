@@ -1,0 +1,96 @@
+name: MSBuild MSVC Project File CI
+
+on: [push, pull_request]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: ./msvc/portaudio.sln
+  VCPROJ_FILE_PATH: ./msvc/portaudio.vcproj
+  VCXPROJ_FILE_PATH: ./msvc/portaudio.vcxproj
+  VCXPROJ_FILTERS_FILE_PATH: ./msvc/portaudio.vcxproj.filters
+  VCXPROJ_USER_FILE_PATH: ./msvc/portaudio.vcxproj.user
+  DEF_FILE_PATH: ./msvc/portaudio.def
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        BUILD_CONFIGURATION: [Release]
+        BUILD_PLATFORM: [Win32, x64]
+
+    steps:
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1
+
+    - uses: actions/checkout@v2
+
+    - name: Upgrade VC Project File
+      # We maintain our vcproj file in an old format to maintain backwards compatibility
+      # This step upgrades the project to the latest version of MSVC
+      # see https://docs.microsoft.com/en-us/visualstudio/ide/reference/upgrade-devenv-exe?view=vs-2019
+      # pipe to file to ensure that it terminates https://stackoverflow.com/questions/48896010/occasionally-occurring-msbuild-error-msb3428/48918105#48918105
+      # discussion of using vswhere.exe here: https://stackoverflow.com/questions/65287456/how-to-upgrade-a-visual-studio-project-from-within-a-github-action/65311868#65311868
+      run: |
+        $devenv = & vswhere.exe '-property' productPath
+        Write-Output "$devenv"
+        & $devenv "${{env.VCPROJ_FILE_PATH}}" /Upgrade /NoSplash | Out-Null
+        Write-Output "devenv launched"
+        while (!(Test-Path "${{env.VCXPROJ_FILE_PATH}}")) { Start-Sleep -Seconds 10 }
+        Write-Output "vcxproj found"
+        while (!(Test-Path "${{env.VCXPROJ_FILTERS_FILE_PATH}}")) { Start-Sleep -Seconds 10 }
+        Write-Output "vcxproj.filters found"
+        Start-Sleep -Seconds 10
+        Write-Output "done."
+
+    - name: Remove ASIO Files and Enable PA_USE_DS=1
+      # Process the project files to remove ASIO-related sources and includes (since we can not access the ASIO SDK in a public build)
+      run: |
+        # Process .vcxproj file: remove source files
+        $xdoc = new-object System.Xml.XmlDocument
+        $vcxprojFile = resolve-path("${{env.VCXPROJ_FILE_PATH}}")
+        $xdoc.load($vcxprojFile)
+        $namespace = New-Object -TypeName "Xml.XmlNamespaceManager" -ArgumentList $xdoc.NameTable
+        $namespace.AddNamespace("vs", $xdoc.DocumentElement.NamespaceURI)
+        $nodes = $xdoc.SelectNodes("//vs:ClCompile[contains(@Include, '..\src\hostapi\asio')]", $namespace)
+        Write-Output "deleting ASIO related compilation nodes from .vcxproj:"
+        Write-Output $nodes
+        ForEach($node in $nodes) {
+          $parent = $node.ParentNode
+          $parent.RemoveChild($node)
+        }
+        # Enable DirectSound host API
+        $nodes = $xdoc.SelectNodes("//vs:PreprocessorDefinitions[contains(., 'PA_USE_DS=0')]", $namespace)
+        ForEach($node in $nodes) {
+          $text = $node.InnerText
+          $node.InnerText = $text -replace 'PA_USE_DS=0', 'PA_USE_DS=1'
+        }
+        $xdoc.save($vcxprojFile)
+        # Process .vcxproj.filters file: remove source files and includes
+        $vcxprojFiltersFile = resolve-path("${{env.VCXPROJ_FILTERS_FILE_PATH}}")
+        $xdoc.load($vcxprojFiltersFile)
+        $namespace = New-Object -TypeName "Xml.XmlNamespaceManager" -ArgumentList $xdoc.NameTable
+        $namespace.AddNamespace("vs", $xdoc.DocumentElement.NamespaceURI)
+        $nodes = $xdoc.SelectNodes("//vs:ClCompile[contains(@Include, '..\src\hostapi\asio')]", $namespace)
+        Write-Output "deleting ASIO related compilation nodes from .vcxproj.filters:"
+        Write-Output $nodes
+        ForEach($node in $nodes) {
+          $parent = $node.ParentNode
+          $parent.RemoveChild($node)
+        }
+        $nodes = $xdoc.SelectNodes("//vs:ClInclude[contains(@Include, 'pa_asio.h')]", $namespace)
+        Write-Output "deleting ASIO related include nodes from .vcxproj.filters:"
+        Write-Output $nodes
+        ForEach($node in $nodes) {
+          $parent = $node.ParentNode
+          $parent.RemoveChild($node)
+        }
+        $xdoc.save($vcxprojFiltersFile)
+        # Process .def file: remove PaAsio_ symbols
+        Set-Content -Path "${{env.DEF_FILE_PATH}}" -Value (Get-Content -Path "${{env.DEF_FILE_PATH}}" | Select-String -Pattern 'PaAsio_' -NotMatch)
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{matrix.BUILD_CONFIGURATION}} /p:Platform=${{matrix.BUILD_PLATFORM}} ${{env.VCXPROJ_FILE_PATH}}

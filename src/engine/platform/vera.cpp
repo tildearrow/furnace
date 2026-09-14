@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2024 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,12 +58,17 @@ const char** DivPlatformVERA::getRegisterSheet() {
 
 // TODO: possible sample offset latency...
 void DivPlatformVERA::acquire(short** buf, size_t len) {
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->begin(len);
+  }
+
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow
   short whyCallItBuf[4][128];
   size_t pos=0;
+  size_t lenCopy=len;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
-  while (len>0) {
+  while (lenCopy>0) {
     if (s->samples>0 && chan[16].pcm.pos<s->samples) {
       while (pcm_is_fifo_almost_empty(pcm)) {
         short tmp_l=0;
@@ -109,24 +114,30 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
       // just let the buffer run out
       chan[16].pcm.sample=-1;
     }
-    int curLen=MIN(len,128);
+    int curLen=MIN(lenCopy,128);
     memset(whyCallItBuf,0,sizeof(whyCallItBuf));
     pcm_render(pcm,whyCallItBuf[2],whyCallItBuf[3],curLen);
     for (int i=0; i<curLen; i++) {
       psg_render(psg,&whyCallItBuf[0][i],&whyCallItBuf[1][i],1);
       buf[0][pos]=(short)(((int)whyCallItBuf[0][i]+whyCallItBuf[2][i])/2);
       buf[1][pos]=(short)(((int)whyCallItBuf[1][i]+whyCallItBuf[3][i])/2);
-      pos++;
 
-      for (int i=0; i<16; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut;
+      for (int j=0; j<16; j++) {
+        oscBuf[j]->putSample(pos,psg->channels[j].lastOut);
       }
+
       int pcmOut=(whyCallItBuf[2][i]+whyCallItBuf[3][i])>>1;
       if (pcmOut<-32768) pcmOut=-32768;
       if (pcmOut>32767) pcmOut=32767;
-      oscBuf[16]->data[oscBuf[16]->needle++]=pcmOut;
+      oscBuf[16]->putSample(pos,pcmOut);
+
+      pos++;
     }
-    len-=curLen;
+    lenCopy-=curLen;
+  }
+
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->end(len);
   }
 }
 
@@ -141,28 +152,12 @@ void DivPlatformVERA::reset() {
   for (int i=0; i<16; i++) {
     chan[i].vol=63;
     chan[i].pan=3;
+    chan[i].pitchTable=&pitchTable;
     rWriteHi(i,2,isMuted[i]?0:3);
   }
   chan[16].vol=15;
   chan[16].pan=3;
-  lastCenterRate=-1;
-}
-
-int DivPlatformVERA::calcNoteFreq(int ch, int note) {
-  if (ch<16) {
-    return parent->calcBaseFreq(chipClock,2097152,note,false);
-  } else {
-    double off=65536.0;
-    if (chan[ch].pcm.sample>=0 && chan[ch].pcm.sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan[ch].pcm.sample);
-      if (s->centerRate<1) {
-        off=65536.0;
-      } else {
-        off=65536.0*(s->centerRate/8363.0);
-      }
-    }
-    return (int)(parent->calcBaseFreq(chipClock,off,note,false));
-  }
+  chan[16].pitchTable=samplePitchTable.get(-1);
 }
 
 void DivPlatformVERA::tick(bool sysTick) {
@@ -174,9 +169,9 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=calcNoteFreq(0,parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -203,8 +198,10 @@ void DivPlatformVERA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,2097152);
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       rWrite(i,0,chan[i].freq&0xff);
       rWrite(i,1,(chan[i].freq>>8)&0xff);
       chan[i].freqChanged=false;
@@ -218,24 +215,14 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   if (NEW_ARP_STRAT) {
     chan[16].handleArp();
-  } else if (chan[16].std.arp.had) {
+  } else if (chan[16].std.arp.had && !chan[16].rawFreq) {
     if (!chan[16].inPorta) {
-      chan[16].baseFreq=calcNoteFreq(16,parent->calcArp(chan[16].note,chan[16].std.arp.val));
+      chan[16].baseFreq=chan[16].calcBaseFreq(parent->calcArp(chan[16].note,chan[16].std.arp.val));
     }
     chan[16].freqChanged=true;
   }
   if (chan[16].freqChanged) {
-    double off=65536.0;
-    if (chan[16].pcm.sample>=0 && chan[16].pcm.sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan[16].pcm.sample);
-      lastCenterRate=s->centerRate;
-      if (s->centerRate>=1) {
-        off=65536.0*(s->centerRate/8363.0);
-      }
-    } else if (lastCenterRate>=1) {
-      off=65536.0*(lastCenterRate/8363.0);
-    }
-    chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,chan[16].fixedArp?chan[16].baseNoteOverride:chan[16].arpOff,chan[16].fixedArp,false,8,chan[16].pitch2,chipClock,off);
+    chan[16].freq=chan[16].calcFreq();
     if (chan[16].freq>128) chan[16].freq=128;
     rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;
@@ -303,11 +290,13 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         DivInstrument* ins=parent->getIns(chan[16].ins,DIV_INS_VERA);
         if (c.value!=DIV_NOTE_NULL) {
           chan[16].pcm.sample=ins->amiga.getSample(c.value);
+          chan[16].pitchTable=samplePitchTable.get(chan[16].pcm.sample);
           chan[16].sampleNote=c.value;
           c.value=ins->amiga.getFreq(c.value);
           chan[16].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
         } else if (chan[c.chan].sampleNote!=DIV_NOTE_NULL) {
           chan[16].pcm.sample=ins->amiga.getSample(chan[c.chan].sampleNote);
+          chan[16].pitchTable=samplePitchTable.get(chan[16].pcm.sample);
           c.value=ins->amiga.getFreq(chan[c.chan].sampleNote);
         }
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
@@ -330,13 +319,13 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         rWritePCMCtrl(ctrl);
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -381,7 +370,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=calcNoteFreq(c.chan,c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -404,15 +393,15 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=calcNoteFreq(c.chan,c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
-      if (!chan[c.chan].inPorta && c.value && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=calcNoteFreq(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_STD_NOISE_MODE:
@@ -461,7 +450,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
   return 1;
 }
 
-void* DivPlatformVERA::getChanState(int ch) {
+SharedChannel* DivPlatformVERA::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -510,6 +499,15 @@ void DivPlatformVERA::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformVERA::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,2097152,0xffff,false,parent->song.compatFlags.linearPitch);
+  samplePitchTable.update<Channel>(chan,17,parent->song.tuning,chipClock,65536,0x80,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformVERA::getMaxFreq(int ch) {
+  return (ch>=16)?0xff:0xffff;
+}
+
 void DivPlatformVERA::poke(unsigned int addr, unsigned short val) {
   switch (addr) {
     case 64:
@@ -532,13 +530,15 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformVERA::setFlags(const DivConfig& flags) {
-  psg->chipType=flags.getInt("chipType",2);
+  psg->chipType=flags.getInt("chipType",3);
   chipClock=25000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   for (int i=0; i<17; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -547,6 +547,7 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConf
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   parent=p;
+  samplePitchTable.init(parent);
   psg=new struct VERA_PSG;
   pcm=new struct VERA_PCM;
   dumpWrites=false;
@@ -563,5 +564,7 @@ void DivPlatformVERA::quit() {
   delete psg;
   delete pcm;
 }
+
 DivPlatformVERA::~DivPlatformVERA() {
+  samplePitchTable.destroy<Channel>(chan,17);
 }

@@ -352,8 +352,10 @@ int adpcm_decode_block (int16_t *outbuf, const uint8_t *inbuf, size_t inbufsize,
     *outbuf++ = pcmdata[0] = (int16_t) (inbuf [0] | (inbuf [1] << 8));
     index[0] = inbuf [2];
 
+    // tildearrow: don't return if this fails. try decoding a corrupt sample anyway.
+    // thanks Architect!
     if (index [0] < 0 || index [0] > 88 || inbuf [3])     // sanitize the input a little...
-        return 0;
+        index[0] = 0;
 
     inbufsize -= 4;
     inbuf += 4;
