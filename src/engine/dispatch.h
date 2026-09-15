@@ -1260,6 +1260,12 @@ class DivDispatch {
     virtual void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
 
     /**
+     * issue register writes that cause a soft-reset.
+     * used in register dump exports.
+     */
+    virtual void softReset();
+
+    /**
      * send a command to this dispatch.
      * @param c a DivCommand.
      * @return a return value which varies depending on the command.
