@@ -308,6 +308,10 @@ void DivPlatformMSM6258::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformMSM6258::softReset() {
+  rWrite(0,1); // stop
+}
+
 void DivPlatformMSM6258::reset() {
   while (!writes.empty()) writes.pop();
   msm->device_reset();

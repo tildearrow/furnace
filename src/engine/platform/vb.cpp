@@ -528,6 +528,11 @@ int DivPlatformVB::getRegisterPoolDepth() {
   return 8;
 }
 
+void DivPlatformVB::softReset() {
+  // isn't it amazing when a chip has a built-in reset command?
+  rWrite(0x580,0xff);
+}
+
 void DivPlatformVB::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,0x600);

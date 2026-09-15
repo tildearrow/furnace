@@ -1285,6 +1285,25 @@ void DivPlatformYM2203::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformYM2203::softReset() {
+  // reset AY
+  immWrite(7,0x3f);
+  immWrite(8,0);
+  immWrite(9,0);
+  immWrite(10,0);
+
+  // reset OPN
+  for (int i=0; i<3; i++) { // set SL and RR to highest
+    immWrite(0x80+i,0xff);
+    immWrite(0x84+i,0xff);
+    immWrite(0x88+i,0xff);
+    immWrite(0x8c+i,0xff);
+  }
+  for (int i=0; i<3; i++) { // note off
+    immWrite(0x28,i);
+  }
+}
+
 void DivPlatformYM2203::reset() {
   writes.clear();
   memset(regPool,0,256);

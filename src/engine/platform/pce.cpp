@@ -808,6 +808,24 @@ int DivPlatformPCE::getRegisterPoolSize() {
   return 112;
 }
 
+void DivPlatformPCE::softReset() {
+  // issue writes which reset chip state.
+  // this does not reset dispatch state!
+
+  // for each channel
+  for (int i=0; i<6; i++) {
+    // select the channel
+    rWrite(0,i);
+    // disable output
+    rWrite(4,0x5f);
+    rWrite(4,0x1f);
+    // reset waveform
+    for (int j=0; j<32; j++) {
+      rWrite(6,0);
+    }
+  }
+}
+
 void DivPlatformPCE::reset() {
   // reset everything to initial state.
 

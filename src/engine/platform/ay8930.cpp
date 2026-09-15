@@ -842,6 +842,11 @@ int DivPlatformAY8930::getRegisterPoolSize() {
   return 32;
 }
 
+void DivPlatformAY8930::softReset() {
+  rWrite(0x0d,0);
+  rWrite(0x0d,0xa0);
+}
+
 void DivPlatformAY8930::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();

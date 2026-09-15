@@ -291,6 +291,11 @@ void DivPlatformMSM6295::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformMSM6295::softReset() {
+  rWrite(0,0x78); // disable all channels
+  rWrite(12,1); // select rate
+}
+
 void DivPlatformMSM6295::reset() {
   while (!writes.empty()) writes.pop();
   msm.reset();

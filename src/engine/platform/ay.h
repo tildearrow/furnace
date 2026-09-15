@@ -174,6 +174,7 @@ class DivPlatformAY8910: public DivDispatch {
     int getRegisterPoolSize();
     void setCore(unsigned char core);
     void flushWrites();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

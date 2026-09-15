@@ -529,6 +529,12 @@ int DivPlatformSMS::getRegisterPoolSize() {
   return stereo?9:8;
 }
 
+void DivPlatformSMS::softReset() {
+  for (int i=0; i<4; i++) {
+    rWrite(0,0x90|(i<<5)|15);
+  }
+}
+
 void DivPlatformSMS::reset() {
   memset(regPool,0,16);
   chanLatch=0;

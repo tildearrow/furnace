@@ -649,6 +649,24 @@ int DivPlatformGB::getRegisterPoolSize() {
   return 64;
 }
 
+void DivPlatformGB::softReset() {
+  // square 1
+  immWrite(0x12,0);
+  immWrite(0x14,0x80);
+
+  // square 2
+  immWrite(0x17,0);
+  immWrite(0x19,0x80);
+
+  // wave
+  immWrite(0x1c,0);
+  immWrite(0x1e,0x80);
+
+  // noise
+  immWrite(0x21,0);
+  immWrite(0x23,0x80);
+}
+
 void DivPlatformGB::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGB::Channel(parent->song.compatFlags.linearPitch);

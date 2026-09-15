@@ -390,6 +390,13 @@ DivDispatchOscBuffer* DivPlatformK053260::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformK053260::softReset() {
+  for (int i=0; i<4; i++) {
+    rWrite(0x2f,0); // mute
+    rWrite(0x28,0); // keyoff
+  }
+}
+
 void DivPlatformK053260::reset() {
   memset(regPool,0,64);
   k053260.reset();

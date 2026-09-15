@@ -723,8 +723,6 @@ class DivEngine {
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
     // dump to S98.
     SafeWriter* saveS98(float tickRate=0.0f, bool* sysToExport=NULL, bool loop=true, int trailingTicks=-1);
-    // generate reset writes for a particular system
-    std::vector<DivRegWrite> generateResetWrites(DivSystem sys);
     // dump command stream.
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text

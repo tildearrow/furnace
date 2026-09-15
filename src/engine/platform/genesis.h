@@ -111,6 +111,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     virtual int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

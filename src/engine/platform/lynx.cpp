@@ -539,6 +539,14 @@ int DivPlatformLynx::getRegisterPoolSize()
   return 4*8+4;
 }
 
+void DivPlatformLynx::softReset() {
+  rWrite(0x44,0xff); //stereo attenuation select
+  rWrite(0x50,0x00); //stereo channel disable
+  for (int i=0; i<4; i++) { //stereo attenuation value
+    rWrite(0x40+i,0xff);
+  }
+}
+
 void DivPlatformLynx::reset() {
   mikey=std::make_unique<Lynx::Mikey>(rate);
 
