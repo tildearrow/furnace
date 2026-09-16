@@ -78,9 +78,19 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
 
   // config
   if (tickRate<1.0f) tickRate=getHz();
-  std::vector<int> toExport=conf.getIntList("toExport",{});
+  std::vector<int> toExport;
+
+  for (int i=0; i<song.systemLen; i++) {
+    if (sysToExport!=NULL) {
+      if (!sysToExport[i]) continue;
+    }
+    if (!supportedByS98(song.system[i])) continue;
+    toExport.push_back(i);
+  }
+
   if (toExport.empty()) {
     logE("No systems selected for S98");
+    lastError="No systems selected for S98";
     return NULL;
   }
   int dataPos=0;
