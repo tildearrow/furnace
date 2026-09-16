@@ -63,7 +63,7 @@ static const char* midiGMInstrumentNames[128]={
   "FX 1 (rain)", "FX 2 (soundtrack)", "FX 3 (crystal)", "FX 4 (atmosphere)",
   "FX 5 (brightness)", "FX 6 (goblins)", "FX 7 (echoes)", "FX 8 (sci-fi)",
   "Sitar", "Banjo", "Shamisen", "Koto",
-  "Kalimba", "Bag pipe", "Fiddle", "Shanai",
+  "Kalimba", "Bag Pipe", "Fiddle", "Shanai",
   "Tinkle Bell", "Agogo", "Steel Drums", "Woodblock",
   "Taiko Drum", "Melodic Tom", "Synth Drum", "Reverse Cymbal",
   "Guitar Fret Noise", "Breath Noise", "Seashore", "Bird Tweet",
@@ -93,45 +93,6 @@ struct MIDIInvalidException {
 #define MIDI_MAX_HZ 999.0
 
 #define MIDI_BASE_HZ 60.0
-
-static void midiComputeBaseGroove(int R, int tempo, DivGroovePattern& groove) {
-  double rowsPerSecond=(double)R*1000000.0/(double)tempo;
-  if (rowsPerSecond<=0.0) rowsPerSecond=8.0;
-  double avgSpeed=MIDI_BASE_HZ/rowsPerSecond;
-  if (avgSpeed<1.0) avgSpeed=1.0;
-  if (avgSpeed>512.0) avgSpeed=512.0;
-
-  int bestLen=1;
-  int bestSum=round(avgSpeed);
-  double bestErr=-1.0;
-  for (int len=1; len<=16; len++) {
-    if (R%len) continue;
-    int sum=round(avgSpeed*(double)len);
-    if (sum<len) sum=len;
-    if (sum>512*len) sum=512*len;
-    double err=fabs((double)sum/(double)len-avgSpeed);
-    if (bestErr<0.0 || err<bestErr-1.0e-12) {
-      bestErr=err;
-      bestLen=len;
-      bestSum=sum;
-      if (err<1.0e-12) break;
-    }
-  }
-
-  groove.len=(unsigned short)bestLen;
-  for (int i=0; i<16; i++) {
-    int j=(i<bestLen)?i:(bestLen-1);
-    groove.val[i]=(unsigned short)((int64_t)bestSum*(j+1)/bestLen-(int64_t)bestSum*j/bestLen);
-  }
-}
-
-static bool midiGrooveEq(const DivGroovePattern& a, const DivGroovePattern& b) {
-  if (a.len!=b.len) return false;
-  for (int i=0; i<a.len; i++) {
-    if (a.val[i]!=b.val[i]) return false;
-  }
-  return true;
-}
 
 #define MIDI_NOTE_BIAS 48
 #define MIDI_DRUM_NOTE (60+MIDI_NOTE_BIAS)
@@ -251,9 +212,10 @@ static unsigned int midiReadVarLen(SafeReader& r) {
   return value;
 }
 
-static void midiSkip(SafeReader& r, size_t n) {
-  if (n==0) return;
-  if (!r.seek(n,SEEK_CUR)) throw EndOfFileException(&r,r.size());
+// seek forward and throw an exception if we couldn't.
+static void midiSkip(SafeReader& reader, size_t count) {
+  if (count==0) return;
+  if (!reader.seek(count,SEEK_CUR)) throw EndOfFileException(&reader,reader.size());
 }
 
 static int64_t midiMulDivR(int64_t a, int64_t b, int64_t c) {
@@ -468,37 +430,51 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
     DivSong ds;
     ds.version=DIV_VERSION_MIDI;
 
+    // determine stuff
     const int drumChannel=(midiImportOptions.drumChannel>=1 && midiImportOptions.drumChannel<=16)?(midiImportOptions.drumChannel-1):-1;
     const int slideSpeed=(ds.compatFlags.linearPitch && ds.compatFlags.pitchSlideSpeed>0)?ds.compatFlags.pitchSlideSpeed:1;
 
+    // skip past magic
     reader.seek(4,SEEK_SET);
+
+    // check whether the header is big enough
     int headerLen=reader.readI_BE();
     if (headerLen<6) throw EndOfFileException(&reader,reader.size());
-    int format=reader.readS_BE();
+
+    // read header
+    unsigned short format=reader.readS_BE();
     int numTracks=(unsigned short)reader.readS_BE();
     unsigned short division=(unsigned short)reader.readS_BE();
+
+    // skip rest of header
     if (headerLen>6) midiSkip(reader,(size_t)(headerLen-6));
     logD("MIDI import: format %d, %d tracks, division %d",format,numTracks,division);
 
+    // safety checks
     if (numTracks<1) {
       lastError="MIDI file has no tracks";
       throw MIDIInvalidException();
     }
-    if (format==2) {
-      lastError="MIDI format 2 is not supported";
+    if (format>1) {
+      lastError="only MIDI 0 and 1 are supported";
       throw MIDIInvalidException();
     }
 
+    // calculate data speed
     int ppqn=division;
     if (division&0x8000) {
+      // special mode where the upper byte tells the number of frames and lower byte the number of sub-frames
       int frames=256-((division>>8)&0xff);
       int subFrames=division&0xff;
       ppqn=frames*subFrames/2;
     }
+    // assume 96 if not specified
     if (ppqn<1) ppqn=96;
 
+    // prepare tracks
     std::vector<String> trackNames;
     while (reader.tell()+8<=reader.size() && (int)tracks.size()<numTracks) {
+      // read chunk header
       char chunkID[4];
       reader.read(chunkID,4);
       int chunkLenS=reader.readI_BE();
@@ -507,8 +483,11 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       if (chunkLen>reader.size()-reader.tell()) chunkLen=reader.size()-reader.tell();
       size_t chunkStart=reader.tell();
       midiSkip(reader,chunkLen);
-      if (strncmp(chunkID,"MTrk",4)!=0) continue;
 
+      // we only support tracks. ignore all other chunks.
+      if (memcmp(chunkID,"MTrk",4)!=0) continue;
+
+      // set track state up
       DivMIDITrackState ts;
       ts.r=new SafeReader(file+chunkStart,chunkLen);
       try {
@@ -1071,55 +1050,20 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
       for (int i=0; i<16; i++) sub->speeds.val[i]=(unsigned short)midiImportOptions.ticksPerRow;
     } else {
       songHz=MIDI_BASE_HZ;
-      midiComputeBaseGroove(MAX(1,midiImportOptions.quantize/4),tempo0,sub->speeds);
       tooFast=(rowsPerSecond>MIDI_BASE_HZ);
+      sub->speeds.len=1;
+      for (int i=0; i<16; i++) sub->speeds.val[i]=(unsigned short)midiImportOptions.ticksPerRow;
     }
-    logI("MIDI import: quantize %d, %d ticks/row, %d rows/pattern, %s, tick rate %g Hz",midiImportOptions.quantize,midiImportOptions.ticksPerRow,midiImportOptions.patternLen,midiImportOptions.useBaseTempo?"base tempo":"groove approximation",songHz);
+    logI("MIDI import: quantize %d, %d ticks/row, %d rows/pattern, %s, tick rate %g Hz",midiImportOptions.quantize,midiImportOptions.ticksPerRow,midiImportOptions.patternLen,midiImportOptions.useBaseTempo?"base tempo":"virtual tempo",songHz);
 
     sub->hz=(float)songHz;
 
     bool anyTempoChange=false;
     int curTempoVal=tempo0;
-    std::map<int,int> grooveOf;
-    if (!midiImportOptions.useBaseTempo) {
-      ds.grooves.push_back(sub->speeds);
-      grooveOf[tempo0]=0;
-    }
-    int curGroove=0;
     for (DivMIDITempoEvent& te: tempoEvents) {
       if (te.tempo==curTempoVal) continue;
       if (te.order>maxOrd) continue;
       curTempoVal=te.tempo;
-
-      int gi=0;
-      if (!midiImportOptions.useBaseTempo) {
-        std::map<int,int>::iterator gIt=grooveOf.find(te.tempo);
-        if (gIt==grooveOf.end()) {
-          DivGroovePattern g;
-          midiComputeBaseGroove(MAX(1,midiImportOptions.quantize/4),te.tempo,g);
-          gi=-1;
-          for (size_t gj=0; gj<ds.grooves.size(); gj++) {
-            if (midiGrooveEq(ds.grooves[gj],g)) {
-              gi=(int)gj;
-              break;
-            }
-          }
-          if (gi<0) {
-            if (ds.grooves.size()>=256) {
-              grooveOverflow++;
-              continue;
-            }
-            gi=(int)ds.grooves.size();
-            ds.grooves.push_back(g);
-          }
-          grooveOf[te.tempo]=gi;
-        } else {
-          gi=gIt->second;
-        }
-
-        if (gi==curGroove) continue;
-        curGroove=gi;
-      }
 
       short* cell=sub->pat[tempoChan].getPattern(te.order,true)->newData[te.row];
       if (midiImportOptions.useBaseTempo) {
@@ -1132,7 +1076,8 @@ bool DivEngine::loadMIDI(unsigned char* file, size_t len) {
         }
         midiWriteFx(cell,sub->pat[tempoChan].effectCols,0,(unsigned char)(0xc0|((hzI>>8)&3)),(unsigned char)(hzI&0xff));
       } else {
-        midiWriteFx(cell,sub->pat[tempoChan].effectCols,0,0x09,(unsigned char)gi);
+        // I don't know whether I am doing this right.
+        midiWriteFx(cell,sub->pat[tempoChan].effectCols,0,0xfd,te.tempo);
       }
       anyTempoChange=true;
     }
