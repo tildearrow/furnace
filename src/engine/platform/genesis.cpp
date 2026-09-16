@@ -1797,7 +1797,7 @@ void DivPlatformGenesis::reset() {
   }
   OPN2_SetMSW(&fm,msw?1:0);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<10; i++) {
     chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);

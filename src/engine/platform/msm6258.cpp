@@ -325,7 +325,7 @@ void DivPlatformMSM6258::reset() {
   clockSel=0;
   updateSampleFreq=true;
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
     addWrite(0xffff0001,calcVGMRate());
   }
   for (int i=0; i<1; i++) {

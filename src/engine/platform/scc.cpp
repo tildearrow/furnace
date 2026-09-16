@@ -346,7 +346,7 @@ void DivPlatformSCC::reset() {
     rWrite(regBase+10+i,15);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   lastUpdated34=0;
 }

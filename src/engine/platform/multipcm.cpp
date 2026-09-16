@@ -466,6 +466,15 @@ int DivPlatformMultiPCM::getRegisterPoolSize() {
   return 224;
 }
 
+void DivPlatformMultiPCM::softReset() {
+  // am I doing ok?
+  for (int i=0; i<28; i++) {
+    for (int j=0; j<8; j++) {
+      chImmWrite(i,j,0);
+    }
+  }
+}
+
 void DivPlatformMultiPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,224);
@@ -490,7 +499,7 @@ void DivPlatformMultiPCM::reset() {
   curAddr=-1;
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   delay=0;

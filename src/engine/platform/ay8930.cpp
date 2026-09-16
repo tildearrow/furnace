@@ -862,7 +862,7 @@ void DivPlatformAY8930::reset() {
     chan[i].envelope.slideLow=0;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   for (int i=0; i<32; i++) {

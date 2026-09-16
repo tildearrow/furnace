@@ -367,15 +367,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
           DivSystem sys=song.system[i.first];
           writeWait(data,totalWait);
           totalWait=0;
-          if (i.second.write.addr==0xffffffff) { // Furnace fake reset
-            disCont[i.first].dispatch->softReset();
-            for (auto& j: disCont[i.first].dispatch->getRegisterWrites()) {
-              writeCmd(data,sys,cmdID,j.addr,j.val);
-            }
-            disCont[i.first].dispatch->getRegisterWrites().clear();
-          } else {
-            writeCmd(data,sys,cmdID,i.second.write.addr,i.second.write.val);
-          }
+          writeCmd(data,sys,cmdID,i.second.write.addr,i.second.write.val);
         }
         sortedWrites.clear();
         wait-=lastOne;

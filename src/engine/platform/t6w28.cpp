@@ -346,7 +346,7 @@ void DivPlatformT6W28::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   t6w->reset();
   lastPan=0xff;

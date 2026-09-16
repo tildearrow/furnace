@@ -315,7 +315,7 @@ void DivPlatformBubSysWSG::reset() {
     chan[i].ws.init(NULL,32,15,false);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   k005289.reset();
   lastOut=0;

@@ -1308,7 +1308,7 @@ void DivPlatformYM2203::reset() {
   writes.clear();
   memset(regPool,0,256);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   OPN2_Reset(&fm_nuked);
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);

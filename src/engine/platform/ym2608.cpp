@@ -1923,7 +1923,7 @@ void DivPlatformYM2608::reset() {
   immWrite(0x29,0x80);
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   // LFO

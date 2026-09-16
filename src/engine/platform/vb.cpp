@@ -544,7 +544,7 @@ void DivPlatformVB::reset() {
     chan[i].ws.init(NULL,32,63,false);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   vb->Power();
   tempL=0;

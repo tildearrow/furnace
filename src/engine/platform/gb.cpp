@@ -676,7 +676,7 @@ void DivPlatformGB::reset() {
   ws.setEngine(parent);
   ws.init(NULL,32,15,false);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   memset(gb,0,sizeof(GB_gameboy_t));
   memset(regPool,0,128);

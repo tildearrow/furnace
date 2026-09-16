@@ -481,7 +481,7 @@ void DivPlatformPOKEY::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   if (useAltASAP) {

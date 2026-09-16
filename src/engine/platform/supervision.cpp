@@ -475,7 +475,7 @@ void DivPlatformSupervision::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   supervision_sound_reset(&svision);
   memset(tempL,0,32*sizeof(int));

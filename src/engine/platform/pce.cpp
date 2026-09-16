@@ -845,7 +845,7 @@ void DivPlatformPCE::reset() {
   }
   // if we're dumping writes, tell the engine a reset has occurred.
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   // reset the emulator
   pce->Power(0);

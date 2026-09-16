@@ -1116,7 +1116,7 @@ void DivPlatformOPLL::reset() {
     }
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   if (selCore==1) {
     OPLL_reset(fm_emu);

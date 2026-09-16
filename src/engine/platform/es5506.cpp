@@ -1386,7 +1386,7 @@ void DivPlatformES5506::reset() {
   chanMax=initChanMax;
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);

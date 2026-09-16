@@ -3246,7 +3246,7 @@ void DivPlatformOPL::reset() {
   }
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   update4OpMask=true;

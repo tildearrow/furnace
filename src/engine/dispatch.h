@@ -844,7 +844,6 @@ struct DivRegWrite {
    * - 0xffffxx05: set sample position
    *   - xx is the instance ID
    *   - value is the sample position
-   * - 0xffffffff: reset
    * - 0xfffffffe: add delay
    *   - value is the delay in cycles
    */

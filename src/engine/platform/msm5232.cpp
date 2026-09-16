@@ -363,7 +363,7 @@ void DivPlatformMSM5232::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   msm->device_start();
   msm->device_reset();

@@ -545,7 +545,7 @@ void DivPlatformSMS::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   sn->device_start();
   YMPSG_Init(&sn_nuked,isRealSN,12,isRealSN?13:15,isRealSN?16383:32767);

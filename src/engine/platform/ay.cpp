@@ -1054,7 +1054,7 @@ void DivPlatformAY8910::reset() {
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   SSG_Reset(&ay_atomic);

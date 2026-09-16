@@ -557,7 +557,7 @@ void DivPlatformLynx::reset() {
   }
   writes.clear();
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   WRITE_STEREO(0);
 }
