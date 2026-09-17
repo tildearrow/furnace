@@ -368,6 +368,14 @@ unsigned short DivPlatformSAA1099::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
+void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if ((ch%3)==1) {
+    if (saaEnv[ch/3]&0x80) {
+      ret.push_back(DivChannelPair(_("env >"),ch+1));
+    }
+  }
+}
+
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
