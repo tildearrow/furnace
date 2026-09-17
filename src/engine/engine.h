@@ -491,9 +491,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivEffectContainer> effectInst;
   std::vector<int> curChanMask;
-  static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
-  static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
-  static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+  static DivSysDef* sysDefs[DIV_SYSTEM_MAX];
   static DivROMExportDef* romExportDefs[DIV_ROM_MAX];
 
   DivCSPlayer* cmdStreamInt;
@@ -749,8 +747,8 @@ class DivEngine {
     int dispatchCmd(DivCommand c);
 
     // get system IDs
-    static DivSystem systemFromFileFur(unsigned char val);
-    static unsigned char systemToFileFur(DivSystem val);
+    static DivSystem systemFromFileFur(unsigned short val);
+    static unsigned short systemToFileFur(DivSystem val);
     static DivSystem systemFromFileDMF(unsigned char val);
     static unsigned char systemToFileDMF(DivSystem val);
 
@@ -1554,18 +1552,13 @@ class DivEngine {
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
       memset(effectSlotMap,-1,4096*sizeof(short));
-      memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
+      memset(sysDefs,0,DIV_SYSTEM_MAX*sizeof(void*));
       memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
       memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
       memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(float));
-
-      for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
-        sysFileMapFur[i]=DIV_SYSTEM_NULL;
-        sysFileMapDMF[i]=DIV_SYSTEM_NULL;
-      }
 
       changeSong(0);
     }

@@ -22,22 +22,32 @@
 #include "instrument.h"
 #include "song.h"
 #include "../ta-log.h"
+#include <map>
 
-DivSysDef* DivEngine::sysDefs[DIV_MAX_CHIP_DEFS];
-DivSystem DivEngine::sysFileMapFur[DIV_MAX_CHIP_DEFS];
-DivSystem DivEngine::sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+DivSysDef* DivEngine::sysDefs[DIV_SYSTEM_MAX];
 
-DivSystem DivEngine::systemFromFileFur(unsigned char val) {
-  return sysFileMapFur[val];
+static std::map<unsigned short,DivSystem> sysFileMapFur;
+static std::map<unsigned short,DivSystem> sysFileMapDMF;
+
+DivSystem DivEngine::systemFromFileFur(unsigned short val) {
+  auto ret=sysFileMapFur.find(val);
+  if (ret!=sysFileMapFur.cend()) {
+    return ret->second;
+  }
+  return DIV_SYSTEM_NULL;
 }
 
-unsigned char DivEngine::systemToFileFur(DivSystem val) {
+unsigned short DivEngine::systemToFileFur(DivSystem val) {
   if (sysDefs[val]==NULL) return 0;
   return sysDefs[val]->id;
 }
 
 DivSystem DivEngine::systemFromFileDMF(unsigned char val) {
-  return sysFileMapDMF[val];
+  auto ret=sysFileMapDMF.find(val);
+  if (ret!=sysFileMapDMF.cend()) {
+    return ret->second;
+  }
+  return DIV_SYSTEM_NULL;
 }
 
 unsigned char DivEngine::systemToFileDMF(DivSystem val) {
@@ -2782,7 +2792,7 @@ void DivEngine::registerSystems() {
     DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_STD>)
   );
 
-  for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
+  for (int i=0; i<DIV_SYSTEM_MAX; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {
       sysFileMapFur[sysDefs[i]->id]=(DivSystem)i;

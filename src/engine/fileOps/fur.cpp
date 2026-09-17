@@ -862,7 +862,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       logD("chips: (%d, %d channels)",ds.systemLen,ds.chans);
       for (int i=0; i<ds.systemLen; i++) {
         unsigned short sysID=reader.readS();
-        if (sysID>0xff || sysID==0) {
+        if (sysID==0) {
           logE("unrecognized system ID %.4x",sysID);
           lastError=fmt::sprintf("unrecognized system ID %.4x!",sysID);
           delete[] file;
