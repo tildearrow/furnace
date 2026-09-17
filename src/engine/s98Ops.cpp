@@ -51,9 +51,8 @@ bool DivEngine::supportedByS98(DivSystem which) {
   return false;
 }
 
-constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
-
 static void writeWait(std::vector<uint8_t>& data, unsigned int newWait) {
+  logV("writeWait(%d)",newWait);
   if (newWait==1) data.push_back(0xff);
   else if (newWait>1) {
     data.push_back(0xfe);
@@ -335,7 +334,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
       }
 
       // calculate number of samples in this tick
-      int wait=cycles>>MASTER_CLOCK_PREC;
+      int wait=cycles;
 
       // get register dumps and put them into delayed writes
       int writeNum=0;
@@ -435,7 +434,8 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
   w->seek(0x10,SEEK_SET);
   w->writeI(tagPos);
   w->writeI(dataPos);
-  w->writeI(loopPos==-1?0:loopPos);
+  w->writeI(0);
+  w->writeI((loopPos==-1 || !loop)?0:loopPos);
 
   logI("finished!");
   return w;
