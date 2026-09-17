@@ -18,6 +18,7 @@
  */
 
 #include "engine.h"
+#include "bsr.h"
 #include <fmt/printf.h>
 
 bool DivEngine::supportedByS98(DivSystem which) {
@@ -52,7 +53,6 @@ bool DivEngine::supportedByS98(DivSystem which) {
 }
 
 static void writeWait(std::vector<uint8_t>& data, unsigned int newWait) {
-  logV("writeWait(%d)",newWait);
   if (newWait==1) data.push_back(0xff);
   else if (newWait>1) {
     data.push_back(0xfe);
@@ -76,7 +76,78 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
   SafeWriter* w;
 
   // config
-  if (tickRate<1.0f) tickRate=getHz();
+  if (tickRate<1.0f) {
+    // automatic - detect the tick rate
+    // items in this vector are stored as array*5 to facilitate GCD calculation
+    std::vector<unsigned int> tickRateChanges;
+
+    // start with the song's tick rate
+    float hz5=curSubSong->hz*5.0f;
+    float curTickRate=curSubSong->hz;
+    bool firstRow=false;
+
+    auto addTickRateChange=[&tickRateChanges,&curTickRate](unsigned int hz) {
+      // discard rates too low
+      if (hz<1) return;
+      curTickRate=(float)hz/5.0f;
+      // discard duplicates
+      for (unsigned int& i: tickRateChanges) {
+        if (i==hz) return;
+      }
+      // insert new rate
+      tickRateChanges.push_back(hz);
+      logD("adding tick rate change (%.1f)",(float)hz/5.0f);
+    };
+
+    // scan the song for tick rate changes
+    for (int i=0; i<curSubSong->ordersLen; i++) {
+      for (int j=0; j<curSubSong->patLen; j++) {
+        for (int k=0; k<song.chans; k++) {
+          DivPattern* pat=curSubSong->pat[k].getPattern(i,false);
+
+          for (int l=0; l<curSubSong->pat[k].effectCols; l++) {
+            if (pat->newData[j][DIV_PAT_FX(l)]==0xf0) { // F0xx - set tempo
+              addTickRateChange(pat->newData[j][DIV_PAT_FXVAL(l)]*2);
+            } else if ((pat->newData[j][DIV_PAT_FX(l)]&0xfc)==0xc0) { // Cxxx - set tick rate
+              addTickRateChange(5*(pat->newData[j][DIV_PAT_FXVAL(l)]|((pat->newData[j][DIV_PAT_FX(l)]&3)<<8)));
+            }
+          }
+          // push the initial tick rate (it may have changed at the very beginning of the song, so that's why we do it here)
+          if (!firstRow) {
+            if (tickRateChanges.empty()) {
+              // if tickRate*5 is not an integer then push an artificially high rate to skip LCM calculation
+              float fracPart=hz5-(int)hz5;
+              if (fracPart>0.001 && fracPart<0.999) {
+                addTickRateChange(50000);
+              } else {
+                addTickRateChange(hz5);
+              }
+            }
+            firstRow=true;
+          }
+        }
+      }
+    }
+
+    if (tickRateChanges.size()<2) {
+      // no tick rate changes - use song tick rate
+      tickRate=curTickRate;
+    } else {
+      // calculate least common multiplier of all rates
+      unsigned int cur=tickRateChanges[0];
+      for (unsigned int& i: tickRateChanges) {
+        if (cur>=50000) break;
+        if (cur==0 || i==0) break;
+        cur=(cur*i)/gcd2(cur,i);
+      }
+
+      // limit the final tick rate to 10000Hz
+      if (cur>=50000) cur=50000;
+
+      tickRate=(float)cur/5.0f;
+    }
+    logI("estimated global tick rate: %fHz",tickRate);
+  }
   std::vector<int> toExport;
 
   for (int i=0; i<song.systemLen; i++) {
@@ -103,6 +174,8 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
     rateDenom=tickRate*rateNum;
   }
   tickRate=(float)rateDenom/rateNum;
+  logI("rate: %d/%d",rateNum,rateDenom);
+  logI("final tick rate: %fHz",tickRate);
   w=new SafeWriter;
   w->init();
   w->write("S983",4);
@@ -204,6 +277,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
   shallStop=false;
   setOrder(0);
   synchronizedSoft([this, &data, tickRate, loop, trailingTicks, toExport, &loopPos]() {
+    std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
     double origRate=got.rate;
     got.rate=tickRate;
 
@@ -352,6 +426,15 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
         writes.clear();
       }
 
+      // render stream of all chips
+      for (int i=0; i<song.systemLen; i++) {
+        disCont[i].dispatch->fillStream(delayedWrites[i],tickRate,wait);
+        for (DivDelayedWrite& j: delayedWrites[i]) {
+          sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,j));
+        }
+        delayedWrites[i].clear();
+      }
+
       // put writes
       if (!sortedWrites.empty()) {
         // sort writes
@@ -434,7 +517,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
   w->seek(0x10,SEEK_SET);
   w->writeI(tagPos);
   w->writeI(dataPos);
-  w->writeI(0);
+  //w->writeI(0);
   w->writeI((loopPos==-1 || !loop)?0:loopPos);
 
   logI("finished!");

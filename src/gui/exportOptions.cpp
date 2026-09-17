@@ -381,12 +381,11 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
 void FurnaceGUI::drawExportS98(bool onWindow) {
   exitDisabledTimer=1;
 
-  if (ImGui::InputFloat(_("tick rate (hz)"),&s98ExportTickRate,1,10)) {
-    if (s98ExportTickRate<1) s98ExportTickRate=1;
+  if (ImGui::InputFloat(_("tick rate (Hz)"),&s98ExportTickRate,1,10,(s98ExportTickRate<1)?_("Automatic"):"%.2f")) {
+    if (s98ExportTickRate<0) s98ExportTickRate=0;
     if (s98ExportTickRate>100000) s98ExportTickRate=100000;
   }
-  if (ImGui::Checkbox(_("loop"),&s98ExportLoop)) {
-  }
+  ImGui::Checkbox(_("loop"),&s98ExportLoop);
   if (s98ExportLoop && e->song.compatFlags.loopModality==2) {
     ImGui::Text(_("loop trail:"));
     ImGui::Indent();
