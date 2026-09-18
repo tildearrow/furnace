@@ -709,7 +709,7 @@ class DivPitchTableManager {
           DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
           if (samplePitchTable) {
             // I know, I know. we only create DivPitchTables though.
-            for (int i=0; i<MIN(eSongSampleSize(),samplePitchTableLen); i++) {
+            for (size_t i=0; i<MIN(eSongSampleSize(),samplePitchTableLen); i++) {
               newArray[i]=samplePitchTable[i];
             }
 
