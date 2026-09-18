@@ -2095,6 +2095,7 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
+  sharedExtBlock=flags.getBool("sharedExtBlock",false);
   fbAllOps=flags.getBool("fbAllOps",false);
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);

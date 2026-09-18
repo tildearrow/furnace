@@ -46,6 +46,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       int interruptSimCycles=flags.getInt("interruptSimCycles",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       bool msw=flags.getBool("msw",false);
 
@@ -96,6 +97,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (msw || settings.mswEnabled) {
@@ -116,6 +120,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("clockSel",clockSel);
           flags.set("chipType",chipType);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("msw",msw);
           flags.set("interruptSimCycles",interruptSimCycles);
@@ -824,6 +829,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_YM2610B_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
@@ -846,6 +852,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (CWSliderInt(_("SSG Volume"),&ssgVol,0,256)) {
@@ -864,6 +873,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
@@ -1412,6 +1422,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
@@ -1478,6 +1489,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -1485,6 +1499,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
@@ -1498,6 +1513,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       bool memROM=flags.getBool("memROM",false);
       bool memParallel=flags.getBool("memParallel",true);
@@ -1579,6 +1595,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -1586,6 +1605,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("memROM",memROM);
           flags.set("memParallel",memParallel);

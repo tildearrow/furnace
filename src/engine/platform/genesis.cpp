@@ -1917,6 +1917,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     chipType=1;
   }
   noExtMacros=flags.getBool("noExtMacros",false);
+  sharedExtBlock=flags.getBool("sharedExtBlock",false);
   fbAllOps=flags.getBool("fbAllOps",false);
   msw=flags.getBool("msw",false);
   interruptSimCycles=flags.getInt("interruptSimCycles",0);

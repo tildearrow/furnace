@@ -2332,7 +2332,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_YM2612 ||
             ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM ||
             ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2612_CSM) {
@@ -2391,6 +2390,25 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_N163) {
           ds.systemFlags[i].set("posLatch",false);
+        }
+      }
+    }
+
+    // ExtCh block shared among ops
+    if (ds.version<252) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2203_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2608_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_CSM ||
+            ds.system[i]==DIV_SYSTEM_YM2203_CSM ||
+            ds.system[i]==DIV_SYSTEM_YM2608_CSM ||
+            ds.system[i]==DIV_SYSTEM_YM2610_CSM ||
+            ds.system[i]==DIV_SYSTEM_YM2610B_CSM) {
+          ds.systemFlags[i].set("sharedExtBlock",true);
         }
       }
     }

@@ -74,7 +74,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char writeRSSOff, writeRSSOn;
     int globalRSSVolume;
 
-    bool extMode, noExtMacros;
+    bool extMode, noExtMacros, sharedExtBlock;
     unsigned char prescale, nukedMult, memConfig;
 
     DivMemoryComposition memCompo;
