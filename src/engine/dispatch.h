@@ -709,15 +709,28 @@ class DivPitchTableManager {
           DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
           if (samplePitchTable) {
             // I know, I know. we only create DivPitchTables though.
-            memcpy((void*)newArray,(void*)samplePitchTable,MIN(eSongSampleSize(),samplePitchTableLen)*sizeof(DivPitchTable));
+            for (int i=0; i<MIN(eSongSampleSize(),samplePitchTableLen); i++) {
+              newArray[i]=samplePitchTable[i];
+            }
 
             // adjust pitch table references
             DivPitchTable* firstEntry=samplePitchTable;
             DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+            
+            logD("firstEntry: %p - lastEntry: %p",(void*)firstEntry,(void*)lastEntry);
 
             for (size_t i=0; i<numChans; i++) {
               if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-                chan[i].pitchTable=newArray+(chan[i].pitchTable-firstEntry);
+                size_t offset=(chan[i].pitchTable-firstEntry);
+                unsigned int index=offset/sizeof(void*);
+                logW("we gotta (%d)",index);
+                if (index<eSongSampleSize()) {
+                  chan[i].pitchTable=newArray+offset;
+                } else {
+                  logW("one item is gone");
+                  abort();
+                  chan[i].pitchTable=NULL;
+                }
               }
             }
 
