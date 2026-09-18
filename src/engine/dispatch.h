@@ -686,6 +686,8 @@ class DivPitchTableManager {
 
       bool hasSizeChanged=false;
 
+      logD("DivPitchTableManager update (%d channels) - sample %d",(int)numChans,sample);
+
       // first check whether we need to resize our pitch table array
       if (samplePitchTableLen!=eSongSampleSize()) {
         if (eSongSampleSize()<1) {
@@ -722,13 +724,11 @@ class DivPitchTableManager {
             for (size_t i=0; i<numChans; i++) {
               if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
                 size_t offset=(chan[i].pitchTable-firstEntry);
-                unsigned int index=offset/sizeof(void*);
-                logW("we gotta (%d)",index);
-                if (index<eSongSampleSize()) {
-                  chan[i].pitchTable=newArray+offset;
+                logD("- chan %d: %p (offset %d)",i,(void*)chan[i].pitchTable,(int)offset);
+                if (offset<eSongSampleSize()) {
+                  chan[i].pitchTable=&newArray[offset];
                 } else {
                   logW("one item is gone");
-                  abort();
                   chan[i].pitchTable=NULL;
                 }
               }
