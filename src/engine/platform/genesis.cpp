@@ -1708,6 +1708,32 @@ float DivPlatformGenesis::getPostAmp() {
   return 2.0f;
 }
 
+void DivPlatformGenesis::softReset() {
+  // reset OPN
+  for (int i=0; i<3; i++) { // set SL and RR to highest
+    immWrite(0x80+i,0xff);
+    immWrite(0x84+i,0xff);
+    immWrite(0x88+i,0xff);
+    immWrite(0x8c+i,0xff);
+  }
+  for (int i=0; i<3; i++) { // note off
+    immWrite(0x28,i);
+  }
+
+  // reset OPN2
+  for (int i=0; i<3; i++) { // set SL and RR to highest
+    immWrite(0x180+i,0xff);
+    immWrite(0x184+i,0xff);
+    immWrite(0x188+i,0xff);
+    immWrite(0x18c+i,0xff);
+  }
+  for (int i=0; i<3; i++) { // note off
+    immWrite(0x28,4+i);
+  }
+
+  immWrite(0x2b,0); // disable DAC
+}
+
 void DivPlatformGenesis::reset() {
   writes.clear();
   memset(regPool,0,512);
@@ -1771,7 +1797,7 @@ void DivPlatformGenesis::reset() {
   }
   OPN2_SetMSW(&fm,msw?1:0);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<10; i++) {
     chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);

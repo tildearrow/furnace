@@ -645,6 +645,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportS98;
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
@@ -718,6 +719,8 @@ class DivEngine {
     // - -1 to auto-determine trailing
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
+    // dump to S98.
+    SafeWriter* saveS98(float tickRate=0.0f, bool* sysToExport=NULL, bool loop=true, int trailingTicks=-1);
     // dump command stream.
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
@@ -762,6 +765,9 @@ class DivEngine {
 
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
+
+    // returns whether the S98 format supports this system.
+    bool supportedByS98(DivSystem which);
 
     // determine and setup config dir
     void initConfDir();

@@ -577,7 +577,7 @@ void DivPlatformDave::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   writeControl=false;
   clockDiv=false;

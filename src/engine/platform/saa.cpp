@@ -388,6 +388,16 @@ int DivPlatformSAA1099::getRegisterPoolSize() {
   return 32;
 }
 
+void DivPlatformSAA1099::softReset() {
+  rWrite(0x1c,0x02);
+  rWrite(0x14,0);
+  rWrite(0x15,0);
+
+  for (int i=0; i<6; i++) {
+    rWrite(i,0);
+  }
+}
+
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,32);
@@ -399,7 +409,7 @@ void DivPlatformSAA1099::reset() {
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   lastBusy=60;

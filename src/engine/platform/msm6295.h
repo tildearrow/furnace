@@ -81,6 +81,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
     virtual int getRegisterPoolSize() override;
+    virtual void softReset() override;
     virtual void reset() override;
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
