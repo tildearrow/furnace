@@ -76,78 +76,6 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
   SafeWriter* w;
 
   // config
-  if (tickRate<1.0f) {
-    // automatic - detect the tick rate
-    // items in this vector are stored as array*5 to facilitate GCD calculation
-    std::vector<unsigned int> tickRateChanges;
-
-    // start with the song's tick rate
-    float hz5=curSubSong->hz*5.0f;
-    float curTickRate=curSubSong->hz;
-    bool firstRow=false;
-
-    auto addTickRateChange=[&tickRateChanges,&curTickRate](unsigned int hz) {
-      // discard rates too low
-      if (hz<1) return;
-      curTickRate=(float)hz/5.0f;
-      // discard duplicates
-      for (unsigned int& i: tickRateChanges) {
-        if (i==hz) return;
-      }
-      // insert new rate
-      tickRateChanges.push_back(hz);
-      logD("adding tick rate change (%.1f)",(float)hz/5.0f);
-    };
-
-    // scan the song for tick rate changes
-    for (int i=0; i<curSubSong->ordersLen; i++) {
-      for (int j=0; j<curSubSong->patLen; j++) {
-        for (int k=0; k<song.chans; k++) {
-          DivPattern* pat=curSubSong->pat[k].getPattern(i,false);
-
-          for (int l=0; l<curSubSong->pat[k].effectCols; l++) {
-            if (pat->newData[j][DIV_PAT_FX(l)]==0xf0) { // F0xx - set tempo
-              addTickRateChange(pat->newData[j][DIV_PAT_FXVAL(l)]*2);
-            } else if ((pat->newData[j][DIV_PAT_FX(l)]&0xfc)==0xc0) { // Cxxx - set tick rate
-              addTickRateChange(5*(pat->newData[j][DIV_PAT_FXVAL(l)]|((pat->newData[j][DIV_PAT_FX(l)]&3)<<8)));
-            }
-          }
-          // push the initial tick rate (it may have changed at the very beginning of the song, so that's why we do it here)
-          if (!firstRow) {
-            if (tickRateChanges.empty()) {
-              // if tickRate*5 is not an integer then push an artificially high rate to skip LCM calculation
-              float fracPart=hz5-(int)hz5;
-              if (fracPart>0.001 && fracPart<0.999) {
-                addTickRateChange(50000);
-              } else {
-                addTickRateChange(hz5);
-              }
-            }
-            firstRow=true;
-          }
-        }
-      }
-    }
-
-    if (tickRateChanges.size()<2) {
-      // no tick rate changes - use song tick rate
-      tickRate=curTickRate;
-    } else {
-      // calculate least common multiplier of all rates
-      unsigned int cur=tickRateChanges[0];
-      for (unsigned int& i: tickRateChanges) {
-        if (cur>=50000) break;
-        if (cur==0 || i==0) break;
-        cur=(cur*i)/gcd2(cur,i);
-      }
-
-      // limit the final tick rate to 10000Hz
-      if (cur>=50000) cur=50000;
-
-      tickRate=(float)cur/5.0f;
-    }
-    logI("estimated global tick rate: %fHz",tickRate);
-  }
   std::vector<int> toExport;
 
   for (int i=0; i<song.systemLen; i++) {
@@ -162,6 +90,146 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
     logE("No systems selected for S98");
     lastError="No systems selected for S98";
     return NULL;
+  }
+
+  if (tickRate<1.0f) {
+    // automatic - detect the tick rate
+    // items in this vector are stored as array*5 to facilitate GCD calculation
+    std::vector<unsigned int> tickRateChanges;
+
+    // start with the song's tick rate
+    float hz5=curSubSong->hz*5.0f;
+    float curTickRate=curSubSong->hz;
+    bool firstRow=false;
+    bool giveUp=false;
+
+    auto addTickRateChange=[&tickRateChanges,&curTickRate](unsigned int hz) {
+      // discard rates too low
+      if (hz<1) return;
+      curTickRate=(float)hz/5.0f;
+      // discard duplicates
+      for (unsigned int& i: tickRateChanges) {
+        if (i==hz) return;
+      }
+      // insert new rate
+      tickRateChanges.push_back(hz);
+      logD("adding tick rate change (%.1f)",(float)hz/5.0f);
+    };
+
+    // check whether YM2612 DualPCM is present
+    // if so then assume a high tick rate
+    for (int i: toExport) {
+      if (song.system[i]==DIV_SYSTEM_YM2612_DUALPCM || song.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT) {
+        giveUp=true;
+        break;
+      }
+    }
+
+    // scan the song for tick rate changes and PCM usage
+    if (!giveUp) for (int i=0; i<curSubSong->ordersLen; i++) {
+      for (int j=0; j<curSubSong->patLen; j++) {
+        for (int k=0; k<song.chans; k++) {
+          DivPattern* pat=curSubSong->pat[k].getPattern(i,false);
+
+          // find tick rate effects
+          for (int l=0; l<curSubSong->pat[k].effectCols; l++) {
+            if (pat->newData[j][DIV_PAT_FX(l)]==0xf0) { // F0xx - set tempo
+              addTickRateChange(pat->newData[j][DIV_PAT_FXVAL(l)]*2);
+            } else if ((pat->newData[j][DIV_PAT_FX(l)]&0xfc)==0xc0) { // Cxxx - set tick rate
+              addTickRateChange(5*(pat->newData[j][DIV_PAT_FXVAL(l)]|((pat->newData[j][DIV_PAT_FX(l)]&3)<<8)));
+            }
+          }
+          // push the initial tick rate (it may have changed at the very beginning of the song, so that's why we do it here)
+          if (!firstRow) {
+            if (tickRateChanges.empty()) {
+              // if tickRate*5 is not an integer then push an artificially high rate to skip LCM calculation
+              float fracPart=hz5-(int)hz5;
+              if (fracPart>0.001 && fracPart<0.999) {
+                giveUp=true;
+              } else {
+                addTickRateChange(hz5);
+              }
+            }
+            firstRow=true;
+          }
+
+          // check for high speed writes (AY PCM/TFX and YM2612 DAC)
+          bool doCheck=false;
+          for (int l: toExport) {
+            if (song.dispatchOfChan[k]==l) {
+              doCheck=true;
+              break;
+            }
+          }
+          if (doCheck && pat->newData[j][DIV_PAT_INS]!=-1) {
+            DivInstrument* ins=getIns(pat->newData[k][DIV_PAT_INS]);
+            bool isItAY=(
+              song.sysOfChan[k]==DIV_SYSTEM_AY8910 ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2203 && song.dispatchChanOfChan[k]>=3 && song.dispatchChanOfChan[k]<6) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2203_EXT && song.dispatchChanOfChan[k]>=6 && song.dispatchChanOfChan[k]<9) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2203_CSM && song.dispatchChanOfChan[k]>=7 && song.dispatchChanOfChan[k]<10) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2608 && song.dispatchChanOfChan[k]>=6 && song.dispatchChanOfChan[k]<9) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2608_EXT && song.dispatchChanOfChan[k]>=9 && song.dispatchChanOfChan[k]<12) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2608_CSM && song.dispatchChanOfChan[k]>=10 && song.dispatchChanOfChan[k]<13) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2610_FULL && song.dispatchChanOfChan[k]>=4 && song.dispatchChanOfChan[k]<7) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2610_FULL_EXT && song.dispatchChanOfChan[k]>=7 && song.dispatchChanOfChan[k]<10) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2610_CSM && song.dispatchChanOfChan[k]>=8 && song.dispatchChanOfChan[k]<11) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2610B && song.dispatchChanOfChan[k]>=6 && song.dispatchChanOfChan[k]<9) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2610B_EXT && song.dispatchChanOfChan[k]>=9 && song.dispatchChanOfChan[k]<12) ||
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2610B_CSM && song.dispatchChanOfChan[k]>=10 && song.dispatchChanOfChan[k]<13)
+            );
+
+            if (
+              (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) && (
+                isItAY ||
+                (song.sysOfChan[k]==DIV_SYSTEM_YM2612 && song.dispatchChanOfChan[k]==5) ||
+                (song.sysOfChan[k]==DIV_SYSTEM_YM2612_EXT && song.dispatchChanOfChan[k]==8) ||
+                (song.sysOfChan[k]==DIV_SYSTEM_YM2612_CSM && song.dispatchChanOfChan[k]==8)
+              )
+            ) {
+              // sample mode is enabled - use a high rate
+              logD("AY PCM/YM2612 DAC detected - using high rate");
+              giveUp=true;
+            } else if (isItAY) {
+              // is timer FX enabled?
+              if (ins->std.ex6Macro.len>0) {
+                // if so then we need a high tick rate
+                logD("AY TFX detected - using high rate");
+                giveUp=true;
+              }
+            }
+
+          }
+
+          if (giveUp) break;
+        }
+        if (giveUp) break;
+      }
+      if (giveUp) break;
+    }
+
+    if (giveUp) {
+      // assume high rate
+      tickRate=50000.0f;
+    } if (tickRateChanges.size()<2) {
+      // no tick rate changes - use song tick rate
+      tickRate=curTickRate;
+    } else {
+      // calculate least common multiplier of all rates
+      unsigned int cur=tickRateChanges[0];
+      for (unsigned int& i: tickRateChanges) {
+        // don't calculate LCM if it's too large as the multiplication may fail
+        if (cur>=50000) break;
+        if (cur==0 || i==0) break;
+        cur=(cur*i)/gcd2(cur,i);
+      }
+
+      // limit the final tick rate to 10000Hz
+      if (cur>=50000) cur=50000;
+
+      tickRate=(float)cur/5.0f;
+    }
+    logI("estimated global tick rate: %fHz",tickRate);
   }
   int dataPos=0;
   int loopPos=-1;
