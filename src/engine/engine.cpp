@@ -2576,6 +2576,10 @@ TimeMicros DivEngine::getCurTime() {
   return totalTime;
 }
 
+int DivEngine::getTotalTicksR() {
+  return totalTicksR;
+}
+
 bool DivEngine::getRepeatPattern() {
   return repeatPattern;
 }
@@ -2600,6 +2604,10 @@ bool DivEngine::isPlaying() {
 
 bool DivEngine::isRunning() {
   return playing;
+}
+
+bool DivEngine::isFreelance() {
+  return freelance;
 }
 
 bool DivEngine::isStepping() {

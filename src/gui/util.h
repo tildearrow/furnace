@@ -29,8 +29,10 @@
 #endif
 #endif
 
+bool readTextFile(const char* path, String& where);
 String getHomeDir();
 String getKeyName(int key, bool emptyNone=false);
+String stripName(String what);
 
 double sinus(double x);
 double rectSin(double x);
