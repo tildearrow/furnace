@@ -134,7 +134,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformGenesis():
-      DivPlatformOPN(2, 6, 6, 6, 6, 9440540.0, 72, 32, false, 7) {}
+      DivPlatformOPN(2, 6, 6, 6, 6, 9437184.0, 72, 32, false, 7) {}
     ~DivPlatformGenesis();
 };
 #endif
