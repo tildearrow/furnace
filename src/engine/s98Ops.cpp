@@ -172,13 +172,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
               (song.sysOfChan[k]==DIV_SYSTEM_YM2203_CSM && song.dispatchChanOfChan[k]>=7 && song.dispatchChanOfChan[k]<10) ||
               (song.sysOfChan[k]==DIV_SYSTEM_YM2608 && song.dispatchChanOfChan[k]>=6 && song.dispatchChanOfChan[k]<9) ||
               (song.sysOfChan[k]==DIV_SYSTEM_YM2608_EXT && song.dispatchChanOfChan[k]>=9 && song.dispatchChanOfChan[k]<12) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2608_CSM && song.dispatchChanOfChan[k]>=10 && song.dispatchChanOfChan[k]<13) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2610_FULL && song.dispatchChanOfChan[k]>=4 && song.dispatchChanOfChan[k]<7) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2610_FULL_EXT && song.dispatchChanOfChan[k]>=7 && song.dispatchChanOfChan[k]<10) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2610_CSM && song.dispatchChanOfChan[k]>=8 && song.dispatchChanOfChan[k]<11) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2610B && song.dispatchChanOfChan[k]>=6 && song.dispatchChanOfChan[k]<9) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2610B_EXT && song.dispatchChanOfChan[k]>=9 && song.dispatchChanOfChan[k]<12) ||
-              (song.sysOfChan[k]==DIV_SYSTEM_YM2610B_CSM && song.dispatchChanOfChan[k]>=10 && song.dispatchChanOfChan[k]<13)
+              (song.sysOfChan[k]==DIV_SYSTEM_YM2608_CSM && song.dispatchChanOfChan[k]>=10 && song.dispatchChanOfChan[k]<13)
             );
 
             if (
