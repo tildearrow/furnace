@@ -121,6 +121,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
     // if so then assume a high tick rate
     for (int i: toExport) {
       if (song.system[i]==DIV_SYSTEM_YM2612_DUALPCM || song.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT) {
+        logD("YM2612 DualPCM detected - using high rate");
         giveUp=true;
         break;
       }
@@ -158,12 +159,13 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
           bool doCheck=false;
           for (int l: toExport) {
             if (song.dispatchOfChan[k]==l) {
+              logV("do check");
               doCheck=true;
               break;
             }
           }
           if (doCheck && pat->newData[j][DIV_PAT_INS]!=-1) {
-            DivInstrument* ins=getIns(pat->newData[k][DIV_PAT_INS]);
+            DivInstrument* ins=getIns(pat->newData[j][DIV_PAT_INS]);
             bool isItAY=(
               song.sysOfChan[k]==DIV_SYSTEM_AY8910 ||
               (song.sysOfChan[k]==DIV_SYSTEM_YM2203 && song.dispatchChanOfChan[k]>=3 && song.dispatchChanOfChan[k]<6) ||
@@ -199,7 +201,6 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
                 giveUp=true;
               }
             }
-
           }
 
           if (giveUp) break;
@@ -212,7 +213,7 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
     if (giveUp) {
       // assume high rate
       tickRate=50000.0f;
-    } if (tickRateChanges.size()<2) {
+    } else if (tickRateChanges.size()<2) {
       // no tick rate changes - use song tick rate
       tickRate=curTickRate;
     } else {

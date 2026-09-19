@@ -60,7 +60,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
   }
   if (softPCM) {
     softPCMTimer+=chipClock/576;
-    if (softPCMTimer>iRate) {
+    while (softPCMTimer>iRate) {
       softPCMTimer-=iRate;
 
       int sample=0;
@@ -104,8 +104,9 @@ void DivPlatformGenesis::processDAC(int iRate) {
     }
   } else {
     if (chan[5].dacMode && chan[5].dacSample!=-1) {
-      chan[5].dacPeriod+=chan[5].dacRate;
-      if (chan[5].dacPeriod>=iRate) {
+      // artificial limit
+      chan[5].dacPeriod+=MIN(192000,chan[5].dacRate);
+      while (chan[5].dacPeriod>=iRate) {
         DivSample* s=parent->getSample(chan[5].dacSample);
         if (s->samples>0 && chan[5].dacPos<s->samples) {
           if (!isMuted[5]) {
@@ -118,6 +119,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
             dacWrite=(unsigned char)(sample+0x80);
           }
           chan[5].dacPos++;
+          chan[5].dacPeriod-=iRate;
           if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
             chan[5].dacPos=s->loopStart;
           } else if (chan[5].dacPos>=s->samples) {
@@ -125,10 +127,13 @@ void DivPlatformGenesis::processDAC(int iRate) {
             if (parent->song.compatFlags.brokenDACMode) {
               rWrite(0x2b,0);
             }
+            chan[5].dacPeriod=0;
+            break;
           }
-          while (chan[5].dacPeriod>=iRate) chan[5].dacPeriod-=iRate;
         } else {
           chan[5].dacSample=-1;
+          chan[5].dacPeriod=0;
+          break;
         }
       }
     }
