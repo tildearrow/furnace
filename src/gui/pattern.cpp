@@ -1017,6 +1017,8 @@ void FurnaceGUI::drawPattern() {
       }
     }
 
+    bool isCursorVisible=false;
+
     /*String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
     dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());*/
 
@@ -1264,6 +1266,8 @@ void FurnaceGUI::drawPattern() {
                     );
                   }
                 }
+                // the cursor is visible - don't display cursor position indicator
+                isCursorVisible=true;
               }
             }
           }
@@ -1900,6 +1904,23 @@ void FurnaceGUI::drawPattern() {
       snprintf(id,63,"%.2X",e->getExtValue());
       dl->AddText(pos+ImGui::GetStyle().FramePadding,ImGui::GetColorU32(uiColors[GUI_COLOR_EE_VALUE]),id);
     }
+
+    // display an indicator if the cursor is off-screen
+    // TODO: when hiding a channel, the cursor may become invisible and these indicators effectively become misleading.
+    //       think of a solution.
+    // TODO: add indicators for horizontal position as well
+    if (!isCursorVisible) {
+      // check whether the cursor is above or below
+      if ((cursor.order==firstOrd && cursor.y<firstRow) || cursor.order<firstOrd) {
+        pos.x=winRect.Max.x-ImGui::CalcTextSize(ICON_FA_I_CURSOR ICON_FA_ARROW_UP).x-ImGui::GetStyle().FramePadding.x-ImGui::GetStyle().ScrollbarSize-ImGui::GetStyle().ScrollbarPadding;
+        pos.y=topHeaders.y+sizeHeaders.y+ImGui::GetStyle().FramePadding.y;
+        dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR]),ICON_FA_I_CURSOR ICON_FA_ARROW_UP);
+      } else {
+        pos.x=winRect.Max.x-ImGui::CalcTextSize(ICON_FA_I_CURSOR ICON_FA_ARROW_DOWN).x-ImGui::GetStyle().FramePadding.x-ImGui::GetStyle().ScrollbarSize-ImGui::GetStyle().ScrollbarPadding;
+        pos.y=prevClipRect.Max.y-ImGui::GetFrameHeight()-ImGui::GetStyle().FramePadding.y;
+        dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR]),ICON_FA_I_CURSOR ICON_FA_ARROW_DOWN);
+      }
+    } 
 
     // let's draw a warning if the instrument cannot be previewed
     if (failedNoteOn) {

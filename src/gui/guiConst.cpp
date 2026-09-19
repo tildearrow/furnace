@@ -1139,6 +1139,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_SELECTION,_N("Selection"),ImVec4(0.15f,0.15f,0.2f,1.0f)),
   D(GUI_COLOR_PATTERN_SELECTION_HOVER,_N("Selection (hovered)"),ImVec4(0.2f,0.2f,0.3f,1.0f)),
   D(GUI_COLOR_PATTERN_SELECTION_ACTIVE,_N("Selection (clicked)"),ImVec4(0.4f,0.4f,0.5f,1.0f)),
+  D(GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR,_N("Cursor out-of-view indicator"),ImVec4(0.4f,0.8f,1.0f,0.8f)),
   D(GUI_COLOR_PATTERN_HI_1,_N("Highlight 1"),ImVec4(0.6f,0.6f,0.6f,0.2f)),
   D(GUI_COLOR_PATTERN_HI_2,_N("Highlight 2"),ImVec4(0.5f,0.8f,1.0f,0.2f)),
   D(GUI_COLOR_PATTERN_ROW_INDEX,_N("Row number"),ImVec4(0.5f,0.8f,1.0f,1.0f)),
