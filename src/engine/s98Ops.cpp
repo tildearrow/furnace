@@ -159,7 +159,6 @@ SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int
           bool doCheck=false;
           for (int l: toExport) {
             if (song.dispatchOfChan[k]==l) {
-              logV("do check");
               doCheck=true;
               break;
             }
