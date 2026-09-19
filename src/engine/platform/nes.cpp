@@ -846,6 +846,10 @@ float DivPlatformNES::getPostAmp() {
   return 2.0f;
 }
 
+void DivPlatformNES::softReset() {
+  rWrite(0x15,0);
+}
+
 void DivPlatformNES::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<5; i++) {
@@ -854,7 +858,7 @@ void DivPlatformNES::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   // set DPCM pitch table

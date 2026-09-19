@@ -378,6 +378,71 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportS98(bool onWindow) {
+  exitDisabledTimer=1;
+
+  if (ImGui::InputFloat(_("tick rate (Hz)"),&s98ExportTickRate,1,10,(s98ExportTickRate<1)?_("Automatic"):"%.2f")) {
+    if (s98ExportTickRate<0) s98ExportTickRate=0;
+    if (s98ExportTickRate>100000) s98ExportTickRate=100000;
+  }
+  ImGui::Checkbox(_("loop"),&s98ExportLoop);
+  if (s98ExportLoop && e->song.compatFlags.loopModality==2) {
+    ImGui::Text(_("loop trail:"));
+    ImGui::Indent();
+    if (ImGui::RadioButton(_("auto-detect"),s98ExportTrailingTicks==-1)) {
+      s98ExportTrailingTicks=-1;
+    }
+    if (ImGui::RadioButton(_("add one loop"),s98ExportTrailingTicks==-2)) {
+      s98ExportTrailingTicks=-2;
+    }
+    if (ImGui::RadioButton(_("custom"),s98ExportTrailingTicks>=0)) {
+      s98ExportTrailingTicks=0;
+    }
+    if (s98ExportTrailingTicks>=0) {
+      ImGui::SameLine();
+      if (ImGui::InputInt("##TrailTicks",&s98ExportTrailingTicks,1,100)) {
+        if (s98ExportTrailingTicks<0) s98ExportTrailingTicks=0;
+      }
+    }
+    ImGui::Unindent();
+  }
+  ImGui::Text(_("chips to export:"));
+  bool hasOneAtLeast=false;
+  for (int i=0; i<e->song.systemLen; i++) {
+    bool supported=e->supportedByS98(e->song.system[i]);
+    ImGui::BeginDisabled(!supported);
+    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+    ImGui::EndDisabled();
+    // Like VGM, S98 doesn't support AY-3-8914
+    if (e->song.system[i]==DIV_SYSTEM_AY8910) supported=(e->song.systemFlags[i].getInt("chipType",0)!=3);
+    if (!supported) {
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip(_("this chip is not supported by the S98 format!"));
+      }
+    } else {
+      if (willExport[i]) hasOneAtLeast=true;
+    }
+  }
+
+  if (hasOneAtLeast) {
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      ImGui::SameLine();
+    }
+    if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+      openFileDialog(GUI_FILE_EXPORT_S98);
+      ImGui::CloseCurrentPopup();
+    }
+  } else {
+    ImGui::Text(_("nothing to export"));
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    }
+  }
+}
+
 void FurnaceGUI::drawExportROM(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -645,6 +710,10 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("S98"))) {
+        drawExportS98(true);
+        ImGui::EndTabItem();
+      }
       if (romExportExists) {
         if (ImGui::BeginTabItem(_("ROM"))) {
           drawExportROM(true);
@@ -677,6 +746,9 @@ void FurnaceGUI::drawExport() {
       break;
     case GUI_EXPORT_VGM:
       drawExportVGM(true);
+      break;
+    case GUI_EXPORT_S98:
+      drawExportS98(true);
       break;
     case GUI_EXPORT_ROM:
       drawExportROM(true);

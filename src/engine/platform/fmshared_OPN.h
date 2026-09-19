@@ -142,6 +142,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
+      unsigned char block;
       bool mask, hardReset;
       OPNOpChannel(bool linear=true):
         SharedChannel(0,linear),
@@ -149,6 +150,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
         freqL(0),
         portaPauseFreq(0),
         konCycles(0),
+        block(0),
         mask(true),
         hardReset(false) {}
     };

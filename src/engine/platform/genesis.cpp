@@ -60,7 +60,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
   }
   if (softPCM) {
     softPCMTimer+=chipClock/576;
-    if (softPCMTimer>iRate) {
+    while (softPCMTimer>iRate) {
       softPCMTimer-=iRate;
 
       int sample=0;
@@ -104,8 +104,9 @@ void DivPlatformGenesis::processDAC(int iRate) {
     }
   } else {
     if (chan[5].dacMode && chan[5].dacSample!=-1) {
-      chan[5].dacPeriod+=chan[5].dacRate;
-      if (chan[5].dacPeriod>=iRate) {
+      // artificial limit
+      chan[5].dacPeriod+=MIN(192000,chan[5].dacRate);
+      while (chan[5].dacPeriod>=iRate) {
         DivSample* s=parent->getSample(chan[5].dacSample);
         if (s->samples>0 && chan[5].dacPos<s->samples) {
           if (!isMuted[5]) {
@@ -118,6 +119,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
             dacWrite=(unsigned char)(sample+0x80);
           }
           chan[5].dacPos++;
+          chan[5].dacPeriod-=iRate;
           if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
             chan[5].dacPos=s->loopStart;
           } else if (chan[5].dacPos>=s->samples) {
@@ -125,10 +127,13 @@ void DivPlatformGenesis::processDAC(int iRate) {
             if (parent->song.compatFlags.brokenDACMode) {
               rWrite(0x2b,0);
             }
+            chan[5].dacPeriod=0;
+            break;
           }
-          while (chan[5].dacPeriod>=iRate) chan[5].dacPeriod-=iRate;
         } else {
           chan[5].dacSample=-1;
+          chan[5].dacPeriod=0;
+          break;
         }
       }
     }
@@ -1708,6 +1713,32 @@ float DivPlatformGenesis::getPostAmp() {
   return 2.0f;
 }
 
+void DivPlatformGenesis::softReset() {
+  // reset OPN
+  for (int i=0; i<3; i++) { // set SL and RR to highest
+    immWrite(0x80+i,0xff);
+    immWrite(0x84+i,0xff);
+    immWrite(0x88+i,0xff);
+    immWrite(0x8c+i,0xff);
+  }
+  for (int i=0; i<3; i++) { // note off
+    immWrite(0x28,i);
+  }
+
+  // reset OPN2
+  for (int i=0; i<3; i++) { // set SL and RR to highest
+    immWrite(0x180+i,0xff);
+    immWrite(0x184+i,0xff);
+    immWrite(0x188+i,0xff);
+    immWrite(0x18c+i,0xff);
+  }
+  for (int i=0; i<3; i++) { // note off
+    immWrite(0x28,4+i);
+  }
+
+  immWrite(0x2b,0); // disable DAC
+}
+
 void DivPlatformGenesis::reset() {
   writes.clear();
   memset(regPool,0,512);
@@ -1771,7 +1802,7 @@ void DivPlatformGenesis::reset() {
   }
   OPN2_SetMSW(&fm,msw?1:0);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<10; i++) {
     chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);
@@ -1891,6 +1922,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
     chipType=1;
   }
   noExtMacros=flags.getBool("noExtMacros",false);
+  sharedExtBlock=flags.getBool("sharedExtBlock",false);
   fbAllOps=flags.getBool("fbAllOps",false);
   msw=flags.getBool("msw",false);
   interruptSimCycles=flags.getInt("interruptSimCycles",0);

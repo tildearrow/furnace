@@ -261,6 +261,10 @@ void FurnaceGUI::drawPattern() {
     // ???
     size.x+=oneChar.x;
 
+    if (debugRowTimestamps) {
+      size.x+=oneChar.x*12.0f;
+    }
+
     ImVec2 top=ImGui::GetCursorScreenPos();
     ImVec2 topRows=top+ImVec2(ImGui::GetScrollX(),0);
     ImVec2 topHeaders=top+ImVec2(0,ImGui::GetScrollY());
@@ -1505,6 +1509,26 @@ void FurnaceGUI::drawPattern() {
       );
 
       ImGui::GetStyle().Alpha=origAlpha;
+
+      // row timestamps (debug)
+      if (debugRowTimestamps) {
+        pos=ImVec2(top.x+patChanX[chans],top.y+patLineHeight*rowsBegin);
+
+        int ord=firstOrd;
+        int row=firstRow;
+
+        for (int j=rowsBegin; j<rowsEnd; j++) {
+          TimeMicros rowTS=e->curSubSong->ts.getTimes(ord,row);
+          String rowTSStr=(rowTS.seconds==-1)?"---":rowTS.toString(2,TA_TIME_FORMAT_AUTO_MS_ZERO);
+          dl->AddText(pos,0xffffffff,rowTSStr.c_str());
+          // go to next row
+          if (++row>=e->curSubSong->patLen) {
+            row=0;
+            ord++;
+          }
+          pos.y+=patLineHeight;
+        }
+      }
 
       // test for selection
       if (hovered) {

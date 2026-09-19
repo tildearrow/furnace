@@ -309,7 +309,7 @@ void DivPlatformTED::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   ted_sound_machine_init(&ted,1,8);
   updateCtrl=true;

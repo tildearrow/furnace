@@ -1036,6 +1036,13 @@ bool DivPlatformAY8910::getDCOffRequired() {
   return true;
 }
 
+void DivPlatformAY8910::softReset() {
+  immWrite(7,0x3f);
+  immWrite(8,0);
+  immWrite(9,0);
+  immWrite(10,0);
+}
+
 void DivPlatformAY8910::reset() {
   while (!writes.empty()) writes.pop();
   ay->device_reset();
@@ -1047,7 +1054,7 @@ void DivPlatformAY8910::reset() {
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   SSG_Reset(&ay_atomic);

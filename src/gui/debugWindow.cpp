@@ -26,6 +26,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "../engine/bsr.h"
 
 PendingDrawOsc _debugDo;
 static float oscDebugData[2048];
@@ -43,6 +44,11 @@ static int ptDebugChan=0;
 static int disDebugChan=0;
 static bool disMultiChannel=false;
 static float rotAngle=0.0f;
+
+static int gcdArg0=0;
+static int gcdArg1=0;
+static int gcdOutput=0;
+static int lcmOutput=0;
 
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
@@ -703,6 +709,25 @@ void FurnaceGUI::drawDebug() {
           continue;
         }
       }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("GCD")) {
+      ImGui::InputInt("Arg0",&gcdArg0);
+      ImGui::InputInt("Arg1",&gcdArg1);
+      if (ImGui::Button("Calculate")) {
+        gcdOutput=gcd2(gcdArg0,gcdArg1);
+        if (gcdOutput<1) {
+          lcmOutput=0;
+        } else {
+          lcmOutput=(gcdArg0*gcdArg1)/gcdOutput;
+        }
+      }
+      if (gcdArg0>65535 || gcdArg1>65535) {
+        ImGui::SameLine();
+        ImGui::Text("please don't...");
+      }
+      ImGui::Text("GCD: %d",gcdOutput);
+      ImGui::Text("LCM: %d",lcmOutput);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Touch Point Information")) {

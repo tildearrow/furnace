@@ -3025,6 +3025,57 @@ int DivPlatformOPL::getRegisterPoolSize() {
   return (chipType==4)?768:((oplType<3)?256:512);
 }
 
+void DivPlatformOPL::softReset() {
+  if (oplType<3) {
+    // disable envelope
+    for (int i=0; i<6; i++) {
+      immWrite(0x80+i,0x0f);
+      immWrite(0x88+i,0x0f);
+      immWrite(0x90+i,0x0f);
+    }
+    // key off + freq reset
+    for (int i=0; i<9; i++) {
+      immWrite(0xa0+i,0);
+      immWrite(0xb0+i,0);
+    }
+    // TODO: ADPCM
+  } else {
+    // disable envelope
+    for (int i=0; i<6; i++) {
+      immWrite(0x80+i,0x0f);
+      immWrite(0x88+i,0x0f);
+      immWrite(0x90+i,0x0f);
+      immWrite(0x180+i,0x0f);
+      immWrite(0x188+i,0x0f);
+      immWrite(0x190+i,0x0f);
+    }
+    // key off + freq reset
+    for (int i=0; i<9; i++) {
+      immWrite(0xa0+i,0);
+      immWrite(0xb0+i,0);
+      immWrite(0x1a0+i,0);
+      immWrite(0x1b0+i,0);
+    }
+    // reset 4-op
+    immWrite(0x104,0x00);
+  }
+
+  if (chipType==4) {
+    for (int i=0; i<24; i++) {
+      // disable envelope
+      immWrite(0x280+i,0x00);
+      immWrite(0x298+i,0x00);
+      immWrite(0x2b0+i,0x00);
+      immWrite(0x2c8+i,0x00);
+      immWrite(0x2e0+i,0x00);
+      // key off + freq reset
+      immWrite(0x220+i,0);
+      immWrite(0x238+i,0);
+      immWrite(0x268+i,8);
+    }
+  }
+}
+
 void DivPlatformOPL::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,768);
@@ -3195,7 +3246,7 @@ void DivPlatformOPL::reset() {
   }
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   update4OpMask=true;

@@ -277,7 +277,7 @@ void DivPlatformZXBeeper::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   lastPan=0xff;
   memset(tempL,0,32*sizeof(int));

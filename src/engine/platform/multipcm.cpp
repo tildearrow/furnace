@@ -96,16 +96,18 @@ void DivPlatformMultiPCM::acquire(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
-    if (!writes.empty() && --delay<0) {
-      QueuedWrite& w=writes.front();
-      if (w.addr==0xfffffffe) {
-        delay=w.val;
-      } else {
-        delay=1;
-        pcm.writeReg(slotsMPCM[(w.addr>>3)&0x1f],w.addr&0x7,w.val);
-        regPool[w.addr]=w.val;
+    if (!writes.empty()) {
+      if (--delay<=0) {
+        QueuedWrite& w=writes.front();
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          delay=1;
+          pcm.writeReg(slotsMPCM[(w.addr>>3)&0x1f],w.addr&0x7,w.val);
+          regPool[w.addr]=w.val;
+        }
+        writes.pop();
       }
-      writes.pop();
     }
 
     pcm.generate(o[0],o[1],o[2],o[3],pcmBuf);
@@ -413,6 +415,7 @@ void DivPlatformMultiPCM::forceIns() {
   for (int i=0; i<28; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chImmWrite(i,PCM_ADDR_PAN,(isMuted[i]?8:chan[i].pan)<<4);
   }
   for (int i=0; i<224; i++) {
     oldWrites[i]=-1;
@@ -466,6 +469,15 @@ int DivPlatformMultiPCM::getRegisterPoolSize() {
   return 224;
 }
 
+void DivPlatformMultiPCM::softReset() {
+  // am I doing ok?
+  for (int i=0; i<28; i++) {
+    for (int j=0; j<8; j++) {
+      chImmWrite(i,j,0);
+    }
+  }
+}
+
 void DivPlatformMultiPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,224);
@@ -490,7 +502,7 @@ void DivPlatformMultiPCM::reset() {
   curAddr=-1;
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   delay=0;

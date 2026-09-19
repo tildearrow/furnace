@@ -72,7 +72,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, canWriteDAC, msw;
+    bool extMode, softPCM, noExtMacros, sharedExtBlock, canWriteDAC, msw;
     unsigned char useYMFM;
     unsigned char chipType;
     short dacWrite;
@@ -111,6 +111,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     virtual int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

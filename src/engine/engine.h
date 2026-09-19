@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev251"
-#define DIV_ENGINE_VERSION 251
+#define DIV_VERSION "dev252"
+#define DIV_ENGINE_VERSION 252
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -491,9 +491,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivEffectContainer> effectInst;
   std::vector<int> curChanMask;
-  static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
-  static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
-  static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+  static DivSysDef* sysDefs[DIV_SYSTEM_MAX];
   static DivROMExportDef* romExportDefs[DIV_ROM_MAX];
 
   DivCSPlayer* cmdStreamInt;
@@ -647,6 +645,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportS98;
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
@@ -720,6 +719,8 @@ class DivEngine {
     // - -1 to auto-determine trailing
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
+    // dump to S98.
+    SafeWriter* saveS98(float tickRate=0.0f, bool* sysToExport=NULL, bool loop=true, int trailingTicks=-1);
     // dump command stream.
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
@@ -749,8 +750,8 @@ class DivEngine {
     int dispatchCmd(DivCommand c);
 
     // get system IDs
-    static DivSystem systemFromFileFur(unsigned char val);
-    static unsigned char systemToFileFur(DivSystem val);
+    static DivSystem systemFromFileFur(unsigned short val);
+    static unsigned short systemToFileFur(DivSystem val);
     static DivSystem systemFromFileDMF(unsigned char val);
     static unsigned char systemToFileDMF(DivSystem val);
 
@@ -764,6 +765,9 @@ class DivEngine {
 
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
+
+    // returns whether the S98 format supports this system.
+    bool supportedByS98(DivSystem which);
 
     // determine and setup config dir
     void initConfDir();
@@ -1554,18 +1558,13 @@ class DivEngine {
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
       memset(effectSlotMap,-1,4096*sizeof(short));
-      memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
+      memset(sysDefs,0,DIV_SYSTEM_MAX*sizeof(void*));
       memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
       memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
       memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(float));
-
-      for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
-        sysFileMapFur[i]=DIV_SYSTEM_NULL;
-        sysFileMapDMF[i]=DIV_SYSTEM_NULL;
-      }
 
       changeSong(0);
     }
