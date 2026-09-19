@@ -74,6 +74,7 @@ static void writeCmd(std::vector<uint8_t>& data, DivSystem sys, uint8_t cmdID, u
 
 SafeWriter* DivEngine::saveS98(float tickRate, bool* sysToExport, bool loop, int trailingTicks) {
   SafeWriter* w;
+  warnings="";
 
   // config
   std::vector<int> toExport;
