@@ -53,6 +53,108 @@ void _pcSpeakerThread(void* inst) {
   ((DivPlatformPCSpeaker*)inst)->pcSpeakerThread();
 }
 
+void DivPlatformPCSpeaker::pcSpeakerFreq(const RealQueueVal& r) {
+#ifdef __linux__
+  if (beepFD>=0) {
+    switch (realOutMethod) {
+#ifdef HAVE_LINUX_INPUT
+      case 0: { // evdev
+        static struct input_event ie;
+        ie.time.tv_sec=r.tv_sec;
+        ie.time.tv_usec=r.tv_nsec/1000;
+        ie.type=EV_SND;
+        ie.code=SND_TONE;
+        if (r.val>0) {
+          ie.value=chipClock/r.val;
+        } else {
+          ie.value=0;
+        }
+        if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+          logW("error while writing frequency! %s",strerror(errno));
+        } else {
+          //logV("writing freq: %d",r.val);
+        }
+        break;
+      }
+#endif
+#ifdef HAVE_LINUX_KD
+      case 1: // KIOCSOUND (on tty)
+        if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+          logW("ioctl error! %s",strerror(errno));
+        }
+        break;
+#endif
+      case 2: { // /dev/port
+        unsigned char bOut;
+        bOut=0;
+        if (r.val==0) {
+          lseek(beepFD,0x61,SEEK_SET);
+          if (read(beepFD,&bOut,1)<1) {
+            logW("read from 0x61: %s",strerror(errno));
+          }
+          bOut&=(~3);
+          lseek(beepFD,0x61,SEEK_SET);
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x61: %s",strerror(errno));
+          }
+        } else {
+          lseek(beepFD,0x43,SEEK_SET);
+          bOut=0xb6;
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x43: %s",strerror(errno));
+          }
+          lseek(beepFD,0x42,SEEK_SET);
+          bOut=r.val&0xff;
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x42: %s",strerror(errno));
+          }
+          lseek(beepFD,0x42,SEEK_SET);
+          bOut=r.val>>8;
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x42: %s",strerror(errno));
+          }
+          lseek(beepFD,0x61,SEEK_SET);
+          if (read(beepFD,&bOut,1)<1) {
+            logW("read from 0x61: %s",strerror(errno));
+          }
+          bOut|=3;
+          lseek(beepFD,0x61,SEEK_SET);
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x61: %s",strerror(errno));
+          }
+        }
+        break;
+      }
+#ifdef HAVE_LINUX_KD
+      case 3: // KIOCSOUND (on stdout)
+        if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+          logW("ioctl error! %s",strerror(errno));
+        }
+        break;
+#endif
+#ifdef HAVE_SYS_IO
+      case 4: // outb()
+        if (r.val==0) {
+          outb(inb(0x61)&(~3),0x61);
+          realOutEnabled=false;
+        } else {
+          outb(0xb6,0x43);
+          outb(r.val&0xff,0x42);
+          outb(r.val>>8,0x42);
+          if (!realOutEnabled) {
+            outb(inb(0x61)|3,0x61);
+            realOutEnabled=true;
+          }
+        }
+        break;
+#endif
+    }
+  } else {
+    //logV("not writing because fd is less than 0");
+  }
+#endif
+}
+
 void DivPlatformPCSpeaker::pcSpeakerThread() {
   std::unique_lock<std::mutex> unique(realOutSelfLock);
   RealQueueVal r(0,0,0);
@@ -86,106 +188,11 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
     if (tSleep.tv_nsec>0 || tSleep.tv_sec>0) {
       nanosleep(&tSleep,&rSleep);
     }
-    if (beepFD>=0) {
-      switch (realOutMethod) {
-#ifdef HAVE_LINUX_INPUT
-        case 0: { // evdev
-          static struct input_event ie;
-          ie.time.tv_sec=r.tv_sec;
-          ie.time.tv_usec=r.tv_nsec/1000;
-          ie.type=EV_SND;
-          ie.code=SND_TONE;
-          if (r.val>0) {
-            ie.value=chipClock/r.val;
-          } else {
-            ie.value=0;
-          }
-          if (write(beepFD,&ie,sizeof(struct input_event))<0) {
-            logW("error while writing frequency! %s",strerror(errno));
-          } else {
-            //logV("writing freq: %d",r.val);
-          }
-          break;
-        }
-#endif
-#ifdef HAVE_LINUX_KD
-        case 1: // KIOCSOUND (on tty)
-          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
-            logW("ioctl error! %s",strerror(errno));
-          }
-          break;
-#endif
-        case 2: { // /dev/port
-          unsigned char bOut;
-          bOut=0;
-          if (r.val==0) {
-            lseek(beepFD,0x61,SEEK_SET);
-            if (read(beepFD,&bOut,1)<1) {
-              logW("read from 0x61: %s",strerror(errno));
-            }
-            bOut&=(~3);
-            lseek(beepFD,0x61,SEEK_SET);
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x61: %s",strerror(errno));
-            }
-          } else {
-            lseek(beepFD,0x43,SEEK_SET);
-            bOut=0xb6;
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x43: %s",strerror(errno));
-            }
-            lseek(beepFD,0x42,SEEK_SET);
-            bOut=r.val&0xff;
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x42: %s",strerror(errno));
-            }
-            lseek(beepFD,0x42,SEEK_SET);
-            bOut=r.val>>8;
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x42: %s",strerror(errno));
-            }
-            lseek(beepFD,0x61,SEEK_SET);
-            if (read(beepFD,&bOut,1)<1) {
-              logW("read from 0x61: %s",strerror(errno));
-            }
-            bOut|=3;
-            lseek(beepFD,0x61,SEEK_SET);
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x61: %s",strerror(errno));
-            }
-          }
-          break;
-        }
-#ifdef HAVE_LINUX_KD
-        case 3: // KIOCSOUND (on stdout)
-          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
-            logW("ioctl error! %s",strerror(errno));
-          }
-          break;
-#endif
-#ifdef HAVE_SYS_IO
-        case 4: // outb()
-          if (r.val==0) {
-            outb(inb(0x61)&(~3),0x61);
-            realOutEnabled=false;
-          } else {
-            outb(0xb6,0x43);
-            outb(r.val&0xff,0x42);
-            outb(r.val>>8,0x42);
-            if (!realOutEnabled) {
-              outb(inb(0x61)|3,0x61);
-              realOutEnabled=true;
-            }
-          }
-          break;
-#endif
-      }
-    } else {
-      //logV("not writing because fd is less than 0");
-    }
+    pcSpeakerFreq(r);
 #endif
   }
   logD("stopping PC speaker out thread");
+  pcSpeakerFreq(RealQueueVal(0,0,0));
 }
 
 const char** DivPlatformPCSpeaker::getRegisterSheet() {

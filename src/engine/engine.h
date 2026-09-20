@@ -491,7 +491,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivEffectContainer> effectInst;
   std::vector<int> curChanMask;
-  static DivSysDef* sysDefs[DIV_SYSTEM_MAX];
+  static DivSysDef* sysDefs[DIV_SYSTEM_MAX+1];
   static DivROMExportDef* romExportDefs[DIV_ROM_MAX];
 
   DivCSPlayer* cmdStreamInt;

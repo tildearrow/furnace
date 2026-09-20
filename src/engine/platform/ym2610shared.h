@@ -407,7 +407,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
-      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9437184.0, 72, 32, false, 16) {
       sampleOffA=new unsigned int[32768];
       sampleOffB=new unsigned int[32768];
       sampleLoaded[0]=new bool[32768];

@@ -8114,9 +8114,9 @@ bool FurnaceGUI::loop() {
               e->midiImportOptions.drumChannel=0;
             }
             for (int i=1; i<=16; i++) {
-              snprintf(strBuf,15,"%d",midiQuantizeValues[i]);
+              snprintf(strBuf,15,"%d",i);
               if (ImGui::Selectable(strBuf,e->midiImportOptions.drumChannel==i)) {
-                e->midiImportOptions.drumChannel=0;
+                e->midiImportOptions.drumChannel=i;
               }
             }
             ImGui::EndCombo();

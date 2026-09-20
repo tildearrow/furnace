@@ -1017,6 +1017,8 @@ void FurnaceGUI::drawPattern() {
       }
     }
 
+    bool isCursorVisible=false;
+
     /*String debugCrap=fmt::sprintf("RANGE: %d-%d",rowsBegin,rowsEnd);
     dl->AddText(ImVec2(topRows.x,topHeaders.y),0xffffffff,debugCrap.c_str());*/
 
@@ -1264,6 +1266,9 @@ void FurnaceGUI::drawPattern() {
                     );
                   }
                 }
+                // the cursor is visible - don't display cursor position indicator
+                // do perform a check though as the cursor may be within a collapsed channel and having zero width
+                isCursorVisible=(calcMaxFine(cursor.xCoarse,1+cursor.xFine)-calcMaxFine(cursor.xCoarse,cursor.xFine))>0;
               }
             }
           }
@@ -1900,6 +1905,42 @@ void FurnaceGUI::drawPattern() {
       snprintf(id,63,"%.2X",e->getExtValue());
       dl->AddText(pos+ImGui::GetStyle().FramePadding,ImGui::GetColorU32(uiColors[GUI_COLOR_EE_VALUE]),id);
     }
+
+    // display an indicator if the cursor is off-screen
+    // TODO: add indicators for horizontal position as well?
+    if (!isCursorVisible) {
+      // check whether the cursor is above or below
+      bool isCursorAbove=((cursor.order==firstOrd && cursor.y<=firstRow) || cursor.order<firstOrd);
+      bool isCursorBelow=((cursor.order==lastOrd && cursor.y>=lastRow) || cursor.order>lastOrd);
+      if (isCursorAbove) {
+        pos.x=winRect.Max.x-ImGui::CalcTextSize(ICON_FA_I_CURSOR ICON_FA_ARROW_UP).x-ImGui::GetStyle().FramePadding.x-ImGui::GetStyle().ScrollbarSize-ImGui::GetStyle().ScrollbarPadding;
+        pos.y=topHeaders.y+sizeHeaders.y+ImGui::GetStyle().FramePadding.y;
+        dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR]),ICON_FA_I_CURSOR ICON_FA_ARROW_UP);
+      }
+      if (isCursorBelow) {
+        pos.x=winRect.Max.x-ImGui::CalcTextSize(ICON_FA_I_CURSOR ICON_FA_ARROW_DOWN).x-ImGui::GetStyle().FramePadding.x-ImGui::GetStyle().ScrollbarSize-ImGui::GetStyle().ScrollbarPadding;
+        pos.y=prevClipRect.Max.y-ImGui::GetFrameHeight()-ImGui::GetStyle().FramePadding.y;
+        dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR]),ICON_FA_I_CURSOR ICON_FA_ARROW_DOWN);
+      }
+      if (!isCursorAbove && !isCursorBelow) {
+        bool isCursorInvalid=false;
+        if (cursor.xCoarse>=0 || cursor.xCoarse<chans) {
+          int maxFine=calcMaxFine(cursor.xCoarse,31);
+          if (cursor.xFine>=maxFine) {
+            isCursorInvalid=true;
+          }
+        } else {
+          isCursorInvalid=true;
+        }
+        if (isCursorInvalid) {
+          // the cursor is gone
+          logV("cursor: %d.%d - view: %d.%d to %d.%d",cursor.order,cursor.y,firstOrd,firstRow,lastOrd,lastRow);
+          pos.x=winRect.Max.x-ImGui::CalcTextSize(ICON_FA_I_CURSOR ICON_FA_EXCLAMATION_TRIANGLE).x-ImGui::GetStyle().FramePadding.x-ImGui::GetStyle().ScrollbarSize-ImGui::GetStyle().ScrollbarPadding;
+          pos.y=ImLerp(prevClipRect.Min.y,prevClipRect.Max.y,0.5f)-ImGui::GetStyle().FramePadding.y*0.5f;
+          dl->AddText(pos,ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR]),ICON_FA_I_CURSOR ICON_FA_EXCLAMATION_TRIANGLE);
+        }
+      }
+    } 
 
     // let's draw a warning if the instrument cannot be previewed
     if (failedNoteOn) {

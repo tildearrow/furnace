@@ -24,7 +24,8 @@
 #include "../ta-log.h"
 #include <map>
 
-DivSysDef* DivEngine::sysDefs[DIV_SYSTEM_MAX];
+// +1 for safety
+DivSysDef* DivEngine::sysDefs[DIV_SYSTEM_MAX+1];
 
 static std::map<unsigned short,DivSystem> sysFileMapFur;
 static std::map<unsigned short,DivSystem> sysFileMapDMF;
