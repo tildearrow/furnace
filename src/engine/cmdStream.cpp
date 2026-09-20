@@ -562,6 +562,7 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_N163_WAVE_LENGTH:
           case DIV_CMD_KLATTSCH_FORMANT:
           case DIV_CMD_KLATTSCH_AMP:
+          case DIV_CMD_TEST_REG:
             arg0=(unsigned char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;

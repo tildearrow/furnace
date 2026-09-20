@@ -350,6 +350,8 @@ enum DivDispatchCmds {
   DIV_CMD_KLATTSCH_BW_SCALE,
   DIV_CMD_KLATTSCH_FORMANT_SHIFT,
 
+  DIV_CMD_TEST_REG, // (register, value)
+
   DIV_CMD_MAX
 };
 

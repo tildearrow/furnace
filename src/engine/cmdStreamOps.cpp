@@ -226,6 +226,7 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_KLATTSCH_FORMANT:
     case DIV_CMD_KLATTSCH_AMP:
+    case DIV_CMD_TEST_REG:
       return 2;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
@@ -661,6 +662,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_KLATTSCH_FORMANT:
     case DIV_CMD_KLATTSCH_AMP:
+    case DIV_CMD_TEST_REG:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;

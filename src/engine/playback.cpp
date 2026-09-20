@@ -339,7 +339,9 @@ const char* cmdName[]={
   "KLATTSCH_TREMOLO",
   "KLATTSCH_GAIN",
   "KLATTSCH_BW_SCALE",
-  "KLATTSCH_FORMANT_SHIFT"
+  "KLATTSCH_FORMANT_SHIFT",
+
+  "TEST_REG"
 };
 
 // fail build if you forgot to update the array

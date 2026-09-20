@@ -550,6 +550,7 @@ void DivEngine::registerSystems() {
     {0x61, {DIV_CMD_FM_ALG, _("61xx: Set algorithm (0 to 7)")}},
     {0x62, {DIV_CMD_FM_FMS, _("62xx: Set LFO FM depth (0 to 7)")}},
     {0x63, {DIV_CMD_FM_AMS, _("63xx: Set LFO AM depth (0 to 3)")}},
+    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register (dangerous)"), constVal<0>, effectVal}},
   };
 
   EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);

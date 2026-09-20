@@ -6934,30 +6934,38 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
 }
 
 void FurnaceGUI::drawInsEdit() {
+  // acknowledge a window request
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
+  // don't draw the window if not open
   if (!insEditOpen) return;
+  // fixed position on mobile
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
     patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   } else {
+    // give this wjndow a minimum size
     ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Instrument Editor"))) {
     DivInstrument* ins=NULL;
+    // check whether we can actually display the editor
     if (curIns==-2) {
+      // ins preview (from file picker)
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT(_("waiting..."));
       ImGui::Text(_("waiting..."));
     } else if (curIns<0 || curIns>=(int)e->song.ins.size()) {
+      // no instrument selected
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*(e->song.ins.empty()?2.0f:3.0f)+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT(_("no instrument selected"));
       ImGui::Text(_("no instrument selected"));
+      // a table is used to center the three or so buttons that are displayed
       if (ImGui::BeginTable("noAssetCenter",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
@@ -6967,6 +6975,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
 
+        // if the song has instruments, prompt the user to select one
         if (e->song.ins.size()>0) {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##InsSelect",_("select one..."))) {
@@ -6986,6 +6995,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::TextUnformatted(_("or"));
           ImGui::SameLine();
         }
+        // open/create
         if (ImGui::Button(_("Open"))) {
           doAction(GUI_ACTION_INS_LIST_OPEN);
         }
@@ -7000,11 +7010,16 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::EndTable();
       }
     } else {
+      // this is where the actual instrument editor resides...
       ins=e->song.ins[curIns];
+
+      // reset FM preview if needed
       if (updateFMPreview) {
         renderFMPreview(ins);
         updateFMPreview=false;
       }
+
+      // "colorize instrument editor" setting
       if (settings.insEditColorize) {
         if (ins->type>=DIV_INS_MAX) {
           pushAccentColors(uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],ImVec4(0.0f,0.0f,0.0f,0.0f));
@@ -7012,6 +7027,8 @@ void FurnaceGUI::drawInsEdit() {
           pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
         }
       }
+
+      // header - instrument name, type, index and load/save buttons
       if (ImGui::BeginTable("InsProp",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
