@@ -2413,6 +2413,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // C64 old cutoff macro logic
+    if (ds.version<253) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_C64_8580 ||
+            ds.system[i]==DIV_SYSTEM_C64_6581 ||
+            ds.system[i]==DIV_SYSTEM_C64_PCM) {
+          ds.systemFlags[i].set("filterOld",true);
+        }
+      }
+    }
+
     // warn on partial pitch linearity
     if (ds.compatFlags.linearPitch>1) {
       ds.compatFlags.linearPitch=1;
