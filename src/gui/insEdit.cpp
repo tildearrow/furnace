@@ -7028,13 +7028,15 @@ void FurnaceGUI::drawInsEdit() {
         }
       }
 
-      // header - instrument name, type, index and load/save buttons
+      // HEADER - instrument name, type, index and load/save buttons
       if (ImGui::BeginTable("InsProp",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+
+        // instrument selector (index)
         String insIndex=fmt::sprintf("%.2X",curIns);
         ImGui::SetNextItemWidth(72.0f*dpiScale);
         if (ImGui::BeginCombo("##InsSelect",insIndex.c_str())) {
@@ -7051,6 +7053,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndCombo();
         }
 
+        // instrument name
         ImGui::TableNextColumn();
         ImGui::Text(_("Name"));
 
@@ -7062,6 +7065,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         ImGui::PopID();
 
+        // load/save buttons
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##IELoad")) {
@@ -7075,7 +7079,7 @@ void FurnaceGUI::drawInsEdit() {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Save"));
+          ImGui::SetTooltip(_("Save (right click for options)"));
         }
         if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
           if (ImGui::MenuItem(_("save as .dmp..."))) {
@@ -7084,12 +7088,14 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndPopup();
         }
 
+        // instrument type
         ImGui::TableNextColumn();
         ImGui::Text(_("Type"));
 
         ImGui::TableNextColumn();
         int insType=ins->type;
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        // check whether the instrument type is supported by the currently present chips
         bool warnType=true;
         for (DivInstrumentType i: e->getPossibleInsTypes()) {
           if (i==insType) {
@@ -7097,8 +7103,10 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
 
+        // if not, use warning colors
         pushWarningColor(warnType,warnType && failedNoteOn);
         if (ImGui::BeginCombo("##Type",(insType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insType][0]))) {
+          // confine options to possible ins types unless the setting to display all instrument types is enabled
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i][0]; i++) {
@@ -7107,6 +7115,7 @@ void FurnaceGUI::drawInsEdit() {
           } else {
             insTypeList=e->getPossibleInsTypes();
           }
+          // display options
           for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i][0],insType==i)) {
               ins->type=i;
@@ -7118,6 +7127,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndCombo();
         } else if (warnType) {
+          // provide a warning when hovered
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("none of the currently present chips are able to play this instrument type!"));
           }
@@ -7127,7 +7137,8 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::EndTable();
       }
       
-
+      // EDITING AREA
+      // I am in the process of moving these code blocks around for cleanliness.
       if (ImGui::BeginTabBar("insEditTab")) {
         std::vector<FurnaceGUIMacroDesc> macroList;
 
