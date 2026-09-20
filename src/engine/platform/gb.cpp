@@ -221,7 +221,10 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
-      if (i!=2) {
+      if (i==3) {
+        // noise mode and pitch share a register
+        chan[i].freqChanged=true;
+      } else if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
       } else if (!chan[i].softEnv) {
         if (parent->song.compatFlags.waveDutyIsVol) {
