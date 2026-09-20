@@ -20,6 +20,8 @@
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 #define IM_ASSERT_USER_ERROR(_x,_y) if (!(_x)) printf("assert fail: " _y "\n");
+#define IM_ASSERT_USER_ERROR_RET(_x,_y) if (!(_x)) { printf("assert fail: " _y "\n"); return; }
+#define IM_ASSERT_USER_ERROR_RETV(_x,_z,_y) if (!(_x)) { printf("assert fail: " _y "\n"); return (_z); }
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows
 // Using Dear ImGui via a shared library is not recommended, because of function call overhead and because we don't guarantee backward nor forward ABI compatibility.

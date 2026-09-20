@@ -8,22 +8,18 @@ right-clicking the view will display the configuration view shown above:
 - **Columns**: sets the amount of columns for the oscilloscope views.
 - **Size (ms)**: sets how much of a channel's output is captured for the oscilloscope view.
 - **Automatic columns**: sets the number of columns based on the number of channels.
-  - **Off**: use the Columns setting.
-  - **Mode 1**: always fewer columns than rows.
-  - **Mode 2**: bias slightly toward more columns.
-  - **Mode 3**: always more columns than rows.
 - **Center waveform**: when enabled, the displayed waveforms will be centered horizontally using an auto-correlation algorithm.
 - **Randomize phase on note**
 - **DC offset correction**: controls the algorithm that centers the waveform vertically.
   - **Off**
-  - **Normal**
+  - **Normal**: default.
   - **High**
 - **Amplitude**: scales amplitude for all oscilloscope views.
 - **Line size**: controls line thickness.
 - **Gradient**: this allows you to use a gradient for determining the waveforms' colors instead of a single color. see the gradient section for more information.
-  - if this option is off, a color selector will be displayed. right-click on it for some options:
-    - select between the square selector and the color wheel selector.
-    - **Alpha bar**: display an opacity bar.
+  - if this option is off, a single color selector will be displayed.
+  - if this option is on, see the "gradient" section below.
+- **Set to channel color**: uses the channel's color for the waveform.
 - **Text format**: this allows you to display some text on each oscilloscope view. the following codes may be used:
   - `%c`: channel name
   - `%C`: channel short name
@@ -48,9 +44,7 @@ click on OK to return to the main view.
 
 ![oscilloscope per-channel gradient configuration view](chanosc-gradient.png)
 
-when enabling the Gradient setting, a gradient view is displayed in where circular "points" can be placed.
-each point adds a color spot.
-the resulting image is used to look up the waveform's color as determined by each axis.
+when enabling the Gradient setting, a gradient view is displayed in which circular "points" can be placed. each point adds a color spot. the resulting image is used to look up the waveform's color as determined by each axis.
 
 - right-click to place a point.
 - left-click on a point to change its color:
@@ -60,6 +54,8 @@ the resulting image is used to look up the waveform's color as determined by eac
 - middle-click on a point to delete it.
 
 - **Background**: sets the gradient's background color.
+  - **Solid color**: chooses a color to apply to all oscilloscopes.
+  - **Channel color**: automatically uses the color of the channel the oscilloscope belongs to.
 - **X Axis**: determines what the horizontal axis maps to.
 - **Y Axis**: determines what the vertical axis maps to. these can be set to the following:
   - **None (0%)**: always left or bottom

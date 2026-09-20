@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -138,8 +138,8 @@ SafeWriter* DivEngine::saveText(bool separatePatterns) {
       w->writeText(fmt::sprintf("  - FB: %d\n",ins->fm.fb));
       w->writeText(fmt::sprintf("  - FMS: %d\n",ins->fm.fms));
       w->writeText(fmt::sprintf("  - AMS: %d\n",ins->fm.ams));
-      w->writeText(fmt::sprintf("  - FMS2: %d\n",ins->fm.fms2));
-      w->writeText(fmt::sprintf("  - AMS2: %d\n",ins->fm.ams2));
+      w->writeText(fmt::sprintf("  - FMS LFO: %d\n",ins->fm.fmsLFO?2:1));
+      w->writeText(fmt::sprintf("  - AMS LFO: %d\n",ins->fm.amsLFO?2:1));
       w->writeText(fmt::sprintf("  - operators: %d\n",opCount));
       w->writeText(fmt::sprintf("  - OPLL patch: %d\n",ins->fm.opllPreset));
       w->writeText(fmt::sprintf("  - fixed drum freq: %s\n",trueFalse[ins->fm.fixedDrums?1:0]));

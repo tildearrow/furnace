@@ -308,6 +308,10 @@ void opm_registers::cache_operator_data(uint32_t choffs, uint32_t opoffs, opdata
 	cache.eg_rate[EG_DECAY] = effective_rate(op_decay_rate(opoffs) * 2, ksrval);
 	cache.eg_rate[EG_SUSTAIN] = effective_rate(op_sustain_rate(opoffs) * 2, ksrval);
 	cache.eg_rate[EG_RELEASE] = effective_rate(op_release_rate(opoffs) * 4 + 2, ksrval);
+
+	// TL ramp on OPP
+	cache.tl_ramp = op_tl_ramp(opoffs);
+	cache.tl_ramp_period = ch_ramp_period(choffs);
 }
 
 
@@ -410,6 +414,7 @@ ym2151::ym2151(ymfm_interface &intf, opm_variant variant) :
 	m_address(0),
 	m_fm(intf)
 {
+	m_fm.regs().set_opp(variant == VARIANT_YM2164);
 }
 
 

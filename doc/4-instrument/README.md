@@ -3,7 +3,7 @@
 the instrument editor allows you to edit instruments.
 it can be activated by double-clicking on an instrument in the instrument list.
 
-alternatively, window > instrument editor displays it.
+it can also be found by going to window > assets > instrument editor in the main menu bar.
 
 ## main
 
@@ -36,7 +36,7 @@ the following instrument types are available:
 - [ES5506](es5506.md) - for use with Ensoniq ES5506 sound chip.
 - [FDS](fds.md) - for use with Famicom Disk System sound source.
 - [FM (ESFM)](fm-esfm.md) - for use with ESFM.
-- [FM (OPL)](fm-opll.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
+- [FM (OPL)](fm-opl.md) - for use with YM3526 (OPL), YM3812 (OPL2) and YMF262 (OPL3).
 - [FM (OPLL)](fm-opll.md) - for use with YM2413.
 - [FM (OPM)](fm-opm.md) - for use with YM2151.
 - [FM (OPN)](fm-opn.md) - for use with YM2612, YM2203, YM2608, YM2610 and YM2610B.
@@ -48,6 +48,7 @@ the following instrument types are available:
 - [Generic Sample](sample.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
 - [K007232](k007232.md) - for use with K007232 sample chip.
 - [K053260](k053260.md) - for use with K053260 sample chip.
+- [klattsch](klattsch.md) - for use with klattsch speech synthesizer.
 - [Konami SCC/Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
 - [MSM5232](msm5232.md) - for use with MSM5232 PSG sound source.
 - [MSM6258](msm6258.md) - for use with MSM6258 sample chip.
@@ -98,7 +99,7 @@ each macro has the following parameters:
 - macro type (explained below)
 - timing options:
   - **Step Length (ticks)**: determines the number of ticks between macro steps. default is 1.
-  - **Delay**: delays the macro until this many ticks have elapsed. default is 0.
+  - **Delay**: delays the macro after the first tick until this many more ticks have elapsed. default is 0.
   - the button is highlighted if either of these parameters is set to non-default values.
 
 ## macro types
@@ -181,16 +182,23 @@ the release mode parameter determines how macro release (`===` or `REL` in the p
 
 ![ADSR macro editor](macro-ADSR.png)
 
-- **Bottom** and **Top** determine the macro's output range (Bottom can be larger than Top to invert the envelope!). all outputs will be between these two values.
-- Attack, Decay, Sustain, SusDecay, and Release accept inputs between 0 to 255. these are scaled to the distance between Bottom and Top.
-  - the output starts at Bottom.
-  - **Attack** is how much the output moves toward Top with each tick.
-  - **Hold** sets how many ticks to stay at Top before Decay.
-  - **Decay** is how much the output moves to the Sustain level.
-  - **Sustain** is how far from Bottom the value stays while the note is on.
-  - **SusTime** is how many ticks to stay at Sustain until SusDecay.
-  - **SusDecay** is how much the output moves toward Bottom with each tick while the note is on.
-  - **Release** is how much the output moves toward Bottom with each tick after the note is released.
+note: ADSR envelopes operate differently in versions 0.6.8.3 and prior.
+
+- **Bottom** and **Top** determine the macro's output range. Bottom can be larger than Top to invert the envelope. all outputs will be between these two values, inclusive.
+- the Attack, Decay, SusDecay, and Release portions of the envelope change value by the specified amount before each tick, including the first.
+    - 0 equals no change; the value stays at Bottom.
+    - 1 equals 1/256 of a step per tick, the slowest possible change.
+    - the maximum value is the number of steps between Bottom and Top multiplied by 256 and minus 1. this is effectively instantaneous.
+  - hovering over any of these values' sliders will show a tooltip with the estimated length of that envelope segment in ticks.
+- the envelope plays out in this order:
+  - the output is set to Bottom before the first tick of the note is calculated.
+  - **Attack** is how much the output moves toward Top at the start of each tick. this also includes the first tick that the note plays; an Attack of 256 will start the note at one step from Bottom toward Top.
+  - **Hold** sets how many ticks to stay at Top before Decay starts. ranges from 0 to 255.
+  - **Decay** is how much the output moves toward the Sustain level.
+  - **Sustain** is the value the output stays at until the note is released. ranges from Bottom to Top.
+  - **SusTime** is how many ticks to stay at Sustain until SusDecay. ranges from 0 to 255.
+  - **SusDecay** is how much the output moves toward Bottom while the note is held.
+  - **Release** is how much the output moves toward Bottom after the note is released.
 
 ![macro ADSR chart](macro-ADSRchart.png)
 
@@ -198,13 +206,25 @@ the release mode parameter determines how macro release (`===` or `REL` in the p
 
 ![LFO macro editor](macro-LFO.png)
 
-- **Bottom** and **Top** determine the macro's output range (Bottom can be larger than Top to invert the waveform!).
-- **Speed** is how quickly the LFO position moves.
-- **Phase** defines the starting LFO position, measured in 1/1024 increments.
+note: LFO envelopes operate differently in versions 0.6.8.3 and prior.
+
+- **Bottom** and **Top** determine the macro's output range. Bottom can be larger than Top to invert the waveform. all outputs will be between these two values.
+- **Speed** determines the LFO frequency, and depends on the LFO Shape set further below.
+  - for triangle and saw, this is how much the output value changes per tick measured in 1/128 of a step.
+    - 0 equals no change; the value stays frozen at its initial state determined by Phase.
+    - 1 equals 1/128 of a step per tick, the slowest possible change.
+    - the maximum value is the number of steps between Bottom and Top multiplied by 128 and minus 1.
+    - this happens before the first tick plays; an Attack of 128 will start the note at one step from Bottom toward Top.
+  - for square, this is how much of a single cycle passes per tick, measured in 1/65536 of a cycle.
+    - 0 equals no change.
+    - 1 equals 1/65535 of a cycle per tick, the slowest possible.
+    - the maximum value is 32768 which makes output alternate between Bottom and Top in a two-tick cycle, the fastest possible.
+  - hovering over this value's slider will show a tooltip with the estimated length of a cycle in ticks.
+- **Phase** defines the starting LFO position before the first tick is calculated, measured in 1/1024 cycle increments. a phase of 0 starts at Bottom. for triangle and square Shapes, a phase of 512 outputs Top; for the saw Shape, it outputs halfway between Bottom and Top.
 - **Shape** is the waveform of the LFO. there are three waveforms:
-  - Triangle: Bottom > Top > Bottom.
-  - Saw: moves from Bottom to Top, and then jumps back to Bottom.
-  - Square: alternates between Bottom and Top.
+  - Triangle: smoothly ramps from Bottom to Top to Bottom, looping.
+  - Saw: ramps from Bottom to Top, then snaps back to Bottom and loops.
+  - Square: alternates between Bottom and Top with nothing in between.
 
 
 

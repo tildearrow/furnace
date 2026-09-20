@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
 };
 
 bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false) {
-  const int emptyVal=noteMode?-61:-1;
+  const int emptyVal=-1;
   switch (mode) {
     case GUI_QUERY_IGNORE:
       return true;

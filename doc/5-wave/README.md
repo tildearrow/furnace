@@ -3,19 +3,21 @@
 wavetable chips, in context of Furnace, are sound generators that operate on extremely short, looping sample streams. by extremely short, usually no more than 256 samples.
 this amount of space is nowhere near enough to store an actual sampled sound, but it allows certain amount of freedom to define a waveform shape.
 
-each chip has its own maximum size, shown in the following table. if a larger wave is defined for these chips, it will be scaled to fit within the constraints of the chips. some of these don't work well with the wavetable synthesizer (described below); these systems are marked in the "notes" column.
+each chip has its own maximum size, shown in the following table. if a larger wave is defined for these chips, it will be scaled to fit within the constraints of the chips. 
+
+some of these chips force a phase reset when changing waveforms, which can cause clicking and popping sounds. this also means they don't work very well with the [wavetable synthesizer](../4-instrument/wavesynth.md). these systems are marked in the "notes" column.
 
 system        | width | height | notes
 --------------|------:|:-------|:------
 Bubble System |    32 | 16     |
-Game Boy      |    32 | 16     | phase reset on waveform change (clicking)
+Game Boy      |    32 | 16     | phase reset on waveform change
 SM8521        |    32 | 16     |
 Namco WSG     |    32 | 16     | RAM only
 WonderSwan    |    32 | 16     |
 Namco 163     |  ≤240 | 16     | limits differ depending on channel count 
 SNES          |  ≤256 | 16     |
-PC Engine     |    32 | 32     | phase reset on waveform change (clicking)
-Virtual Boy   |    32 | 64     |
+PC Engine     |    32 | 32     | phase reset on waveform change
+Virtual Boy   |    32 | 64     | phase reset on all channels on waveform change
 FDS           |    64 | 64     |
 Konami SCC    |    32 | 256    |
 Seta X1-010   |   128 | 256    |
@@ -75,6 +77,8 @@ this creates a waveform by adding together a few predefined basic wave shapes.
 this creates a waveform using frequency modulation synthesis with up to four operators.
 
 you can set carrier/modulation levels, frequency multipliers, connections between operators and FM waveforms of these operators.
+
+in the connection diagram, a checkmark indicates that the row operator is modulated by the column operator. the "Out" column indicates which operators are audible. the default diagram (as shown) sets operators 1, 2, and 3 as modulators in sequence, with operator 4 as the carrier and only output.
 
 ### WaveTools
 

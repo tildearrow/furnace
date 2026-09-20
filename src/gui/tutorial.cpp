@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 
 #include "gif_load.h"
+#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -692,6 +693,7 @@ void FurnaceGUI::syncTutorial() {
   tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
   tutorial.importedXM=e->getConfBool("tutImportedXM",false);
   tutorial.importedIT=e->getConfBool("tutImportedIT",false);
+  tutorial.nprFieldTrial=e->getConfBool("tutNPRFieldTrial",false);
 }
 
 void FurnaceGUI::commitTutorial() {
@@ -701,6 +703,7 @@ void FurnaceGUI::commitTutorial() {
   e->setConf("tutImportedS3M",tutorial.importedS3M);
   e->setConf("tutImportedXM",tutorial.importedXM);
   e->setConf("tutImportedIT",tutorial.importedIT);
+  e->setConf("tutNPRFieldTrial",tutorial.nprFieldTrial);
 }
 
 void FurnaceGUI::initRandomDemoSong() {
@@ -1143,7 +1146,13 @@ void FurnaceGUI::drawTutorial() {
 
         dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
 
+        if (ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest!=NULL) {
+          dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest);
+        }
         dl->AddImage(rend->getTextureID(cvTex),p0,p1,ImVec2(0,0),ImVec2(rend->getTextureU(cvTex),rend->getTextureV(cvTex)));
+        if (ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear!=NULL) {
+          dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear);
+        }
 
         if (mobileUI) {
           ImVec2 chevron[3];
@@ -1152,36 +1161,36 @@ void FurnaceGUI::drawTutorial() {
           chevron[0]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.4,0.65));
           chevron[1]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.5,0.35));
           chevron[2]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.6,0.65));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // left
           chevron[0]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.4));
           chevron[1]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.35,0.5));
           chevron[2]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.6));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // down
           chevron[0]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.4,0.35));
           chevron[1]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.5,0.65));
           chevron[2]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.6,0.35));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // right
           chevron[0]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.4));
           chevron[1]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.65,0.5));
           chevron[2]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.6));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // A/B
           dl->AddRectFilled(buttonBStart,buttonBEnd,(touchControls&1)?0x4040ffff:0x2040ffff,0,0);
           dl->AddRectFilled(buttonAStart,buttonAEnd,(touchControls&2)?0x4040ffff:0x2040ffff,0,0);
-          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,0,dpiScale);
-          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,0,dpiScale);
+          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,dpiScale);
+          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,dpiScale);
           dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonBStart,buttonBEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"B")*0.5f),0xff00ffff,"B");
           dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonAStart,buttonAEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"A")*0.5f),0xff00ffff,"A");
 
           // quit
-          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,0,dpiScale);
+          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,dpiScale);
         }
       }
     }
@@ -1335,7 +1344,7 @@ template<typename T> T* FurnaceCV::createObjectNoPos() {
 }
 
 void FurnaceCV::soundEffect(int ins, int chan, int note) {
-  e->noteOn(chan+fxChanBase,ins+fxInsBase,note);
+  e->noteOn(chan+fxChanBase,ins+fxInsBase,note+60);
   /*
   e->dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,chan,ins,1));
   e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,chan,note));

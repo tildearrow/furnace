@@ -119,7 +119,7 @@ void FMOPN2_Prescaler(fmopn2_t *chip)
         }
     }
 
-    chip->fsm_reset = (chip->ic_check_latch[1] & 16) != 0;
+    chip->fsm_reset = (chip->ic_check_latch[1] & 8) != 0;
 
     if (!(chip->flags & fmopn2_flags_ym3438))
     {
@@ -2321,6 +2321,7 @@ void FMOPN2_ClockFM(fmopn2_t *chip)
 void FMOPN2_Clock(fmopn2_t *chip, int clk)
 {
     chip->pinput.phi = clk;
+    chip->pinput.ic = chip->input.ic;
     if (memcmp(&chip->pinput, &chip->pinput_old, sizeof(chip->pinput)) != 0)
     {
         FMOPN2_Prescaler(chip);

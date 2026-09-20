@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -106,12 +106,12 @@ class FurnaceFilePicker {
   String failMessage;
   String homeDir;
   String entryName;
-  String entryNameHint;
   ImGuiListClipper listClipper;
   ImVec2 minSize, maxSize;
-  bool haveFiles, haveStat, stopReading, isOpen, isMobile;
+  bool haveFiles, haveStat, stopReading, isOpen, isMobile, focusEntryName;
   bool sortInvert[FP_SORT_MAX];
   bool multiSelect;
+  int lastSelFilteredIndex; // index of last selection on the filtered entry list
   bool confirmOverwrite, dirSelect, noClose, isModal, isEmbed, hasSizeConstraints;
   bool isPathBookmarked, isSearch;
   int scheduledSort, imguiFlags, editingBookmark;
@@ -149,6 +149,7 @@ class FurnaceFilePicker {
   void sortFiles();
   void filterFiles();
   void clearAllFiles();
+  String getEscapedEntryName(FileEntry* entry);
   void updateEntryName();
   bool readDirectory(String path);
   String normalizePath(const String& which);
@@ -159,6 +160,8 @@ class FurnaceFilePicker {
 
   void drawFileList(ImVec2& tableSize, bool& acknowledged);
   void drawBookmarks(ImVec2& tableSize, String& newDir);
+
+  void acceptAndClose();
 
   public:
     void readDirectorySub();
@@ -172,6 +175,7 @@ class FurnaceFilePicker {
     void setSizeConstraints(const ImVec2& min, const ImVec2& max);
     bool draw(ImGuiWindowFlags winFlags=0);
     bool isOpened();
+    bool isSave();
     void close();
     bool open(String name, String path, String hint, int flags, const std::vector<String>& filter, FilePickerSelectCallback selectCallback=NULL);
     void loadSettings(DivConfig& conf);

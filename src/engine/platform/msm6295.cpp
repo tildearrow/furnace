@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -263,7 +263,7 @@ void DivPlatformMSM6295::forceIns() {
   rWrite(12,!rateSel);
 }
 
-void* DivPlatformMSM6295::getChanState(int ch) {
+SharedChannel* DivPlatformMSM6295::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -291,15 +291,20 @@ void DivPlatformMSM6295::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformMSM6295::softReset() {
+  rWrite(0,0x78); // disable all channels
+  rWrite(12,1); // select rate
+}
+
 void DivPlatformMSM6295::reset() {
   while (!writes.empty()) writes.pop();
   msm.reset();
   msm.ss_w(rateSelInit);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformMSM6295::Channel();
+    chan[i]=DivPlatformMSM6295::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     msm.voice_mute(i,isMuted[i]);
   }
@@ -341,6 +346,10 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
   for (int i=0; i<4; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
+  return 0;
 }
 
 const void* DivPlatformMSM6295::getSampleMem(int index) {

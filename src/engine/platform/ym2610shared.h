@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
     fmopna_2610_t fm_lle;
+    DivPitchTableManager samplePitchTable;
     unsigned int dacVal;
     unsigned int dacVal2;
     int dacOut[2];
@@ -66,7 +67,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char rmpx, pmpx, roe, poe, rssCycle, rssSubCycle;
     unsigned int adMemAddrA;
     unsigned int adMemAddrB;
-  
+
     unsigned char* adpcmAMem;
     size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
@@ -76,10 +77,10 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned int* sampleOffA;
     unsigned int* sampleOffB;
 
-    bool extMode, noExtMacros;
+    bool extMode, noExtMacros, sharedExtBlock;
 
     bool* sampleLoaded[2];
-  
+
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
 
@@ -88,9 +89,14 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
 
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
+        chan[ch].rawFreq=note&DIV_NOTE_RAW_FLAG;
+        if (chan[ch].rawFreq) {
+          return note&(~DIV_NOTE_RAW_FLAG);
+        }
         return NOTE_ADPCMB(note);
       } else if (ch>=psgChanOffs) { // PSG
-        return NOTE_PERIODIC(note);
+        // not used.
+        //return NOTE_PERIODIC(note);
       }
       // FM
       return NOTE_FNUM_BLOCK(note,11,chan[ch].state.block);
@@ -102,10 +108,43 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       return 0;
     }
-  
+
   public:
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
       ay->fillStream(stream,sRate,len);
+    }
+
+    void softReset() {
+      // reset AY
+      immWrite(7,0x3f);
+      immWrite(8,0);
+      immWrite(9,0);
+      immWrite(10,0);
+
+      // reset OPN
+      for (int i=0; i<3; i++) { // set SL and RR to highest
+        immWrite(0x80+i,0xff);
+        immWrite(0x84+i,0xff);
+        immWrite(0x88+i,0xff);
+        immWrite(0x8c+i,0xff);
+      }
+      for (int i=0; i<3; i++) { // note off
+        immWrite(0x28,i);
+      }
+
+      // reset OPN2
+      for (int i=0; i<3; i++) { // set SL and RR to highest
+        immWrite(0x180+i,0xff);
+        immWrite(0x184+i,0xff);
+        immWrite(0x188+i,0xff);
+        immWrite(0x18c+i,0xff);
+      }
+      for (int i=0; i<3; i++) { // note off
+        immWrite(0x28,4+i);
+      }
+
+      // reset sample
+      immWrite(0x100,0xbf);
     }
 
     void reset() {
@@ -213,7 +252,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       if (sample<0 || sample>32767) return false;
       return sampleLoaded[index][sample];
     }
-    
+
     const DivMemoryComposition* getMemCompo(int index) {
       if (index==0) return &memCompoA;
       if (index==1) return &memCompoB;
@@ -242,6 +281,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         }
 
         int paddedLen=(s->lengthA+255)&(~0xff);
+        if (paddedLen>1048576) {
+          paddedLen=1048576;
+        }
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;
         }
@@ -276,9 +318,6 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
         }
 
         int paddedLen=(s->lengthB+255)&(~0xff);
-        if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
-          memPos=(memPos+0xfffff)&0xf00000;
-        }
         if (memPos>=getSampleMemCapacity(1)) {
           logW("out of ADPCM-B memory for sample %d!",i);
           break;
@@ -311,6 +350,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
+      sharedExtBlock=flags.getBool("sharedExtBlock",false);
       fbAllOps=flags.getBool("fbAllOps",false);
       ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
@@ -319,9 +359,15 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       } else {
         rate=fm->sample_rate(chipClock);
       }
+      tfxRate=rate*4;
       for (int i=0; i<17; i++) {
         oscBuf[i]->setRate(rate);
       }
+
+      ay->setExtClockDiv(chipClock,32);
+      ay->setFlags(ayFlags);
+
+      notifyPitchTable();
     }
 
     int init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -341,12 +387,12 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       iface.adpcmBMem=adpcmBMem;
       fm=new ymfm::ym2610b(iface);
       fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
-      setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32,144);
       ay->setCore(0);
       ay->init(p,3,sugRate,ayFlags);
       ay->toggleRegisterDump(true);
+      setFlags(flags);
       return 0;
     }
 
@@ -361,7 +407,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
-      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9437184.0, 72, 32, false, 16) {
       sampleOffA=new unsigned int[32768];
       sampleOffB=new unsigned int[32768];
       sampleLoaded[0]=new bool[32768];

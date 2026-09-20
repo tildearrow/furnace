@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -483,8 +483,11 @@ void FurnaceGUI::drawUserPresets() {
               if (ImGui::TreeNode(_("Configure"))) {
                 DivConfig sysFlags;
                 sysFlags.loadFromMemory(chip.flags.c_str());
-                if (drawSysConf(-1,i,chip.sys,sysFlags,false)) {
+                unsigned short sysChans=chip.chans==0?e->getChannelCount(chip.sys):chip.chans;
+                unsigned short sysChansBefore=sysChans;
+                if (drawSysConf(-1,i,chip.sys,sysFlags,sysChans,false)) {
                   chip.flags=sysFlags.toString();
+                  if (sysChansBefore!=sysChans) chip.chans=sysChans;
                   mustBake=true;
                 }
                 ImGui::TreePop();

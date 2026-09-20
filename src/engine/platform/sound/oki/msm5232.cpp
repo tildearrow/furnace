@@ -26,6 +26,13 @@ void msm5232_device::device_start()
 {
 	int rate = m_clock/CLOCK_RATE_DIVIDER;
 
+  o2=0;
+  o4=0;
+  o8=0;
+  o16=0;
+  solo8=0;
+  solo16=0;
+
 	init(m_clock, rate);
 }
 
@@ -527,8 +534,6 @@ void msm5232_device::EG_voices_advance()
 	} while (i>0);
 
 }
-
-static int o2,o4,o8,o16,solo8,solo16;
 
 void msm5232_device::TG_group_advance(int groupidx)
 {

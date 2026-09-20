@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,10 +37,12 @@ void DivPlatformGenesisExt::commitStateExt(int ch, DivInstrument* ins) {
     }
     chan[extChanOffs].state.fms=ins->fm.fms;
     chan[extChanOffs].state.ams=ins->fm.ams;
+    opChan[ch].block=ins->fm.block;
+    // for compatibility
     chan[extChanOffs].state.block=ins->fm.block;
     chan[extChanOffs].state.op[ordch]=ins->fm.op[ordch];
   }
-  
+
   unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
   DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[ordch];
   // TODO: how does this work?!
@@ -97,7 +99,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,sharedExtBlock?chan[extChanOffs].state.block:opChan[ch].block);
+        opChan[ch].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
@@ -170,7 +173,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (parent->song.compatFlags.linearPitch) {
-        int destFreq=NOTE_FREQUENCY(c.value2);
+        // TODO: use DivPitchTable.
+        int destFreq=(c.value2)<<7;
         bool return2=false;
         if (destFreq>opChan[ch].baseFreq) {
           opChan[ch].baseFreq+=c.value;
@@ -192,7 +196,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(opChan[ch],chan[extChanOffs].state.block);
+      PLEASE_HELP_ME(opChan[ch],sharedExtBlock?chan[extChanOffs].state.block:opChan[ch].block);
       break;
     }
     case DIV_CMD_SAMPLE_MODE: {
@@ -209,7 +213,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         commitStateExt(ch,ins);
         opChan[ch].insChanged=false;
       }
-      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,sharedExtBlock?chan[extChanOffs].state.block:opChan[ch].block);
+      opChan[ch].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       opChan[ch].freqChanged=true;
       break;
     }
@@ -526,9 +531,9 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       opChan[i].handleArp();
-    } else if (opChan[i].std.arp.had) {
+    } else if (opChan[i].std.arp.had && !opChan[i].rawFreq) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,sharedExtBlock?chan[extChanOffs].state.block:opChan[i].block);
       }
       opChan[i].freqChanged=true;
     }
@@ -648,8 +653,10 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,2,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
+      if (opChan[i].rawFreq) {
+        opChan[i].freq=(opChan[i].baseFreq+opChan[i].pitch2)&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,2,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,sharedExtBlock?chan[extChanOffs].state.block:opChan[i].block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,2,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;
@@ -663,7 +670,9 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
         }
         opChan[i].freq=(block<<11)|fNum;
       }
-      if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      if (!chan[i].rawFreq) {
+        if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
+      }
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
       opChan[i].freqChanged=false;
@@ -685,10 +694,15 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
   if (extMode) {
     if (chan[csmChan].freqChanged) {
-      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
-      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
-      int wf=0x400-chan[csmChan].freq;
+      int wf=0;
+      chan[csmChan].freq=chan[csmChan].calcFreq();
+      if (chan[csmChan].rawFreq) {
+        wf=chan[csmChan].freq&0x3ff;
+      } else {
+        if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+        if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+        wf=0x400-chan[csmChan].freq;
+      }
       immWrite(0x24,wf>>2);
       immWrite(0x25,wf&3);
       chan[csmChan].freqChanged=false;
@@ -801,7 +815,7 @@ void DivPlatformGenesisExt::forceIns() {
   }
 }
 
-void* DivPlatformGenesisExt::getChanState(int ch) {
+SharedChannel* DivPlatformGenesisExt::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
@@ -879,8 +893,13 @@ void DivPlatformGenesisExt::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformGenesisExt::getMaxFreq(int ch) {
+  if (ch>5) return DivPlatformGenesis::getMaxFreq(ch-3);
+  return 0x3fff;
+}
+
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
-  return (ch>8)?12:0;
+  return (ch>8)?72:60;
 }
 
 void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {

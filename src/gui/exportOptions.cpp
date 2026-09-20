@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -378,6 +378,71 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportS98(bool onWindow) {
+  exitDisabledTimer=1;
+
+  if (ImGui::InputFloat(_("tick rate (Hz)"),&s98ExportTickRate,1,10,(s98ExportTickRate<1)?_("Automatic"):"%.2f")) {
+    if (s98ExportTickRate<0) s98ExportTickRate=0;
+    if (s98ExportTickRate>100000) s98ExportTickRate=100000;
+  }
+  ImGui::Checkbox(_("loop"),&s98ExportLoop);
+  if (s98ExportLoop && e->song.compatFlags.loopModality==2) {
+    ImGui::Text(_("loop trail:"));
+    ImGui::Indent();
+    if (ImGui::RadioButton(_("auto-detect"),s98ExportTrailingTicks==-1)) {
+      s98ExportTrailingTicks=-1;
+    }
+    if (ImGui::RadioButton(_("add one loop"),s98ExportTrailingTicks==-2)) {
+      s98ExportTrailingTicks=-2;
+    }
+    if (ImGui::RadioButton(_("custom"),s98ExportTrailingTicks>=0)) {
+      s98ExportTrailingTicks=0;
+    }
+    if (s98ExportTrailingTicks>=0) {
+      ImGui::SameLine();
+      if (ImGui::InputInt("##TrailTicks",&s98ExportTrailingTicks,1,100)) {
+        if (s98ExportTrailingTicks<0) s98ExportTrailingTicks=0;
+      }
+    }
+    ImGui::Unindent();
+  }
+  ImGui::Text(_("chips to export:"));
+  bool hasOneAtLeast=false;
+  for (int i=0; i<e->song.systemLen; i++) {
+    bool supported=e->supportedByS98(e->song.system[i]);
+    ImGui::BeginDisabled(!supported);
+    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+    ImGui::EndDisabled();
+    // Like VGM, S98 doesn't support AY-3-8914
+    if (e->song.system[i]==DIV_SYSTEM_AY8910) supported=(e->song.systemFlags[i].getInt("chipType",0)!=3);
+    if (!supported) {
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip(_("this chip is not supported by the S98 format!"));
+      }
+    } else {
+      if (willExport[i]) hasOneAtLeast=true;
+    }
+  }
+
+  if (hasOneAtLeast) {
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      ImGui::SameLine();
+    }
+    if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+      openFileDialog(GUI_FILE_EXPORT_S98);
+      ImGui::CloseCurrentPopup();
+    }
+  } else {
+    ImGui::Text(_("nothing to export"));
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    }
+  }
+}
+
 void FurnaceGUI::drawExportROM(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -389,7 +454,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
       if (newDef!=NULL) {
         if (romExportAvail[i]) {
-          if (ImGui::Selectable(newDef->name)) {
+          if (ImGui::Selectable(newDef->name,romTarget==i)) {
             romTarget=(DivROMExportOptions)i;
             romMultiFile=newDef->multiOutput;
             romConfig=DivConfig();
@@ -529,6 +594,51 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+#ifdef WITH_JSON
+void FurnaceGUI::drawExportJSON(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text(
+    _("this option exports the song in the JSON format.\n")
+  );
+  ImGui::Text(_("Export format:"));
+  ImGui::Indent();
+  if (ImGui::RadioButton("JSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_JSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_JSON;
+  }
+  if (ImGui::RadioButton("BSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_BSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_BSON;
+  }
+  if (ImGui::RadioButton("CBOR",jsonExportOptions.format==DivJSONExportOptions::EXPORT_CBOR)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_CBOR;
+  }
+  ImGui::Unindent();
+  ImGui::BeginDisabled(jsonExportOptions.format!=DivJSONExportOptions::EXPORT_JSON);
+  ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.jsonPretty);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export metadata"), &jsonExportOptions.exportMetadata);
+  ImGui::Checkbox(_("Export chips"), &jsonExportOptions.exportChips);
+  ImGui::Checkbox(_("Export instruments"), &jsonExportOptions.exportInstruments);
+  ImGui::Checkbox(_("Export wavetables"), &jsonExportOptions.exportWaves);
+  ImGui::Checkbox(_("Export samples"), &jsonExportOptions.exportSamples);
+  ImGui::Checkbox(_("Export orders"), &jsonExportOptions.exportOrders);
+  ImGui::Checkbox(_("Export patterns"), &jsonExportOptions.exportPatterns);
+  ImGui::BeginDisabled(!jsonExportOptions.exportPatterns);
+  ImGui::Checkbox(_("Optimize patterns"), &jsonExportOptions.optimizePatterns);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export compatibility flags"), &jsonExportOptions.exportCompatFlags);
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_JSON);
+    ImGui::CloseCurrentPopup();
+  }
+}
+#endif
+
 void FurnaceGUI::commandExportOptions() {
   ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
   ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
@@ -600,6 +710,10 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("S98"))) {
+        drawExportS98(true);
+        ImGui::EndTabItem();
+      }
       if (romExportExists) {
         if (ImGui::BeginTabItem(_("ROM"))) {
           drawExportROM(true);
@@ -610,6 +724,12 @@ void FurnaceGUI::drawExport() {
         drawExportText(true);
         ImGui::EndTabItem();
       }
+#ifdef WITH_JSON
+      if (ImGui::BeginTabItem(_("JSON"))) {
+        drawExportJSON(true);
+        ImGui::EndTabItem();
+      }
+#endif
       if (ImGui::BeginTabItem(_("Command Stream"))) {
         drawExportCommand(true);
         ImGui::EndTabItem();
@@ -627,12 +747,20 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_VGM:
       drawExportVGM(true);
       break;
+    case GUI_EXPORT_S98:
+      drawExportS98(true);
+      break;
     case GUI_EXPORT_ROM:
       drawExportROM(true);
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);
       break;
+#ifdef WITH_JSON
+    case GUI_EXPORT_JSON:
+      drawExportJSON(true);
+      break;
+#endif
     case GUI_EXPORT_CMD_STREAM:
       drawExportCommand(true);
       break;

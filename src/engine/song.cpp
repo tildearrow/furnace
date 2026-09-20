@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   int nextSpeed=curSpeeds.val[0];
   double divider=hz;
   double totalMicrosOff=0.0;
-  int ticks=1;
+  int ticks=speeds.val[0];
   int tempoAccum=0;
   int curSpeed=0;
   int changeOrd=-1;
@@ -106,6 +106,37 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   memset(delayOrder,0,DIV_MAX_CHANS);
   memset(delayRow,0,DIV_MAX_CHANS);
   if (divider<1) divider=1;
+  
+  auto performSpeedAlternation=[&,this]() {
+    // perform speed alternation
+    // COMPAT FLAG: broken speed alternation
+    if (brokenSpeedSel) {
+      unsigned char speed2=(curSpeeds.len>=2)?curSpeeds.val[1]:curSpeeds.val[0];
+      unsigned char speed1=curSpeeds.val[0];
+      
+      // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
+      // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
+      // (the beginning of a new sub-song will be in order 0)
+      if ((patLen&1) && (curOrder-firstPat)&1) {
+        ticks=((curRow&1)?speed2:speed1);
+        nextSpeed=(curRow&1)?speed1:speed2;
+      } else {
+        ticks=((curRow&1)?speed1:speed2);
+        nextSpeed=(curRow&1)?speed2:speed1;
+      }
+    } else {
+      // normal speed alternation
+      // set the number of ticks and cycle to the next speed
+      ticks=curSpeeds.val[curSpeed];
+      curSpeed++;
+      if (curSpeed>=curSpeeds.len) curSpeed=0;
+      // cache the next speed for future operations
+      nextSpeed=curSpeeds.val[curSpeed];
+    }
+  };
+
+  // get the tick counters rolling
+  performSpeedAlternation();
 
   auto tinyProcessRow=[&,this](int i, bool afterDelay) {
     // if this is after delay, use the order/row where delay occurred
@@ -317,31 +348,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       songWillEnd=true;
       memset(wsWalked,0,8192);
     }
-    // perform speed alternation
-    // COMPAT FLAG: broken speed alternation
-    if (brokenSpeedSel) {
-      unsigned char speed2=(curSpeeds.len>=2)?curSpeeds.val[1]:curSpeeds.val[0];
-      unsigned char speed1=curSpeeds.val[0];
-      
-      // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
-      // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
-      // (the beginning of a new sub-song will be in order 0)
-      if ((patLen&1) && (curOrder-firstPat)&1) {
-        ticks=((curRow&1)?speed2:speed1);
-        nextSpeed=(curRow&1)?speed1:speed2;
-      } else {
-        ticks=((curRow&1)?speed1:speed2);
-        nextSpeed=(curRow&1)?speed2:speed1;
-      }
-    } else {
-      // normal speed alternation
-      // set the number of ticks and cycle to the next speed
-      ticks=curSpeeds.val[curSpeed];
-      curSpeed++;
-      if (curSpeed>=curSpeeds.len) curSpeed=0;
-      // cache the next speed for future operations
-      nextSpeed=curSpeeds.val[curSpeed];
-    }
+    performSpeedAlternation();
 
     if (songWillEnd && !endOfSong) {
       ts.loopEnd.order=prevOrder;
@@ -351,6 +358,12 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
 
   // MAKE IT WORK
   while (!endOfSong) {
+    // if the virtual tempo nominator is zero, the song will go on forever.
+    if (curVirtualTempoN<1) {
+      ts.totalTime.seconds=INT_MAX;
+      break;
+    }
+
     // heuristic
     int advance=(curVirtualTempoD*ticks)/curVirtualTempoN;
     for (int i=0; i<chans; i++) {
@@ -376,13 +389,13 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
     // run virtual tempo
     tempoAccum+=curVirtualTempoN*advance;
     while (tempoAccum>=curVirtualTempoD) {
-      int ticksToRun=tempoAccum/curVirtualTempoD;
-      tempoAccum%=curVirtualTempoD;
+      int ticksToRun=tempoAccum/MAX(1,curVirtualTempoD);
+      tempoAccum%=MAX(1,curVirtualTempoD);
       // tick counter
       ticks-=ticksToRun;
       if (ticks<0) {
         // if ticks is negative, we must call ticks back
-        tempoAccum+=-ticks*curVirtualTempoD;
+        tempoAccum+=-ticks*MAX(1,curVirtualTempoD);
       }
       if (ticks<=0) {
         if (shallStopSched) {
@@ -416,7 +429,13 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
           ts.orders[prevOrder][i].seconds=-1;
         }
       }
-      ts.orders[prevOrder][prevRow]=ts.totalTime;
+      if (prevOrder==0 && prevRow==0) {
+        // the very first row will always have a timestamp of zero
+        // I don't know why does virtual tempo touch it
+        ts.orders[prevOrder][prevRow]=TimeMicros(0,0);
+      } else {
+        ts.orders[prevOrder][prevRow]=ts.totalTime;
+      }
       rowChanged=false;
     }
 
@@ -470,16 +489,29 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     patLen=reader.readS();
     ordersLen=reader.readS();
 
+    if (patLen<1 || patLen>DIV_MAX_ROWS) {
+      logE("invalid pattern length!");
+      return false;
+    }
+    if (ordersLen<1 || ordersLen>256) {
+      logE("invalid orders count!");
+      return false;
+    }
+
     hilightA=reader.readC();
     hilightB=reader.readC();
 
     virtualTempoN=reader.readS();
     virtualTempoD=reader.readS();
 
+    if (virtualTempoN<1) virtualTempoN=1;
+    if (virtualTempoD<1) virtualTempoD=1;
+
     speeds.len=reader.readC();
     for (int i=0; i<16; i++) {
       speeds.val[i]=reader.readS();
     }
+    speeds.checkBounds();
 
     name=reader.readString();
     notes=reader.readString();
@@ -493,6 +525,10 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     for (int i=0; i<chans; i++) {
       pat[i].effectCols=reader.readC();
+      if (pat[i].effectCols<1 || pat[i].effectCols>8) {
+        logE("invalid effect column count!");
+        return false;
+      }
     }
 
     for (int i=0; i<chans; i++) {
@@ -533,12 +569,24 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     patLen=reader.readS();
     ordersLen=reader.readS();
 
+    if (patLen<1 || patLen>DIV_MAX_ROWS) {
+      logE("invalid pattern length!");
+      return false;
+    }
+    if (ordersLen<1 || ordersLen>256) {
+      logE("invalid orders count!");
+      return false;
+    }
+
     hilightA=reader.readC();
     hilightB=reader.readC();
 
     if (version>=96) {
       virtualTempoN=reader.readS();
       virtualTempoD=reader.readS();
+
+      if (virtualTempoN<1) virtualTempoN=1;
+      if (virtualTempoD<1) virtualTempoD=1;
     } else {
       reader.readI();
     }
@@ -555,6 +603,11 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     for (int i=0; i<chans; i++) {
       pat[i].effectCols=reader.readC();
+
+      if (pat[i].effectCols<1 || pat[i].effectCols>8) {
+        logE("invalid effect column count!");
+        return false;
+      }
     }
 
     for (int i=0; i<chans; i++) {
@@ -585,6 +638,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
       for (int i=0; i<16; i++) {
         speeds.val[i]=(unsigned char)reader.readC();
       }
+      speeds.checkBounds();
     }
 
     for (int i=0; i<16; i++) {
@@ -1025,6 +1079,11 @@ void DivSong::unload() {
   subsong.clear();
 }
 
+void DivGroovePattern::checkBounds() {
+  if (len<1) len=1;
+  if (len>16) len=16;
+}
+
 bool DivGroovePattern::readData(SafeReader& reader) {
   unsigned char magic[4];
 
@@ -1040,6 +1099,7 @@ bool DivGroovePattern::readData(SafeReader& reader) {
   for (int i=0; i<16; i++) {
     val[i]=reader.readS();
   }
+  checkBounds();
 
   return true;
 }
@@ -1118,6 +1178,7 @@ void DivCompatFlags::setDefaults() {
   oldAlwaysSetVolume=false;
   oldSampleOffset=false;
   oldCenterRate=true;
+  noVolSlideReset=false;
 }
 
 bool DivCompatFlags::areDefaults() {
@@ -1203,6 +1264,7 @@ bool DivCompatFlags::readData(SafeReader& reader) {
   CHECK_AND_LOAD_BOOL(oldAlwaysSetVolume);
   CHECK_AND_LOAD_BOOL(oldSampleOffset);
   CHECK_AND_LOAD_BOOL(oldCenterRate);
+  CHECK_AND_LOAD_BOOL(noVolSlideReset);
 
   return true;
 }
@@ -1277,6 +1339,7 @@ void DivCompatFlags::putData(SafeWriter* w) {
   CHECK_AND_STORE_BOOL(oldAlwaysSetVolume);
   CHECK_AND_STORE_BOOL(oldSampleOffset);
   CHECK_AND_STORE_BOOL(oldCenterRate);
+  CHECK_AND_STORE_BOOL(noVolSlideReset);
 
   String data=c.toString();
   w->write("CFLG",4);

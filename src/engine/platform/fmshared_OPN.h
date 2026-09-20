@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
 #include "sound/ymfm/ymfm_opn.h"
 
 #define PLEASE_HELP_ME(_targetChan,blk) \
-  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
-  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,12,false); \
+  int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,60,false); \
+  int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,72,false); \
   int destFreq=NOTE_FNUM_BLOCK(c.value2,11,blk); \
   int newFreq; \
   bool return2=false; \
@@ -122,8 +122,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       int sample, macroVolMul;
 
-      OPNChannel():
-        FMChannel(),
+      OPNChannel(bool linear=true):
+        FMChannel(linear),
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
@@ -133,30 +133,32 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     struct OPNChannelStereo: public OPNChannel {
       unsigned char pan;
-      OPNChannelStereo():
-        OPNChannel(),
+      OPNChannelStereo(bool linear=true):
+        OPNChannel(linear),
         pan(3) {}
     };
 
-    struct OPNOpChannel: public SharedChannel<int> {
+    struct OPNOpChannel: public SharedChannel {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
+      unsigned char block;
       bool mask, hardReset;
-      OPNOpChannel():
-        SharedChannel<int>(0),
+      OPNOpChannel(bool linear=true):
+        SharedChannel(0,linear),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
         konCycles(0),
+        block(0),
         mask(true),
         hardReset(false) {}
     };
 
     struct OPNOpChannelStereo: public OPNOpChannel {
     unsigned char pan;
-      OPNOpChannelStereo():
-        OPNOpChannel(),
+      OPNOpChannelStereo(bool linear=true):
+        OPNOpChannel(linear),
         pan(3) {}
     };
 
@@ -165,6 +167,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
+    int tfxRate;
     unsigned char csmChan;
     unsigned char lfoValue;
     unsigned char lastExtChPan;
@@ -175,9 +178,11 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     DivConfig ayFlags;
 
+    DivPitchTable csmPitchTable;
+
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
-    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
+    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9437184.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
       extChanOffs(ext),
       psgChanOffs(psg),
@@ -199,6 +204,9 @@ class DivPlatformOPN: public DivPlatformFMBase {
   public:
     void setCombo(unsigned char combo) {
       useCombo=combo;
+    }
+    virtual unsigned int getMaxFreq(int ch) {
+      return 0x3fff;
     }
     virtual int mapVelocity(int ch, float vel) {
       if (ch==csmChan) return vel*127.0;

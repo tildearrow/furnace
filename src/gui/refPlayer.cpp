@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,13 +35,13 @@ void FurnaceGUI::drawRefPlayer() {
 
   if (ImGui::Begin("Music Player",&refPlayerOpen,globalWinFlags,_("Music Player"))) {
     bool playPosNegative=false;
-    ssize_t playPos=fp->getPos();
+    int64_t playPos=fp->getPos();
     if (playPos<0) {
       playPos=-playPos;
       playPosNegative=true;
     }
-    size_t minPos=0;
-    size_t maxPos=fp->getFileInfo().frames;
+    uint64_t minPos=0;
+    uint64_t maxPos=fp->getFileInfo().frames;
     int fileRate=fp->getFileInfo().samplerate;
     if (fileRate<1) fileRate=1;
     int posHours=(playPos/fileRate)/3600;

@@ -9,6 +9,7 @@ the SAA1099 instrument editor consists of these macros:
   - `1`: mid
   - `2`: low
   - `3`: use frequency of channel 1 or 4 (depending on where the instrument plays).
+  - keep in mind that the value affects an entire group! (first or last 3 channels)
 - **Waveform**: selector between tone and noise.
 - **Panning (left)**: output level for left channel.
 - **Panning (right)**: output level for right channel.
