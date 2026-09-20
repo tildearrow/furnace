@@ -2333,6 +2333,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       // Warning! It must be true that oldBot<=oldTop and newBot<=newTop.
       double oldAmp=fabs((double)oldTop-oldBot);
       double newAmp=fabs((double)newTop-newBot);
+      if (oldAmp<1.0) oldAmp=1.0;
       double normalized=(double)(value-oldBot)/oldAmp;
       value=(normalized*newAmp)+newBot;
       value=CLAMP(value,newBot,newTop); // make sure it's in the range
