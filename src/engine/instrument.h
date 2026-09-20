@@ -1070,19 +1070,9 @@ struct DivInstrumentKlattsch {
 
 struct DivInstrumentSGU {
   struct Operator {
-    unsigned char wpar; // 4-bit waveform parameter; its meaning depends on the operator's
-                        // selected WAVE (see doc/4-instrument/sgu.md "waveforms"):
-                        //   SINE/TRIANGLE/SAWTOOTH: one scheme shared by all three --
-                        //     bit 3 clear: bits 0-2 pick an OPL-style variant of the base
-                        //       wave, split at the channel duty. 1=half low, 2=half high,
-                        //       3=abs low, 4=abs high; 0 is unshaped and 5-7 are no-ops
-                        //     bit 3 set: quantize the table lookup by zeroing
-                        //       (bits 0-2 + 1) low phase bits, giving stepped waveforms
-                        //   PULSE: 0=take the channel pulse width, 1-15=fixed width x/16
-                        //   PERIODIC_NOISE: bits 1-0 pick the 6-bit LFSR tap configuration
-                        //   NOISE/RESERVED/SAMPLE: unread
-    bool sync;          // hard sync to previous operator
-    bool ring;          // ring modulation from previous operator
+    unsigned char wpar;
+    bool sync;
+    bool ring;
 
     bool operator==(const Operator& other);
     bool operator!=(const Operator& other) {
