@@ -201,9 +201,9 @@ void DivPlatformN163::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -266,15 +266,17 @@ void DivPlatformN163::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      if (lenCompensate) {
-        chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
-      } else {
-        chan[i].freq*=(chanMax+1);
-        chan[i].freq>>=3;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        if (lenCompensate) {
+          chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
+        } else {
+          chan[i].freq*=(chanMax+1);
+          chan[i].freq>>=3;
+        }
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       }
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff && !isMuted[i]) {
@@ -330,7 +332,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
         }
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -385,7 +387,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      double destFreqD=NOTE_FREQUENCY(c.value2);
+      double destFreqD=chan[c.chan].calcBaseFreq(c.value2);
       if (destFreqD>2000000000.0) destFreqD=2000000000.0;
       int destFreq=destFreqD;
       bool return2=false;
@@ -478,7 +480,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -489,7 +491,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
         }
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -553,7 +555,15 @@ void DivPlatformN163::notifyInsDeletion(void* ins) {
   }
 }
 
-void* DivPlatformN163::getChanState(int ch) {
+void DivPlatformN163::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_FREQBASE,0x7ffffff,false,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformN163::getMaxFreq(int ch) {
+  return 0x3ffff;
+}
+
+SharedChannel* DivPlatformN163::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -590,7 +600,8 @@ int DivPlatformN163::getRegisterPoolSize() {
 void DivPlatformN163::reset() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<8; i++) {
-    chan[i]=DivPlatformN163::Channel();
+    chan[i]=DivPlatformN163::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,32,15,false);
@@ -648,6 +659,8 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   logV("N163: initChanMax: %d",initChanMax);
 
   lenCompensate=flags.getBool("lenCompensate",false);
+
+  notifyPitchTable();
 
   // needed to make sure changing channel count won't trigger glitches
   reset();

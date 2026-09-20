@@ -215,7 +215,7 @@ bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 
   jack_status_t as;
-  ac=jack_client_open(desc.name.c_str(),JackNoStartServer,&as);
+  ac=jack_client_open(desc.name.c_str(),JackNullOption,&as);
   if (ac==NULL) {
     logE("error while opening client! (%s)",printStatus(as));
     return false;

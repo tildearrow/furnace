@@ -358,6 +358,7 @@ Available options:
 | :---------------------------: | :---: | ---------------------------------------------------------------------------------------------
 | `BUILD_GUI`                   | `ON`  | Build the tracker (disable to build only a headless player)
 | `WITH_LOCALE`                 | `ON`  | Enable language support
+| `WITH_JSON`                   | `ON`  | Enable JSON export
 | `USE_RTMIDI`                  | `ON`  | Build with MIDI support using RtMidi
 | `USE_SDL2`                    | `ON`  | Build with SDL2 (required to build with GUI)
 | `USE_SNDFILE`                 | `ON`  | Build with libsndfile (required in order to work with audio files)

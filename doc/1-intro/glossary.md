@@ -2,9 +2,13 @@
 
 **2-op**, **3-op**, **4-op**...: the number of FM operators used to generate a sound. more operators allow for more complex sounds.
 
-**ADPCM**: adaptive differential pulse code modulation. this is a variety of DPCM with a more complex method of storing the amplitude differences.
+**ADPCM**: adaptive differential pulse code modulation. this is a variant of DPCM with a more complex method of storing the amplitude differences.
 
 **ADSR**: attack, decay, sustain and release. these are elements that comprise a basic envelope.
+- "attack" is the part where the intensity increases to maximum.
+- "decay" is the period where the intensity decrases.
+- "sustain" is the level where the intensity lingers at until the envelope is "released" (in typical situations, by releasing the key).
+- "release" is the portion where the intensity decreases to minimum.
 
 **algorithm**: the way in which the operators in an FM instrument interact.
 - when two operators connect to the same point, their sounds are added together.
@@ -32,21 +36,24 @@
 - changing this may change aspects of how some chips work, most notably pitch.
 - some chips cannot operate at anything other than their designed clock rate.
 
+**CSM**: Composite Sinusoidal Modeling. a feature of all Yamaha OPN-series FM sound chips that uses a timer to restart the extended channel (usually channel 3)'s phase and envelope. this can be used to create vocal formants (speech synthesis) or other complex effects. elsewhere, the technique is known as "oscillator sync".
+
 **cursor** (1): the marker of input focus. anything typed will happen at the cursor's location.
 
 **cursor** (2): the pointer controlled by a mouse or similar input. clicking when the cursor(2) is in a valid area will place the cursor(1) there.
 
-**DAC**: digital analog converter. this converts a digital representation of sound into actual output.
+**DAC**: digital-to-analog converter. this converts a digital representation of sound into actual output.
 
 **`.dmf`**: DefleMask Module File.
-- _Furnace:_ `.dmf` files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
-- _Furnace:_ `.dmf` files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
+- DefleMask is a commercial chiptune tracker supporting many systems.
+- _Furnace_: `.dmf` files may be read, and compatibility flags will be set to make them play as accurately as possible, but there may still be glitches.
+- _Furnace_: `.dmf` files may be saved, but full compatibility isn't guaranteed and many features will be missing. this isn't recommended unless absolutely necessary.
 
 **`.dmp`**: DefleMask Preset. an instrument file.
 
 **`.dmw`**: DefleMask Wavetable. a wavetable file.
 
-**DPCM**: differential/delta pulse code modulation. this is a variety of PCM that stores each amplitude as its difference from the previous.
+**DPCM**: differential/delta pulse code modulation. this is a form of PCM that stores each amplitude as its difference from the previous.
 
 **duty cycle**: usually called _pulse width._ in a pulse wave, this is the ratio of the high part to the high and low combined.
 
@@ -57,6 +64,7 @@
 - the FM in Yamaha chips is more accurately called _phase modulation,_ which uses a different method of computation to achieve similar results.
 
 **`.ftm`**: FamiTracker Module.
+- FamiTracker is a dedicated tracker for the NES.
 
 **`.fui`**: a Furnace instrument file.
 
@@ -72,6 +80,7 @@
 - some sample-based chips can interpolate, filtering out unwanted harmonics.
 
 **`.it`**: Impulse Tracker module.
+- it is a PC (DOS) tracker which builds upon Scream Tracker 3 and adds useful features such as dynamic channel allocation, envelopes, filters and more effects.
 
 **ladder effect**: an inaccurate yet common term for the DAC distortion that affects some Yamaha FM chips.
 
@@ -87,11 +96,15 @@
 
 **normalize**: to adjust the volume of a sample so it is as loud as possible without adding distortion from clipping.
 
+**nybble**: see "nibble".
+
 **operator**: in FM, a single oscillator that interacts with other oscillators to generate sound.
 
 **oscillator**: a sine wave or other basic waveform used as sound or to alter sound.
 
-**PCM**: pulse code modulation. a stream of data that represents sound as a rapid sequence of amplitudes.
+**PCM**: pulse code modulation. a stream of data that represents sound as a series of discrete values. each value is a "sample" that encodes amplitude.
+
+**PWM**: pulse width modulation. a technique which consists of changing the width of a pulse wave to alter its tone.
 
 **period**: the length of a repeating waveform. as frequency rises, the period shortens.
 
@@ -105,7 +118,7 @@
 
 **pulse wave**: a waveform with a period consisting of only two amplitudes, high and low. also known as a rectangular wave.
 
-**pulse width**: sometimes called _duty cycle._ in a pulse wave, this is the ratio of the high part to the high and low combined.
+**pulse width**: sometimes called _duty cycle_. in a pulse wave, this is the ratio of the high part to the high and low combined.
 
 **release**: the part of a note that plays after it's no longer held, or the part of a macro the plays after it stops looping. usually applies at key off.
 
@@ -119,6 +132,7 @@
 **register**: a memory location within a sound chip. "register view" shows all the relevant memory of all chips in use.
 
 **`.s3m`**: ScreamTracker 3 Module.
+- it is a PC (DOS) tracker featuring a number of upgrades from the Amiga trackers.
 
 **sample** (1): a digitally recorded sound. usually stored as some variant of PCM.
 - these can take up a lot of room depending on length and sample rate, thus older systems tend to use short, lower quality samples.
@@ -135,20 +149,24 @@
 **square wave**: a wave consisting of only two values, high and low, with equal durations within the wave's period.
 - this is equivalent to a pulse wave with a duty of 50%.
 
+**SSG-EG**: Software-controlled Sound Generator - Envelope Generator. a feature of all Yamaha OPN series sound chips. it is the AY-3-8910/YM2149 envelope generator applied to each individual FM operator. more information can be found in the documentation for each OPN family chip.
+
 **supersaw**: a sound made up of multiple saw waves at slightly different frequencies to achieve a chorusing effect.
 
 **tap**: a specified bit location within an LFSR.
 
-**tick rate**: the number of times per second that the sound engine moves forward. all notes and effects are quantized to this rate.
+**tick**: a moment where the engine performs playback, including note, effect and macro processing.
+
+**tick rate**: the number of times per second that the sound engine performs ticks. all notes and effects are quantized to this rate.
 - this usually corresponds to the frame rate the system uses for video, approximately 60 for NTSC and 50 for PAL.
 
-**unsigned**: a digital representation of a number that can only be positive.
+**unsigned**: a number without a sign (in other words, can only be positive).
 - if an imported raw sample sounds recognizable but heavily distorted, it's likely to be signed interpreted as unsigned or vice-versa.
 
-**`.vgm`**: Video Game Music. a file containing the log of data sent to a sound chip during sound playback.
-- saving to a `.vgm` file may be compared to "converting text to outlines" or similar irreversible processes. the results cannot be loaded back into the tracker.
+**`.vgm`**: Video Game Music. a format containing register changes sent to a sound chip during playback.
+- saving to a `.vgm` file may be compared to baking a cake or similar irreversible processes. the results cannot be loaded back into Furnace.
 - different versions of the VGM format have different capabilities, with trade-offs. older versions may lack chips or features; newer versions may not be compatible with some software.
-- samples are stored uncompressed. PCM streams (such as DualPCM) can quickly take up a huge amount of space.
+- samples are stored uncompressed. software PCM streams (such as DualPCM) can quickly take up a huge amount of space.
 
 **waveform**: a very short period of repeating sound.
 - the most basic waveform is a sine wave. others include triangle, pulse, saw, and the like.
@@ -158,5 +176,6 @@
 **wavetable** (2): an ordered group of wavetables(1) used in sequence within a single instrument.
 
 **`.xm`**: eXtended Module. the file format of songs made with FastTracker 2.
+- it is a tracker for PC (DOS) which improves upon the Amiga trackers by adding envelopes and sample maps.
 
 **`.zsm`**: ZSound Music. a VGM-like file meant specifically for the Commander X16 computer.

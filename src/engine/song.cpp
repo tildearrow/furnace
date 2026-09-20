@@ -88,7 +88,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   int nextSpeed=curSpeeds.val[0];
   double divider=hz;
   double totalMicrosOff=0.0;
-  int ticks=1;
+  int ticks=speeds.val[0];
   int tempoAccum=0;
   int curSpeed=0;
   int changeOrd=-1;
@@ -106,6 +106,37 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
   memset(delayOrder,0,DIV_MAX_CHANS);
   memset(delayRow,0,DIV_MAX_CHANS);
   if (divider<1) divider=1;
+  
+  auto performSpeedAlternation=[&,this]() {
+    // perform speed alternation
+    // COMPAT FLAG: broken speed alternation
+    if (brokenSpeedSel) {
+      unsigned char speed2=(curSpeeds.len>=2)?curSpeeds.val[1]:curSpeeds.val[0];
+      unsigned char speed1=curSpeeds.val[0];
+      
+      // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
+      // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
+      // (the beginning of a new sub-song will be in order 0)
+      if ((patLen&1) && (curOrder-firstPat)&1) {
+        ticks=((curRow&1)?speed2:speed1);
+        nextSpeed=(curRow&1)?speed1:speed2;
+      } else {
+        ticks=((curRow&1)?speed1:speed2);
+        nextSpeed=(curRow&1)?speed2:speed1;
+      }
+    } else {
+      // normal speed alternation
+      // set the number of ticks and cycle to the next speed
+      ticks=curSpeeds.val[curSpeed];
+      curSpeed++;
+      if (curSpeed>=curSpeeds.len) curSpeed=0;
+      // cache the next speed for future operations
+      nextSpeed=curSpeeds.val[curSpeed];
+    }
+  };
+
+  // get the tick counters rolling
+  performSpeedAlternation();
 
   auto tinyProcessRow=[&,this](int i, bool afterDelay) {
     // if this is after delay, use the order/row where delay occurred
@@ -317,31 +348,7 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
       songWillEnd=true;
       memset(wsWalked,0,8192);
     }
-    // perform speed alternation
-    // COMPAT FLAG: broken speed alternation
-    if (brokenSpeedSel) {
-      unsigned char speed2=(curSpeeds.len>=2)?curSpeeds.val[1]:curSpeeds.val[0];
-      unsigned char speed1=curSpeeds.val[0];
-      
-      // if the pattern length is odd and the current order is odd, use speed 2 for even rows and speed 1 for odd ones
-      // we subtract firstPat from curOrder as firstPat is used by a function which finds sub-songs
-      // (the beginning of a new sub-song will be in order 0)
-      if ((patLen&1) && (curOrder-firstPat)&1) {
-        ticks=((curRow&1)?speed2:speed1);
-        nextSpeed=(curRow&1)?speed1:speed2;
-      } else {
-        ticks=((curRow&1)?speed1:speed2);
-        nextSpeed=(curRow&1)?speed2:speed1;
-      }
-    } else {
-      // normal speed alternation
-      // set the number of ticks and cycle to the next speed
-      ticks=curSpeeds.val[curSpeed];
-      curSpeed++;
-      if (curSpeed>=curSpeeds.len) curSpeed=0;
-      // cache the next speed for future operations
-      nextSpeed=curSpeeds.val[curSpeed];
-    }
+    performSpeedAlternation();
 
     if (songWillEnd && !endOfSong) {
       ts.loopEnd.order=prevOrder;
@@ -422,7 +429,13 @@ void DivSubSong::calcTimestamps(int chans, std::vector<DivGroovePattern>& groove
           ts.orders[prevOrder][i].seconds=-1;
         }
       }
-      ts.orders[prevOrder][prevRow]=ts.totalTime;
+      if (prevOrder==0 && prevRow==0) {
+        // the very first row will always have a timestamp of zero
+        // I don't know why does virtual tempo touch it
+        ts.orders[prevOrder][prevRow]=TimeMicros(0,0);
+      } else {
+        ts.orders[prevOrder][prevRow]=ts.totalTime;
+      }
       rowChanged=false;
     }
 

@@ -96,16 +96,18 @@ void DivPlatformMultiPCM::acquire(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
-    if (!writes.empty() && --delay<0) {
-      QueuedWrite& w=writes.front();
-      if (w.addr==0xfffffffe) {
-        delay=w.val;
-      } else {
-        delay=1;
-        pcm.writeReg(slotsMPCM[(w.addr>>3)&0x1f],w.addr&0x7,w.val);
-        regPool[w.addr]=w.val;
+    if (!writes.empty()) {
+      if (--delay<=0) {
+        QueuedWrite& w=writes.front();
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          delay=1;
+          pcm.writeReg(slotsMPCM[(w.addr>>3)&0x1f],w.addr&0x7,w.val);
+          regPool[w.addr]=w.val;
+        }
+        writes.pop();
       }
-      writes.pop();
     }
 
     pcm.generate(o[0],o[1],o[2],o[3],pcmBuf);
@@ -144,9 +146,9 @@ void DivPlatformMultiPCM::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -198,20 +200,23 @@ void DivPlatformMultiPCM::tick(bool sysTick) {
 
   for (int i=0; i<28; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivSample* s=parent->getSample(parent->getIns(chan[i].ins)->amiga.initSample);
       unsigned char ctrl=0;
-      double off=(s->centerRate>=1)?((double)s->centerRate/parent->getCenterRate()):1.0;
-      chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
-      if (chan[i].freq<0x400) chan[i].freq=0x400;
-      chan[i].freqH=0;
-      if (chan[i].freq>0x3ffffff) {
-        chan[i].freq=0x3ffffff;
-        chan[i].freqH=15;
-      } else if (chan[i].freq>=0x800) {
-        chan[i].freqH=bsr32(chan[i].freq)-11;
+      chan[i].freq=chan[i].calcFreq();
+      if (chan[i].rawFreq) {
+        chan[i].freqL=chan[i].freq&0xff;
+        chan[i].freqH=(chan[i].freq>>8)&0x3f;
+      } else {
+        if (chan[i].freq<0x400) chan[i].freq=0x400;
+        chan[i].freqH=0;
+        if (chan[i].freq>0x3ffffff) {
+          chan[i].freq=0x3ffffff;
+          chan[i].freqH=15;
+        } else if (chan[i].freq>=0x800) {
+          chan[i].freqH=bsr32(chan[i].freq)-11;
+        }
+        chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
+        chan[i].freqH=8^chan[i].freqH;
       }
-      chan[i].freqL=(chan[i].freq>>chan[i].freqH)&0x3ff;
-      chan[i].freqH=8^chan[i].freqH;
       ctrl|=chan[i].active?0x80:0;
       int waveNum=chan[i].sample;
       if (waveNum>=0) {
@@ -259,11 +264,12 @@ int DivPlatformMultiPCM::dispatch(DivCommand c) {
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=chan[c.chan].ins;
+        chan[c.chan].pitchTable=samplePitchTable.get(parent->getIns(chan[c.chan].ins)->amiga.initSample);
         chan[c.chan].sampleNote=c.value;
         chan[c.chan].sampleNoteDelta=c.value-chan[c.chan].sampleNote;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.insLen) {
         chan[c.chan].sample=-1;
@@ -336,7 +342,7 @@ int DivPlatformMultiPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -359,7 +365,7 @@ int DivPlatformMultiPCM::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -392,7 +398,7 @@ int DivPlatformMultiPCM::dispatch(DivCommand c) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MULTIPCM));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       }
       chan[c.chan].inPorta=c.value;
       break;
@@ -409,6 +415,7 @@ void DivPlatformMultiPCM::forceIns() {
   for (int i=0; i<28; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chImmWrite(i,PCM_ADDR_PAN,(isMuted[i]?8:chan[i].pan)<<4);
   }
   for (int i=0; i<224; i++) {
     oldWrites[i]=-1;
@@ -419,7 +426,7 @@ void DivPlatformMultiPCM::toggleRegisterDump(bool enable) {
   DivDispatch::toggleRegisterDump(enable);
 }
 
-void* DivPlatformMultiPCM::getChanState(int ch) {
+SharedChannel* DivPlatformMultiPCM::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -462,6 +469,15 @@ int DivPlatformMultiPCM::getRegisterPoolSize() {
   return 224;
 }
 
+void DivPlatformMultiPCM::softReset() {
+  // am I doing ok?
+  for (int i=0; i<28; i++) {
+    for (int j=0; j<8; j++) {
+      chImmWrite(i,j,0);
+    }
+  }
+}
+
 void DivPlatformMultiPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,224);
@@ -471,7 +487,8 @@ void DivPlatformMultiPCM::reset() {
   renderInstruments();
 
   for (int i=0; i<28; i++) {
-    chan[i]=DivPlatformMultiPCM::Channel();
+    chan[i]=DivPlatformMultiPCM::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=samplePitchTable.get(-1);
     chan[i].std.setEngine(parent);
     chImmWrite(i,PCM_ADDR_PAN,(isMuted[i]?8:chan[i].pan)<<4);
   }
@@ -485,7 +502,7 @@ void DivPlatformMultiPCM::reset() {
   curAddr=-1;
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   delay=0;
@@ -535,6 +552,14 @@ void DivPlatformMultiPCM::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformMultiPCM::notifyPitchTable(int sample) {
+  samplePitchTable.update<Channel>(chan,28,parent->song.tuning,chipClock,CHIP_FREQBASE,0x3ffffff,false,parent->song.compatFlags.linearPitch,sample);
+}
+
+unsigned int DivPlatformMultiPCM::getMaxFreq(int ch) {
+  return 0x3fff;
+}
+
 void DivPlatformMultiPCM::poke(unsigned int addr, unsigned short val) {
   immWrite(addr,val);
 }
@@ -544,7 +569,7 @@ void DivPlatformMultiPCM::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformMultiPCM::getPortaFloor(int ch) {
-  return 0;
+  return 60;
 }
 
 void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {
@@ -556,6 +581,8 @@ void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {
   for (int i=0; i<28; i++) {
     oscBuf[i]->setRate(rate);
   }
+
+  notifyPitchTable();
 }
 
 const void* DivPlatformMultiPCM::getSampleMem(int index) {
@@ -721,6 +748,7 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
 
 int DivPlatformMultiPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
+  samplePitchTable.init(parent);
   dumpWrites=false;
   skipRegisterWrites=false;
   for (int i=0; i<28; i++) {
@@ -758,4 +786,5 @@ DivPlatformMultiPCM::DivPlatformMultiPCM():
 DivPlatformMultiPCM::~DivPlatformMultiPCM() {
   delete[] sampleOff;
   delete[] sampleLoaded;
+  samplePitchTable.destroy<Channel>(chan,28);
 }

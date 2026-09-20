@@ -133,6 +133,7 @@ the following instrument types are available:
 - 64: Supervision
 - 65: µPD1771C
 - 66: SID3
+- 67: Klattsch
 
 the following feature codes are recognized:
 
@@ -164,6 +165,7 @@ the following feature codes are recognized:
 - `PN`: PowerNoise ins data
 - `S2`: SID2 ins data
 - `S3`: SID3 ins data
+- `KT`: Klattsch voice profile
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there are sample/wave lists.
@@ -183,6 +185,14 @@ size | description
   - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
   - 1/2/?/? (? = unused) for OPL 2-op and OPLL
 
+- the bits for res and T were FMS2 before version 251. this is now:
+  - T: OPZ tremolo LFO selector
+  - res: reserved
+- `SEL` was AMS2 before version 251. this is now a 2-bit FMS/AMS OPZ LFO selector.
+  - the upper bit selects the LFO for FMS.
+  - the lower bit selects the LFO for AMS.
+- to convert, use the greatest value for each FMS/AMS option and select respective LFOs.
+
 ```
 size | description
 -----|------------------------------------
@@ -195,8 +205,8 @@ size | description
      | **base data**
      | /7 6 5 4 3 2 1 0|
   1  | |x| ALG |x| FB  |
-  1  | |FMS2 |AMS| FMS |
-  1  | |AM2|4| LLPatch |
+  1  | |res|T|AMS| FMS |
+  1  | |SEL|4| LLPatch |
   1  | |xxxxxxx| Block | (>=224)
 -----|------------------------------------
      | **operator data × opCount**
@@ -470,7 +480,7 @@ size | description
      | - bit 1: use sample
      | - bit 0: use sample map
   1  | waveform length
- 4?? | sample map... (120 entries)
+ 4?? | sample map... (120 entries (<246) or 180 entries (>=246))
      | - only read if sample map is enabled
 ```
 
@@ -480,6 +490,8 @@ the sample map format:
 size | description
 -----|------------------------------------
   2  | note to play (>=152) or reserved
+     | - (<246) 0 is C-0 and 119 is B-9
+     | - (>=246) 0 is C-(-5), 60 is C-0 and 179 is B-9
   2  | sample to play
 ```
 
@@ -729,7 +741,7 @@ size | description
 size | description
 -----|------------------------------------
   1  | use sample map
- 2?? | DPCM sample map... (120 entries)
+ 2?? | DPCM sample map... (120 entries (<246) or 180 entries (>=246))
      | - only read if sample map is enabled
 ```
 
@@ -837,4 +849,23 @@ size | description
   1  | cutoff scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9`
   1  | resonance scaling level
   1  | resonance scaling center note: `0` is `c_5`, `1` is `c+5`, ..., `179` is `B-9` 
+```
+
+# Klattsch voice profile (KT)
+
+all values use the same byte encoding as the corresponding Klattsch effect.
+
+```
+size | description
+-----|------------------------------------
+  1  | transition time in ticks (default 2)
+  1  | voicing (`FF`: bank value)
+  1  | aspiration (`FF`: bank value; default `00`)
+  1  | spectral tilt (`00`-`FE`: signed effect value; `FF`: bank value; default `00`)
+  1  | glottal effort (`FF`: bank value; default `80`)
+  1  | vibrato (`high nibble`: rate; `low nibble`: depth; default `50`)
+  1  | tremolo (`high nibble`: rate; `low nibble`: depth; default `50`)
+  1  | gain (`00`: bank value; otherwise value/16; default `38`)
+  1  | formant bandwidth scale (`00`: neutral; otherwise value/64)
+  1  | formant shift (`00`: neutral; otherwise value/64)
 ```

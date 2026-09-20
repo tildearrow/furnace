@@ -80,11 +80,20 @@ void FurnaceGUI::drawSysDefs(std::vector<FurnaceGUISysDef>& category, bool& acce
           DivSystem chip=chips[chipIndex];
           const DivSysDef* sysDef=e->getSystemDef(chip);
           ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
-          ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
-          ImGui::Text("%s",sysDef->description);
-          ImGui::Separator();
-          drawSystemChannelInfoText(sysDef);
-          drawSystemChannelInfo(sysDef);
+          if (sysDef==NULL) {
+            ImGui::Text(_("what kinda system is that? %d (%d) if you really have to know..."),(int)chipIndex,(int)chip);
+          } else {
+            auto chipCount=chipCounts.find(chip);
+            if (chipCount!=chipCounts.cend()) {
+              ImGui::Text("%s (×%d): ",sysDef->name,chipCount->second);
+            } else {
+              ImGui::Text("%s (×ERROR)",sysDef->name);
+            }
+            ImGui::Text("%s",sysDef->description);
+            ImGui::Separator();
+            drawSystemChannelInfoText(sysDef);
+            drawSystemChannelInfo(sysDef);
+          }
           ImGui::PopTextWrapPos();
           if (chipIndex+1<chips.size()) {
             ImGui::Separator();
@@ -284,7 +293,7 @@ void FurnaceGUI::drawNewSong() {
     redoHist.clear();
     curFileName="";
     modified=false;
-    curNibble=false;
+    curNibble=0;
     orderNibble=false;
     orderCursor=-1;
     samplePos=0;

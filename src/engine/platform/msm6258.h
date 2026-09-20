@@ -26,11 +26,11 @@
 
 class DivPlatformMSM6258: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       int sample;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(8),
+      Channel(bool linear=true):
+        SharedChannel(8,linear),
         sample(-1),
         pan(3) {}
     };
@@ -62,12 +62,13 @@ class DivPlatformMSM6258: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -77,6 +78,7 @@ class DivPlatformMSM6258: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     void setFlags(const DivConfig& flags);

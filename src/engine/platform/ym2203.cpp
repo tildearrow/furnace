@@ -544,7 +544,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
 
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11,chan[i].state.block);
       }
@@ -680,7 +680,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
-      if (parent->song.compatFlags.linearPitch) {
+      if (chan[i].rawFreq) {
+        chan[i].freq=(chan[i].baseFreq+chan[i].pitch2)&0x3fff;
+      } else if (parent->song.compatFlags.linearPitch) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[i].state.block);
       } else {
         int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
@@ -695,7 +697,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
         }
         chan[i].freq=(block<<11)|fNum;
       }
-      if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
+      }
       immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
       hardResetElapsed+=2;
@@ -783,7 +787,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
 
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].portaPause=false;
           chan[c.chan].note=c.value;
           chan[c.chan].freqChanged=true;
@@ -804,6 +808,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
 
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+        chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
         chan[c.chan].portaPause=false;
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -864,7 +869,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_PORTA: {
       if (c.chan==csmChan) {
-        int destFreq=NOTE_PERIODIC(c.value2);
+        int destFreq=chan[c.chan].calcBaseFreq(c.value2);
         bool return2=false;
         if (destFreq>chan[c.chan].baseFreq) {
           chan[c.chan].baseFreq+=c.value;
@@ -914,7 +919,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
       }
       if (chan[c.chan].insChanged) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
@@ -922,6 +927,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
         chan[c.chan].insChanged=false;
       }
       chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[c.chan].state.block);
+      chan[c.chan].rawFreq=c.value&DIV_NOTE_RAW_FLAG;
       chan[c.chan].freqChanged=true;
       break;
     }
@@ -1250,7 +1256,7 @@ void DivPlatformYM2203::forceIns() {
   ay->getRegisterWrites().clear();
 }
 
-void* DivPlatformYM2203::getChanState(int ch) {
+SharedChannel* DivPlatformYM2203::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -1279,11 +1285,30 @@ void DivPlatformYM2203::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformYM2203::softReset() {
+  // reset AY
+  immWrite(7,0x3f);
+  immWrite(8,0);
+  immWrite(9,0);
+  immWrite(10,0);
+
+  // reset OPN
+  for (int i=0; i<3; i++) { // set SL and RR to highest
+    immWrite(0x80+i,0xff);
+    immWrite(0x84+i,0xff);
+    immWrite(0x88+i,0xff);
+    immWrite(0x8c+i,0xff);
+  }
+  for (int i=0; i<3; i++) { // note off
+    immWrite(0x28,i);
+  }
+}
+
 void DivPlatformYM2203::reset() {
   writes.clear();
   memset(regPool,0,256);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   OPN2_Reset(&fm_nuked);
   OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
@@ -1291,6 +1316,7 @@ void DivPlatformYM2203::reset() {
   memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<7; i++) {
     chan[i]=DivPlatformOPN::OPNChannel();
+    if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<3; i++) { // check back later / me from future: wha?
@@ -1385,6 +1411,18 @@ void DivPlatformYM2203::notifyInsDeletion(void* ins) {
   }
 }
 
+void DivPlatformYM2203::notifyPitchTable(int sample) {
+  csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
+
+  ay->notifyPitchTable(sample);
+}
+
+unsigned int DivPlatformYM2203::getMaxFreq(int ch) {
+  if (ch==csmChan) return 0x3ff;
+  if (ch>=psgChanOffs) return 0xfff;
+  return 0x3fff;
+}
+
 void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
   DivDispatch::setSkipRegisterWrites(value);
   ay->setSkipRegisterWrites(value);
@@ -1438,6 +1476,7 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
+  sharedExtBlock=flags.getBool("sharedExtBlock",false);
   fbAllOps=flags.getBool("fbAllOps",false);
   ssgVol=flags.getInt("ssgVol",128);
   fmVol=flags.getInt("fmVol",256);
@@ -1464,6 +1503,8 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   immWrite(prescale,0xff);
   ay->setExtClockDiv(chipClock,ayDiv);
   ay->setFlags(ayFlags);
+
+  notifyPitchTable();
 }
 
 int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

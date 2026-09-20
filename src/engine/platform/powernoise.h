@@ -43,15 +43,15 @@ class DivPlatformPowerNoise: public DivDispatch {
       dir(false) {}
   };
   
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     int fNum;
     unsigned short initLFSR;
     unsigned char octave, pan, tapA, tapB, octaveOff;
     bool slope, am, tapBEnable, keyOn, keyOff;
     SlopePortion slopeA, slopeB;
     
-    Channel():
-      SharedChannel<signed char>(15),
+    Channel(bool linear=true):
+      SharedChannel(15,linear),
       fNum(0),
       initLFSR(0x5555),
       octave(0),
@@ -72,6 +72,7 @@ class DivPlatformPowerNoise: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   unsigned char regPool[32];
+  DivPitchTable pitchTable, slopePitchTable;
   
   int coreQuality;
   power_noise_t pn;
@@ -81,7 +82,7 @@ class DivPlatformPowerNoise: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivChannelModeHints getModeHints(int chan);
@@ -99,6 +100,8 @@ class DivPlatformPowerNoise: public DivDispatch {
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

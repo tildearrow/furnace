@@ -38,6 +38,11 @@
 
 #define addWrite(a,v) regWrites.push_back(DivRegWrite(a,v));
 
+// forward declarations
+class DivEngine;
+class DivMacroInt;
+struct DivSample;
+
 /**
  * DivDispatchCmds - the enum containing all engine commands.
  * these are sent from the engine to dispatches during playback.
@@ -127,7 +132,7 @@ enum DivDispatchCmds {
   DIV_CMD_STD_NOISE_MODE, // (mode)
 
   DIV_CMD_WAVE, // (waveform)
-  
+
   DIV_CMD_GB_SWEEP_TIME, // (time)
   DIV_CMD_GB_SWEEP_DIR, // (direction)
 
@@ -171,7 +176,7 @@ enum DivDispatchCmds {
   DIV_CMD_AMIGA_PM, // (enabled)
 
   DIV_CMD_LYNX_LFSR_LOAD, // (value)
-  
+
   DIV_CMD_QSOUND_ECHO_FEEDBACK,
   DIV_CMD_QSOUND_ECHO_DELAY,
   DIV_CMD_QSOUND_ECHO_LEVEL,
@@ -267,7 +272,7 @@ enum DivDispatchCmds {
 
   DIV_CMD_POWERNOISE_COUNTER_LOAD, // (which, val)
   DIV_CMD_POWERNOISE_IO_WRITE, // (port, value)
-  
+
   DIV_CMD_DAVE_HIGH_PASS,
   DIV_CMD_DAVE_RING_MOD,
   DIV_CMD_DAVE_SWAP_COUNTERS,
@@ -298,7 +303,7 @@ enum DivDispatchCmds {
   DIV_CMD_MULTIPCM_PSEUDO_REVERB, // (value)
   DIV_CMD_MULTIPCM_LFO_RESET, // (value)
   DIV_CMD_MULTIPCM_LEVEL_DIRECT, // (value)
-  
+
   DIV_CMD_SID3_SPECIAL_WAVE,
   DIV_CMD_SID3_RING_MOD_SRC,
   DIV_CMD_SID3_HARD_SYNC_SRC,
@@ -328,10 +333,127 @@ enum DivDispatchCmds {
   DIV_CMD_FM_ALG,
   DIV_CMD_FM_FMS,
   DIV_CMD_FM_AMS,
-  DIV_CMD_FM_FMS2,
-  DIV_CMD_FM_AMS2,
+  DIV_CMD_FM_LFO3,
+  DIV_CMD_FM_LFO4,
+
+  DIV_CMD_KLATTSCH_PHONEME,
+  DIV_CMD_KLATTSCH_TRANSITION,
+  DIV_CMD_KLATTSCH_FORMANT, // (formant 0-2, freq Hz)
+  DIV_CMD_KLATTSCH_AMP, // (formant 0-2, amplitude 0-255)
+  DIV_CMD_KLATTSCH_VOICING,
+  DIV_CMD_KLATTSCH_ASPIRATION,
+  DIV_CMD_KLATTSCH_TILT,
+  DIV_CMD_KLATTSCH_EFFORT,
+  DIV_CMD_KLATTSCH_VIBRATO, // (rate Hz << 4 | depth)
+  DIV_CMD_KLATTSCH_TREMOLO, // (rate Hz << 4 | depth)
+  DIV_CMD_KLATTSCH_GAIN,
+  DIV_CMD_KLATTSCH_BW_SCALE,
+  DIV_CMD_KLATTSCH_FORMANT_SHIFT,
+
+  DIV_CMD_TEST_REG, // (register, value)
 
   DIV_CMD_MAX
+};
+
+// These values are part of the unversioned FCS command stream format.
+static_assert(DIV_CMD_FDS_MOD_AUTO==0xb8,"legacy FCS command IDs changed");
+static_assert(DIV_CMD_FM_LFO4==0xe2,"legacy FCS command IDs changed");
+static_assert(DIV_CMD_KLATTSCH_PHONEME==0xe3,"Klattsch FCS command IDs changed");
+
+
+/**
+ * this struct contains a pitch table.
+ * a couple functions are provided for performing frequency calculation.
+ *
+ * the SharedChannel struct provides a couple helper functions to assist with pitch calculation.
+ * have a DivPitchTable in your dispatch class, bind it to each channel's pitchTable on reset(),
+ * and use the channels' calcBaseFreq()/calcFreq() functions to calculate the final frequency for you.
+ */
+struct DivPitchTable {
+  // the following two arrays should not be accessed directly. use the get() function instead.
+  // 13 notes, spanning an octave and extra C.
+  // the octave usually covers the chip's maximum period (lowest octave)/frequency (highest octave).
+  int pitch[12+1];
+  // the difference hetween one entry and the next.
+  int pitchDiff[12+1];
+  // the chip's maximum period/frequency value.
+  unsigned int maxFreq;
+  // the octave that the pitch array is in.
+  unsigned char shift;
+  // period: whether this table is "periodic" or "frequency".
+  // linearity: this should reflect the song's pitch linearity setting.
+  bool period, linearity;
+
+  /**
+   * compute the frequency of a note. used by SharedChannel::calcFreq().
+   *
+   * the frequency calculation process depends on the pitch linearity.
+   * an 8.7 fixed point "offset" is determined by the sum of base, pitch1 and pitch2. following that:
+   * - linear pitch:
+   *   - the offset is in linear space.
+   *   - the note is represented by the integer part, and fine pitch (in 128ths) by the fractional part.
+   *   - the note is selected from the array and shifted by the octave.
+   *   - the returned value is a linear interpolation between this note and the next, depending on the fine pitch.
+   * - non-linear pitch:
+   *   - the offset is in period or frequency space.
+   *   - the offset is returned as is (pitch1 and pitch2 are inverted if periodic).
+   *
+   * @param base: the base frequency (typically baseFreq).
+   * @param pitch1: the primary pitch (typically pitch).
+   * @param pitch2: the secondary pitch (typically pitch2).
+   * @return the final frequency.
+   */
+  virtual int get(int base, int pitch1, int pitch2);
+
+  /**
+   * get the base frequency of a note.
+   * in linear pitch, it is an 8.7 fixed point number where the integer part is the note.
+   * in non-linear pitch, it is the period or frequency as taken from the array and shifted by the octave.
+   *
+   * @param note the note.
+   * @return the base frequency.
+   */
+  virtual int getBase(int note);
+
+  /**
+   * calculate pitch table.
+   * this is normally called in your dispatch's notifyPitchTable() function.
+   *
+   * @param tuning the A-4 tuning to use.
+   * @param clock the chip's clock.
+   * @param divider the divider or frequency base.
+   * @param maximum the maximum period/frequency value supported by the chip.
+   * @param period whether to use periods instead of accumulator values.
+   * @param linear whether pitch linearity is set to full.
+   */
+  void init(float tuning, double clock, double divider, int maximum, bool period, bool linear);
+
+  DivPitchTable():
+    maxFreq(0xffffffff),
+    period(false),
+    linearity(true) {
+    memset(pitch,0,sizeof(pitch));
+    memset(pitchDiff,0,sizeof(pitchDiff));
+  }
+};
+
+struct DivPitchTableFNum: DivPitchTable {
+  unsigned char fnumBits;
+  unsigned char blockBits;
+
+  int fnumMax, blockMax;
+
+  int get(int base, int pitch1, int pitch2);
+  int getBase(int note);
+
+  void initFNum(float tuning, double clock, double divider, unsigned char fnumBits, unsigned char blockBits, bool linear);
+  DivPitchTableFNum():
+    DivPitchTable(),
+    fnumBits(0),
+    blockBits(0),
+    fnumMax(0),
+    blockMax(0) {
+  }
 };
 
 /**
@@ -340,29 +462,29 @@ enum DivDispatchCmds {
  *
  * create a struct inherited from SharedChannel in your dispatch's class definition:
  *
- * struct Channel: public SharedChannel<int> {
+ * struct Channel: public SharedChannel {
  *   // state...
  * };
  */
-template<typename T> struct SharedChannel {
+struct SharedChannel {
   // freq: the output frequency (usually).
   // - this is calculated on frequency changes (freqChanged should be checked during tick()).
-  // - the function that calculates frequency is DivEngine::calcFreq(). pass in the rest of variables
-  //   and you should get a frequency.
+  // - the function that calculates frequency is calcFreq().
   // - certain chips require conversion of this frequency to some usable value
   //   (e.g. SAA1099 has 8-bit divider and 3-bit octave selector).
   // baseFreq: frequency of the current note, including pitch slides.
   // - linear pitch: 8.7 fixed number. integer part is note and fractional part is pitch (in 128ths).
-  // - non-linear pitch: 
-  // - this value is set during note changes. calculate it by using NOTE_FREQUENCY() or NOTE_PERIODIC().
-  //   - remember to set CHIP_DIVIDER/CHIP_FREQBASE in your dispatch's code!
+  // - non-linear pitch: the frequency or period of a note.
+  // - this value is set during note changes. calculate it by using calcBaseFreq().
+  //   - remember to assign a pitch table to your channels in reset()!
+  //   - for sample chips, you may also want to change the pitch table during sample index changes.
   // baseNoteOverride: set when the arp macro's value is fixed. in that case, fixedArp will be true.
   // pitch: the pitch offset. set on DIV_CMD_PITCH (calculated from current E5xx and vibrato state).
   // pitch2: pitch macro's output.
   // arpOff: the arp macro's value (relative), in semitones.
   int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
   // ins: current instrument. -1 is none/default.
-  // note: current note, in semitones. 0 is C-0.
+  // note: current note, in semitones. 0 is C-(-5) and 60 is C-0.
   // sampleNote: note in sample map.
   // sampleNoteDelta: difference between note and sampleNote, used in arp calculation, legato and pitch slides.
   int ins, note, sampleNote, sampleNoteDelta;
@@ -385,14 +507,14 @@ template<typename T> struct SharedChannel {
   // inPorta: whether we currently are in a portamento.
   // - should be set during DIV_CMD_PRE_PORTA.
   // - in non-linear pitch, this variable is used to inhibit certain pitch changes during a pitch slide.
-  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta;
+  // rawFreq: whether the baseFreq is raw and overrides frequency calculation.
+  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta, rawFreq;
   // vol: the current volume, set during DIV_CMD_VOLUME.
   // outVol: the *output* volume.
   // - this is the same as vol when we don't have a volume macro going on.
   // - otherwise it is the result of a calculation with vol and the volume macro's value.
   //   - calculate this value by using VOL_SCALE_LINEAR()/VOL_SCALE_LOG() in tick().
-  // the type of these two is usually int, but some chips use signed char.
-  T vol, outVol;
+  int vol, outVol;
   // std: this is the macro interpreter.
   // - the name comes from DefleMask, where macro-able instruments have "STD" type.
   //   - don't laugh at me.
@@ -407,6 +529,9 @@ template<typename T> struct SharedChannel {
   //   - if you don't do this, you'll be referencing a potentially extinct instrument
   //     and prompt Furnace to collapse.
   DivMacroInt std;
+  // this is a pointer to your dispatch's pitch table.
+  // - this should be initialized during reset()!
+  DivPitchTable* pitchTable;
 
   // here are some helper functions.
   /**
@@ -416,7 +541,7 @@ template<typename T> struct SharedChannel {
    *   chan[i].handleArp();
    * } else if (chan[i].std.arp.had) {
    *   if (!chan[i].inPorta) {
-   *     chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+   *     chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
    *   }
    *   chan[i].freqChanged=true;
    * }
@@ -430,7 +555,7 @@ template<typename T> struct SharedChannel {
     if (std.arp.had) {
       if (std.arp.val<0) {
         if (!(std.arp.val&0x40000000)) {
-          baseNoteOverride=(std.arp.val|0x40000000)+offset;
+          baseNoteOverride=(std.arp.val|0x40000000)+offset+60;
           fixedArp=true;
         } else {
           arpOff=std.arp.val;
@@ -438,7 +563,7 @@ template<typename T> struct SharedChannel {
         }
       } else {
         if (std.arp.val&0x40000000) {
-          baseNoteOverride=(std.arp.val&(~0x40000000))+offset;
+          baseNoteOverride=(std.arp.val&(~0x40000000))+offset+60;
           fixedArp=true;
         } else {
           arpOff=std.arp.val;
@@ -461,14 +586,45 @@ template<typename T> struct SharedChannel {
     fixedArp=false;
   }
   /**
+   * calculates base frequency from the current pitch table. use this when setting baseFreq.
+   * @param note the note.
+   */
+  int calcBaseFreq(int note) {
+    rawFreq=note&DIV_NOTE_RAW_FLAG;
+    if (rawFreq) {
+      return note&(~DIV_NOTE_RAW_FLAG);
+    }
+    if (pitchTable==NULL) return 0;
+    return pitchTable->getBase(note);
+  }
+  /**
+   * calculates final frequency from current frequency values.
+   * @param pitchMult this may be used to multiply pitch in non-linear mode.
+   * it is used by OPL and some other chips to ensure that one pitch unit
+   * equals one chip frequency unit when the frequency must be converted to
+   * an f-num/block.
+   * @return the frequency.
+   */
+  int calcFreq(int pitchMult=1) {
+    if (rawFreq) return baseFreq+pitch2;
+    if (pitchTable==NULL) return 0;
+    if (!pitchTable->linearity) {
+      return pitchTable->get(baseFreq,pitch*pitchMult,pitch2);
+    }
+    if (fixedArp) {
+      return pitchTable->get(baseNoteOverride<<7,pitch,pitch2);
+    }
+    return pitchTable->get(baseFreq+(arpOff<<7),pitch,pitch2);
+  }
+  /**
    * call this constructor in your Channel's constructor, which should initialize the channel's state.
    * call your Channel's constructor during reset().
    *
    * @param initVol the initial channel volume.
    */
-  SharedChannel(T initVol):
+  SharedChannel(int initVol, bool linear):
     freq(0),
-    baseFreq(0),
+    baseFreq(linear?0x1e00:0),
     baseNoteOverride(0),
     pitch(0),
     pitch2(0),
@@ -485,11 +641,150 @@ template<typename T> struct SharedChannel {
     keyOff(false),
     portaPause(false),
     inPorta(false),
+    rawFreq(false),
     vol(initVol),
     outVol(initVol),
-    std() {} 
+    std(),
+    pitchTable(NULL) {}
 };
 
+/**
+ * DivPitchTableManager is a helper class that manages pitch tables for each sample.
+ */
+class DivPitchTableManager {
+  // the engine.
+  DivEngine* e;
+  // a fallback pitch table in case an invalid sample is selected.
+  DivPitchTable defaultPitchTable;
+  // our array of pitch tables (one per sample).
+  DivPitchTable* samplePitchTable;
+  size_t samplePitchTableLen;
+
+  // this function is here so we don't have to include the whole engine.h.
+  size_t eSongSampleSize();
+  // actually update pitch tables. accesses the engine, so yeah.
+  void updateSub(float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample);
+
+  public:
+    /**
+     * get pitch table for a sample.
+     * @param sample the sample number.
+     * @return a DivPitchTable for that sample, or the default table if it doesn't exist.
+     */
+    DivPitchTable* get(int sample);
+    /**
+     * update the pitch tables.
+     * call this in your dispatch's notifyPitchTable().
+     * this function also updates references to the pitch tables in case the
+     * pitch table array must be recreated.
+     * @param chan an array of SharedChannel. necessary to update the channels' pitch table pointers.
+     * @param numChans how many channels the array has.
+     * @param sample the sample that has changed (or -1 if an entire recalc is necessary). pass sample of notifyPitchTable to this.
+     * @note the rest of parameters are the same as DivPitchTable::init().
+     * @return whether the number of pitch tables has changed.
+     */
+    template<class T> bool update(T* chan, size_t numChans, float tuning, double clock, double divider, int maximum, bool period, bool linear, int sample) {
+      if (e==NULL) return false;
+
+      bool hasSizeChanged=false;
+
+      logD("DivPitchTableManager update (%d channels) - sample %d",(int)numChans,sample);
+
+      // first check whether we need to resize our pitch table array
+      if (samplePitchTableLen!=eSongSampleSize()) {
+        if (eSongSampleSize()<1) {
+          // remove all references to the pitch table
+          DivPitchTable* firstEntry=samplePitchTable;
+          DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+          for (size_t i=0; i<numChans; i++) {
+            if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+              chan[i].pitchTable=NULL;
+            }
+          }
+
+          // now deallocate it
+          if (samplePitchTable) {
+            delete[] samplePitchTable;
+            samplePitchTable=NULL;
+          }
+        } else {
+          // recreate the pitch table array
+          DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
+          if (samplePitchTable) {
+            // I know, I know. we only create DivPitchTables though.
+            for (size_t i=0; i<MIN(eSongSampleSize(),samplePitchTableLen); i++) {
+              newArray[i]=samplePitchTable[i];
+            }
+
+            // adjust pitch table references
+            DivPitchTable* firstEntry=samplePitchTable;
+            DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+            
+            logD("firstEntry: %p - lastEntry: %p",(void*)firstEntry,(void*)lastEntry);
+
+            for (size_t i=0; i<numChans; i++) {
+              if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+                size_t offset=(chan[i].pitchTable-firstEntry);
+                logD("- chan %d: %p (offset %d)",i,(void*)chan[i].pitchTable,(int)offset);
+                if (offset<eSongSampleSize()) {
+                  chan[i].pitchTable=&newArray[offset];
+                } else {
+                  logW("one item is gone");
+                  chan[i].pitchTable=NULL;
+                }
+              }
+            }
+
+            delete[] samplePitchTable;
+          }
+          samplePitchTable=newArray;
+        }
+        samplePitchTableLen=eSongSampleSize();
+        hasSizeChanged=true;
+      }
+
+      updateSub(tuning,clock,divider,maximum,period,linear,sample);
+      return hasSizeChanged;
+    }
+    /**
+     * delete the pitch tables.
+     * call this on quit(), or your destructor.
+     * @param chan an array of SharedChannel. necessary to update the channels' pitch table pointers.
+     * @param numChans how many channels the array has.
+     */
+    template<class T> void destroy(T* chan, size_t numChans) {
+      if (e==NULL) return;
+      if (!chan) logE("DivPitchTableManager: CHAN IS NULL");
+      if (samplePitchTable) {
+        DivPitchTable* firstEntry=samplePitchTable;
+        DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+
+        if (chan) {
+          for (size_t i=0; i<numChans; i++) {
+            if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
+              chan[i].pitchTable=NULL;
+            }
+          }
+        }
+
+        delete[] samplePitchTable;
+        samplePitchTable=NULL;
+        samplePitchTableLen=0;
+      }
+    }
+    /**
+     * initialize this pitch table manager.
+     * call during init(), just after assigning the engine to your dispatch.
+     * @param eng the DivEngine this pitch table manager will use.
+     */
+    void init(DivEngine* eng);
+    DivPitchTableManager():
+      e(NULL),
+      samplePitchTable(NULL),
+      samplePitchTableLen(0) {}
+    ~DivPitchTableManager();
+};
 
 /**
  * a DivCommand encapsulates an engine command.
@@ -531,41 +826,6 @@ struct DivCommand {
 };
 
 /**
- * currently we don't use this but eventually we will.
- */
-struct DivPitchTable {
-  int pitch[12+1];
-  int pitchDiff[12+1];
-  unsigned char linearity, blockBits, shift;
-  bool period;
-
-  // get pitch
-  int get(int base, int pitch1, int pitch2);
-
-  // linear: note
-  // non-linear: get(note,0,0)
-  int getBase(int note);
-
-  /**
-   * calculate pitch table.
-   * @param tuning the A-4 tuning to use.
-   * @param clock the chip's clock.
-   * @param divider the divider or frequency base.
-   * @param maximum the maximum period/frequency value supported by the chip.
-   * @param period whether to use periods instead of accumulator values.
-   */
-  void init(float tuning, double clock, double divider, int maximum, bool period);
-
-  DivPitchTable():
-    linearity(2),
-    blockBits(0),
-    period(false) {
-    memset(pitch,0,sizeof(pitch));
-    memset(pitchDiff,0,sizeof(pitchDiff));
-  }
-};
-
-/**
  * a delayed command, to be executed later.
  * currently unused.
  */
@@ -599,7 +859,6 @@ struct DivRegWrite {
    * - 0xffffxx05: set sample position
    *   - xx is the instance ID
    *   - value is the sample position
-   * - 0xffffffff: reset
    * - 0xfffffffe: add delay
    *   - value is the delay in cycles
    */
@@ -946,10 +1205,6 @@ struct DivMemoryComposition {
     waveformView(DIV_MEMORY_WAVE_NONE) {}
 };
 
-// forward declarations
-class DivEngine;
-class DivMacroInt;
-
 /**
  * a "dispatch" performs the following:
  * - processes engine commands
@@ -980,7 +1235,7 @@ class DivDispatch {
      * you have to initialize this one during init() or setFlags().
      */
     int rate;
-    
+
     /**
      * the actual chip's clock.
      * you have to initialize this one during init() or setFlags().
@@ -1019,6 +1274,12 @@ class DivDispatch {
     virtual void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
 
     /**
+     * issue register writes that cause a soft-reset.
+     * used in register dump exports.
+     */
+    virtual void softReset();
+
+    /**
      * send a command to this dispatch.
      * @param c a DivCommand.
      * @return a return value which varies depending on the command.
@@ -1041,7 +1302,7 @@ class DivDispatch {
      * @param chan the channel.
      * @return a pointer, or NULL.
      */
-    virtual void* getChanState(int chan);
+    virtual SharedChannel* getChanState(int chan);
 
     /**
      * get the DivMacroInt of a channel.
@@ -1070,7 +1331,7 @@ class DivDispatch {
      * @return a DivChannelModeHints.
      */
     virtual DivChannelModeHints getModeHints(int chan);
-    
+
 
     /**
      * get currently playing sample (and its position).
@@ -1086,7 +1347,7 @@ class DivDispatch {
      * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
      */
     virtual DivDispatchOscBuffer* getOscBuffer(int chan);
-    
+
     /**
      * get the register pool of this dispatch.
      * @return a pointer, or NULL.
@@ -1173,6 +1434,13 @@ class DivDispatch {
      * @return output gain fron 0.0 to 1.0.
      */
     virtual float getGain(int ch, int vol);
+
+    /**
+     * get the highest period or frequency a channel is capable of.
+     * @param ch the chip channel.
+     * @return the maximum period/frequency. 0 if the frequency is fixed.
+     */
+    virtual unsigned int getMaxFreq(int ch);
 
     /**
      * get the lowest note in a portamento.
@@ -1348,7 +1616,7 @@ class DivDispatch {
      * @return whether it did.
      */
     virtual bool isSampleLoaded(int index, int sample);
-    
+
     /**
      * get memory composition.
      * @param index the memory index.
@@ -1373,9 +1641,11 @@ class DivDispatch {
     virtual void renderSamples(int sysID);
 
     /**
-     * tell this DivDispatch that the tuning and/or pitch linearity has changed, and therefore the pitch table must be regenerated.
+     * tell this DivDispatch that the tuning, pitch linearity or rate of a sample has changed, and therefore the pitch table must be regenerated.
+     * besides being called by the DivEngine, this should also be called at the end of setFlags() (or init() if your dispatch doesn't use flags).
+     * @param sample the sample index if it's a rate change. this can be used to regenerate the table of a single sample. set to -1 when the tuning/pitch linearity changes and a full recalculation must take place.
      */
-    virtual void notifyPitchTable();
+    virtual void notifyPitchTable(int sample=-1);
 
     /**
      * initialize this DivDispatch.
@@ -1403,22 +1673,8 @@ class DivDispatch {
     if (chipClock<getClockRangeMin()) chipClock=getClockRangeMin(); \
   }
 
-// NOTE: these definitions may be deprecated in the future. see DivPitchTable.
-// pitch calculation:
-// - a DivDispatch usually contains four variables per channel:
-//   - baseFreq: this changes on new notes, legato, arpeggio and slides.
-//   - pitch: this changes with DIV_CMD_PITCH (E5xx/04xy).
-//   - freq: this is the result of combining baseFreq and pitch using DivEngine::calcFreq().
-//   - freqChanged: whether baseFreq and/or pitch have changed, and a frequency recalculation is required on the next tick.
-// - the following definitions will help you calculate baseFreq.
-// - to use them, define CHIP_DIVIDER and/or CHIP_FREQBASE in your code (not in the header though!).
-//   the value depends on the chip.
-#define NOTE_PERIODIC(x) round(parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true))
-#define NOTE_PERIODIC_NOROUND(x) parent->calcBaseFreq(chipClock,CHIP_DIVIDER,x,true)
-#define NOTE_FREQUENCY(x) parent->calcBaseFreq(chipClock,CHIP_FREQBASE,x,false)
-
-// this is a special case definition. only use it for f-num/block-based chips.
-#define NOTE_FNUM_BLOCK(x,bits,blk) parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,x,bits,blk)
+// NOTE: these definitions are deprecated. see DivPitchTable.
+#define NOTE_FNUM_BLOCK(x,bits,blk) ((x)&DIV_NOTE_RAW_FLAG)?(x):parent->calcBaseFreqFNumBlock(chipClock,CHIP_FREQBASE,(x)&(~DIV_NOTE_RAW_FLAG),bits,blk)
 
 // this is for volume scaling calculation.
 #define VOL_SCALE_LINEAR(x,y,range) ((parent->song.compatFlags.ceilVolumeScaling)?((((x)*(y))+(range-1))/(range)):(((x)*(y))/(range)))
@@ -1443,6 +1699,7 @@ class DivDispatch {
 #define NEW_ARP_STRAT (parent->song.compatFlags.linearPitch && !parent->song.compatFlags.oldArpStrategy)
 
 // this is used by DIV_CMD_LEGATO handling code in some dispatches for compatibility.
-#define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
+// it checks whether the current arp macro step is relative. if so, the arp macro value must be applied.
+#define HACKY_LEGATO_MESS (!chan[c.chan].rawFreq && chan[c.chan].std.arp.will && ((chan[c.chan].std.arp.val&0xc0000000)==0 || (chan[c.chan].std.arp.val&0xc0000000)==0xc0000000) && !NEW_ARP_STRAT)
 
 #endif

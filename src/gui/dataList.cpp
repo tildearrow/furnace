@@ -27,10 +27,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
-const char* sampleNote[12]={
-  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-};
-
 #define DIR_DRAG_SOURCE(_d,_a,_c) \
   if (ImGui::BeginDragDropSource()) { \
     dirToMove=_d; \

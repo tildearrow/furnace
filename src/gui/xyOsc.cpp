@@ -157,7 +157,7 @@ void FurnaceGUI::drawXYOsc() {
             ImLerp(inSqr.Min,inSqr.Max,ImVec2(0.5f-ip,0.5f-ip)),
             ImLerp(inSqr.Min,inSqr.Max,ImVec2(0.5f+ip,0.5f+ip)),
             guideColor,
-            0.0f,0,dpiScale
+            0.0f,dpiScale
           );
         }
 
@@ -202,7 +202,7 @@ void FurnaceGUI::drawXYOsc() {
           dl->Flags=prevFlags;
         }
         if (settings.oscBorder) {
-          dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+          dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,1.5f*dpiScale);
         }
       }
       if (ImGui::IsItemHovered()) {

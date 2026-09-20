@@ -423,9 +423,9 @@ bool DivConfig::has(String key) const {
 
 void DivConfig::set(String key, bool value) {
   if (value) {
-    conf[key]="true";
+    conf[key]="1";
   } else {
-    conf[key]="false";
+    conf[key]="0";
   }
 }
 

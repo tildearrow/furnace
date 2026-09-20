@@ -26,7 +26,7 @@
 #include "sound/sid3.h"
 
 class DivPlatformSID3: public DivDispatch {
-  struct Channel: public SharedChannel<signed short> {
+  struct Channel: public SharedChannel {
     int prevFreq;
     unsigned char wave, special_wave, attack, decay, sustain, sr, release;
     int duty;
@@ -161,8 +161,20 @@ class DivPlatformSID3: public DivDispatch {
       }
     }
 
-    Channel():
-      SharedChannel<signed short>(SID3_MAX_VOL),
+    int calcNoiseFreq() {
+      if (rawFreq) return baseFreq;
+      if (pitchTable==NULL) return 0;
+      if (!pitchTable->linearity) {
+        return pitchTable->get(baseFreq,pitch,pitch2);
+      }
+      if (noise_fixedArp) {
+        return pitchTable->get(noise_baseNoteOverride<<7,pitch,pitch2);
+      }
+      return pitchTable->get(baseFreq+(noise_arpOff<<7),pitch,pitch2);
+    }
+
+    Channel(bool linear=true):
+      SharedChannel(SID3_MAX_VOL,linear),
       prevFreq(0xffffff),
       wave(0),
       special_wave(0),
@@ -219,6 +231,8 @@ class DivPlatformSID3: public DivDispatch {
   };
   FixedQueue<QueuedWrite,SID3_NUM_REGISTERS * 4> writes;
   DivWaveSynth ws;
+  DivPitchTable pitchTable;
+  DivPitchTableManager samplePitchTable;
 
   unsigned char writeOscBuf;
 
@@ -247,7 +261,7 @@ class DivPlatformSID3: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -264,6 +278,8 @@ class DivPlatformSID3: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     DivChannelModeHints getModeHints(int chan);
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -28,7 +28,7 @@ struct VERA_PCM;
 
 class DivPlatformVERA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char pan;
       unsigned int accum;
       int noiseval;
@@ -41,8 +41,8 @@ class DivPlatformVERA: public DivDispatch {
         bool depth16, setPos;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false), setPos(false) {}
       } pcm;
-      Channel():
-        SharedChannel<int>(0),
+      Channel(bool linear=true):
+        SharedChannel(0,linear),
         pan(0),
         accum(0),
         noiseval(0),
@@ -52,18 +52,18 @@ class DivPlatformVERA: public DivDispatch {
     DivDispatchOscBuffer* oscBuf[17];
     bool isMuted[17];
     unsigned char regPool[69];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     struct VERA_PSG* psg;
     struct VERA_PCM* pcm;
-    int lastCenterRate;
   
-    int calcNoteFreq(int ch, int note);
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -75,6 +75,8 @@ class DivPlatformVERA: public DivDispatch {
     void setFlags(const DivConfig& flags);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     float getPostAmp();
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);

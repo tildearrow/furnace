@@ -251,7 +251,7 @@ void DivPlatformPCE::tick(bool sysTick) {
     // volume macro
     if (chan[i].std.vol.had) {
       // PCE volume is logarithmic.
-      // we use BROKEN for compatibility with DefleMask (which implement volume calc in an odd way).
+      // we use BROKEN for compatibility with DefleMask (which implements volume calc in an odd way).
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
       // write the output volume, setting the DAC flag appropriately.
       if (chan[i].pcm) {
@@ -270,13 +270,13 @@ void DivPlatformPCE::tick(bool sysTick) {
     // on linear pitch, we can use the new arp strategy helper
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       // handle noise (mapped to current note)
       // and calculate the new frequency
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
-        if (noiseSeek<0) noiseSeek=0;
+        chan[i].baseFreq=chan[i].calcBaseFreq(noiseSeek);
+        if (noiseSeek<60) noiseSeek=60;
         chan[i].noiseSeek=noiseSeek;
       }
       // prepare for a freq recalculation
@@ -357,10 +357,10 @@ void DivPlatformPCE::tick(bool sysTick) {
     // final frequency calculation
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // this function here calculates the frequency.
-      // it looks terrible I know. I gotta refactor this...
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      // it takes baseFreq, pitch and pitch2. based on that, it outputs an appropriate frequency value.
+      chan[i].freq=chan[i].calcFreq();
       // in PCM mode, a multiplier is applied depending on the sample's rate.
+      // TODO: change this to use sample pitch tables...
       if (chan[i].pcm) {
         double off=1.0;
         if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -376,9 +376,11 @@ void DivPlatformPCE::tick(bool sysTick) {
         // if we're dumping writes, tell the engine we have a software PCM rate change
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
-      // clamp the final period...
-      if (chan[i].freq<1) chan[i].freq=1;
-      if (chan[i].freq>4096) chan[i].freq=4096;
+      // clamp the final period (as long as we're not in raw frequency mode)...
+      if (!chan[i].rawFreq) {
+        if (chan[i].freq<1) chan[i].freq=1;
+        if (chan[i].freq>4096) chan[i].freq=4096;
+      }
       // ...and write it
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,(chan[i].freq>>8)&0xf);
@@ -390,6 +392,7 @@ void DivPlatformPCE::tick(bool sysTick) {
         if (!NEW_ARP_STRAT) {
           noiseSeek=chan[i].noiseSeek;
         }
+        noiseSeek-=60;
         // write the noise frequency
         // in compatible noise layout, we read from the table. otherwise just write the note AND 31.
         chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.compatFlags.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
@@ -479,7 +482,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].dacPeriod=0;
         // set the frequency
         if (c.value!=DIV_NOTE_NULL) {
-          chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+          chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
         }
@@ -498,7 +501,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].sampleNoteDelta=0;
       // update frequency and note
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
         // noiseSeek is a variable which will be ANDed with 31 to calculate the noise pitch in noise mode.
@@ -616,7 +619,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
 
       // the target frequency.
       // this is where we use sampleNoteDelta, to compensate for mapped note being different from the played note.
-      int destFreq=NOTE_PERIODIC(c.value2+chan[c.chan].sampleNoteDelta);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2+chan[c.chan].sampleNoteDelta);
       bool return2=false;
       // move towards target frequency
       if (destFreq>chan[c.chan].baseFreq) {
@@ -668,7 +671,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       // legato is kind of weird.
       // we change the base freq and the note, but we must offset it by the legato value or something like that...
       // i don't even know why. it must be from an old era....
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+chan[c.chan].sampleNoteDelta+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -680,7 +683,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       }
       // reset the base freq to the current note if we can't use the new arp strategy.
       // the arp macro cannot run during a pitch slide in that case.
-      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -728,7 +731,7 @@ void DivPlatformPCE::forceIns() {
   }
 }
 
-void* DivPlatformPCE::getChanState(int ch) {
+SharedChannel* DivPlatformPCE::getChanState(int ch) {
   // return our Channel struct. used in the debug menu.
   return &chan[ch];
 }
@@ -805,6 +808,24 @@ int DivPlatformPCE::getRegisterPoolSize() {
   return 112;
 }
 
+void DivPlatformPCE::softReset() {
+  // issue writes which reset chip state.
+  // this does not reset dispatch state!
+
+  // for each channel
+  for (int i=0; i<6; i++) {
+    // select the channel
+    rWrite(0,i);
+    // disable output
+    rWrite(4,0x5f);
+    rWrite(4,0x1f);
+    // reset waveform
+    for (int j=0; j<32; j++) {
+      rWrite(6,0);
+    }
+  }
+}
+
 void DivPlatformPCE::reset() {
   // reset everything to initial state.
 
@@ -814,7 +835,9 @@ void DivPlatformPCE::reset() {
   memset(regPool,0,128);
   // initialize channels
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformPCE::Channel();
+    chan[i]=DivPlatformPCE::Channel(parent->song.compatFlags.linearPitch);
+    // make sure to assign a pitch table
+    chan[i].pitchTable=&pitchTable;
     // bind engines for the macro interpreter and wave synth!
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
@@ -822,7 +845,7 @@ void DivPlatformPCE::reset() {
   }
   // if we're dumping writes, tell the engine a reset has occurred.
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   // reset the emulator
   pce->Power(0);
@@ -882,6 +905,21 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
   }
 }
 
+// this function recalulates pitch tables.
+// it is called on setFlags() and by the engine whenever a pitch table recalculation must occur:
+// - song tuning changes
+// - sample C-4 rate changes
+// - sample addition/deletion/movement
+// the sample parameter is set if only a single sample has changed.
+void DivPlatformPCE::notifyPitchTable(int sample) {
+  // recalculate the main pitch table (used in waveform/normal mode)
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x1000,true,parent->song.compatFlags.linearPitch);
+  // tell the sample pitch table manager to recalculate its tables (used in sample mode)
+  // the pitch table array may have to be resized and therefore change location in memory
+  // the pitch table manager will adjust pitch table pointers afterwards, so we pass our channels to it
+  samplePitchTable.update<Channel>(chan,6,parent->song.tuning,1,1,65535,false,parent->song.compatFlags.linearPitch,sample);
+}
+
 // called on init() and by the engine when chip configuration changes.
 void DivPlatformPCE::setFlags(const DivConfig& flags) {
   // set the chip clock
@@ -906,6 +944,16 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
     pce=NULL;
   }
   pce=new PCE_PSG(flags.getInt("chipType",0)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
+
+  // recalculate our pitch tables as the chip clock may have changed
+  notifyPitchTable();
+}
+
+// this function returns the maximum frequency or period that a channel may be set to.
+// it is used by the GUI and the engine to clamp raw frequency/period notes and display them correctly.
+unsigned int DivPlatformPCE::getMaxFreq(int ch) {
+  // certain chips have special per-channel behavior. if so, add if statements to count them.
+  return 0xfff;
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -921,6 +969,7 @@ void DivPlatformPCE::poke(std::vector<DivRegWrite>& wlist) {
 int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   // set the parent engine and initialize sutff.
   parent=p;
+  samplePitchTable.init(parent); // bind engine to sample pitch table manager
   dumpWrites=false;
   skipRegisterWrites=false;
   updateLFO=false;
@@ -949,4 +998,6 @@ void DivPlatformPCE::quit() {
 }
 
 DivPlatformPCE::~DivPlatformPCE() {
+  // destroy sample pitch tables and de-assign them from our channels
+  samplePitchTable.destroy<Channel>(chan,6);
 }

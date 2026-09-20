@@ -317,6 +317,9 @@ hex | description
  b6 | note off env
  b7 | env release
  b8 | instrument (b)
+ b9 | note on: raw frequency (i)
+ ba | raw freq porta (ib) // target, speed
+ bb | raw freq note (i)
  c0 | pre porta (X)
     | - bit 7: inPorta
     | - bit 6: isPortaOrSlide
@@ -668,6 +671,8 @@ hex | description
  de | ALG (b)
  df | FMS (b)
  e0 | AMS (b)
- e1 | FMS2 (b)
- e2 | AMS2 (b)
+ e1 | LFO3 (b)
+ e2 | LFO4 (b)
+----|------------------------------------
+ e3 | test register write (bb)
 ```

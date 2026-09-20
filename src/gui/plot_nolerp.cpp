@@ -444,14 +444,14 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
                     chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y+4.0f*chScale);
                     chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y+2.0f*chScale);
                     chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y+4.0f*chScale);
-                    window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
+                    window->DrawList->AddPolyline(chevron, 3, rCol, chScale);
                   } else if ((int)v0<(int)(scale_min)) {
                     float chScale=(pos1.x-pos0.x)*0.125;
                     if (chScale>frame_size.y*0.05) chScale=frame_size.y*0.05;
                     chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y-4.0f*chScale);
                     chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y-2.0f*chScale);
                     chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y-4.0f*chScale);
-                    window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
+                    window->DrawList->AddPolyline(chevron, 3, rCol, chScale);
                   } else {
                     window->DrawList->AddRectFilled(pos0, pos1, rCol);
                   }

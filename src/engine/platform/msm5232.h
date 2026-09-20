@@ -25,10 +25,10 @@
 #include "sound/oki/msm5232.h"
 
 class DivPlatformMSM5232: public DivDispatch {
-  struct Channel: public SharedChannel<signed char> {
+  struct Channel: public SharedChannel {
     bool noise;
-    Channel():
-      SharedChannel<signed char>(127),
+    Channel(bool linear=true):
+      SharedChannel(127,linear),
       noise(false) {}
   };
   Channel chan[8];
@@ -63,7 +63,7 @@ class DivPlatformMSM5232: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
@@ -76,6 +76,7 @@ class DivPlatformMSM5232: public DivDispatch {
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

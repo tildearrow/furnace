@@ -22,13 +22,14 @@
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
+#include <klattsch/banks.hpp>
 
-bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
+bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& flags, unsigned short& systemChans, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
   bool mustRender=false;
   bool restart=modifyOnChange;
   bool supportsCustomRate=true;
-  bool supportsChannelCount=(chan>=0);
+  bool supportsChannelCount=true;
 
   switch (type) {
     case DIV_SYSTEM_YM2612:
@@ -45,6 +46,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       int interruptSimCycles=flags.getInt("interruptSimCycles",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       bool msw=flags.getBool("msw",false);
 
@@ -95,6 +97,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (msw || settings.mswEnabled) {
@@ -115,6 +120,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("clockSel",clockSel);
           flags.set("chipType",chipType);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("msw",msw);
           flags.set("interruptSimCycles",interruptSimCycles);
@@ -280,10 +286,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton(_("8K (rev A/B/E)"),sampleMemSize==0)) {
         sampleMemSize=0;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("64K (rev D/F)"),sampleMemSize==1)) {
         sampleMemSize=1;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
       ImGui::Text(_("DAC resolution:"));
@@ -559,7 +567,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     }
     case DIV_SYSTEM_YM2151: {
       int clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
       bool brokenPitch=flags.getBool("brokenPitch",false);
+
+      ImGui::TextUnformatted(_("Clock rate:"));
 
       ImGui::Indent();
       if (ImGui::RadioButton(_("NTSC/X16 (3.58MHz)"),clockSel==0)) {
@@ -576,6 +587,19 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      ImGui::TextUnformatted(_("Chip type:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("YM2151"),chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("YM2164"),chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      ImGui::SetItemTooltip(_("variant of YM2151 which adds a TL ramp setting to each channel."));
+      ImGui::Unindent();
+
       if (ImGui::Checkbox(_("Broken pitch macro/slides (compatibility)"),&brokenPitch)) {
         altered=true;
       }
@@ -583,6 +607,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("chipType",chipType);
           flags.set("brokenPitch",brokenPitch);
         });
       }
@@ -804,6 +829,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_YM2610B_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
@@ -826,6 +852,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (CWSliderInt(_("SSG Volume"),&ssgVol,0,256)) {
@@ -844,6 +873,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
@@ -1276,13 +1306,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         altered=true;
       }
       ImGui::Unindent();
-      if (chan>=0) {
-        if (channels!=e->song.systemChans[chan]) {
-          pushWarningColor(true);
-          ImGui::Text(_("the legacy channel limit is not equal to the channel count!\neither set the channel count to %d, or click one of the following buttons:"),channels);
-          if (ImGui::Button(_("Fix channel count"))) {
+      if (channels!=systemChans) {
+        pushWarningColor(true);
+        ImGui::Text(_("the legacy channel limit is not equal to the channel count!\neither set the channel count to %d, or click one of the following buttons:"),channels);
+        if (ImGui::Button(_("Fix channel count"))) {
+          if (chan>=0) {
             if (e->setSystemChans(chan,channels,preserveChanPos)) {
-              MARK_MODIFIED;
               recalcTimestamps=true;
               if (e->song.autoSystem) {
                 autoDetectSystem();
@@ -1291,13 +1320,16 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
               updateROMExportAvail();
               altered=true;
             }
-          }
-          if (ImGui::Button(_("Give me more channels"))) {
-            channels=e->song.systemChans[chan];
+          } else {
+            systemChans=channels;
             altered=true;
           }
-          popWarningColor();
         }
+        if (ImGui::Button(_("Give me more channels"))) {
+          channels=systemChans;
+          altered=true;
+        }
+        popWarningColor();
       }
       if (ImGui::Checkbox(_("Disable hissing"),&multiplex)) {
         altered=true;
@@ -1329,7 +1361,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
 
       int minChans=5;
       if (chan>=0) {
-        minChans=e->song.systemChans[chan];
+        minChans=systemChans;
         if (minChans>32) minChans=32;
       }
 
@@ -1390,6 +1422,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       int ssgVol=flags.getInt("ssgVol",128);
       int fmVol=flags.getInt("fmVol",256);
@@ -1456,6 +1489,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -1463,6 +1499,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("ssgVol",ssgVol);
           flags.set("fmVol",fmVol);
@@ -1476,6 +1513,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool sharedExtBlock=flags.getBool("sharedExtBlock",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
       bool memROM=flags.getBool("memROM",false);
       bool memParallel=flags.getBool("memParallel",true);
@@ -1557,6 +1595,9 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (ImGui::Checkbox(_("Ins change in ExtCh operator 2-4 affects FB (compatibility)"),&fbAllOps)) {
           altered=true;
         }
+        if (ImGui::Checkbox(_("Block is shared among ExtCh ops (compatibility)"),&sharedExtBlock)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -1564,6 +1605,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("sharedExtBlock",sharedExtBlock);
           flags.set("fbAllOps",fbAllOps);
           flags.set("memROM",memROM);
           flags.set("memParallel",memParallel);
@@ -2058,6 +2100,24 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_DUMMY: {
+      supportsCustomRate=false;
+      int volMax=flags.getInt("volMax",15);
+
+      ImGui::Text(_("Maximum volume:"));
+      if (CWSliderInt("##VolMax",&volMax,1,255)) {
+        if (volMax<1) volMax=1;
+        if (volMax>255) volMax=255;
+        altered=true;
+      } rightClickable
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("volMax",volMax);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SNES: {
       char temp[64];
       int vsL=127-(flags.getInt("volScaleL",0)&127);
@@ -2389,6 +2449,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_NAMCO:
+    case DIV_SYSTEM_NAMCO_POLEPOS:
     case DIV_SYSTEM_NAMCO_15XX: {
       bool romMode=flags.getBool("romMode",false);
 
@@ -2426,15 +2487,121 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       break;
     }
     case DIV_SYSTEM_SEGAPCM: {
+      int clockSel=flags.getInt("clockSel",0);
+      int memSize=flags.getInt("memSize",0);
+      bool isDiscrete=flags.getBool("isDiscrete",false);
       bool oldSlides=flags.getBool("oldSlides",false);
+
+      ImGui::Text(_("Clock rate:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("4MHz (Super Hang On/Out Run/X Board)"),clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("4.027MHz (Y Board)"),clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::BeginDisabled(isDiscrete);
+      ImGui::Text(_("Memory size:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("2MB (Y Board)"),memSize==0)) {
+        memSize=0;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("512KB (Super Hang On/Out Run/X Board)"),memSize==1)) {
+        memSize=1;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
+      ImGui::EndDisabled();
+
+      int chipClock=flags.getInt("customClock",0);
+      if (!chipClock) {
+        switch (clockSel) {
+          case 0:
+            chipClock=4000000;
+            break;
+          case 1:
+            chipClock=32215900.0/8.0;
+            break;
+        }
+      }
+
+      ImGui::Text(_("Model:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("ASIC (16 channels, Support bankswitch)"),!isDiscrete)) {
+        isDiscrete=false;
+        altered=true;
+        mustRender=true;
+      }
+      if (ImGui::RadioButton(_("Discrete logic (8 channels, No bankswitch)"),isDiscrete)) {
+        isDiscrete=true;
+        altered=true;
+        mustRender=true;
+      }
+      ImGui::Unindent();
 
       if (ImGui::Checkbox(_("Legacy slides and pitch (compatibility)"),&oldSlides)) {
         altered=true;
       }
 
+      ImGui::Text(_("Output rate table:"));
+      if (ImGui::BeginTable("segaPCMRate",2)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text(_("model"));
+        ImGui::TableNextColumn();
+        ImGui::Text(_("rate"));
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("ASIC");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/128);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(ImGuiCol_TableHeaderBg));
+        ImGui::Text("Discrete logic");
+        ImGui::TableNextColumn();
+        ImGui::Text("%dHz",chipClock/64);
+
+        ImGui::EndTable();
+      }
+
       if (altered) {
         e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("memSize",memSize);
+          flags.set("isDiscrete",isDiscrete);
           flags.set("oldSlides",oldSlides);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_KLATTSCH: {
+      supportsCustomRate=false;
+      String bankName=flags.getString("bank","ja-mokhtari-2000");
+
+      ImGui::TextUnformatted(_("Phoneme bank:"));
+      ImGui::Indent();
+      for (const std::string& b: klattsch::builtInBanks().list()) {
+        if (ImGui::RadioButton(b.c_str(),bankName==b.c_str())) {
+          bankName=b;
+          altered=true;
+        }
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("bank",bankName);
         });
       }
       break;
@@ -2628,10 +2795,12 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       if (ImGui::RadioButton(_("DS (4MB RAM)"),chipType==0)) {
         chipType=0;
         altered=true;
+        mustRender=true;
       }
       if (ImGui::RadioButton(_("DSi (16MB RAM)"),chipType==1)) {
         chipType=1;
         altered=true;
+        mustRender=true;
       }
       ImGui::Unindent();
 
@@ -2804,6 +2973,31 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_ESFM: {
+      supportsCustomRate=false;
+      /*
+      int revision=flags.getInt("revision",0);
+
+      ImGui::Text("Chip revision:");
+      ImGui::Indent();
+      if (ImGui::RadioButton("ES16xx/ES17xx/ES1868",revision==0)) {
+        revision=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("ES1869/ES19XX/ESS Solo (broken clipping - DO NOT USE!!!!!)",revision==1)) {
+        revision=1;
+        altered=true;
+      }
+      ImGui::SetItemTooltip("unless you want your ears to bleed.");
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("revision",revision);
+        });
+      }*/
+      break;
+    }
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_GA20:
@@ -2815,7 +3009,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_MULTIPCM:
       break;
     case DIV_SYSTEM_YMU759:
-    case DIV_SYSTEM_ESFM:
       supportsCustomRate=false;
       ImGui::Text(_("nothing to configure"));
       break;
@@ -2864,29 +3057,39 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       supportsChannelCount=false;
     }
     if (!supportsChannelCount) {
-      if (e->song.systemChans[chan]!=sysDef->channels) {
+      if (systemChans!=sysDef->channels) {
         ImGui::Separator();
         separatedYet=true;
 
         ImGui::TextUnformatted(_("irregular channel count detected!"));
         if (ImGui::Button(_("click here to fix it."))) {
-          if (e->setSystemChans(chan,sysDef->channels,preserveChanPos)) {
-            MARK_MODIFIED;
-            recalcTimestamps=true;
-            if (e->song.autoSystem) {
-              autoDetectSystem();
-            }
-            updateWindowTitle();
-            updateROMExportAvail();
-
-            if (type==DIV_SYSTEM_N163) {
-              e->lockSave([&]() {
-                flags.set("channels",e->song.systemChans[chan]-1);
-              });
+          if (chan>=0) {
+            if (e->setSystemChans(chan,sysDef->channels,preserveChanPos)) {
               altered=true;
+              recalcTimestamps=true;
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+              }
+              updateWindowTitle();
+              updateROMExportAvail();
+
+              if (type==DIV_SYSTEM_N163) {
+                e->lockSave([&]() {
+                  flags.set("channels",e->song.systemChans[chan]-1);
+                });
+              }
+            } else {
+              showError(e->getLastError());
             }
-          } else {
-            showError(e->getLastError());
+          }
+        } else {
+          systemChans=sysDef->channels;
+          altered=true;
+
+          if (type==DIV_SYSTEM_N163) {
+            e->lockSave([&]() {
+              flags.set("channels",systemChans-1);
+            });
           }
         }
       }
@@ -2895,7 +3098,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
   if (supportsChannelCount) {
     ImGui::Separator();
     separatedYet=true;
-    int chCount=e->song.systemChans[chan];
+    int chCount=systemChans;
     ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(_("Channels"));
     ImGui::SameLine();
@@ -2906,24 +3109,33 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         if (chCount>sysDef->maxChans) chCount=sysDef->maxChans;
       }
     }
-    if (ImGui::IsItemDeactivatedAfterEdit() && chCount!=e->song.systemChans[chan]) {
-      if (e->setSystemChans(chan,chCount,preserveChanPos)) {
-        MARK_MODIFIED;
-        recalcTimestamps=true;
-        if (e->song.autoSystem) {
-          autoDetectSystem();
+    if (ImGui::IsItemDeactivatedAfterEdit() && chCount!=systemChans) {
+      altered=true;
+      if (chan>=0) {
+        if (e->setSystemChans(chan,chCount,preserveChanPos)) {
+          recalcTimestamps=true;
+          if (e->song.autoSystem) {
+            autoDetectSystem();
+          }
+          updateWindowTitle();
+          updateROMExportAvail();
+
+          if (type==DIV_SYSTEM_N163) {
+            e->lockSave([&]() {
+              flags.set("channels",e->song.systemChans[chan]-1);
+            });
+          }
+        } else {
+          showError(e->getLastError());
         }
-        updateWindowTitle();
-        updateROMExportAvail();
+      } else {
+        systemChans=chCount;
 
         if (type==DIV_SYSTEM_N163) {
           e->lockSave([&]() {
-            flags.set("channels",e->song.systemChans[chan]-1);
+            flags.set("channels",systemChans-1);
           });
-          altered=true;
         }
-      } else {
-        showError(e->getLastError());
       }
     }
     if (sysDef!=NULL) {
@@ -2968,7 +3180,6 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       updateWindowTitle();
     }
-    MARK_MODIFIED;
   }
 
   return altered;

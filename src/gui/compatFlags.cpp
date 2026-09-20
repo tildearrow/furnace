@@ -304,6 +304,7 @@ void FurnaceGUI::drawCompatFlags() {
         ImGui::Indent();
         if (ImGui::RadioButton(_("None"),!e->song.compatFlags.linearPitch)) {
           e->song.compatFlags.linearPitch=0;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
@@ -311,6 +312,7 @@ void FurnaceGUI::drawCompatFlags() {
         }
         if (ImGui::RadioButton(_("Full"),e->song.compatFlags.linearPitch)) {
           e->song.compatFlags.linearPitch=1;
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
@@ -439,6 +441,7 @@ void FurnaceGUI::drawCompatFlags() {
           ImGui::SetTooltip(_("when enabled, vibrato phase/position will not be reset on a new note."));
         }
         if (InvCheckbox(_("Pitch macro is not linear"),&e->song.compatFlags.pitchMacroIsLinear)) {
+          e->notifyPitchTable();
           MARK_MODIFIED;
         }
         if (ImGui::IsItemHovered()) {
