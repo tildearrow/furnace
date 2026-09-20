@@ -129,12 +129,6 @@ unsigned int DivPlatformKlattsch::msToSamples(float ms) {
   return MAX((unsigned int)(ms*(float)KLATTSCH_RATE/1000.0f),1u);
 }
 
-unsigned int DivPlatformKlattsch::slotSamples() {
-  const int speed=parent->getPreviewSpeed();
-  const float ticks=(float)MAX(speed,1);
-  return MAX((unsigned int)(ticks*samplesPerTick()),1u);
-}
-
 void DivPlatformKlattsch::applyPhoneme(Channel& ch, const klattsch::PhonemeRecord& rec, float f0Hz, unsigned int txnSamples) {
   ch.formantOverridden[0]=false;
   ch.formantOverridden[1]=false;
@@ -142,23 +136,6 @@ void DivPlatformKlattsch::applyPhoneme(Channel& ch, const klattsch::PhonemeRecor
   if (!ch.synth) return;
   ch.synth->clearSchedule();
   ch.queuedEventKind=Channel::QueuedEventKind::None;
-  // follow the reference sequencer's closure/burst timing for stops.
-  if (rec.isStop) {
-    const float slotMs=1000.0f*(float)slotSamples()/(float)KLATTSCH_RATE;
-    const float burstMs=MIN(25.0f,slotMs*0.3f);
-    const float silenceMs=slotMs-burstMs;
-    klattsch::ParamUpdate closure;
-    closure.set(klattsch::ParamId::A1,0.0f);
-    closure.set(klattsch::ParamId::A2,0.0f);
-    closure.set(klattsch::ParamId::A3,0.0f);
-    ch.synth->setTarget(closure,msToSamples(MIN(20.0f,silenceMs*0.4f)));
-    ch.queuedEvent.atSample=msToSamples(silenceMs);
-    ch.queuedEvent.transitionSamples=msToSamples(MIN(5.0f,burstMs*0.2f));
-    ch.queuedEvent.target=klattsch::paramsToFullUpdate(shapedParams(rec.params,ch,f0Hz));
-    ch.queuedEventKind=Channel::QueuedEventKind::Stop;
-    ch.synth->setScheduleView(&ch.queuedEvent,1);
-    return;
-  }
   // glide records use Txx for both the onset and terminal target.
   // Txx=0 applies only the onset.
   if (rec.hasGlide && txnSamples>1) {
@@ -346,10 +323,12 @@ void DivPlatformKlattsch::acquire(short** buf, size_t len) {
       const float pl=chan[ch].panL, pr=chan[ch].panR;
       for (size_t i=0; i<len; i++) {
         float s=renderScratch[i]*volScale;
-        oscBuf[ch]->putSample(i,(short)CLAMP((int)(s*32767.0f),-32768,32767));
         if (!isMuted[ch]) {
           mixScratch[i]+=s*pl;
           mixScratchR[i]+=s*pr;
+          oscBuf[ch]->putSample(i,(short)CLAMP((int)(s*32767.0f),-32768,32767));
+        } else {
+          oscBuf[ch]->putSample(i,0);
         }
       }
     }
@@ -411,6 +390,11 @@ void DivPlatformKlattsch::tick(bool sysTick) {
     }
     if (chan[i].std.ex5.had) {
       setFormantShift(chan[i],(float)CLAMP(chan[i].std.ex5.val,1,255)/64.0f);
+    }
+    if (sysTick && !chan[i].phonemeQueue.empty()) {
+      chan[i].phonemeIndex=chan[i].phonemeQueue.front();
+      chan[i].phonemeQueue.pop();
+      chan[i].phonemeChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff || chan[i].phonemeChanged) {
       const unsigned int txnSamples=transitionSamples(chan[i]);
@@ -568,7 +552,7 @@ int DivPlatformKlattsch::dispatch(DivCommand c) {
     case DIV_CMD_KLATTSCH_PHONEME: {
       const klattsch::PhonemeRecord* rec=phonemeAt(c.value);
       if (rec) {
-        chan[c.chan].phonemeIndex=c.value;
+        chan[c.chan].phonemeQueue.push(c.value);
         // Defer application until tick(), after every effect column on the row
         // has supplied its transition time and direct parameter overrides.
         chan[c.chan].phonemeChanged=true;
@@ -722,6 +706,7 @@ void DivPlatformKlattsch::reset() {
   for (int i=0; i<chans; i++) {
     std::unique_ptr<klattsch::Synth> synth=std::move(chan[i].synth);
     chan[i]=DivPlatformKlattsch::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].phonemeQueue.clear();
     chan[i].std.setEngine(parent);
     if (synth) {
       synth->reset();
@@ -731,7 +716,7 @@ void DivPlatformKlattsch::reset() {
     chan[i].synth=std::move(synth);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 }
 

@@ -160,6 +160,11 @@ static const char* ayCores[]={
   "AtomicSSG"
 };
 
+static const char* opzCores[]={
+  "ymfm",
+  "YM2414-LLE (beta)"
+};
+
 static const char* coreQualities[]={
   _N("Lower"),
   _N("Low"),
@@ -1571,6 +1576,7 @@ void FurnaceGUI::initSettings() {
           CORE_SETTING("ESFM",esfmCore,esfmCores);
           CORE_SETTING("OPLL",opllCore,opllCores);
           CORE_SETTING("AY-3-8910/SSG",ayCore,ayCores);
+          CORE_SETTING("YM2414",opzCore,opzCores);
 
           ImGui::EndTable();
         }
@@ -2722,6 +2728,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_INSTR_SUPERVISION),
       SETTING_COLOR(GUI_COLOR_INSTR_UPD1771C),
       SETTING_COLOR(GUI_COLOR_INSTR_SID3),
+      SETTING_COLOR(GUI_COLOR_INSTR_KLATTSCH),
       SETTING_COLOR(GUI_COLOR_INSTR_UNKNOWN),
     }),
     SUBCATEGORY(_N("Channel"), {
@@ -2746,6 +2753,7 @@ void FurnaceGUI::initSettings() {
       SETTING_COLOR(GUI_COLOR_PATTERN_SELECTION),
       SETTING_COLOR(GUI_COLOR_PATTERN_SELECTION_HOVER),
       SETTING_COLOR(GUI_COLOR_PATTERN_SELECTION_ACTIVE),
+      SETTING_COLOR(GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR),
       SETTING_COLOR(GUI_COLOR_PATTERN_HI_1),
       SETTING_COLOR(GUI_COLOR_PATTERN_HI_2),
       SETTING_COLOR(GUI_COLOR_PATTERN_ROW_INDEX),

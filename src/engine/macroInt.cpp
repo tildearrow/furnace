@@ -313,6 +313,7 @@ void DivMacroInt::next() {
 #define CONSIDER(x,y) \
   case y: \
     x.masked=enabled; \
+    if (!x.masked) x.has=x.actualHad; \
     break;
 
 #define CONSIDER_OP(oi,o) \

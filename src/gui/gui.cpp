@@ -1789,7 +1789,7 @@ void FurnaceGUI::rawFreqInput(int num) {
   // bail out if this channel is not pitchable
   if (valMax==0) return;
 
-  logV("rawFreqInput: chan %d, %d:%d",ch,ord,y);
+  logV("rawFreqInput: chan %d, %d:%d (valMax %x)",ch,ord,y,valMax);
 
   if (e->isPlaying() && !e->isStepping() && followPattern) {
     e->getPlayPos(ord,y);
@@ -2203,7 +2203,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         _("Open File"),
-        {_("compatible files"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe",
+        {_("compatible files"), "*.fur *.dmf *.mod *.s3m *.xm *.it *.fc13 *.fc14 *.smod *.fc *.ftm *.0cc *.dnm *.eft *.fub *.tfe *.mid *.midi *.kar *.smf",
          _("all files"), "*"},
         workingDirSong,
         dpiScale
@@ -2473,6 +2473,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         _("Export VGM"),
         {_("VGM file"), "*.vgm"},
         workingDirVGMExport,
+        dpiScale,
+        (settings.autoFillSave)?shortName:""
+      );
+      break;
+    case GUI_FILE_EXPORT_S98:
+      if (!dirExists(workingDirS98Export)) workingDirS98Export=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        _("Export S98"),
+        {_("S98 file"), "*.s98"},
+        workingDirS98Export,
         dpiScale,
         (settings.autoFillSave)?shortName:""
       );
@@ -2935,6 +2945,14 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
     fclose(f);
+    // a MIDI needs import options picked first. bounce it to the dialog, which
+    // calls back into here with midiImportPending set once the user confirms.
+    if (!midiImportPending && len>=4 && memcmp(file,"MThd",4)==0) {
+      delete[] file;
+      pendingMIDIPath=path;
+      displayMIDIImport=true;
+      return 0;
+    }
     if (!e->load(file,(size_t)len,path.c_str())) {
       lastError=e->getLastError();
       logE("could not open file!");
@@ -3185,7 +3203,7 @@ void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
   const char* tGotIt=_N("Got It");
   int kGotIt=ImGuiKey_Enter;
 
-  const char* tOk=_N("Ok");
+  const char* tOk=_N("OK");
   int kOk=ImGuiKey_Enter;
 
   FurnaceGUI::WarnChoice wCancel={tCancel,kCancel,[]{}};
@@ -5410,6 +5428,10 @@ bool FurnaceGUI::loop() {
             drawExportVGM();
             ImGui::EndMenu();
           }
+          if (ImGui::BeginMenu(_("export S98..."))) {
+            drawExportS98();
+            ImGui::EndMenu();
+          }
           if (romExportExists) {
             if (ImGui::BeginMenu(_("export ROM..."))) {
               drawExportROM();
@@ -5441,6 +5463,10 @@ bool FurnaceGUI::loop() {
           }
           if (ImGui::MenuItem(_("export VGM..."))) {
             curExportType=GUI_EXPORT_VGM;
+            displayExport=true;
+          }
+          if (ImGui::MenuItem(_("export S98..."))) {
+            curExportType=GUI_EXPORT_S98;
             displayExport=true;
           }
           if (romExportExists) {
@@ -6077,6 +6103,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_EXPORT_VGM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_EXPORT_S98:
+          workingDirS98Export=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_TEXT:
 #ifdef WITH_JSON
@@ -6183,6 +6212,9 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_S98) {
+            checkExtension(".s98");
           }
           if (curFileDialog==GUI_FILE_EXPORT_ROM) {
             checkExtension(romFilterExt.c_str());
@@ -6688,6 +6720,27 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
+            case GUI_FILE_EXPORT_S98: {
+              SafeWriter* w=e->saveS98(s98ExportTickRate,willExport,s98ExportLoop,s98ExportTrailingTicks);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                  pushRecentSys(copyOfName.c_str());
+                } else {
+                  showError(_("could not open file!"));
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf(_("could not write S98! (%s)"),e->getLastError()));
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_ROM:
               romExportPath=copyOfName;
               pendingExport=e->buildROM(romTarget);
@@ -6904,6 +6957,11 @@ bool FurnaceGUI::loop() {
     if (displayPendingRawSample) {
       displayPendingRawSample=false;
       ImGui::OpenPopup(_("Import Raw Sample"));
+    }
+
+    if (displayMIDIImport) {
+      displayMIDIImport=false;
+      ImGui::OpenPopup(_("Import MIDI"));
     }
 
     if (displayInsTypeList) {
@@ -7787,7 +7845,6 @@ bool FurnaceGUI::loop() {
         ImGui::SetItemTooltip(_("this rate is too high. instability may occur!"));
       }
       popWarningColor();
-      
 
       if (pendingRawSampleDepth==DIV_SAMPLE_DEPTH_8BIT || pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT) {
         ImGui::AlignTextToFramePadding();
@@ -7871,6 +7928,201 @@ bool FurnaceGUI::loop() {
       ImGui::SameLine();
       if (ImGui::Button(_("Cancel")) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    float midiImportW=mobileUI?(canvasW-(portrait?0:(60.0*dpiScale))):(480.0f*dpiScale);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(midiImportW,0.0f),ImVec2(midiImportW,canvasH-(mobileUI?(60.0*dpiScale):0)));
+    if (ImGui::BeginPopupModal(_("Import MIDI"),NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_AlwaysAutoResize)) {
+      // string buffer used for combo selectables/previews
+      char strBuf[16];
+
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
+      if (ImGui::BeginTabBar("MIDIImportSections")) {
+        if (ImGui::BeginTabItem(_("Controllers"))) {
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Volume Controls"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+          ImGui::Checkbox(_("Note Velocity"),&e->midiImportOptions.importVelocity);
+          ImGui::Checkbox(_("CC07 (Channel Volume)"),&e->midiImportOptions.importCC7);
+          ImGui::Checkbox(_("CC11 (Expression)"),&e->midiImportOptions.importCC11);
+          ImGui::Unindent();
+          if (!e->midiImportOptions.importVelocity && !e->midiImportOptions.importCC7 && !e->midiImportOptions.importCC11) {
+            ImGui::TextWrapped(_("With all of them off, every note is imported at maximum volume."));
+          } else {
+            ImGui::TextWrapped(_("The enabled sources multiply together, the way they would on a MIDI Synthesizer."));
+          }
+
+          ImGui::Spacing();
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Pitch Controls"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+          ImGui::Checkbox(_("CC01 (Modulation)"),&e->midiImportOptions.importVibrato);
+          ImGui::Checkbox(_("MIDI Pitch"),&e->midiImportOptions.importPitchBend);
+          ImGui::Unindent();
+          ImGui::BeginDisabled(!e->midiImportOptions.importVibrato);
+          ImGui::SetNextItemWidth(160.0f*dpiScale);
+          ImGui::SliderInt(_("Modulation Rate"),&e->midiImportOptions.vibratoRate,1,15,_("%d Hz"),ImGuiSliderFlags_AlwaysClamp);
+          ImGui::SetNextItemWidth(160.0f*dpiScale);
+          ImGui::SliderInt(_("Max-Depth"),&e->midiImportOptions.vibratoDepth,1,15,"%d",ImGuiSliderFlags_AlwaysClamp);
+          ImGui::EndDisabled();
+          ImGui::BeginDisabled(!e->midiImportOptions.importPitchBend);
+          ImGui::SetNextItemWidth(160.0f*dpiScale);
+          ImGui::SliderInt(_("Pitch Range"),&e->midiImportOptions.bendRange,0,24,e->midiImportOptions.bendRange?_("%d Semitones"):_("From file"),ImGuiSliderFlags_AlwaysClamp);
+          ImGui::EndDisabled();
+          ImGui::TextWrapped(_("CC1 modulation imports as 04xy. the mod wheel only sets depth - MIDI has no rate to convert - so 5Hz is used as a approximation. max depth is what a fully-raised wheel reaches; 15 is a full semitone."));
+          if (e->midiImportOptions.bendRange) {
+            ImGui::TextWrapped(_("Pitch bend imports as F1xx/F2xx pitch slides, ignoring the range the file asks for."));
+          } else {
+            ImGui::TextWrapped(_("Pitch bend imports as F1xx/F2xx pitch slides, scaled to the bend range the file asks for, or 2 semitones if it does not say. raise this if the bends come out too shallow."));
+          }
+
+          ImGui::Spacing();
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Panning Controls"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+          ImGui::Checkbox(_("CC10 (Pan Position MSB)"),&e->midiImportOptions.importPan);
+          ImGui::Unindent();
+          if (e->midiImportOptions.importPan) {
+            ImGui::TextWrapped(_("Imported as 80xx panning effects. You need to enable 'Stereo' in the Chip Manager for this to have any effect."));
+          }
+
+          ImGui::Spacing();
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Misc Controls"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+          ImGui::Checkbox(_("Sustain Pedal (CC64)"),&e->midiImportOptions.importSustain);
+          ImGui::Unindent();
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem(_("Tempo & Grid"))) {
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Tempo Calculation Methods"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Base Tempo"),e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=true;
+          if (ImGui::RadioButton(_("Virtual Tempo"),!e->midiImportOptions.useBaseTempo)) e->midiImportOptions.useBaseTempo=false;
+          ImGui::Unindent();
+
+          ImGui::Spacing();
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Grid Settings"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+
+          ImGui::SetNextItemWidth(120.0f*dpiScale);
+          snprintf(strBuf,15,"1/%d notes",e->midiImportOptions.quantize);
+          if (ImGui::BeginCombo(_("Quantize"),strBuf)) {
+            for (int i=0; i<12; i++) {
+              snprintf(strBuf,15,"1/%d notes",midiQuantizeValues[i]);
+              if (ImGui::Selectable(strBuf,e->midiImportOptions.quantize==midiQuantizeValues[i])) {
+                e->midiImportOptions.quantize=midiQuantizeValues[i];
+              }
+            }
+            ImGui::EndCombo();
+          }
+          // in groove approximation the speed comes out of the groove, so there is
+          // no fixed tick count for this to set
+          ImGui::BeginDisabled(!e->midiImportOptions.useBaseTempo);
+          ImGui::SetNextItemWidth(120.0f*dpiScale);
+          if (ImGui::InputInt(_("Ticks per row"),&e->midiImportOptions.ticksPerRow)) {
+            e->midiImportOptions.ticksPerRow=CLAMP(e->midiImportOptions.ticksPerRow,2,16);
+          }
+          ImGui::EndDisabled();
+
+          ImGui::SetNextItemWidth(120.0f*dpiScale);
+          snprintf(strBuf,15,"%d",e->midiImportOptions.patternLen);
+          if (ImGui::BeginCombo(_("Pattern length"),strBuf)) {
+            for (int i=0; i<5; i++) {
+              int value=16<<i;
+              snprintf(strBuf,15,"%d",value);
+              if (ImGui::Selectable(strBuf,e->midiImportOptions.patternLen==value)) {
+                e->midiImportOptions.patternLen=value;
+              }
+            }
+            ImGui::EndCombo();
+          }
+          ImGui::Unindent();
+          {
+            int rowsPerBeat=MAX(1,e->midiImportOptions.quantize/4);
+            float barsPerPat=(float)e->midiImportOptions.patternLen/(float)e->midiImportOptions.quantize;
+            if (e->midiImportOptions.useBaseTempo) {
+              ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. whatever a note misses the row grid by is carried in a note delay, so the real resolution is 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportOptions.quantize*e->midiImportOptions.ticksPerRow);
+            } else {
+              ImGui::TextWrapped(_("%d rows per beat, %.2g bars per pattern in 4/4. Groove Approximation has no note delays, so the resolution is the row grid itself: 1/%d note."),rowsPerBeat,barsPerPat,e->midiImportOptions.quantize);
+            }
+          }
+          ImGui::EndTabItem();
+        }
+        if (ImGui::BeginTabItem(_("Instrument##MIDIImportTab"))) {
+          ImGui::PushFont(headFont);
+          ImGui::Text(_("Drum Settings"));
+          ImGui::PopFont();
+          ImGui::Separator();
+          ImGui::Indent();
+
+          // cannot just strcpy into strBuf due to l10n (are you sure "None" always translates to a utf-8 string <=15 bytes?)
+          const char* midiDrumChPreview=_("None");
+          if (e->midiImportOptions.drumChannel) {
+            snprintf(strBuf,15,"%d",e->midiImportOptions.drumChannel);
+            midiDrumChPreview=strBuf;
+          } 
+          if (ImGui::BeginCombo(_("Drum channel"),midiDrumChPreview)) {
+            if (ImGui::Selectable(_("None"),e->midiImportOptions.drumChannel==0)) {
+              e->midiImportOptions.drumChannel=0;
+            }
+            for (int i=1; i<=16; i++) {
+              snprintf(strBuf,15,"%d",i);
+              if (ImGui::Selectable(strBuf,e->midiImportOptions.drumChannel==i)) {
+                e->midiImportOptions.drumChannel=i;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
+          ImGui::BeginDisabled(e->midiImportOptions.drumChannel==0);
+          ImGui::Checkbox(_("One instrument per drum note"),&e->midiImportOptions.splitDrums);
+          ImGui::EndDisabled();
+          ImGui::Unindent();
+          if (e->midiImportOptions.drumChannel==0) {
+            ImGui::TextWrapped(_("No drum channel: every channel is treated as melodic."));
+          } else if (e->midiImportOptions.splitDrums) {
+            ImGui::TextWrapped(_("Each drum note gets its own instrument, named after its GM kit piece, and is played from C-4."));
+          } else {
+            ImGui::TextWrapped(_("The whole kit shares one instrument, played chromatically."));
+          }
+          ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+      }
+
+      ImGui::Separator();
+      // split the full width, so the pair spans the dialog at any DPI or font size
+      float midiImportBtnW=(ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x)*0.5f;
+      if (ImGui::Button(_("Cancel"),ImVec2(midiImportBtnW,0)) || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(_("Import"),ImVec2(midiImportBtnW,0))) {
+        String path=pendingMIDIPath;
+        ImGui::CloseCurrentPopup();
+        midiImportPending=true;
+        int result=load(path);
+        midiImportPending=false;
+        if (result>0) {
+          showError(fmt::sprintf(_("Error while loading file! (%s)"),lastError));
+        }
       }
       ImGui::EndPopup();
     }
@@ -8926,6 +9178,7 @@ void FurnaceGUI::syncState() {
   workingDirSample=e->getConfString("lastDirSample",workingDir);
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
+  workingDirS98Export=e->getConfString("lastDirS98Export",workingDir);
   workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
   workingDirROM=e->getConfString("lastDirROM",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
@@ -9032,6 +9285,8 @@ void FurnaceGUI::syncState() {
   oscZoom=e->getConfFloat("oscZoom",0.5f);
   oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
+  triggerLevel=e->getConfFloat("triggerLevel", 0.0f);
+  triggerState=e->getConfInt("triggerState", 0);
 
   spectrum.bins=e->getConfInt("spectrumBins",2048);
   spectrum.xZoom=e->getConfFloat("spectrumxZoom",1.0f);
@@ -9111,6 +9366,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("lastDirSample",workingDirSample);
   conf.set("lastDirAudioExport",workingDirAudioExport);
   conf.set("lastDirVGMExport",workingDirVGMExport);
+  conf.set("lastDirS98Export",workingDirS98Export);
   conf.set("lastDirROMExport",workingDirROMExport);
   conf.set("lastDirROM",workingDirROM);
   conf.set("lastDirFont",workingDirFont);
@@ -9203,6 +9459,8 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("oscZoom",oscZoom);
   conf.set("oscZoomSlider",oscZoomSlider);
   conf.set("oscWindowSize",oscWindowSize);
+  conf.set("triggerLevel",triggerLevel);
+  conf.set("triggerState",triggerState);
 
   // commit spectrum state
   conf.set("spectrumBins",spectrum.bins);
@@ -9308,6 +9566,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
       delete[] oscValues[i];
       oscValues[i]=NULL;
     }
+    if (trigger[i]) {
+      delete trigger[i];
+      trigger[i]=NULL;
+    }
   }
   if (oscValuesAverage) {
     delete[] oscValuesAverage;
@@ -9364,7 +9626,10 @@ bool FurnaceGUI::finish(bool saveConfig) {
 
 bool FurnaceGUI::requestQuit() {
   if (modified && !cvOpen) {
-    showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+    // only modify
+    if (!newFilePicker->isOpened() || !newFilePicker->isSave()) {
+      showWarning(_("Unsaved changes! Save changes before quitting?"),GUI_WARN_QUIT);
+    }
   } else if (settingsOpen && settingsChanged) {
     showWarning(_("Do you want to save your settings before quitting?"),GUI_WARN_QUIT_SETTINGS);
   } else {
@@ -9485,6 +9750,8 @@ FurnaceGUI::FurnaceGUI():
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),
   pendingRawSampleReplace(false),
+  displayMIDIImport(false),
+  midiImportPending(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
@@ -9882,6 +10149,8 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscInput(0.0f),
   oscInput1(0.0f),
+  triggerLevel(0.0f),
+  triggerState(0),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscColorX(GUI_OSCREF_CENTER),
@@ -9982,6 +10251,9 @@ FurnaceGUI::FurnaceGUI():
   audioExportFilterExt("*"),
   dmfExportVersion(0),
   curExportType(GUI_EXPORT_NONE),
+  s98ExportTickRate(0.0f),
+  s98ExportLoop(true),
+  s98ExportTrailingTicks(-1),
   romTarget(DIV_ROM_ABSTRACT),
   romMultiFile(false),
   romExportSave(false),
@@ -9993,6 +10265,7 @@ FurnaceGUI::FurnaceGUI():
   sampleCompileSize(0),
   romDoughAddr(0),
   lastTapTime(0),
+  lastTapDelta(0.0),
   grooveTargetBPM(150.0f),
   warnIsOpen(false),
   pendingPath(NULL) {
@@ -10043,6 +10316,7 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
+  memset(trigger,0,sizeof(void*)*DIV_MAX_OUTPUTS);
   memset(oscValues,0,sizeof(void*)*DIV_MAX_OUTPUTS);
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);

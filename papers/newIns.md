@@ -185,6 +185,14 @@ size | description
   - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
   - 1/2/?/? (? = unused) for OPL 2-op and OPLL
 
+- the bits for res and T were FMS2 before version 251. this is now:
+  - T: OPZ tremolo LFO selector
+  - res: reserved
+- `SEL` was AMS2 before version 251. this is now a 2-bit FMS/AMS OPZ LFO selector.
+  - the upper bit selects the LFO for FMS.
+  - the lower bit selects the LFO for AMS.
+- to convert, use the greatest value for each FMS/AMS option and select respective LFOs.
+
 ```
 size | description
 -----|------------------------------------
@@ -197,8 +205,8 @@ size | description
      | **base data**
      | /7 6 5 4 3 2 1 0|
   1  | |x| ALG |x| FB  |
-  1  | |FMS2 |AMS| FMS |
-  1  | |AM2|4| LLPatch |
+  1  | |res|T|AMS| FMS |
+  1  | |SEL|4| LLPatch |
   1  | |xxxxxxx| Block | (>=224)
 -----|------------------------------------
      | **operator data × opCount**

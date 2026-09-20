@@ -324,8 +324,8 @@ const char* cmdName[]={
   "FM_ALG",
   "FM_FMS",
   "FM_AMS",
-  "FM_FMS2",
-  "FM_AMS2",
+  "FM_LFO3",
+  "FM_LFO4",
 
   "KLATTSCH_PHONEME",
   "KLATTSCH_TRANSITION",
@@ -2898,24 +2898,17 @@ void _runDispatch2(void* d) {
 
 // this fills the audio buffer and runs tbe engine.
 // called by the audio backend and during audio export.
-void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
-  // debug information
-  lastNBIns=inChans;
-  lastNBOuts=outChans;
-  lastNBSize=size;
-
-  // don't fill a buffer if the size is 0
-  if (!size) {
-    logW("nextBuf called with size 0!");
-    return;
-  }
-  lastLoopPos=-1;
-
+void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size, bool calledFromExport) {
   // clear the output
   if (out!=NULL) {
     for (int i=0; i<outChans; i++) {
       memset(out[i],0,size*sizeof(float));
     }
+  }
+
+  // quit if we're in the audio thread and currently exporting
+  if (exporting && !calledFromExport) {
+    return;
   }
 
   // check the mutex.
@@ -2929,7 +2922,22 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   } else {
     isBusy.lock();
   }
-  got.bufsize=size;
+  // debug information
+  lastNBIns=inChans;
+  lastNBOuts=outChans;
+  lastNBSize=size;
+
+  // don't fill a buffer if the size is 0
+  if (!size) {
+    logW("nextBuf called with size 0!");
+    isBusy.unlock();
+    return;
+  }
+  lastLoopPos=-1;
+
+  if (!calledFromExport) {
+    got.bufsize=size;
+  }
 
   // this is used to calculate audio load
   std::chrono::steady_clock::time_point ts_processBegin=std::chrono::steady_clock::now();

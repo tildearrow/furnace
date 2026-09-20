@@ -23,6 +23,10 @@
 #include "fmshared_OPM.h"
 #include "../../fixedQueue.h"
 #include "sound/ymfm/ymfm_opz.h"
+extern "C" {
+  #include "../../../extern/YM2414-LLE/opz_lle.h"
+  //void OPZLLE_Clock(ym2414_t* chip, int clk);
+}
 
 class DivTXInterface: public ymfm::ymfm_interface {
 
@@ -36,6 +40,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
 
     struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
+      unsigned char tlRamp;
 
       struct {
         int baseNoteOverride;
@@ -94,7 +99,8 @@ class DivPlatformTX81Z: public DivPlatformOPM {
       Channel(bool linear=true):
         FMChannel(linear),
         chVolL(1),
-        chVolR(1) {
+        chVolR(1),
+        tlRamp(0) {
         memset(opsState,0,sizeof(opsState));
       }
     };
@@ -107,7 +113,15 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     ymfm::ym2414* fm_ymfm;
     ymfm::ym2414::output_data out_ymfm;
     DivTXInterface iface;
+    ym2414_t fm_lle;
 
+    bool lastSH1, lastSH2, lastSY;
+    unsigned int dacVal;
+    int dacOut1;
+    int dacOut2;
+    unsigned char isWaiting;
+
+    int selCore;
     bool extMode;
 
     bool isMuted[8];
@@ -115,6 +129,9 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     int octave(int freq);
     int toFreq(int freq);
     void commitState(int ch, DivInstrument* ins);
+    
+    void acquire_ymfm(short** buf, size_t len);
+    void acquire_lle(short** buf, size_t len);
 
     friend void putDispatchChip(void*,int);
   public:
@@ -135,6 +152,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     unsigned int getMaxFreq(int ch);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    void setCore(int newCore);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

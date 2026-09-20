@@ -77,7 +77,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned int* sampleOffA;
     unsigned int* sampleOffB;
 
-    bool extMode, noExtMacros;
+    bool extMode, noExtMacros, sharedExtBlock;
 
     bool* sampleLoaded[2];
 
@@ -112,6 +112,39 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
   public:
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
       ay->fillStream(stream,sRate,len);
+    }
+
+    void softReset() {
+      // reset AY
+      immWrite(7,0x3f);
+      immWrite(8,0);
+      immWrite(9,0);
+      immWrite(10,0);
+
+      // reset OPN
+      for (int i=0; i<3; i++) { // set SL and RR to highest
+        immWrite(0x80+i,0xff);
+        immWrite(0x84+i,0xff);
+        immWrite(0x88+i,0xff);
+        immWrite(0x8c+i,0xff);
+      }
+      for (int i=0; i<3; i++) { // note off
+        immWrite(0x28,i);
+      }
+
+      // reset OPN2
+      for (int i=0; i<3; i++) { // set SL and RR to highest
+        immWrite(0x180+i,0xff);
+        immWrite(0x184+i,0xff);
+        immWrite(0x188+i,0xff);
+        immWrite(0x18c+i,0xff);
+      }
+      for (int i=0; i<3; i++) { // note off
+        immWrite(0x28,4+i);
+      }
+
+      // reset sample
+      immWrite(0x100,0xbf);
     }
 
     void reset() {
@@ -317,6 +350,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
+      sharedExtBlock=flags.getBool("sharedExtBlock",false);
       fbAllOps=flags.getBool("fbAllOps",false);
       ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
@@ -373,7 +407,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
-      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32, false, 16) {
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9437184.0, 72, 32, false, 16) {
       sampleOffA=new unsigned int[32768];
       sampleOffB=new unsigned int[32768];
       sampleLoaded[0]=new bool[32768];

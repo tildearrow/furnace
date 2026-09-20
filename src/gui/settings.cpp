@@ -241,6 +241,7 @@ void FurnaceGUI::commitSettings() {
     settings.opllCore!=e->getConfInt("opllCore",0) ||
     settings.ayCore!=e->getConfInt("ayCore",0) ||
     settings.swanCore!=e->getConfInt("swanCore",0) ||
+    settings.opzCore!=e->getConfInt("opzCore",0) ||
     settings.dsidQuality!=e->getConfInt("dsidQuality",3) ||
     settings.gbQuality!=e->getConfInt("gbQuality",3) ||
     settings.pnQuality!=e->getConfInt("pnQuality",3) ||
@@ -1247,6 +1248,15 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     patFont=mainFont;
     bigFont=mainFont;
     headFont=mainFont;
+  }
+
+  // update font base size
+  if (updateFonts && !safeMode) {
+    if (ImGui::GetIO().Fonts!=NULL) {
+      if (!ImGui::GetIO().Fonts->Fonts.empty()) {
+        ImGui::GetStyle().FontSizeBase=ImGui::GetIO().Fonts->Fonts[0]->LegacySize;
+      }
+    }
   }
 
   // set built-in file picker up (NEW)

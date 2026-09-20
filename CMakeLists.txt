@@ -644,6 +644,7 @@ extern/YM2608-LLE/fmopna_2608.c
 extern/YM2608-LLE/fmopna_2610.c
 extern/YM2608-LLE/fmopna_2612.c
 extern/YM2151-LLE/fmopm.c
+extern/YM2414-LLE/opz_lle.c
 
 extern/pwrnoise/pwrnoise.c
 
@@ -792,6 +793,7 @@ src/engine/fileOps/fc.cpp
 src/engine/fileOps/ftm.cpp
 src/engine/fileOps/fur.cpp
 src/engine/fileOps/it.cpp
+src/engine/fileOps/midi.cpp
 src/engine/fileOps/mod.cpp
 src/engine/fileOps/s3m.cpp
 src/engine/fileOps/text.cpp
@@ -838,6 +840,7 @@ src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
+src/engine/s98Ops.cpp
 
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
@@ -1021,6 +1024,7 @@ src/gui/klattschInput.cpp
 src/gui/about.cpp
 src/gui/backupsManager.cpp
 src/gui/channels.cpp
+src/gui/oscTrigger.cpp
 src/gui/chanOsc.cpp
 src/gui/clock.cpp
 src/gui/commandPalette.cpp
@@ -1264,7 +1268,15 @@ if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-      message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
+      include(CheckCXXCompilerFlag)
+      check_cxx_compiler_flag(-gcodeview GCC_CODEVIEW)
+      if (GCC_CODEVIEW OR FORCE_CODEVIEW)
+        set(CMAKE_EXE_LINKER_FLAGS "-Wl,--pdb= ")
+        add_compile_options(-gcodeview)
+        message(STATUS "Enabling -gcodeview flag for backward-cpp.")
+      else()
+        message(WARNING "Could not enable -gcodeview! backward-cpp will not work.")
+      endif()
       list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
     endif()
   endif()

@@ -46,6 +46,8 @@ class DivPlatformKlattsch: public DivDispatch {
     // A later 11xx reapplies them before audio renders so column order does not
     // change the transition duration.
     klattsch::ParamUpdate pendingTransitionUpdate;
+    // this queue allows you to change phonemes without relying on speed 1.
+    FixedQueue<int,16> phonemeQueue;
     int phonemeIndex;
     bool phonemeChanged;
     int transitionTicks;
@@ -137,7 +139,6 @@ class DivPlatformKlattsch: public DivDispatch {
   float samplesPerTick();
   unsigned int transitionSamples(const Channel& ch);
   unsigned int msToSamples(float ms);
-  unsigned int slotSamples();
   void setTarget(Channel& ch, const klattsch::ParamUpdate& update, unsigned int transitionSamples, bool sticky);
   void rememberTransitionUpdate(Channel& ch, const klattsch::ParamUpdate& update);
   void setEffectTarget(Channel& ch, const klattsch::ParamUpdate& update, bool sticky);

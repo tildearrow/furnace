@@ -164,8 +164,8 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_FM_ALG:
     case DIV_CMD_FM_FMS:
     case DIV_CMD_FM_AMS:
-    case DIV_CMD_FM_FMS2:
-    case DIV_CMD_FM_AMS2:
+    case DIV_CMD_FM_LFO3:
+    case DIV_CMD_FM_LFO4:
     case DIV_CMD_KLATTSCH_PHONEME:
     case DIV_CMD_KLATTSCH_TRANSITION:
     case DIV_CMD_KLATTSCH_VOICING:
@@ -598,8 +598,8 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_FM_ALG:
     case DIV_CMD_FM_FMS:
     case DIV_CMD_FM_AMS:
-    case DIV_CMD_FM_FMS2:
-    case DIV_CMD_FM_AMS2:
+    case DIV_CMD_FM_LFO3:
+    case DIV_CMD_FM_LFO4:
     case DIV_CMD_KLATTSCH_PHONEME:
     case DIV_CMD_KLATTSCH_TRANSITION:
     case DIV_CMD_KLATTSCH_VOICING:

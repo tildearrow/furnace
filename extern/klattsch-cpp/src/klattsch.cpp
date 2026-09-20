@@ -24,10 +24,6 @@ constexpr real kPi = static_cast<real>(3.14159265358979323846);
 constexpr real kTau = static_cast<real>(2) * kPi;
 constexpr float kSoftClipThreshold = 0.85f;
 
-inline float clampf(float x, float lo, float hi) noexcept {
-  return std::min(std::max(x, lo), hi);
-}
-
 inline real clampr(real x, real lo, real hi) noexcept {
   return std::min(std::max(x, lo), hi);
 }
@@ -136,10 +132,6 @@ inline std::array<real, kNumParams> paramsToArray(const Params& p) noexcept {
 }
 
 inline real& at(std::array<real, kNumParams>& a, ParamId id) noexcept {
-  return a[static_cast<std::size_t>(id)];
-}
-
-inline real at(const std::array<real, kNumParams>& a, ParamId id) noexcept {
   return a[static_cast<std::size_t>(id)];
 }
 

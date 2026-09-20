@@ -621,7 +621,7 @@ void DivPlatformNamcoWSG::reset() {
     chan[i].ws.init(NULL,32,15,false);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   namco->set_voices(chans);
   namco->set_stereo(devType==30);

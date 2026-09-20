@@ -333,8 +333,8 @@ enum DivDispatchCmds {
   DIV_CMD_FM_ALG,
   DIV_CMD_FM_FMS,
   DIV_CMD_FM_AMS,
-  DIV_CMD_FM_FMS2,
-  DIV_CMD_FM_AMS2,
+  DIV_CMD_FM_LFO3,
+  DIV_CMD_FM_LFO4,
 
   DIV_CMD_KLATTSCH_PHONEME,
   DIV_CMD_KLATTSCH_TRANSITION,
@@ -402,7 +402,7 @@ enum DivPitchTableLayout {
 
 // These values are part of the unversioned FCS command stream format.
 static_assert(DIV_CMD_FDS_MOD_AUTO==0xb8,"legacy FCS command IDs changed");
-static_assert(DIV_CMD_FM_AMS2==0xe2,"legacy FCS command IDs changed");
+static_assert(DIV_CMD_FM_LFO4==0xe2,"legacy FCS command IDs changed");
 static_assert(DIV_CMD_KLATTSCH_PHONEME==0xe3,"Klattsch FCS command IDs changed");
 
 
@@ -741,6 +741,8 @@ class DivPitchTableManager {
 
       bool hasSizeChanged=false;
 
+      logD("DivPitchTableManager update (%d channels) - sample %d",(int)numChans,sample);
+
       // first check whether we need to resize our pitch table array
       if (samplePitchTableLen!=eSongSampleSize()) {
         if (eSongSampleSize()<1) {
@@ -764,15 +766,26 @@ class DivPitchTableManager {
           DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
           if (samplePitchTable) {
             // I know, I know. we only create DivPitchTables though.
-            memcpy((void*)newArray,(void*)samplePitchTable,MIN(eSongSampleSize(),samplePitchTableLen)*sizeof(DivPitchTable));
+            for (size_t i=0; i<MIN(eSongSampleSize(),samplePitchTableLen); i++) {
+              newArray[i]=samplePitchTable[i];
+            }
 
             // adjust pitch table references
             DivPitchTable* firstEntry=samplePitchTable;
             DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+            
+            logD("firstEntry: %p - lastEntry: %p",(void*)firstEntry,(void*)lastEntry);
 
             for (size_t i=0; i<numChans; i++) {
               if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-                chan[i].pitchTable=newArray+(chan[i].pitchTable-firstEntry);
+                size_t offset=(chan[i].pitchTable-firstEntry);
+                logD("- chan %d: %p (offset %d)",i,(void*)chan[i].pitchTable,(int)offset);
+                if (offset<eSongSampleSize()) {
+                  chan[i].pitchTable=&newArray[offset];
+                } else {
+                  logW("one item is gone");
+                  chan[i].pitchTable=NULL;
+                }
               }
             }
 
@@ -899,7 +912,6 @@ struct DivRegWrite {
    * - 0xffffxx05: set sample position
    *   - xx is the instance ID
    *   - value is the sample position
-   * - 0xffffffff: reset
    * - 0xfffffffe: add delay
    *   - value is the delay in cycles
    */
@@ -1313,6 +1325,12 @@ class DivDispatch {
      * @param len number of samples.
      */
     virtual void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
+
+    /**
+     * issue register writes that cause a soft-reset.
+     * used in register dump exports.
+     */
+    virtual void softReset();
 
     /**
      * send a command to this dispatch.

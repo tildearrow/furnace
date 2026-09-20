@@ -225,7 +225,7 @@ double DivEngine::benchmarkPlayback() {
 
   // benchmark
   while (playing) {
-    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE,true);
   }
 
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
@@ -3134,6 +3134,9 @@ void DivEngine::delSample(int index) {
   BUSY_BEGIN;
   saveLock.lock();
   delSampleUnsafe(index);
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPitchTable();
+  }
   saveLock.unlock();
   BUSY_END;
 }

@@ -1333,6 +1333,37 @@ unsigned short DivPlatformES5506::getPan(int ch) {
   return (((unsigned int)expL)<<8)|((unsigned int)expR);
 }
 
+void DivPlatformES5506::softReset() {
+  // I have no idea how to do this.
+  // ES5506 was eventually removed from VGM due to faulty implementation.
+
+  // here's some code though...
+  /*
+  for (int i=0; i<32; i++) {
+    for (int b=0; b<4; b++) {
+      w.emplace_back((0xf<<2)+b,i);
+    }
+    unsigned int init_cr=0x0303;
+    for (int b=0; b<4; b++) {
+      w.emplace_back(b,init_cr>>(24-(b<<3)));
+    }
+    for (int r=1; r<11; r++) {
+      for (int b=0; b<4; b++) {
+        w.emplace_back((r<<2)+b,((r==7 || r==9) && b&2)?0xff:0);
+      }
+    }
+    for (int b=0; b<4; b++) {
+      w.emplace_back((0xf<<2)+b,0x20|i);
+    }
+    for (int r=1; r<10; r++) {
+      for (int b=0; b<4; b++) {
+        w.emplace_back((r<<2)+b,0);
+      }
+    }
+  }
+  */
+}
+
 void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();
@@ -1355,7 +1386,7 @@ void DivPlatformES5506::reset() {
   chanMax=initChanMax;
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   pageWriteMask(0x00,0x60,0x0b,(unsigned int)chanMax);
