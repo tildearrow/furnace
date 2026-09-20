@@ -8672,6 +8672,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_AMIGA ||
             ins->type==DIV_INS_MULTIPCM ||
             ins->type==DIV_INS_SU ||
+            ins->type==DIV_INS_SGU ||
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_ES5506 ||
             ins->type==DIV_INS_K007232 ||
