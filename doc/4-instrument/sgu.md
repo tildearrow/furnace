@@ -50,8 +50,8 @@ these apply to each operator:
   - SGU-1 uses Yamaha's sign-magnitude encoding, as OPN/OPM DT1 does: bit 2 is the sign and bits 1:0 the magnitude, so there are two zeroes.
   - mapping is: `0=+0`, `1=+1`, `2=+2`, `3=+3`, `4=-0`, `5=-1`, `6=-2`, `7=-3`.
   - neutral is `0`, not `3`.
-- **Waveform Select (WS)**: a dropdown of named waveforms, each with a thumbnail. besides the seven base waveforms it lists shapes that also preset WPAR: half and absolute variants (`Half Sine`, `Absolute Sawtooth`, ...) which silence or flip the wave on one side of the channel duty split point, a quantized variant of each, `Square`, and the four periodic-noise tap configurations. picking an entry sets both WS and WPAR; picking a base waveform such as `Sine` clears WPAR. OPL3 names are used where an entry reproduces an OPL3 waveform at the default channel duty. a WS+WPAR pair with no entry of its own (set through the WPAR control below) is shown as e.g. `Sine (Quantize 3 bits)` and left as it is. hover for the raw WS and WPAR numbers. see [waveforms](#waveforms) below.
-- **Waveform Parameter (WPAR)**: per-operator wave shaping parameter. the editor names the available settings for the operator's currently selected waveform (wave variant, quantization, pulse width, or LFSR taps) — see [waveforms](#waveforms) below. the half and absolute variants split the wave at the channel duty (Duty macro or `12xx`), so changing the duty moves which part is silenced or flipped. it edits the same value the waveform dropdown presets, so the two follow each other. a value the selected waveform does not define is shown as `Raw: x` and left alone.
+- **Waveform Select (WS)**: allows you to select a waveform. for a list of waveforms, see [waveforms](#waveforms) below.
+- **Waveform Parameter (WPAR)**: alter the waveform.
 - **Hard Sync (SYNC)**: when enabled, this operator's phase resets whenever the previous operator's phase wraps around. creates hard-edged, harmonically rich timbres. for operator 1, the previous operator is operator 4.
 - **Ring Modulation (RING)**: when enabled, this operator's output is multiplied by the previous operator's output, producing sum and difference frequencies for bell-like or metallic tones. for operator 1, the previous operator is operator 4.
 - **Vibrato (VIB)**: makes the operator affected by LFO vibrato. the LFO PM waveform shape is selectable per channel via the FM Macros tab.
@@ -162,15 +162,15 @@ these macros control the per-channel LFO waveform shapes for amplitude modulatio
 SGU-1 uses an OPM-style shared LFO counter with per-channel waveform shape selection. the AM LFO cycles at ~2.93 Hz and the PM LFO cycles at ~5.86 Hz (both at 48 kHz sample rate).
 
 - **LFO AM Shape**: selects the tremolo waveform shape for this channel (0 to 3).
-  - `0`: **Saw** — rising ramp.
-  - `1`: **Square** — on/off tremolo.
-  - `2`: **Triangle** — smooth symmetric tremolo (default OPL-like behavior).
-  - `3`: **Random** — noise-based tremolo from an OPM-style LFSR.
+  - `0`: **Saw**
+  - `1`: **Square**
+  - `2`: **Triangle** (default)
+  - `3`: **Noise**
 - **LFO PM Shape**: selects the vibrato waveform shape for this channel (0 to 3).
-  - `0`: **Saw** — falling sawtooth pitch sweep.
-  - `1`: **Square** — alternating sharp pitch shift.
-  - `2`: **Triangle** — smooth symmetric vibrato (default OPL-like behavior).
-  - `3`: **Random** — noise-based vibrato from an OPM-style LFSR.
+  - `0`: **Saw**
+  - `1`: **Square**
+  - `2`: **Triangle** (default)
+  - `3`: **Noise**
 
 the shape selection only affects operators that have AM or VIB enabled. the depth is still controlled per-operator by DAM and DVB.
 
@@ -180,11 +180,7 @@ these macros allow you to control several parameters of each operator per tick.
 
 many operator parameters listed in the FM section above are available as macros.
 
-two of them do not mean what their ESFM/OPN namesakes mean:
-
-- **Op. Arpeggio**: per-operator pitch offset in semitones, on top of the channel note.
-- **Op. Pitch**: per-operator fine pitch. this is *not* the DT detune register — DT is a static
-  per-operator field in the FM tab, and no macro writes it.
+among the available macros are **Op. Arpeggio** and **Op. Pitch**. these work like the **Arpeggio** and **Pitch** macros featured below, but are applied to the individual operator, overriding the **Arpeggio**/**Pitch** macros respectively.
 
 ### fixed frequency macros
 
