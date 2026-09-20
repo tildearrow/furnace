@@ -7233,11 +7233,11 @@ msgstr "Hastighet"
 
 #: src/gui/speed.cpp:41
 msgid "Base Tempo##TempoOrHz"
-msgstr "Bastempo"
+msgstr "Bastempo##TempoOrHz"
 
 #: src/gui/speed.cpp:41
 msgid "Tick Rate##TempoOrHz"
-msgstr "Tickhastighet"
+msgstr "Tickhastighet##TempoOrHz"
 
 #: src/gui/speed.cpp:46
 msgid "click to display tick rate"
@@ -7638,11 +7638,11 @@ msgstr "Bakgrund"
 
 #: src/gui/chanOsc.cpp:356
 msgid "X Axis##AxisX"
-msgstr "X-axeln"
+msgstr "X-axeln##AxisX"
 
 #: src/gui/chanOsc.cpp:357
 msgid "Y Axis##AxisY"
-msgstr "Y-axeln"
+msgstr "Y-axeln##AxisY"
 
 #: src/gui/chanOsc.cpp:367
 msgid "Text format:"
@@ -8112,12 +8112,12 @@ msgstr "Gå över en rad"
 #: src/gui/editControls.cpp:758 src/gui/editControls.cpp:888
 #: src/gui/editControls.cpp:1026 src/gui/editControls.cpp:1126
 msgid "Poly##PolyInput"
-msgstr "Poly"
+msgstr "Poly##PolyInput"
 
 #: src/gui/editControls.cpp:758 src/gui/editControls.cpp:888
 #: src/gui/editControls.cpp:1026 src/gui/editControls.cpp:1126
 msgid "Mono##PolyInput"
-msgstr "Mono"
+msgstr "Mono##PolyInput"
 
 #: src/gui/editControls.cpp:763 src/gui/editControls.cpp:893
 #: src/gui/editControls.cpp:1031 src/gui/editControls.cpp:1131
@@ -8147,11 +8147,11 @@ msgstr "Följ"
 
 #: src/gui/editControls.cpp:1009
 msgid "Ord##FollowOrders"
-msgstr "FöljSekvenser"
+msgstr "FöljSekvenser##FollowOrders"
 
 #: src/gui/editControls.cpp:1017
 msgid "Pat##FollowPattern"
-msgstr "Mönster"
+msgstr "Mönster##FollowPattern"
 
 #: src/gui/editControls.cpp:1039
 msgid "Play Controls"
@@ -8310,7 +8310,7 @@ msgstr "DAC-avbrottssimulering:"
 
 #: src/gui/sysConf.cpp:106
 msgid "cycles##InterruptSim"
-msgstr "cykler"
+msgstr "cykler##InterruptSim"
 
 #: src/gui/sysConf.cpp:132 src/gui/sysConf.cpp:1356 src/gui/sysConf.cpp:1812
 #: src/gui/sysConf.cpp:2432
@@ -8757,7 +8757,7 @@ msgstr ""
 
 #: src/gui/sysConf.cpp:963
 msgid "Stereo##_AY_STEREO"
-msgstr "Stereo"
+msgstr "Stereo##_AY_STEREO"
 
 #: src/gui/sysConf.cpp:968
 msgid "Separation"
@@ -8765,7 +8765,7 @@ msgstr "Separation"
 
 #: src/gui/sysConf.cpp:977
 msgid "Half Clock divider##_AY_CLKSEL"
-msgstr "Halvklocka avdelare"
+msgstr "Halvklocka avdelare##_AY_CLKSEL"
 
 #: src/gui/sysConf.cpp:999
 msgid "SAM Coupé (8MHz)"
@@ -9124,11 +9124,11 @@ msgstr "Sinc"
 
 #: src/gui/sysConf.cpp:2033
 msgid "Left##VolScaleL"
-msgstr "Vänster"
+msgstr "Vänster##VolScaleL"
 
 #: src/gui/sysConf.cpp:2038
 msgid "Right##VolScaleL"
-msgstr "Höger"
+msgstr "Höger##VolScaleL"
 
 #: src/gui/sysConf.cpp:2048
 msgid "Initial echo state:"
@@ -9136,19 +9136,19 @@ msgstr "Initialt ekotillstånd:"
 
 #: src/gui/sysConf.cpp:2068
 msgid "Delay##EchoDelay"
-msgstr "Delay"
+msgstr "Delay##EchoDelay"
 
 #: src/gui/sysConf.cpp:2074
 msgid "Feedback##EchoFeedback"
-msgstr "Återkoppling"
+msgstr "Återkoppling##EchoFeedback"
 
 #: src/gui/sysConf.cpp:2081
 msgid "Left##EchoVolL"
-msgstr "Vänster"
+msgstr "Vänster##EchoVolL"
 
 #: src/gui/sysConf.cpp:2086
 msgid "Right##EchoVolL"
-msgstr "Höger"
+msgstr "Höger##EchoVolL"
 
 #: src/gui/sysConf.cpp:2092
 msgid "Echo filter:"
@@ -9156,11 +9156,11 @@ msgstr "Ekofilter"
 
 #: src/gui/sysConf.cpp:2102
 msgid "Hex##SNESFHex"
-msgstr "Hex"
+msgstr "Hex##SNESFHex"
 
 #: src/gui/sysConf.cpp:2102
 msgid "Dec##SNESFHex"
-msgstr "Dec"
+msgstr "Dec##SNESFHex"
 
 #: src/gui/sysConf.cpp:2144
 #, c-format
@@ -9198,11 +9198,11 @@ msgstr "Envelope-läge (kanal 1-4):"
 
 #: src/gui/sysConf.cpp:2247
 msgid "Capacitor (attack/decay)##EM00"
-msgstr "Kondensator (attack/decay)"
+msgstr "Kondensator (attack/decay)##EM00"
 
 #: src/gui/sysConf.cpp:2251
 msgid "External (volume macro)##EM01"
-msgstr "Extern (volymmakro)"
+msgstr "Extern (volymmakro)##EM01"
 
 #: src/gui/sysConf.cpp:2257
 msgid "Envelope mode (channel 5-8):"
@@ -9445,7 +9445,7 @@ msgstr "välj en förinställning"
 
 #: src/gui/userPresets.cpp:418
 msgid "Remove##UPresetRemove"
-msgstr "Ta bort"
+msgstr "Ta bort##UPresetRemove"
 
 #: src/gui/userPresets.cpp:483 src/gui/settings.cpp:1112
 msgid "Configure"
@@ -9967,15 +9967,15 @@ msgstr "Spela upp efter att ha öppnat låtfilen:"
 
 #: src/gui/settings.cpp:877
 msgid "No##pol0"
-msgstr "Nej"
+msgstr "Nej##pol0"
 
 #: src/gui/settings.cpp:881
 msgid "Only if already playing##pol1"
-msgstr "Bara om du redan spelar"
+msgstr "Bara om du redan spelar##pol1"
 
 #: src/gui/settings.cpp:885
 msgid "Yes##pol0"
-msgstr "Ja"
+msgstr "Ja##pol0"
 
 #: src/gui/settings.cpp:891
 msgid "Audio export loop/fade out time:"
@@ -9983,11 +9983,11 @@ msgstr "Ljudexportsloop/tona ut-tid:"
 
 #: src/gui/settings.cpp:893
 msgid "Set to these values on start-up:##fot0"
-msgstr "Ställ in på dessa värden vid uppstart:"
+msgstr "Ställ in på dessa värden vid uppstart:##fot0"
 
 #: src/gui/settings.cpp:911
 msgid "Remember last values##fot1"
-msgstr "Kom ihåg de senaste värdena"
+msgstr "Kom ihåg de senaste värdena##fot1"
 
 #: src/gui/settings.cpp:918
 msgid "Store instrument name in .fui"
@@ -10075,15 +10075,15 @@ msgstr "Nej##pis0"
 
 #: src/gui/settings.cpp:1177
 msgid "Short##pis1"
-msgstr "Kort"
+msgstr "Kort##pis1"
 
 #: src/gui/settings.cpp:1181
 msgid "Full (short when loading song)##pis2"
-msgstr "Full (kort när låten laddas)"
+msgstr "Full (kort när låten laddas)##pis2"
 
 #: src/gui/settings.cpp:1185
 msgid "Full (always)##pis3"
-msgstr "Full (alltid)"
+msgstr "Full (alltid)##pis3"
 
 #: src/gui/settings.cpp:1193
 msgid "Disable fade-in during start-up"
@@ -10321,7 +10321,7 @@ msgstr "Stil för värdeingång"
 
 #: src/gui/settings.cpp:1567 src/gui/settings.cpp:1592
 msgid "Control##valueCCS"
-msgstr "Kontroll"
+msgstr "Kontroll##valueCCS"
 
 #: src/gui/settings.cpp:1573 src/gui/settings.cpp:1598
 msgid "CC of upper nibble##valueCC1"
@@ -10381,11 +10381,11 @@ msgstr "--inga--"
 
 #: src/gui/settings.cpp:1778
 msgid "waiting...##BLearn"
-msgstr "väntar..."
+msgstr "väntar...##BLearn"
 
 #: src/gui/settings.cpp:1778
 msgid "Learn##BLearn"
-msgstr "Lära sig"
+msgstr "Lära sig##BLearn"
 
 #: src/gui/settings.cpp:1802 src/gui/settings.cpp:1804
 msgid "MIDI output"
@@ -10515,22 +10515,22 @@ msgstr "Värde"
 #: src/gui/settings.cpp:2287
 #, c-format
 msgid "Macro release##SNType_%d"
-msgstr "Makrosläpp"
+msgstr "Makrosläpp##SNType_%d"
 
 #: src/gui/settings.cpp:2292
 #, c-format
 msgid "Note release##SNType_%d"
-msgstr "Notrelease"
+msgstr "Notrelease##SNType_%d"
 
 #: src/gui/settings.cpp:2297
 #, c-format
 msgid "Note off##SNType_%d"
-msgstr "Not av"
+msgstr "Not av##SNType_%d"
 
 #: src/gui/settings.cpp:2302
 #, c-format
 msgid "Note##SNType_%d"
-msgstr "Not"
+msgstr "Not##SNType_%d"
 
 #: src/gui/settings.cpp:2326
 msgid "Add..."
@@ -10603,19 +10603,19 @@ msgstr "Spela/redigera kontroller layout:"
 
 #: src/gui/settings.cpp:2611
 msgid "Classic##ecl0"
-msgstr "Klassisk"
+msgstr "Klassisk##ecl0"
 
 #: src/gui/settings.cpp:2615
 msgid "Compact##ecl1"
-msgstr "Kompakt"
+msgstr "Kompakt##ecl1"
 
 #: src/gui/settings.cpp:2619
 msgid "Compact (vertical)##ecl2"
-msgstr "Kompakt (vertikal)"
+msgstr "Kompakt (vertikal)##ecl2"
 
 #: src/gui/settings.cpp:2623
 msgid "Split##ecl3"
-msgstr "Dela"
+msgstr "Dela##ecl3"
 
 #: src/gui/settings.cpp:2629
 msgid "Position of buttons in Orders:"
@@ -10623,15 +10623,15 @@ msgstr "Placering av knappar i Sekvenser:"
 
 #: src/gui/settings.cpp:2631
 msgid "Top##obp0"
-msgstr "Topp"
+msgstr "Topp##obp0"
 
 #: src/gui/settings.cpp:2635
 msgid "Left##obp1"
-msgstr "Vänster"
+msgstr "Vänster##obp1"
 
 #: src/gui/settings.cpp:2639
 msgid "Right##obp2"
-msgstr "Höger"
+msgstr "Höger##obp2"
 
 #: src/gui/settings.cpp:2646
 msgid "Mouse"
@@ -10659,19 +10659,19 @@ msgstr "Notförhandsgranskningsbeteende:"
 
 #: src/gui/settings.cpp:2676
 msgid "Never##npb0"
-msgstr "Aldrig"
+msgstr "Aldrig##npb0"
 
 #: src/gui/settings.cpp:2680
 msgid "When cursor is in Note column##npb1"
-msgstr "När markören är i notkolumnen"
+msgstr "När markören är i notkolumnen##npb1"
 
 #: src/gui/settings.cpp:2684
 msgid "When cursor is in Note column or not in edit mode##npb2"
-msgstr "När markören är i notkolumnen eller inte i redigeringsläge"
+msgstr "När markören är i notkolumnen eller inte i redigeringsläge##npb2"
 
 #: src/gui/settings.cpp:2688
 msgid "Always##npb3"
-msgstr "Alltid"
+msgstr "Alltid##npb3"
 
 #: src/gui/settings.cpp:2694
 msgid "Allow dragging selection:"
@@ -10679,15 +10679,15 @@ msgstr "Tillåt val genom att dra:"
 
 #: src/gui/settings.cpp:2696
 msgid "No##dms0"
-msgstr "Nej"
+msgstr "Nej##dms0"
 
 #: src/gui/settings.cpp:2700
 msgid "Yes##dms1"
-msgstr "Ja"
+msgstr "Ja##dms1"
 
 #: src/gui/settings.cpp:2704
 msgid "Yes (while holding Ctrl only)##dms2"
-msgstr "Ja (medan du bara håller ned Ctrl)"
+msgstr "Ja (medan du bara håller ned Ctrl)##dms2"
 
 #: src/gui/settings.cpp:2708
 msgid "Yes (copy)##dms3"
@@ -10707,15 +10707,15 @@ msgstr "Slå på solokanalen:"
 
 #: src/gui/settings.cpp:2724
 msgid "Right-click or double-click##soloA"
-msgstr "Högerklicka eller dubbelklicka"
+msgstr "Högerklicka eller dubbelklicka##soloA"
 
 #: src/gui/settings.cpp:2728
 msgid "Right-click##soloR"
-msgstr "Högerklick"
+msgstr "Högerklick##soloR"
 
 #: src/gui/settings.cpp:2732
 msgid "Double-click##soloD"
-msgstr "Dubbelklick"
+msgstr "Dubbelklick##soloD"
 
 #: src/gui/settings.cpp:2738
 msgid "Modifier for alternate wheel-scrolling (vertical/zoom/slider-input):"
@@ -10769,15 +10769,15 @@ msgstr "Effektingångsbeteende:"
 
 #: src/gui/settings.cpp:2793
 msgid "Move down##eicb0"
-msgstr "Flytta ner"
+msgstr "Flytta ner##eicb0"
 
 #: src/gui/settings.cpp:2797
 msgid "Move to effect value (otherwise move down)##eicb1"
-msgstr "Flytta till effektvärde (annars flytta nedåt)"
+msgstr "Flytta till effektvärde (annars flytta nedåt)##eicb1"
 
 #: src/gui/settings.cpp:2801
 msgid "Move to effect value/next effect and wrap around##eicb2"
-msgstr "Flytta till effektvärde/nästa effekt och slå runt"
+msgstr "Flytta till effektvärde/nästa effekt och slå runt##eicb2"
 
 #: src/gui/settings.cpp:2808
 msgid "Delete effect value when deleting effect"
@@ -10805,15 +10805,15 @@ msgstr "Linda horisontellt:"
 
 #: src/gui/settings.cpp:2836
 msgid "No##wrapH0"
-msgstr "Nej"
+msgstr "Nej##wrapH0"
 
 #: src/gui/settings.cpp:2840
 msgid "Yes##wrapH1"
-msgstr "Ja"
+msgstr "Ja##wrapH1"
 
 #: src/gui/settings.cpp:2844
 msgid "Yes, and move to next/prev row##wrapH2"
-msgstr "Ja, och flytta till nästa/föregående rad"
+msgstr "Ja, och flytta till nästa/föregående rad##wrapH2"
 
 #: src/gui/settings.cpp:2850
 msgid "Wrap vertically:"
@@ -10821,19 +10821,19 @@ msgstr "Linda vertikalt:"
 
 #: src/gui/settings.cpp:2852
 msgid "No##wrapV0"
-msgstr "Nej"
+msgstr "Nej##wrapV0"
 
 #: src/gui/settings.cpp:2856
 msgid "Yes##wrapV1"
-msgstr "Ja"
+msgstr "Ja##wrapV1"
 
 #: src/gui/settings.cpp:2860
 msgid "Yes, and move to next/prev pattern##wrapV2"
-msgstr "Ja, och flytta till nästa/föregående mönster"
+msgstr "Ja, och flytta till nästa/föregående mönster##wrapV2"
 
 #: src/gui/settings.cpp:2864
 msgid "Yes, and move to next/prev pattern (wrap around)##wrapV2"
-msgstr "Ja, och flytta till nästa/föregående mönster (omslut)"
+msgstr "Ja, och flytta till nästa/föregående mönster (omslut)##wrapV2"
 
 #: src/gui/settings.cpp:2870
 msgid "Cursor movement keys behavior:"
@@ -10841,11 +10841,11 @@ msgstr "Beteende för markörrörelsetangenter:"
 
 #: src/gui/settings.cpp:2872
 msgid "Move by one##cmk0"
-msgstr "Flytta efter en"
+msgstr "Flytta efter en##cmk0"
 
 #: src/gui/settings.cpp:2876
 msgid "Move by Edit Step##cmk1"
-msgstr "Flytta med redigeringssteg"
+msgstr "Flytta med redigeringssteg##cmk1"
 
 #: src/gui/settings.cpp:2883
 msgid "Move cursor by edit step on delete"
@@ -10873,15 +10873,15 @@ msgstr "Ändra sekvensen när du rullar utanför mönstergränserna:"
 
 #: src/gui/settings.cpp:2911
 msgid "No##pscroll0"
-msgstr "Nej"
+msgstr "Nej##pscroll0"
 
 #: src/gui/settings.cpp:2915
 msgid "Yes##pscroll1"
-msgstr "Ja"
+msgstr "Ja##pscroll1"
 
 #: src/gui/settings.cpp:2919
 msgid "Yes, and wrap around song##pscroll2"
-msgstr "Ja, och stick nära låten"
+msgstr "Ja, och stick nära låten##pscroll2"
 
 #: src/gui/settings.cpp:2926
 msgid "Cursor follows current order when moving it"
@@ -10901,15 +10901,15 @@ msgstr "Flytta markören med rullningshjulet:"
 
 #: src/gui/settings.cpp:2942
 msgid "No##csw0"
-msgstr "Nej"
+msgstr "Nej##csw0"
 
 #: src/gui/settings.cpp:2946
 msgid "Yes##csw1"
-msgstr "Ja"
+msgstr "Ja##csw1"
 
 #: src/gui/settings.cpp:2950
 msgid "Inverted##csw2"
-msgstr "Omvänd"
+msgstr "Omvänd##csw2"
 
 #: src/gui/settings.cpp:2957
 msgid "How many steps to move with each scroll wheel step?"
@@ -10917,11 +10917,11 @@ msgstr "Hur många steg ska man flytta med varje steg på rullhjulet?"
 
 #: src/gui/settings.cpp:2958
 msgid "One##cws0"
-msgstr "En"
+msgstr "En##cws0"
 
 #: src/gui/settings.cpp:2962
 msgid "Edit Step##cws1"
-msgstr "Redigera steg"
+msgstr "Redigera steg##cws1"
 
 #: src/gui/settings.cpp:2966
 msgid "Coarse Step##cws2"
@@ -10969,7 +10969,7 @@ msgstr "Huvudteckensnitt"
 
 #: src/gui/settings.cpp:3045
 msgid "Size##MainFontSize"
-msgstr "Storlek##Huvud teckensnittstorlek"
+msgstr "Storlek##MainFontSize"
 
 #: src/gui/settings.cpp:3053
 msgid "Header font"
@@ -10977,7 +10977,7 @@ msgstr "Header teckensnitt"
 
 #: src/gui/settings.cpp:3064
 msgid "Size##HeadFontSize"
-msgstr "Storlek"
+msgstr "Storlek##HeadFontSize"
 
 #: src/gui/settings.cpp:3072
 msgid "Pattern font"
@@ -10985,7 +10985,7 @@ msgstr "Mönster teckensnitt"
 
 #: src/gui/settings.cpp:3083
 msgid "Size##PatFontSize"
-msgstr "Storlek"
+msgstr "Storlek##PatFontSize"
 
 #: src/gui/settings.cpp:3093
 msgid "Anti-aliased fonts"
@@ -11001,19 +11001,19 @@ msgstr "Tips:"
 
 #: src/gui/settings.cpp:3106
 msgid "Off (soft)##fh0"
-msgstr "Av (mjuk)"
+msgstr "Av (mjuk)##fh0"
 
 #: src/gui/settings.cpp:3110
 msgid "Slight##fh1"
-msgstr "Lätt"
+msgstr "Lätt##fh1"
 
 #: src/gui/settings.cpp:3114
 msgid "Normal##fh2"
-msgstr "Normal"
+msgstr "Normal##fh2"
 
 #: src/gui/settings.cpp:3118
 msgid "Full (hard)##fh3"
-msgstr "Full (hårt)"
+msgstr "Full (hårt)##fh3"
 
 #: src/gui/settings.cpp:3124
 msgid "Auto-hinter:"
@@ -11021,15 +11021,15 @@ msgstr "Autotips:"
 
 #: src/gui/settings.cpp:3126
 msgid "Disable##fah0"
-msgstr "Inaktivera"
+msgstr "Inaktivera##fah0"
 
 #: src/gui/settings.cpp:3130
 msgid "Enable##fah1"
-msgstr "Aktivera"
+msgstr "Aktivera##fah1"
 
 #: src/gui/settings.cpp:3134
 msgid "Force##fah2"
-msgstr "Tvinga"
+msgstr "Tvinga##fah2"
 
 #: src/gui/settings.cpp:3141
 msgid "Oversample"
@@ -11085,19 +11085,19 @@ msgstr "Titelfält:"
 
 #: src/gui/settings.cpp:3190
 msgid "Furnace##tbar0"
-msgstr "Furnace"
+msgstr "Furnace##tbar0"
 
 #: src/gui/settings.cpp:3195
 msgid "Song Name - Furnace##tbar1"
-msgstr "Låtnamn - Furnace"
+msgstr "Låtnamn - Furnace##tbar1"
 
 #: src/gui/settings.cpp:3200
 msgid "file_name.fur - Furnace##tbar2"
-msgstr "filnamn.fur - Furnace"
+msgstr "filnamn.fur - Furnace##tbar2"
 
 #: src/gui/settings.cpp:3205
 msgid "/path/to/file.fur - Furnace##tbar3"
-msgstr "/sökväg/till/filen.fur - Furnace"
+msgstr "/sökväg/till/filen.fur - Furnace##tbar3"
 
 #: src/gui/settings.cpp:3213
 msgid "Display system name on title bar"
@@ -11113,19 +11113,19 @@ msgstr "Statusfältet:"
 
 #: src/gui/settings.cpp:3228
 msgid "Cursor details##sbar0"
-msgstr "Markördetaljer"
+msgstr "Markördetaljer##sbar0"
 
 #: src/gui/settings.cpp:3232
 msgid "File path##sbar1"
-msgstr "Filsökväg"
+msgstr "Filsökväg##sbar1"
 
 #: src/gui/settings.cpp:3236
 msgid "Cursor details or file path##sbar2"
-msgstr "Markörinformation eller filsökväg"
+msgstr "Markörinformation eller filsökväg##sbar2"
 
 #: src/gui/settings.cpp:3240
 msgid "Nothing##sbar3"
-msgstr "Ingenting"
+msgstr "Ingenting##sbar3"
 
 #: src/gui/settings.cpp:3247
 msgid "Display playback status when playing"
@@ -11137,15 +11137,15 @@ msgstr "Exportera alternativ-layout:"
 
 #: src/gui/settings.cpp:3254
 msgid "Sub-menus in File menu##eol0"
-msgstr "Undermenyer i Arkiv-menyn"
+msgstr "Undermenyer i Arkiv-menyn##eol0"
 
 #: src/gui/settings.cpp:3258
 msgid "Modal window with tabs##eol1"
-msgstr "Modalt fönster med flikar"
+msgstr "Modalt fönster med flikar##eol1"
 
 #: src/gui/settings.cpp:3262
 msgid "Modal windows with options in File menu##eol2"
-msgstr "Modala fönster med alternativ i Arkiv-menyn"
+msgstr "Modala fönster med alternativ i Arkiv-menyn##eol2"
 
 #: src/gui/settings.cpp:3269
 msgid "Capitalize menu bar"
@@ -11165,11 +11165,11 @@ msgstr "Sekvensradnummerformat:"
 
 #: src/gui/settings.cpp:3296
 msgid "Decimal##orbD"
-msgstr "Decimal"
+msgstr "Decimal##orbD"
 
 #: src/gui/settings.cpp:3300
 msgid "Hexadecimal##orbH"
-msgstr "Hexadecimal"
+msgstr "Hexadecimal##orbH"
 
 #: src/gui/settings.cpp:3309
 msgid "Center pattern view"
@@ -11189,11 +11189,11 @@ msgstr "Mönsterradsnummerformat:"
 
 #: src/gui/settings.cpp:3328
 msgid "Decimal##prbD"
-msgstr "Decimal"
+msgstr "Decimal##prbD"
 
 #: src/gui/settings.cpp:3332
 msgid "Hexadecimal##prbH"
-msgstr "Hexadecimal"
+msgstr "Hexadecimal##prbH"
 
 #: src/gui/settings.cpp:3338
 msgid "Pattern view labels:"
@@ -11256,27 +11256,27 @@ msgstr "Kanalstil:"
 
 #: src/gui/settings.cpp:3420
 msgid "Classic##CHS0"
-msgstr "Klassisk"
+msgstr "Klassisk##CHS0"
 
 #: src/gui/settings.cpp:3424
 msgid "Line##CHS1"
-msgstr "Linje"
+msgstr "Linje##CHS1"
 
 #: src/gui/settings.cpp:3428
 msgid "Round##CHS2"
-msgstr "Rund"
+msgstr "Rund##CHS2"
 
 #: src/gui/settings.cpp:3432
 msgid "Split button##CHS3"
-msgstr "Delningsknapp"
+msgstr "Delningsknapp##CHS3"
 
 #: src/gui/settings.cpp:3436
-msgid "Square border##CH42"
-msgstr "Fyrkantig kant"
+msgid "Square border##CHS4"
+msgstr "Fyrkantig kant##CHS4"
 
 #: src/gui/settings.cpp:3440
 msgid "Round border##CHS5"
-msgstr "Rund kant"
+msgstr "Rund kant##CHS5"
 
 #: src/gui/settings.cpp:3446
 msgid "Channel volume bar:"
@@ -11284,23 +11284,23 @@ msgstr "Kanalvolymfält:"
 
 #: src/gui/settings.cpp:3448
 msgid "None##CHV0"
-msgstr "Inga"
+msgstr "Inga##CHV0"
 
 #: src/gui/settings.cpp:3452
 msgid "Simple##CHV1"
-msgstr "Enkel"
+msgstr "Enkel##CHV1"
 
 #: src/gui/settings.cpp:3456
 msgid "Stereo##CHV2"
-msgstr "Stereo"
+msgstr "Stereo##CHV2"
 
 #: src/gui/settings.cpp:3460
 msgid "Real##CHV3"
-msgstr "Riktig"
+msgstr "Riktig##CHV3"
 
 #: src/gui/settings.cpp:3464
 msgid "Real (stereo)##CHV4"
-msgstr "Riktig (stereo)"
+msgstr "Riktig (stereo)##CHV4"
 
 #: src/gui/settings.cpp:3470
 msgid "Channel feedback style:"
@@ -11308,19 +11308,19 @@ msgstr "Kanalåterkopplingsstil:"
 
 #: src/gui/settings.cpp:3472
 msgid "Off##CHF0"
-msgstr "Av"
+msgstr "Av##CHF0"
 
 #: src/gui/settings.cpp:3476
 msgid "Note##CHF1"
-msgstr "Not"
+msgstr "Not##CHF1"
 
 #: src/gui/settings.cpp:3480
 msgid "Volume##CHF2"
-msgstr "Volym"
+msgstr "Volym##CHF2"
 
 #: src/gui/settings.cpp:3484
 msgid "Active##CHF3"
-msgstr "Aktiv"
+msgstr "Aktiv##CHF3"
 
 #: src/gui/settings.cpp:3490
 msgid "Channel font:"
@@ -11328,11 +11328,11 @@ msgstr "Kanalens teckensnitt:"
 
 #: src/gui/settings.cpp:3492
 msgid "Regular##CHFont0"
-msgstr "Ordinarie"
+msgstr "Ordinarie##CHFont0"
 
 #: src/gui/settings.cpp:3496
 msgid "Monospace##CHFont1"
-msgstr "Monospace"
+msgstr "Monospace##CHFont1"
 
 #: src/gui/settings.cpp:3503
 msgid "Center channel name"
@@ -11344,15 +11344,15 @@ msgstr "Kanalfärger:"
 
 #: src/gui/settings.cpp:3510
 msgid "Single##CHC0"
-msgstr "Enkel"
+msgstr "Enkel##CHC0"
 
 #: src/gui/settings.cpp:3514
 msgid "Channel type##CHC1"
-msgstr "Kanaltyp"
+msgstr "Kanaltyp##CHC1"
 
 #: src/gui/settings.cpp:3518
 msgid "Instrument type##CHC2"
-msgstr "Instrumenttyp"
+msgstr "Instrumenttyp##CHC2"
 
 #: src/gui/settings.cpp:3524
 msgid "Channel name colors:"
@@ -11360,15 +11360,15 @@ msgstr "Kanalnamnets färger:"
 
 #: src/gui/settings.cpp:3526
 msgid "Single##CTC0"
-msgstr "Enkel"
+msgstr "Enkel##CTC0"
 
 #: src/gui/settings.cpp:3530
 msgid "Channel type##CTC1"
-msgstr "Kanaltyp"
+msgstr "Kanaltyp##CTC1"
 
 #: src/gui/settings.cpp:3534
 msgid "Instrument type##CTC2"
-msgstr "Instrumenttyp"
+msgstr "Instrumenttyp##CTC2"
 
 #: src/gui/settings.cpp:3543
 msgid "Unified instrument/wavetable/sample list"
@@ -11384,15 +11384,15 @@ msgstr "Stil på ikonen för instrumentlistan:"
 
 #: src/gui/settings.cpp:3561
 msgid "None##iis0"
-msgstr "Inga"
+msgstr "Inga##iis0"
 
 #: src/gui/settings.cpp:3565
 msgid "Graphical icons##iis1"
-msgstr "Grafiska ikoner"
+msgstr "Grafiska ikoner##iis1"
 
 #: src/gui/settings.cpp:3569
 msgid "Letter icons##iis2"
-msgstr "Bokstavsikoner"
+msgstr "Bokstavsikoner##iis2"
 
 #: src/gui/settings.cpp:3576
 msgid "Colorize instrument editor using instrument type"
@@ -11408,15 +11408,15 @@ msgstr "Layout för makroredigeraren:"
 
 #: src/gui/settings.cpp:3585
 msgid "Unified##mel0"
-msgstr "Enad"
+msgstr "Enad##mel0"
 
 #: src/gui/settings.cpp:3595
 msgid "Grid##mel2"
-msgstr "Rutnät"
+msgstr "Rutnät##mel2"
 
 #: src/gui/settings.cpp:3599
 msgid "Single (with list)##mel3"
-msgstr "Enkel (med lista)"
+msgstr "Enkel (med lista)##mel3"
 
 #: src/gui/settings.cpp:3612
 msgid "Use classic macro editor vertical slider"
@@ -11456,15 +11456,15 @@ msgstr "Namn på FM-parametrar:"
 
 #: src/gui/settings.cpp:3647
 msgid "Friendly##fmn0"
-msgstr "Vänlig"
+msgstr "Vänlig##fmn0"
 
 #: src/gui/settings.cpp:3651
 msgid "Technical##fmn1"
-msgstr "Teknisk"
+msgstr "Teknisk##fmn1"
 
 #: src/gui/settings.cpp:3655
 msgid "Technical (alternate)##fmn2"
-msgstr "Teknisk (alternativ)"
+msgstr "Teknisk (alternativ)##fmn2"
 
 #: src/gui/settings.cpp:3662
 msgid "Use standard OPL waveform names"
@@ -11476,35 +11476,35 @@ msgstr "Layout för FM-parameterredigerare:"
 
 #: src/gui/settings.cpp:3669
 msgid "Modern##fml0"
-msgstr "Modern"
+msgstr "Modern##fml0"
 
 #: src/gui/settings.cpp:3673
 msgid "Modern with more labels##fml7"
-msgstr "Modern med fler etiketter"
+msgstr "Modern med fler etiketter##fml7"
 
 #: src/gui/settings.cpp:3677
 msgid "Compact (2x2, classic)##fml1"
-msgstr "Kompakt (2x2, klassisk)"
+msgstr "Kompakt (2x2, klassisk)##fml1"
 
 #: src/gui/settings.cpp:3681
 msgid "Compact (1x4)##fml2"
-msgstr "Kompakt (1x4)"
+msgstr "Kompakt (1x4)##fml2"
 
 #: src/gui/settings.cpp:3685
 msgid "Compact (4x1)##fml3"
-msgstr "Kompakt (4x1)"
+msgstr "Kompakt (4x1)##fml3"
 
 #: src/gui/settings.cpp:3689
 msgid "Alternate (2x2)##fml4"
-msgstr "Alternativ (2x2)"
+msgstr "Alternativ (2x2)##fml4"
 
 #: src/gui/settings.cpp:3693
 msgid "Alternate (1x4)##fml5"
-msgstr "Alternativ (1x4)"
+msgstr "Alternativ (1x4)##fml5"
 
 #: src/gui/settings.cpp:3697
 msgid "Alternate (4x1)##fml5"
-msgstr "Alternativ (4x1)"
+msgstr "Alternativ (4x1)##fml5"
 
 #: src/gui/settings.cpp:3703
 msgid "Position of Sustain in FM editor:"
@@ -11512,19 +11512,19 @@ msgstr "Positionen för sustain i FM-redigeraren:"
 
 #: src/gui/settings.cpp:3705
 msgid "Between Decay and Sustain Rate##susp0"
-msgstr "Mellan decay- och sustain-frekvens"
+msgstr "Mellan decay- och sustain-frekvens##susp0"
 
 #: src/gui/settings.cpp:3709
 msgid "After Release Rate##susp1"
-msgstr "Efter release-hastighet"
+msgstr "Efter release-hastighet##susp1"
 
 #: src/gui/settings.cpp:3714
 msgid "After Release Rate, after spacing##susp2"
-msgstr "Efter releasehastighet, efter avstånd"
+msgstr "Efter releasehastighet, efter avstånd##susp2"
 
 #: src/gui/settings.cpp:3718
 msgid "After TL##susp3"
-msgstr "Efter TL"
+msgstr "Efter TL##susp3"
 
 #: src/gui/settings.cpp:3726
 msgid "Use separate colors for carriers/modulators in FM editor"
@@ -11540,11 +11540,11 @@ msgstr "Enhet för användning av chipminne:"
 
 #: src/gui/settings.cpp:3741
 msgid "Bytes##MUU0"
-msgstr "Byte:"
+msgstr "Byte:##MUU0"
 
 #: src/gui/settings.cpp:3745
 msgid "Kilobytes##MUU1"
-msgstr "Kilobyte:"
+msgstr "Kilobyte:##MUU1"
 
 #: src/gui/settings.cpp:3754
 msgid "Rounded corners"
@@ -11679,11 +11679,11 @@ msgstr "Färgschema typ:"
 
 #: src/gui/settings.cpp:3921
 msgid "Dark##gcb0"
-msgstr "Mörk"
+msgstr "Mörk##gcb0"
 
 #: src/gui/settings.cpp:3926
 msgid "Light##gcb1"
-msgstr "Ljus"
+msgstr "Ljus##gcb1"
 
 #: src/gui/settings.cpp:3933
 msgid "Accent colors:"
@@ -13065,15 +13065,15 @@ msgstr "aktiverat \"bekvämt\" läge"
 
 #: src/gui/settings.cpp:4698
 msgid "OK##SettingsOK"
-msgstr "OK"
+msgstr "OK##SettingsOK"
 
 #: src/gui/settings.cpp:4704
 msgid "Cancel##SettingsCancel"
-msgstr "Avbryta"
+msgstr "Avbryta##SettingsCancel"
 
 #: src/gui/settings.cpp:4712
 msgid "Apply##SettingsApply"
-msgstr "Tillämpa"
+msgstr "Tillämpa##SettingsApply"
 
 #: src/gui/settings.cpp:4735 src/gui/settings.cpp:4752
 msgid "Press key..."
@@ -13378,7 +13378,7 @@ msgstr "Infoga i lediga utrymmen"
 
 #: src/gui/findReplace.cpp:1125
 msgid "Replace##QueryReplace"
-msgstr "Ersätta"
+msgstr "Ersätta##QueryReplace"
 
 #: src/gui/about.cpp:26
 msgid "is proud to present"
@@ -15911,7 +15911,7 @@ msgstr ""
 #: src/gui/sampleEdit.cpp:496
 #, c-format
 msgid "Loop (length: %d)##Loop"
-msgstr "Loop (längd: %d)"
+msgstr "Loop (längd: %d)##Loop"
 
 #: src/gui/sampleEdit.cpp:496 src/gui/insEdit.cpp:658 src/gui/insEdit.cpp:668
 #: src/gui/insEdit.cpp:723 src/gui/insEdit.cpp:7409
@@ -16313,7 +16313,7 @@ msgstr "STEG %d"
 
 #: src/gui/songInfo.cpp:32
 msgid "Song Info##Song Information"
-msgstr "Låtinformation"
+msgstr "Låtinformation##Song Information"
 
 #: src/gui/songInfo.cpp:50
 msgid "Author"
@@ -17056,7 +17056,7 @@ msgstr "vända val"
 
 #: src/gui/gui.cpp:3251
 msgid "collapse/expand amount##CollapseAmount"
-msgstr "förminska/expandera belopp"
+msgstr "förminska/expandera belopp##CollapseAmount"
 
 #: src/gui/gui.cpp:3260
 msgid "collapse pattern"
@@ -17920,19 +17920,19 @@ msgstr ""
 
 #: src/gui/gui.cpp:7777
 msgid "Size column to fit###SizeOne"
-msgstr "Storlek på kolumn för att passa"
+msgstr "Storlek på kolumn för att passa###SizeOne"
 
 #: src/gui/gui.cpp:7779
 msgid "Size all columns to fit###SizeAll"
-msgstr "Anpassa storleken på alla kolumner"
+msgstr "Anpassa storleken på alla kolumner###SizeAll"
 
 #: src/gui/gui.cpp:7781
 msgid "Size all columns to default###SizeAll"
-msgstr "Storlek på alla kolumner till standard"
+msgstr "Storlek på alla kolumner till standard###SizeAll"
 
 #: src/gui/gui.cpp:7783
 msgid "Reset order###ResetOrder"
-msgstr "Återställa sekvens"
+msgstr "Återställa sekvens###ResetOrder"
 
 #: src/gui/gui.cpp:7785
 msgid "(Main menu bar)"
@@ -18016,7 +18016,7 @@ msgstr "(dra för att byta chips)"
 
 #: src/gui/sysManager.cpp:107
 msgid "Clone##SysDup"
-msgstr "Klona"
+msgstr "Klona##SysDup"
 
 #: src/gui/sysManager.cpp:109
 #, c-format
@@ -18025,7 +18025,7 @@ msgstr "kan ej klona chip! (%s)"
 
 #: src/gui/sysManager.cpp:120
 msgid "Change##SysChange"
-msgstr "Byt"
+msgstr "Byt##SysChange"
 
 #: src/gui/sysManager.cpp:146
 msgid "Are you sure you want to remove this chip?"
@@ -19137,15 +19137,15 @@ msgstr "operatorsnivån ändras med volymen?"
 
 #: src/gui/insEdit.cpp:2043
 msgid "AUTO##OPKVS"
-msgstr "AUTO"
+msgstr "AUTO##OPKVS"
 
 #: src/gui/insEdit.cpp:2045
 msgid "NO##OPKVS"
-msgstr "NEJ"
+msgstr "NEJ##OPKVS"
 
 #: src/gui/insEdit.cpp:2047
 msgid "YES##OPKVS"
-msgstr "JA"
+msgstr "JA##OPKVS"
 
 #: src/gui/insEdit.cpp:2301 src/gui/insEdit.cpp:2481
 msgid "Bottom"
@@ -19189,11 +19189,11 @@ msgstr "Delay-/Steglängd"
 
 #: src/gui/insEdit.cpp:2603
 msgid "Step Length (ticks)##IMacroSpeed"
-msgstr "Steglängd (ticks)"
+msgstr "Steglängd (ticks)##IMacroSpeed"
 
 #: src/gui/insEdit.cpp:2607
 msgid "Delay##IMacroDelay"
-msgstr "Delay"
+msgstr "Delay##IMacroDelay"
 
 #: src/gui/insEdit.cpp:2620
 msgid "Release mode: Active (jump to release pos)"
@@ -19329,7 +19329,7 @@ msgstr "Använd sample"
 
 #: src/gui/insEdit.cpp:3465
 msgid "Sample bank slot##BANKSLOT"
-msgstr "Samplebankplats"
+msgstr "Samplebankplats##BANKSLOT"
 
 #: src/gui/insEdit.cpp:3487
 msgid "Use wavetable (Amiga/Generic DAC only)"
@@ -19389,7 +19389,7 @@ msgstr "Begäran från TX81Z"
 
 #: src/gui/insEdit.cpp:4163
 msgid "Volume##TL"
-msgstr "Volym"
+msgstr "Volym##TL"
 
 #: src/gui/insEdit.cpp:4199
 #, c-format
@@ -19599,7 +19599,7 @@ msgstr "Ringmodulering"
 
 #: src/gui/insEdit.cpp:6299
 msgid "Source channel##rmsrc"
-msgstr "Källkanal"
+msgstr "Källkanal##rmsrc"
 
 #: src/gui/insEdit.cpp:6302 src/gui/insEdit.cpp:7278
 msgid "Oscillator Sync"
@@ -19607,7 +19607,7 @@ msgstr "Oscillatorsynk"
 
 #: src/gui/insEdit.cpp:6309
 msgid "Source channel##hssrc"
-msgstr "Källkanal"
+msgstr "Källkanal##hssrc"
 
 #: src/gui/insEdit.cpp:6312
 msgid "Phase modulation"
@@ -19642,27 +19642,27 @@ msgstr "Initialisera filter %d"
 #: src/gui/insEdit.cpp:6353
 #, c-format
 msgid "Connect to channel input##contoinput%d"
-msgstr "Anslut till kanalingång"
+msgstr "Anslut till kanalingång##contoinput%d"
 
 #: src/gui/insEdit.cpp:6359
 #, c-format
 msgid "Cutoff##fcut%d"
-msgstr "Cutoff"
+msgstr "Cutoff##fcut%d"
 
 #: src/gui/insEdit.cpp:6361
 #, c-format
 msgid "Resonance##fres%d"
-msgstr "Resonans"
+msgstr "Resonans##fres%d"
 
 #: src/gui/insEdit.cpp:6363
 #, c-format
 msgid "Output volume##foutvol%d"
-msgstr "Utgångsvolym"
+msgstr "Utgångsvolym##foutvol%d"
 
 #: src/gui/insEdit.cpp:6365
 #, c-format
 msgid "Distortion level##fdist%d"
-msgstr "Distorsionsnivå"
+msgstr "Distorsionsnivå##fdist%d"
 
 #: src/gui/insEdit.cpp:6369 src/gui/insEdit.cpp:6574 src/gui/insEdit.cpp:7294
 #: src/gui/insEdit.cpp:7804 src/gui/insEdit.cpp:8105 src/gui/insEdit.cpp:8359
@@ -19673,17 +19673,17 @@ msgstr "Filterläge"
 #: src/gui/insEdit.cpp:6374
 #, c-format
 msgid "low##flow%d"
-msgstr "låg"
+msgstr "låg##flow%d"
 
 #: src/gui/insEdit.cpp:6383
 #, c-format
 msgid "band##fband%d"
-msgstr "band"
+msgstr "band##fband%d"
 
 #: src/gui/insEdit.cpp:6392
 #, c-format
 msgid "high##fhigh%d"
-msgstr "hög"
+msgstr "hög##fhigh%d"
 
 #: src/gui/insEdit.cpp:6400
 #, c-format
@@ -20052,7 +20052,7 @@ msgstr ""
 
 #: src/gui/insEdit.cpp:7615
 msgid "Waveform##WAVE"
-msgstr "Vågform"
+msgstr "Vågform##WAVE"
 
 #: src/gui/insEdit.cpp:7623
 msgid "Per-channel wave position/length"
@@ -20718,10 +20718,10 @@ msgstr "Max."
 #~ msgstr "Yamaha YMF276 (OPN2) med DualPCM"
 
 #~ msgid "No##_PCS0"
-#~ msgstr "Nej"
+#~ msgstr "Nej##_PCS0"
 
 #~ msgid "Yes##_PCS1"
-#~ msgstr "Ja"
+#~ msgstr "Ja##_PCS1"
 
 #~ msgid "MAME GA20 core by Acho A. Tang and R. Belmont"
 #~ msgstr "MAME GA20-kärnan av Acho A. Tang och R. Belmont"

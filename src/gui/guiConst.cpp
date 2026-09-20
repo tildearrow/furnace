@@ -211,7 +211,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"Watara Supervision",ICON_FA_GAMEPAD,ICON_FUR_INS_SUPERVISION},
   {"NEC μPD1771C",ICON_FA_BAR_CHART,ICON_FUR_INS_UPD1771C},
   {"SID3",ICON_FA_KEYBOARD_O,ICON_FUR_INS_SID3},
-  {"klattsch",ICON_FA_MICROPHONE,ICON_FA_MICROPHONE},
+  {"klattsch",ICON_FA_MICROPHONE,ICON_FUR_INS_KLATTSCH},
   {"SGU-1",ICON_FA_AREA_CHART,ICON_FUR_INS_SGU},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
@@ -1141,6 +1141,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_SELECTION,_N("Selection"),ImVec4(0.15f,0.15f,0.2f,1.0f)),
   D(GUI_COLOR_PATTERN_SELECTION_HOVER,_N("Selection (hovered)"),ImVec4(0.2f,0.2f,0.3f,1.0f)),
   D(GUI_COLOR_PATTERN_SELECTION_ACTIVE,_N("Selection (clicked)"),ImVec4(0.4f,0.4f,0.5f,1.0f)),
+  D(GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR,_N("Cursor out-of-view indicator"),ImVec4(0.4f,0.8f,1.0f,0.8f)),
   D(GUI_COLOR_PATTERN_HI_1,_N("Highlight 1"),ImVec4(0.6f,0.6f,0.6f,0.2f)),
   D(GUI_COLOR_PATTERN_HI_2,_N("Highlight 2"),ImVec4(0.5f,0.8f,1.0f,0.2f)),
   D(GUI_COLOR_PATTERN_ROW_INDEX,_N("Row number"),ImVec4(0.5f,0.8f,1.0f,1.0f)),

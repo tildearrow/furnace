@@ -652,6 +652,18 @@ DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformQSound::softReset() {
+  // TODO: test, as the bus is 16-bit
+  for (int i=0; i<16; i++) {
+    rWrite(2+(i*8),0);
+    rWrite(6+(i*8),0);
+  }
+  for (int i=0; i<3; i++) {
+    rWrite(0xcd+(i*4),0);
+    rWrite(0xd6+i,1);
+  }
+}
+
 void DivPlatformQSound::reset() {
   for (int i=0; i<19; i++) {
     chan[i]=DivPlatformQSound::Channel(parent->song.compatFlags.linearPitch);

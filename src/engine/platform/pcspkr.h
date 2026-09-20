@@ -73,6 +73,8 @@ class DivPlatformPCSpeaker: public DivDispatch {
   void acquire_piezo(short** buf, size_t len);
   void acquire_real(blip_buffer_t** bb, size_t len);
 
+  void pcSpeakerFreq(const RealQueueVal& r);
+
   public:
     void pcSpeakerThread();
     void acquireDirect(blip_buffer_t** bb, size_t len);

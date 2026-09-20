@@ -142,6 +142,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
+      unsigned char block;
       bool mask, hardReset;
       OPNOpChannel(bool linear=true):
         SharedChannel(0,linear),
@@ -149,6 +150,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
         freqL(0),
         portaPauseFreq(0),
         konCycles(0),
+        block(0),
         mask(true),
         hardReset(false) {}
     };
@@ -180,7 +182,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
-    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
+    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9437184.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
       extChanOffs(ext),
       psgChanOffs(psg),
