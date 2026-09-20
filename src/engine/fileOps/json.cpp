@@ -321,6 +321,8 @@ JSON serializeInstrument(DivInstrument* ins) {
   bool featureS2=false;
   bool featureS3=false;
   bool featureKT=false;
+  bool featureSG=false;
+  
   switch (ins->type) {
     case DIV_INS_FM: featureFM=true; break;
     case DIV_INS_GB:
@@ -447,6 +449,7 @@ JSON serializeInstrument(DivInstrument* ins) {
       featureEF=true;
       featureSU=true;
       featureSM=true;
+      featureSG=true;
       break;
     case DIV_INS_STD:
     case DIV_INS_TIA:
@@ -912,6 +915,21 @@ JSON serializeInstrument(DivInstrument* ins) {
     SET_VALUE(klattsch,bandwidth);
     SET_VALUE(klattsch,formantShift);
     json["klattsch"]=klattsch;
+  }
+  if (featureSG) {
+    JSON sgu;
+    JSON ops;
+    for (int i=0; i<4; i++) {
+      JSON op;
+#define SET_OP_VALUE(x) op[#x]=ins->sgu.op[i].x;
+      SET_OP_VALUE(wpar);
+      SET_OP_VALUE(sync);
+      SET_OP_VALUE(ring);
+#undef SET_OP_VALUE
+      ops.push_back(op);
+    }
+    sgu["operators"]=ops;
+    json["sgu"]=sgu;
   }
 
   return json;
