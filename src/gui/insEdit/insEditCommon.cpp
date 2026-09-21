@@ -30,6 +30,14 @@ const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
 const char* macroDummyMode="Bug";
 
+const char* panBits[5]={
+  _N("right"),
+  _N("left"),
+  _N("rear right"),
+  _N("rear left"),
+  NULL
+};
+
 void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 color, float thickness) {
   ImVec2 pt[2];
   pt[0]=p1;

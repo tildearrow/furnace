@@ -17,29 +17,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _INS_EDIT_COMMON_H
-#define _INS_EDIT_COMMON_H
-#include "../gui.h"
+#include "insEditCommon.h"
 
-#define P(x) if (x) { \
-  MARK_MODIFIED; \
-  e->notifyInsChange(curIns); \
-  updateFMPreview=true; \
+void FurnaceGUI::insEditBifurcator(DivInstrument* ins) {
+  std::vector<FurnaceGUIMacroDesc> macroList;
+
+  if (ImGui::BeginTabItem(_("Macros"))) {
+    // macros go here...
+
+    drawMacros(macroList,macroEditStateMacros,ins);
+    ImGui::EndTabItem();
+  }
 }
-
-#define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns); updateFMPreview=true;
-
-#define MACRO_WAVE_COUNT MAX(1,e->song.waveLen-1)
-
-void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 color, float thickness=1.0f);
-
-extern const char* panBits[5];
-
-extern const char* macroAbsoluteMode;
-extern const char* macroRelativeMode;
-extern const char* macroQSoundMode;
-extern const char* macroDummyMode;
-
-String macroHoverNote(int id, float val, void* u);
-
-#endif
