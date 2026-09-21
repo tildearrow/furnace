@@ -475,6 +475,7 @@ void DivPlatformNDS::forceIns() {
     rWrite8(0x02+i*16,chan[i].panning);
     writeOutVol(i);
   }
+  rWrite32(0x100,0x8000|globalVolume);
 }
 
 SharedChannel* DivPlatformNDS::getChanState(int ch) {

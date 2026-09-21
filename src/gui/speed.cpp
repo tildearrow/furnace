@@ -90,15 +90,24 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         ImGui::SameLine();
         ImGui::Text("= %gHz",e->curSubSong->hz);
         ImGui::TableNextColumn();
-        if (ImGui::Button(ICON_FA_STOP "##tapTempoPad")) {
+        ImGui::Button(ICON_FA_STOP "##tapTempoPad");
+        if (ImGui::IsItemClicked()) {
           Uint64 tapTime=SDL_GetTicks64();
           if (!(lastTapTime==0 || tapTime-lastTapTime>10000)) {
-            setHz=1000.0/(tapTime-lastTapTime)*60/2.5;
+            if (lastTapDelta==0.0) {
+              lastTapDelta=tapTime-lastTapTime;
+            } else {
+              lastTapDelta=(lastTapDelta*15.0+(tapTime-lastTapTime))/16.0;
+            }
+            setHz=1000.0/lastTapDelta*60/2.5;
             if (setHz<1) setHz=1;
             if (setHz>999) setHz=999;
             e->setSongRate(setHz);
             recalcTimestamps=true;
             MARK_MODIFIED
+          }
+          if (tapTime-lastTapTime>10000) {
+            lastTapDelta=0.0;
           }
           lastTapTime=tapTime;
         }

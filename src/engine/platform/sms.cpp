@@ -529,6 +529,12 @@ int DivPlatformSMS::getRegisterPoolSize() {
   return stereo?9:8;
 }
 
+void DivPlatformSMS::softReset() {
+  for (int i=0; i<4; i++) {
+    rWrite(0,0x90|(i<<5)|15);
+  }
+}
+
 void DivPlatformSMS::reset() {
   memset(regPool,0,16);
   chanLatch=0;
@@ -539,7 +545,7 @@ void DivPlatformSMS::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   sn->device_start();
   YMPSG_Init(&sn_nuked,isRealSN,12,isRealSN?13:15,isRealSN?16383:32767);

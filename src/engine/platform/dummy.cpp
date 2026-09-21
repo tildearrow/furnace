@@ -34,7 +34,16 @@ void DivPlatformDummy::acquire(short** buf, size_t len) {
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
         if (!isMuted[j]) {
-          chanOut=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>12;
+          if (chan[j].noise) {
+            chan[j].lfsr=(
+              (chan[j].lfsr>>1)|
+              ((((chan[j].lfsr)^(chan[j].lfsr>>3)^(chan[j].lfsr>>5)^(chan[j].lfsr>>11))&1)<<15)
+            );
+            chanOut=(((signed short)chan[j].lfsr)*chan[j].amp)>>8;
+          } else {
+            chanOut=(((signed short)chan[j].pos)*chan[j].amp)>>8;
+          }
+          chanOut=(chanOut*chan[j].vol)/maxVol;
           oscBuf[j]->putSample(i,chanOut<<1);
           out+=chanOut;
         } else {
@@ -62,7 +71,11 @@ void DivPlatformDummy::tick(bool sysTick) {
   for (unsigned char i=0; i<chans; i++) {
     if (sysTick) {
       chan[i].amp-=7;
-      if (chan[i].amp<15) chan[i].amp=15;
+      if (chan[i].noise) {
+        if (chan[i].amp<0) chan[i].amp=0;
+      } else {
+        if (chan[i].amp<15) chan[i].amp=15;
+      }
     }
 
     if (chan[i].freqChanged) {
@@ -82,20 +95,26 @@ DivDispatchOscBuffer* DivPlatformDummy::getOscBuffer(int ch) {
 
 int DivPlatformDummy::dispatch(DivCommand c) {
   switch (c.cmd) {
-    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
       }
+      chan[c.chan].noise=(ins->std.dutyMacro.len>0 && ins->std.dutyMacro.val[0]==1);
       chan[c.chan].active=true;
       chan[c.chan].amp=64;
       break;
+    }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       break;
+    case DIV_CMD_INSTRUMENT:
+      chan[c.chan].ins=c.value;
+      break;
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
-      if (chan[c.chan].vol>15) chan[c.chan].vol=15;
+      if (chan[c.chan].vol>maxVol) chan[c.chan].vol=maxVol;
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
@@ -129,7 +148,7 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 15;
+      return maxVol;
       break;
     default:
       break;
@@ -145,7 +164,7 @@ void DivPlatformDummy::reset() {
   for (int i=0; i<chans; i++) {
     chan[i]=DivPlatformDummy::Channel(parent->song.compatFlags.linearPitch);
     chan[i].pitchTable=&pitchTable;
-    chan[i].vol=0x0f;
+    chan[i].vol=maxVol;
   }
 }
 
@@ -155,6 +174,11 @@ void DivPlatformDummy::notifyPitchTable(int sample) {
 
 unsigned int DivPlatformDummy::getMaxFreq(int ch) {
   return 0xffff;
+}
+
+void DivPlatformDummy::setFlags(const DivConfig& flags) {
+  maxVol=flags.getInt("volMax",15);
+  if (maxVol<1) maxVol=1;
 }
 
 int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -172,6 +196,7 @@ int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivCon
   chipClock=65536;
   notifyPitchTable();
   chans=channels;
+  setFlags(flags);
   reset();
   return channels;
 }

@@ -575,7 +575,7 @@ void DivPlatformSwan::reset() {
     rWrite(0x08+i,0xff);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   swan_sound_init(&ws, true);
   pcm=false;

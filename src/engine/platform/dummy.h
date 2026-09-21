@@ -23,10 +23,14 @@
 // used when a DivDispatch for a system is not found.
 class DivPlatformDummy: public DivDispatch {
   struct Channel: SharedChannel {
+    bool noise;
+    unsigned short lfsr;
     unsigned short pos;
     signed char amp;
     Channel(bool linear=true):
       SharedChannel(0,linear),
+      noise(false),
+      lfsr(0x5555),
       pos(0),
       amp(64) {}
   };
@@ -34,7 +38,8 @@ class DivPlatformDummy: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[128];
   DivPitchTable pitchTable;
   bool isMuted[128];
-  unsigned char chans;  
+  unsigned char chans;
+  unsigned char maxVol;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
@@ -46,6 +51,7 @@ class DivPlatformDummy: public DivDispatch {
     unsigned int getMaxFreq(int ch);
     SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    void setFlags(const DivConfig& flags);
     void reset();
     void tick(bool sysTick=true);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

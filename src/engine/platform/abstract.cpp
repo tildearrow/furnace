@@ -88,6 +88,9 @@ int DivDispatch::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivDispatch::softReset() {
+}
+
 void DivDispatch::reset() {
 }
 

@@ -665,11 +665,25 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_NEXT_ORDER:
       if (curOrder<e->curSubSong->ordersLen-1) {
         setOrder(curOrder+1);
+
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+          cursor.order=curOrder;
+          selStart=cursor;
+          selEnd=cursor;
+        }
       }
       break;
     case GUI_ACTION_PAT_PREV_ORDER:
       if (curOrder>0) {
         setOrder(curOrder-1);
+
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+          cursor.order=curOrder;
+          selStart=cursor;
+          selEnd=cursor;
+        }
       }
       break;
     case GUI_ACTION_PAT_COLLAPSE:
@@ -2142,6 +2156,13 @@ void FurnaceGUI::doAction(int what) {
         if (orderEditMode!=0) {
           curNibble=0;
         }
+
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+          cursor.order=curOrder;
+          selStart=cursor;
+          selEnd=cursor;
+        }
       }
       break;
     case GUI_ACTION_ORDERS_DOWN:
@@ -2149,6 +2170,13 @@ void FurnaceGUI::doAction(int what) {
         setOrder(curOrder+1);
         if (orderEditMode!=0) {
           curNibble=0;
+        }
+
+        if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y && cursor.order==selStart.order &&
+            cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y && cursor.order==selEnd.order) {
+          cursor.order=curOrder;
+          selStart=cursor;
+          selEnd=cursor;
         }
       }
       break;

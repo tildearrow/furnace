@@ -77,6 +77,7 @@ class DivPlatformQSound: public DivDispatch {
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     int getRegisterPoolDepth();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

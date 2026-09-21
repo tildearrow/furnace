@@ -380,7 +380,7 @@ void DivPlatformMMC5::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   // set pitch table for PCM channel

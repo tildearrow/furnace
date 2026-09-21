@@ -393,6 +393,13 @@ DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformGA20::softReset() {
+  for (int i=0; i<4; i++) {
+    rWrite(5+(i*8),0); // mute
+    rWrite(6+(i*8),0); // keyoff
+  }
+}
+
 void DivPlatformGA20::reset() {
   writes.clear();
   memset(regPool,0,32);

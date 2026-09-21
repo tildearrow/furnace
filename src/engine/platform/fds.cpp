@@ -456,7 +456,7 @@ void DivPlatformFDS::reset() {
   ws.setEngine(parent);
   ws.init(NULL,64,63,false);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   if (useNP) {

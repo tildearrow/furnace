@@ -843,6 +843,12 @@ int DivPlatformX1_010::getRegisterPoolSize() {
   return 0x2000;
 }
 
+void DivPlatformX1_010::softReset() {
+  for (int i=0; i<16; i++) {
+    chWrite(i,0,0);
+  }
+}
+
 void DivPlatformX1_010::reset() {
   memset(regPool,0,0x2000);
   for (int i=0; i<16; i++) {

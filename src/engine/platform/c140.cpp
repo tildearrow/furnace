@@ -517,6 +517,14 @@ DivDispatchOscBuffer* DivPlatformC140::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformC140::softReset() {
+  for (int i=0; i<(is219?16:24); i++) {
+    rWrite((i<<4)|0,0); // mute
+    rWrite((i<<4)|1,0);
+    rWrite((i<<4)|5,0); // keyoff
+  }
+}
+
 void DivPlatformC140::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,512);

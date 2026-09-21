@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev250"
-#define DIV_ENGINE_VERSION 250
+#define DIV_VERSION "dev253"
+#define DIV_ENGINE_VERSION 253
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -66,6 +66,7 @@ class DivWorkPool;
 #define DIV_VERSION_TFE 0xff05
 #define DIV_VERSION_XM 0xff06
 #define DIV_VERSION_IT 0xff07
+#define DIV_VERSION_MIDI 0xff08
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -361,6 +362,42 @@ struct DivEffectContainer {
   }
 };
 
+struct DivMIDIImportOptions {
+  bool useBaseTempo;
+  bool importVelocity;
+  bool importCC7;
+  bool importCC11;
+  bool importSustain;
+  bool importPan;
+  bool importVibrato;
+  bool importPitchBend;
+  bool splitDrums;
+  int quantize;
+  int ticksPerRow;
+  int patternLen;
+  int drumChannel;
+  int vibratoRate;
+  int vibratoDepth;
+  int bendRange;
+  DivMIDIImportOptions():
+    useBaseTempo(true),
+    importVelocity(true),
+    importCC7(true),
+    importCC11(true),
+    importSustain(true),
+    importPan(true),
+    importVibrato(true),
+    importPitchBend(true),
+    splitDrums(true),
+    quantize(32),
+    ticksPerRow(6),
+    patternLen(64),
+    drumChannel(10),
+    vibratoRate(5),
+    vibratoDepth(8),
+    bendRange(0) {}
+};
+
 extern const char* cmdName[];
 
 class DivEngine {
@@ -382,7 +419,7 @@ class DivEngine {
   bool extValuePresent;
   bool repeatPattern;
   bool metronome;
-  bool exporting;
+  std::atomic<bool> exporting;
   bool stopExport;
   bool halted;
   bool forceMono;
@@ -431,6 +468,7 @@ class DivEngine {
   DivAudioExportFormats exportFormat;
   DivAudioExportWavFormats wavFormat;
   DivAudioExportBitrateModes exportBitRateMode;
+  double prevAudioRate;
   double exportFadeOut;
   bool isFadingOut;
   int exportOutputs;
@@ -453,9 +491,7 @@ class DivEngine {
   std::vector<DivCommand> cmdStream;
   std::vector<DivEffectContainer> effectInst;
   std::vector<int> curChanMask;
-  static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
-  static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
-  static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+  static DivSysDef* sysDefs[DIV_SYSTEM_MAX+1];
   static DivROMExportDef* romExportDefs[DIV_ROM_MAX];
 
   DivCSPlayer* cmdStreamInt;
@@ -547,6 +583,7 @@ class DivEngine {
   bool loadFC(unsigned char* file, size_t len);
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
+  bool loadMIDI(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -608,6 +645,7 @@ class DivEngine {
   // add every export method here
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
+  friend class DivExportS98;
   friend class DivExportSAPR;
   friend class DivExportTiuna;
   friend class DivExportZSM;
@@ -630,8 +668,11 @@ class DivEngine {
 
     float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
 
+    // ugh...
+    DivMIDIImportOptions midiImportOptions;
+
     void runExportThread();
-    void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size);
+    void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size, bool calledFromExport=false);
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
@@ -678,6 +719,8 @@ class DivEngine {
     // - -1 to auto-determine trailing
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
+    // dump to S98.
+    SafeWriter* saveS98(float tickRate=0.0f, bool* sysToExport=NULL, bool loop=true, int trailingTicks=-1);
     // dump command stream.
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
     // export to text
@@ -707,8 +750,8 @@ class DivEngine {
     int dispatchCmd(DivCommand c);
 
     // get system IDs
-    static DivSystem systemFromFileFur(unsigned char val);
-    static unsigned char systemToFileFur(DivSystem val);
+    static DivSystem systemFromFileFur(unsigned short val);
+    static unsigned short systemToFileFur(DivSystem val);
     static DivSystem systemFromFileDMF(unsigned char val);
     static unsigned char systemToFileDMF(DivSystem val);
 
@@ -722,6 +765,9 @@ class DivEngine {
 
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
+
+    // returns whether the S98 format supports this system.
+    bool supportedByS98(DivSystem which);
 
     // determine and setup config dir
     void initConfDir();
@@ -928,6 +974,9 @@ class DivEngine {
     // synchronous get order/row
     void getPlayPos(int& order, int& row);
     void getPlayPosTick(int& order, int& row, int& tick, int& speed);
+
+    // get the row speed used for live preview timing
+    int getPreviewSpeed();
 
     // get beat/bar
     int getElapsedBars();
@@ -1455,6 +1504,7 @@ class DivEngine {
       exportFormat(DIV_EXPORT_FORMAT_WAV),
       wavFormat(DIV_EXPORT_WAV_S16),
       exportBitRateMode(DIV_EXPORT_BITRATE_CONSTANT),
+      prevAudioRate(44100.0),
       exportFadeOut(0.0),
       isFadingOut(false),
       exportOutputs(2),
@@ -1508,18 +1558,13 @@ class DivEngine {
       memset(vibTable,0,64*sizeof(short));
       memset(tremTable,0,128*sizeof(short));
       memset(effectSlotMap,-1,4096*sizeof(short));
-      memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
+      memset(sysDefs,0,DIV_SYSTEM_MAX*sizeof(void*));
       memset(romExportDefs,0,DIV_ROM_MAX*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
       memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
       memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(float));
-
-      for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
-        sysFileMapFur[i]=DIV_SYSTEM_NULL;
-        sysFileMapDMF[i]=DIV_SYSTEM_NULL;
-      }
 
       changeSong(0);
     }
