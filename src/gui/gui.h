@@ -85,6 +85,9 @@
 #define CHECK_HIDDEN_SYSTEM(x) \
   (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_PONG || x==DIV_SYSTEM_UPD1771C)
 
+#define CENTER_TEXT(text) \
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
+
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
   GUI_BACKEND_GL3,

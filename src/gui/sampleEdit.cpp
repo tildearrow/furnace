@@ -61,9 +61,6 @@ const char* sampleFixLoopTargets[]={
   _N("GBA DMA Sound")
 };
 
-#define CENTER_TEXT(text) \
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
-
 #define SAMPLE_WARN(_x,_text) \
   if (_x.find(_text)==String::npos) { \
     if (!_x.empty()) _x+='\n'; \

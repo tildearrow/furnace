@@ -974,6 +974,10 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 
 src/gui/plot_nolerp.cpp
 
+src/gui/insEdit/insEditCommon.cpp
+
+src/gui/insEdit/sid3.cpp
+
 src/gui/presets/arcadeSystems.cpp
 src/gui/presets/computers.cpp
 src/gui/presets/defleCompat.cpp
