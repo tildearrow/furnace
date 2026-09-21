@@ -91,7 +91,7 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
     buf[0][h]=out[0];
     buf[1][h]=out[1];
     for (int i=0; i<8; i++) {
-      int next=(3*(chOut[i*2]+chOut[i*2+1]))>>2;
+      int next=(2*(chOut[i*2]+chOut[i*2+1]))>>2;
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
       next=(next*254)/MAX(1,globalVolL+globalVolR);

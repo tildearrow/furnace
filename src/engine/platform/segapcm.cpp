@@ -442,6 +442,12 @@ bool DivPlatformSegaPCM::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
+void DivPlatformSegaPCM::softReset() {
+  for (int i=0; i<16; i++) {
+    rWrite(0x86+(i<<3),3);
+  }
+}
+
 void DivPlatformSegaPCM::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,256);

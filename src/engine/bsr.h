@@ -40,6 +40,15 @@ static inline int bsr32(unsigned int v) {
   }
 }
 
+static inline int bsf32(unsigned int v) {
+  unsigned long idx;
+  if (_BitScanForward(&idx,(unsigned long)v)) {
+    return idx;
+  } else {
+    return -1;
+  }
+}
+
 #elif defined( __GNUC__ )
 
 static inline int bsr(unsigned short v) {
@@ -53,6 +62,14 @@ static inline int bsr(unsigned short v) {
 static inline int bsr32(unsigned int v) {
   if (v) {
     return 32-__builtin_clz(v);
+  } else {
+    return -1;
+  }
+}
+
+static inline int bsf32(unsigned int v) {
+  if (v) {
+    return __builtin_ctz(v);
   } else {
     return -1;
   }
@@ -109,5 +126,41 @@ static inline int bsr32(unsigned int v) {
   return (v&0x80000000) ? o : o-1;
 }
 
+static inline int bsf32(unsigned int v) {
+  int ret=0;
+  if (v==0) return -1;
+  while (!(v&1)) {
+    v>>=1;
+    ret++;
+  }
+  return ret;
+}
+
 #endif
 
+static inline unsigned int gcd2(unsigned int val0, unsigned int val1) {
+  // check whether one of the operands is zero
+  if (val0==0) return val1;
+  if (val1==0) return val0;
+
+  // check how many times can we divide by 2
+  int shift=bsf32(val0|val1);
+
+  // shift the first operand
+  val0>>=bsf32(val0);
+
+  while (val1!=0) {
+    // shift the second operand
+    val1>>=bsf32(val1);
+
+    // swap operands if the first is greater
+    if (val0>val1) {
+      val0^=val1;
+      val1^=val0;
+      val0^=val1;
+    }
+    val1=val1-val0;
+  }
+
+  return val0<<shift;
+}

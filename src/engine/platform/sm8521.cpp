@@ -368,7 +368,7 @@ void DivPlatformSM8521::reset() {
     chan[i].ws.init(NULL,32,15,false);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   sm8521_reset(&sm8521);
   lastOut=0;

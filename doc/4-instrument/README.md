@@ -48,6 +48,7 @@ the following instrument types are available:
 - [Generic Sample](sample.md) for controlling Amiga and other sample channels/chips like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
 - [K007232](k007232.md) - for use with K007232 sample chip.
 - [K053260](k053260.md) - for use with K053260 sample chip.
+- [klattsch](klattsch.md) - for use with klattsch speech synthesizer.
 - [Konami SCC/Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
 - [MSM5232](msm5232.md) - for use with MSM5232 PSG sound source.
 - [MSM6258](msm6258.md) - for use with MSM6258 sample chip.

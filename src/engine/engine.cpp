@@ -225,7 +225,7 @@ double DivEngine::benchmarkPlayback() {
 
   // benchmark
   while (playing) {
-    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE,true);
   }
 
   std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
@@ -2526,6 +2526,13 @@ void DivEngine::getPlayPosTick(int& order, int& row, int& tick, int& speed) {
   playPosLock.unlock();
 }
 
+int DivEngine::getPreviewSpeed() {
+  playPosLock.lock();
+  const int speed=(playing && !freelance)?prevSpeed:curSubSong->speeds.val[0];
+  playPosLock.unlock();
+  return speed;
+}
+
 int DivEngine::getElapsedBars() {
   return elapsedBars;
 }
@@ -3104,6 +3111,9 @@ void DivEngine::delSample(int index) {
   BUSY_BEGIN;
   saveLock.lock();
   delSampleUnsafe(index);
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPitchTable();
+  }
   saveLock.unlock();
   BUSY_END;
 }

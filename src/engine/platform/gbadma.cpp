@@ -418,7 +418,7 @@ DivSamplePos DivPlatformGBADMA::getSamplePos(int ch) {
   return DivSamplePos(
     chan[ch].sample,
     chan[ch].audPos,
-    chipClock/chan[ch].freq
+    chipClock/MAX(1,chan[ch].freq)
   );
 }
 

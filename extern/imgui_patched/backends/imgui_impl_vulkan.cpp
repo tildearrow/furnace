@@ -29,6 +29,7 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2026-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2026-07-15: [Docking] Vulkan: fixed use-after-free when using multi-viewport with dynamic rendering path: deep-copy SurfaceFormat.format into the persistent buffer instead of storing a pointer to the viewport's wd->SurfaceFormat which dangles after the viewport is destroyed. (#9390, #9468)
 //  2026-04-23: Added support for standard draw callbacks (in platform_io): DrawCallback_ResetRenderState, DrawCallback_SetSamplerLinear, DrawCallback_SetSamplerNearest. (#9378)
 //  2026-04-22: *BREAKING CHANGE* redesigned to use separate ImageView + Sampler instead of Combined Image Sampler. This change allows us to facilitate changing samplers, in line with other backends.
 //              - When registering custom textures: changed ImGui_ImplVulkan_AddTexture() signature to remove Sampler.
@@ -566,8 +567,17 @@ static void ImGui_ImplVulkan_SetupRenderState(ImDrawData* draw_data, VkPipeline 
 
 // Draw callbacks
 static void ImGui_ImplVulkan_DrawCallback_ResetRenderState(const ImDrawList*, const ImDrawCmd*)     {} // Intentionally empty. Used as an identifier for rendering loop to call its code. Simpler to implement this way.
-static void ImGui_ImplVulkan_DrawCallback_SetSamplerLinear(const ImDrawList*, const ImDrawCmd*)     { ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData(); vkCmdBindDescriptorSets(bd->RenderState->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 1, 1, &bd->SamplerLinearDS, 0, nullptr); }
-static void ImGui_ImplVulkan_DrawCallback_SetSamplerNearest(const ImDrawList*, const ImDrawCmd*)    { ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData(); vkCmdBindDescriptorSets(bd->RenderState->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->PipelineLayout, 1, 1, &bd->SamplerNearestDS, 0, nullptr); }
+static void ImGui_ImplVulkan_DrawCallback_SetSamplerLinear(const ImDrawList*, const ImDrawCmd*)     { ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData(); vkCmdBindDescriptorSets(bd->RenderState->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->RenderState->PipelineLayout, 1, 1, &bd->SamplerLinearDS, 0, nullptr); }
+static void ImGui_ImplVulkan_DrawCallback_SetSamplerNearest(const ImDrawList*, const ImDrawCmd*)    { ImGui_ImplVulkan_Data* bd = ImGui_ImplVulkan_GetBackendData(); vkCmdBindDescriptorSets(bd->RenderState->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, bd->RenderState->PipelineLayout, 1, 1, &bd->SamplerNearestDS, 0, nullptr); }
+
+// If you want to use your own sampler, you can create your own callback, access ImGui_ImplVulkan_RenderState for command-buffer and pipeline layout, e.g.
+/*
+void ImGui_ImplVulkan_DrawCallback_SetSamplerCustom(const ImDrawList*, const ImDrawCmd* cmd)
+{
+    ImGui_ImplVulkan_RenderState* render_state = (ImGui_ImplVulkan_RenderState*)ImGui::GetPlatformIO().Renderer_RenderState;
+    vkCmdBindDescriptorSets(render_state->CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, render_state->PipelineLayout, 1, 1, (VkDescriptorSet*)cmd->UserCallbackData, 0, nullptr);
+}
+*/
 
 // Render function
 void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer, VkPipeline pipeline)
@@ -2118,7 +2128,9 @@ static void ImGui_ImplVulkan_CreateWindow(ImGuiViewport* viewport)
         {
             pipeline_info->PipelineRenderingCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
             pipeline_info->PipelineRenderingCreateInfo.colorAttachmentCount = 1;
-            pipeline_info->PipelineRenderingCreateInfo.pColorAttachmentFormats = &wd->SurfaceFormat.format;
+            bd->PipelineRenderingCreateInfoColorAttachmentFormats.resize(1);
+            bd->PipelineRenderingCreateInfoColorAttachmentFormats[0] = wd->SurfaceFormat.format;
+            pipeline_info->PipelineRenderingCreateInfo.pColorAttachmentFormats = bd->PipelineRenderingCreateInfoColorAttachmentFormats.Data;
         }
         else
         {

@@ -126,6 +126,10 @@ public:
 	// constructor
 	opm_registers();
 
+	// set variant
+	void set_opp(bool opp) { m_opp = opp; }
+	bool is_opp() const { return m_opp; }
+
 	// reset to initial state
 	void reset();
 
@@ -172,8 +176,8 @@ public:
 	std::string log_keyon(uint32_t choffs, uint32_t opoffs);
 
 	// system-wide registers
-	uint32_t test() const                            { return byte(0x01, 0, 8); }
-	uint32_t lfo_reset() const                       { return byte(0x01, 1, 1); }
+	uint32_t test() const                            { return byte(is_opp() ? 0x09 : 0x01, 0, 8); }
+	uint32_t lfo_reset() const                       { return byte(is_opp() ? 0x09 : 0x01, 1, 1); }
 	uint32_t noise_frequency() const                 { return byte(0x0f, 0, 5); }
 	uint32_t noise_enable() const                    { return byte(0x0f, 7, 1); }
 	uint32_t timer_a_value() const                   { return word(0x10, 0, 8, 0x11, 0, 2); }
@@ -202,11 +206,13 @@ public:
 	uint32_t ch_block_freq(uint32_t choffs) const    { return word(0x28, 0, 7, 0x30, 2, 6, choffs); }
 	uint32_t ch_lfo_pm_sens(uint32_t choffs) const   { return byte(0x38, 4, 3, choffs); }
 	uint32_t ch_lfo_am_sens(uint32_t choffs) const   { return byte(0x38, 0, 2, choffs); }
+	uint32_t ch_ramp_period(uint32_t choffs) const   { return is_opp() ? byte(0x00, 0, 8, choffs) : 0; }
 
 	// per-operator registers
 	uint32_t op_detune(uint32_t opoffs) const        { return byte(0x40, 4, 3, opoffs); }
 	uint32_t op_multiple(uint32_t opoffs) const      { return byte(0x40, 0, 4, opoffs); }
 	uint32_t op_total_level(uint32_t opoffs) const   { return byte(0x60, 0, 7, opoffs); }
+	uint32_t op_tl_ramp(uint32_t opoffs) const       { return is_opp() ? byte(0x60, 7, 1, opoffs) : 0; }
 	uint32_t op_ksr(uint32_t opoffs) const           { return byte(0x80, 6, 2, opoffs); }
 	uint32_t op_attack_rate(uint32_t opoffs) const   { return byte(0x80, 0, 5, opoffs); }
 	uint32_t op_lfo_am_enable(uint32_t opoffs) const { return byte(0xa0, 7, 1, opoffs); }
@@ -236,6 +242,7 @@ protected:
 	uint8_t m_noise_state;                // latched noise state
 	uint8_t m_noise_lfo;                  // latched LFO noise value
 	uint8_t m_lfo_am;                     // current LFO AM value
+	uint8_t m_opp;                        // whether we are an OPP
 	uint8_t m_regdata[REGISTERS];         // register data
 	int16_t m_lfo_waveform[4][LFO_WAVEFORM_LENGTH]; // LFO waveforms; AM in low 8, PM in upper 8
 	uint16_t m_waveform[WAVEFORMS][WAVEFORM_LENGTH]; // waveforms
@@ -255,6 +262,13 @@ public:
 	using fm_engine = fm_engine_base<opm_registers>;
 	using output_data = fm_engine::output_data;
 	static constexpr uint32_t OUTPUTS = fm_engine::OUTPUTS;
+
+	// variants
+	enum opm_variant
+	{
+		VARIANT_YM2151,
+		VARIANT_YM2164
+	};
 
 	// constructor
 	ym2151(ymfm_interface &intf) : ym2151(intf, VARIANT_YM2151) { }
@@ -285,13 +299,6 @@ public:
   fm_engine* debug_engine() { return &m_fm; }
 
 protected:
-	// variants
-	enum opm_variant
-	{
-		VARIANT_YM2151,
-		VARIANT_YM2164
-	};
-
 	// internal constructor
 	ym2151(ymfm_interface &intf, opm_variant variant);
 
@@ -312,6 +319,11 @@ protected:
 // the YM2164 is almost 100% functionally identical to the YM2151, except
 // it apparently has some mystery registers in the 00-07 range, and timer
 // B's frequency is half that of the 2151
+//
+// tildearrow: these mystery registers are part of new TL ramp functionality.
+// these set the TL ramp speed for each channel (TL ramp is a per-op
+// setting enabled using bit 7 of TL).
+// the test register is also moved to $09.
 class ym2164 : public ym2151
 {
 public:
