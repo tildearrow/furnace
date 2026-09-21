@@ -767,10 +767,10 @@ void FurnaceGUI::drawChanOsc() {
               dl->AddCallback(ImDrawCallback_ResetRenderState,NULL);
             } else {
               // ImGui::PushClipRect(inRect.Min,inRect.Max,false);
-              //ImDrawListFlags prevFlags=dl->Flags;
-              //dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
+              // ImDrawListFlags prevFlags=dl->Flags;
+              // dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
               dl->AddPolyline(waveform,precision,color,dpiScale*chanOsc.lineSize,ImDrawFlags_None);
-              //dl->Flags=prevFlags;
+              // dl->Flags=prevFlags;
               // ImGui::PopClipRect();
             }
           }
@@ -820,7 +820,7 @@ void FurnaceGUI::drawChanOsc() {
           ImGui::EndTabItem();
         }
         if (ImGui::BeginTabItem(_("Waveform"))) {
-          if (ImGui::SliderFloat(_("Line Size"),&chanOsc.lineSize,0.25f,16.0f)) {
+          if (ImGui::SliderFloat(_("Line size"),&chanOsc.lineSize,0.25f,16.0f)) {
             if (chanOsc.lineSize<0.25f) chanOsc.lineSize=0.25f;
             if (chanOsc.lineSize>16.0f) chanOsc.lineSize=16.0f;
           } rightClickable
