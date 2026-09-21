@@ -31,6 +31,8 @@ void DivPlatformYM2203Ext::commitStateExt(int ch, DivInstrument* ins) {
     if (ch==0 || fbAllOps) {
       chan[2].state.fb=ins->fm.fb;
     }
+    opChan[ch].block=ins->fm.block;
+    // for compatibility
     chan[extChanOffs].state.block=ins->fm.block;
     chan[2].state.op[ordch]=ins->fm.op[ordch];
   }
@@ -90,7 +92,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
-        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
+        opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,sharedExtBlock?chan[extChanOffs].state.block:opChan[ch].block);
         opChan[ch].portaPause=false;
         opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
@@ -170,7 +172,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         }
         break;
       }
-      PLEASE_HELP_ME(opChan[ch],chan[extChanOffs].state.block);
+      PLEASE_HELP_ME(opChan[ch],sharedExtBlock?chan[extChanOffs].state.block:opChan[ch].block);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -179,7 +181,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         commitStateExt(ch,ins);
         opChan[ch].insChanged=false;
       }
-      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,chan[extChanOffs].state.block);
+      opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11,sharedExtBlock?chan[extChanOffs].state.block:opChan[ch].block);
       opChan[ch].freqChanged=true;
       break;
     }
@@ -454,7 +456,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       opChan[i].handleArp();
     } else if (opChan[i].std.arp.had && !opChan[i].rawFreq) {
       if (!opChan[i].inPorta) {
-        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,chan[extChanOffs].state.block);
+        opChan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(opChan[i].note,opChan[i].std.arp.val),11,sharedExtBlock?chan[extChanOffs].state.block:opChan[i].block);
       }
       opChan[i].freqChanged=true;
     }
@@ -555,7 +557,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
       if (opChan[i].rawFreq) {
         opChan[i].freq=(opChan[i].baseFreq+opChan[i].pitch2)&0x3fff;
       } else if (parent->song.compatFlags.linearPitch) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,chan[extChanOffs].state.block);
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11,sharedExtBlock?chan[extChanOffs].state.block:opChan[i].block);
       } else {
         int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;

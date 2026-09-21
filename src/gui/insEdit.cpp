@@ -49,10 +49,10 @@ const char* ssgEnvTypes[8]={
   _N("Up DOWN")
 };
 
-const char* fmParamNames[3][34]={
-  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp"), _N("Octave"), _N("TL Ramp")},
-  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp"},
-  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp"}
+const char* fmParamNames[3][35]={
+  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp"), _N("Octave"), _N("TL Ramp"), _N("Tremolo Sensitivity")},
+  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp", "Tremolo Sensitivity"},
+  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp", "Tremolo Sensitivity"}
 };
 
 const char* esfmParamLongNames[9]={
@@ -83,10 +83,10 @@ const char* esfmParamShortNames[9]={
   "NOI", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
 };
 
-const char* fmParamShortNames[3][33]={
-  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "SUS", "SUS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "TLR"},
-  {"ALG", "FB", "FMS", "AMS", "A", "D", "SR", "R", "S", "TL", "KS", "ML", "DT", "DT2", "SSG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "TLR"},
-  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "TLR"}
+const char* fmParamShortNames[3][35]={
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "SUS", "SUS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "Blk", "TLR", "TS"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "SR", "R", "S", "TL", "KS", "ML", "DT", "DT2", "SSG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "Blk", "TLR", "TS"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "Blk", "TLR", "TS"}
 };
 
 const char* opllVariants[4]={
@@ -390,7 +390,8 @@ enum FMParams {
   FM_FMS2=30,
   FM_AMS2=31,
   FM_BLOCK=32,
-  FM_TLRAMP=33
+  FM_TLRAMP=33,
+  FM_TS=34
 };
 
 enum ESFMParams {
@@ -898,7 +899,7 @@ void addAALine(ImDrawList* dl, const ImVec2& p1, const ImVec2& p2, const ImU32 c
   ImVec2 pt[2];
   pt[0]=p1;
   pt[1]=p2;
-  dl->AddPolyline(pt,2,color,ImDrawFlags_None,thickness);
+  dl->AddPolyline(pt,2,color,thickness,ImDrawFlags_None);
 }
 
 void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
@@ -1150,7 +1151,7 @@ void FurnaceGUI::drawWaveform(unsigned char type, bool opz, const ImVec2& size) 
           break;
       }
     }
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    dl->AddPolyline(waveform,waveformLen+1,color,dpiScale,ImDrawFlags_None);
   }
 }
 
@@ -1258,7 +1259,7 @@ void FurnaceGUI::drawWaveformSID3(unsigned char type, const ImVec2& size) {
       }
     }
 
-    dl->AddPolyline(waveform,waveformLen+1,color,ImDrawFlags_None,dpiScale);
+    dl->AddPolyline(waveform,waveformLen+1,color,dpiScale,ImDrawFlags_None);
   }
 }
 
@@ -2114,6 +2115,17 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   static float bit30Indicator[256];
   static bool doHighlight[256];
 
+  const auto updateRangeInputs=[&]() {
+    // Update range inputs to match the current instrument, if the instrument has changed.
+    // It's a lambda because it needs to be called later on, or else the values might not have been initialized yet.
+    // FIXME: are there any other cases that may modify these values, other than "current instrument changed"?
+    if (insEditMacroInsChanged) {
+      insEditMacroEnvBottom=i.macro->val[0];
+      insEditMacroEnvTop=i.macro->val[1];
+      insEditMacroInsChanged=false;
+    }
+  };
+
   if ((i.macro->open&6)==0) {
     for (int j=0; j<256; j++) {
       bit30Indicator[j]=0;
@@ -2317,9 +2329,20 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     }
     ImGui::PopStyleVar();
   } else {
+    const auto adjustParam=[](int& value, int oldBot, int oldTop, int newBot, int newTop) {
+      // Warning! It must be true that oldBot<=oldTop and newBot<=newTop.
+      double oldAmp=fabs((double)oldTop-oldBot);
+      double newAmp=fabs((double)newTop-newBot);
+      if (oldAmp<1.0) oldAmp=1.0;
+      double normalized=(double)(value-oldBot)/oldAmp;
+      value=(normalized*newAmp)+newBot;
+      value=CLAMP(value,newBot,newTop); // make sure it's in the range
+    };
+
+    const int actualMax=i.isBitfield?((1<<i.max)-1):i.max;
     if (i.macro->open&2) {
       const bool compact=(availableWidth<300.0f*dpiScale);
-      bool adsrClamp=false;
+      bool adsrAdjust=false; // set to true if the range has been changed, so values can be readjusted
       if (ImGui::BeginTable("MacroADSR",compact?2:4)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
@@ -2329,18 +2352,21 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         }
         //ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.4);
 
+        int oldBot=i.macro->val[0];
+        int oldTop=i.macro->val[1];
+        updateRangeInputs();
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Bottom"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MABottom",&i.macro->val[0],1,16)) { PARAMETER
-          if (i.macro->val[0]<i.min) i.macro->val[0]=i.min;
-          if (i.macro->val[0]>i.max) i.macro->val[0]=i.max;
-
-          // clamp parameters to new range
-          adsrClamp=true;
+        if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
+        if (ImGui::IsItemDeactivated()) { PARAMETER
+          i.macro->val[0]=CLAMP(insEditMacroEnvBottom,i.min,actualMax);
+          insEditMacroEnvTop=i.macro->val[0];
+          adsrAdjust=true;
         }
 
         if (compact) ImGui::TableNextRow();
@@ -2349,41 +2375,30 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MATop",&i.macro->val[1],1,16)) { PARAMETER
-          if (i.macro->val[1]<i.min) i.macro->val[1]=i.min;
-          if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
-
-          // clamp parameters to new range
-          adsrClamp=true;
+        if (ImGui::InputInt("##MATop",&insEditMacroEnvTop,1,16)) {}
+        if (ImGui::IsItemDeactivated()) { PARAMETER
+          i.macro->val[1]=CLAMP(insEditMacroEnvTop,i.min,actualMax);
+          insEditMacroEnvTop=i.macro->val[1];
+          adsrAdjust=true;
         }
+
+        const int oldAdsrBottom=MIN(oldBot,oldTop);
+        const int oldAdsrTop=MAX(oldBot,oldTop);
+        const int oldAdsrRange=abs(oldAdsrTop-oldAdsrBottom);
+        const int oldAdsrParamMax=(oldAdsrRange<<8)|0xff;
 
         const int adsrBottom=MIN(i.macro->val[0],i.macro->val[1]);
         const int adsrTop=MAX(i.macro->val[0],i.macro->val[1]);
         const int adsrRange=abs(adsrTop-adsrBottom);
         const int adsrParamMax=(adsrRange<<8)|0xff;
 
-        // if the range has changed, we must confine all parameters to make
-        // sure they're in range.
-        if (adsrClamp) {
-          // attack
-          if (i.macro->val[2]<0) i.macro->val[2]=0;
-          if (i.macro->val[2]>adsrParamMax) i.macro->val[2]=adsrParamMax;
-
-          // decay
-          if (i.macro->val[4]<0) i.macro->val[4]=0;
-          if (i.macro->val[4]>adsrParamMax) i.macro->val[4]=adsrParamMax;
-
-          // sustain decay
-          if (i.macro->val[7]<0) i.macro->val[7]=0;
-          if (i.macro->val[7]>adsrParamMax) i.macro->val[7]=adsrParamMax;
-
-          // release
-          if (i.macro->val[8]<0) i.macro->val[8]=0;
-          if (i.macro->val[8]>adsrParamMax) i.macro->val[8]=adsrParamMax;
-
-          // sustain level
-          if (i.macro->val[5]<adsrBottom) i.macro->val[5]=adsrBottom;
-          if (i.macro->val[5]>adsrTop) i.macro->val[5]=adsrTop;
+        // if the range has changed, we must adjust all parameters to make sure they're in range.
+        if (adsrAdjust) {
+          adjustParam(i.macro->val[2],0,oldAdsrParamMax,0,adsrParamMax); // attack
+          adjustParam(i.macro->val[4],0,oldAdsrParamMax,0,adsrParamMax); // decay
+          adjustParam(i.macro->val[7],0,oldAdsrParamMax,0,adsrParamMax); // sustain decay
+          adjustParam(i.macro->val[8],0,oldAdsrParamMax,0,adsrParamMax); // release
+          adjustParam(i.macro->val[5],oldAdsrBottom,oldAdsrTop,adsrBottom,adsrTop); // sustain level
         }
 
         ImGui::TableNextRow();
@@ -2549,7 +2564,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::TableNextColumn();
-          
+
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
           ImGui::Text(_("Release"));
@@ -2569,7 +2584,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     }
     if (i.macro->open&4) {
       const bool compact=(availableWidth<300.0f*dpiScale);
-      bool lfoClamp=false;
+      bool lfoAdjust=false; // set to true if the range has been changed, so values can be readjusted
       if (ImGui::BeginTable("MacroLFO",compact?2:4)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
@@ -2578,18 +2593,21 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
         }
 
+        const int oldLfoBottom=i.macro->val[0];
+        const int oldLfoTop=i.macro->val[1];
+        updateRangeInputs();
+
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::AlignTextToFramePadding();
         ImGui::Text(_("Bottom"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MABottom",&i.macro->val[0],1,16)) { PARAMETER
-          if (i.macro->val[0]<i.min) i.macro->val[0]=i.min;
-          if (i.macro->val[0]>i.max) i.macro->val[0]=i.max;
-
-          // clamp parameters to new range
-          lfoClamp=true;
+        if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
+        if (ImGui::IsItemDeactivated()) { PARAMETER
+          i.macro->val[0]=CLAMP(insEditMacroEnvTop,i.min,actualMax);
+          insEditMacroEnvTop=i.macro->val[0];
+          lfoAdjust=true;
         }
 
         if (compact) ImGui::TableNextRow();
@@ -2598,26 +2616,28 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MATop",&i.macro->val[1],1,16)) { PARAMETER
-          if (i.macro->val[1]<i.min) i.macro->val[1]=i.min;
-          if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
-
-          // clamp parameters to new range
-          lfoClamp=true;
+        if (ImGui::InputInt("##MATop",&insEditMacroEnvTop,1,16)) {}
+        if (ImGui::IsItemDeactivated()) { PARAMETER
+          i.macro->val[1]=CLAMP(insEditMacroEnvTop,i.min,actualMax);
+          insEditMacroEnvTop=i.macro->val[1];
+          lfoAdjust=true;
         }
+
+        const auto calcParamMax=[](int bottom, int top, int shape) {
+          int range=abs(top-bottom);
+          return (shape==2)?65536:((range<<8)|0xff);
+        };
+
+        const int oldLfoShape=i.macro->val[12];
+        const int oldLfoParamMax=calcParamMax(oldLfoBottom,oldLfoTop,oldLfoShape);
 
         const int lfoBottom=i.macro->val[0];
         const int lfoTop=i.macro->val[1];
         const int lfoShape=i.macro->val[12];
-        const int lfoRange=abs(lfoTop-lfoBottom);
-        int lfoParamMax=(lfoShape==2)?65536:((lfoRange<<8)|0xff);
+        int lfoParamMax=calcParamMax(lfoBottom,lfoTop,lfoShape);
 
-        // if the range has changed, we must confine all parameters to make
-        // sure they're in range.
-        if (lfoClamp) {
-          // speed
-          if (i.macro->val[11]<0) i.macro->val[11]=0;
-          if (i.macro->val[11]>(lfoParamMax>>1)) i.macro->val[11]=lfoParamMax>>1;
+        if (lfoAdjust) {
+          adjustParam(i.macro->val[11],0,oldLfoParamMax>>1,0,lfoParamMax>>1); // speed
         }
 
         ImGui::TableNextRow();
@@ -2660,18 +2680,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
           if (i.macro->val[12]<0) i.macro->val[12]=0;
           if (i.macro->val[12]>2) i.macro->val[12]=2;
 
-          // we must clamp in case the shape becomes square or not
-          lfoClamp=true;
-          lfoParamMax=(lfoShape==2)?32768:((lfoRange<<8)|0xff);
+          // an adjust is requested here in case the user has changed the LFO shape (square uses an accumulator from 0 to 65535 and disregards the range)
+          lfoAdjust=true;
+          lfoParamMax=calcParamMax(lfoBottom,lfoTop,i.macro->val[12]);
         } rightClickable
 
-        // a second clamp is performed here in case the user has changed the
-        // LFO shape (square uses an accumulator from 0 to 65535 and disregards
-        // the range)
-        if (lfoClamp) {
-          // speed
-          if (i.macro->val[11]<0) i.macro->val[11]=0;
-          if (i.macro->val[11]>(lfoParamMax>>1)) i.macro->val[11]=lfoParamMax>>1;
+        // adjust again with the potential new lfoParamMax
+        if (lfoAdjust) {
+          adjustParam(i.macro->val[11],0,oldLfoParamMax>>1,0,lfoParamMax>>1); // speed
         }
 
         ImGui::EndTable();
@@ -2706,12 +2722,13 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 \
       /* if ADSR/LFO, populate min/max */ \
       if (i.macro->open&6) { \
+        const int actualMax=i.isBitfield?((1<<i.max)-1):i.max; \
         if (i.macro->val[0]==0 && i.macro->val[1]==0) { \
           i.macro->val[0]=i.min; \
-          i.macro->val[1]=i.max; \
+          i.macro->val[1]=actualMax; \
         } \
-        i.macro->val[0]=CLAMP(i.macro->val[0],i.min,i.max); \
-        i.macro->val[1]=CLAMP(i.macro->val[1],i.min,i.max); \
+        i.macro->val[0]=CLAMP(i.macro->val[0],i.min,actualMax); \
+        i.macro->val[1]=CLAMP(i.macro->val[1],i.min,actualMax); \
       } \
     } \
     PARAMETER; \
@@ -2874,6 +2891,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
               if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
                 i.macro->mode=modeVal;
+                i.ins->temp.vZoom[i.macro->macroType]=-1;
+                i.ins->temp.vScroll[i.macro->macroType]=-1;
               }
             }
           }
@@ -2961,6 +2980,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
               ImGui::SameLine();
               if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
                 i.macro->mode=modeVal;
+                i.ins->temp.vZoom[i.macro->macroType]=-1;
+                i.ins->temp.vScroll[i.macro->macroType]=-1;
               }
             }
           }
@@ -3118,6 +3139,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
                 ImGui::SameLine();
                 if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
                   m.macro->mode=modeVal;
+                  m.ins->temp.vZoom[m.macro->macroType]=-1;
+                  m.ins->temp.vScroll[m.macro->macroType]=-1;
                 }
               }
               ImGui::EndTable();
@@ -4138,6 +4161,10 @@ void FurnaceGUI::insTabFMModernHeader(DivInstrument* ins) {
     CENTER_TEXT(FM_SHORT_NAME(FM_REV));
     ImGui::TextUnformatted(FM_SHORT_NAME(FM_REV));
     TOOLTIP_TEXT(FM_NAME(FM_REV));
+    ImGui::TableNextColumn();
+    CENTER_TEXT(FM_SHORT_NAME(FM_TS));
+    ImGui::TextUnformatted(FM_SHORT_NAME(FM_TS));
+    TOOLTIP_TEXT(FM_NAME(FM_TS));
   }
   if (ins->type==DIV_INS_ESFM) {
     ImGui::TableNextColumn();
@@ -4207,7 +4234,40 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
   int opCount=4;
   if (ins->type==DIV_INS_OPLL) opCount=2;
   if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
-  bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM);
+  bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ);
+
+  // this determines which features are hidden from the OPL editor.
+  int oplType=0;
+  for (int i=0; i<e->song.systemLen; i++) {
+    switch (e->song.system[i]) {
+      case DIV_SYSTEM_OPL:
+      case DIV_SYSTEM_OPL_DRUMS:
+      case DIV_SYSTEM_Y8950:
+      case DIV_SYSTEM_Y8950_DRUMS:
+        if (oplType<1) oplType=1;
+        break;
+      case DIV_SYSTEM_OPL2:
+      case DIV_SYSTEM_OPL2_DRUMS:
+        if (oplType<2) oplType=2;
+        break;
+      case DIV_SYSTEM_OPL3:
+      case DIV_SYSTEM_OPL3_DRUMS:
+      case DIV_SYSTEM_OPL4:
+      case DIV_SYSTEM_OPL4_DRUMS:
+      case DIV_SYSTEM_YMU759:
+      case DIV_SYSTEM_ESFM: // to assist in porting
+        if (oplType<3) oplType=3;
+        break;
+      default:
+        break;
+    }
+  }
+  // expose all features if no OPL chips are present
+  if (oplType==0) oplType=3;
+
+  int wsMax=7;
+  if (oplType==2) wsMax=3;
+  if (oplType==1) wsMax=0;
 
   if (ImGui::BeginTabItem("FM")) {
     DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
@@ -4275,11 +4335,19 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
-          P(CWSliderScalar(FM_NAME(FM_FMS2),ImGuiDataType_U8,&ins->fm.fms2,&_ZERO,&_SEVEN)); rightClickable
+          P(ImGui::Checkbox("FMS LFO2##FMS",&ins->fm.fmsLFO));
+          ImGui::SameLine();
+          P(ImGui::Checkbox("AMS LFO2##AMS",&ins->fm.amsLFO));
           ImGui::TableNextColumn();
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
-          P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
+          ImGui::AlignTextToFramePadding();
+          ImGui::TextUnformatted(_("Tremolo"));
+          ImGui::SameLine();
+          if (ImGui::Button(ins->fm.tremLFO?"LFO4###TLFO":"LFO3###TLFO")) {
+            ins->fm.tremLFO=!ins->fm.tremLFO;
+            PARAMETER;
+          }
           ImGui::TableNextColumn();
           if (fmPreviewOn) {
             drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
@@ -4315,8 +4383,15 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
           P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&algMax)); rightClickable
           if (ins->type==DIV_INS_OPL) {
             ImGui::BeginDisabled(ins->fm.opllPreset==16);
-            if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
-              ins->fm.ops=fourOp?4:2;
+            if (fourOp || oplType>=3) {
+              pushWarningColor(oplType<3);
+              if (ImGui::Checkbox("4-op",&fourOp)) { PARAMETER
+                ins->fm.ops=fourOp?4:2;
+              }
+              if (oplType<3 && ImGui::IsItemHovered()) {
+                ImGui::SetTooltip(_("4-op mode is not available in OPL1/2!"));
+              }
+              popWarningColor();
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
@@ -4518,7 +4593,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
       int numCols=15;
       if (ins->type==DIV_INS_OPL ||ins->type==DIV_INS_OPL_DRUMS) numCols=13;
       if (ins->type==DIV_INS_OPLL) numCols=12;
-      if (ins->type==DIV_INS_OPZ) numCols=19;
+      if (ins->type==DIV_INS_OPZ) numCols=20;
       if (ins->type==DIV_INS_ESFM) numCols=19;
       if (ImGui::BeginTable("FMOperators",numCols,ImGuiTableFlags_SizingStretchProp|ImGuiTableFlags_BordersH|ImGuiTableFlags_BordersOuterV)) {
         // configure columns
@@ -4552,6 +4627,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
         if (ins->type==DIV_INS_OPZ) {
           ImGui::TableSetupColumn("c8z0",ImGuiTableColumnFlags_WidthStretch,0.05f); // egs
           ImGui::TableSetupColumn("c8z1",ImGuiTableColumnFlags_WidthStretch,0.05f); // rev
+          ImGui::TableSetupColumn("c8z2",ImGuiTableColumnFlags_WidthStretch,0.05f); // ts
         }
         if (ins->type==DIV_INS_ESFM) {
           ImGui::TableSetupColumn("c8e0",ImGuiTableColumnFlags_WidthStretch,0.05f); // outLvl
@@ -4794,6 +4870,10 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
             CENTER_VSLIDER;
             P(CWVSliderScalar("##REV",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
+
+            ImGui::TableNextColumn();
+            CENTER_VSLIDER;
+            P(CWVSliderScalar("##TS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_THREE)); rightClickable
           }
 
           if (ins->type==DIV_INS_ESFM) {
@@ -4850,12 +4930,15 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               bool egtOn=op.egt;
               bool susOn=op.sus;
               if (egtOn) {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.5));
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*6.0-ImGui::GetStyle().ItemSpacing.y*3.5));
               } else {
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*2.0-ImGui::GetStyle().ItemSpacing.y*1.0));
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*1.0));
               }
               if (ImGui::Checkbox("AM",&amOn)) { PARAMETER
                 op.am=amOn;
+              }
+              if (ImGui::Checkbox(_("TL Ramp##TLRamp"),&ksrOn)) { PARAMETER
+                op.ksr=ksrOn;
               }
               if (ImGui::Checkbox(_("Fixed"),&egtOn)) { PARAMETER
                 op.egt=egtOn;
@@ -5083,12 +5166,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
             ImGui::TableNextColumn();
 
-            drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
+            drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_ESFM && fixedOn)?3.0f:1.0f)));
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-            if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-            }
+            P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
             if (ins->type==DIV_INS_ESFM && fixedOn) {
               if (ImGui::Checkbox(FM_SHORT_NAME(FM_VIB),&vibOn)) { PARAMETER
                 op.vib=vibOn;
@@ -5468,12 +5548,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               case DIV_INS_OPL:
               case DIV_INS_OPL_DRUMS: {
                 // waveform
-                drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-                if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-                }
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5525,12 +5602,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               case DIV_INS_OPZ: {
                 // waveform
-                drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-                if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                  ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-                }
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5588,9 +5662,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               }
               case DIV_INS_ESFM:
                 // waveform
-                drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
+                drawWaveform(op.ws&wsMax,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
+                P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
 
                 // params
                 ImGui::Separator();
@@ -5710,11 +5784,24 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                   op.egt=egtOn;
                 }
 
+                // this chip has too many parameters. I can't think of a better placement for the tremolo setting.
+                float oneTinySlider=(ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x)*0.5f;
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_EGSHIFT));
+                ImGui::SetNextItemWidth(oneTinySlider);
+                snprintf(tempID,1024,"%s: %%d",FM_SHORT_NAME(FM_EGSHIFT));
                 P(CWSliderScalar("##EGShift",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE,tempID)); rightClickable
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("%s",FM_NAME(FM_EGSHIFT));
+                }
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(oneTinySlider);
+                snprintf(tempID,1024,"%s: %%d",FM_SHORT_NAME(FM_TS));
+                P(CWSliderScalar("##TS",ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_THREE,tempID)); rightClickable
+                if (ImGui::IsItemHovered()) {
+                  ImGui::SetTooltip("%s",FM_NAME(FM_TS));
+                }
 
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5800,7 +5887,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
             ImGui::TableNextColumn();
             op.tl&=maxTl;
             float tlSliderWidth=(ins->type==DIV_INS_ESFM)?20.0f*dpiScale:ImGui::GetFrameHeight();
-            float tlSliderHeight=sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f);
+            float tlSliderHeight=sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f);
             float textX_tl=ImGui::GetCursorPosX();
             P(CWVSliderScalar("##TL",ImVec2(tlSliderWidth,tlSliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
 
@@ -5811,6 +5898,14 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               bool amOn=op.am;
               if (ImGui::Checkbox("##AM",&amOn)) { PARAMETER
                 op.am=amOn;
+              }
+            } else if (ins->type==DIV_INS_OPZ) {
+              CENTER_TEXT(FM_SHORT_NAME(FM_TLRAMP));
+              ImGui::TextUnformatted(FM_SHORT_NAME(FM_TLRAMP));
+              TOOLTIP_TEXT(FM_NAME(FM_TLRAMP));
+              bool ksrOn=op.ksr;
+              if (ImGui::Checkbox("##TLRamp",&ksrOn)) { PARAMETER
+                op.ksr=ksrOn;
               }
             }
 
@@ -5967,7 +6062,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
 
           // OPP TL ramp
           bool displayTLRamp=false;
-          if (ins->type==DIV_INS_OPM) {
+          if (ins->type==DIV_INS_OPZ) {
+            displayTLRamp=true;
+          } else if (ins->type==DIV_INS_OPM) {
             displayTLRamp=false;
             for (int i=0; i<e->song.systemLen; i++) {
               if (e->song.system[i]==DIV_SYSTEM_YM2151) {
@@ -6158,6 +6255,16 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               P(CWSliderScalar(FM_NAME(FM_REV),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
               ImGui::TableNextColumn();
               ImGui::Text("%s",FM_NAME(FM_REV));
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar(FM_NAME(FM_TS),ImGuiDataType_U8,&op.ssgEnv,&_ZERO,&_THREE)); rightClickable
+              ImGui::TableNextColumn();
+              ImGui::Text("%s",FM_SHORT_NAME(FM_TS));
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("%s",FM_NAME(FM_TS));
+              }
             }
 
             if (ins->type==DIV_INS_OPZ) {
@@ -6305,10 +6412,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&_SEVEN,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&7]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&7]:oplWaveforms[op.ws&7]))); rightClickable
-              if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
-                ImGui::SetTooltip(_("OPL2/3/4 only (last 4 waveforms are OPL3/4 only)"));
-              }
+              P(CWSliderScalar("##WS",ImGuiDataType_U8,&op.ws,&_ZERO,&wsMax,(ins->type==DIV_INS_OPZ)?opzWaveforms[op.ws&wsMax]:(settings.oplStandardWaveNames?oplWaveformsStandard[op.ws&wsMax]:oplWaveforms[op.ws&wsMax]))); rightClickable
               ImGui::TableNextColumn();
               ImGui::Text("%s",FM_NAME(FM_WS));
             }
@@ -6391,7 +6495,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
   }
 }
 
-void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
+void FurnaceGUI::insEditSID3(DivInstrument* ins) {
   char buffer[100];
   char buffer2[100];
 
@@ -6844,30 +6948,38 @@ void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
 }
 
 void FurnaceGUI::drawInsEdit() {
+  // acknowledge a window request
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
+  // don't draw the window if not open
   if (!insEditOpen) return;
+  // fixed position on mobile
   if (mobileUI) {
     patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
     patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   } else {
+    // give this wjndow a minimum size
     ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Instrument Editor"))) {
     DivInstrument* ins=NULL;
+    // check whether we can actually display the editor
     if (curIns==-2) {
+      // ins preview (from file picker)
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT(_("waiting..."));
       ImGui::Text(_("waiting..."));
     } else if (curIns<0 || curIns>=(int)e->song.ins.size()) {
+      // no instrument selected
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*(e->song.ins.empty()?2.0f:3.0f)+ImGui::GetStyle().ItemSpacing.y)*0.5f);
       CENTER_TEXT(_("no instrument selected"));
       ImGui::Text(_("no instrument selected"));
+      // a table is used to center the three or so buttons that are displayed
       if (ImGui::BeginTable("noAssetCenter",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
@@ -6877,6 +6989,7 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
 
+        // if the song has instruments, prompt the user to select one
         if (e->song.ins.size()>0) {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##InsSelect",_("select one..."))) {
@@ -6896,6 +7009,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::TextUnformatted(_("or"));
           ImGui::SameLine();
         }
+        // open/create
         if (ImGui::Button(_("Open"))) {
           doAction(GUI_ACTION_INS_LIST_OPEN);
         }
@@ -6910,11 +7024,16 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::EndTable();
       }
     } else {
+      // this is where the actual instrument editor resides...
       ins=e->song.ins[curIns];
+
+      // reset FM preview if needed
       if (updateFMPreview) {
         renderFMPreview(ins);
         updateFMPreview=false;
       }
+
+      // "colorize instrument editor" setting
       if (settings.insEditColorize) {
         if (ins->type>=DIV_INS_MAX) {
           pushAccentColors(uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],uiColors[GUI_COLOR_INSTR_UNKNOWN],ImVec4(0.0f,0.0f,0.0f,0.0f));
@@ -6922,12 +7041,16 @@ void FurnaceGUI::drawInsEdit() {
           pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
         }
       }
+
+      // HEADER - instrument name, type, index and load/save buttons
       if (ImGui::BeginTable("InsProp",3)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
         ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+
+        // instrument selector (index)
         String insIndex=fmt::sprintf("%.2X",curIns);
         ImGui::SetNextItemWidth(72.0f*dpiScale);
         if (ImGui::BeginCombo("##InsSelect",insIndex.c_str())) {
@@ -6944,6 +7067,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndCombo();
         }
 
+        // instrument name
         ImGui::TableNextColumn();
         ImGui::Text(_("Name"));
 
@@ -6955,6 +7079,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         ImGui::PopID();
 
+        // load/save buttons
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##IELoad")) {
@@ -6968,7 +7093,7 @@ void FurnaceGUI::drawInsEdit() {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("Save"));
+          ImGui::SetTooltip(_("Save (right click for options)"));
         }
         if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
           if (ImGui::MenuItem(_("save as .dmp..."))) {
@@ -6977,12 +7102,14 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndPopup();
         }
 
+        // instrument type
         ImGui::TableNextColumn();
         ImGui::Text(_("Type"));
 
         ImGui::TableNextColumn();
         int insType=ins->type;
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        // check whether the instrument type is supported by the currently present chips
         bool warnType=true;
         for (DivInstrumentType i: e->getPossibleInsTypes()) {
           if (i==insType) {
@@ -6990,8 +7117,10 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
 
+        // if not, use warning colors
         pushWarningColor(warnType,warnType && failedNoteOn);
         if (ImGui::BeginCombo("##Type",(insType>=DIV_INS_MAX)?_("Unknown"):_(insTypes[insType][0]))) {
+          // confine options to possible ins types unless the setting to display all instrument types is enabled
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i][0]; i++) {
@@ -7000,6 +7129,7 @@ void FurnaceGUI::drawInsEdit() {
           } else {
             insTypeList=e->getPossibleInsTypes();
           }
+          // display options
           for (DivInstrumentType i: insTypeList) {
             if (ImGui::Selectable(insTypes[i][0],insType==i)) {
               ins->type=i;
@@ -7011,6 +7141,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndCombo();
         } else if (warnType) {
+          // provide a warning when hovered
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(_("none of the currently present chips are able to play this instrument type!"));
           }
@@ -7020,9 +7151,73 @@ void FurnaceGUI::drawInsEdit() {
         ImGui::EndTable();
       }
       
-
+      // EDITING AREA
+      // I am in the process of moving these code blocks around for cleanliness.
       if (ImGui::BeginTabBar("insEditTab")) {
+        // TODO: ins edit refactor
+        switch (ins->type) {
+          default:
+            break;
+        }
         std::vector<FurnaceGUIMacroDesc> macroList;
+
+        if (ins->type==DIV_INS_KLATTSCH) if (ImGui::BeginTabItem("klattsch")) {
+          ImGui::TextWrapped(_("These defaults shape the phoneme-bank voice. Pattern effects override them; reset values return to this profile."));
+          ImGui::Separator();
+
+          P(CWSliderScalar(_("Transition time (ticks)"),ImGuiDataType_U8,&ins->klattsch.transition,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+
+          String valueText=(ins->klattsch.voicing==0xff)?_("bank value"):fmt::sprintf("%.3f",(float)ins->klattsch.voicing/255.0f);
+          P(CWSliderScalar(_("Voicing"),ImGuiDataType_U8,&ins->klattsch.voicing,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          valueText=(ins->klattsch.aspiration==0xff)?_("bank value"):fmt::sprintf("%.3f",(float)ins->klattsch.aspiration/255.0f);
+          P(CWSliderScalar(_("Aspiration"),ImGuiDataType_U8,&ins->klattsch.aspiration,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          if (ins->klattsch.tilt==0xff) {
+            valueText=_("bank value");
+          } else {
+            int tilt=(ins->klattsch.tilt<0x80)?ins->klattsch.tilt:(ins->klattsch.tilt-0x100);
+            valueText=fmt::sprintf("%d",tilt);
+          }
+          P(CWSliderScalar(_("Spectral tilt"),ImGuiDataType_U8,&ins->klattsch.tilt,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          valueText=(ins->klattsch.effort==0xff)?_("bank value"):fmt::sprintf("%.3f",(float)ins->klattsch.effort/255.0f);
+          P(CWSliderScalar(_("Glottal effort"),ImGuiDataType_U8,&ins->klattsch.effort,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          valueText=(ins->klattsch.gain==0)?_("bank value"):fmt::sprintf("%.3f",(float)ins->klattsch.gain/16.0f);
+          P(CWSliderScalar(_("Gain"),ImGuiDataType_U8,&ins->klattsch.gain,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          valueText=(ins->klattsch.bandwidth==0)?_("neutral"):fmt::sprintf("%.3f",(float)ins->klattsch.bandwidth/64.0f);
+          P(CWSliderScalar(_("Formant bandwidth scale"),ImGuiDataType_U8,&ins->klattsch.bandwidth,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          valueText=(ins->klattsch.formantShift==0)?_("neutral"):fmt::sprintf("%.3f",(float)ins->klattsch.formantShift/64.0f);
+          P(CWSliderScalar(_("Formant shift"),ImGuiDataType_U8,&ins->klattsch.formantShift,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE,valueText.c_str())); rightClickable
+
+          ImGui::SeparatorText(_("Modulation defaults"));
+          int vibRate=(ins->klattsch.vibrato>>4)&15;
+          int vibDepth=ins->klattsch.vibrato&15;
+          if (CWSliderInt(_("Vibrato rate (Hz)"),&vibRate,0,15)) {
+            ins->klattsch.vibrato=(vibRate<<4)|vibDepth;
+            PARAMETER
+          }
+          if (CWSliderInt(_("Vibrato depth (4 Hz steps)"),&vibDepth,0,15)) {
+            ins->klattsch.vibrato=(vibRate<<4)|vibDepth;
+            PARAMETER
+          }
+
+          int tremRate=(ins->klattsch.tremolo>>4)&15;
+          int tremDepth=ins->klattsch.tremolo&15;
+          if (CWSliderInt(_("Tremolo rate (Hz)"),&tremRate,0,15)) {
+            ins->klattsch.tremolo=(tremRate<<4)|tremDepth;
+            PARAMETER
+          }
+          if (CWSliderInt(_("Tremolo depth"),&tremDepth,0,15)) {
+            ins->klattsch.tremolo=(tremRate<<4)|tremDepth;
+            PARAMETER
+          }
+
+          ImGui::EndTabItem();
+        }
 
         if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM || ins->type==DIV_INS_ESFM) {
           char label[32];
@@ -7066,9 +7261,10 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO Speed"),&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO Shape"),&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
               }
-              if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+              if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
                 macroList.push_back(FurnaceGUIMacroDesc(_("OpMask"),&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
-              } else if (ins->type==DIV_INS_OPZ) {
+              }
+              if (ins->type==DIV_INS_OPZ) {
                 macroList.push_back(FurnaceGUIMacroDesc(_("AM Depth 2"),&ins->std.ex5Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("PM Depth 2"),&ins->std.ex6Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("LFO2 Speed"),&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -7835,7 +8031,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_SID3) {
-          drawInsSID3(ins);
+          insEditSID3(ins);
         }
         if (ins->type==DIV_INS_MSM6258 ||
             ins->type==DIV_INS_MSM6295 ||
@@ -8335,6 +8531,18 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
               macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
               macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+              break;
+            case DIV_INS_KLATTSCH:
+              macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,255,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Voicing"),&ins->std.ex1Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Aspiration"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Spectral Tilt"),&ins->std.ex3Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Glottal Effort"),&ins->std.ex4Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc(_("Formant Shift"),&ins->std.ex5Macro,1,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
               break;
             case DIV_INS_FM:
               macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));

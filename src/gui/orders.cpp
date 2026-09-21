@@ -100,7 +100,7 @@ void FurnaceGUI::drawMobileOrderSel() {
       ImVec2 textSize=ImGui::CalcTextSize(info.c_str());
 
       dl->AddRectFilled(ImVec2(11.0f*dpiScale,(size.y*0.5)-(5.0f*dpiScale)),ImVec2((21.0f*dpiScale)+textSize.x,(size.y*0.5)+textSize.y+(5.0f*dpiScale)),ImGui::GetColorU32(ImGuiCol_WindowBg));
-      dl->AddRect(ImVec2(11.0f*dpiScale,(size.y*0.5)-(5.0f*dpiScale)),ImVec2((21.0f*dpiScale)+textSize.x,(size.y*0.5)+textSize.y+(5.0f*dpiScale)),ImGui::GetColorU32(ImGuiCol_Border),0,0,dpiScale);
+      dl->AddRect(ImVec2(11.0f*dpiScale,(size.y*0.5)-(5.0f*dpiScale)),ImVec2((21.0f*dpiScale)+textSize.x,(size.y*0.5)+textSize.y+(5.0f*dpiScale)),ImGui::GetColorU32(ImGuiCol_Border),0,dpiScale);
       dl->AddText(ImVec2(16.0f*dpiScale,(size.y)*0.5),ImGui::GetColorU32(ImGuiCol_Text),info.c_str());
     }
   }

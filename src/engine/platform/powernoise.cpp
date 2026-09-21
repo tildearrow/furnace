@@ -493,7 +493,7 @@ void DivPlatformPowerNoise::reset() {
   chWrite(3,0x04,chan[3].slopeB.len);
   chWrite(3,0x05,(chan[3].slopeA.offset<<4)|chan[3].slopeB.offset);
 
-  addWrite(0xffffffff,0);
+  softReset();
 }
 
 int DivPlatformPowerNoise::getOutputCount() {

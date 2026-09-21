@@ -138,6 +138,10 @@ const int vgmVersions[7]={
   0x172
 };
 
+const int midiQuantizeValues[12]={
+  4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192
+};
+
 // name, icon, letter icon
 const char* insTypes[DIV_INS_MAX+1][3]={
   {"SN76489/Sega PSG",ICON_FA_BAR_CHART,ICON_FUR_INS_STD},
@@ -207,6 +211,7 @@ const char* insTypes[DIV_INS_MAX+1][3]={
   {"Watara Supervision",ICON_FA_GAMEPAD,ICON_FUR_INS_SUPERVISION},
   {"NEC μPD1771C",ICON_FA_BAR_CHART,ICON_FUR_INS_UPD1771C},
   {"SID3",ICON_FA_KEYBOARD_O,ICON_FUR_INS_SID3},
+  {"klattsch",ICON_FA_MICROPHONE,ICON_FUR_INS_KLATTSCH},
   {NULL,ICON_FA_QUESTION,ICON_FA_QUESTION}
 };
 
@@ -839,11 +844,13 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_INSERT", _N("Sample editor: Insert silence"), SDLK_INSERT),
   D("SAMPLE_DELETE", _N("Sample editor: Delete"), SDLK_DELETE),
   D("SAMPLE_TRIM", _N("Sample editor: Trim"), FURKMOD_CMD|SDLK_DELETE),
+  D("SAMPLE_TRIM_SIDE_NOISE", _N("Sample editor: Trim Side-Noise"), 0),
   D("SAMPLE_REVERSE", _N("Sample editor: Reverse"), FURKMOD_CMD|SDLK_t),
   D("SAMPLE_INVERT", _N("Sample editor: Invert"), FURKMOD_CMD|FURKMOD_SHIFT|SDLK_t),
   D("SAMPLE_SIGN", _N("Sample editor: Signed/unsigned exchange"), FURKMOD_CMD|SDLK_u),
   D("SAMPLE_FILTER", _N("Sample editor: Apply filter"), FURKMOD_CMD|SDLK_f),
   D("SAMPLE_CROSSFADE_LOOP", _N("Sample editor: Crossfade loop points"), NOT_AN_ACTION),
+  D("SAMPLE_FIX_LOOP", _N("Sample editor: Tune loop points"), NOT_AN_ACTION),
   D("SAMPLE_PREVIEW", _N("Sample editor: Preview sample"), 0),
   D("SAMPLE_STOP_PREVIEW", _N("Sample editor: Stop sample preview"), 0),
   D("SAMPLE_ZOOM_IN", _N("Sample editor: Zoom in"), FURKMOD_CMD|SDLK_EQUALS),
@@ -855,6 +862,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_COPY_NEW", _N("Sample editor: Copy selection to new sample"), 0),
   D("SAMPLE_TRIM_AFTER_LOOP", _N("Sample editor: Trim to the end of the loop"), 0),
   D("SAMPLE_TRIM_TO_LOOP", _N("Sample editor: Trim around loop points"), 0),
+  D("SAMPLE_SELECT_LOOP", _N("Sample editor: Select loop region"), 0),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", _N("---Orders"), NOT_AN_ACTION),
@@ -939,6 +947,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_SLIDER_GRAB_ACTIVE,_N("Slider grab (active)"),ImVec4(0.06f,0.53f,0.98f,1.0f)),
   D(GUI_COLOR_TITLE_BACKGROUND_ACTIVE,_N("Title background (active)"),ImVec4(0.085f,0.216f,0.343f,1.0f)),
   D(GUI_COLOR_CHECK_MARK,_N("Checkbox/radio button mark"),ImVec4(0.06f,0.53f,0.98f,1.0f)),
+  D(GUI_COLOR_CHECKBOX_BACKGROUND_ACTIVE,_N("Checkbox background (selected)"),ImVec4(0.1363f,0.25805f,0.40425f,1.0f)), // extern/imgui_patched/imgui_draw.cpp:211
   D(GUI_COLOR_TEXT_SELECTION,_N("Text selection"),ImVec4(0.165f,0.313f,0.49f,1.0f)),
   D(GUI_COLOR_TABLE_ROW_EVEN,_N("Table row (even)"),ImVec4(0.0f,0.0f,0.0f,0.0f)),
   D(GUI_COLOR_TABLE_ROW_ODD,_N("Table row (odd)"),ImVec4(1.0f,1.0f,1.0f,0.06f)),
@@ -1109,6 +1118,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_SUPERVISION,_N("Supervision"),ImVec4(0.52f,1.0f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_UPD1771C,_N("μPD1771C"),ImVec4(0.94f,0.52f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_SID3,_N("SID3"),ImVec4(0.6f,0.75f,0.6f,1.0f)),
+  D(GUI_COLOR_INSTR_KLATTSCH,_N("klattsch"),ImVec4(1.0f,0.415f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,_N("Other/Unknown"),ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,_N("Single color (background)"),ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1129,6 +1139,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_SELECTION,_N("Selection"),ImVec4(0.15f,0.15f,0.2f,1.0f)),
   D(GUI_COLOR_PATTERN_SELECTION_HOVER,_N("Selection (hovered)"),ImVec4(0.2f,0.2f,0.3f,1.0f)),
   D(GUI_COLOR_PATTERN_SELECTION_ACTIVE,_N("Selection (clicked)"),ImVec4(0.4f,0.4f,0.5f,1.0f)),
+  D(GUI_COLOR_PATTERN_CURSOR_POS_INDICATOR,_N("Cursor out-of-view indicator"),ImVec4(0.4f,0.8f,1.0f,0.8f)),
   D(GUI_COLOR_PATTERN_HI_1,_N("Highlight 1"),ImVec4(0.6f,0.6f,0.6f,0.2f)),
   D(GUI_COLOR_PATTERN_HI_2,_N("Highlight 2"),ImVec4(0.5f,0.8f,1.0f,0.2f)),
   D(GUI_COLOR_PATTERN_ROW_INDEX,_N("Row number"),ImVec4(0.5f,0.8f,1.0f,1.0f)),
@@ -1374,6 +1385,7 @@ const int availableSystems[]={
   DIV_SYSTEM_UPD1771C,
   DIV_SYSTEM_SID3,
   DIV_SYSTEM_MULTIPCM,
+  DIV_SYSTEM_KLATTSCH,
   0 // don't remove this last one!
 };
 
@@ -1478,6 +1490,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_SUPERVISION,
   DIV_SYSTEM_UPD1771C,
   DIV_SYSTEM_SID3,
+  DIV_SYSTEM_KLATTSCH,
   0 // don't remove this last one!
 };
 
@@ -1526,4 +1539,10 @@ const char* chipCategoryNames[]={
   _N("Special"),
   _N("Sample"),
   NULL
+};
+
+const char* triggerStates[3]={
+  _N("trigger: off"),
+  _N("trigger: rising edge"),
+  _N("trigger: falling edge")
 };

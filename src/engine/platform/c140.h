@@ -95,6 +95,7 @@ class DivPlatformC140: public DivDispatch {
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
     float getPostAmp();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

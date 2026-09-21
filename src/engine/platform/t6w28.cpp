@@ -326,6 +326,13 @@ int DivPlatformT6W28::getRegisterPoolSize() {
   return 112;
 }
 
+void DivPlatformT6W28::softReset() {
+  for (int i=0; i<4; i++) {
+    rWrite(1,0x90|(i<<5)|15);
+    rWrite(0,0x90|(i<<5)|15);
+  }
+}
+
 void DivPlatformT6W28::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
@@ -339,7 +346,7 @@ void DivPlatformT6W28::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   t6w->reset();
   lastPan=0xff;

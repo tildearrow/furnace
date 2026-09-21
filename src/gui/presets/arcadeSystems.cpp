@@ -758,25 +758,40 @@ void initSystemPresetsArcadeSystems(std::vector<FurnaceGUISysCategory>& sysCateg
     SUB_ENTRY(
       _("Sega Hang-On"), {
         CH(DIV_SYSTEM_YM2203, 1.0f, 0, "clockSel=2"), // 4MHz
-        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0,
+          "memSize=1\n"
+          "isDiscrete=true"
+        ) // discrete logics, 62.5KHz output rate
       }
     );
     SUB_ENTRY(
       _("Sega Hang-On (extended channel 3)"), {
         CH(DIV_SYSTEM_YM2203_EXT, 1.0f, 0, "clockSel=2"), // 4MHz
-        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0,
+          "memSize=1\n"
+          "isDiscrete=true"
+        ) // discrete logics, 62.5KHz output rate
       }
     );
     SUB_ENTRY(
       _("Sega Hang-On (CSM)"), {
         CH(DIV_SYSTEM_YM2203_CSM, 1.0f, 0, "clockSel=2"), // 4MHz
-        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // discrete logics, 62.5KHz output rate
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0,
+          "memSize=1\n"
+          "isDiscrete=true"
+        ) // discrete logics, 62.5KHz output rate
       }
     );
     SUB_ENTRY(
       _("Sega OutRun/X Board"), {
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
-        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "") // ASIC, 31.25KHz output rate
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "memSize=1") // ASIC, 31.25KHz output rate
+      }
+    );
+    SUB_ENTRY(
+      _("Sega Y Board"), {
+        CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // actaully 4.027MHz
+        CH(DIV_SYSTEM_SEGAPCM, 1.0f, 0, "clockSel=1") // ASIC, 31.46KHz output rate
       }
     );
     SUB_ENTRY(

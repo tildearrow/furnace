@@ -137,6 +137,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

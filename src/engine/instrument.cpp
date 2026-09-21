@@ -579,11 +579,12 @@ bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
     _C(fb) &&
     _C(fms) &&
     _C(ams) &&
-    _C(fms2) &&
-    _C(ams2) &&
     _C(ops) &&
     _C(opllPreset) &&
     _C(block) &&
+    _C(fmsLFO) &&
+    _C(amsLFO) &&
+    _C(tremLFO) &&
     _C(fixedDrums) &&
     _C(kickFreq) &&
     _C(snareHatFreq) &&
@@ -877,6 +878,21 @@ bool DivInstrumentSID2::operator==(const DivInstrumentSID2& other) {
   );
 }
 
+bool DivInstrumentKlattsch::operator==(const DivInstrumentKlattsch& other) {
+  return (
+    _C(transition) &&
+    _C(voicing) &&
+    _C(aspiration) &&
+    _C(tilt) &&
+    _C(effort) &&
+    _C(vibrato) &&
+    _C(tremolo) &&
+    _C(gain) &&
+    _C(bandwidth) &&
+    _C(formantShift)
+  );
+}
+
 #undef _C
 
 #define CONSIDER(x,t) \
@@ -982,8 +998,8 @@ void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
 
   // base data
   w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
-  w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
-  w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+  w->writeC((fm.tremLFO?0x20:0)|((fm.ams&3)<<3)|(fm.fms&7));
+  w->writeC((fm.fmsLFO?0x80:0)|(fm.amsLFO?0x40:0)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
   w->writeC(fm.block&15);
 
   // operator data
@@ -1713,6 +1729,23 @@ void DivInstrument::writeFeatureS3(SafeWriter* w) {
   FEATURE_END;
 }
 
+void DivInstrument::writeFeatureKT(SafeWriter* w) {
+  FEATURE_BEGIN("KT");
+
+  w->writeC(klattsch.transition);
+  w->writeC(klattsch.voicing);
+  w->writeC(klattsch.aspiration);
+  w->writeC(klattsch.tilt);
+  w->writeC(klattsch.effort);
+  w->writeC(klattsch.vibrato);
+  w->writeC(klattsch.tremolo);
+  w->writeC(klattsch.gain);
+  w->writeC(klattsch.bandwidth);
+  w->writeC(klattsch.formantShift);
+
+  FEATURE_END;
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bool insName) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
@@ -1760,6 +1793,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   bool featurePN=false;
   bool featureS2=false;
   bool featureS3=false;
+  bool featureKT=false;
 
   bool checkForWL=false;
 
@@ -2010,6 +2044,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
         if (amiga.useSample) featureSL=true;
         if (ws.enabled) featureWS=true;
         break;
+      case DIV_INS_KLATTSCH:
+        featureKT=true;
+        break;
       case DIV_INS_SUPERVISION:
         featureSM=true;
         if (amiga.useSample) featureSL=true;
@@ -2074,6 +2111,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
     }
     if (sid3!=defaultIns.sid3) {
       featureS3=true;
+    }
+    if (klattsch!=defaultIns.klattsch) {
+      featureKT=true;
     }
   }
 
@@ -2231,6 +2271,9 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song, bo
   if (featureS3) {
     writeFeatureS3(w);
   }
+  if (featureKT) {
+    writeFeatureKT(w);
+  }
 
   if (fui && (featureSL || featureWL)) {
     w->write("EN",2);
@@ -2318,14 +2361,30 @@ void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   fm.fb=next&7;
 
   next=reader.readC();
-  fm.fms2=(next>>5)&7;
+  unsigned char fms2=(next>>5)&7;
   fm.ams=(next>>3)&3;
   fm.fms=next&7;
 
   next=reader.readC();
-  fm.ams2=(next>>6)&3;
+  unsigned char ams2=(next>>6)&3;
   fm.ops=(next&32)?4:2;
   fm.opllPreset=next&31;
+
+  if (version>=251) {
+    fm.tremLFO=fms2&1;
+    fm.fmsLFO=ams2&2;
+    fm.amsLFO=ams2&1;
+  } else {
+    // attempt to convert by selecting the greatest sensitivity
+    if (fms2>fm.fms) {
+      fm.fms=fms2;
+      fm.fmsLFO=true;
+    }
+    if (ams2>fm.ams) {
+      fm.ams=ams2;
+      fm.amsLFO=true;
+    }
+  }
 
   if (version>=224) {
     next=reader.readC();
@@ -3326,6 +3385,23 @@ void DivInstrument::readFeatureS3(SafeReader& reader, short version) {
   READ_FEAT_END;
 }
 
+void DivInstrument::readFeatureKT(SafeReader& reader, short version) {
+  READ_FEAT_BEGIN;
+
+  if (reader.tell()<endOfFeat) klattsch.transition=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.voicing=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.aspiration=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.tilt=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.effort=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.vibrato=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.tremolo=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.gain=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.bandwidth=reader.readC();
+  if (reader.tell()<endOfFeat) klattsch.formantShift=reader.readC();
+
+  READ_FEAT_END;
+}
+
 DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
   unsigned char featCode[2];
   bool volIsCutoff=false;
@@ -3406,6 +3482,8 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
       readFeatureS2(reader,version);
     } else if (memcmp(featCode,"S3",2)==0) { // SID3
       readFeatureS3(reader,version);
+    } else if (memcmp(featCode,"KT",2)==0) { // Klattsch
+      readFeatureKT(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0) || (memcmp(featCode,"LS",2)==0) || (memcmp(featCode,"LW",2)==0))) {
         // nothing
@@ -3955,8 +4033,17 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
 
   // OPZ
   if (version>=77) {
-    fm.fms2=reader.readC();
-    fm.ams2=reader.readC();
+    unsigned char fms2=reader.readC();
+    unsigned char ams2=reader.readC();
+    // attempt to convert by selecting the greatest sensitivity
+    if (fms2>fm.fms) {
+      fm.fms=fms2;
+      fm.fmsLFO=true;
+    }
+    if (ams2>fm.ams) {
+      fm.ams=ams2;
+      fm.amsLFO=true;
+    }
   }
 
   // wave synth

@@ -67,6 +67,7 @@ class DivPlatformT6W28: public DivDispatch {
     int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

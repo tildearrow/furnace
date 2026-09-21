@@ -144,6 +144,7 @@ class DivPlatformPCE: public DivDispatch {
     float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

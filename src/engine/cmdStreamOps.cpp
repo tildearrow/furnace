@@ -164,8 +164,19 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_FM_ALG:
     case DIV_CMD_FM_FMS:
     case DIV_CMD_FM_AMS:
-    case DIV_CMD_FM_FMS2:
-    case DIV_CMD_FM_AMS2:
+    case DIV_CMD_FM_LFO3:
+    case DIV_CMD_FM_LFO4:
+    case DIV_CMD_KLATTSCH_PHONEME:
+    case DIV_CMD_KLATTSCH_TRANSITION:
+    case DIV_CMD_KLATTSCH_VOICING:
+    case DIV_CMD_KLATTSCH_ASPIRATION:
+    case DIV_CMD_KLATTSCH_TILT:
+    case DIV_CMD_KLATTSCH_EFFORT:
+    case DIV_CMD_KLATTSCH_VIBRATO:
+    case DIV_CMD_KLATTSCH_TREMOLO:
+    case DIV_CMD_KLATTSCH_GAIN:
+    case DIV_CMD_KLATTSCH_BW_SCALE:
+    case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
       return 1;
     case DIV_CMD_FM_TL:
     case DIV_CMD_FM_AM:
@@ -213,6 +224,9 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_C64_CUTOFF_SLIDE:
     case DIV_CMD_N163_WAVE_POSITION:
     case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_KLATTSCH_FORMANT:
+    case DIV_CMD_KLATTSCH_AMP:
+    case DIV_CMD_TEST_REG:
       return 2;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
@@ -585,8 +599,19 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_FM_ALG:
     case DIV_CMD_FM_FMS:
     case DIV_CMD_FM_AMS:
-    case DIV_CMD_FM_FMS2:
-    case DIV_CMD_FM_AMS2:
+    case DIV_CMD_FM_LFO3:
+    case DIV_CMD_FM_LFO4:
+    case DIV_CMD_KLATTSCH_PHONEME:
+    case DIV_CMD_KLATTSCH_TRANSITION:
+    case DIV_CMD_KLATTSCH_VOICING:
+    case DIV_CMD_KLATTSCH_ASPIRATION:
+    case DIV_CMD_KLATTSCH_TILT:
+    case DIV_CMD_KLATTSCH_EFFORT:
+    case DIV_CMD_KLATTSCH_VIBRATO:
+    case DIV_CMD_KLATTSCH_TREMOLO:
+    case DIV_CMD_KLATTSCH_GAIN:
+    case DIV_CMD_KLATTSCH_BW_SCALE:
+    case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
       w->writeC(c.value);
       break;
     case DIV_CMD_FM_TL:
@@ -635,6 +660,9 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_C64_CUTOFF_SLIDE:
     case DIV_CMD_N163_WAVE_POSITION:
     case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_KLATTSCH_FORMANT:
+    case DIV_CMD_KLATTSCH_AMP:
+    case DIV_CMD_TEST_REG:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;

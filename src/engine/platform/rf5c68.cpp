@@ -343,6 +343,11 @@ DivDispatchOscBuffer* DivPlatformRF5C68::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformRF5C68::softReset() {
+  rWrite(7,0);
+  rWrite(8,0xff);
+}
+
 void DivPlatformRF5C68::reset() {
   memset(regPool,0,144);
   rf5c68.device_reset();

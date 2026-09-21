@@ -170,3 +170,58 @@ FurnaceGUIImage* FurnaceGUI::getImage(FurnaceGUIImages image) {
 
   return ret;
 }
+
+void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
+  FurnaceGUIImage* imgI=getImage(image);
+  FurnaceGUITexture* img=getTexture(image);
+
+  if (img==NULL) return;
+
+  float squareSize=MAX(introMax.x-introMin.x,introMax.y-introMin.y);
+  float uDiff=uvMax.x-uvMin.x;
+  float vDiff=uvMax.y-uvMin.y;
+
+  ImVec2 rectMin=ImVec2(
+    -imgI->width*0.5*scale.x*(squareSize/2048.0)*uDiff,
+    -imgI->height*0.5*scale.y*(squareSize/2048.0)*vDiff
+  );
+  ImVec2 rectMax=ImVec2(
+    -rectMin.x,
+    -rectMin.y
+  );
+
+  ImVec2 posAbs=ImLerp(
+    ImVec2(introMin.x+((introMax.x-introMin.x)-squareSize)*0.5,introMin.y+((introMax.y-introMin.y)-squareSize)*0.5),
+    ImVec2(introMin.x+((introMax.x-introMin.x)+squareSize)*0.5,introMin.y+((introMax.y-introMin.y)+squareSize)*0.5),
+    pos
+  );
+
+  ImVec2 quad0=ImVec2(
+    posAbs.x+rectMin.x*cos(rotate)-rectMin.y*sin(rotate),
+    posAbs.y+rectMin.x*sin(rotate)+rectMin.y*cos(rotate)
+  );
+  ImVec2 quad1=ImVec2(
+    posAbs.x+rectMax.x*cos(rotate)-rectMin.y*sin(rotate),
+    posAbs.y+rectMax.x*sin(rotate)+rectMin.y*cos(rotate)
+  );
+  ImVec2 quad2=ImVec2(
+    posAbs.x+rectMax.x*cos(rotate)-rectMax.y*sin(rotate),
+    posAbs.y+rectMax.x*sin(rotate)+rectMax.y*cos(rotate)
+  );
+  ImVec2 quad3=ImVec2(
+    posAbs.x+rectMin.x*cos(rotate)-rectMax.y*sin(rotate),
+    posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
+  );
+
+  float uScale=rend->getTextureU(img);
+  float vScale=rend->getTextureV(img);
+
+  ImVec2 uv0=ImVec2(uvMin.x*uScale,uvMin.y*vScale);
+  ImVec2 uv1=ImVec2(uvMax.x*uScale,uvMin.y*vScale);
+  ImVec2 uv2=ImVec2(uvMax.x*uScale,uvMax.y*vScale);
+  ImVec2 uv3=ImVec2(uvMin.x*uScale,uvMax.y*vScale);
+
+  ImU32 colorConverted=ImGui::GetColorU32(imgColor);
+
+  dl->AddImageQuad(rend->getTextureID(img),quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
+}

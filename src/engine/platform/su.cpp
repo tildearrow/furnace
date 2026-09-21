@@ -595,7 +595,7 @@ void DivPlatformSoundUnit::reset() {
     chan[i].virtual_duty=0x800; // for some reason duty by default is 50%
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   su->Reset();
   for (int i=0; i<8; i++) {

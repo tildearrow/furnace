@@ -328,6 +328,10 @@ int DivPlatformSCC::getRegisterPoolSize() {
   return 225;
 }
 
+void DivPlatformSCC::softReset() {
+  rWrite(regBase+15,0);
+}
+
 void DivPlatformSCC::reset() {
   memset(regPool,0,225);
   scc->reset();
@@ -342,7 +346,7 @@ void DivPlatformSCC::reset() {
     rWrite(regBase+10+i,15);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   lastUpdated34=0;
 }
