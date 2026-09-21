@@ -9365,6 +9365,7 @@ void FurnaceGUI::syncState() {
   chanOsc.useGradient=e->getConfBool("chanOscUseGrad",false);
   chanOsc.colorMode=(ChanOsc::ColorMode)e->getConfInt("chanOscColorMode",0);
   chanOsc.arrangement=(ChanOsc::Arrange)e->getConfInt("chanOscArrange",0);
+  chanOsc.orientation=(ChanOsc::Orientation)e->getConfInt("chanOscOrientation",0);
   chanOsc.gradient.fromString(e->getConfString("chanOscGrad",""));
   chanOsc.gradient.render();
 
@@ -9544,6 +9545,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("chanOscGrad",chanOsc.gradient.toString());
   conf.set("chanOscColorMode",(int)chanOsc.colorMode);
   conf.set("chanOscArrange",(int)chanOsc.arrangement);
+  conf.set("chanOscOrientation",(int)chanOsc.orientation);
 
   // commit x-y osc state
   conf.set("xyOscXChannel",xyOscXChannel);

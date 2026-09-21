@@ -47,6 +47,11 @@ const char* chanOscArrangeModes[]={
   _N("rows")
 };
 
+const char* chanOscOrientations[]={
+  _N("horizontal"),
+  _N("vertical")
+};
+
 const char* chanOscDCOffsetCorrModes[]={
   _N("Off##_cocs0"),
   _N("Normal##_cocs1"),
@@ -94,19 +99,28 @@ float FurnaceGUI::computeGradPos(ChanOsc::Ref type, int chan, int totalChans) {
 
 void FurnaceGUI::ChanOsc::calcChannelMap(int totalChans) {
   memset(displayMap,-1,sizeof(displayMap));
+  int howMuchToMultiplyByInVertical;
   switch (arrangement) {
-    case Arrange::Columns: {
+    case Arrange::Columns:
       displayColumns=columnsRows;
+      howMuchToMultiplyByInVertical=ceil((float)totalChans/(float)columnsRows);
+      break;
+    case Arrange::Rows:
+      displayColumns=ceil((float)totalChans/(float)columnsRows);
+      howMuchToMultiplyByInVertical=columnsRows;
+      break;
+  }
+  switch (orientation) {
+    case Orientation::Horizontal: {
       for (int i=0; i<totalChans; i++) {
         displayMap[i]=i;
       }
       break;
     }
-    case Arrange::Rows: {
-      displayColumns=ceil((float)totalChans/(float)columnsRows);
+    case Orientation::Vertial: {
       int column=0;
       for (int i=0, r=0; i<totalChans; i++, r++) {
-        displayMap[r]=columnsRows*(r%displayColumns)+column;
+        displayMap[r]=howMuchToMultiplyByInVertical*(r%displayColumns)+column;
         if (displayMap[r]>=totalChans) {
           displayMap[r]=-1;
           i--;
@@ -120,7 +134,7 @@ void FurnaceGUI::ChanOsc::calcChannelMap(int totalChans) {
 
 void FurnaceGUI::calcChanOsc() {
   int chans=e->getTotalChannelCount();
-  
+
   for (int i=0; i<chans; i++) {
     int tryAgain=i;
     DivDispatchOscBuffer* buf=e->getOscBuffer(i);
@@ -188,6 +202,7 @@ void FurnaceGUI::drawChanOsc() {
     }
 
     chanOsc.calcChannelMap(oscData.size());
+
     if (ImGui::BeginTable("ChanOsc",chanOsc.displayColumns,ImGuiTableFlags_Borders|ImGuiTableFlags_NoClip)) {
       ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -766,11 +781,15 @@ void FurnaceGUI::drawChanOsc() {
       ImGui::PopStyleVar();
     }
     if (chanOsc.showOptions) ImGui::OpenPopup("chanOscSettingsPopup");
-    if (ImGui::BeginPopup("chanOscSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
+    if (ImGui::BeginPopupContextItem("chanOscSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
       ImDrawList* dl=ImGui::GetWindowDrawList();
       chanOsc.showOptions=false;
       if (ImGui::BeginTabBar("chanOscSettingsTabBar")) {
         if (ImGui::BeginTabItem(_("Scope"))) {
+          ImGui::AlignTextToFramePadding();
+          ImGui::TextUnformatted(_("Orientation"));
+          ImGui::SameLine();
+          ImGui::Combo("##orientation",(int*)&chanOsc.orientation,LocalizedComboGetter,chanOscOrientations,2);
           ImGui::AlignTextToFramePadding();
           ImGui::TextUnformatted(_("Arrange channels by"));
           ImGui::SameLine();
@@ -783,7 +802,7 @@ void FurnaceGUI::drawChanOsc() {
           }
           ImGui::EndDisabled();
           ImGui::Separator();
-          if (ImGui::SliderFloat(_("Size"),&chanOsc.windowSize,1.0f,50.0f,"%g ms")) {
+          if (ImGui::SliderFloat(_("Window size"),&chanOsc.windowSize,1.0f,50.0f,"%g ms")) {
             if (chanOsc.windowSize<1.0f) chanOsc.windowSize=1.0f;
             if (chanOsc.windowSize>50.0f) chanOsc.windowSize=50.0f;
           } rightClickable
@@ -806,7 +825,24 @@ void FurnaceGUI::drawChanOsc() {
             if (chanOsc.lineSize>16.0f) chanOsc.lineSize=16.0f;
           } rightClickable
 
-          ImGui::Checkbox(_("Gradient"),&chanOsc.useGradient);
+          ImGui::TextUnformatted(_("Color:"));
+          ImGui::Indent();
+          if (ImGui::RadioButton(_("Solid color"),!chanOsc.useGradient && chanOsc.colorMode==ChanOsc::ColorMode::Solid)) {
+            chanOsc.useGradient=false;
+            chanOsc.colorMode=ChanOsc::ColorMode::Solid;
+          }
+          if (!chanOsc.useGradient && chanOsc.colorMode==ChanOsc::ColorMode::Solid) {
+            ImGui::Indent();
+            ImGui::ColorEdit4("##chanOscColor",(float*)&chanOsc.color);
+            ImGui::Unindent();
+          }
+          if (ImGui::RadioButton(_("Channel color"),!chanOsc.useGradient && chanOsc.colorMode==ChanOsc::ColorMode::Channel)) {
+            chanOsc.useGradient=false;
+            chanOsc.colorMode=ChanOsc::ColorMode::Channel;
+          }
+          if (ImGui::RadioButton(_("Gradient"),chanOsc.useGradient)) {
+            chanOsc.useGradient=true;
+          }
           if (chanOsc.useGradient) {
             if (chanOsc.gradientTex==NULL) {
               chanOsc.gradientTex=rend->createTexture(true,chanOsc.gradient.width,chanOsc.gradient.height,true,bestTexFormat);

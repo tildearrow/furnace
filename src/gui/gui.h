@@ -2821,6 +2821,10 @@ class FurnaceGUI {
       Columns=0,
       Rows
     } arrangement;
+    enum class Orientation:int {
+      Horizontal,
+      Vertial,
+    } orientation;
     enum class CenterStrategy : int {
       Off=0,
       Normal,
@@ -2900,6 +2904,7 @@ class FurnaceGUI {
     } chan[DIV_MAX_CHANS];
     ChanOsc():
       arrangement(Arrange::Columns),
+      orientation(Orientation::Horizontal),
       centerStrat(CenterStrategy::Normal),
       colorMode(ColorMode::Solid),
       columnsRows(3),
@@ -2919,7 +2924,7 @@ class FurnaceGUI {
       gradient(64,64),
       gradientTex(NULL),
       workPool(NULL) {}
-      void calcChannelMap(int totalChans);
+    void calcChannelMap(int totalChans);
   } chanOsc;
 
   // x-y oscilloscope
