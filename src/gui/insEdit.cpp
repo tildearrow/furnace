@@ -6495,7 +6495,7 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
   }
 }
 
-void FurnaceGUI::drawInsSID3(DivInstrument* ins) {
+void FurnaceGUI::insEditSID3(DivInstrument* ins) {
   char buffer[100];
   char buffer2[100];
 
@@ -7154,6 +7154,11 @@ void FurnaceGUI::drawInsEdit() {
       // EDITING AREA
       // I am in the process of moving these code blocks around for cleanliness.
       if (ImGui::BeginTabBar("insEditTab")) {
+        // TODO: ins edit refactor
+        switch (ins->type) {
+          default:
+            break;
+        }
         std::vector<FurnaceGUIMacroDesc> macroList;
 
         if (ins->type==DIV_INS_KLATTSCH) if (ImGui::BeginTabItem("klattsch")) {
@@ -8026,7 +8031,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_SID3) {
-          drawInsSID3(ins);
+          insEditSID3(ins);
         }
         if (ins->type==DIV_INS_MSM6258 ||
             ins->type==DIV_INS_MSM6295 ||

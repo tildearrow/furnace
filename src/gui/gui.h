@@ -3201,6 +3201,7 @@ class FurnaceGUI {
   void updateKeyHitPre();
   void updateKeyHitPost();
 
+  // instrument editor
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins);
   void alterSampleMap(int column, int val);
@@ -3210,8 +3211,14 @@ class FurnaceGUI {
   void insTabWavetable(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
 
+  /// DEFINE INSTRUMENT EDITORS HERE
+  void insEditSTD(DivInstrument* ins);
+  void insEditSID3(DivInstrument* ins);
+
+  // orders
   void drawOrderButtons();
 
+  // assets
   void actualWaveList();
   void actualSampleList();
 
@@ -3245,7 +3252,6 @@ class FurnaceGUI {
   void drawPatternNew();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
-  void drawInsSID3(DivInstrument* ins);
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);
