@@ -6322,6 +6322,27 @@ void FurnaceGUI::drawInsEdit() {
           case DIV_INS_STD:
             insEditSTD(ins);
             break;
+          case DIV_INS_FM:
+            insEditOPN(ins);
+            break;
+          case DIV_INS_GB:
+            insEditGB(ins);
+            break;
+          case DIV_INS_C64:
+            insEditC64(ins);
+            break;
+          case DIV_INS_AMIGA:
+            insEditGenericSample(ins);
+            break;
+          case DIV_INS_PCE:
+            insEditPCE(ins);
+            break;
+          case DIV_INS_AY:
+            insEditAY(ins);
+            break;
+          case DIV_INS_AY8930:
+            insEditAY8930(ins);
+            break;
           case DIV_INS_TIA:
             insEditTIA(ins);
             break;
@@ -6336,6 +6357,162 @@ void FurnaceGUI::drawInsEdit() {
             break;
           case DIV_INS_VRC6:
             insEditVRC6(ins);
+            break;
+          case DIV_INS_OPLL:
+            insEditOPLL(ins);
+            break;
+          case DIV_INS_OPL:
+            insEditOPL(ins);
+            break;
+          case DIV_INS_FDS:
+            insEditFDS(ins);
+            break;
+          case DIV_INS_VBOY:
+            insEditVBoy(ins);
+            break;
+          case DIV_INS_N163:
+            insEditN163(ins);
+            break;
+          case DIV_INS_SCC:
+            insEditSCC(ins);
+            break;
+          case DIV_INS_OPZ:
+            insEditOPZ(ins);
+            break;
+          case DIV_INS_POKEY:
+            insEditPOKEY(ins);
+            break;
+          case DIV_INS_BEEPER:
+            insEditBeeper(ins);
+            break;
+          case DIV_INS_SWAN:
+            insEditSwan(ins);
+            break;
+          case DIV_INS_MIKEY:
+            insEditMikey(ins);
+            break;
+          case DIV_INS_VERA:
+            insEditVERA(ins);
+            break;
+          case DIV_INS_X1_010:
+            insEditX1_010(ins);
+            break;
+          case DIV_INS_VRC6_SAW:
+            insEditVRC6Saw(ins);
+            break;
+          case DIV_INS_ES5506:
+            insEditES5506(ins);
+            break;
+          case DIV_INS_MULTIPCM:
+            insEditMultiPCM(ins);
+            break;
+          case DIV_INS_SNES:
+            insEditSNES(ins);
+            break;
+          case DIV_INS_SU:
+            insEditSU(ins);
+            break;
+          case DIV_INS_NAMCO:
+            insEditNamco(ins);
+            break;
+          case DIV_INS_OPL_DRUMS:
+            insEditOPLDrums(ins);
+            break;
+          case DIV_INS_OPM:
+            insEditOPM(ins);
+            break;
+          case DIV_INS_NES:
+            insEditNES(ins);
+            break;
+          case DIV_INS_MSM6258:
+            insEditMSM6258(ins);
+            break;
+          case DIV_INS_MSM6295:
+            insEditMSM6295(ins);
+            break;
+          case DIV_INS_ADPCMA:
+            insEditADPCMA(ins);
+            break;
+          case DIV_INS_ADPCMB:
+            insEditADPCMB(ins);
+            break;
+          case DIV_INS_SEGAPCM:
+            insEditSegaPCM(ins);
+            break;
+          case DIV_INS_QSOUND:
+            insEditQSound(ins);
+            break;
+          case DIV_INS_YMZ280B:
+            insEditYMZ280B(ins);
+            break;
+          case DIV_INS_RF5C68:
+            insEditRF5C68(ins);
+            break;
+          case DIV_INS_MSM5232:
+            insEditMSM5232(ins);
+            break;
+          case DIV_INS_T6W28:
+            insEditT6W28(ins);
+            break;
+          case DIV_INS_K007232:
+            insEditK007232(ins);
+            break;
+          case DIV_INS_GA20:
+            insEditGA20(ins);
+            break;
+          case DIV_INS_POKEMINI:
+            insEditPokeMini(ins);
+            break;
+          case DIV_INS_SM8521:
+            insEditSM8521(ins);
+            break;
+          case DIV_INS_PV1000:
+            insEditPV1000(ins);
+            break;
+          case DIV_INS_K053260:
+            insEditK053260(ins);
+            break;
+          case DIV_INS_TED:
+            insEditTED(ins);
+            break;
+          case DIV_INS_C140:
+            insEditC140(ins);
+            break;
+          case DIV_INS_C219:
+            insEditC219(ins);
+            break;
+          case DIV_INS_ESFM:
+            insEditESFM(ins);
+            break;
+          case DIV_INS_POWERNOISE:
+            insEditPowerNoise(ins);
+            break;
+          case DIV_INS_POWERNOISE_SLOPE:
+            insEditPowerNoiseSlope(ins);
+            break;
+          case DIV_INS_DAVE:
+            insEditDave(ins);
+            break;
+          case DIV_INS_NDS:
+            insEditNDS(ins);
+            break;
+          case DIV_INS_GBA_DMA:
+            insEditGBADMA(ins);
+            break;
+          case DIV_INS_GBA_MINMOD:
+            insEditGBAMinMod(ins);
+            break;
+          case DIV_INS_BIFURCATOR:
+            insEditBifurcator(ins);
+            break;
+          case DIV_INS_SID2:
+            insEditSID2(ins);
+            break;
+          case DIV_INS_SUPERVISION:
+            insEditSupervision(ins);
+            break;
+          case DIV_INS_UPD1771C:
+            insEditSCV(ins);
             break;
           case DIV_INS_SID3:
             insEditSID3(ins);

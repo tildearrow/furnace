@@ -3216,7 +3216,7 @@ class FurnaceGUI {
 
   /// DEFINE INSTRUMENT EDITORS HERE
   void insEditSTD(DivInstrument* ins);
-  void insEditFM(DivInstrument* ins);
+  void insEditOPN(DivInstrument* ins);
   void insEditGB(DivInstrument* ins);
   void insEditC64(DivInstrument* ins);
   void insEditGenericSample(DivInstrument* ins);

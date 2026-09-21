@@ -19,7 +19,7 @@
 
 #include "insEditCommon.h"
 
-void FurnaceGUI::insEditFM(DivInstrument* ins) {
+void FurnaceGUI::insEditOPN(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
   if (ImGui::BeginTabItem(_("Macros"))) {
