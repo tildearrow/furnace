@@ -975,6 +975,9 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 src/gui/plot_nolerp.cpp
 
 src/gui/insEdit/insEditCommon.cpp
+src/gui/insEdit/insTabFM.cpp
+src/gui/insEdit/insTabSample.cpp
+src/gui/insEdit/insTabWavetable.cpp
 
 src/gui/insEdit/adpcma.cpp
 src/gui/insEdit/adpcmb.cpp
