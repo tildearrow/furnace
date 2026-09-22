@@ -6979,7 +6979,6 @@ void FurnaceGUI::drawInsEdit() {
         if (
             (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_SWAN && !ins->amiga.useSample) ||
-            (ins->type==DIV_INS_PCE && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_VBOY) ||
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
@@ -7014,16 +7013,6 @@ void FurnaceGUI::drawInsEdit() {
             case DIV_INS_AMIGA:
               break;
             case DIV_INS_PCE:
-              macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,31,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-              if (!ins->amiga.useSample) {
-                macroList.push_back(FurnaceGUIMacroDesc(_("Noise"),&ins->std.dutyMacro,0,1,160,uiColors[GUI_COLOR_MACRO_NOISE]));
-              }
-              macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
-              macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               break;
             case DIV_INS_AY:
               break;
@@ -7348,7 +7337,6 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         if (
-            ins->type==DIV_INS_PCE ||
             ins->type==DIV_INS_X1_010 ||
             ins->type==DIV_INS_SWAN) {
           insTabSample(ins);
