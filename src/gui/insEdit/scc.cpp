@@ -22,8 +22,13 @@
 void FurnaceGUI::insEditSCC(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
+  insTabWavetable(ins);
+
   if (ImGui::BeginTabItem(_("Macros"))) {
-    // macros go here...
+    macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,MACRO_WAVE_COUNT,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
 
     drawMacros(macroList,macroEditStateMacros,ins);
     ImGui::EndTabItem();

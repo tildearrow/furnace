@@ -23,7 +23,9 @@ void FurnaceGUI::insEditPV1000(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
   if (ImGui::BeginTabItem(_("Macros"))) {
-    // macros go here...
+    macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,1,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
 
     drawMacros(macroList,macroEditStateMacros,ins);
     ImGui::EndTabItem();

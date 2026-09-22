@@ -53,3 +53,77 @@ String macroHoverNote(int id, float val, void* u) {
   }
   return fmt::sprintf("%d: %d",id,(int)val);
 }
+
+String macroLFOWaves(int id, float val, void* u) {
+  const char* label="???";
+  switch (((int)val)&3) {
+    case 0:
+      label=_("Saw");
+      break;
+    case 1:
+      label=_("Square");
+      break;
+    case 2:
+      label=_("Triangle");
+      break;
+    case 3:
+      label=_("Random");
+      break;
+    default: break;
+  }
+  return fmt::sprintf("%d: %s",id,label);
+}
+
+// TODO: move to fm.cpp?
+
+const char* fmParamNames[3][35]={
+  {_N("Algorithm"), _N("Feedback"), _N("LFO > Freq"), _N("LFO > Amp"), _N("Attack"), _N("Decay"), _N("Decay 2"), _N("Release"), _N("Sustain"), _N("Level"), _N("EnvScale"), _N("Multiplier"), _N("Detune"), _N("Detune 2"), _N("SSG-EG"), _N("AM"), _N("AM Depth"), _N("Vibrato Depth"), _N("Sustained"), _N("Sustained"), _N("Level Scaling"), _N("Sustain"), _N("Vibrato"), _N("Waveform"), _N("Scale Rate"), _N("OP2 Half Sine"), _N("OP1 Half Sine"), _N("EnvShift"), _N("Reverb"), _N("Fine"), _N("LFO2 > Freq"), _N("LFO2 > Amp"), _N("Octave"), _N("TL Ramp"), _N("Tremolo Sensitivity")},
+  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "SR", "RR", "SL", "TL", "KS", "MULT", "DT", "DT2", "SSG-EG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp", "Tremolo Sensitivity"},
+  {"ALG", "FB", "FMS/PMS", "AMS", "AR", "DR", "D2R", "RR", "SL", "TL", "RS", "MULT", "DT", "DT2", "SSG-EG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS/PMS2", "AMS2", "Block", "TL Ramp", "Tremolo Sensitivity"}
+};
+
+const char* esfmParamLongNames[9]={
+  _N("OP4 Noise Mode"),
+  _N("Envelope Delay"),
+  _N("Output Level"),
+  _N("Modulation Input Level"),
+  _N("Left Output"),
+  _N("Right Output"),
+  _N("Coarse Tune (semitones)"),
+  _N("Detune"),
+  _N("Fixed Frequency Mode")
+};
+
+const char* esfmParamNames[9]={
+  _N("OP4 Noise Mode"),
+  _N("Env. Delay"),
+  _N("Output Level"),
+  _N("ModInput"),
+  _N("Left"),
+  _N("Right"),
+  _N("Tune"),
+  _N("Detune"),
+  _N("Fixed")
+};
+
+const char* esfmParamShortNames[9]={
+  "NOI", "DL", "OL", "MI", "L", "R", "CT", "DT", "FIX"
+};
+
+const char* fmParamShortNames[3][35]={
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "SUS", "SUS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "Blk", "TLR", "TS"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "SR", "R", "S", "TL", "KS", "ML", "DT", "DT2", "SSG", "AM", "AMD", "FMD", "EGT", "EGT", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "Blk", "TLR", "TS"},
+  {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2", "Blk", "TLR", "TS"}
+};
+
+const char* fmOperatorBits[5]={
+  "op1", "op2", "op3", "op4", NULL
+};
+
+const int orderedOps[4]={
+  0, 2, 1, 3
+};
+
+const char* ssgEnvBits[5]={
+  "0", "1", "2", _N("enabled"), NULL
+};

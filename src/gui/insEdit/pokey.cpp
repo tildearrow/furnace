@@ -19,11 +19,27 @@
 
 #include "insEditCommon.h"
 
+static const char* pokeyCtlBits[9]={
+  _N("15KHz"),
+  _N("filter 2+4"),
+  _N("filter 1+3"),
+  _N("16-bit 3+4"),
+  _N("16-bit 1+2"),
+  _N("high3"),
+  _N("high1"),
+  _N("poly9"),
+  NULL
+};
+
 void FurnaceGUI::insEditPOKEY(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
   if (ImGui::BeginTabItem(_("Macros"))) {
-    // macros go here...
+    macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+    macroList.push_back(FurnaceGUIMacroDesc(_("AUDCTL"),&ins->std.dutyMacro,0,8,160,uiColors[GUI_COLOR_MACRO_GLOBAL],false,NULL,NULL,true,pokeyCtlBits));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,7,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
 
     drawMacros(macroList,macroEditStateMacros,ins);
     ImGui::EndTabItem();
