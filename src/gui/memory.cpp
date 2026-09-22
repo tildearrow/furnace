@@ -22,9 +22,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-#define CENTER_TEXT(text) \
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
-
 void FurnaceGUI::drawMemory() {
   if (nextWindow==GUI_WINDOW_MEMORY) {
     memoryOpen=true;

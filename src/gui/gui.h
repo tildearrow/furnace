@@ -85,6 +85,9 @@
 #define CHECK_HIDDEN_SYSTEM(x) \
   (x==DIV_SYSTEM_YMU759 || x==DIV_SYSTEM_DUMMY || x==DIV_SYSTEM_PONG || x==DIV_SYSTEM_UPD1771C)
 
+#define CENTER_TEXT(text) \
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
+
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
   GUI_BACKEND_GL3,
@@ -2504,6 +2507,8 @@ class FurnaceGUI {
   DivInstrument cachedCurIns;
   DivInstrument* cachedCurInsPtr;
   bool insEditMayBeDirty;
+  int insEditMacroEnvBottom, insEditMacroEnvTop;
+  bool insEditMacroInsChanged;
 
   unsigned char* pendingLayoutImport;
   size_t pendingLayoutImportLen;
@@ -3213,6 +3218,7 @@ class FurnaceGUI {
   void updateKeyHitPre();
   void updateKeyHitPost();
 
+  // instrument editor
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state, DivInstrument* ins);
   void alterSampleMap(int column, int val);
@@ -3221,9 +3227,82 @@ class FurnaceGUI {
   void insTabFM(DivInstrument* ins);
   void insTabWavetable(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
+  void handleMacroMenu(DivInstrument* ins);
 
+  /// DEFINE INSTRUMENT EDITORS HERE
+  void insEditSTD(DivInstrument* ins);
+  void insEditOPN(DivInstrument* ins);
+  void insEditGB(DivInstrument* ins);
+  void insEditC64(DivInstrument* ins);
+  void insEditGenericSample(DivInstrument* ins);
+  void insEditPCE(DivInstrument* ins);
+  void insEditAY(DivInstrument* ins);
+  void insEditAY8930(DivInstrument* ins);
+  void insEditTIA(DivInstrument* ins);
+  void insEditSAA1099(DivInstrument* ins);
+  void insEditVIC(DivInstrument* ins);
+  void insEditPET(DivInstrument* ins);
+  void insEditVRC6(DivInstrument* ins);
+  void insEditOPLL(DivInstrument* ins);
+  void insEditOPL(DivInstrument* ins);
+  void insEditFDS(DivInstrument* ins);
+  void insEditVBoy(DivInstrument* ins);
+  void insEditN163(DivInstrument* ins);
+  void insEditSCC(DivInstrument* ins);
+  void insEditOPZ(DivInstrument* ins);
+  void insEditPOKEY(DivInstrument* ins);
+  void insEditBeeper(DivInstrument* ins);
+  void insEditSwan(DivInstrument* ins);
+  void insEditMikey(DivInstrument* ins);
+  void insEditVERA(DivInstrument* ins);
+  void insEditX1_010(DivInstrument* ins);
+  void insEditVRC6Saw(DivInstrument* ins);
+  void insEditES5506(DivInstrument* ins);
+  void insEditMultiPCM(DivInstrument* ins);
+  void insEditSNES(DivInstrument* ins);
+  void insEditSU(DivInstrument* ins);
+  void insEditNamco(DivInstrument* ins);
+  void insEditOPLDrums(DivInstrument* ins);
+  void insEditOPM(DivInstrument* ins);
+  void insEditNES(DivInstrument* ins);
+  void insEditMSM6258(DivInstrument* ins);
+  void insEditMSM6295(DivInstrument* ins);
+  void insEditADPCMA(DivInstrument* ins);
+  void insEditADPCMB(DivInstrument* ins);
+  void insEditSegaPCM(DivInstrument* ins);
+  void insEditQSound(DivInstrument* ins);
+  void insEditYMZ280B(DivInstrument* ins);
+  void insEditRF5C68(DivInstrument* ins);
+  void insEditMSM5232(DivInstrument* ins);
+  void insEditT6W28(DivInstrument* ins);
+  void insEditK007232(DivInstrument* ins);
+  void insEditGA20(DivInstrument* ins);
+  void insEditPokeMini(DivInstrument* ins);
+  void insEditSM8521(DivInstrument* ins);
+  void insEditPV1000(DivInstrument* ins);
+  void insEditK053260(DivInstrument* ins);
+  void insEditYMF292(DivInstrument* ins);
+  void insEditTED(DivInstrument* ins);
+  void insEditC140(DivInstrument* ins);
+  void insEditC219(DivInstrument* ins);
+  void insEditESFM(DivInstrument* ins);
+  void insEditPowerNoise(DivInstrument* ins);
+  void insEditPowerNoiseSlope(DivInstrument* ins);
+  void insEditDave(DivInstrument* ins);
+  void insEditNDS(DivInstrument* ins);
+  void insEditGBADMA(DivInstrument* ins);
+  void insEditGBAMinMod(DivInstrument* ins);
+  void insEditBifurcator(DivInstrument* ins);
+  void insEditSID2(DivInstrument* ins);
+  void insEditSupervision(DivInstrument* ins);
+  void insEditSCV(DivInstrument* ins);
+  void insEditSID3(DivInstrument* ins);
+  void insEditKlattsch(DivInstrument* ins);
+
+  // orders
   void drawOrderButtons();
 
+  // assets
   void actualWaveList();
   void actualSampleList();
 
@@ -3257,7 +3336,6 @@ class FurnaceGUI {
   void drawPatternNew();
   void drawInsList(bool asChild=false);
   void drawInsEdit();
-  void drawInsSID3(DivInstrument* ins);
   void drawWaveList(bool asChild=false);
   void drawWaveEdit();
   void drawSampleList(bool asChild=false);
