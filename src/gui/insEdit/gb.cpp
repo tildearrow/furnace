@@ -18,6 +18,17 @@
  */
 
 #include "insEditCommon.h"
+#include "IconsFontAwesome4.h"
+#include "../intConst.h"
+
+static const char* gbHWSeqCmdTypes[6]={
+  _N("Envelope"),
+  _N("Sweep"),
+  _N("Wait"),
+  _N("Wait for Release"),
+  _N("Loop"),
+  _N("Loop until Release")
+};
 
 void FurnaceGUI::insEditGB(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;

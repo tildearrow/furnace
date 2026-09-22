@@ -20,6 +20,16 @@
 #include "insEditCommon.h"
 #include "../intConst.h"
 
+static const char* es5506FilterModes[4]={
+  "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
+};
+
+static const char* es5506ControlModes[3]={
+  _N("pause"),
+  _N("reverse"),
+  NULL
+};
+
 String macroHoverES5506FilterMode(int id, float val, void* u) {
   String mode="???";
   switch (((int)val)&3) {

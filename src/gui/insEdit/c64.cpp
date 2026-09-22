@@ -20,6 +20,31 @@
 #include "insEditCommon.h"
 #include "../intConst.h"
 
+static const char* c64ShapeBits[5]={
+  _N("triangle"),
+  _N("saw"),
+  _N("pulse"),
+  _N("noise"),
+  NULL
+};
+
+static const char* filtModeBits[5]={
+  _N("low"),
+  _N("band"),
+  _N("high"),
+  _N("ch3off"),
+  NULL
+};
+
+static const char* c64TestGateBits[5]={
+  _N("gate"),
+  _N("sync"),
+  _N("ring"),
+  _N("test"),
+  NULL
+};
+
+
 void FurnaceGUI::insEditC64(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
   if (ImGui::BeginTabItem("C64")) {

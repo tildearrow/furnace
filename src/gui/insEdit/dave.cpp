@@ -19,6 +19,15 @@
 
 #include "insEditCommon.h"
 
+static const char* daveControlBits[5]={
+  _N("high pass"),
+  _N("ring mod"),
+  _N("swap counters (noise)"),
+  _N("low pass (noise)"),
+  NULL
+};
+
+
 void FurnaceGUI::insEditDave(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 

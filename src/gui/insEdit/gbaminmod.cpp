@@ -19,13 +19,19 @@
 
 #include "insEditCommon.h"
 
+static const char* minModModeBits[3]={
+  _N("invert right"),
+  _N("invert left"),
+  NULL
+};
+
 void FurnaceGUI::insEditGBAMinMod(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
   insTabSample(ins);
 
   if (ins->amiga.useWave) {
-    insTableWavetable(ins);
+    insTabWavetable(ins);
   }
 
   if (ImGui::BeginTabItem(_("Macros"))) {

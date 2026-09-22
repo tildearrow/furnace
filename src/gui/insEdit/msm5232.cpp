@@ -19,6 +19,15 @@
 
 #include "insEditCommon.h"
 
+static const char* msm5232ControlBits[7]={
+  _N("16'"),
+  _N("8'"),
+  _N("4'"),
+  _N("2'"),
+  _N("sustain"),
+  NULL
+};
+
 void FurnaceGUI::insEditMSM5232(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 

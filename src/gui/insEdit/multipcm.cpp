@@ -18,6 +18,7 @@
  */
 
 #include "insEditCommon.h"
+#include "../intConst.h"
 
 void FurnaceGUI::insEditMultiPCM(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;

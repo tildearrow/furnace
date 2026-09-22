@@ -19,6 +19,20 @@
 
 #include "insEditCommon.h"
 
+static const char* ayShapeBits[4]={
+  _N("tone"),
+  _N("noise"),
+  _N("envelope"),
+  NULL
+};
+
+static const char* ayEnvBits[4]={
+  _N("hold"),
+  _N("alternate"),
+  _N("direction"),
+  _N("enable")
+};
+
 void FurnaceGUI::insEditAY8930(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 

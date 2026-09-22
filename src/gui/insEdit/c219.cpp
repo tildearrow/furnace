@@ -19,6 +19,14 @@
 
 #include "insEditCommon.h"
 
+const char* c219ControlBits[4]={
+  _N("noise"),
+  _N("invert"),
+  _N("surround"),
+  NULL
+};
+
+
 void FurnaceGUI::insEditC219(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 

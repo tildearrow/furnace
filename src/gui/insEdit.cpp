@@ -230,21 +230,6 @@ const char* esfmNoiseModeDescriptions[4]={
   _N("Ringmod from OP3 + double pitch ModInput\nWARNING - has emulation issues; subject to change")
 };
 
-const char* sid2WaveMixModes[5]={
-  _N("8580 SID"),
-  _N("Bitwise AND"),
-  _N("Bitwise OR"),
-  _N("Bitwise XOR"),
-  NULL
-};
-
-const char* sid2ControlBits[4]={
-  _N("gate"),
-  _N("sync"),
-  _N("ring"),
-  NULL
-};
-
 const bool opIsOutput[8][4]={
   {false,false,false,true},
   {false,false,false,true},
@@ -337,28 +322,6 @@ const char* fmOperatorBits[5]={
   "op1", "op2", "op3", "op4", NULL
 };
 
-const char* c64ShapeBits[5]={
-  _N("triangle"),
-  _N("saw"),
-  _N("pulse"),
-  _N("noise"),
-  NULL
-};
-
-const char* ayShapeBits[4]={
-  _N("tone"),
-  _N("noise"),
-  _N("envelope"),
-  NULL
-};
-
-const char* ayEnvBits[4]={
-  _N("hold"),
-  _N("alternate"),
-  _N("direction"),
-  _N("enable")
-};
-
 const char* ssgEnvBits[5]={
   "0", "1", "2", _N("enabled"), NULL
 };
@@ -369,22 +332,6 @@ const char* snesModeBits[6]={
   _N("pitch mod"),
   _N("invert right"),
   _N("invert left"),
-  NULL
-};
-
-static const char* filtModeBits[5]={
-  _N("low"),
-  _N("band"),
-  _N("high"),
-  _N("ch3off"),
-  NULL
-};
-
-const char* c64TestGateBits[5]={
-  _N("gate"),
-  _N("sync"),
-  _N("ring"),
-  _N("test"),
   NULL
 };
 
@@ -400,29 +347,9 @@ const char* pokeyCtlBits[9]={
   NULL
 };
 
-const char* mikeyFeedbackBits[11]={
-  "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
-};
-
-const char* msm5232ControlBits[7]={
-  _N("16'"),
-  _N("8'"),
-  _N("4'"),
-  _N("2'"),
-  _N("sustain"),
-  NULL
-};
-
 const char* tedControlBits[3]={
   _N("square"),
   _N("noise"),
-  NULL
-};
-
-const char* c219ControlBits[4]={
-  _N("noise"),
-  _N("invert"),
-  _N("surround"),
   NULL
 };
 
@@ -437,16 +364,20 @@ const char* x1_010EnvBits[8]={
   NULL
 };
 
+static const char* x1EnvBits[4]={
+  _N("hold"),
+  _N("alternate"),
+  _N("direction"),
+  _N("enable")
+};
+
+
 const char* suControlBits[5]={
   _N("ring mod"),
   _N("low pass"),
   _N("high pass"),
   _N("band pass"),
   NULL
-};
-
-const char* es5506FilterModes[4]={
-  "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
 };
 
 const char* powerNoiseControlBits[3]={
@@ -465,34 +396,8 @@ const char* powerNoiseSlopeControlBits[7]={
   NULL
 };
 
-const char* daveControlBits[5]={
-  _N("high pass"),
-  _N("ring mod"),
-  _N("swap counters (noise)"),
-  _N("low pass (noise)"),
-  NULL
-};
-
 const char* oneBit[2]={
   _N("on"),
-  NULL
-};
-
-const char* es5506EnvelopeModes[3]={
-  _N("k1 slowdown"),
-  _N("k2 slowdown"),
-  NULL
-};
-
-const char* es5506ControlModes[3]={
-  _N("pause"),
-  _N("reverse"),
-  NULL
-};
-
-static const char* minModModeBits[3]={
-  _N("invert right"),
-  _N("invert left"),
   NULL
 };
 
@@ -520,15 +425,6 @@ const char* dualWSEffects[9]={
   _N("Slide"),
   _N("Mix Chorus"),
   _N("Phase Modulation")
-};
-
-const char* gbHWSeqCmdTypes[6]={
-  _N("Envelope"),
-  _N("Sweep"),
-  _N("Wait"),
-  _N("Wait for Release"),
-  _N("Loop"),
-  _N("Loop until Release")
 };
 
 const char* suHWSeqCmdTypes[7]={
@@ -664,28 +560,6 @@ String macroSoundUnitWaves(int id, float val, void* u) {
     default: break;
   }
   return fmt::sprintf("%d: %s",id,label);
-}
-
-String macroTFXModes(int id, float val, void* u) {
-  switch (((int)val)&3) {
-    case 0:
-      return _("Disabled");
-    case 1:
-      return _("PWM");
-    case 2:
-      return _("SyncBuzzer");
-    case 3:
-      return _("Reserved");
-    default:
-      return "???";
-  }
-  return "???";
-}
-
-String macroSID2WaveMixMode(int id, float val, void* u) {
-  if ((int)val<0 || (int)val>3) return "???";
-
-  return fmt::sprintf("%d: %s",id,_(sid2WaveMixModes[(int)val]));
 }
 
 void FurnaceGUI::drawSSGEnv(unsigned char type, const ImVec2& size) {
@@ -7120,6 +6994,8 @@ void FurnaceGUI::drawInsEdit() {
           int waveCount=MAX(1,e->song.waveLen-1);
 
           switch (ins->type) {
+            case DIV_INS_GBA_DMA:
+              break;
             case DIV_INS_STD:
               break;
             case DIV_INS_KLATTSCH:
@@ -7247,7 +7123,7 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
               } else {
                 macroList.push_back(FurnaceGUIMacroDesc(_("Envelope Mode"),&ins->std.ex1Macro,0,7,160,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,NULL,true,x1_010EnvBits));
-                macroList.push_back(FurnaceGUIMacroDesc(_("Envelope"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,NULL,false,ayEnvBits));
+                macroList.push_back(FurnaceGUIMacroDesc(_("Envelope"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,NULL,false,x1EnvBits));
                 macroList.push_back(FurnaceGUIMacroDesc(_("AutoEnv Num"),&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
                 macroList.push_back(FurnaceGUIMacroDesc(_("AutoEnv Den"),&ins->std.algMacro,0,15,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
               }

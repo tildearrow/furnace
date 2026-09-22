@@ -19,6 +19,11 @@
 
 #include "insEditCommon.h"
 
+static const char* mikeyFeedbackBits[11]={
+  "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
+};
+
+
 void FurnaceGUI::insEditMikey(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 

@@ -18,6 +18,8 @@
  */
 
 #include "insEditCommon.h"
+#include "misc/cpp/imgui_stdlib.h"
+#include "../plot_nolerp.h"
 
 void FurnaceGUI::insEditFDS(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
@@ -89,7 +91,7 @@ void FurnaceGUI::insEditFDS(DivInstrument* ins) {
   if (ImGui::BeginTabItem(_("Macros"))) {
     macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,32,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
     macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,waveCount,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,MACRO_WAVE_COUNT,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,false,NULL));
     macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
     macroList.push_back(FurnaceGUIMacroDesc(_("Mod Depth"),&ins->std.ex1Macro,0,63,160,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc(_("Mod Speed"),&ins->std.ex2Macro,0,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));

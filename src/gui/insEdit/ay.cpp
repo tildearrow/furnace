@@ -19,6 +19,37 @@
 
 #include "insEditCommon.h"
 
+static const char* ayShapeBits[4]={
+  _N("tone"),
+  _N("noise"),
+  _N("envelope"),
+  NULL
+};
+
+static const char* ayEnvBits[4]={
+  _N("hold"),
+  _N("alternate"),
+  _N("direction"),
+  _N("enable")
+};
+
+String macroTFXModes(int id, float val, void* u) {
+  switch (((int)val)&3) {
+    case 0:
+      return _("Disabled");
+    case 1:
+      return _("PWM");
+    case 2:
+      return _("SyncBuzzer");
+    case 3:
+      return _("Reserved");
+    default:
+      return "???";
+  }
+  return "???";
+}
+
+
 void FurnaceGUI::insEditAY(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 

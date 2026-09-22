@@ -20,6 +20,43 @@
 #include "insEditCommon.h"
 #include "../intConst.h"
 
+static const char* c64ShapeBits[5]={
+  _N("triangle"),
+  _N("saw"),
+  _N("pulse"),
+  _N("noise"),
+  NULL
+};
+
+static const char* filtModeBits[5]={
+  _N("low"),
+  _N("band"),
+  _N("high"),
+  _N("ch3off"),
+  NULL
+};
+
+static const char* sid2WaveMixModes[5]={
+  _N("8580 SID"),
+  _N("Bitwise AND"),
+  _N("Bitwise OR"),
+  _N("Bitwise XOR"),
+  NULL
+};
+
+static const char* sid2ControlBits[4]={
+  _N("gate"),
+  _N("sync"),
+  _N("ring"),
+  NULL
+};
+
+String macroSID2WaveMixMode(int id, float val, void* u) {
+  if ((int)val<0 || (int)val>3) return "???";
+
+  return fmt::sprintf("%d: %s",id,_(sid2WaveMixModes[(int)val]));
+}
+
 void FurnaceGUI::insEditSID2(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
   if (ImGui::BeginTabItem("SID2")) {
