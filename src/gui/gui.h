@@ -3213,6 +3213,7 @@ class FurnaceGUI {
   void insTabFM(DivInstrument* ins);
   void insTabWavetable(DivInstrument* ins);
   void insTabSample(DivInstrument* ins);
+  void handleMacroMenu(DivInstrument* ins);
 
   /// DEFINE INSTRUMENT EDITORS HERE
   void insEditSTD(DivInstrument* ins);
