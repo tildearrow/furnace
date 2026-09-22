@@ -18,12 +18,155 @@
  */
 
 #include "insEditCommon.h"
+#include "../intConst.h"
 
 void FurnaceGUI::insEditSID2(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
+  if (ImGui::BeginTabItem("SID2")) {
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text(_("Waveform"));
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.triOn);
+    if (ImGui::Button(_("tri"))) { PARAMETER
+      ins->c64.triOn=!ins->c64.triOn;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.sawOn);
+    if (ImGui::Button(_("saw"))) { PARAMETER
+      ins->c64.sawOn=!ins->c64.sawOn;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.pulseOn);
+    if (ImGui::Button(_("pulse"))) { PARAMETER
+      ins->c64.pulseOn=!ins->c64.pulseOn;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.noiseOn);
+    if (ImGui::Button(_("noise"))) { PARAMETER
+      ins->c64.noiseOn=!ins->c64.noiseOn;
+    }
+    popToggleColors();
+
+    ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
+
+    if (ImGui::BeginTable("C64EnvParams",5,ImGuiTableFlags_NoHostExtendX)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+      ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      CENTER_TEXT("A");
+      ImGui::TextUnformatted("A");
+      ImGui::TableNextColumn();
+      CENTER_TEXT("D");
+      ImGui::TextUnformatted("D");
+      ImGui::TableNextColumn();
+      CENTER_TEXT("S");
+      ImGui::TextUnformatted("S");
+      ImGui::TableNextColumn();
+      CENTER_TEXT("R");
+      ImGui::TextUnformatted("R");
+      ImGui::TableNextColumn();
+      CENTER_TEXT(_("Envelope"));
+      ImGui::TextUnformatted(_("Envelope"));
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN)); rightClickable
+      ImGui::TableNextColumn();
+      P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN)); rightClickable
+      ImGui::TableNextColumn();
+      drawFMEnv(15-ins->sid2.volume,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+
+      ImGui::EndTable();
+    }
+
+    P(CWSliderScalar(_("Duty"),ImGuiDataType_U16,&ins->c64.duty,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
+
+    bool resetDuty=ins->c64.resetDuty;
+    if (ImGui::Checkbox(_("Reset duty on new note"),&resetDuty)) { PARAMETER
+      ins->c64.resetDuty=resetDuty;
+    }
+
+    bool ringMod=ins->c64.ringMod;
+    if (ImGui::Checkbox(_("Ring Modulation"),&ringMod)) { PARAMETER
+      ins->c64.ringMod=ringMod;
+    }
+    bool oscSync=ins->c64.oscSync;
+    if (ImGui::Checkbox(_("Oscillator Sync"),&oscSync)) { PARAMETER
+      ins->c64.oscSync=oscSync;
+    }
+
+    P(ImGui::Checkbox(_("Enable filter"),&ins->c64.toFilter));
+    P(ImGui::Checkbox(_("Initialize filter"),&ins->c64.initFilter));
+    
+    P(CWSliderScalar(_("Cutoff"),ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_FOUR_THOUSAND_NINETY_FIVE)); rightClickable
+    P(CWSliderScalar(_("Resonance"),ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_TWO_HUNDRED_FIFTY_FIVE)); rightClickable
+
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text(_("Filter Mode"));
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.lp);
+    if (ImGui::Button(_("low"))) { PARAMETER
+      ins->c64.lp=!ins->c64.lp;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.bp);
+    if (ImGui::Button(_("band"))) { PARAMETER
+      ins->c64.bp=!ins->c64.bp;
+    }
+    popToggleColors();
+    ImGui::SameLine();
+    pushToggleColors(ins->c64.hp);
+    if (ImGui::Button(_("high"))) { PARAMETER
+      ins->c64.hp=!ins->c64.hp;
+    }
+    popToggleColors();
+
+    P(CWSliderScalar(_("Noise Mode"),ImGuiDataType_U8,&ins->sid2.noiseMode,&_ZERO,&_THREE));
+    P(CWSliderScalar(_("Wave Mix Mode"),ImGuiDataType_U8,&ins->sid2.mixMode,&_ZERO,&_THREE,sid2WaveMixModes[ins->sid2.mixMode&3]));
+
+    if (ImGui::Checkbox(_("Absolute Cutoff Macro"),&ins->c64.filterIsAbs)) {
+      ins->temp.vZoom[DIV_MACRO_ALG]=-1;
+      PARAMETER;
+    }
+    if (ImGui::Checkbox(_("Absolute Duty Macro"),&ins->c64.dutyIsAbs)) {
+      ins->temp.vZoom[DIV_MACRO_DUTY]=-1;
+      PARAMETER;
+    }
+
+    ImGui::EndTabItem();
+  }
 
   if (ImGui::BeginTabItem(_("Macros"))) {
-    // macros go here...
+    macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->c64.dutyIsAbs?0:-4095,4095,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,4,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,c64ShapeBits));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Cutoff"),&ins->std.algMacro,ins->c64.filterIsAbs?0:-4095,4095,160,uiColors[GUI_COLOR_MACRO_FILTER]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Resonance"),&ins->std.ex2Macro,0,255,160,uiColors[GUI_COLOR_MACRO_FILTER]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Filter Mode"),&ins->std.ex1Macro,0,3,64,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true,filtModeBits));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Filter Toggle"),&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_FILTER],false,NULL,NULL,true));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Special"),&ins->std.ex4Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid2ControlBits));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Attack"),&ins->std.ex5Macro,0,15,128,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Decay"),&ins->std.ex6Macro,0,15,128,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Sustain"),&ins->std.ex7Macro,0,15,128,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Release"),&ins->std.ex8Macro,0,15,128,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Noise Mode"),&ins->std.fmsMacro,0,3,64,uiColors[GUI_COLOR_MACRO_NOISE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.amsMacro,0,3,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID2WaveMixMode));
 
     drawMacros(macroList,macroEditStateMacros,ins);
     ImGui::EndTabItem();
