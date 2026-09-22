@@ -676,7 +676,7 @@ void FurnaceGUI::drawSampleEdit() {
 
         if (selColumns>1) {
           ImGui::TableNextColumn();
-          ImGui::Text(_("Chips"));
+          ImGui::Text(_("Load sample into these chips"));
         }
         
         if (sampleInfo) {
