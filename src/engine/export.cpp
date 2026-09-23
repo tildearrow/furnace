@@ -26,6 +26,7 @@
 #include "export/ipod.h"
 #include "export/grub.h"
 #include "export/spc.h"
+#include "export/sid.h"
 
 DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
   DivROMExport* exporter=NULL;
@@ -50,6 +51,9 @@ DivROMExport* DivEngine::buildROM(DivROMExportOptions sys) {
       break;
     case DIV_ROM_SNES:
       exporter=new DivExportSNES;
+      break;
+    case DIV_ROM_C64:
+      exporter=new DivExportC64;
       break;
     default:
       exporter=new DivROMExport;

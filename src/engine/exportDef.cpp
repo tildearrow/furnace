@@ -154,4 +154,14 @@ void DivEngine::registerROMExports() {
     },
     false, DIV_REQPOL_EXACT
   );
+
+  romExportDefs[DIV_ROM_C64]=new DivROMExportDef(
+    "Commodore 64 SID", "tildearrow",
+    "experimental crappy C64 driver because I am short on time.",
+    "C64 sound data", ".sid",
+    {
+      DIV_SYSTEM_C64_6581, DIV_SYSTEM_C64_8580
+    },
+    false, DIV_REQPOL_ANY
+  );
 }
