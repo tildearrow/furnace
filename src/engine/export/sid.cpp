@@ -39,7 +39,68 @@ void DivExportC64::run() {
 
   // play the song and dump registers
   // then we'll compress each channel appropriately
-  // freauency won't be stored as such and we'll have a tiny vibrato/porta engine instead to save space
+  // frequency won't be stored as such and we'll have a tiny vibrato/porta engine instead to save space
+
+  e->stop();
+  e->repeatPattern=false;
+  e->setOrder(0);
+
+  logAppend("playing and logging register writes...");
+
+  e->synchronizedSoft([&]() {
+    // Determine loop point.
+    e->calcSongTimestamps();
+    int loopOrder=e->curSubSong->ts.loopStart.order;
+    int loopRow=e->curSubSong->ts.loopStart.row;
+    logAppendf("loop point: %d %d",loopOrder,loopRow);
+    e->warnings="";
+
+    // Reset the playback state.
+    e->curOrder=0;
+    e->freelance=false;
+    e->playing=false;
+    e->extValuePresent=false;
+    e->remainingLoops=-1;
+
+    // Prepare to write song data.
+    e->playSub(false);
+    bool done=false;
+    e->disCont[0].dispatch->toggleRegisterDump(true);
+
+    unsigned char state[32];
+    memset(state,0,32);
+
+    while (!done) {
+      if (e->nextTick(false,true) || !e->playing) {
+        done=true;
+        for (int i=0; i<e->song.systemLen; i++) {
+          e->disCont[i].dispatch->getRegisterWrites().clear();
+        }
+        break;
+      }
+      // get register dumps
+      std::vector<DivRegWrite>& writes=e->disCont[0].dispatch->getRegisterWrites();
+      if (!writes.empty()) {
+        for (DivRegWrite& write: writes) {
+          logV("%x = %x",write.addr,write.val);
+          state[write.addr&0x1f]=write.val;
+        }
+        writes.clear();
+      }
+
+      // write it out
+      w->write(state,32);
+    }
+    // end of song
+
+    // done - close out.
+    e->disCont[0].dispatch->toggleRegisterDump(false);
+
+    e->remainingLoops=-1;
+    e->playing=false;
+    e->freelance=false;
+    e->extValuePresent=false;
+  });
 
 
   output.push_back(DivROMExportOutput("export.sid",w));
@@ -49,7 +110,7 @@ void DivExportC64::run() {
   running=false;
 }
 
-bool DivExportSNES::go(DivEngine* eng) {
+bool DivExportC64::go(DivEngine* eng) {
   progress[0].name="Progress";
   progress[0].amount=0.0f;
 
@@ -57,31 +118,31 @@ bool DivExportSNES::go(DivEngine* eng) {
   running=true;
   failed=false;
   mustAbort=false;
-  exportThread=new std::thread(&DivExportSNES::run,this);
+  exportThread=new std::thread(&DivExportC64::run,this);
   return true;
 }
 
-void DivExportSNES::wait() {
+void DivExportC64::wait() {
   if (exportThread!=NULL) {
     exportThread->join();
     delete exportThread;
   }
 }
 
-void DivExportSNES::abort() {
+void DivExportC64::abort() {
   mustAbort=true;
   wait();
 }
 
-bool DivExportSNES::isRunning() {
+bool DivExportC64::isRunning() {
   return running;
 }
 
-bool DivExportSNES::hasFailed() {
+bool DivExportC64::hasFailed() {
   return failed;
 }
 
-DivROMExportProgress DivExportSNES::getProgress(int index) {
+DivROMExportProgress DivExportC64::getProgress(int index) {
   if (index<0 || index>1) return progress[1];
   return progress[index];
 }

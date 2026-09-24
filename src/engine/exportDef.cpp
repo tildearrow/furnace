@@ -162,6 +162,6 @@ void DivEngine::registerROMExports() {
     {
       DIV_SYSTEM_C64_6581, DIV_SYSTEM_C64_8580
     },
-    false, DIV_REQPOL_ANY
+    false, DIV_REQPOL_LAX
   );
 }
