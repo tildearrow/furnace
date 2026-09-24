@@ -611,7 +611,7 @@ void DivEngine::registerSystems() {
   EffectHandlerMap fmOPN2PostEffectHandlerMap(fmOPNPostEffectHandlerMap);
   fmOPN2PostEffectHandlerMap.insert(ayPostEffectHandlerMap.begin(), ayPostEffectHandlerMap.end());
   fmOPN2PostEffectHandlerMap.insert({
-    {0x6c, {DIV_CMD_TEST_REG, _("6Dxx: Set test register $21 (dangerous)"), constVal<0x21>, effectVal}},
+    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register $21 (dangerous)"), constVal<0x21>, effectVal}},
     {0x6d, {DIV_CMD_TEST_REG, _("6Dxx: Set test register $2C (dangerous)"), constVal<0x2c>, effectVal}},
   });
 
