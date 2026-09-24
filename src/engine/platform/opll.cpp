@@ -946,6 +946,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if ((int)properDrums==c.value) break;
       switchMode(c.value);
       break;
+    case DIV_CMD_TEST_REG:
+      immWrite(c.value,c.value2);
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
