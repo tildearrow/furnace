@@ -781,7 +781,7 @@ void FurnaceGUI::drawChanOsc() {
       ImGui::PopStyleVar();
     }
     if (chanOsc.showOptions) ImGui::OpenPopup("chanOscSettingsPopup");
-    if (ImGui::BeginPopupContextItem("chanOscSettingsPopup",ImGuiPopupFlags_MouseButtonLeft)) {
+    if (ImGui::BeginPopup("chanOscSettingsPopup",ImGuiPopupFlags_NoReopen)) {
       ImDrawList* dl=ImGui::GetWindowDrawList();
       chanOsc.showOptions=false;
       if (ImGui::BeginTabBar("chanOscSettingsTabBar")) {
