@@ -728,6 +728,11 @@ void DivEngine::registerSystems() {
     {0x10, {DIV_CMD_WAVE, _("10xx: Set waveform")}},
   };
 
+  EffectHandlerMap SCCPostEffectHandlerMap=(waveOnlyEffectHandlerMap);
+  SCCPostEffectHandlerMap.insert({
+    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: SCC(+) deformation/test register"), constVal<0>, effectVal}},
+  });       
+
   EffectHandlerMap segaPCMPostEffectHandlerMap={
     {0x20, {DIV_CMD_SAMPLE_FREQ, _("20xx: Set PCM frequency")}}
   };
@@ -1696,7 +1701,8 @@ void DivEngine::registerSystems() {
     false, true, 0x161, false, 0, 32, 256,
     _("a wavetable chip made by Konami for use with the MSX.\nthe last channel shares its wavetable with the previous one though."),
     DivChanDefFunc(simpleChanDef<DIV_CH_WAVE,DIV_INS_SCC>),
-    waveOnlyEffectHandlerMap
+    waveOnlyEffectHandlerMap,
+    SCCPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL_DRUMS]=new DivSysDef(
@@ -2072,7 +2078,8 @@ void DivEngine::registerSystems() {
     _("this is the wavetable part of the Bubble System, which also had two AY-3-8910s."),
     DivChanDefFunc(simpleChanDef<DIV_CH_WAVE,DIV_INS_SCC>),
     {},
-    waveOnlyEffectHandlerMap
+    waveOnlyEffectHandlerMap,
+    SCCPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
@@ -2257,7 +2264,8 @@ void DivEngine::registerSystems() {
     false, true, 0x161, false, 0, 32, 256,
     _("this is a variant of Konami's SCC chip with the last channel's wavetable being independent."),
     DivChanDefFunc(simpleChanDef<DIV_CH_WAVE,DIV_INS_SCC>),
-    waveOnlyEffectHandlerMap
+    waveOnlyEffectHandlerMap,
+    SCCPostEffectHandlerMap
   );
 
   EffectHandlerMap suEffectHandlerMap={
