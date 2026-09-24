@@ -24,7 +24,7 @@
 // ESFM register address space technically spans 0x800 (2048) bytes,
 // but we only need the first 0x254 (596) during normal use.
 // Rounding it up to 0x400 bytes, the nearest power of 2.
-#define ESFM_REG_POOL_SIZE 0x400
+#define ESFM_REG_POOL_SIZE 0x800
 
 class DivPlatformESFM: public DivDispatch {
   struct Channel: public SharedChannel {

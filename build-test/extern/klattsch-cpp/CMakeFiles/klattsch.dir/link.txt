@@ -1,0 +1,2 @@
+/usr/bin/ar qc libklattsch.a CMakeFiles/klattsch.dir/src/klattsch.cpp.o CMakeFiles/klattsch.dir/src/phoneme_banks.cpp.o CMakeFiles/klattsch.dir/src/banks_registry.cpp.o
+/usr/bin/ranlib libklattsch.a
