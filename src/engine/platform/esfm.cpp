@@ -983,9 +983,6 @@ int DivPlatformESFM::dispatch(DivCommand c) {
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;
-    case DIV_CMD_TEST_REG:
-      immWrite(c.value,c.value2);
-      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;

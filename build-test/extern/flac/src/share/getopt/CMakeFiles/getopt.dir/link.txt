@@ -1,2 +1,0 @@
-/usr/bin/ar qc libgetopt.a CMakeFiles/getopt.dir/getopt.c.o CMakeFiles/getopt.dir/getopt1.c.o
-/usr/bin/ranlib libgetopt.a

@@ -1,2 +1,0 @@
-/usr/bin/ar qc liblibmpgdecoder.a CMakeFiles/libmpgdecoder.dir/mpglib/common.c.o CMakeFiles/libmpgdecoder.dir/mpglib/dct64_i386.c.o CMakeFiles/libmpgdecoder.dir/mpglib/decode_i386.c.o CMakeFiles/libmpgdecoder.dir/mpglib/interface.c.o CMakeFiles/libmpgdecoder.dir/mpglib/layer1.c.o CMakeFiles/libmpgdecoder.dir/mpglib/layer2.c.o CMakeFiles/libmpgdecoder.dir/mpglib/layer3.c.o CMakeFiles/libmpgdecoder.dir/mpglib/tabinit.c.o
-/usr/bin/ranlib liblibmpgdecoder.a
