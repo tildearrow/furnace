@@ -55,6 +55,15 @@ struct WriteGroup {
     enable(0) {}
 };
 
+// compressed chan flags/ADSR regs format:
+// 00-7F: call group + next tick
+// 80-EF: call sub-block
+// F0-FB: preset wait (F0 is always one tick)
+// FC: call group ext (16-bit index follows) + next tick
+// FD: call sub-block addr (16-bit addr follows)
+// FE: wait (8-bit delay follows)
+// FF: stop/loop/ret from sub-block
+
 void DivExportC64::run() {
   SafeWriter* w=new SafeWriter;
   w->init(); 
@@ -69,14 +78,13 @@ void DivExportC64::run() {
 
   logAppend("playing and logging register writes...");
 
-  std::vector<WriteGroup> chWrites[3];
-  std::vector<WriteGroup> globalWrites;
+  std::vector<WriteGroup> chWrites[4];
 
   std::map<WriteGroup,int> writePopularity;
   std::vector<WriteGroup> writePopularitySorted;
 
-  std::vector<int> chWritesI[3];
-  std::vector<int> globalWritesI;
+  int* chWritesI[4];
+  size_t chWritesILen[4];
 
   e->synchronizedSoft([&]() {
     // Determine loop point.
@@ -145,7 +153,7 @@ void DivExportC64::run() {
       }
       
       if (wg.enable) writePopularity[wg]++;
-      globalWrites.push_back(wg);
+      chWrites[3].push_back(wg);
 
       memcpy(prevState,state,32);
     }
@@ -183,53 +191,71 @@ void DivExportC64::run() {
   }
 
   // index writes
-  for (int i=0; i<3; i++) {
+  for (int i=0; i<4; i++) {
+    int index=0;
+    chWritesILen[i]=chWrites[i].size();
+    chWritesI[i]=new int[chWritesILen[i]];
     for (WriteGroup& j: chWrites[i]) {
       if (j.enable) {
         try {
-          chWritesI[i].push_back(writePopularity[j]);
+          chWritesI[i][index]=writePopularity[j];
         } catch (std::exception& e) {
           logW("missing entry for write!");
-          chWritesI[i].push_back(-1);
+          chWritesI[i][index]=-1;
         }
       } else {
-        chWritesI[i].push_back(-1);
+        chWritesI[i][index]=-1;
       }
+      index++;
     }
     chWrites[i].clear();
   }
 
-  for (WriteGroup& i: globalWrites) {
-    if (i.enable) {
-      try {
-        globalWritesI.push_back(writePopularity[i]);
-      } catch (std::exception& e) {
-        logW("missing entry for write!");
-        globalWritesI.push_back(-1);
-      }
-    } else {
-      globalWritesI.push_back(-1);
-    }
-  }
-  globalWrites.clear();
-
+  /*
   for (int i=0; i<3; i++) {
     for (int j: chWritesI[i]) {
       if (j==-1) {
-        w->writeC(0xff);
+        w->writeC(0xf0);
+      } else if (j>=128) {
+        w->writeC(0xfd);
+        w->writeC(j&0xff);
+        w->writeC(j>>8);
       } else {
         w->writeC(j);
       }
     }
-  }
-  for (int i: globalWritesI) {
-    if (i==-1) {
-      w->writeC(0xff);
-    } else {
-      w->writeC(i);
+  }*/
+
+  // find patterns and compress
+  logD("compressing...");
+  for (int ch=0; ch<4; ch++) {
+    for (size_t size=3; size<16; size++) {
+      logD("size %d:",(int)size);
+      for (size_t i=0; i<chWritesILen[ch]-size; i++) {
+        // check whether this block only contains waits
+        bool onlyWaits=true;
+        for (size_t j=i; j<i+size; j++) {
+          if (chWritesI[ch][j]!=-1) {
+            onlyWaits=false;
+            break;
+          }
+        }
+
+        // if so then we don't compress it
+        if (onlyWaits) continue;
+
+        // otherwise begin block search
+        int matchCount=0;
+        for (size_t j=i+size; j<chWritesILen[ch]-size; j++) {
+          if (memcmp(&chWritesI[ch][j],&chWritesI[ch][i],size*sizeof(int))==0) {
+            matchCount++;
+            j+=size-1;
+          }
+        }
+        if (matchCount>0) logV("- %x = %d",i,matchCount);
+      }
     }
   }
-  
 
   output.push_back(DivROMExportOutput("export.sid",w));
 
