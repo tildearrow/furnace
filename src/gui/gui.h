@@ -3401,6 +3401,7 @@ class FurnaceGUI {
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);
 
+  // pattern editor selection functions
   void startSelection(int xCoarse, int xFine, int y, int ord, bool fullRow=false);
   void updateSelection(int xCoarse, int xFine, int y, int ord, bool fullRow=false);
   void finishSelection();
