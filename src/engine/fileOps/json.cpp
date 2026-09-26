@@ -853,10 +853,10 @@ JSON serializeInstrument(DivInstrument* ins) {
 
       filter["cutoff"]=ins->sid3.filt[i].cutoff;
       filter["resonance"]=ins->sid3.filt[i].resonance;
-      filter["output_volume"]=ins->sid3.filt[i].output_volume;
-      filter["distortion_level"]=ins->sid3.filt[i].distortion_level;
+      filter["outputVolume"]=ins->sid3.filt[i].output_volume;
+      filter["distortionLevel"]=ins->sid3.filt[i].distortion_level;
       filter["mode"]=ins->sid3.filt[i].mode;
-      filter["filter_matrix"]=ins->sid3.filt[i].filter_matrix;
+      filter["filterMatrix"]=ins->sid3.filt[i].filter_matrix;
       filter["bindCutoffToNoteStrength"]=ins->sid3.filt[i].bindCutoffToNoteStrength;
       filter["bindCutoffToNoteCenter"]=ins->sid3.filt[i].bindCutoffToNoteCenter;
       filter["bindResonanceToNoteStrength"]=ins->sid3.filt[i].bindResonanceToNoteStrength;
