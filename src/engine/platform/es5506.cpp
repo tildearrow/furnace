@@ -1285,6 +1285,20 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return amigaVol?64:255;
       break;
+    case DIV_CMD_TEST_REG: {
+      if (c.value)
+        curPage |= 0x80;
+      else
+        curPage &= ~0x80;
+      rWrite(0xf, curPage);
+      if (dumpWrites) {
+        addWrite(0x3c, 0);
+        addWrite(0x3d, 0);
+        addWrite(0x3e, 0);
+        addWrite(0x3f, curPage);
+      }
+      break;
+    }
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
