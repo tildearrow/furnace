@@ -33,6 +33,28 @@
 #include <unistd.h>
 #endif
 
+struct WriteGroup {
+  unsigned char data[3];
+  unsigned char enable;
+
+  String toString() const {
+    String ret=fmt::sprintf("%.2x %.2x %.2x",data[0],data[1],data[2]);
+    for (int i=0; i<3; i++) {
+      if (!(enable&(1<<i))) {
+        ret[i*3]='-';
+        ret[1+(i*3)]='-';
+      }
+    }
+    return ret;
+  }
+  inline bool operator<(const WriteGroup& other) const {
+    return (memcmp((const void*)&data,(const void*)&other,4)<0);
+  }
+  WriteGroup():
+    data{0},
+    enable(0) {}
+};
+
 void DivExportC64::run() {
   SafeWriter* w=new SafeWriter;
   w->init(); 
@@ -46,6 +68,15 @@ void DivExportC64::run() {
   e->setOrder(0);
 
   logAppend("playing and logging register writes...");
+
+  std::vector<WriteGroup> chWrites[3];
+  std::vector<WriteGroup> globalWrites;
+
+  std::map<WriteGroup,int> writePopularity;
+  std::vector<WriteGroup> writePopularitySorted;
+
+  std::vector<int> chWritesI[3];
+  std::vector<int> globalWritesI;
 
   e->synchronizedSoft([&]() {
     // Determine loop point.
@@ -68,7 +99,9 @@ void DivExportC64::run() {
     e->disCont[0].dispatch->toggleRegisterDump(true);
 
     unsigned char state[32];
+    unsigned char prevState[32];
     memset(state,0,32);
+    memset(prevState,0,32);
 
     while (!done) {
       if (e->nextTick(false,true) || !e->playing) {
@@ -82,14 +115,39 @@ void DivExportC64::run() {
       std::vector<DivRegWrite>& writes=e->disCont[0].dispatch->getRegisterWrites();
       if (!writes.empty()) {
         for (DivRegWrite& write: writes) {
-          logV("%x = %x",write.addr,write.val);
+          //logV("%x = %x",write.addr,write.val);
           state[write.addr&0x1f]=write.val;
         }
         writes.clear();
       }
 
-      // write it out
-      w->write(state,32);
+      // collect channel writes
+      for (int i=0; i<3; i++) {
+        WriteGroup wg;
+        for (int j=(7*i)+4, j_b=0; j<(7*i)+7; j++, j_b++) {
+          if (state[j]!=prevState[j]) {
+            wg.data[j_b]=state[j];
+            wg.enable|=1<<j_b;
+          }
+        }
+
+        if (wg.enable) writePopularity[wg]++;
+        chWrites[i].push_back(wg);
+      }
+
+      // collect global writes
+      WriteGroup wg;
+      for (int j=0x17, j_b=0; j<=0x18; j++, j_b++) {
+        if (state[j]!=prevState[j]) {
+          wg.data[j_b]=state[j];
+          wg.enable|=1<<j_b;
+        }
+      }
+      
+      if (wg.enable) writePopularity[wg]++;
+      globalWrites.push_back(wg);
+
+      memcpy(prevState,state,32);
     }
     // end of song
 
@@ -102,6 +160,76 @@ void DivExportC64::run() {
     e->extValuePresent=false;
   });
 
+  // sort writes by popularity
+  logV("write popularity:");
+  while (!writePopularity.empty()) {
+    WriteGroup mostPopular;
+    int score=0;
+    for (auto& i: writePopularity) {
+      if (i.second>score) {
+        mostPopular=i.first;
+        score=i.second;
+      }
+    }
+    logV("%d. %s (%d)",(int)writePopularitySorted.size(),mostPopular.toString(),score);
+    writePopularitySorted.push_back(mostPopular);
+    writePopularity.erase(mostPopular);
+  }
+
+  // put it back into the map so we can easily index these
+  int index=0;
+  for (WriteGroup& i: writePopularitySorted) {
+    writePopularity[i]=index++;
+  }
+
+  // index writes
+  for (int i=0; i<3; i++) {
+    for (WriteGroup& j: chWrites[i]) {
+      if (j.enable) {
+        try {
+          chWritesI[i].push_back(writePopularity[j]);
+        } catch (std::exception& e) {
+          logW("missing entry for write!");
+          chWritesI[i].push_back(-1);
+        }
+      } else {
+        chWritesI[i].push_back(-1);
+      }
+    }
+    chWrites[i].clear();
+  }
+
+  for (WriteGroup& i: globalWrites) {
+    if (i.enable) {
+      try {
+        globalWritesI.push_back(writePopularity[i]);
+      } catch (std::exception& e) {
+        logW("missing entry for write!");
+        globalWritesI.push_back(-1);
+      }
+    } else {
+      globalWritesI.push_back(-1);
+    }
+  }
+  globalWrites.clear();
+
+  for (int i=0; i<3; i++) {
+    for (int j: chWritesI[i]) {
+      if (j==-1) {
+        w->writeC(0xff);
+      } else {
+        w->writeC(j);
+      }
+    }
+  }
+  for (int i: globalWritesI) {
+    if (i==-1) {
+      w->writeC(0xff);
+    } else {
+      w->writeC(i);
+    }
+  }
+  
 
   output.push_back(DivROMExportOutput("export.sid",w));
 
