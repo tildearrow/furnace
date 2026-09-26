@@ -29,7 +29,9 @@
 #include "safeWriter.h"
 #include "sysDef.h"
 #include "cmdStream.h"
+#ifdef HAVE_SNDFILE
 #include "filePlayer.h"
+#endif
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <functional>
@@ -539,6 +541,7 @@ class DivEngine {
   float metroVol;
   float previewVol;
 
+#ifdef HAVE_SNDFILE
   float* filePlayerBuf[DIV_MAX_OUTPUTS];
   size_t filePlayerBufLen;
   DivFilePlayer* curFilePlayer;
@@ -546,6 +549,7 @@ class DivEngine {
   TimeMicros filePlayerCue;
   int filePlayerLoopTrail;
   int curFilePlayerTrail;
+#endif
 
   size_t totalProcessed;
 
@@ -692,6 +696,7 @@ class DivEngine {
     // destroy command stream player.
     bool killStream();
 
+#ifdef HAVE_SNDFILE
     // get the audio file player.
     DivFilePlayer* getFilePlayer();
     // get whether the player is synchronized with song playback.
@@ -702,6 +707,7 @@ class DivEngine {
     void setFilePlayerCue(TimeMicros cue);
     // UNSAFE - sync file player to current playback position.
     void syncFilePlayer();
+#endif
 
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
@@ -1530,12 +1536,14 @@ class DivEngine {
       metroAmp(0.0f),
       metroVol(1.0f),
       previewVol(1.0f),
+#ifdef HAVE_SNDFILE
       filePlayerBufLen(0),
       curFilePlayer(NULL),
       filePlayerSync(false),
       filePlayerCue(0,0),
       filePlayerLoopTrail(0),
       curFilePlayerTrail(0),
+#endif
       totalProcessed(0),
       renderPoolThreads(0),
       renderPool(NULL),
@@ -1564,7 +1572,9 @@ class DivEngine {
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
       memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
+#ifdef HAVE_SNDFILE
       memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(float));
+#endif
 
       changeSong(0);
     }
