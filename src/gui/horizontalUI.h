@@ -30,6 +30,8 @@ struct ImVec2;
 // All transient state belongs to this view; the song remains ordinary Furnace data.
 class FurnaceGUIHorizontal {
   bool editorOpen=false, focusEditor=false, centerPitch=false;
+  bool selectChannelTab=false;
+  int ghostChannel=-1;
   int order=0, channel=0, row=0, pitch=108, length=4, snap=1;
   int preview=-1, dragMode=0, dragRow=0, dragPitch=0, dragEnd=0;
   int dragTargetRow=0, dragTargetPitch=0, dragTargetEnd=0;
@@ -43,7 +45,7 @@ class FurnaceGUIHorizontal {
   void orderMenu(FurnaceGUI& gui);
   void songView(FurnaceGUI& gui);
   void patternView(FurnaceGUI& gui);
-  void pianoRoll(FurnaceGUI& gui, float height);
+  void pianoRoll(FurnaceGUI& gui, float height, float previousWidth);
   void noteEventRows(FurnaceGUI& gui, ImVec2 origin, ImVec2 view, ImVec2 limit, bool hovered);
   void eventLanes(FurnaceGUI& gui, float height);
   void inspector(FurnaceGUI& gui);

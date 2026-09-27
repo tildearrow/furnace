@@ -27,17 +27,18 @@ Hover over the arrangement, piano roll, or event lanes:
 | Alt / Option + wheel | Zoom vertically around the pointer |
 | Horizontal wheel / trackpad axis | Scroll horizontally |
 
-These use the FL Studio Playlist wheel conventions consistently in both views. FL Studio's own piano roll also uses Alt + wheel for note properties; in this mode it always navigates the view. In the event panel, vertical zoom changes event-lane spacing. The piano keyboard and channel names stay fixed during horizontal scrolling. Notes and their event lanes share the same time scale and scroll position.
+These use the FL Studio Playlist wheel conventions consistently in both views. FL Studio's own piano roll also uses Alt + wheel for note properties; in this mode it always navigates the view. In the event panel, vertical zoom changes event-lane spacing. The piano keyboard and channel names stay fixed during horizontal scrolling. Notes and their event lanes share the same time scale and scroll position. Zoom keeps the time or pitch beneath the pointer stationary, subject to the beginning/end of the scrollable content. The zoom sliders also use the pointer's horizontal position over the timeline.
 
 ## Piano roll
 
-The floating editor displays one channel and one order at a time. Its title area identifies the pattern and the number of orders sharing it. Use the channel selector to switch channels. Opening another brick changes the editor to that brick, even if the window was previously collapsed. **Close** returns to the song view.
+The floating editor displays one channel and one order at a time. Its title area identifies the pattern and the number of orders sharing it. Use the channel tabs to switch channels; the tab bar scrolls when there are too many to fit. Opening another brick changes the editor to that brick, even if the window was previously collapsed. **Close** returns to the song view.
 
 - Click empty grid space to insert a note with the current instrument and **Length**, measured in rows. Drag while inserting to set its end.
 - Drag a note to move it in time or change its pitch. Drag its right edge to resize it. **Snap** controls the row increment.
 - Right-click a note, or select it and press Delete, to erase it. Drawing, moving, or resizing a note replaces any notes whose spans overlap the new span, along with instrument/volume events in that span. Effects stay at their original rows.
 - Click the vertical keyboard to audition a pitch with the current instrument.
-- Use the ruler, event lanes, left/right arrows, or **Row** input to select a row. The Row input is decimal.
+- Click the tick ruler above the piano keys to jump the playhead to that row and play from there, including during playback. Horizontal scrolling and zoom are taken into account.
+- Use the event lanes, left/right arrows, or **Row** input to select a row without seeking. The Row input is decimal.
 - Undo and redo use Furnace's existing history. A completed note gesture, including everything it replaces, is one undo step. Press Ctrl+Z to restore the previous notes and events.
 
 The lower event panel shows instruments, volume, and each effect column horizontally. Effect commands are displayed above their values so both remain legible at normal zoom. Click a row and use the inspector below to edit it, including rows without a note. Instrument, volume, effect-command, and effect-value inputs use hexadecimal: press Enter to apply; erase the text and press Enter to clear. Right-click an event lane to clear that event (both command and value for an effect). **FX lanes** controls the channel's active effect-column count, up to eight. **Effects reference** opens Furnace's effect list.
@@ -49,6 +50,10 @@ Three fixed rows beneath the piano keys show note cuts (**OFF**), note releases 
 - Event edits preserve instruments, volume, and effects, and support Undo/Redo. Furnace stores one note or special event per channel per time row.
 
 Raw-frequency events (**RAW**) remain outlined in the piano grid, using their saved pitch or nearby note context. Select or right-click them there; edit raw-frequency bytes in tracker mode.
+
+## Ghost notes
+
+Choose a channel in **Ghost** to overlay its pattern from the current order behind the active notes. Ghost notes are faint, use the source channel's color, and follow the same pitch/time grid, scrolling, and zoom. They are a read-only reference: clicking or drawing there edits only the active channel. Choose **None** to hide them. Switching to the ghost channel turns the overlay off.
 
 ## How notes map to Furnace
 

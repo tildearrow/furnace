@@ -56,29 +56,38 @@ struct PatternPayload {
 // so modifier zoom never also scrolls a parent. Return a pending horizontal
 // offset to keep the notes and event lanes synchronized on the following frame.
 float wheelNavigation(float& width, float& height, ImVec2 minimum, ImVec2 maximum,
-                      ImVec2 pinned, float scale) {
+                      ImVec2 pinned, float scale, float previousWidth=-1.0f, ImVec2 spacing=ImVec2(0,0)) {
   ImGuiWindow* window=ImGui::GetCurrentWindow();
   window->Flags|=ImGuiWindowFlags_NoScrollWithMouse;
-  if (!ImGui::IsWindowHovered() || ImGui::IsAnyItemActive()) return -1.0f;
   const ImGuiIO& io=ImGui::GetIO();
-  if (io.MouseWheel==0 && io.MouseWheelH==0) return -1.0f;
+  bool wheel=ImGui::IsWindowHovered() && !ImGui::IsAnyItemActive();
+  float oldWidth=previousWidth>0?previousWidth:width;
+  float oldHeight=height;
   float x=ImGui::GetScrollX(), y=ImGui::GetScrollY();
-  ImVec2 origin=ImGui::GetCursorScreenPos();
-  if (io.KeyCtrl || io.KeySuper) {
-    float old=width;
-    width=CLAMP(width*powf(1.15f,io.MouseWheel),minimum.x,maximum.x);
-    float anchor=MAX(0.0f,io.MousePos.x-(origin.x+x+pinned.x));
-    x=MAX(0.0f,(x+anchor)*width/old-anchor);
+  // Anchor to the visible canvas, not a cursor position that tables can move
+  // while freezing their headers. Include fixed grid-border spacing in scale.
+  ImVec2 start(window->InnerRect.Min.x+window->WindowPadding.x+pinned.x,
+               window->InnerRect.Min.y+window->WindowPadding.y+pinned.y);
+  bool horizontalZoom=wheel && (io.KeyCtrl || io.KeySuper);
+  bool verticalZoom=wheel && !horizontalZoom && io.KeyAlt;
+  if (horizontalZoom) width=CLAMP(width*powf(1.15f,io.MouseWheel+io.MouseWheelH),minimum.x,maximum.x);
+  if (verticalZoom) height=CLAMP(height*powf(1.15f,io.MouseWheel+io.MouseWheelH),minimum.y,maximum.y);
+  if (width!=oldWidth) {
+    float anchor=MAX(0.0f,io.MousePos.x-start.x);
+    float oldStep=(spacing.x>0?floorf(oldWidth*scale):oldWidth*scale)+spacing.x;
+    float newStep=(spacing.x>0?floorf(width*scale):width*scale)+spacing.x;
+    float position=(x+anchor)/oldStep;
+    x=MAX(0.0f,position*newStep-anchor);
     ImGui::SetScrollX(x);
     return x;
   }
-  if (io.KeyAlt) {
-    float old=height;
-    height=CLAMP(height*powf(1.15f,io.MouseWheel),minimum.y,maximum.y);
-    float anchor=MAX(0.0f,io.MousePos.y-(origin.y+y+pinned.y));
-    ImGui::SetScrollY(MAX(0.0f,(y+anchor)*height/old-anchor));
+  if (height!=oldHeight) {
+    float anchor=MAX(0.0f,io.MousePos.y-start.y);
+    float position=(y+anchor)/(oldHeight*scale+spacing.y);
+    ImGui::SetScrollY(MAX(0.0f,position*(height*scale+spacing.y)-anchor));
     return -1.0f;
   }
+  if (!wheel || horizontalZoom || verticalZoom) return -1.0f;
   float horizontal=io.MouseWheelH+(io.KeyShift?io.MouseWheel:0.0f);
   if (!io.KeyShift && io.MouseWheel!=0) ImGui::SetScrollY(MAX(0.0f,y-io.MouseWheel*60.0f*scale));
   if (horizontal!=0) {
@@ -139,10 +148,12 @@ void FurnaceGUIHorizontal::open(FurnaceGUI& g, int ord, int ch) {
   stopPreview(g);
   order=ord;
   channel=ch;
+  if (ghostChannel==channel) ghostChannel=-1;
   row=0;
   dragMode=0;
   scrollX=0;
   editorOpen=focusEditor=centerPitch=true;
+  selectChannelTab=true;
   select(g,ord,ch);
   DivPattern* pat=g.e->curPat[ch].getPattern(g.e->curOrders->ord[ch][ord],false);
   pitch=CLAMP(g.curOctave*12+60,0,179);
@@ -200,6 +211,7 @@ void FurnaceGUIHorizontal::songView(FurnaceGUI& g) {
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(_("Duplicate order using shared patterns. Use Orders > Clone for an independent copy."));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(120.0f*g.dpiScale);
+    float previousWidth=orderWidth;
     ImGui::SliderFloat(_("Zoom"),&orderWidth,48.0f,480.0f,"%.0f");
     ImGui::SameLine();
     ImGui::TextDisabled(_("Double-click a brick to edit"));
@@ -216,12 +228,18 @@ void FurnaceGUIHorizontal::songView(FurnaceGUI& g) {
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0,0));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0,0));
     if (ImGui::BeginTable("HorizontalOrders",count+1,ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_BordersInner|ImGuiTableFlags_SizingFixedFit)) {
-      wheelNavigation(orderWidth,orderHeight,ImVec2(48,minimumHeight),ImVec2(480,160),ImVec2(labelWidth,ImGui::GetTextLineHeight()),g.dpiScale);
+      wheelNavigation(orderWidth,orderHeight,ImVec2(48,minimumHeight),ImVec2(480,160),ImVec2(labelWidth,ImGui::GetTextLineHeight()),g.dpiScale,previousWidth,
+                      ImVec2(ImGui::GetCurrentTable()->CellSpacingX1+ImGui::GetCurrentTable()->CellSpacingX2,0));
       const float width=orderWidth*g.dpiScale;
       const float laneHeight=MAX(orderHeight*g.dpiScale,ImGui::GetFrameHeight());
       const bool showPreview=laneHeight>=idSize+24.0f*g.dpiScale;
       ImGui::TableSetupColumn("Channel",ImGuiTableColumnFlags_WidthFixed,labelWidth);
-      for (int o=0; o<count; o++) ImGui::TableSetupColumn("",ImGuiTableColumnFlags_WidthFixed,width);
+      for (int o=0; o<count; o++) {
+        ImGui::TableSetupColumn("",ImGuiTableColumnFlags_WidthFixed,width);
+        // ImGui otherwise retains stale widths for clipped columns. Every
+        // order must use the new scale to keep the point under the cursor fixed.
+        ImGui::GetCurrentTable()->Columns[o+1].WidthRequest=width;
+      }
       ImGui::TableSetupScrollFreeze(1,1);
       if (g.e->isPlaying() && g.followOrders && lastPlayOrder!=g.playOrder) {
         ImGui::SetScrollX(MAX(0.0f,g.playOrder*(width+ImGui::GetStyle().CellPadding.x*2)-width));
@@ -361,6 +379,9 @@ void FurnaceGUIHorizontal::songView(FurnaceGUI& g) {
         }
         ImGui::PopID();
       }
+      // Leave room below the arrangement so zoom can keep its cursor anchor
+      // even while the visible channels would otherwise fit the whole window.
+      ImGui::TableNextRow(0,ImGui::GetWindowHeight());
       ImGui::EndTable();
     }
     ImGui::PopStyleVar(2);
@@ -387,6 +408,7 @@ bool FurnaceGUIHorizontal::draw(FurnaceGUI& g) {
     editorOpen=false;
     dragMode=0;
     lastPlayOrder=-1;
+    ghostChannel=-1;
   }
   if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) stopPreview(g);
   if (g.e->getTotalChannelCount()<1 || g.e->curSubSong->ordersLen<1) return true;
@@ -463,14 +485,14 @@ void FurnaceGUIHorizontal::inspector(FurnaceGUI& g) {
   }
 }
 
-void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
+void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height, float previousWidth) {
   const int rows=g.e->curSubSong->patLen;
   const float keyboard=76.0f*g.dpiScale;
   const float ruler=ImGui::GetTextLineHeight()+6.0f*g.dpiScale;
   const float eventHeight=3*(ImGui::GetTextLineHeight()+7.0f*g.dpiScale);
   ImGui::SetNextWindowScroll(ImVec2(scrollX,-1));
   if (ImGui::BeginChild("HorizontalPiano",ImVec2(0,height),true,ImGuiWindowFlags_HorizontalScrollbar|ImGuiWindowFlags_NoNavInputs|ImGuiWindowFlags_NoScrollWithMouse)) {
-    float pendingX=wheelNavigation(rowWidth,keyHeight,ImVec2(8,6),ImVec2(96,40),ImVec2(keyboard,ruler),g.dpiScale);
+    float pendingX=wheelNavigation(rowWidth,keyHeight,ImVec2(8,6),ImVec2(96,40),ImVec2(keyboard,ruler),g.dpiScale,previousWidth);
     const float step=rowWidth*g.dpiScale;
     const float key=keyHeight*g.dpiScale;
     if (centerPitch) {
@@ -508,6 +530,23 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
     for (int r=firstRow; r<=lastRow; r++) {
       float x=origin.x+keyboard+r*step;
       dl->AddLine(ImVec2(x,view.y+ruler),ImVec2(x,limit.y),ImGui::GetColorU32(r%beat?ImGuiCol_Border:ImGuiCol_Separator),r%beat?1.0f:2.0f);
+    }
+    // Reference the ghost channel's pattern at this order without exposing it
+    // to hit testing, selection, audition, or editing in the active channel.
+    if (ghostChannel>=0 && ghostChannel<g.e->getTotalChannelCount() && ghostChannel!=channel) {
+      DivPattern* ghost=g.e->curPat[ghostChannel].getPattern(g.e->curOrders->ord[ghostChannel][order],false);
+      ImVec4 ghostColor=g.channelColor(ghostChannel);
+      for (int r=0; r<rows; r++) {
+        int note=ghost->newData[r][DIV_PAT_NOTE];
+        if (!pitched(note) && note!=DIV_NOTE_RAW) continue;
+        int n=eventPitch(ghost->newData,rows,r,pitch);
+        int end=endRow(ghost->newData,rows,r);
+        if (end<firstRow || r>lastRow || n<firstPitch || n>lastPitch) continue;
+        ImVec2 a(origin.x+keyboard+r*step+1,origin.y+ruler+(179-n)*key+1);
+        ImVec2 b(origin.x+keyboard+end*step-1,a.y+key-2);
+        dl->AddRectFilled(a,b,tint(ghostColor,0.18f),2*g.dpiScale);
+        dl->AddRect(a,b,tint(ghostColor,0.35f),2*g.dpiScale);
+      }
     }
     for (int r=0; r<rows; r++) {
       int note=pat->newData[r][DIV_PAT_NOTE];
@@ -583,7 +622,17 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
       preview=pitch=mousePitch;
       g.previewNote(channel,preview);
     }
-    if (hovered && mouse.x>=view.x+keyboard && mouse.y<view.y+ruler && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) row=mouseRow;
+    if (hovered && mouse.x>=view.x+keyboard && mouse.y<view.y+ruler) {
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+      ImGui::SetTooltip(_("Click to seek and play from row %02X."),mouseRow);
+      if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        stopPreview(g);
+        dragMode=0;
+        row=mouseRow;
+        select(g,order,channel);
+        g.play(row);
+      }
+    }
     if (inGrid && !dragMode) {
       if (hit>=0 && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
         row=hit;
@@ -806,6 +855,7 @@ void FurnaceGUIHorizontal::eventLanes(FurnaceGUI& g, float height) {
 
 void FurnaceGUIHorizontal::patternView(FurnaceGUI& g) {
   channel=CLAMP(channel,0,g.e->getTotalChannelCount()-1);
+  if (ghostChannel>=g.e->getTotalChannelCount()) ghostChannel=-1;
   order=CLAMP(order,0,g.e->curSubSong->ordersLen-1);
   row=CLAMP(row,0,g.e->curSubSong->patLen-1);
   ImGui::SetNextWindowSize(ImVec2(1000*g.dpiScale,760*g.dpiScale),ImGuiCond_FirstUseEver);
@@ -819,15 +869,31 @@ void FurnaceGUIHorizontal::patternView(FurnaceGUI& g) {
   background.w=1.0f;
   ImGui::PushStyleColor(ImGuiCol_WindowBg,background);
   if (ImGui::Begin("HorizontalPattern",&editorOpen,g.globalWinFlags|ImGuiWindowFlags_NoScrollWithMouse|(g.settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking),_("Pattern - Piano Roll"))) {
-    ImGui::SetNextItemWidth(200*g.dpiScale);
-    if (ImGui::BeginCombo(_("Channel"),g.e->getChannelName(channel))) {
+    if (ImGui::BeginTabBar("PatternChannels",ImGuiTabBarFlags_FittingPolicyScroll|ImGuiTabBarFlags_NoCloseWithMiddleMouseButton)) {
+      int requestedChannel=selectChannelTab?channel:-1;
+      selectChannelTab=false;
       for (int ch=0; ch<g.e->getTotalChannelCount(); ch++) {
         ImGui::PushID(ch);
-        if (ImGui::Selectable(g.e->getChannelName(ch),channel==ch)) open(g,order,ch);
+        if (ImGui::BeginTabItem(g.e->getChannelName(ch),NULL,ch==requestedChannel?ImGuiTabItemFlags_SetSelected:0)) {
+          if (channel!=ch && (requestedChannel<0 || requestedChannel==ch)) open(g,order,ch);
+          ImGui::EndTabItem();
+        }
+        ImGui::PopID();
+      }
+      ImGui::EndTabBar();
+    }
+    ImGui::SetNextItemWidth(160*g.dpiScale);
+    if (ImGui::BeginCombo(_("Ghost"),ghostChannel<0?_("None"):g.e->getChannelName(ghostChannel))) {
+      if (ImGui::Selectable(_("None"),ghostChannel<0)) ghostChannel=-1;
+      for (int ch=0; ch<g.e->getTotalChannelCount(); ch++) {
+        if (ch==channel) continue;
+        ImGui::PushID(ch);
+        if (ImGui::Selectable(g.e->getChannelName(ch),ghostChannel==ch)) ghostChannel=ch;
         ImGui::PopID();
       }
       ImGui::EndCombo();
     }
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip(_("Show another channel's notes at this order as a translucent, read-only reference."));
     ImGui::SameLine();
     ImGui::Text(_("Order %02X / Pattern %02X"),order,g.e->curOrders->ord[channel][order]);
     ImGui::SameLine();
@@ -847,6 +913,7 @@ void FurnaceGUIHorizontal::patternView(FurnaceGUI& g) {
     if (ImGui::InputInt(_("Snap"),&snap)) snap=CLAMP(snap,1,16);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(100*g.dpiScale);
+    float previousWidth=rowWidth;
     ImGui::SliderFloat(_("Time zoom"),&rowWidth,8,96,"%.0f");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(80*g.dpiScale);
@@ -858,7 +925,7 @@ void FurnaceGUIHorizontal::patternView(FurnaceGUI& g) {
     float inspectorHeight=(g.e->curPat[channel].effectCols>4?4:3)*ImGui::GetFrameHeightWithSpacing()+12*g.dpiScale;
     float available=ImGui::GetContentRegionAvail().y-inspectorHeight;
     float eventsHeight=MIN(125*g.dpiScale,available*0.27f);
-    pianoRoll(g,MAX(100*g.dpiScale+3*(ImGui::GetTextLineHeight()+7*g.dpiScale),available-eventsHeight-ImGui::GetStyle().ItemSpacing.y));
+    pianoRoll(g,MAX(100*g.dpiScale+3*(ImGui::GetTextLineHeight()+7*g.dpiScale),available-eventsHeight-ImGui::GetStyle().ItemSpacing.y),previousWidth);
     eventLanes(g,MAX(50*g.dpiScale,eventsHeight));
     inspector(g);
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) && !ImGui::GetIO().WantTextInput && !dragMode) {
