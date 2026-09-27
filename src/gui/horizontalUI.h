@@ -24,6 +24,7 @@
 
 class FurnaceGUI;
 struct DivSubSong;
+struct ImFont;
 
 // All transient state belongs to this view; the song remains ordinary Furnace data.
 class FurnaceGUIHorizontal {
@@ -35,6 +36,7 @@ class FurnaceGUIHorizontal {
   float orderWidth=156.0f, orderHeight=56.0f;
   float rowWidth=24.0f, keyHeight=18.0f, eventZoom=1.0f, scrollX=0.0f;
   const DivSubSong* song=NULL;
+  ImFont* idFont=NULL;
   void select(FurnaceGUI& gui, int ord, int ch);
   void open(FurnaceGUI& gui, int ord, int ch);
   void orderMenu(FurnaceGUI& gui);
@@ -47,6 +49,7 @@ class FurnaceGUIHorizontal {
   void editNote(FurnaceGUI& gui, int mode, int from, int to, int note, int end);
   void stopPreview(FurnaceGUI& gui);
 public:
+  void buildFont(FurnaceGUI& gui);
   bool draw(FurnaceGUI& gui);
 };
 

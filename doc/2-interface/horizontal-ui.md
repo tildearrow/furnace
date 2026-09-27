@@ -13,6 +13,8 @@ Time runs left to right. Each column is an order, and each lane is a chip channe
 - **Duplicate** shares patterns. **Clone** makes independent copies. Editing a shared pattern changes every order referencing it on that channel.
 - The speaker button beside each channel mutes or unmutes it. **Follow playback** scrolls the song view when playback reaches another order.
 
+Pattern IDs use a bundled bold italic outline font, rendered at the label's display size. With the FreeType font renderer, smoothing follows **Settings > Appearance > Text > Anti-aliased fonts**.
+
 ## Navigation
 
 Hover over the arrangement, piano roll, or event lanes:

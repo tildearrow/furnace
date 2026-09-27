@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "horizontalPattern.h"
+#include "horizontalFont.h"
 #include "IconsFontAwesome4.h"
 #include <cstdlib>
 #include <cmath>
@@ -34,18 +35,6 @@ ImU32 tint(ImVec4 color, float alpha) {
 bool blackKey(int note) {
   int key=note%12;
   return key==1 || key==3 || key==6 || key==8 || key==10;
-}
-
-// Synthesize the requested bold italic ID with the current font. This works
-// with user-selected fonts without loading another atlas or changing it globally.
-void patternID(ImDrawList* dl, ImVec2 pos, ImU32 color, const char* text, float size) {
-  int first=dl->VtxBuffer.Size;
-  dl->AddText(ImGui::GetFont(),size,pos,color,text);
-  dl->AddText(ImGui::GetFont(),size,ImVec2(pos.x+size*0.05f,pos.y),color,text);
-  float baseline=pos.y+size;
-  for (int i=first; i<dl->VtxBuffer.Size; i++) {
-    dl->VtxBuffer[i].pos.x+=(baseline-dl->VtxBuffer[i].pos.y)*0.2f;
-  }
 }
 
 // Commit complete hexadecimal entries with Enter. Empty input clears a cell.
@@ -103,6 +92,19 @@ void wheelHelp() {
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) ImGui::SetTooltip(_("Wheel: scroll vertically\nShift + wheel: scroll horizontally\nCtrl / Cmd + wheel: horizontal zoom\nAlt / Option + wheel: vertical zoom"));
 }
+}
+
+void FurnaceGUIHorizontal::buildFont(FurnaceGUI& g) {
+  idFont=g.mainFont;
+  if (g.safeMode) return;
+  ImFontConfig config;
+  config.OversampleH=1;
+  config.OversampleV=1;
+  snprintf(config.Name,sizeof(config.Name),"Pattern IDs Bold Italic");
+  // Rasterize actual bold italic outlines at display size. No duplicate passes
+  // or post-rasterization shear; the selected font backend supplies coverage AA.
+  ImFont* font=g.addFontZlib(horizontalIDFont,sizeof(horizontalIDFont),MAX(1.0f,g.settings.mainFontSize*g.dpiScale*1.5f),&config);
+  if (font) idFont=font;
 }
 
 void FurnaceGUIHorizontal::stopPreview(FurnaceGUI& g) {
@@ -196,6 +198,7 @@ void FurnaceGUIHorizontal::songView(FurnaceGUI& g) {
     const int count=g.e->curSubSong->ordersLen;
     const float labelWidth=132.0f*g.dpiScale;
     const float idSize=ImGui::GetFontSize()*1.5f;
+    ImFont* labelFont=idFont?idFont:ImGui::GetFont();
     const float minimumHeight=MAX(idSize+4.0f*g.dpiScale,ImGui::GetFrameHeight())/g.dpiScale;
     orderHeight=MAX(orderHeight,minimumHeight);
     // Table defaults add margins around every cell. Bricks instead meet at the
@@ -283,10 +286,10 @@ void FurnaceGUIHorizontal::songView(FurnaceGUI& g) {
           }
           char idText[8];
           snprintf(idText,sizeof(idText),"%02X",id);
-          ImVec2 idTextSize=ImGui::GetFont()->CalcTextSizeA(idSize,FLT_MAX,0,idText);
-          patternID(dl,ImVec2(b.x-idTextSize.x-idSize*0.25f-3.0f*g.dpiScale,a.y+2.0f*g.dpiScale),ImGui::GetColorU32(ImGuiCol_Text),idText,idSize);
+          ImVec2 idTextSize=labelFont->CalcTextSizeA(idSize,FLT_MAX,0,idText);
+          dl->AddText(labelFont,idSize,ImVec2(b.x-idTextSize.x-4.0f*g.dpiScale,a.y+2.0f*g.dpiScale),ImGui::GetColorU32(ImGuiCol_Text),idText);
           if (showPreview && !pat->name.empty()) {
-            dl->PushClipRect(a,ImVec2(b.x-idTextSize.x-idSize*0.25f-5.0f*g.dpiScale,a.y+idSize+2.0f*g.dpiScale),true);
+            dl->PushClipRect(a,ImVec2(b.x-idTextSize.x-6.0f*g.dpiScale,a.y+idSize+2.0f*g.dpiScale),true);
             dl->AddText(ImVec2(a.x+5.0f*g.dpiScale,a.y+3.0f*g.dpiScale),tint(color,1.0f),pat->name.c_str());
             dl->PopClipRect();
           }

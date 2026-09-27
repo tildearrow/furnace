@@ -1250,6 +1250,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     headFont=mainFont;
   }
 
+  if (updateFonts) horizontal.buildFont(*this);
+
   // update font base size
   if (updateFonts && !safeMode) {
     if (ImGui::GetIO().Fonts!=NULL) {

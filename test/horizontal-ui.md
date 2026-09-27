@@ -35,5 +35,6 @@ A Debug build was exercised using Xvfb at 1440 x 1000, the software renderer, an
 - Checked wheel vertical scrolling, Shift + wheel horizontal scrolling, Ctrl + wheel horizontal zoom, and Alt + wheel vertical zoom in both views. Checked horizontal alignment between the piano roll and event lanes and stationary channel/piano labels.
 - Zoomed Orders to minimum and maximum heights. Minimum height fits the enlarged bold italic ID; note previews and secondary labels are hidden at compact heights. Adjacent bricks meet at their grid borders.
 - Reopened a collapsed piano roll by double-clicking a brick; it expands and focuses again.
+- Replaced synthetic bold/italic ID transforms with a bundled outline font. Verified smooth coverage in software-renderer screenshots and legibility at minimum lane height. The font subset generator is deterministic and retains all hexadecimal glyphs, weight 700, and italic outlines.
 
 For manual retesting, use a copy of a demo song. See `doc/2-interface/horizontal-ui.md` for controls and pattern-data semantics.
