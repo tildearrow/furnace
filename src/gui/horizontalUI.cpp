@@ -200,10 +200,6 @@ void FurnaceGUIHorizontal::songView(FurnaceGUI& g) {
       }
       ImGui::EndMenuBar();
     }
-    if (ImGui::Button(g.e->isPlaying()?ICON_FA_STOP:ICON_FA_PLAY)) {
-      if (g.e->isPlaying()) g.stop(); else g.play();
-    }
-    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PLUS "##order")) orderAction=GUI_ACTION_ORDERS_ADD;
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(_("Add order"));
     ImGui::SameLine();
