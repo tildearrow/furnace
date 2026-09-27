@@ -5648,8 +5648,12 @@ bool FurnaceGUI::loop() {
           ImGui::Separator();
           if (ImGui::MenuItem(_("channels"),BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
           if (ImGui::MenuItem(_("chip manager"),BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
-          if (ImGui::MenuItem(_("orders"),BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
-          if (ImGui::MenuItem(_("pattern"),BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
+          if (settings.horizontalUI && !mobileUI) {
+            if (ImGui::MenuItem(_("orders - song"),BIND_FOR(GUI_ACTION_WINDOW_ORDERS),patternOpen)) patternOpen=!patternOpen;
+          } else {
+            if (ImGui::MenuItem(_("orders"),BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
+            if (ImGui::MenuItem(_("pattern"),BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
+          }
           if (ImGui::MenuItem(_("pattern manager"),BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
           if (ImGui::MenuItem(_("mixer"),BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
           if (ImGui::MenuItem(_("compatibility flags"),BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;

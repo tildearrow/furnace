@@ -82,6 +82,7 @@ void FurnaceGUI::popPartBlend() {
 }
 
 void FurnaceGUI::drawPattern() {
+  if (horizontal.draw(*this)) return;
   if (nextWindow==GUI_WINDOW_PATTERN) {
     patternOpen=true;
     ImGui::SetNextWindowFocus();

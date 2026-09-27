@@ -63,5 +63,9 @@ int main() {
   memcpy(before,data,sizeof(data));
   assert(!edit(data,64,1,0,4,108,6,0)); // keep instrument-only events
   assert(memcmp(before,data,sizeof(data))==0);
+  clear();
+  assert(edit(data,64,1,0,0,108,4,0));
+  assert(edit(data,64,1,0,4,112,8,0));
+  assert(endRow(data,64,0)==4 && data[4][DIV_PAT_NOTE]==112);
   puts("Horizontal pattern regression tests passed.");
 }

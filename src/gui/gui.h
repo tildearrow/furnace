@@ -42,6 +42,7 @@
 #include "fileDialog.h"
 #include "newFilePicker.h"
 #include "newSettings.h"
+#include "horizontalUI.h"
 
 #define FURNACE_APP_ID "org.tildearrow.furnace"
 
@@ -1784,6 +1785,8 @@ enum FurnaceGUIRawNoteState {
 struct FurnaceCV;
 
 class FurnaceGUI {
+  friend class FurnaceGUIHorizontal;
+  FurnaceGUIHorizontal horizontal;
   DivEngine* e;
 
   FurnaceGUIRenderBackend renderBackend;
@@ -1970,6 +1973,7 @@ class FurnaceGUI {
     bool insFocusesPattern;
     bool stepOnInsert;
     bool unifiedDataView;
+    bool horizontalUI;
 #ifndef FLATPAK_WORKAROUNDS
     bool sysFileDialog;
 #endif
@@ -2222,6 +2226,7 @@ class FurnaceGUI {
       insFocusesPattern(true),
       stepOnInsert(false),
       unifiedDataView(false),
+      horizontalUI(false),
 #ifndef FLATPAK_WORKAROUNDS
       sysFileDialog(true),
 #endif

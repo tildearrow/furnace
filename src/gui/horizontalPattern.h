@@ -62,6 +62,8 @@ inline bool edit(short data[][DIV_MAX_COLS], int rows, int mode, int from,
   }
   if (mode!=3) {
     for (int r=to; r<end; r++) {
+      // A new attack at an existing cut is the usual way to join two notes.
+      if (r==to && result[r][DIV_PAT_NOTE]==DIV_NOTE_OFF) continue;
       if (result[r][DIV_PAT_NOTE]!=-1) return false;
     }
     // Do not replace an instrument/volume-only event at the destination.

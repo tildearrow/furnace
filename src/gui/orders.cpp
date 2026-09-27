@@ -238,6 +238,7 @@ void FurnaceGUI::drawOrderButtons() {
 }
 
 void FurnaceGUI::drawOrders() {
+  if (settings.horizontalUI && !mobileUI) return;
   static char selID[4096];
   if (nextWindow==GUI_WINDOW_ORDERS) {
     ordersOpen=true;

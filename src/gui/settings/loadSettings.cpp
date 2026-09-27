@@ -411,6 +411,7 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.fmLayout=conf.getInt("fmLayout",4);
     settings.exportOptionsLayout=conf.getInt("exportOptionsLayout",1);
     settings.unifiedDataView=conf.getBool("unifiedDataView",0);
+    settings.horizontalUI=conf.getBool("horizontalUI",false);
     settings.macroLayout=conf.getInt("macroLayout",0);
     settings.controlLayout=conf.getInt("controlLayout",3);
     settings.classicChipOptions=conf.getBool("classicChipOptions",0);
@@ -911,6 +912,7 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("fmLayout",settings.fmLayout);
     conf.set("exportOptionsLayout",settings.exportOptionsLayout);
     conf.set("unifiedDataView",settings.unifiedDataView);
+    conf.set("horizontalUI",settings.horizontalUI);
     conf.set("macroLayout",settings.macroLayout);
     conf.set("controlLayout",settings.controlLayout);
     conf.set("classicChipOptions",settings.classicChipOptions);

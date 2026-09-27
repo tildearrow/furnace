@@ -1122,6 +1122,7 @@ src/gui/midiMap.cpp
 src/gui/multiInsSetup.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
+src/gui/horizontalUI.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp
 src/gui/pattern.cpp

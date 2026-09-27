@@ -1668,6 +1668,12 @@ void FurnaceGUI::initSettings() {
   },{
     SUBCATEGORY(_N("Layout"),{
       SETTING_CHECKBOX(
+        _N("Horizontal song and piano roll editing"),
+        horizontalUI
+      ).Tooltip(_("Desktop: show Orders as a horizontal song arrangement. Double-click a pattern to open its piano roll.")).Callback([this]{
+        patternOpen=true;
+      }),
+      SETTING_CHECKBOX(
         _N("Allow docking editors"),
         allowEditDocking
       ),
