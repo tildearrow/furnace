@@ -37,5 +37,9 @@ A Debug build was exercised using Xvfb at 1440 x 1000, the software renderer, an
 - Reopened a collapsed piano roll by double-clicking a brick; it expands and focuses again.
 - Pattern IDs reuse the configured UI font with FreeType bold/oblique styling before rasterization. Verified smoothing and minimum-height labels in the software renderer; no additional font asset or generator is needed.
 - Added REL, OFF, and MREL events to a temporary demo copy and checked their unfilled, labeled outlines in the piano roll. Checked selection, right-click/Delete removal, and undo. Saved and exported the copy: exactly the three intended note events changed, with all other notes, effects, instruments, and volumes preserved.
+- Moved OFF, REL, and MREL to fixed spreadsheet-style rows below the piano keys. Checked click insertion, selection, right-click removal, undo, replacing another event type, protecting pitched attacks, and snapping to four-row intervals. Exported the saved demo: exactly the four intended new events changed; all existing attacks and other columns were preserved.
+- Compared screenshots before and after pitch scrolling and vertical zoom: the fixed event rows were pixel-identical. Checked horizontal scrolling/zoom alignment and fixed headings using the SDL renderer.
+
+Known renderer limitation: the software renderer can lose some labels after combined scrolling and zooming. This was also reproduced with the preceding implementation (`4f29a5b3d`); the same navigation sequence rendered correctly with SDL.
 
 For manual retesting, use a copy of a demo song. See `doc/2-interface/horizontal-ui.md` for controls and pattern-data semantics.

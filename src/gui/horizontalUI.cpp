@@ -468,26 +468,29 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
   const int rows=g.e->curSubSong->patLen;
   const float keyboard=76.0f*g.dpiScale;
   const float ruler=ImGui::GetTextLineHeight()+6.0f*g.dpiScale;
+  const float eventHeight=3*(ImGui::GetTextLineHeight()+7.0f*g.dpiScale);
   ImGui::SetNextWindowScroll(ImVec2(scrollX,-1));
   if (ImGui::BeginChild("HorizontalPiano",ImVec2(0,height),true,ImGuiWindowFlags_HorizontalScrollbar|ImGuiWindowFlags_NoNavInputs|ImGuiWindowFlags_NoScrollWithMouse)) {
     float pendingX=wheelNavigation(rowWidth,keyHeight,ImVec2(8,6),ImVec2(96,40),ImVec2(keyboard,ruler),g.dpiScale);
     const float step=rowWidth*g.dpiScale;
     const float key=keyHeight*g.dpiScale;
     if (centerPitch) {
-      ImGui::SetScrollY(MAX(0.0f,(179-pitch)*key-height*0.5f));
+      ImGui::SetScrollY(MAX(0.0f,(179-pitch)*key-(height-eventHeight)*0.5f));
       centerPitch=false;
     }
     ImVec2 origin=ImGui::GetCursorScreenPos();
     ImVec2 view(origin.x+ImGui::GetScrollX(),origin.y+ImGui::GetScrollY());
     ImVec2 limit(view.x+ImGui::GetWindowContentRegionMax().x-ImGui::GetWindowContentRegionMin().x,
                  view.y+ImGui::GetWindowContentRegionMax().y-ImGui::GetWindowContentRegionMin().y);
-    ImGui::InvisibleButton("RollCanvas",ImVec2(keyboard+rows*step,ruler+180*key),ImGuiButtonFlags_MouseButtonLeft|ImGuiButtonFlags_MouseButtonRight);
+    ImVec2 eventLimit=limit;
+    limit.y-=eventHeight;
+    ImGui::InvisibleButton("RollCanvas",ImVec2(keyboard+rows*step,ruler+180*key+eventHeight),ImGuiButtonFlags_MouseButtonLeft|ImGuiButtonFlags_MouseButtonRight);
     bool hovered=ImGui::IsItemHovered();
     ImVec2 mouse=ImGui::GetMousePos();
     int mouseRow=CLAMP((int)floor((mouse.x-origin.x-keyboard)/step),0,rows-1);
     int mousePitch=CLAMP(179-(int)floor((mouse.y-origin.y-ruler)/key),0,179);
     int snapped=mouseRow/snap*snap;
-    bool inGrid=hovered && mouse.x>=view.x+keyboard && mouse.y>=view.y+ruler;
+    bool inGrid=hovered && mouse.x>=view.x+keyboard && mouse.y>=view.y+ruler && mouse.y<limit.y;
     DivPattern* pat=g.e->curPat[channel].getPattern(g.e->curOrders->ord[channel][order],false);
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImVec4 color=g.channelColor(channel);
@@ -509,7 +512,7 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
     }
     for (int r=0; r<rows; r++) {
       int note=pat->newData[r][DIV_PAT_NOTE];
-      if (note<0) continue;
+      if (note<0 || eventLane(note)>=0) continue;
       bool special=!pitched(note);
       int displayNote=eventPitch(pat->newData,rows,r,pitch);
       int end=endRow(pat->newData,rows,r);
@@ -576,7 +579,7 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
     }
     dl->PopClipRect();
 
-    if (hovered && mouse.x<view.x+keyboard && mouse.y>=view.y+ruler && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    if (hovered && mouse.x<view.x+keyboard && mouse.y>=view.y+ruler && mouse.y<limit.y && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
       stopPreview(g);
       preview=pitch=mousePitch;
       g.previewNote(channel,preview);
@@ -641,9 +644,83 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
         ImGui::SetTooltip(_("%s at row %02X\nClick to select; right-click to clear.\nVertical position uses the saved pitch or nearby note."),eventLabel(pat->newData[hit][DIV_PAT_NOTE]),hit);
       }
     }
+    noteEventRows(g,origin,ImVec2(view.x,limit.y),eventLimit,hovered && !dragMode);
     scrollX=pendingX>=0?pendingX:ImGui::GetScrollX();
   }
   ImGui::EndChild();
+}
+
+// A fixed footer shares the piano roll's time axis, while pitch scrolling and
+// zooming leave the spreadsheet-style row headings and event heights in place.
+void FurnaceGUIHorizontal::noteEventRows(FurnaceGUI& g, ImVec2 origin, ImVec2 view, ImVec2 limit, bool hovered) {
+  const int types[]={DIV_NOTE_OFF,DIV_NOTE_REL,DIV_MACRO_REL};
+  const int rows=g.e->curSubSong->patLen;
+  const float keyboard=76.0f*g.dpiScale;
+  const float step=rowWidth*g.dpiScale;
+  const float lane=(limit.y-view.y)/3;
+  const int beat=MAX(1,g.e->curSubSong->hilightA);
+  const int first=CLAMP((int)(ImGui::GetScrollX()/step),0,rows-1);
+  const int last=CLAMP((int)((limit.x-origin.x-keyboard)/step)+1,0,rows);
+  ImDrawList* dl=ImGui::GetWindowDrawList();
+  DivPattern* pat=g.e->curPat[channel].getPattern(g.e->curOrders->ord[channel][order],false);
+  ImVec4 color=g.channelColor(channel);
+  dl->PushClipRect(view,limit,true);
+  dl->AddRectFilled(view,limit,ImGui::GetColorU32(ImGuiCol_WindowBg));
+  for (int l=0; l<3; l++) {
+    float y=view.y+l*lane;
+    dl->AddRectFilled(ImVec2(view.x,y),ImVec2(view.x+keyboard,y+lane),ImGui::GetColorU32(ImGuiCol_Header));
+    dl->AddText(ImVec2(view.x+5*g.dpiScale,y+3*g.dpiScale),ImGui::GetColorU32(ImGuiCol_Text),eventLabel(types[l]));
+    dl->AddLine(ImVec2(view.x,y),ImVec2(limit.x,y),ImGui::GetColorU32(ImGuiCol_Separator));
+  }
+  dl->AddLine(ImVec2(view.x+keyboard,view.y),ImVec2(view.x+keyboard,limit.y),ImGui::GetColorU32(ImGuiCol_Separator),2*g.dpiScale);
+  dl->PushClipRect(ImVec2(view.x+keyboard,view.y),limit,true);
+  for (int r=first; r<=last; r++) {
+    float x=origin.x+keyboard+r*step;
+    dl->AddLine(ImVec2(x,view.y),ImVec2(x,limit.y),ImGui::GetColorU32(r%beat?ImGuiCol_Border:ImGuiCol_Separator),r%beat?1.0f:2.0f);
+  }
+  ImVec2 mouse=ImGui::GetMousePos();
+  int mouseRow=(int)floor((mouse.x-origin.x-keyboard)/step);
+  int mouseLane=(int)floor((mouse.y-view.y)/lane);
+  bool inGrid=hovered && mouse.x>=view.x+keyboard && mouse.x<limit.x && mouse.y>=view.y && mouse.y<limit.y && mouseRow>=0 && mouseRow<rows;
+  int hit=-1;
+  for (int r=0; r<rows; r++) {
+    int l=eventLane(pat->newData[r][DIV_PAT_NOTE]);
+    if (l<0) continue;
+    int end=endRow(pat->newData,rows,r);
+    if (inGrid && mouseLane==l && mouseRow>=r && mouseRow<end) hit=r;
+    if (end<first || r>last) continue;
+    ImVec2 a(origin.x+keyboard+r*step+2*g.dpiScale,view.y+l*lane+2*g.dpiScale);
+    ImVec2 b(origin.x+keyboard+end*step-2*g.dpiScale,view.y+(l+1)*lane-2*g.dpiScale);
+    dl->AddRect(a,b,r==row?ImGui::GetColorU32(ImGuiCol_Text):tint(color,1.0f),2*g.dpiScale,0,2*g.dpiScale);
+    const char* label=eventLabel(types[l]);
+    if (b.x-a.x>ImGui::CalcTextSize(label).x+4*g.dpiScale) {
+      dl->AddText(ImVec2(a.x+2*g.dpiScale,a.y+1*g.dpiScale),ImGui::GetColorU32(ImGuiCol_Text),label);
+    }
+  }
+  if (g.e->isPlaying() && g.playOrder==order) {
+    float x=origin.x+keyboard+g.oldRow*step;
+    dl->AddLine(ImVec2(x,view.y),ImVec2(x,limit.y),ImGui::GetColorU32(ImGuiCol_Text),2*g.dpiScale);
+  }
+  dl->PopClipRect();
+  dl->PopClipRect();
+  if (inGrid) {
+    int target=hit>=0?hit:mouseRow/snap*snap;
+    int note=pat->newData[target][DIV_PAT_NOTE];
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+      row=target;
+      // These lanes share Furnace's note column. Do not silently replace an
+      // attack or raw frequency; replacing another cut/release is intentional.
+      if (note==-1 || eventLane(note)>=0) {
+        if (note!=types[mouseLane]) setCell(g,DIV_PAT_NOTE,types[mouseLane]);
+      } else g.showError(_("A note already starts on this row. Place the event on another row or clear the note first."));
+    }
+    if (hit>=0 && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+      row=hit;
+      setCell(g,DIV_PAT_NOTE,-1);
+    }
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+    ImGui::SetTooltip(_("%s at row %02X\nClick to draw/select; right-click a block to clear.\nSnap applies when drawing."),eventLabel(types[mouseLane]),target);
+  }
 }
 
 void FurnaceGUIHorizontal::eventLanes(FurnaceGUI& g, float height) {
@@ -660,7 +737,7 @@ void FurnaceGUIHorizontal::eventLanes(FurnaceGUI& g, float height) {
     ImVec2 view(origin.x+ImGui::GetScrollX(),origin.y+ImGui::GetScrollY());
     ImVec2 limit(view.x+ImGui::GetWindowContentRegionMax().x-ImGui::GetWindowContentRegionMin().x,
                  view.y+ImGui::GetWindowContentRegionMax().y-ImGui::GetWindowContentRegionMin().y);
-    ImGui::InvisibleButton("EventCanvas",ImVec2(keyboard+rows*step,3*lane+effects*fxLane));
+    ImGui::InvisibleButton("EventCanvas",ImVec2(keyboard+rows*step,2*lane+effects*fxLane));
     DivPattern* pat=g.e->curPat[channel].getPattern(g.e->curOrders->ord[channel][order],false);
     ImDrawList* dl=ImGui::GetWindowDrawList();
     int first=CLAMP((int)(ImGui::GetScrollX()/step),0,rows-1);
@@ -670,16 +747,14 @@ void FurnaceGUIHorizontal::eventLanes(FurnaceGUI& g, float height) {
       float x=origin.x+keyboard+r*step;
       if (r==row) dl->AddRectFilled(ImVec2(x,view.y),ImVec2(x+step,limit.y),tint(g.channelColor(channel),0.25f));
       dl->AddLine(ImVec2(x,view.y),ImVec2(x,limit.y),ImGui::GetColorU32(ImGuiCol_Border));
-      for (int l=0; l<effects+3; l++) {
-        float y=origin.y+(l<3?l*lane:3*lane+(l-3)*fxLane);
+      for (int l=0; l<effects+2; l++) {
+        float y=origin.y+(l<2?l*lane:2*lane+(l-2)*fxLane);
         char text[24]="";
-        int value=pat->newData[r][l<3?l:DIV_PAT_FX(l-3)];
-        if (l==0) {
-          if (value>=180) snprintf(text,sizeof(text),"%s",eventLabel(value));
-        } else if (l<3) {
+        int value=pat->newData[r][l<2?l+1:DIV_PAT_FX(l-2)];
+        if (l<2) {
           if (value>=0) snprintf(text,sizeof(text),"%02X",value);
         } else {
-          int param=pat->newData[r][DIV_PAT_FXVAL(l-3)];
+          int param=pat->newData[r][DIV_PAT_FXVAL(l-2)];
           if (value>=0 || param>=0) {
             char cmd[8]="..", val[8]="..";
             if (value>=0) snprintf(cmd,sizeof(cmd),"%02X",value);
@@ -696,32 +771,31 @@ void FurnaceGUIHorizontal::eventLanes(FurnaceGUI& g, float height) {
     dl->PopClipRect();
     dl->PushClipRect(view,ImVec2(view.x+keyboard,limit.y),true);
     dl->AddRectFilled(view,ImVec2(view.x+keyboard,limit.y),ImGui::GetColorU32(ImGuiCol_WindowBg));
-    for (int l=0; l<effects+3; l++) {
-      float y=origin.y+(l<3?l*lane:3*lane+(l-3)*fxLane);
+    for (int l=0; l<effects+2; l++) {
+      float y=origin.y+(l<2?l*lane:2*lane+(l-2)*fxLane);
       char label[32];
-      if (l==0) snprintf(label,sizeof(label),"%s",_("Events"));
-      else if (l==1) snprintf(label,sizeof(label),"%s",_("Ins"));
-      else if (l==2) snprintf(label,sizeof(label),"%s",_("Vol"));
-      else snprintf(label,sizeof(label),"FX %d",l-2);
+      if (l==0) snprintf(label,sizeof(label),"%s",_("Ins"));
+      else if (l==1) snprintf(label,sizeof(label),"%s",_("Vol"));
+      else snprintf(label,sizeof(label),"FX %d",l-1);
       dl->AddText(ImVec2(view.x+3*g.dpiScale,y+3*g.dpiScale),ImGui::GetColorU32(ImGuiCol_Text),label);
     }
     dl->PopClipRect();
     if (ImGui::IsItemHovered() && ImGui::GetMousePos().x>=view.x+keyboard) {
       int r=CLAMP((int)((ImGui::GetMousePos().x-origin.x-keyboard)/step),0,rows-1);
       float localY=ImGui::GetMousePos().y-origin.y;
-      int l=CLAMP(localY<3*lane?(int)(localY/lane):3+(int)((localY-3*lane)/fxLane),0,effects+2);
+      int l=CLAMP(localY<2*lane?(int)(localY/lane):2+(int)((localY-2*lane)/fxLane),0,effects+1);
       if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) row=r;
       if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
         row=r;
-        if (l<3) setCell(g,l,-1);
+        if (l<2) setCell(g,l+1,-1);
         else {
           // Clear command and parameter in one undo step.
           UndoRegion region(order,channel,row,order,channel,row);
           g.prepareUndo(GUI_UNDO_PATTERN_EDIT,region);
           g.e->lockSave([&]() {
             DivPattern* target=g.e->curPat[channel].getPattern(g.e->curOrders->ord[channel][order],true);
-            target->newData[row][DIV_PAT_FX(l-3)]=-1;
-            target->newData[row][DIV_PAT_FXVAL(l-3)]=-1;
+            target->newData[row][DIV_PAT_FX(l-2)]=-1;
+            target->newData[row][DIV_PAT_FXVAL(l-2)]=-1;
           });
           g.makeUndo(GUI_UNDO_PATTERN_EDIT,region);
         }
@@ -786,8 +860,8 @@ void FurnaceGUIHorizontal::patternView(FurnaceGUI& g) {
     }
     float inspectorHeight=(g.e->curPat[channel].effectCols>4?4:3)*ImGui::GetFrameHeightWithSpacing()+12*g.dpiScale;
     float available=ImGui::GetContentRegionAvail().y-inspectorHeight;
-    float eventsHeight=MIN(150*g.dpiScale,available*0.32f);
-    pianoRoll(g,MAX(100*g.dpiScale,available-eventsHeight-ImGui::GetStyle().ItemSpacing.y));
+    float eventsHeight=MIN(125*g.dpiScale,available*0.27f);
+    pianoRoll(g,MAX(100*g.dpiScale+3*(ImGui::GetTextLineHeight()+7*g.dpiScale),available-eventsHeight-ImGui::GetStyle().ItemSpacing.y));
     eventLanes(g,MAX(50*g.dpiScale,eventsHeight));
     inspector(g);
     if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) && !ImGui::GetIO().WantTextInput && !dragMode) {

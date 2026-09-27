@@ -40,9 +40,15 @@ The floating editor displays one channel and one order at a time. Its title area
 - Use the ruler, event lanes, left/right arrows, or **Row** input to select a row. The Row input is decimal.
 - Undo and redo use Furnace's existing history. A completed note gesture is one undo step.
 
-The event panel shows note cuts/releases, instruments, volume, and each effect column horizontally. Effect commands are displayed above their values so both remain legible at normal zoom. Click a row and use the inspector below to edit it, including rows without a note. Instrument, volume, effect-command, and effect-value inputs use hexadecimal: press Enter to apply; erase the text and press Enter to clear. Right-click an event lane to clear that event (both command and value for an effect). **FX lanes** controls the channel's active effect-column count, up to eight. **Effects reference** opens Furnace's effect list.
+The lower event panel shows instruments, volume, and each effect column horizontally. Effect commands are displayed above their values so both remain legible at normal zoom. Click a row and use the inspector below to edit it, including rows without a note. Instrument, volume, effect-command, and effect-value inputs use hexadecimal: press Enter to apply; erase the text and press Enter to clear. Right-click an event lane to clear that event (both command and value for an effect). **FX lanes** controls the channel's active effect-column count, up to eight. **Effects reference** opens Furnace's effect list.
 
-Note cuts (**OFF**), note releases (**REL**), macro releases (**MREL**), and raw-frequency events (**RAW**) also appear in the piano roll as unfilled blocks with thick outlines and labels. They align with the preceding note, or the next note for a leading event; raw-frequency notes use their saved pitch when available. Click a block to select its row; right-click or press Delete to clear the event. Use the inspector to change the event type.
+Three fixed rows beneath the piano keys show note cuts (**OFF**), note releases (**REL**), and macro releases (**MREL**), with spreadsheet-style row headings. These rows stay visible when scrolling or zooming pitches, and share the piano roll's horizontal scrolling and time zoom. Events appear as unfilled blocks with thick outlines, extending to the next note event.
+
+- Click empty space in an event row to place that type at the clicked time, using **Snap**. The event can replace another cut/release at that time; existing pitched and raw-frequency note attacks are protected.
+- Click an existing block to select it. Right-click any part of it, or select it and press Delete, to clear it. Right-clicking an empty event row leaves other event types intact.
+- Event edits preserve instruments, volume, and effects, and support Undo/Redo. Furnace stores one note or special event per channel per time row.
+
+Raw-frequency events (**RAW**) remain outlined in the piano grid, using their saved pitch or nearby note context. Select or right-click them there; edit raw-frequency bytes in tracker mode.
 
 ## How notes map to Furnace
 

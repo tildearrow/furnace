@@ -30,6 +30,15 @@ inline bool pitched(int note) {
   return note>=0 && note<180;
 }
 
+inline int eventLane(int note) {
+  switch (note) {
+    case DIV_NOTE_OFF: return 0;
+    case DIV_NOTE_REL: return 1;
+    case DIV_MACRO_REL: return 2;
+    default: return -1;
+  }
+}
+
 inline const char* eventLabel(int note) {
   switch (note) {
     case DIV_NOTE_OFF: return "OFF";

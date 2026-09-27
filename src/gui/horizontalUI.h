@@ -25,6 +25,7 @@
 class FurnaceGUI;
 struct DivSubSong;
 struct ImFont;
+struct ImVec2;
 
 // All transient state belongs to this view; the song remains ordinary Furnace data.
 class FurnaceGUIHorizontal {
@@ -43,6 +44,7 @@ class FurnaceGUIHorizontal {
   void songView(FurnaceGUI& gui);
   void patternView(FurnaceGUI& gui);
   void pianoRoll(FurnaceGUI& gui, float height);
+  void noteEventRows(FurnaceGUI& gui, ImVec2 origin, ImVec2 view, ImVec2 limit, bool hovered);
   void eventLanes(FurnaceGUI& gui, float height);
   void inspector(FurnaceGUI& gui);
   void setCell(FurnaceGUI& gui, int col, int value);
