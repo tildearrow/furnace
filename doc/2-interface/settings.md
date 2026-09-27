@@ -240,6 +240,7 @@ these files are not distributed with Furnace as they are under copyright. you sh
 
 ### Layout
 
+- **Horizontal song and piano roll editing**: enables the desktop [horizontal Orders and piano roll workspace](horizontal-ui.md). turn it off to return to the tracker.
 - **Workspace layout**
   - **Import**: reads a .ini layout file.
   - **Export**: writes current layout to a .ini file.

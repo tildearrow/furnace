@@ -20,6 +20,8 @@
 #ifndef FURNACE_HORIZONTAL_UI_H
 #define FURNACE_HORIZONTAL_UI_H
 
+#include <cstddef>
+
 class FurnaceGUI;
 struct DivSubSong;
 
@@ -30,7 +32,8 @@ class FurnaceGUIHorizontal {
   int preview=-1, dragMode=0, dragRow=0, dragPitch=0, dragEnd=0;
   int dragTargetRow=0, dragTargetPitch=0, dragTargetEnd=0;
   int dragPattern=-1, dragMouseRow=0, orderAction=0, lastPlayOrder=-1;
-  float orderWidth=156.0f, rowWidth=24.0f, keyHeight=18.0f, scrollX=0.0f;
+  float orderWidth=156.0f, orderHeight=56.0f;
+  float rowWidth=24.0f, keyHeight=18.0f, eventZoom=1.0f, scrollX=0.0f;
   const DivSubSong* song=NULL;
   void select(FurnaceGUI& gui, int ord, int ch);
   void open(FurnaceGUI& gui, int ord, int ch);

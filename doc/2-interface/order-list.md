@@ -1,5 +1,7 @@
 # orders
 
+For the optional horizontal workspace, see [horizontal song and piano roll editing](horizontal-ui.md).
+
 this window displays the order list. a spreadsheet that contains the order of patterns that will play, from top to bottom.
 
 ![order list](order-list.png)
