@@ -30,6 +30,33 @@ inline bool pitched(int note) {
   return note>=0 && note<180;
 }
 
+inline const char* eventLabel(int note) {
+  switch (note) {
+    case DIV_NOTE_OFF: return "OFF";
+    case DIV_NOTE_REL: return "REL";
+    case DIV_MACRO_REL: return "MREL";
+    case DIV_NOTE_RAW: return "RAW";
+    case DIV_NOTE_NULL_PAT: return "BUG";
+    default: return "???";
+  }
+}
+
+// Align special events to their preceding note, or the next note for a leading
+// event. Raw frequencies can retain a saved pitch. Never modify stored data.
+inline int eventPitch(const short data[][DIV_MAX_COLS], int rows, int row, int fallback) {
+  if (pitched(data[row][DIV_PAT_NOTE])) return data[row][DIV_PAT_NOTE];
+  if (data[row][DIV_PAT_NOTE]==DIV_NOTE_RAW && pitched(data[row][DIV_PAT_NOTE_BUFFER])) return data[row][DIV_PAT_NOTE_BUFFER];
+  for (int r=row-1; r>=0; r--) {
+    if (pitched(data[r][DIV_PAT_NOTE])) return data[r][DIV_PAT_NOTE];
+    if (data[r][DIV_PAT_NOTE]==DIV_NOTE_RAW && pitched(data[r][DIV_PAT_NOTE_BUFFER])) return data[r][DIV_PAT_NOTE_BUFFER];
+  }
+  for (int r=row+1; r<rows; r++) {
+    if (pitched(data[r][DIV_PAT_NOTE])) return data[r][DIV_PAT_NOTE];
+    if (data[r][DIV_PAT_NOTE]==DIV_NOTE_RAW && pitched(data[r][DIV_PAT_NOTE_BUFFER])) return data[r][DIV_PAT_NOTE_BUFFER];
+  }
+  return fallback;
+}
+
 inline int endRow(const short data[][DIV_MAX_COLS], int rows, int row) {
   for (int next=row+1; next<rows; next++) {
     if (data[next][DIV_PAT_NOTE]!=-1) return next;

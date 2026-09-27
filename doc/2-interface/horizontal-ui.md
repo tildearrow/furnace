@@ -13,7 +13,7 @@ Time runs left to right. Each column is an order, and each lane is a chip channe
 - **Duplicate** shares patterns. **Clone** makes independent copies. Editing a shared pattern changes every order referencing it on that channel.
 - The speaker button beside each channel mutes or unmutes it. **Follow playback** scrolls the song view when playback reaches another order.
 
-Pattern IDs use a bundled bold italic outline font, rendered at the label's display size. With the FreeType font renderer, smoothing follows **Settings > Appearance > Text > Anti-aliased fonts**.
+Pattern IDs reuse the configured UI font, rendered at the label's display size. The FreeType renderer applies bold and italic styling, with smoothing controlled by **Settings > Appearance > Text > Anti-aliased fonts**. Other font renderers use the font's normal style.
 
 ## Navigation
 
@@ -42,8 +42,10 @@ The floating editor displays one channel and one order at a time. Its title area
 
 The event panel shows note cuts/releases, instruments, volume, and each effect column horizontally. Effect commands are displayed above their values so both remain legible at normal zoom. Click a row and use the inspector below to edit it, including rows without a note. Instrument, volume, effect-command, and effect-value inputs use hexadecimal: press Enter to apply; erase the text and press Enter to clear. Right-click an event lane to clear that event (both command and value for an effect). **FX lanes** controls the channel's active effect-column count, up to eight. **Effects reference** opens Furnace's effect list.
 
+Note cuts (**OFF**), note releases (**REL**), macro releases (**MREL**), and raw-frequency events (**RAW**) also appear in the piano roll as unfilled blocks with thick outlines and labels. They align with the preceding note, or the next note for a leading event; raw-frequency notes use their saved pitch when available. Click a block to select its row; right-click or press Delete to clear the event. Use the inspector to change the event type.
+
 ## How notes map to Furnace
 
 A channel still has one note event per row. Displayed note spans end at the next note event or the pattern boundary. Drawing or resizing a note writes a note cut at its end when no event already occupies that row. Moving a note carries its onset instrument and volume; effects stay at their original rows. Deleting a note removes its following cut, but retains independent release commands and effects.
 
-The preview is a view of the pattern data: envelopes, retriggers, note-delay commands, pattern breaks, jumps, and other effects may change the audible timing. Noise and sample channels retain their original chip-specific pitch semantics. This mode does not introduce polyphonic channels, arbitrary clip lengths, or a different song format. Raw-frequency notes remain visible in the Events lane; their raw bytes can be edited in tracker mode.
+The preview is a view of the pattern data: envelopes, retriggers, note-delay commands, pattern breaks, jumps, and other effects may change the audible timing. Noise and sample channels retain their original chip-specific pitch semantics. This mode does not introduce polyphonic channels, arbitrary clip lengths, or a different song format. Raw-frequency bytes can be edited in tracker mode.

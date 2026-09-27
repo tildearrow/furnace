@@ -11,7 +11,7 @@ c++ -std=c++14 -fsanitize=address,undefined -g test/horizontal-pattern.cpp -o /t
 /tmp/horizontal-pattern-test
 ```
 
-Cases cover adjacent notes, moving and resizing, collision rollback, instrument and volume preservation, stationary effects (including effect column eight), independent release commands, deletion, and pattern bounds.
+Cases cover adjacent notes, moving and resizing, collision rollback, instrument and volume preservation, stationary effects (including effect column eight), independent release commands, deletion, pattern bounds, and special-event labels and pitch placement without modifying song data.
 
 ## Desktop build used for validation
 
@@ -35,6 +35,7 @@ A Debug build was exercised using Xvfb at 1440 x 1000, the software renderer, an
 - Checked wheel vertical scrolling, Shift + wheel horizontal scrolling, Ctrl + wheel horizontal zoom, and Alt + wheel vertical zoom in both views. Checked horizontal alignment between the piano roll and event lanes and stationary channel/piano labels.
 - Zoomed Orders to minimum and maximum heights. Minimum height fits the enlarged bold italic ID; note previews and secondary labels are hidden at compact heights. Adjacent bricks meet at their grid borders.
 - Reopened a collapsed piano roll by double-clicking a brick; it expands and focuses again.
-- Replaced synthetic bold/italic ID transforms with a bundled outline font. Verified smooth coverage in software-renderer screenshots and legibility at minimum lane height. The font subset generator is deterministic and retains all hexadecimal glyphs, weight 700, and italic outlines.
+- Pattern IDs reuse the configured UI font with FreeType bold/oblique styling before rasterization. Verified smoothing and minimum-height labels in the software renderer; no additional font asset or generator is needed.
+- Added REL, OFF, and MREL events to a temporary demo copy and checked their unfilled, labeled outlines in the piano roll. Checked selection, right-click/Delete removal, and undo. Saved and exported the copy: exactly the three intended note events changed, with all other notes, effects, instruments, and volumes preserved.
 
 For manual retesting, use a copy of a demo song. See `doc/2-interface/horizontal-ui.md` for controls and pattern-data semantics.

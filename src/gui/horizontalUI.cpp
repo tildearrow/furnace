@@ -19,7 +19,9 @@
 
 #include "gui.h"
 #include "horizontalPattern.h"
-#include "horizontalFont.h"
+#ifdef HAVE_FREETYPE
+#include "misc/freetype/imgui_freetype.h"
+#endif
 #include "IconsFontAwesome4.h"
 #include <cstdlib>
 #include <cmath>
@@ -96,14 +98,22 @@ void wheelHelp() {
 
 void FurnaceGUIHorizontal::buildFont(FurnaceGUI& g) {
   idFont=g.mainFont;
-  if (g.safeMode) return;
+  if (g.safeMode || g.mainFont->Sources.empty()) return;
+  const ImFontConfig& source=*g.mainFont->Sources[0];
   ImFontConfig config;
+  config.FontDataOwnedByAtlas=false;
+  config.FontNo=source.FontNo;
   config.OversampleH=1;
   config.OversampleV=1;
+#ifdef HAVE_FREETYPE
+  if (g.settings.fontBackend==1) {
+    config.FontLoaderFlags=ImGuiFreeTypeLoaderFlags_Bold|ImGuiFreeTypeLoaderFlags_Oblique;
+  }
+#endif
   snprintf(config.Name,sizeof(config.Name),"Pattern IDs Bold Italic");
-  // Rasterize actual bold italic outlines at display size. No duplicate passes
-  // or post-rasterization shear; the selected font backend supplies coverage AA.
-  ImFont* font=g.addFontZlib(horizontalIDFont,sizeof(horizontalIDFont),MAX(1.0f,g.settings.mainFontSize*g.dpiScale*1.5f),&config);
+  // Reuse the UI font's existing data. FreeType styles its outlines before
+  // rasterization, retaining smooth edges without embedding another font.
+  ImFont* font=ImGui::GetIO().Fonts->AddFontFromMemoryTTF(source.FontData,source.FontDataSize,MAX(1.0f,g.settings.mainFontSize*g.dpiScale*1.5f),&config);
   if (font) idFont=font;
 }
 
@@ -417,9 +427,9 @@ void FurnaceGUIHorizontal::inspector(FurnaceGUI& g) {
   ImGui::SameLine();
   ImGui::SetNextItemWidth(115.0f*g.dpiScale);
   int note=pat->newData[row][DIV_PAT_NOTE];
-  if (ImGui::BeginCombo(_("Event"),g.noteNameNormal(note))) {
+  if (ImGui::BeginCombo(_("Event"),note>=180?eventLabel(note):g.noteNameNormal(note))) {
     const int values[]={-1,DIV_NOTE_OFF,DIV_NOTE_REL,DIV_MACRO_REL};
-    const char* labels[]={_("Empty"),_("Note cut (OFF)"),_("Note release (===)"),_("Macro release (REL)")};
+    const char* labels[]={_("Empty"),_("Note cut (OFF)"),_("Note release (REL)"),_("Macro release (MREL)")};
     for (int i=0; i<4; i++) if (ImGui::Selectable(labels[i],note==values[i])) setCell(g,DIV_PAT_NOTE,values[i]);
     ImGui::EndCombo();
   }
@@ -499,16 +509,29 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
     }
     for (int r=0; r<rows; r++) {
       int note=pat->newData[r][DIV_PAT_NOTE];
-      if (!pitched(note)) continue;
+      if (note<0) continue;
+      bool special=!pitched(note);
+      int displayNote=eventPitch(pat->newData,rows,r,pitch);
       int end=endRow(pat->newData,rows,r);
       float x=origin.x+keyboard+r*step;
-      float y=origin.y+ruler+(179-note)*key;
-      if (inGrid && mousePitch==note && mouseRow>=r && mouseRow<end) hit=r;
-      if (end<firstRow || r>lastRow || note<firstPitch || note>lastPitch) continue;
+      float y=origin.y+ruler+(179-displayNote)*key;
+      if (inGrid && mousePitch==displayNote && mouseRow>=r && mouseRow<end) hit=r;
+      if (end<firstRow || r>lastRow || displayNote<firstPitch || displayNote>lastPitch) continue;
       ImVec2 a(x+1.0f,y+1.0f), b(origin.x+keyboard+end*step-1.0f,y+key-1.0f);
-      dl->AddRectFilled(a,b,tint(color,r==row?0.95f:0.65f),2.0f*g.dpiScale);
-      dl->AddRect(a,b,ImGui::GetColorU32(r==row?ImGuiCol_Text:ImGuiCol_Border),2.0f*g.dpiScale);
-      if (b.x-a.x>40.0f*g.dpiScale && key>=ImGui::GetTextLineHeight()) {
+      if (special) {
+        dl->AddRect(a,b,r==row?ImGui::GetColorU32(ImGuiCol_Text):tint(color,1.0f),2.0f*g.dpiScale,0,2.0f*g.dpiScale);
+        const char* label=eventLabel(note);
+        float size=MIN(ImGui::GetFontSize(),MIN(key-4.0f*g.dpiScale,(b.x-a.x-4.0f*g.dpiScale)/ImGui::CalcTextSize(label).x*ImGui::GetFontSize()));
+        if (size>0) {
+          dl->PushClipRect(a,b,true);
+          dl->AddText(ImGui::GetFont(),size,ImVec2(a.x+2.0f*g.dpiScale,a.y+(b.y-a.y-size)*0.5f),ImGui::GetColorU32(ImGuiCol_Text),label);
+          dl->PopClipRect();
+        }
+      } else {
+        dl->AddRectFilled(a,b,tint(color,r==row?0.95f:0.65f),2.0f*g.dpiScale);
+        dl->AddRect(a,b,ImGui::GetColorU32(r==row?ImGuiCol_Text:ImGuiCol_Border),2.0f*g.dpiScale);
+      }
+      if (!special && b.x-a.x>40.0f*g.dpiScale && key>=ImGui::GetTextLineHeight()) {
         dl->PushClipRect(a,b,true);
         dl->AddText(ImVec2(a.x+3*g.dpiScale,a.y),ImGui::GetColorU32(ImGuiCol_Text),g.noteNameNormal(note));
         dl->PopClipRect();
@@ -562,9 +585,14 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
     if (inGrid && !dragMode) {
       if (hit>=0 && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
         row=hit;
-        editNote(g,3,hit,0,0,0);
+        if (pitched(pat->newData[hit][DIV_PAT_NOTE])) editNote(g,3,hit,0,0,0);
+        else setCell(g,DIV_PAT_NOTE,-1);
       } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-        if (hit>=0) {
+        if (hit>=0 && !pitched(pat->newData[hit][DIV_PAT_NOTE])) {
+          // Unpitched events can be selected/erased, but dragging them through
+          // the grid must not accidentally turn them into ordinary notes.
+          row=hit;
+        } else if (hit>=0) {
           row=dragRow=hit;
           pitch=dragPitch=pat->newData[hit][DIV_PAT_NOTE];
           dragEnd=endRow(pat->newData,rows,hit);
@@ -576,11 +604,13 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
           dragEnd=MIN(rows,dragRow+length);
           dragMode=1;
         }
-        dragMouseRow=mouseRow;
-        dragTargetRow=dragRow;
-        dragTargetPitch=dragPitch;
-        dragTargetEnd=dragEnd;
-        dragPattern=g.e->curOrders->ord[channel][order];
+        if (dragMode) {
+          dragMouseRow=mouseRow;
+          dragTargetRow=dragRow;
+          dragTargetPitch=dragPitch;
+          dragTargetEnd=dragEnd;
+          dragPattern=g.e->curOrders->ord[channel][order];
+        }
       }
     }
     if (dragMode) {
@@ -603,8 +633,13 @@ void FurnaceGUIHorizontal::pianoRoll(FurnaceGUI& g, float height) {
       }
     }
     if (inGrid && hit>=0 && !dragMode) {
-      float edge=origin.x+keyboard+endRow(pat->newData,rows,hit)*step;
-      ImGui::SetMouseCursor(mouse.x>edge-MIN(step*0.35f,7.0f*g.dpiScale)?ImGuiMouseCursor_ResizeEW:ImGuiMouseCursor_ResizeAll);
+      if (pitched(pat->newData[hit][DIV_PAT_NOTE])) {
+        float edge=origin.x+keyboard+endRow(pat->newData,rows,hit)*step;
+        ImGui::SetMouseCursor(mouse.x>edge-MIN(step*0.35f,7.0f*g.dpiScale)?ImGuiMouseCursor_ResizeEW:ImGuiMouseCursor_ResizeAll);
+      } else {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        ImGui::SetTooltip(_("%s at row %02X\nClick to select; right-click to clear.\nVertical position uses the saved pitch or nearby note."),eventLabel(pat->newData[hit][DIV_PAT_NOTE]),hit);
+      }
     }
     scrollX=pendingX>=0?pendingX:ImGui::GetScrollX();
   }
@@ -640,7 +675,7 @@ void FurnaceGUIHorizontal::eventLanes(FurnaceGUI& g, float height) {
         char text[24]="";
         int value=pat->newData[r][l<3?l:DIV_PAT_FX(l-3)];
         if (l==0) {
-          if (value>=180) snprintf(text,sizeof(text),"%s",g.noteNameNormal(value));
+          if (value>=180) snprintf(text,sizeof(text),"%s",eventLabel(value));
         } else if (l<3) {
           if (value>=0) snprintf(text,sizeof(text),"%02X",value);
         } else {

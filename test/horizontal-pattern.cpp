@@ -67,5 +67,29 @@ int main() {
   assert(edit(data,64,1,0,0,108,4,0));
   assert(edit(data,64,1,0,4,112,8,0));
   assert(endRow(data,64,0)==4 && data[4][DIV_PAT_NOTE]==112);
+
+  clear();
+  data[0][DIV_PAT_NOTE]=DIV_NOTE_REL;
+  assert(eventPitch(data,64,0,60)==60); // orphan event uses current pitch
+  data[4][DIV_PAT_NOTE]=108;
+  data[8][DIV_PAT_NOTE]=DIV_NOTE_OFF;
+  data[12][DIV_PAT_NOTE]=DIV_MACRO_REL;
+  data[16][DIV_PAT_NOTE]=112;
+  memcpy(before,data,sizeof(data));
+  assert(eventPitch(data,64,0,60)==108); // leading release follows next note
+  assert(eventPitch(data,64,4,60)==108);
+  assert(eventPitch(data,64,8,60)==108);
+  assert(eventPitch(data,64,12,60)==108); // skip intervening unpitched events
+  assert(endRow(data,64,8)==12);
+  assert(memcmp(before,data,sizeof(data))==0); // rendering does not alter song
+  data[4][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+  data[4][DIV_PAT_NOTE_BUFFER]=110;
+  assert(eventPitch(data,64,0,60)==110);
+  assert(eventPitch(data,64,4,60)==110);
+  assert(eventPitch(data,64,8,60)==110);
+  assert(strcmp(eventLabel(DIV_NOTE_OFF),"OFF")==0);
+  assert(strcmp(eventLabel(DIV_NOTE_REL),"REL")==0);
+  assert(strcmp(eventLabel(DIV_MACRO_REL),"MREL")==0);
+  assert(strcmp(eventLabel(DIV_NOTE_RAW),"RAW")==0);
   puts("Horizontal pattern regression tests passed.");
 }
