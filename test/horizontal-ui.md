@@ -11,7 +11,7 @@ c++ -std=c++14 -fsanitize=address,undefined -g test/horizontal-pattern.cpp -o /t
 /tmp/horizontal-pattern-test
 ```
 
-Cases cover adjacent notes, moving and resizing, collision rollback, instrument and volume preservation, stationary effects (including effect column eight), independent release commands, deletion, pattern bounds, and special-event labels and pitch placement without modifying song data.
+Cases cover adjacent notes, moving and resizing, overlap replacement (including enclosing notes, raw notes, instrument/volume events, and resize collisions), instrument and volume preservation, stationary effects (including effect column eight), independent release commands, deletion, pattern bounds, and special-event labels and pitch placement without modifying song data.
 
 ## Desktop build used for validation
 
@@ -37,8 +37,9 @@ A Debug build was exercised using Xvfb at 1440 x 1000, the software renderer, an
 - Reopened a collapsed piano roll by double-clicking a brick; it expands and focuses again.
 - Pattern IDs reuse the configured UI font with FreeType bold/oblique styling before rasterization. Verified smoothing and minimum-height labels in the software renderer; no additional font asset or generator is needed.
 - Added REL, OFF, and MREL events to a temporary demo copy and checked their unfilled, labeled outlines in the piano roll. Checked selection, right-click/Delete removal, and undo. Saved and exported the copy: exactly the three intended note events changed, with all other notes, effects, instruments, and volumes preserved.
-- Moved OFF, REL, and MREL to fixed spreadsheet-style rows below the piano keys. Checked click insertion, selection, right-click removal, undo, replacing another event type, protecting pitched attacks, and snapping to four-row intervals. Exported the saved demo: exactly the four intended new events changed; all existing attacks and other columns were preserved.
+- Moved OFF, REL, and MREL to fixed spreadsheet-style rows below the piano keys. Checked click insertion, selection, right-click removal, undo, replacing another event type, replacing pitched attacks (updated behavior), and snapping to four-row intervals. Exported the saved demo: exactly the four intended new events changed; all existing attacks and other columns were preserved.
 - Compared screenshots before and after pitch scrolling and vertical zoom: the fixed event rows were pixel-identical. Checked horizontal scrolling/zoom alignment and fixed headings using the SDL renderer.
+- Inserted a note across two existing note spans in the demo without a popup. Saved exports confirmed the replacement and stationary effects; one Ctrl+Z restored every pattern cell exactly, and Ctrl+Y restored the replacement exactly. Clicking OFF on an existing attack replaced only that note-column event without a popup.
 
 Known rendering limitation: some editor labels can disappear after combined scrolling and zooming. This was also reproduced with the preceding implementation (`4f29a5b3d`) in the software renderer. SDL kept the fixed event headings visible, but a later check also showed missing instrument/volume/effect headings there. This pre-existing text-rendering issue remains unresolved.
 

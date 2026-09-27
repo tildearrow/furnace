@@ -29,12 +29,14 @@ int main() {
   assert(edit(data,64,2,12,12,110,20,-1));
   assert(data[16][DIV_PAT_NOTE]==-1 && data[20][DIV_PAT_NOTE]==DIV_NOTE_OFF);
   assert(edit(data,64,1,0,24,112,28,3));
-  memcpy(before,data,sizeof(data));
-  assert(!edit(data,64,2,12,22,110,26,-1));
-  assert(memcmp(before,data,sizeof(data))==0); // collisions are atomic
-  assert(edit(data,64,3,12,0,0,0,-1));
+  assert(edit(data,64,2,12,22,110,26,-1));
+  assert(data[22][DIV_PAT_NOTE]==110 && data[22][DIV_PAT_INS]==2 && data[22][DIV_PAT_VOL]==12);
+  assert(data[24][DIV_PAT_NOTE]==-1 && data[24][DIV_PAT_INS]==-1);
+  assert(data[26][DIV_PAT_NOTE]==DIV_NOTE_OFF && data[28][DIV_PAT_NOTE]==-1);
+  assert(edit(data,64,3,22,0,0,0,-1));
   assert(data[12][DIV_PAT_NOTE]==-1 && data[20][DIV_PAT_NOTE]==-1);
-  assert(data[24][DIV_PAT_NOTE]==112 && data[4][DIV_PAT_FXVAL(0)]==6);
+  assert(data[22][DIV_PAT_NOTE]==-1 && data[26][DIV_PAT_NOTE]==-1);
+  assert(data[4][DIV_PAT_FXVAL(0)]==6);
 
   clear();
   assert(edit(data,64,1,0,60,179,64,0)); // boundary: no out-of-range cut
@@ -60,13 +62,49 @@ int main() {
   assert(edit(data,64,3,4,0,0,0,-1));
   assert(data[8][DIV_PAT_NOTE]==DIV_NOTE_REL); // keep independent release events
   data[4][DIV_PAT_INS]=7;
-  memcpy(before,data,sizeof(data));
-  assert(!edit(data,64,1,0,4,108,6,0)); // keep instrument-only events
-  assert(memcmp(before,data,sizeof(data))==0);
+  data[4][DIV_PAT_VOL]=10;
+  assert(edit(data,64,1,0,4,108,6,0)); // replace instrument/volume-only events
+  assert(data[4][DIV_PAT_INS]==0 && data[4][DIV_PAT_VOL]==-1);
   clear();
   assert(edit(data,64,1,0,0,108,4,0));
   assert(edit(data,64,1,0,4,112,8,0));
   assert(endRow(data,64,0)==4 && data[4][DIV_PAT_NOTE]==112);
+
+  clear();
+  assert(edit(data,64,1,0,0,108,12,7));
+  data[0][DIV_PAT_VOL]=10;
+  data[5][DIV_PAT_INS]=9;
+  data[6][DIV_PAT_VOL]=3;
+  data[6][DIV_PAT_FX(7)]=0xee;
+  data[6][DIV_PAT_FXVAL(7)]=0xaa;
+  assert(edit(data,64,1,0,4,112,8,-1)); // replace a note enclosing the new span
+  assert(data[0][DIV_PAT_NOTE]==-1 && data[0][DIV_PAT_INS]==-1 && data[0][DIV_PAT_VOL]==-1);
+  assert(data[4][DIV_PAT_NOTE]==112 && data[4][DIV_PAT_INS]==-1);
+  assert(data[5][DIV_PAT_INS]==-1 && data[6][DIV_PAT_VOL]==-1);
+  assert(data[8][DIV_PAT_NOTE]==DIV_NOTE_OFF && data[12][DIV_PAT_NOTE]==-1);
+  assert(data[6][DIV_PAT_FX(7)]==0xee && data[6][DIV_PAT_FXVAL(7)]==0xaa);
+
+  clear();
+  data[0][DIV_PAT_NOTE]=100;
+  data[4][DIV_PAT_NOTE]=108;
+  data[4][DIV_PAT_INS]=7;
+  data[4][DIV_PAT_VOL]=10;
+  data[8][DIV_PAT_NOTE]=112;
+  data[10][DIV_PAT_NOTE]=DIV_NOTE_REL;
+  data[12][DIV_PAT_NOTE]=DIV_NOTE_RAW;
+  data[12][DIV_PAT_INS]=2;
+  data[16][DIV_PAT_NOTE]=DIV_NOTE_OFF;
+  data[20][DIV_PAT_NOTE]=114;
+  assert(edit(data,64,2,4,4,108,20,-1)); // resize across attacks, release, and raw note
+  assert(data[0][DIV_PAT_NOTE]==100 && data[20][DIV_PAT_NOTE]==114);
+  assert(data[4][DIV_PAT_INS]==7 && data[4][DIV_PAT_VOL]==10);
+  for (int r=5; r<20; r++) assert(data[r][DIV_PAT_NOTE]==-1 && data[r][DIV_PAT_INS]==-1);
+  assert(edit(data,64,2,4,24,110,28,-1)); // original preceding span ends at row four
+  assert(data[0][DIV_PAT_NOTE]==100 && data[20][DIV_PAT_NOTE]==-1);
+  assert(data[24][DIV_PAT_INS]==7 && data[24][DIV_PAT_VOL]==10);
+  memcpy(before,data,sizeof(data));
+  assert(!edit(data,64,2,24,60,110,65,-1));
+  assert(memcmp(before,data,sizeof(data))==0); // invalid ranges still leave data intact
 
   clear();
   data[0][DIV_PAT_NOTE]=DIV_NOTE_REL;

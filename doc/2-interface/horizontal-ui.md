@@ -35,16 +35,16 @@ The floating editor displays one channel and one order at a time. Its title area
 
 - Click empty grid space to insert a note with the current instrument and **Length**, measured in rows. Drag while inserting to set its end.
 - Drag a note to move it in time or change its pitch. Drag its right edge to resize it. **Snap** controls the row increment.
-- Right-click a note, or select it and press Delete, to erase it. Conflicting note events and instrument/volume-only events are protected from being overwritten.
+- Right-click a note, or select it and press Delete, to erase it. Drawing, moving, or resizing a note replaces any notes whose spans overlap the new span, along with instrument/volume events in that span. Effects stay at their original rows.
 - Click the vertical keyboard to audition a pitch with the current instrument.
 - Use the ruler, event lanes, left/right arrows, or **Row** input to select a row. The Row input is decimal.
-- Undo and redo use Furnace's existing history. A completed note gesture is one undo step.
+- Undo and redo use Furnace's existing history. A completed note gesture, including everything it replaces, is one undo step. Press Ctrl+Z to restore the previous notes and events.
 
 The lower event panel shows instruments, volume, and each effect column horizontally. Effect commands are displayed above their values so both remain legible at normal zoom. Click a row and use the inspector below to edit it, including rows without a note. Instrument, volume, effect-command, and effect-value inputs use hexadecimal: press Enter to apply; erase the text and press Enter to clear. Right-click an event lane to clear that event (both command and value for an effect). **FX lanes** controls the channel's active effect-column count, up to eight. **Effects reference** opens Furnace's effect list.
 
 Three fixed rows beneath the piano keys show note cuts (**OFF**), note releases (**REL**), and macro releases (**MREL**), with spreadsheet-style row headings. These rows stay visible when scrolling or zooming pitches, and share the piano roll's horizontal scrolling and time zoom. Events appear as unfilled blocks with thick outlines, extending to the next note event.
 
-- Click empty space in an event row to place that type at the clicked time, using **Snap**. The event can replace another cut/release at that time; existing pitched and raw-frequency note attacks are protected.
+- Click empty space in an event row to place that type at the clicked time, using **Snap**. The event replaces any note or special event at that time, without a confirmation popup. Ctrl+Z restores the previous event.
 - Click an existing block to select it. Right-click any part of it, or select it and press Delete, to clear it. Right-clicking an empty event row leaves other event types intact.
 - Event edits preserve instruments, volume, and effects, and support Undo/Redo. Furnace stores one note or special event per channel per time row.
 

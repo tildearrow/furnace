@@ -416,8 +416,7 @@ void FurnaceGUIHorizontal::editNote(FurnaceGUI& g, int mode, int from, int to, i
     accepted=FurnaceHorizontalPattern::edit(pat->newData,g.e->curSubSong->patLen,mode,from,to,note,end,instrument);
   });
   g.makeUndo(GUI_UNDO_PATTERN_EDIT,region);
-  if (!accepted) g.showError(_("This edit overlaps a note or an instrument/volume event. Move it to an empty span or shorten it first."));
-  else if (mode!=3) { row=to; pitch=note; }
+  if (accepted && mode!=3) { row=to; pitch=note; }
 }
 
 void FurnaceGUIHorizontal::inspector(FurnaceGUI& g) {
@@ -708,11 +707,9 @@ void FurnaceGUIHorizontal::noteEventRows(FurnaceGUI& g, ImVec2 origin, ImVec2 vi
     int note=pat->newData[target][DIV_PAT_NOTE];
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
       row=target;
-      // These lanes share Furnace's note column. Do not silently replace an
-      // attack or raw frequency; replacing another cut/release is intentional.
-      if (note==-1 || eventLane(note)>=0) {
-        if (note!=types[mouseLane]) setCell(g,DIV_PAT_NOTE,types[mouseLane]);
-      } else g.showError(_("A note already starts on this row. Place the event on another row or clear the note first."));
+      // Replace the note-column event directly; the existing undo step also
+      // restores pitched/raw attacks when the user changes their mind.
+      if (note!=types[mouseLane]) setCell(g,DIV_PAT_NOTE,types[mouseLane]);
     }
     if (hit>=0 && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
       row=hit;

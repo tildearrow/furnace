@@ -73,7 +73,7 @@ inline int endRow(const short data[][DIV_MAX_COLS], int rows, int row) {
   return rows;
 }
 
-// mode: 1 insert, 2 move/resize, 3 erase. Reject collisions before touching data.
+// mode: 1 insert, 2 move/resize, 3 erase. New spans replace overlapping notes.
 // Effects stay at their absolute rows. Only note/ins/volume travel with a note.
 inline bool edit(short data[][DIV_MAX_COLS], int rows, int mode, int from,
                  int to, int note, int end, int instrument) {
@@ -97,14 +97,24 @@ inline bool edit(short data[][DIV_MAX_COLS], int rows, int mode, int from,
     }
   }
   if (mode!=3) {
-    for (int r=to; r<end; r++) {
-      // A new attack at an existing cut is the usual way to join two notes.
-      if (r==to && result[r][DIV_PAT_NOTE]==DIV_NOTE_OFF) continue;
-      if (result[r][DIV_PAT_NOTE]!=-1) return false;
+    // Use the original spans: removing the source of a move must not make
+    // its preceding note look longer and therefore spuriously overlap.
+    for (int r=0; r<end; r++) {
+      if (mode==2 && r==from) continue;
+      if (!pitched(data[r][DIV_PAT_NOTE]) && data[r][DIV_PAT_NOTE]!=DIV_NOTE_RAW) continue;
+      int next=endRow(data,rows,r);
+      if (next<=to) continue;
+      result[r][DIV_PAT_NOTE]=-1;
+      result[r][DIV_PAT_INS]=-1;
+      result[r][DIV_PAT_VOL]=-1;
+      // Remove the replaced note's cut even when it falls beyond the new
+      // span. Releases outside the replacement remain independent events.
+      if (next<rows && data[next][DIV_PAT_NOTE]==DIV_NOTE_OFF) result[next][DIV_PAT_NOTE]=-1;
     }
-    // Do not replace an instrument/volume-only event at the destination.
-    if (to!=from || mode==1) {
-      if (result[to][DIV_PAT_INS]!=-1 || result[to][DIV_PAT_VOL]!=-1) return false;
+    for (int r=to; r<end; r++) {
+      result[r][DIV_PAT_NOTE]=-1;
+      result[r][DIV_PAT_INS]=-1;
+      result[r][DIV_PAT_VOL]=-1;
     }
     result[to][DIV_PAT_NOTE]=note;
     if (instrument>=0) result[to][DIV_PAT_INS]=instrument;
