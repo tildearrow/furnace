@@ -373,6 +373,7 @@ size | description
      | - 60 is NTSC
      | - 50 is PAL
   1  | initial arpeggio speed
+     | - this value is ignored in versions <255.
   1  | effect speed divider
   2  | pattern length
      | - the limit is 256.
@@ -610,6 +611,7 @@ size | description
   1  | speed 1 (of first song)
   1  | speed 2 (of first song)
   1  | initial arpeggio time (of first song)
+     | - this value is ignored in versions <255.
   4f | ticks per second (of first song)
      | - 60 is NTSC
      | - 50 is PAL
@@ -776,6 +778,7 @@ size | description
   1  | speed 1
   1  | speed 2
   1  | initial arpeggio time
+     | - this value is ignored in versions <255.
   4f | ticks per second
      | - 60 is NTSC
      | - 50 is PAL

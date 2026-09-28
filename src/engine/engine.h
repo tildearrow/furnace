@@ -56,8 +56,8 @@ class DivWorkPool;
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev254"
-#define DIV_ENGINE_VERSION 254
+#define DIV_VERSION "dev255"
+#define DIV_ENGINE_VERSION 255
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -192,7 +192,7 @@ struct DivChannelState {
   int tremoloDepth, tremoloRate, tremoloPos;
   int panDepth, panRate, panPos, panSpeed;
   int sampleOff;
-  unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
+  unsigned char arp, arpStage, arpTicks, arpSpeed, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
   bool doNote, legato, portaStop, keyOn, keyOff, stopOnOff, releasing;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp, sampleOffSet;
   bool wentThroughNote, goneThroughNote;
@@ -238,6 +238,7 @@ struct DivChannelState {
     arp(0),
     arpStage(-1),
     arpTicks(1),
+    arpSpeed(1),
     panL(255),
     panR(255),
     panRL(0),

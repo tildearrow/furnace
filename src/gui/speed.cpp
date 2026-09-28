@@ -306,6 +306,18 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->curSubSong->hilightB,&_ONE,&_FOUR)) {
         MARK_MODIFIED;
       }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text(_("Arp Speed"));
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(halfAvail);
+      if (ImGui::InputScalar("##ArpLen",ImGuiDataType_U8,&e->curSubSong->arpLen,&_ONE,&_FOUR)) {
+        if (e->curSubSong->arpLen<1) e->curSubSong->arpLen=1;
+        MARK_MODIFIED;
+      }
+
       ImGui::EndTable();
     }
 
