@@ -369,18 +369,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 							read_latch = v.filter().o4_1();
 						}
 						break;
-					case 5:	 // O3(n-2) (Filter 3 Temp Register #2)
-						if (cpu_access)
-						{
-							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o3_2(), 0, 18);
-						}
-						else
-						{
-							read_latch = v.filter().o3_2();
-						}
-						break;
-					case 6:	 // O3(n-1) (Filter 3 Temp Register #1)
+					case 5:	 // O3(n-1) (Filter 3 Temp Register #1)
 						if (cpu_access)
 						{
 							read_latch =
@@ -391,18 +380,18 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 							read_latch = v.filter().o3_1();
 						}
 						break;
-					case 7:	 // O2(n-2) (Filter 2 Temp Register #2)
+					case 6:	 // O3(n-2) (Filter 3 Temp Register #2)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o2_2(), 0, 18);
+							  (read_latch & ~0x3ffff) | bitfield(v.filter().o3_2(), 0, 18);
 						}
 						else
 						{
-							read_latch = v.filter().o2_2();
+							read_latch = v.filter().o3_2();
 						}
 						break;
-					case 8:	 // O2(n-1) (Filter 2 Temp Register #1)
+					case 7:	 // O2(n-1) (Filter 2 Temp Register #1)
 						if (cpu_access)
 						{
 							read_latch =
@@ -411,6 +400,17 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						else
 						{
 							read_latch = v.filter().o2_1();
+						}
+						break;
+					case 8:	 // O2(n-2) (Filter 2 Temp Register #2)
+						if (cpu_access)
+						{
+							read_latch =
+							  (read_latch & ~0x3ffff) | bitfield(v.filter().o2_2(), 0, 18);
+						}
+						else
+						{
+							read_latch = v.filter().o2_2();
 						}
 						break;
 					case 9:	 // O1(n-1) (Filter 1 Temp Register)
@@ -576,17 +576,17 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 					case 4:	 // O4(n-1) (Filter 4 Temp Register)
 						v.filter().set_o4_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
-					case 5:	 // O3(n-2) (Filter 3 Temp Register #2)
-						v.filter().set_o3_2(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
-						break;
-					case 6:	 // O3(n-1) (Filter 3 Temp Register #1)
+					case 5:	 // O3(n-1) (Filter 3 Temp Register #1)
 						v.filter().set_o3_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
-					case 7:	 // O2(n-2) (Filter 2 Temp Register #2)
-						v.filter().set_o2_2(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
+					case 6:	 // O3(n-2) (Filter 3 Temp Register #2)
+						v.filter().set_o3_2(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
-					case 8:	 // O2(n-1) (Filter 2 Temp Register #1)
+					case 7:	 // O2(n-1) (Filter 2 Temp Register #1)
 						v.filter().set_o2_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
+						break;
+					case 8:	 // O2(n-2) (Filter 2 Temp Register #2)
+						v.filter().set_o2_2(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
 						break;
 					case 9:	 // O1(n-1) (Filter 1 Temp Register)
 						v.filter().set_o1_1(sign_ext_nomax<s32>(bitfield(data, 0, 18), 18));
