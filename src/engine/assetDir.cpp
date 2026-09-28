@@ -21,10 +21,13 @@
 #include "../ta-log.h"
 
 void moveAsset(std::vector<DivAssetDir>& dir, int before, int after) {
+  // safety check
   if (before<0 || after<0) return;
+
+  // check entries in asset directories
   for (DivAssetDir& i: dir) {
     for (size_t j=0; j<i.entries.size(); j++) {
-      // erase matching entry
+      // swap matching entries
       if (i.entries[j]==before) {
         i.entries[j]=after;
       } else if (i.entries[j]==after) {
@@ -35,14 +38,19 @@ void moveAsset(std::vector<DivAssetDir>& dir, int before, int after) {
 }
 
 void removeAsset(std::vector<DivAssetDir>& dir, int entry) {
+  // safety check
   if (entry<0) return;
+
+  // find entry in asset directories
   for (DivAssetDir& i: dir) {
     for (size_t j=0; j<i.entries.size(); j++) {
-      // erase matching entry
       if (i.entries[j]==entry) {
+        // erase matching entry
         i.entries.erase(i.entries.begin()+j);
         j--;
       } else if (i.entries[j]>entry) {
+        // asset indexes higher than the matching asset must be decreased
+        // by one as their indexes have changed
         i.entries[j]--;
       }
     }
@@ -50,19 +58,21 @@ void removeAsset(std::vector<DivAssetDir>& dir, int entry) {
 }
 
 void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
+  // check whether all assets are present in asset directories.
+  // also check whether there are duplicates.
   bool* inAssetDir=new bool[entries];
   memset(inAssetDir,0,entries*sizeof(bool));
 
   for (DivAssetDir& i: dir) {
     for (size_t j=0; j<i.entries.size(); j++) {
-      // erase invalid entry
+      // erase invalid/out of range entries
       if (i.entries[j]<0 || i.entries[j]>=(int)entries) {
         i.entries.erase(i.entries.begin()+j);
         j--;
         continue;
       }
 
-      // erase duplicate entry
+      // erase duplicate entries
       if (inAssetDir[i.entries[j]]) {
         i.entries.erase(i.entries.begin()+j);
         j--;
@@ -74,9 +84,11 @@ void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
     }
   }
 
-  // get unsorted directory
+  // find the "unsorted" directory
   DivAssetDir* unsortedDir=NULL;
   for (DivAssetDir& i: dir) {
+    // the "unsorted" directory is simply a directory without a name
+    // the GUI will not allow you to create an anonymous directory
     if (i.name.empty()) {
       unsortedDir=&i;
       break;
@@ -95,55 +107,86 @@ void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
     }
   }
 
+  // clean up
   delete[] inAssetDir;
 }
 
+// write asset directories to a SafeWriter
 void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir) {
   size_t blockStartSeek, blockEndSeek;
 
-  w->write("ADIR",4);
+  // block header
+  w->write("ADI2",4);
   blockStartSeek=w->tell();
-  w->writeI(0);
+  w->writeI(0); // block size - will be written later
 
+  // number of directories
   w->writeI(dir.size());
 
+  // for each directory
   for (DivAssetDir& i: dir) {
+    // directory name
     w->writeString(i.name,false);
+    // entry count
     w->writeS(i.entries.size());
+    // write entries
     for (int j: i.entries) {
-      w->writeC(j);
+      w->writeS(j);
     }
   }
 
+  // go back to the block size location
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
+  // calculate block size and write it out
   w->writeI(blockEndSeek-blockStartSeek-4);
   w->seek(0,SEEK_END);
 }
 
+// read asset directories.
 DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir) {
+  bool isNewFormat=true;
+
+  // check whether the block header is correct
   char magic[4];
   reader.read(magic,4);
-  if (memcmp(magic,"ADIR",4)!=0) {
+  if (memcmp(magic,"ADI2",4)==0) {
+    // asset dirs - new format
+    isNewFormat=true;
+  } else if (memcmp(magic,"ADIR",4)==0) {
+    // asset dirs - old format
+    isNewFormat=false;
+  } else {
+    // invalid block header
     logV("header is invalid: %c%c%c%c",magic[0],magic[1],magic[2],magic[3]);
     return DIV_DATA_INVALID_HEADER;
   }
-  reader.readI(); // reserved
+  reader.readI(); // block size
 
+  // read number of directories
   unsigned int numDirs=reader.readI();
 
+  // create directories
   dir.reserve(numDirs);
   for (unsigned int i=0; i<numDirs; i++) {
     DivAssetDir d;
 
+    // name
     d.name=reader.readString();
+    // entry count
     unsigned short numEntries=reader.readS();
 
     d.entries.reserve(numEntries);
     for (unsigned short j=0; j<numEntries; j++) {
-      d.entries.push_back(((unsigned char)reader.readC()));
+      // read entries
+      if (isNewFormat) {
+        d.entries.push_back(((unsigned short)reader.readS()));
+      } else {
+        d.entries.push_back(((unsigned char)reader.readC()));
+      }
     }
 
+    // add directory
     dir.push_back(d);
   }
 
