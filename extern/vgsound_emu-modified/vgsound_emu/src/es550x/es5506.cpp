@@ -26,13 +26,13 @@ void es5506_core::tick_perf()
 		{
 			for (int c = 0; c < 6; c++)
 			{
-        m_output[c].m_left=m_ch[c].m_left>>output_bits;
-        if (m_output[c].m_left<-0x80000) m_output[c].m_left=-0x80000;
-        if (m_output[c].m_left>0x7ffff) m_output[c].m_left=0x7ffff;
+				m_output[c].m_left = m_ch[c].m_left >> output_bits;
+				if (m_output[c].m_left < -0x80000) m_output[c].m_left = -0x80000;
+				if (m_output[c].m_left > 0x7ffff) m_output[c].m_left = 0x7ffff;
 
-        m_output[c].m_right=m_ch[c].m_right>>output_bits;
-        if (m_output[c].m_right<-0x80000) m_output[c].m_right=-0x80000;
-        if (m_output[c].m_right>0x7ffff) m_output[c].m_right=0x7ffff;
+				m_output[c].m_right = m_ch[c].m_right >> output_bits;
+				if (m_output[c].m_right < -0x80000) m_output[c].m_right = -0x80000;
+				if (m_output[c].m_right > 0x7ffff) m_output[c].m_right = 0x7ffff;
 			}
 		}
 	}
@@ -45,49 +45,50 @@ void es5506_core::tick_perf()
 	}
 
 	// update
-  voice_tick();
+	voice_tick();
 }
 
 void es5506_core::voice_tick()
 {
-  // Refresh output
-  m_voice_end	  = true;
-  m_voice_cycle = 0;
-  for (int i=0; i<6; i++)
-  {
-    m_ch[i].reset();
-  }
-  // Update voice
-  const int total=VGS_CLAMP(m_active,4,31);
-  for (int i=0; i<=total; i++) {
-    m_voice[i].tick(i);
+	// Refresh output
+	m_voice_end	  = true;
+	m_voice_cycle = 0;
+	for (int i = 0; i < 6; i++)
+	{
+		m_ch[i].reset();
+	}
+	// Update voice
+	const int total = VGS_CLAMP(m_active, 4, 31);
+	for (int i = 0; i <= total; i++)
+	{
+		m_voice[i].tick(i);
 
-    const u8 ca = m_voice[i].cr().ca()&7;
-    if (ca < 6)
-    {
-      m_ch[ca] += m_voice[i].ch();
-    }
-  }
+		const u8 ca = m_voice[i].cr().ca() & 7;
+		if (ca < 6)
+		{
+			m_ch[ca] += m_voice[i].ch();
+		}
+	}
 }
 
 void es5506_core::voice_t::fetch(u8 cycle)
 {
 	m_alu.set_sample(
-	  0,
-	  m_host.m_intf.read_sample(m_cr.m_bs,
-								(m_alu.get_accum_integer())&((1<<m_alu.m_integer)-1)));
+		0,
+		m_host.m_intf.read_sample(m_cr.m_bs,
+								(m_alu.get_accum_integer()) & ((1 << m_alu.m_integer) - 1)));
 	if (m_cr.cmpd())
 	{  // Decompress (Upper 8 bit is used for compressed format)
-		m_alu.set_sample(0, decompress((m_alu.sample(0)>>8)&255));
+		m_alu.set_sample(0, decompress((m_alu.sample(0) >> 8) & 255));
 	}
 
-  m_alu.set_sample(
-	  1,
-	  m_host.m_intf.read_sample(m_cr.m_bs,
-								(m_alu.get_accum_integer() + 1)&((1<<m_alu.m_integer)-1)));
+	m_alu.set_sample(
+		1,
+		m_host.m_intf.read_sample(m_cr.m_bs,
+								(m_alu.get_accum_integer() + 1) & ((1 << m_alu.m_integer) - 1)));
 	if (m_cr.cmpd())
 	{  // Decompress (Upper 8 bit is used for compressed format)
-		m_alu.set_sample(1, decompress((m_alu.sample(1)>>8)&255));
+		m_alu.set_sample(1, decompress((m_alu.sample(1) >> 8) & 255));
 	}
 }
 
@@ -97,11 +98,12 @@ void es5506_core::voice_t::tick(u8 voice)
 
 	if (m_alu.busy())
 	{
-          if ((m_alu.m_last_accum&(~m_alu.m_fraction))!=(m_alu.m_accum&(~m_alu.m_fraction))) fetch(0);
-         	m_filter.tick(m_alu.interpolation());
+		if ((m_alu.m_last_accum & (~m_alu.m_fraction)) != (m_alu.m_accum & (~m_alu.m_fraction)))
+			fetch(0);
+		m_filter.tick(m_alu.interpolation(1));
 		// Send to output
-		m_output[0] = m_mute ? 0 : volume_calc(m_lvol, (short)m_filter.o4_1());
-		m_output[1] = m_mute ? 0 : volume_calc(m_rvol, (short)m_filter.o4_1());
+		m_output[0] = m_mute ? 0 : volume_calc(m_lvol, m_filter.o4_1() >> 1);
+		m_output[1] = m_mute ? 0 : volume_calc(m_rvol, m_filter.o4_1() >> 1);
 
 		m_ch.set_left(m_output[0]);
 		m_ch.set_right(m_output[1]);
@@ -111,12 +113,13 @@ void es5506_core::voice_t::tick(u8 voice)
 		{
 			m_alu.loop_exec();
 		}
-	} else {
-         	m_filter.tick(m_alu.interpolation());
-	        m_output[0] = m_output[1] = 0;
-         	m_ch.reset();
-
-        }
+	}
+	else
+	{
+		m_filter.tick(m_alu.interpolation(1));
+		m_output[0] = m_output[1] = 0;
+		m_ch.reset();
+	}
 	// Envelope
 	if (m_ecount != 0)
 	{
@@ -135,13 +138,13 @@ void es5506_core::voice_t::tick(u8 voice)
 			((m_k1ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k1(
-			  VGS_CLAMP(m_filter.k1() + sign_ext_nomax<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
+				VGS_CLAMP(m_filter.k1() + sign_ext_nomax<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
 		}
 		if ((m_k2ramp.ramp() != 0) &&
 			((m_k2ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k2(
-			  VGS_CLAMP(m_filter.k2() + sign_ext_nomax<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
+				VGS_CLAMP(m_filter.k2() + sign_ext_nomax<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
 		}
 
 		m_ecount--;
@@ -158,9 +161,9 @@ s16 es5506_core::voice_t::decompress(u8 sample)
 	u8 exponent = bitfield(sample, 5, 3);
 	u8 mantissa = bitfield(sample, 0, 5);
 	return (exponent > 0)
-		   ? s16(((bitfield(mantissa, 4) ? 0x10 : ~0x1f) | bitfield(mantissa, 0, 4))
-				 << (4 + (exponent - 1)))
-		   : s16(((bitfield(mantissa, 4) ? ~0xf : 0) | bitfield(mantissa, 0, 4)) << 4);
+			? s16(((bitfield(mantissa, 4) ? 0x10 : ~0x1f) | bitfield(mantissa, 0, 4))
+			<< (4 + (exponent - 1)))
+			: s16(((bitfield(mantissa, 4) ? ~0xf : 0) | bitfield(mantissa, 0, 4)) << 4);
 }
 
 // volume calculation
@@ -227,16 +230,16 @@ void es5506_core::voice_t::reset()
 // Accessors
 u8 es5506_core::host_r(u8 address)
 {
-		m_ha = address;
-			m_hd = read(m_ha, true);
+	m_ha = address;
+	m_hd = read(m_ha, true);
 	return m_hd;
 }
 
 void es5506_core::host_w(u8 address, u8 data)
 {
-		m_ha = address;
-		m_hd = data;
-			write(m_ha, m_hd);
+	m_ha = address;
+	m_hd = data;
+	write(m_ha, m_hd);
 }
 
 u8 es5506_core::read(u8 address, bool cpu_access)
@@ -289,7 +292,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 				break;
 			case 14:  // IRQV (Interrupting voice vector)
 				read_latch = (read_latch & ~0x9f) | (m_irqv.irqb() ? 0x80 : 0) |
-							 bitfield(m_irqv.voice(), 0, 5);
+								bitfield(m_irqv.voice(), 0, 5);
 				if (cpu_access)
 				{
 					m_irqv.clear();
@@ -342,12 +345,12 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 				{
 					case 0:	 // CR (Control Register)
 						read_latch = (read_latch & ~0xffff) | (v.alu().stop() << 0) |
-									 (v.alu().lei() ? 0x0004 : 0x0000) | (v.alu().loop() << 3) |
-									 (v.alu().irqe() ? 0x0020 : 0x0000) |
-									 (v.alu().dir() ? 0x0040 : 0x0000) |
-									 (v.alu().irq() ? 0x0080 : 0x0000) |
-									 (bitfield(v.filter().lp(), 0, 2) << 8) | (v.cr().ca() << 10) |
-									 (v.cr().cmpd() ? 0x2000 : 0x0000) | (v.cr().bs() << 14);
+									(v.alu().lei() ? 0x0004 : 0x0000) | (v.alu().loop() << 3) |
+									(v.alu().irqe() ? 0x0020 : 0x0000) |
+									(v.alu().dir() ? 0x0040 : 0x0000) |
+									(v.alu().irq() ? 0x0080 : 0x0000) |
+									(bitfield(v.filter().lp(), 0, 2) << 8) | (v.cr().ca() << 10) |
+									(v.cr().cmpd() ? 0x2000 : 0x0000) | (v.cr().bs() << 14);
 						break;
 					case 1:	 // START (Loop Start Register)
 						read_latch = (read_latch & ~0xfffff800) | (v.alu().start() & 0xfffff800);
@@ -362,7 +365,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o4_1(), 0, 18);
+								(read_latch & ~0x3ffff) | bitfield(v.filter().o4_1(), 0, 18);
 						}
 						else
 						{
@@ -373,7 +376,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o3_1(), 0, 18);
+								(read_latch & ~0x3ffff) | bitfield(v.filter().o3_1(), 0, 18);
 						}
 						else
 						{
@@ -384,7 +387,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o3_2(), 0, 18);
+								(read_latch & ~0x3ffff) | bitfield(v.filter().o3_2(), 0, 18);
 						}
 						else
 						{
@@ -395,7 +398,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o2_1(), 0, 18);
+								(read_latch & ~0x3ffff) | bitfield(v.filter().o2_1(), 0, 18);
 						}
 						else
 						{
@@ -406,7 +409,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o2_2(), 0, 18);
+								(read_latch & ~0x3ffff) | bitfield(v.filter().o2_2(), 0, 18);
 						}
 						else
 						{
@@ -417,7 +420,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						if (cpu_access)
 						{
 							read_latch =
-							  (read_latch & ~0x3ffff) | bitfield(v.filter().o1_1(), 0, 18);
+								(read_latch & ~0x3ffff) | bitfield(v.filter().o1_1(), 0, 18);
 						}
 						else
 						{
@@ -441,12 +444,12 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 				{
 					case 0:	 // CR (Control Register)
 						read_latch = (read_latch & ~0xffff) | (v.alu().stop() << 0) |
-									 (v.alu().lei() ? 0x0004 : 0x0000) | (v.alu().loop() << 3) |
-									 (v.alu().irqe() ? 0x0020 : 0x0000) |
-									 (v.alu().dir() ? 0x0040 : 0x0000) |
-									 (v.alu().irq() ? 0x0080 : 0x0000) |
-									 (bitfield(v.filter().lp(), 0, 2) << 8) | (v.cr().ca() << 10) |
-									 (v.cr().cmpd() ? 0x2000 : 0x0000) | (v.cr().bs() << 14);
+									(v.alu().lei() ? 0x0004 : 0x0000) | (v.alu().loop() << 3) |
+									(v.alu().irqe() ? 0x0020 : 0x0000) |
+									(v.alu().dir() ? 0x0040 : 0x0000) |
+									(v.alu().irq() ? 0x0080 : 0x0000) |
+									(bitfield(v.filter().lp(), 0, 2) << 8) | (v.cr().ca() << 10) |
+									(v.cr().cmpd() ? 0x2000 : 0x0000) | (v.cr().bs() << 14);
 						break;
 					case 1:	 // FC (Frequency Control)
 						read_latch = (read_latch & ~0x1ffff) | bitfield(v.alu().fc(), 0, 17);
@@ -471,25 +474,25 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 						break;
 					case 8:	 // K2RAMP (Filter Cutoff Coefficient #2 Ramp)
 						read_latch = (read_latch & ~0xff01) |
-									 (bitfield(v.k2ramp().ramp(), 0, 8) << 8) |
-									 (v.k2ramp().slow() ? 0x0001 : 0x0000);
+									(bitfield(v.k2ramp().ramp(), 0, 8) << 8) |
+									(v.k2ramp().slow() ? 0x0001 : 0x0000);
 						break;
 					case 9:	 // K1 (Filter Cutoff Coefficient #1)
 						read_latch = (read_latch & ~0xffff) | bitfield(v.filter().k1(), 0, 16);
 						break;
 					case 10:  // K1RAMP (Filter Cutoff Coefficient #1 Ramp)
 						read_latch = (read_latch & ~0xff01) |
-									 (bitfield(v.k1ramp().ramp(), 0, 8) << 8) |
-									 (v.k1ramp().slow() ? 0x0001 : 0x0000);
+									(bitfield(v.k1ramp().ramp(), 0, 8) << 8) |
+									(v.k1ramp().slow() ? 0x0001 : 0x0000);
 						break;
 					case 11:  // ACT (Number of voices)
 						read_latch = (read_latch & ~0x1f) | bitfield(m_active, 0, 5);
 						break;
 					case 12:  // MODE (Global Mode)
 						read_latch =
-						  (read_latch & ~0x1f) | (m_mode.lrclk_en() ? 0x01 : 0x00) |
-						  (m_mode.wclk_en() ? 0x02 : 0x00) | (m_mode.bclk_en() ? 0x04 : 0x00) |
-						  (m_mode.master() ? 0x08 : 0x00) | (m_mode.dual() ? 0x10 : 0x00);
+							(read_latch & ~0x1f) | (m_mode.lrclk_en() ? 0x01 : 0x00) |
+							(m_mode.wclk_en() ? 0x02 : 0x00) | (m_mode.bclk_en() ? 0x04 : 0x00) |
+							(m_mode.master() ? 0x08 : 0x00) | (m_mode.dual() ? 0x10 : 0x00);
 						break;
 				}
 			}
@@ -531,7 +534,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 				case 8:	  // CH4L (Channel 4 Left)
 				case 10:  // CH5L (Channel 5 Left)
 					m_ch[bitfield(address, 1, 3)].set_left(
-					  sign_ext_nomax<s32>(bitfield(data, 0, 23), 23));
+						sign_ext_nomax<s32>(bitfield(data, 0, 23), 23));
 					break;
 				case 1:	  // CH0R (Channel 0 Right)
 				case 3:	  // CH1R (Channel 1 Right)
@@ -540,7 +543,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 				case 9:	  // CH4R (Channel 4 Right)
 				case 11:  // CH5R (Channel 5 Right)
 					m_ch[bitfield(address, 1, 3)].set_right(
-					  sign_ext_nomax<s32>(bitfield(data, 0, 23), 23));
+						sign_ext_nomax<s32>(bitfield(data, 0, 23), 23));
 					break;
 			}
 		}
