@@ -54,9 +54,18 @@ class DivWorkPool;
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
+// when defined, the version string will be watermarked on the GUI (top right corner).
+// disable on Furnace stable releases.
 #define DIV_UNSTABLE
 
+// version string.
+// the usual format for stable versions is 0.major.minor[.patch].
+// we're not reaching 1.0 until we have export for all major systems.
+//
+// development/interim versions go by the format version, prepended with "dev".
 #define DIV_VERSION "dev255"
+// format version.
+// this shall be bumped on each file format/breaking change.
 #define DIV_ENGINE_VERSION 255
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -68,12 +77,21 @@ class DivWorkPool;
 #define DIV_VERSION_IT 0xff07
 #define DIV_VERSION_MIDI 0xff08
 
+/**
+ * used by the -view flag in command line player.
+ */
 enum DivStatusView {
+  // don't display anything
   DIV_STATUS_NOTHING=0,
+  // print the pattern
   DIV_STATUS_PATTERN,
+  // print dispatched commands
   DIV_STATUS_COMMANDS
 };
 
+/**
+ * if you add an audio engine to TAAudio/Furnace, define it here.
+ */
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1,
@@ -81,62 +99,102 @@ enum DivAudioEngines {
   DIV_AUDIO_PIPE=3,
   DIV_AUDIO_ASIO=4,
 
+  // these two are special. don't touch them.
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127
 };
 
+/**
+ * audio export modes.
+ */
 enum DivAudioExportModes {
+  // export to a single file.
   DIV_EXPORT_MODE_ONE=0,
+  // export to multiple files (one per chip).
   DIV_EXPORT_MODE_MANY_SYS,
+  // export to multiple files (one per channel).
   DIV_EXPORT_MODE_MANY_CHAN
 };
 
+/**
+ * the engine is capable of "halting" (a debug feature which pauses playback).
+ * this allows you to set when to halt.
+ */
 enum DivHaltPositions {
+  // normal engine operation.
   DIV_HALT_NONE=0,
+  // halt on the next tick.
   DIV_HALT_TICK,
+  // halt on the next row.
   DIV_HALT_ROW,
+  // halt on the next order.
   DIV_HALT_PATTERN,
+  // halt on a user-specified breakpoint.
   DIV_HALT_BREAKPOINT
 };
 
+/**
+ * MIDI output modes.
+ */
 enum DivMIDIModes {
+  // no output - e.g. TX81Z
   DIV_MIDI_MODE_OFF=0,
+  // send notes
   DIV_MIDI_MODE_NOTE,
+  // this is a remnant of an experiment with a Launchpad.
   DIV_MIDI_MODE_LIGHT_SHOW
 };
 
+/**
+ * define audio export formats here.
+ */
 enum DivAudioExportFormats {
   DIV_EXPORT_FORMAT_WAV=0,
   DIV_EXPORT_FORMAT_OPUS,
   DIV_EXPORT_FORMAT_FLAC,
   DIV_EXPORT_FORMAT_VORBIS,
-  DIV_EXPORT_FORMAT_MPEG_L3
+  DIV_EXPORT_FORMAT_MPEG_L3 // MPEG Layer 3 (MP3)
 };
 
+/**
+ * used by MP3 format.
+ */
 enum DivAudioExportBitrateModes {
   DIV_EXPORT_BITRATE_CONSTANT=0,
   DIV_EXPORT_BITRATE_VARIABLE,
   DIV_EXPORT_BITRATE_AVERAGE,
 };
 
+/**
+ * used by WAV format.
+ */
 enum DivAudioExportWavFormats {
   DIV_EXPORT_WAV_U8=0,
   DIV_EXPORT_WAV_S16,
   DIV_EXPORT_WAV_F32
 };
 
+/**
+ * this struct encapsulates options for audio export. it is passed to DivEngine::saveAudio().
+ */
 struct DivAudioExportOptions {
   DivAudioExportModes mode;
   DivAudioExportFormats format;
   DivAudioExportBitrateModes bitRateMode;
   DivAudioExportWavFormats wavFormat;
   int sampleRate;
+  // number of channels in the outupt file.
+  // only takes effect in single file or per-channel export.
   int chans;
   int loops;
   double fadeOut;
+  // this hasn't been implemented yet!
   int orderBegin, orderEnd;
+  // set which channels are going to be exported.
   bool channelMask[DIV_MAX_CHANS];
+  // bit rate (in bits/second).
   int bitRate;
+  // range is 0.0-10.0 if I remember correctly.
   float vbrQuality;
   DivAudioExportOptions():
     mode(DIV_EXPORT_MODE_ONE),
@@ -159,7 +217,7 @@ struct DivAudioExportOptions {
 
 #ifdef WITH_JSON
 struct DivJSONExportOptions {
-  enum ExportFormat : unsigned char {
+  enum ExportFormat: unsigned char {
     EXPORT_JSON,
     EXPORT_BSON,
     EXPORT_CBOR
@@ -183,20 +241,97 @@ struct DivJSONExportOptions {
 };
 #endif
 
+/**
+ * this struct contains playback state for a channel.
+ */
 struct DivChannelState {
+  // currently unused. not sure why it is here.
   std::vector<DivDelayedCommand> delayed;
+  // note: the current note, from 0 (C-(-5)) to 179 (B-9).
+  // oldNote: the previous note.
+  // lastIns: the current instrument. used to prevent duplicate notes during note input.
+  // pitch: the current pitch effect's value (E5xx).
+  // portaSpeed: slide/portamento speed, in pitch units per tick.
+  // portaNote: the slide/portamento target.
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
+  // volume: 8.8 fixed point number representing channel volume. the integer part is sent to dispatch.
+  // volSpeed: volume slide speed, in fractional units per tick.
+  // volSpeedTarget: volume slide target. if this is -1, the slide won't stop until it reaches min/max volume.
+  // cut: number of remaining ticks for a note cut.
+  // volCut: number of remaining ticks for a volume cut (volume set to 0).
+  // legatoDelay: how many ticks remain before a quick legato.
+  // legatoTarget: quick legato's target note.
+  // rowDelay: number of ticks before this row is executed (EDxx effect).
+  // volMax: maximum volume of this channel (8.8 fixed point).
   int volume, volSpeed, volSpeedTarget, cut, volCut, legatoDelay, legatoTarget, rowDelay, volMax;
+  // delayOrder/delayRow: the order/row to be executed after rowDelay.
+  // - this exists because an EDxx effect may exceed the current speed.
+  // retrigSpeed: retrigger speed.
+  // retrigTick: number of ticks before retrigger.
   int delayOrder, delayRow, retrigSpeed, retrigTick;
+  // vibratoDepth: vibrato depth. 15 should be ±1 semitone when vibratoFine is 15.
+  // vibratoRate: vibrato rate. one vibrato cycle has a duration of 64 ticks on rate 1.
+  // vibratoPos: position in current vibrato cycle.
+  // vibratoPosGiant: this one has a period of 512. it is used by the GUI pattern visualizer.
+  // vibratoShape: current vibrato shape. this may be one of the following:
+  // - 0: sine
+  // - 1: sine (up only)
+  // - 2: sine (down only)
+  // - 3: triangle
+  // - 4: ramp up
+  // - 5: ramp down
+  // - 6: square
+  // - 7: random
+  // - 8: square up
+  // - 9: square down
+  // - 10: half sine up
+  // - 11: half sine donw
+  // vibratoFine: sets the vibrato range. 15 is ±1 semitone at depth 15.
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoShape, vibratoFine;
+  // tremoloDepth: depth of tremolo effect. ±128 volume units at depth 15... I think.
+  // tremoloRate: tremolo effect rate. one tremolo cycle has a duration of 128 ticks on rate 1.
+  // tremoloPos: position in current tremolo cycle.
   int tremoloDepth, tremoloRate, tremoloPos;
+  // panDepth: panbrello depth (15 is full left-right).
+  // panRate: panbrello rate. one cycle is 256 ticks long at rate 1.
+  // panPos: position in current panbrello cycle.
+  // panSpeed: pan slide speed. negative is left and positive is right.
+  // - panbrello and pan slides may not occur simultaneously.
   int panDepth, panRate, panPos, panSpeed;
+  // sample position effects are accumulated here and dispatched after scanning all effects in a row.
   int sampleOff;
+  // arp: current arpeggio value.
+  // arpStage: current arpeggio note (0: note; 1: note+x; 2: note+y).
+  // arpTicks: number of ticks before next arp stage.
+  // arpSpeed: current arpeggio speed.
+  // panL: left panning.
+  // panR: right panning.
+  // panRL: left panning (rear).
+  // panRR: right panning (rear).
+  // lastVibrato: stores the last value of a vibrato effect. it is recalled on a vibrato + vol slide effect.
+  // lastPorta: same thing but for portamento. stores the last speed.
+  // cutType: ECxx effect type. one of the following:
+  // - 0: note off
+  // - 1: note release
+  // - 2: macro release
   unsigned char arp, arpStage, arpTicks, arpSpeed, panL, panR, panRL, panRR, lastVibrato, lastPorta, cutType;
+  // doNote: whether a note is going to occur.
+  // legato: whether legato (EAxx) is enabled.
+  // portaStop: a compatibility thing.
+  // keyOn: note on state.
+  // keyOff: note off state.
+  // stopOnOff: a compatibility thing.
+  // releasing: whether a note release/macro release has occurred.
   bool doNote, legato, portaStop, keyOn, keyOff, stopOnOff, releasing;
+  // arpYield: another compatibility thing...
+  // delayLocked: oh man
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp, sampleOffSet;
+  // wentThroughNote: whether a note has played on this channel. resets on loop.
+  // goneThroughNote: same as wentThroughNote, but doesn't reset on loop.
+  // - these two are used to determine loop trail length.
   bool wentThroughNote, goneThroughNote;
 
+  // MIDI state variables.
   int midiNote, curMidiNote, midiPitch;
   size_t midiAge;
   bool midiAftertouch;
@@ -271,12 +406,20 @@ struct DivChannelState {
     midiAftertouch(false) {}
 };
 
+/**
+ * a note preview event.
+ */
 struct DivNoteEvent {
   signed char channel;
   short ins;
   // we can't save space anymore now that raw notes exist.
   int note;
+  // velocity. if set to -1, there isn't.
   signed char volume;
+  // on: whether it's a key on event or a key off one.
+  // nop: if set, disregard this event.
+  // insChange: whether we have an instrument change.
+  // fromMIDI: whether the event was caused by MIDI input.
   bool on, nop, insChange, fromMIDI;
   DivNoteEvent(int c, int i, int n, int v, bool o, bool ic=false, bool fm=false):
     channel(c),
@@ -298,6 +441,9 @@ struct DivNoteEvent {
     fromMIDI(false) {}
 };
 
+/**
+ * a DivDispatchContainer contains a DivDispatch and provides facilities for
+ */
 struct DivDispatchContainer {
   DivDispatch* dispatch;
   blip_buffer_t* bb[DIV_MAX_OUTPUTS];
