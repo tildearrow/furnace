@@ -2179,8 +2179,6 @@ void DivEngine::registerSystems() {
       {0x25, {DIV_CMD_ES5506_ENVELOPE_K1RAMP, _("25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)"),effectVal,constVal<1>}},
       {0x26, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, _("26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)"),effectVal,constVal<0>}},
       {0x27, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, _("27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)"),effectVal,constVal<1>}},
-      {0x6c, {DIV_CMD_TEST_REG, _("6C0x: ES5506 test mode (0 off, 1 on) (dangerous)"),
-        effectValAnd<1>}},
       {0xdf, {DIV_CMD_SAMPLE_DIR, _("DFxx: Set sample playback direction (0: normal; 1: reverse)")}}
   };
   EffectHandlerMap es5506PostEffectHandlerMap={
