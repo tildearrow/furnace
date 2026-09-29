@@ -972,10 +972,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_TEST_REG: {
-      const unsigned char testReg = chipType ? 0x09 : 0x01;
-      immWrite(testReg, c.value2);  // address from chipType, NOT from c.value
-      break;
+      if (chipType==1) {
+        rWrite(0x09,c.value2);
+      }
+      rWrite(0x01,c.value2);
     }
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;

@@ -573,7 +573,7 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPMTestPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
   fmOPMTestPostEffectHandlerMap.insert({
-    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register $01/OPM $09/OPP (dangerous)"), constVal<0x01>, effectVal}},
+    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register $01/OPM $09/OPP (dangerous)"), constVal<0>, effectVal}},
   });
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
