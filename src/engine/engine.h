@@ -442,31 +442,99 @@ struct DivNoteEvent {
 };
 
 /**
- * a DivDispatchContainer contains a DivDispatch and provides facilities for
+ * a DivDispatchContainer handles the audio output portion of a dispatch.
+ * it performs resampling as the engine's audio output rate usually differs from that of dispatches.
  */
 struct DivDispatchContainer {
+  // the dispatch.
   DivDispatch* dispatch;
+  // BLIP buffers.
+  // the dispatch container will feed them on acquire(), or deliver these to the dispatch if it supports acquireDirect().
   blip_buffer_t* bb[DIV_MAX_OUTPUTS];
+  // bbInLen: size of BLIP buffers.
+  // runtotal: no longer used.
+  // runLeft: no longer used.
+  // runPos: no longer used.
+  // lastAvail: no longer used. why is it here?
   size_t bbInLen, runtotal, runLeft, runPos, lastAvail;
+  // temp: stores the current sample for delta calculation.
+  // prevSample: stores the previous sample for delta calculation.
   int temp[DIV_MAX_OUTPUTS], prevSample[DIV_MAX_OUTPUTS];
+  // this is the same as bbIn, but has null pointers on unallocated outputs.
   short* bbInMapped[DIV_MAX_OUTPUTS];
+  // allocates buffers for DivDispatch::acquire().
   short* bbIn[DIV_MAX_OUTPUTS];
+  // allocates buffers for resampled output (using blip_buf).
   short* bbOut[DIV_MAX_OUTPUTS];
+  // lowQuality: use fast interpolation (blip_add_delta_fast).
+  // dcOffCompensation: getDCOffRequired(). if set, the first sample must be considered as DC offset to avoid clicks on playback start.
+  // hiPass: enable a low-frequency high-pass filter to remove DC offset. set in Furnace settings.
   bool lowQuality, dcOffCompensation, hiPass;
+  // the last dispatch's rate, used on audio output rate changes.
   double rateMemory;
 
   // used in multi-thread
   int cycles;
   unsigned int size;
 
+  /**
+   * tell this DivDispatchContainer that the output rate has changed and resampling ratio shall be recomputed.
+   * @param gotRate the new rate.
+   */
   void setRates(double gotRate);
+  /**
+   * set output quality options.
+   * @param lowQual enable low-quality mode.
+   * @param dcHiPass set the DC offset compensation option.
+   */
   void setQuality(bool lowQual, bool dcHiPass);
+  /**
+   * re-allocate input/output buffers to fit a requested size.
+   * @param size size.
+   */
   void grow(size_t size);
+  /**
+   * call the dispatch's acquire function.
+   * alters bbIn unless acquireDirect() is supported.
+   * this does not fill output buffers! call fillBuf() after this function.
+   * @param count number of requested samples (in dispatch output rate).
+   */
   void acquire(size_t count);
+  /**
+   * flush the output, if any samples remain.
+   * read bbOut afterwards.
+   * @param offset offset within the output buffer (in engine output rate).
+   * @param count number of samples to flush (in engine output rate).
+   */
   void flush(size_t offset, size_t count);
+  /**
+   * resample and populate bbOut.
+   * read bbOut afterwards.
+   * @param runtotal number of samples in dispatch output rate.
+   * @param offset position within bbOut.
+   * @param size number of samples to output (in engine output rate).
+   */
   void fillBuf(size_t runtotal, size_t offset, size_t size);
+  /**
+   * empty all buffers and reset blip_buf state.
+   */
   void clear();
+  /**
+   * initialize this DivDispatchContainer.
+   * allocates a DivDispatch for a specific chip, binds an engine and sets the resampler up.
+   *
+   * when adding a new chip, make sure to update this function so it allocates your DivDispatch.
+   * @param sys the chip type.
+   * @param eng the DivEngine.
+   * @param chanCount requested chip channel count (dynamic channel count systems only).
+   * @param gotRate the engine output rate.
+   * @param flags a reference to a DivConfig containing chip-specific configuration.
+   * @param isRender set during audio export. used to select between playback and render cores.
+   */
   void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags, bool isRender=false);
+  /**
+   * de-initialize the DivDispatch and this container's state.
+   */
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -490,6 +558,10 @@ struct DivDispatchContainer {
   }
 };
 
+/**
+ * container for an audio effect.
+ * a feature that may be implemented in the future.
+ */
 struct DivEffectContainer {
   DivEffect* effect;
   float* in[DIV_MAX_OUTPUTS];
@@ -509,6 +581,9 @@ struct DivEffectContainer {
   }
 };
 
+/**
+ * options for MIDI import.
+ */
 struct DivMIDIImportOptions {
   bool useBaseTempo;
   bool importVelocity;
@@ -545,8 +620,35 @@ struct DivMIDIImportOptions {
     bendRange(0) {}
 };
 
+// command names (this array must be updated in playback.cpp when adding new commands).
 extern const char* cmdName[];
 
+/**
+ * this is the Furnace engine.
+ * it handles file operations, song playback, audio output and more.
+ *
+ * the Div prefix in these definitions comes from Divorce, the original name of Furnace back in April 2021.
+ *
+ * Furnace's architecture is mostly monolithic. most components depends on a DivEngine.
+ * it is briefly described here.
+ *
+ * DivEngine (the Furnace engine)
+ * - DivSong
+ *   - assets (DivInstrument/DivWavetable/DivSample)
+ * - DivDispatchContainer
+ *   - DivDispatch
+ * - audio output
+ * - MIDI input
+ * - MIDI output
+ * - configuration
+ * - DivChannelState
+ * - playback engine
+ * - DivCSPlayer (reference command stream player)
+ *
+ * I will make a graphical tree soon...
+ *
+ * currently, it is not possible to have multiple engines running simultaneously. it leads to a bunch of conflicts and anomalies.
+ */
 class DivEngine {
   DivDispatchContainer disCont[DIV_MAX_CHIPS];
   TAAudio* output;
