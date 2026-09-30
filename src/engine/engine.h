@@ -650,46 +650,105 @@ extern const char* cmdName[];
  * currently, it is not possible to have multiple engines running simultaneously. it leads to a bunch of conflicts and anomalies.
  */
 class DivEngine {
+  // instances of DivDispatchContainer.
   DivDispatchContainer disCont[DIV_MAX_CHIPS];
+  // audio output backend.
   TAAudio* output;
+  // want: the requested audio output configuration.
+  // got: the output configuration that is actually being used.
   TAAudioDesc want, got;
+  // audio export path. stored because audio export runs in a thread and may need to reference the name later (e.g. multiple file export).
   String exportPath;
+  // the export thread.
   std::thread* exportThread;
+  // set by prePreInit() after the config file has been loaded.
   bool configLoaded;
+  // whether the engine has been initialized.
   bool active;
+  // config setting "audioQuality".
   bool lowQuality;
+  // config setting "audioHiPass".
   bool dcHiPass;
+  // despite its name, this is set whenever the playback engine should be running.
   bool playing;
+  // "jam mode" - when set, the playback engine isn't going to read the pattern.
+  // the variable `playing` must be set for this to work.
   bool freelance;
+  // shallStop: whether a stop effect (FFxx) has been issued and we have to stop.
+  // shallStopSched: stop effects are scheduled so it stops after the row is done (rather than immediately after hitting a stop effect).
   bool shallStop, shallStopSched;
+  // set when the song ends or loops.
   bool endOfSong;
+  // activated with the -console command line parameter.
   bool consoleMode;
+  // activated with the -nostatus command line parameter.
+  // requires consoleMode.
   bool disableStatusOut;
+  // set when an EExx effect occurs.
   bool extValuePresent;
+  // internally used by playSub().
   bool repeatPattern;
+  // enables a metronome which triggers on each row highlight.
   bool metronome;
+  // set if we're exporting audio.
   std::atomic<bool> exporting;
+  // requests the export thread to abort.
   bool stopExport;
+  // completely stops all audio output (debug feature).
   bool halted;
+  // downmix all channels to mono (accessibility).
   bool forceMono;
+  // soft-clip to work around issues with certain audio output drivers.
   bool clampSamples;
+  // dump all commands to the cmdStream vector.
+  // used by the GUI pattern visualizer and command stream export.
   bool cmdStreamEnabled;
+  // whether busy lock mutex is "soft-locked". in this case, the audio thread outputs silence instead of waiting.
   bool softLocked;
+  // set during the first tick of a row (for a compatibility flag).
   bool firstTick;
+  // whether we are "skipping" (happens during playSub()).
   bool skipping;
+  // direct mode outputs channels 0-15 as is to the MIDI output device.
   bool midiIsDirect;
+  // whether instrument changes should also be output as program changes.
   bool midiIsDirectProgram;
+  // low-latency mode runs the engine at ~1000Hz and mitigates delay in note preview events.
   bool lowLatency;
+  // set once registerSystems() has been called.
   bool systemsRegistered;
+  // set once registerROMExports() has been called.
   bool romExportsRegistered;
+  // it is possible to load a file without fully initializing the engine.
+  // this happens when passing a file path in the command line.
+  // if this is set, the engine won't attempt to initialize the song with the default system.
   bool hasLoadedSomething;
+  // MIDI output state.
   bool midiOutClock;
   bool midiOutTime;
   bool midiOutProgramChange;
+  // MIDI output mode. see the DivMIDIModes enum.
   int midiOutMode;
   int midiOutTimeRate;
   float midiVolExp;
+  // used to keep track of audio frames elapsed while the busy mutex is soft-locked.
   int softLockCount;
+  // subticks: set in low-latency mode. number of sub-ticks before next tick.
+  // ticks: number of ticks before next row.
+  // curRow: the current row. it usually is one row ahead of the currently playing row.
+  // curOrder: same, but for order.
+  // prevRow: the actually playing row.
+  // prevOrder: the actually playing order.
+  // remainingLoops: number of loops before playback stops (set with the -loops command line parameter).
+  // totalLoops: number of elapsed loops.
+  // lastLoopPos: last position where a loop occurred within the current audio output frame. used to keep audio output length accurate.
+  // exportLoopCount: number of loops before audio export finishes.
+  // curExportChan: the current channel being exported.
+  // nextSpeed: the next speed (in ticks/row).
+  // prevSpeed: the currently used speed.
+  // elapsedBars: number of elapsed highlight 2 cycles, for the GUI clock.
+  // elapsedBeatS: same but for highlight 1.
+  // curSpeed: the current speed index.
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, prevSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
