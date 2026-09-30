@@ -25,15 +25,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-
-#ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
-#else
-typedef void SNDFILE;
-struct SF_INFO {
-  int invalid;
-};
-#endif
 
 class DivFilePlayer {
   float* sincTable;
@@ -104,4 +96,4 @@ class DivFilePlayer {
     ~DivFilePlayer();
 };
 
-#endif
+#endif // _FILEPLAYER_H

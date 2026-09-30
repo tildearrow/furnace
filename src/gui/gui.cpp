@@ -2726,6 +2726,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+#ifdef HAVE_SNDFILE
     case GUI_FILE_MUSIC_OPEN:
       if (!dirExists(workingDirMusic)) workingDirMusic=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -2737,6 +2738,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         false
       );
       break;
+#endif
     case GUI_FILE_TEST_OPEN:
       if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -4638,7 +4640,9 @@ bool FurnaceGUI::loop() {
   DECLARE_METRIC(log)
   DECLARE_METRIC(effectList)
   DECLARE_METRIC(userPresets)
+#ifdef HAVE_SNDFILE
   DECLARE_METRIC(refPlayer)
+#endif
   DECLARE_METRIC(multiInsSetup)
   DECLARE_METRIC(backupsManager)
   DECLARE_METRIC(popup)
@@ -4662,7 +4666,9 @@ bool FurnaceGUI::loop() {
 
   while (!quit) {
     SDL_Event ev;
+#ifdef HAVE_SNDFILE
     SelectionPoint prevCursor=cursor;
+#endif
     if (e->isPlaying()) {
       WAKE_UP;
     }
@@ -5298,7 +5304,9 @@ bool FurnaceGUI::loop() {
         IMPORT_CLOSE(memoryOpen);
         IMPORT_CLOSE(csPlayerOpen);
         IMPORT_CLOSE(userPresetsOpen);
+#ifdef HAVE_SNDFILE
         IMPORT_CLOSE(refPlayerOpen);
+#endif
         IMPORT_CLOSE(multiInsSetupOpen);
         IMPORT_CLOSE(backupsManagerOpen);
       } else if (pendingLayoutImportStep==1) {
@@ -5696,7 +5704,9 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem(_("effect list"),BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem(_("play/edit controls"),BIND_FOR(GUI_ACTION_WINDOW_EDIT_CONTROLS),editControlsOpen)) editControlsOpen=!editControlsOpen;
         if (ImGui::MenuItem(_("piano/input pad"),BIND_FOR(GUI_ACTION_WINDOW_PIANO),pianoOpen)) pianoOpen=!pianoOpen;
+#ifdef HAVE_SNDFILE
         if (ImGui::MenuItem(_("reference music player"),BIND_FOR(GUI_ACTION_WINDOW_REF_PLAYER),refPlayerOpen)) refPlayerOpen=!refPlayerOpen;
+#endif
         if (ImGui::MenuItem(_("multi-ins setup"),BIND_FOR(GUI_ACTION_WINDOW_MULTI_INS_SETUP),multiInsSetupOpen)) multiInsSetupOpen=!multiInsSetupOpen;
         if (spoilerOpen) if (ImGui::MenuItem(_("spoiler"),NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
 
@@ -5907,7 +5917,9 @@ bool FurnaceGUI::loop() {
       MEASURE(memory,drawMemory());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+#ifdef HAVE_SNDFILE
       MEASURE(refPlayer,drawRefPlayer());
+#endif
       MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(patManager,drawPatManager());
       MEASURE(tuner,drawTuner());
@@ -5958,7 +5970,9 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
       MEASURE(userPresets,drawUserPresets());
+#ifdef HAVE_SNDFILE
       MEASURE(refPlayer,drawRefPlayer());
+#endif
       MEASURE(multiInsSetup,drawMultiInsSetup());
       MEASURE(backupsManager,drawBackupsManager());
 
@@ -6144,9 +6158,11 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_CMDSTREAM_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+#ifdef HAVE_SNDFILE
         case GUI_FILE_MUSIC_OPEN:
           workingDirMusic=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+#endif
         case GUI_FILE_TEST_OPEN:
         case GUI_FILE_TEST_OPEN_MULTI:
         case GUI_FILE_TEST_SAVE:
@@ -6933,6 +6949,7 @@ bool FurnaceGUI::loop() {
                 showError(fmt::sprintf(_("Error while loading file! (%s)"),lastError));
               }
               break;
+#ifdef HAVE_SNDFILE
             case GUI_FILE_MUSIC_OPEN:
               e->synchronizedSoft([this,copyOfName]() {
                 bool wasPlaying=e->getFilePlayer()->isPlaying();
@@ -6944,6 +6961,7 @@ bool FurnaceGUI::loop() {
                 }
               });
               break;
+#endif
             case GUI_FILE_TEST_OPEN:
               showWarning(fmt::sprintf(_("You opened: %s"),copyOfName),GUI_WARN_GENERIC);
               break;
@@ -8329,6 +8347,7 @@ bool FurnaceGUI::loop() {
       recalcTimestamps=false;
     }
 
+#ifdef HAVE_SNDFILE
     if (!e->isPlaying() && e->getFilePlayerSync()) {
       if (cursor.y!=prevCursor.y || cursor.order!=prevCursor.order) {
         DivFilePlayer* fp=e->getFilePlayer();
@@ -8342,6 +8361,7 @@ bool FurnaceGUI::loop() {
         }
       }
     }
+#endif
 
     sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
     
@@ -9262,7 +9282,9 @@ void FurnaceGUI::syncState() {
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
   userPresetsOpen=e->getConfBool("userPresetsOpen",false);
+#ifdef HAVE_SNDFILE
   refPlayerOpen=e->getConfBool("refPlayerOpen",false);
+#endif
   multiInsSetupOpen=e->getConfBool("multiInsSetupOpen",false);
   backupsManagerOpen=e->getConfBool("backupsManagerOpen",false);
 
@@ -9305,7 +9327,9 @@ void FurnaceGUI::syncState() {
   if (noteInputMode!=GUI_NOTE_INPUT_MONO && noteInputMode!=GUI_NOTE_INPUT_POLY && noteInputMode!=GUI_NOTE_INPUT_CHORD) {
     noteInputMode=GUI_NOTE_INPUT_POLY;
   }
+#ifdef HAVE_SNDFILE
   filePlayerSync=e->getConfBool("filePlayerSync",true);
+#endif
   audioExportOptions.loops=e->getConfInt("exportLoops",0);
   if (audioExportOptions.loops<0) audioExportOptions.loops=0;
   audioExportOptions.fadeOut=e->getConfDouble("exportFadeOut",0.0);
@@ -9447,7 +9471,9 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("findOpen",findOpen);
   conf.set("spoilerOpen",spoilerOpen);
   conf.set("userPresetsOpen",userPresetsOpen);
+#ifdef HAVE_SNDFILE
   conf.set("refPlayerOpen",refPlayerOpen);
+#endif
   conf.set("multiInsSetupOpen",multiInsSetupOpen);
   conf.set("backupsManagerOpen",backupsManagerOpen);
 
@@ -9483,7 +9509,9 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("editStepCoarse",editStepCoarse);
   conf.set("orderEditMode",orderEditMode);
   conf.set("noteInputMode",(int)noteInputMode);
+#ifdef HAVE_SNDFILE
   conf.set("filePlayerSync",filePlayerSync);
+#endif
   conf.set("exportLoops",audioExportOptions.loops);
   conf.set("exportFadeOut",audioExportOptions.fadeOut);
 
@@ -9739,7 +9767,9 @@ FurnaceGUI::FurnaceGUI():
   safeMode(false),
   midiWakeUp(true),
   makeDrumkitMode(false),
+#ifdef HAVE_SNDFILE
   filePlayerSync(true),
+#endif
   audioEngineChanged(false),
   settingsChanged(false),
   debugFFT(false),
@@ -9925,7 +9955,9 @@ FurnaceGUI::FurnaceGUI():
   csPlayerOpen(false),
   cvOpen(false),
   userPresetsOpen(false),
+#ifdef HAVE_SNDFILE
   refPlayerOpen(false),
+#endif
   multiInsSetupOpen(false),
   backupsManagerOpen(false),
   cvNotSerious(false),
