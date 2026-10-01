@@ -1,2 +1,0 @@
-/usr/bin/ar qc libreplaygain_synthesis.a CMakeFiles/replaygain_synthesis.dir/replaygain_synthesis.c.o
-/usr/bin/ranlib libreplaygain_synthesis.a

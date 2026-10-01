@@ -1,2 +1,0 @@
-/usr/bin/ar qc libgrabbag.a CMakeFiles/grabbag.dir/alloc.c.o CMakeFiles/grabbag.dir/cuesheet.c.o CMakeFiles/grabbag.dir/file.c.o CMakeFiles/grabbag.dir/picture.c.o CMakeFiles/grabbag.dir/replaygain.c.o CMakeFiles/grabbag.dir/seektable.c.o CMakeFiles/grabbag.dir/snprintf.c.o
-/usr/bin/ranlib libgrabbag.a
