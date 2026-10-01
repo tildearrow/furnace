@@ -2150,7 +2150,7 @@ class DivEngine {
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
       memset(exportChannelMask,1,DIV_MAX_CHANS*sizeof(bool));
       memset(chipPeak,0,DIV_MAX_CHIPS*DIV_MAX_OUTPUTS*sizeof(float));
-      memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(float));
+      memset(filePlayerBuf,0,DIV_MAX_OUTPUTS*sizeof(void*));
 
       changeSong(0);
     }
