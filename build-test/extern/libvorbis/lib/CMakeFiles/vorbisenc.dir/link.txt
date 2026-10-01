@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvorbisenc.a CMakeFiles/vorbisenc.dir/vorbisenc.c.o
+/usr/bin/ranlib libvorbisenc.a

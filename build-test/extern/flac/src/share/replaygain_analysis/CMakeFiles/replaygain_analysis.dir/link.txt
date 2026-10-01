@@ -1,0 +1,2 @@
+/usr/bin/ar qc libreplaygain_analysis.a CMakeFiles/replaygain_analysis.dir/replaygain_analysis.c.o
+/usr/bin/ranlib libreplaygain_analysis.a

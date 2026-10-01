@@ -2077,8 +2077,7 @@ void DivEngine::registerSystems() {
     _("this is the wavetable part of the Bubble System, which also had two AY-3-8910s."),
     DivChanDefFunc(simpleChanDef<DIV_CH_WAVE,DIV_INS_SCC>),
     {},
-    waveOnlyEffectHandlerMap,
-    SCCPostEffectHandlerMap
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(

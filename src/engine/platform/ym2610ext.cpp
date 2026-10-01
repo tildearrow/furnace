@@ -407,7 +407,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
       opChan[ch].hardReset=c.value;
       break;
     case DIV_CMD_TEST_REG:
-      immWrite(c.value,c.value2);
+      rWrite(c.value,c.value2);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;

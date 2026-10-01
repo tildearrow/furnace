@@ -1658,7 +1658,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       chan[c.chan].hardReset=c.value;
       break;
     case DIV_CMD_TEST_REG:
-      immWrite(c.value,c.value2);
+      rWrite(c.value,c.value2);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);

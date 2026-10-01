@@ -1,0 +1,13 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: PortAudio
+Description: Portable audio I/O
+Version: 
+
+Libs: -L${libdir} -lportaudio
+Libs.private:  -lm -lpthread
+Cflags: -I${includedir}  -pthread -DPA_USE_ALSA=1
+Requires.private:  alsa
