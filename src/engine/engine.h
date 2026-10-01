@@ -750,32 +750,73 @@ class DivEngine {
   // elapsedBeatS: same but for highlight 1.
   // curSpeed: the current speed index.
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, curExportChan, nextSpeed, prevSpeed, elapsedBars, elapsedBeats, curSpeed;
+  // the current sub-song index.
   size_t curSubSongIndex;
+  // position in current audio frame. used in the audio output callback.
   size_t bufferPos;
+  // the tick rate.
   double divider;
+  // number of samples before next tick (in engine output rate).
   int cycles;
+  // fractional part of the above.
   double clockDrift;
+  // number of samples before next MIDI beat clock.
   int midiClockCycles;
   double midiClockDrift;
+  // number of samples before next MIDI timecode part.
   int midiTimeCycles;
   double midiTimeDrift;
+  // current step play state.
+  // - 0: step play is disabled
+  // - 1: step play enabled - waiting for next step
+  // - 2: step play enabled - next step pending
   int stepPlay;
+  // changeOrd: jump to this order after the current row (if not -1).
+  // - -2 means "next order".
+  // changePos: jump to this row after the current row. changeOrd must be set.
+  // totalTicksR: elapsed ticks during playback 
+  // curMidiClock: the current MIDI beat clock.
+  // curMidiTime: the current MIDI timecode (in frames).
+  // totalCmds: how many commands we dispatched so far 
+  // lastCmds: the previous value of totalCmds, for...
+  // cmdsPerSecond: the command rate, in commands per second.
   int changeOrd, changePos, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond;
+  // current playback time.
   TimeMicros totalTime;
+  // fraction of microseconds in playback time.
   double totalTimeDrift;
+  // curMidiTimePiece: which byte of MIDI timecode to produce.
+  // curMidiTimeCode: current MIDI time code byte.
   int curMidiTimePiece, curMidiTimeCode;
+  // extValue: last value of EExx effect.
+  // pendingMetroTick: whether the metronome must click. one of the following:
+  // - 0: nothing
+  // - 1: beat
+  // - 2: bar
   unsigned char extValue, pendingMetroTick;
+  // the current groove pattern/speed set.
   DivGroovePattern speeds;
+  // current virtual tempo numerator/denominator.
   short virtualTempoN, virtualTempoD;
+  // virtual tempo accumulator.
+  // on each tick, the numerator is added.
+  // while it exceeds or meets the denominator, the tick counter is decreased.
   short tempoAccum;
+  // current console status view mode.
   DivStatusView view;
+  // when to halt (pause playback).
   DivHaltPositions haltOn;
+  // playback state for each channel.
   DivChannelState chan[DIV_MAX_CHANS];
+  // the current audio backend.
   DivAudioEngines audioEngine;
+  // audio export options currently in use.
   DivAudioExportModes exportMode;
   DivAudioExportFormats exportFormat;
   DivAudioExportWavFormats wavFormat;
   DivAudioExportBitrateModes exportBitRateMode;
+  // stores the engine's previous output rate.
+  // restored after audio export.
   double prevAudioRate;
   double exportFadeOut;
   bool isFadingOut;
@@ -783,27 +824,56 @@ class DivEngine {
   int exportBitRate;
   float exportVBRQuality;
   bool exportChannelMask[DIV_MAX_CHANS];
+  // the current Furnace config is loaded here.
+  // use the getConf*() functions to access it, or getConfObject() if you really need the entire config.
   DivConfig conf;
+  // note event queue
   FixedQueue<DivNoteEvent,8192> pendingNotes;
-  // bitfield
+  // a bitfield which keeps track of the rows we've "walked" on.
+  // used to determine loop point.
+  // 256 orders × 256 rows = 65536 bits = 8192 bytes
   unsigned char walked[8192];
+  // stores which chsnnels are muted.
   bool isMuted[DIV_MAX_CHANS];
+  // isBusy: general busy lock, used by the audio engine.
+  // saveLock: save lock, used to prevent concurrent saves (e.g. backup thread).
+  // playPosLock: taken when the playback position is changing.
   std::mutex isBusy, saveLock, playPosLock;
+  // path to config directory. usually one of the following:
+  // - Windows: %USERPROFILE%\AppData\Roaming\furnace
+  // - macOS: ~/Library/Application Support/Furnace
+  // - Linux/other: ~/.config/furnace
   String configPath;
+  // parh to config file.
   String configFile;
+  // information about last error.
   String lastError;
+  // displays information to the user after an operation (e.g. exporting or loading a file).
+  // use the addWarning() macro to append warnings!
   String warnings;
+  // list of available audio devices.
+  // call rescanAudioDeices() to populate it again.
   std::vector<String> audioDevs;
+  // list of MIDI input/output devices.
+  // call rescanMidiDevices() to populate it again.
   std::vector<String> midiIns;
   std::vector<String> midiOuts;
+  // a dump of all dispatched commands.
+  // set cmdStreamEnabled to enable command dumping.
   std::vector<DivCommand> cmdStream;
+  // audio effects. not implemented yet.
   std::vector<DivEffectContainer> effectInst;
+  // the initial system's channel mask.
   std::vector<int> curChanMask;
+  // system definitions.
+  // registered in registerSystems(), called by preInit().
   static DivSysDef* sysDefs[DIV_SYSTEM_MAX+1];
+  // registered in registerROMExports(), called by preInit().
   static DivROMExportDef* romExportDefs[DIV_ROM_MAX];
-
+  // the current command stream player. NULL if not loaded.
   DivCSPlayer* cmdStreamInt;
 
+  // sample preview state.
   struct SamplePreview {
     double rate;
     int sample;
@@ -824,22 +894,33 @@ class DivEngine {
       dir(false) {}
   } sPreview;
 
+  // a sine table with range ±127.
   short vibTable[64];
+  // a cosine table with range 0-255. I believe.
   short tremTable[128];
+  // for audio effects. currently unused.
   short effectSlotMap[4096];
+  // MIDI base channel. used during note preview when a channel is not specified.
   int midiBaseChan;
+  // polyphonic MIDI note preview.
   bool midiPoly;
+  // debug MIDI messages.
   bool midiDebug;
+  // used to keep track of the oldest active channel.
   size_t midiAgeCounter;
 
+  // sample preview state.
   blip_buffer_t* samp_bb;
   size_t samp_bbInLen;
   int samp_temp, samp_prevSample;
   short* samp_bbIn;
   short* samp_bbOut;
 
+  // an array which stores where do metronome ticks occur within an audio output frame.
   unsigned char* metroTick;
+  // size of the metroTick array.
   size_t metroTickLen;
+  // metronome output buffer.
   float* metroBuf;
   size_t metroBufLen;
   float metroFreq, metroPos;
@@ -847,38 +928,143 @@ class DivEngine {
   float metroVol;
   float previewVol;
 
+  // file player output buffer.
   float* filePlayerBuf[DIV_MAX_OUTPUTS];
   size_t filePlayerBufLen;
+  // an audio file player instance.
   DivFilePlayer* curFilePlayer;
+  // whether the file player should be synchronized to tracker playback.
   bool filePlayerSync;
+  // file player cue (start) point.
   TimeMicros filePlayerCue;
+  // unused...
   int filePlayerLoopTrail;
   int curFilePlayerTrail;
 
+  // number of samples actually present in the audio output frame.
   size_t totalProcessed;
 
+  // how many threads to use in the render pool.
   unsigned int renderPoolThreads;
+  // the render pool runs one thread per dispatch during audio output.
   DivWorkPool* renderPool;
 
   // MIDI stuff
+  // this function provides a mechanism to filter MIDI input messages before they are added to the note preview queue.
+  // the function should return an instrument index, which will be used
+  // for all forthcoming notes.
+  // special values:
+  // - -1: don't change
+  // - -2: "preview" instrument
+  // - -3: cancel event (do not add to pending notes)
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -3;};
 
+  /**
+   * INTERNAL ENGINE FUNCTIONS
+   *
+   * most of these should not be called directly.
+   */
+
+  /**
+   * called by nextRow() before calling processRow().
+   * executes chip pre-effects.
+   * @param i the channel to process.
+   */
   void processRowPre(int i);
+  /**
+   * called by nextRow() and nextTick() (after EDxx).
+   * processes a channel's cell. notes, instruments, volumes and effects.
+   * @param i the channel to process.
+   * @param afterDelay must be set to true if this is being called from nextTick(). this function will bail out early if there is an EDxx effect.
+   */
   void processRow(int i, bool afterDelay);
+  /**
+   * jump to the next order, or to an scheduled order (see 0Bxx and 0Dxx effects).
+   * called by nextRow().
+   */
   void nextOrder();
+  /**
+   * process the next row.
+   * called by nextTick().
+   */
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable, bool dpcm07, DivDispatch** writeNES, int rateCorrection);
-  // returns true if end of song.
+  /**
+   * process the next tick.
+   * @param noAccum set during playSub() and "reset" loop modality, ensuring the seek process does not alter the song playback time.
+   * @param inhibitLowLat when set, low-latency mode is disregarded. you must set this to true if calling outside nextBuf() (e.g. ROM export).
+   * @return whether we reached end of song.
+   */
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
+
+  /**
+   * process per-chip effects.
+   * finds an effect, and attempts to execute it.
+   * @param ch channel.
+   * @param effect effect.
+   * @param effectVal effect value.
+   * @return whether a chip effect was found and successfully executed. if not, proceed with normal effects.
+   */
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
+  /**
+   * process per-chip post-effects.
+   * this happens after notes in processRow().
+   * @param ch channel.
+   * @param effect effect.
+   * @param effectVal effect value.
+   * @return whether a chip effect was found and successfully executed.
+   */
   bool perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal);
+  /**
+   * process per-chip pre-effects.
+   * this is called by processRowPre().
+   * @param ch channel.
+   * @param effect effect.
+   * @param effectVal effect value.
+   * @return whether a chip effect was found and successfully executed.
+   */
   bool perSystemPreEffect(int ch, unsigned char effect, unsigned char effectVal);
+  /**
+   * reset dispatches, song speeds and channel state.
+   * this does not stop playback!
+   */
   void reset();
+  /**
+   * this function handles seeking to the current order/row.
+   * called during play(), and after end of song in the "reset" loop modality.
+   * @param preserveDrift preserves all timings. set to true when handling "reset" loop modality.
+   * @param goalRow specify a row to seek to.
+   */
   void playSub(bool preserveDrift, int goalRow=0);
+  /**
+   * runs MIDI beat clock.
+   * @param totalCycles how many output samples to run for.
+   */
   void runMidiClock(int totalCycles=1);
+  /**
+   * runs MIDI timecode.
+   * @param totalCycles how many output samples to run for.
+   */
   void runMidiTime(int totalCycles=1);
+  /**
+   * currently returns true.
+   * @return true.
+   */
   bool shallSwitchCores();
 
+  /**
+   * this function is a mess.
+   * it takes a zillion arguments and writes VGM writes to a SafeWriter.
+   *
+   * @param SafeWriter pointer to the target SafeWriter.
+   * @param sys the chip type.
+   * @param write the register write.
+   * @param streamOff what?
+   */
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream, bool* sampleStoppable, bool dpcm07, DivDispatch** writeNES, int rateCorrection);
+
+  /**
+   * hello, world!
+   */
   void testFunction();
 
   bool loadDMF(unsigned char* file, size_t len);
