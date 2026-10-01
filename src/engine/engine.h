@@ -1067,18 +1067,39 @@ class DivEngine {
    */
   void testFunction();
 
+  /**
+   * these functions are called by load().
+   * these load different file formats.
+   * @param file a pointer to file data.
+   * @param len the file size.
+   * @return whether loading was successful. if so, the current DivSong is replaced, playback is stopped and dispatches are initialized.
+   */
   bool loadDMF(unsigned char* file, size_t len);
+  /**
+   * @param variantID Furnace variant ID (to accommodate certain Furnace forks).
+   */
   bool loadFur(unsigned char* file, size_t len, int variantID=0);
   bool loadMod(unsigned char* file, size_t len);
   bool loadS3M(unsigned char* file, size_t len);
   bool loadXM(unsigned char* file, size_t len);
   bool loadIT(unsigned char* file, size_t len);
+  /**
+   * @param dnft set if this is a Dn-FamiTracker module.
+   * @param dnftSig set if the module has a Dn-FamiTracker magic/signature.
+   * @param eft set if this is an E-FamiTracker module.
+   */
   bool loadFTM(unsigned char* file, size_t len, bool dnft, bool dnftSig, bool eft);
   bool loadFC(unsigned char* file, size_t len);
   bool loadTFMv1(unsigned char* file, size_t len);
   bool loadTFMv2(unsigned char* file, size_t len);
   bool loadMIDI(unsigned char* file, size_t len);
 
+  /**
+   * these functions load various instrument formats.
+   * @param reader a SafeReader to the instrument.
+   * @param ret where to place loaded instrument(s).
+   * @param stripPath the file name (stripped from the path). this is used to set the instrument name if not store in the instrument.
+   */
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadVGI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -1094,8 +1115,13 @@ class DivEngine {
   void loadFF(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
- 
- //sample banks
+
+  /**
+   * these functions load sample banks.
+   * @param reader a SafeReader to the sample bank.
+   * @param ret where to place loaded samples.
+   * @param stripPath the file name (stripped from the path). this is used as sample names.
+   */
   void loadP(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPC(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
@@ -1104,24 +1130,90 @@ class DivEngine {
   void loadPZI(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
   void loadP86(SafeReader& reader, std::vector<DivSample*>& ret, String& stripPath);
 
-
-
+  /**
+   * load a sample ROM. currently unused.
+   * @param path path to data.
+   * @param expectedSize the ROM's size.
+   * @param ret ROM will be allocated and this pointer will be set.
+   * @return 0 on success or -1 otherwise.
+   */
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
+  /**
+   * initialize the currently selected audio backend.
+   * @return whether initialization was successful.
+   */
   bool initAudioBackend();
+  /**
+   * de-initialize the audio backend and clear the audio backend selection.
+   * @param dueToSwitchMaster if set, don't reset the audio backend. called on switchMaster().
+   * @return whether it was successful.
+   */
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
+  /**
+   * registers all chip definitions.
+   * see sysDef.cpp for these.
+   */
   void registerSystems();
+  /**
+   * registers all ROM export definitions.
+   * see exportDef.cpp for these.
+   */
   void registerROMExports();
+  /**
+   * initialize the current song with a specified system preset.
+   * @param description the system preset.
+   * @param inBase64 whether description is a Base64-encoded string.
+   * @param oldVol compatibility option that uses old volume/panning range, back when it wasn't a floating point number.
+   */
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
+  /**
+   * swap the index of two instruments in all patterns..
+   * called after moving an instrument.
+   * @param one the first instrument.
+   * @param two the second instrument.
+   */
   void exchangeIns(int one, int two);
+  /**
+   * TODO: this.
+   * @param one the first wavetable.
+   * @param two the second wavetable.
+   */
   void exchangeWave(int one, int two);
+  /**
+   * swap the index of two samples in all instruments.
+   * called after moving a sample.
+   * @param one the first sample.
+   * @param two the second sample.
+   */
   void exchangeSample(int one, int two);
 
+  /**
+   * copy a channel's contents to another.
+   * @param src the source channel.
+   * @param dest the destination channel.
+   */
   void copyChannel(int src, int dest);
+  /**
+   * swap the contents of two channels.
+   * @param src the first channel.
+   * @param dest the second channel.
+   */
   void swapChannels(int src, int dest);
+  /**
+   * destroy the contents of a channel.
+   * @param ch the channel to wipe.
+   */
   void stompChannel(int ch);
+  /**
+   * handle a change in chip channel count (e.g. by adding/changing/removing chips).
+   * @param firstChan the first channel of the affected chip.
+   * @param before the previous channel count.
+   * @param after the new channel count.
+   * @return whether we could. usually this fails when the change would exceed the channel limit.
+   */
   bool sysChanCountChange(int firstChan, int before, int after);
 
   // recalculate patchbay (UNSAFE)
