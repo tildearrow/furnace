@@ -1216,16 +1216,31 @@ class DivEngine {
    */
   bool sysChanCountChange(int firstChan, int before, int after);
 
-  // recalculate patchbay (UNSAFE)
+  /**
+   * recalculate patchbay.
+   * NOT THREAD-SAFE!
+   */
   void recalcPatchbay();
 
-  // change song (UNSAFE)
+  /**
+   * change the current sub-song. stops playback.
+   * NOT THREAD-SAFE!
+   * @param songIndex the sub-song index.
+   */
   void changeSong(size_t songIndex);
 
-  // convert legacy sample mode to normal
-  // returns whether conversion occurred
+  /**
+   * convert legacy sample mode to the normal one.
+   * @return true if legacy mode is detected and has been converted.
+   */
   bool convertLegacySampleMode();
 
+  /**
+   * swap two chips.
+   * @param src the first chip.
+   * @param dest the second chip.
+   * @param preserveOrder if this is true, pattern channel data is preserved as-is. otherwise, pattern channel data will be adjusted to match.
+   */
   void swapSystemUnsafe(int src, int dest, bool preserveOrder=true);
 
   // add every export method here
