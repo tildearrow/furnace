@@ -1163,6 +1163,7 @@ class DivEngine {
   void registerROMExports();
   /**
    * initialize the current song with a specified system preset.
+   * it is best you use createNew() if you intend to create a new song.
    * @param description the system preset.
    * @param inBase64 whether description is a Base64-encoded string.
    * @param oldVol compatibility option that uses old volume/panning range, back when it wasn't a floating point number.
@@ -1243,7 +1244,11 @@ class DivEngine {
    */
   void swapSystemUnsafe(int src, int dest, bool preserveOrder=true);
 
-  // add every export method here
+  /**
+   * ROM EXPORT FRIENDS
+   *
+   * if you need full engine access, make sure to add your ROM export class to this list.
+   */
   friend class DivROMExport;
   friend class DivExportAmigaValidation;
   friend class DivExportS98;
@@ -1254,90 +1259,287 @@ class DivEngine {
   friend class DivExportGRUB;
 
   public:
+    // the loaded song. this is public for convenience.
+    // when replacing, there is a ritual you must follow:
+    // 1. quitDispatch() (only if the engine is initialized)
+    // 2. lock busy mutexes
+    // 3. song.unload()
+    // 4. replace the song
+    // 5. set hasLoadedSomething to true
+    // 6. changeSong(0)
+    // 7. release locks
+    // 8. if the engine is running, initDispatch(), renderSamples() and reset() (locking the busy mutex)
+    // I will add a function to simplify this procedure in the future...
     DivSong song;
+    // shortcut for curSubSong->orders.
     DivOrders* curOrders;
+    // shortcut for curSubSong->pat.
     DivChannelData* curPat;
+    // the current sub-song.
     DivSubSong* curSubSong;
+    // the temporary instrument slot (-2).
+    // this is used for instrument preview in the file picker.
     DivInstrument* tempIns;
+    // stores whether a note on event occurred on a channel.
+    // manually clear after reading.
     bool keyHit[DIV_MAX_CHANS];
+    // a ring buffer for the master oscilloscope.
+    // it has a nominal size of 32768 samples.
     float* oscBuf[DIV_MAX_OUTPUTS];
+    // the size of the last audio output frame.
     float oscSize;
+    // read and write needles for the oscilloscope buffer.
+    // the audio callback will alter oscWritePos.
+    // the user interface must use oscReadPos.
     int oscReadPos, oscWritePos;
+    // multiplier of the tick rate in low-latency mode.
+    // this will be set so that the resulting rate is near-1000Hz.
     int tickMult;
+    // last nextBuf() inputs, outputs and buffer size.
+    // used to detect audio output changes.
     int lastNBIns, lastNBOuts, lastNBSize;
+    // time spent computing the last audio output frame, in nanoseconds.
     std::atomic<size_t> processTime;
 
+    // peak meter for each chip.
+    // used by the GUI mixer.
     float chipPeak[DIV_MAX_CHIPS][DIV_MAX_OUTPUTS];
 
-    // ugh...
+    // MIDI import options.
+    // the GUI checks whether the loaded file is a MIDI file and prompts options before actually loading.
     DivMIDIImportOptions midiImportOptions;
 
+    /**
+     * this function should not be called directly. it is used by saveAudio().
+     */
     void runExportThread();
+
+    /**
+     * this function handles audio output.
+     * it performs song playback, runs dispatches, and fills in an audio output frame.
+     * @param in pointers to audio input buffers (one per in channel). currently unused.
+     * @param out pointers to audio output buffers (one per output channel).
+     * @param inChans number of input channels. currently unused.
+     * @param outChans number of output channels.
+     * @param size size of audio buffers, in samples.
+     * @param calledFromExport used to tell the export and audio threads apart. during audio export, this function will output silence on the audio thread.
+     */
     void nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size, bool calledFromExport=false);
+
+    /**
+     * get an instrument (non-null).
+     * 
+     * you shall not modify instruments returned by this function! it may be the default instrument, which should never be altered.
+     * @param index the instrument index. special indexes are:
+     * - -1: default instrument
+     * - -2: temporary/preview instrument (if it exists)
+     * @param fallbackType type of the default instrument to return if the requested instrument index is invalid.
+     * @return a DivInstrument from the song's instruments, or a default instrument otherwise.
+     */
     DivInstrument* getIns(int index, DivInstrumentType fallbackType=DIV_INS_FM);
+    /**
+     * get a wavetable (non-null).
+     *
+     * the same warning applies to this function.
+     * @param index the wavetable index.
+     * @return a DivWavetable from the song's wavetables, or a default saw wave if the index is out of range.
+     */
     DivWavetable* getWave(int index);
+    /**
+     * get a sample (non-null).
+     *
+     * again, don't alter the returned sample.
+     * @param index the sample index.
+     * @return a DivSample from the song's samples, or an empty sample otherwise.
+     */
     DivSample* getSample(int index);
+    /**
+     * get the active dispatch for a chip.
+     * @param index the chip index.
+     * @return a DivDispatch, or NULL on failure.
+     */
     DivDispatch* getDispatch(int index);
-    // parse old system setup description
+    /**
+     * parse old system setup description.
+     * the system description used in old version of Furnace consisted of a series of integers in the following order:
+     * - chip ID
+     * - chip volume (from 0 to 64)
+     * - chip panning (from -128 to 127)
+     * - chip flags (a bitfield)
+     * - chip 2 ID
+     * - ...
+     * @param desc the system description.
+     * @return a current system description.
+     */
     String decodeSysDesc(String desc);
-    // start fresh
+    /**
+     * replace the current song with an empty one.
+     * @param description the system description, or NULL for the stock Genesis/Mega Drive preset.
+     * @param sysName the system name.
+     * @param inBase64 whether the description is a Base64-encoded string.
+     */
     void createNew(const char* description, String sysName, bool inBase64=true);
+    /**
+     * replace the current song with an empty one, set to the default system.
+     */
     void createNewFromDefaults();
-    // load a file.
+
+    /**
+     * load a file.
+     * @param f pointer to file data.
+     * @param length the file size.
+     * @param nameHint a hint to the file's name.
+     * @return whether the file was loaded successfully.
+     */
     bool load(unsigned char* f, size_t length, const char* nameHint=NULL);
 
-    // play a binary command stream.
+    /**
+     * play a binary command stream.
+     * @param f pointer to stream data.
+     * @param length the data size.
+     * @return whether the command stream loaded successfully.
+     */
     bool playStream(unsigned char* f, size_t length);
-    // get the playing stream.
+    /**
+     * get the current command stream player.
+     * @return a DivCSPlayer, or NULL if not loaded.
+     */
     DivCSPlayer* getStreamPlayer();
-    // destroy command stream player.
+    /**
+     * destroy command stream player.
+     * @return whether successful.
+     */
     bool killStream();
 
-    // get the audio file player.
+    /**
+     * get the audio file player.
+     * this will create one if it doesn't exist.
+     * @return the DivFilePlayer.
+     */
     DivFilePlayer* getFilePlayer();
-    // get whether the player is synchronized with song playback.
+    /**
+     * get whether the player is synchronized with song playback.
+     * @return state.
+     */
     bool getFilePlayerSync();
+    /**
+     * set whether the player will synchronize with song playback.
+     * @param doSync whether to.
+     */
     void setFilePlayerSync(bool doSync);
-    // get/set file player cue position.
+    /**
+     * get/set file player cue position.
+     * @return the cue position.
+     */
     TimeMicros getFilePlayerCue();
+    /**
+     * set the file player's cue position.
+     * @param cue the new cue position.
+     */
     void setFilePlayerCue(TimeMicros cue);
-    // UNSAFE - sync file player to current playback position.
+    /**
+     * sync file player to current playback position.
+     * NOT THREAD-SAFE!
+     */
     void syncFilePlayer();
 
-    // save as .dmf.
+    /**
+     * save as .dmf.
+     * @param version the target format version. supported values are:
+     * - 24: 0.12 to 1.0
+     * - 25: 1.1 to 1.1.2
+     * - 26: 1.1.3+
+     * version 27 is not supported as there aren't any significant features which merit adding support.
+     * @return a SafeWriter with module data, or NULL on error.
+     */
     SafeWriter* saveDMF(unsigned char version);
-    // save as .fur.
-    // if notPrimary is true then the song will not be altered
+    /**
+     * save the current song.
+     * @param notPrimary set when saving from the backup thread. this preserves the internally stored version and isDMF state.
+     * @return a SafeWriter with song data, or NULL on error.
+     */
     SafeWriter* saveFur(bool notPrimary=false);
-    // return a ROM exporter.
+
+    /**
+     * prepare and initialize ROM export.
+     * @param sys the ROM export type.
+     * @return a ROM exporter.
+     */
     DivROMExport* buildROM(DivROMExportOptions sys);
     // compile instruments.
     SafeWriter* compileAllIns(int insType);
-    // dump to VGM.
-    // set trailingTicks to:
-    // - 0 to add one tick of trailing
-    // - x to add x+1 ticks of trailing
-    // - -1 to auto-determine trailing
-    // - -2 to add a whole loop of trailing
+    /**
+     * export to VGM (register dump format).
+     * @param sysToExport an array specifying which chips to export. if NULL, all chips supported by the VGM format will be exported.
+     * @param loop whether to loop.
+     * @param version VGM format version ($XX.YY).
+     * @param patternHints write data blocks on each order change.
+     * @param directStream dump DAC writes directly instead of using data streams.
+     * @param trailingTicks set how many ticks to leave at the end before looping:
+     * - 0 to add one tick of trailing
+     * - x to add x+1 ticks of trailing
+     * - -1 to auto-determine trailing
+     * - -2 to add a whole loop of trailing
+     * @param dpcm07 select between RAM writes and NES DPCM ROM data for DPCM data. this setting exists due to varying support across VGM players.
+     * @param correctedRate use to compensate for timing errors in certain players.
+     * @return a SafeWriter, or NULL on error.
+     */
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1, bool dpcm07=false, int correctedRate=44100);
-    // dump to S98.
+    /**
+     * export to S98 (register dump format).
+     * @param tickRate the tick rate. if less than 1.0, it will be automatically determined.
+     * @param sysToExport an array specifying which chips to export. if NULL, all chips supported by the S98 format will be exported.
+     * @param loop whether to loop.
+     * @param trailingTicks set how many ticks to leave at the end before looping:
+     * - 0 to add one tick of trailing
+     * - x to add x+1 ticks of trailing
+     * - -1 to auto-determine trailing
+     * - -2 to add a whole loop of trailing
+     * @return a SafeWriter, or NULL on error.
+     */
     SafeWriter* saveS98(float tickRate=0.0f, bool* sysToExport=NULL, bool loop=true, int trailingTicks=-1);
-    // dump command stream.
+    /**
+     * compile the current song as a command stream.
+     * @param progress a DivCSProgress struct which will be filled periodically.
+     * @param options options for command stream export.
+     * @return a SafeWriter, or NULL on error.
+     */
     SafeWriter* saveCommand(DivCSProgress* progress=NULL, DivCSOptions options=DivCSOptions());
-    // export to text
+    /**
+     * export to a text file.
+     * @param separatePatterns if set, patterns will be dumped one by one (per channel) rather than as a single sheet.
+     * @return a SafeWriter, or NULL on error.
+     */
     SafeWriter* saveText(bool separatePatterns=true);
 #ifdef WITH_JSON
-    // export to json
+    /**
+     * export to a JSON file.
+     * @param options options.
+     * @return a SafeWriter, or NULL on error.
+     */
     SafeWriter* saveJSON(DivJSONExportOptions* options);
 #endif
-    // export to an audio file
+    /**
+     * export to an audio file.
+     * @param path export path.
+     * @param options audio export options.
+     * @return whether export has begun or errored out.
+     */
     bool saveAudio(const char* path, DivAudioExportOptions options);
-    // wait for audio export to finish
+    /**
+     * block until audio export has finished.
+     */
     void waitAudioFile();
-    // stop audio file export
+    /**
+     * abort audio export.
+     * @return whether successful.
+     */
     bool haltAudioFile();
-    // return back to playback cores if necessary
+    /**
+     * call after audio export is done. this will reload emulation cores if necessary.
+     */
     void finishAudioFile();
+
     // notify instrument parameter change
     void notifyInsChange(int ins);
     // notify wavetable change
