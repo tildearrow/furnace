@@ -1539,9 +1539,9 @@ void FurnaceGUI::insTabFM(DivInstrument* ins) {
                 ImGui::SetTooltip(_("4-op mode is not available in OPL1/2!"));
               }
               popWarningColor();
+              ImGui::SameLine();
             }
             ImGui::EndDisabled();
-            ImGui::SameLine();
             if (ImGui::Checkbox(_("Drums"),&drums)) { PARAMETER
               ins->fm.opllPreset=drums?16:0;
             }
