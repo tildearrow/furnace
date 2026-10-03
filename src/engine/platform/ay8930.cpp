@@ -764,6 +764,9 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 31;
       break;
+    case DIV_CMD_TEST_REG:
+      immWrite(c.value,c.value2);
+      break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY8930));
