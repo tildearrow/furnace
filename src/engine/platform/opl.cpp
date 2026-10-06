@@ -146,6 +146,13 @@ const bool isOutputL[2][4][4]={
   }
 };
 
+const int slotsCQM[4][18]={
+  {1, 5,  9, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 39, 41, 43, 45, 47},
+  {2, 6, 10, 14, 16, 18, 20, 22, 24, 26, 30, 34, 38, 40, 42, 44, 46,  0},
+  {3, 7, 11, -1, -1, -1, -1, -1, -1, 27, 31, 35, -1, -1, -1, -1, -1, -1},
+  {4, 8, 12, -1, -1, -1, -1, -1, -1, 28, 32, 36, -1, -1, -1, -1, -1, -1}
+};
+
 #undef N
 
 const int orderedOpsL1[2][4]={
@@ -448,7 +455,10 @@ void DivPlatformOPL::acquire_cqm(short** buf, size_t len) {
         int chOut=0;
         if (ch==255) continue;
         if (isMuted[chMute]) continue;
-        chOut=fm_cqm.ch_out[ch];
+        for (int j=0; j<4; j++) {
+          if (slotsCQM[j][i]==-1) continue;
+          chOut+=fm_cqm.slotz[slotsCQM[j][ch]].out;
+        }
         oscBuf[i]->putSample(h,CLAMP(chOut<<(i==melodicChans?0:1),-32768,32767));
       }
       // special
@@ -463,8 +473,11 @@ void DivPlatformOPL::acquire_cqm(short** buf, size_t len) {
         int chOut=0;
         if (ch==255) continue;
         if (isMuted[chMute]) continue;
-        chOut=fm_cqm.ch_out[ch];
-        oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
+        for (int j=0; j<4; j++) {
+          if (slotsCQM[j][i]==-1) continue;
+          chOut+=fm_cqm.slotz[slotsCQM[j][ch]].out;
+        }
+        oscBuf[chMute]->putSample(h,CLAMP(chOut<<1,-32768,32767));
       }
     }
 
