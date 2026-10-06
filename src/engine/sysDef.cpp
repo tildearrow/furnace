@@ -498,7 +498,6 @@ void DivEngine::registerSystems() {
     {0x28, {DIV_CMD_AY_NOISE_MASK_OR, _("28xx: Set noise OR mask")}},
     {0x2c, {DIV_CMD_AY_AUTO_PWM, _("2Cxy: Automatic noise frequency (x: mode (0: disable, 1: freq, 2: freq + OR mask); y: offset)")}},
     {0x2d, {DIV_CMD_AY_IO_WRITE, _("2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER"), constVal<255>, effectVal}},
-    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register $1F (dangerous)"), constVal<0x1F>, effectVal}},
   };
 
   EffectHandlerMap fmEffectHandlerMap={
