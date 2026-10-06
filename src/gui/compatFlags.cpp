@@ -459,6 +459,12 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels"));
         }
+        if (ImGui::Checkbox(_("Arp speed effect (E0xx) is global"),&e->song.compatFlags.arpSpeedGlobal)) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, the arp speed is shared among all channels."));
+        }
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();

@@ -284,9 +284,6 @@ void FurnaceGUI::doGenerateWave() {
   MARK_MODIFIED;
 }
 
-#define CENTER_TEXT(text) \
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
-
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
     waveEditOpen=true;

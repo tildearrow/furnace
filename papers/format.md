@@ -322,7 +322,7 @@ the following element types are available:
  00 | ---- | end of element list (end of info header)
  01 | SNG2 | sub-song
  02 | FLAG | chip flags
- 03 | ADIR | asset directory**
+ 03 | ADI2 | asset directory**
  04 | INS2 | instrument
  05 | WAVE | wavetable
  06 | SMP2 | sample
@@ -373,6 +373,7 @@ size | description
      | - 60 is NTSC
      | - 50 is PAL
   1  | initial arpeggio speed
+     | - this value is ignored in versions <255.
   1  | effect speed divider
   2  | pattern length
      | - the limit is 256.
@@ -436,20 +437,20 @@ clock=4000000
 stereo=true
 ```
 
-# asset directories (>=156)
+# asset directories (>=254)
 
 also known as "folder" in the user interface.
 
 ```
 size | description
 -----|------------------------------------
-  4  | "ADIR" block ID
+  4  | "ADI2" block ID
   4  | size of this block
   4  | number of directories
  --- | **asset directory** (×numberOfDirs)
  STR | name (if empty, this is the uncategorized directory)
   2  | number of assets
- 1?? | assets in this directory
+ 2?? | assets in this directory
 ```
 
 # instrument (>=127)
@@ -610,6 +611,7 @@ size | description
   1  | speed 1 (of first song)
   1  | speed 2 (of first song)
   1  | initial arpeggio time (of first song)
+     | - this value is ignored in versions <255.
   4f | ticks per second (of first song)
      | - 60 is NTSC
      | - 50 is PAL
@@ -776,6 +778,7 @@ size | description
   1  | speed 1
   1  | speed 2
   1  | initial arpeggio time
+     | - this value is ignored in versions <255.
   4f | ticks per second
      | - 60 is NTSC
      | - 50 is PAL
@@ -807,6 +810,22 @@ size | description
  --- | **speed pattern** (>=139)
   1  | length of speed pattern (fail if this is lower than 1 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
+```
+
+# old asset directories (>=156, <254)
+
+also known as "folder" in the user interface.
+
+```
+size | description
+-----|------------------------------------
+  4  | "ADIR" block ID
+  4  | size of this block
+  4  | number of directories
+ --- | **asset directory** (×numberOfDirs)
+ STR | name (if empty, this is the uncategorized directory)
+  2  | number of assets
+ 1?? | assets in this directory
 ```
 
 

@@ -160,7 +160,7 @@ class es550x_shared_core : public vgsound_emu_core
 							: vgsound_emu_core("es550x_voice_alu")
 							, m_integer(integer)
 							, m_fraction(fraction)
-              , m_fraction_m9(std::max<s8>(0, m_fraction - 9))
+							, m_fraction_m9(std::max<s8>(0, m_fraction - 9))
 							, m_total_bits(integer + fraction)
 							, m_accum_mask(
 								u32(std::min<u64>(~0, u64(u64(1) << u64(integer + fraction)) - 1)))
@@ -169,15 +169,15 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_start(0)
 							, m_end(0)
 							, m_accum(0)
-              , m_last_accum(0)
-              , m_sample{0,0}
+							, m_last_accum(0)
+							, m_sample{0,0}
 						{
 						}
 
 						// configurations
 						const u8 m_integer	   = 21;
 						const u8 m_fraction	   = 11;
-            const u8 m_fraction_m9 = 2;
+						const u8 m_fraction_m9 = 2;
 						const u8 m_total_bits  = 32;
 						const u32 m_accum_mask = 0xffffffff;
 						const bool m_transwave = true;
@@ -188,7 +188,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 						void loop_exec();
 						bool busy();
-						s32 interpolation();
+						s32 interpolation(const u8 shift = 0);
 						u32 get_accum_integer();
 
 						void irq_exec(es550x_intf &intf, es550x_irq_t &irqv, u8 index);
@@ -371,7 +371,7 @@ class es550x_shared_core : public vgsound_emu_core
 						// 20 integer, 9 fraction for ES5504/ES5505
 						// 21 integer, 11 fraction for ES5506
 						u32 m_accum = 0;
-            u32 m_last_accum = 0;
+						u32 m_last_accum = 0;
 						// Samples
 						s32 m_sample[2];
 				};
