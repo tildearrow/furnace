@@ -974,10 +974,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
     case DIV_CMD_TEST_REG: {
       if (chipType==1) {
         rWrite(0x09,c.value2);
+      } else {
+        rWrite(0x01,c.value2);
       }
-      rWrite(0x01,c.value2);
-    }
       break;
+    }
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
