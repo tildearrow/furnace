@@ -84,10 +84,10 @@ class DivPlatformMultiPCM: public DivDispatch {
   
     int delay, curChan, curAddr;
 
-    unsigned char regPool[224];
+    unsigned char regPool[448];
   
-    short oldWrites[224];
-    short pendingWrites[224];
+    short oldWrites[448];
+    short pendingWrites[448];
 
     // chips
     YMW258 pcm;
