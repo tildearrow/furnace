@@ -44,14 +44,14 @@ struct DivAssetDir {
 };
 
 /**
- * check whether an asset directory is complete (UNSAFE).
+ * check whether an asset directory is complete (NOT THREAD-SAFE).
  * @param dir a set of asset directories.
  * @param entries the number of assets. not the number of entries in the asset dir!
  */
 void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
 /**
- * move an asset.
+ * handle movement of an asset.
  * @param dir a set of asset directories.
  * @param before asset ID which has moved.
  * @param after asset ID's new ID.
@@ -59,7 +59,7 @@ void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
 
 /**
- * remove an asset.
+ * handle removal of an asset.
  * @param dir a set of asset directories.
  * @param entry the asset ID.
  */

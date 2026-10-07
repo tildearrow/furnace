@@ -797,6 +797,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     if (ds.version<200) {
       ds.compatFlags.oldSampleOffset=true;
     }
+    if (ds.version<255) {
+      ds.compatFlags.arpSpeedGlobal=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1046,6 +1049,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       subSong->speeds.val[0]=(unsigned char)reader.readC();
       subSong->speeds.val[1]=(unsigned char)reader.readC();
       subSong->arpLen=reader.readC();
+      if (ds.version<255) subSong->arpLen=1;
       subSong->hz=reader.readF();
 
       subSong->patLen=reader.readS();

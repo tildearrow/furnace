@@ -171,10 +171,10 @@ const char* regCheatSheetES5506[]={
   "END", "20|02",
   "ACCUM", "20|03",
   "O4(n-1)", "20|04",
-  "O3(n-2)", "20|05",
-  "O3(n-1)", "20|06",
-  "O2(n-2)", "20|07",
-  "O2(n-1)", "20|08",
+  "O3(n-1)", "20|05",
+  "O3(n-2)", "20|06",
+  "O2(n-1)", "20|07",
+  "O2(n-2)", "20|08",
   "O1(n-1)", "20|09",
   "W_ST", "20|0A",
   "W_END", "20|0B",
@@ -1509,7 +1509,7 @@ size_t DivPlatformES5506::getSampleMemOffset(int index) {
 
 bool DivPlatformES5506::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

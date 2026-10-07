@@ -120,6 +120,7 @@ class DivPlatformNES: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     size_t getSampleMemNum();
+    int getSampleGroup(int chan=0);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

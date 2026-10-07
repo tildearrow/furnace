@@ -154,6 +154,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     size_t getSampleMemNum();
+    int getSampleGroup(int chan=0);
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
