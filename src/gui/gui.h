@@ -3629,6 +3629,7 @@ class FurnaceGUI {
     API_FUNC(setEditStepCoarse)
     API_FUNC(setOrderEditMode)
     API_FUNC(setOrderCursor)
+    API_FUNC(getIntfChannel)
 
     /// SONG MANIPULATION
     API_FUNC(createNewSong)
@@ -3758,6 +3759,8 @@ class FurnaceGUI {
     API_FUNC(getChipConf)
     // -> count
     API_FUNC(getChipCount)
+    // which, addr, data
+    API_FUNC(chipPoke)
 
     /// DIALOGS
     // name
@@ -3774,6 +3777,7 @@ class FurnaceGUI {
     /// GUI
     // titlebar, function
     API_FUNC(guiRegisterWindow)
+    API_FUNC(guiGetDpiScale)
     // the rest do not need FurnaceGUI
 
 #undef API_FUNC

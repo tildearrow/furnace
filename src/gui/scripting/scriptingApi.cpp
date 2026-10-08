@@ -695,6 +695,44 @@ _CF(getOrderCursor) {
   return 1;
 }
 
+_CF(getIntfChannel) {
+  CHECK_ARGS_RANGE(1,2)
+  CHECK_TYPE_INTEGER(-1)
+  int chan=lua_tointeger(s,-1);
+  if (chan<0 || chan>=e->song.chans) {
+    lua_pushnil(s);
+    return 1;
+  }
+  DivSubSong* sub=e->curSubSong;
+  if (lua_gettop(s)>1) {
+    CHECK_TYPE_INTEGER(-2)
+    int index=lua_tointeger(s, -2);
+    if (index<0 || index>(int)e->song.subsong.size()) {
+      SC_ERROR("invalid subsong index");
+    }
+    sub=e->song.subsong[index];
+  }
+  lua_newtable(s);
+  API_ADD_VALUE("showPattern",sub->chanShow[chan],boolean);
+  API_ADD_VALUE("showChanOsc",sub->chanShowChanOsc[chan],boolean);
+  String name=sub->chanName[chan];
+  if (name.empty()) {
+    name=e->song.chanDef[chan].name;
+  }
+  API_ADD_VALUE("name",name.c_str(),string);name=sub->chanShortName[chan];
+  if (name.empty()) {
+    name=e->song.chanDef[chan].shortName;
+  }
+  API_ADD_VALUE("shortName",name.c_str(),string);
+  API_ADD_VALUE("collapse",sub->chanCollapse[chan],integer);
+  ImU32 color=sub->chanColor[chan];
+  if (color==0) {
+    color=ImGui::GetColorU32(uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(chan)]);
+  }
+  API_ADD_VALUE("color",color,integer);
+  return 1;
+}
+
 _CF(setOctave) {
   CHECK_ARGS(1);
   CHECK_TYPE_INTEGER(1);
@@ -2501,6 +2539,19 @@ _CF(removeChip) {
   return 1;
 }
 
+_CF(chipPoke) {
+  CHECK_ARGS(3)
+  CHECK_TYPE_INTEGER(1)
+  CHECK_TYPE_INTEGER(2)
+  CHECK_TYPE_INTEGER(3)
+  int chip=lua_tointeger(s,1);
+  if (chip<0 && chip>=e->song.systemLen) return 0;
+  int addr=lua_tointeger(s,2);
+  int data=lua_tointeger(s,3);
+  e->getDispatch(chip)->poke(addr,data);
+  return 0;
+}
+
 _CF(dialogNew) {
   CHECK_ARGS(1)
   CHECK_TYPE_STRING(1)
@@ -2623,6 +2674,11 @@ _CF(guiRegisterWindow) {
   luaFunction funcID=luaL_ref(s,LUA_REGISTRYINDEX);
   scriptWindows[title]={s,funcID,true};
   return 0;
+}
+
+_CF(guiGetDpiScale) {
+  lua_pushnumber(s,dpiScale);
+  return 1;
 }
 
 // these gui functions do not require FurnaceGUI
@@ -2925,6 +2981,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("getEditStepCoarse",getEditStepCoarse);
     API_ADD_FUNC("getOrderEditMode",getOrderEditMode);
     API_ADD_FUNC("getOrderCursor",getOrderCursor);
+    API_ADD_FUNC("getChannel",getIntfChannel);
     API_ADD_FUNC("setOctave",setOctave);
     API_ADD_FUNC("setEditStep",setEditStep);
     API_ADD_FUNC("setEditStepCoarse",setEditStepCoarse);
@@ -3074,6 +3131,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("getFlags",getChipConf);
     API_ADD_FUNC("setFlags",setChipConf);
     API_ADD_FUNC("getCount",getChipCount);
+    API_ADD_FUNC("poke",chipPoke);
     // chip ids
     for (int i=0; i<DIV_SYSTEM_MAX; i++) {
       if (chipIdNames[i]) {
@@ -3091,6 +3149,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
   API_CATG_END;
   API_USE_CATG("gui")
     API_ADD_FUNC("registerWindow",guiRegisterWindow);
+    API_ADD_FUNC("getDpiScale",guiGetDpiScale);
     API_ADD_FUNC("text",guiText);
     API_ADD_FUNC("button",guiButton);
     API_ADD_FUNC("getWindowDrawList",guiGetWindowDrawList);

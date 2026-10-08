@@ -413,6 +413,17 @@ all functions use 0-indexing.
 
   returns the current order cursor position
 
+- `fur.interface.getChannel()`
+
+  arguments: (optional) subsong (integer), channel (integer)
+
+  return type: table
+
+  returns the channel metadata
+
+  for the return format, see [appendix E](#appendix-e-interface-channel-table-format)
+  
+
 - `fur.interface.setOctave()`
 
   arguments: octave (integer)
@@ -462,16 +473,6 @@ all functions use 0-indexing.
   binds a lua function to a menu entry in the program
 
   if the menu name doesn't exist, a new menu will appear
-
-  example:
-  ```lua
-  -- define a function to call from a menu
-  function showHello()
-    fur.showError("Hello!")
-  end
-  -- add the menu entry ("hello...") to the "Help" menu, which will call the showHello function
-  fur.registerMenuEntry("Help", "hello...", showHello)
-  ```
 
 #### song metadata
 
@@ -1219,6 +1220,73 @@ all functions use 0-indexing.
 
   effect value column may be in range 0-7 inclusive
 
+#### chips
+
+- `fur.system.add`
+
+  arguments: chip id (integer)
+
+  return type: boolean
+
+  adds a chip
+
+  returns true on success, false on failure
+
+  for a list of possible chip ids, see [the table below](#system)
+
+- `fur.system.remove`
+
+  arguments: chip number (integer), (optional) preserve order (boolean)
+
+  return type: boolean
+
+  removes a chip
+
+  returns true on success, false on failure
+
+- `fur.system.getFlags`
+
+  arguments: chip number (integer)
+
+  return type: table (nil on failure)
+
+  gets the chip flags
+
+  the flags are a key/value pair of strings. the pairs themselves differ per chip
+
+  > [!WARNING]  
+  > in some cases the returned table may be empty. this is by design
+
+- `fur.system.setFlags`
+
+  arguments: chip number (integer), chip flags (table)
+
+  return type: none
+
+  sets chip flags
+
+  the flags table is a key/value pair of either:
+  - string:boolean
+  - string:number
+  - string:integer
+  - string:string
+  
+- `fur.system.getCount`
+
+  arguments: none
+
+  return type: integer
+
+  returns the number of chips in the song
+
+- `fur.system.poke`
+
+  arguments: chip number (integer), register address (integer), register value (integer)
+
+  return type: none
+
+  sets the register of a chip
+
 #### dialogs
 
 - `fur.dialog.new()`
@@ -1292,6 +1360,14 @@ all functions use 0-indexing.
   adds a new window to the GUI, with an entry in the "window" menu
 
   the window open state is stored inside the config, unless the window was added from the playground
+
+- `fur.gui.getDpiScale`
+
+  arguments: none
+
+  return type: number
+
+  returns the current ui scale
 
 **the following functions are meant to run inside a window draw function**
 
@@ -2367,5 +2443,18 @@ it is meant to match the channel state debug view
   midiPitch=(integer),
   midiAge=(integer),
   midiAftertouch=(boolean),
+}
+```
+
+## appendix E: interface channel table format
+
+```
+{
+  showPattern=(boolean),
+  showChanOsc=(boolean),
+  name=(string),
+  shortName=(string),
+  collapse=(integer),
+  color=(integer),
 }
 ```
