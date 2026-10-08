@@ -88,6 +88,9 @@ int DivDispatch::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivDispatch::softReset() {
+}
+
 void DivDispatch::reset() {
 }
 
@@ -212,6 +215,14 @@ void DivDispatch::poke(std::vector<DivRegWrite>& wlist) {
 
 const char** DivDispatch::getRegisterSheet() {
   return NULL;
+}
+
+int DivDispatch::getSampleGroup(int chan) {
+  return 0;
+}
+
+int DivDispatch::getMaxSamples(int index) {
+  return 32768;
 }
 
 const void* DivDispatch::getSampleMem(int index) {

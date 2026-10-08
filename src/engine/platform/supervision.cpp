@@ -475,7 +475,7 @@ void DivPlatformSupervision::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   supervision_sound_reset(&svision);
   memset(tempL,0,32*sizeof(int));
@@ -553,7 +553,7 @@ size_t DivPlatformSupervision::getSampleMemUsage(int index) {
 
 bool DivPlatformSupervision::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

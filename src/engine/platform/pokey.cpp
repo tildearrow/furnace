@@ -466,6 +466,12 @@ int DivPlatformPOKEY::getRegisterPoolSize() {
   return 16;
 }
 
+void DivPlatformPOKEY::softReset() {
+  for (int i=0; i<9; i++) {
+    rWrite(i,0);
+  }
+}
+
 void DivPlatformPOKEY::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,16);
@@ -475,7 +481,7 @@ void DivPlatformPOKEY::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   if (useAltASAP) {

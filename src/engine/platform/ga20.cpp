@@ -393,6 +393,13 @@ DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformGA20::softReset() {
+  for (int i=0; i<4; i++) {
+    rWrite(5+(i*8),0); // mute
+    rWrite(6+(i*8),0); // keyoff
+  }
+}
+
 void DivPlatformGA20::reset() {
   writes.clear();
   memset(regPool,0,32);
@@ -483,7 +490,7 @@ size_t DivPlatformGA20::getSampleMemUsage(int index) {
 
 bool DivPlatformGA20::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

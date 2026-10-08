@@ -1727,7 +1727,6 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevOrder=0;
   prevRow=0;
   stepPlay=0;
-  if (curSubSong!=NULL) curSubSong->arpLen=1;
   int prevDrift, prevMidiClockDrift, prevMidiTimeDrift;
   prevDrift=clockDrift;
   prevMidiClockDrift=midiClockDrift;
@@ -2211,6 +2210,7 @@ void DivEngine::reset() {
     }
     chan[i].volume=chan[i].volMax;
     if (!song.compatFlags.linearPitch) chan[i].vibratoFine=4;
+    chan[i].arpSpeed=MAX(1,curSubSong->arpLen);
   }
   extValue=0;
   extValuePresent=0;
@@ -3119,6 +3119,9 @@ void DivEngine::delSample(int index) {
   BUSY_BEGIN;
   saveLock.lock();
   delSampleUnsafe(index);
+  for (int i=0; i<song.systemLen; i++) {
+    disCont[i].dispatch->notifyPitchTable();
+  }
   saveLock.unlock();
   BUSY_END;
 }

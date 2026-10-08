@@ -31,30 +31,32 @@ const unsigned char slotsMPCM[28]={
   0x18,0x19,0x1a,0x1b,0x1c,0x1d,0x1e,
 };
 
+// for temporary VGM output
+#define addRegWrite(c,a,v) \
+  if (dumpWrites) { \
+    addWrite(1,slotsMPCM[(c>>4)&0x1f]); \
+    if (a<7 && a>9) { \
+      addWrite(2,(a==10)?7:a&0xf); \
+      addWrite(0,v); \
+    } \
+  } \
+
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) \
   if (!skipRegisterWrites) { \
     writes.push(QueuedWrite(a,v)); \
-    if (dumpWrites) { \
-      addWrite(1,slotsMPCM[(a>>3)&0x1f]); \
-      addWrite(2,a&0x7); \
-      addWrite(0,v); \
-    } \
+    addRegWrite(a>>4,a,v) \
   }
 
 #define chWrite(c,a,v) \
   if (!skipRegisterWrites) { \
-    rWrite((c<<3)|(a&0x7),v); \
+    rWrite((c<<4)|(a&0xf),v); \
   }
 
 #define chImmWrite(c,a,v) \
   if (!skipRegisterWrites) { \
-    writes.push(QueuedWrite((c<<3)|(a&0x7),v)); \
-    if (dumpWrites) { \
-      addWrite(1,slotsMPCM[c&0x1f]); \
-      addWrite(2,a&0x7); \
-      addWrite(0,v); \
-    } \
+    writes.push(QueuedWrite((c<<4)|(a&0xf),v)); \
+    addRegWrite(c,a,v) \
   }
 
 #define CHIP_FREQBASE (117440512)
@@ -67,7 +69,10 @@ const char* regCheatSheetMultiPCM[]={
   "KeyOn", "4",
   "TL_LD", "5",
   "LFO_VIB", "6",
-  "AM", "7",
+  "AR_D1R", "7",
+  "DL_D2R", "8",
+  "RC_RR", "9",
+  "AM", "10",
   NULL
 };
 
@@ -83,7 +88,11 @@ const char** DivPlatformMultiPCM::getRegisterSheet() {
 #define PCM_ADDR_TL 5 // Total level, Level direct
 
 #define PCM_ADDR_LFO_VIB 6
-#define PCM_ADDR_AM 7
+// TODO: not implemented yet
+//#define PCM_ADDR_LFO_AR_D1R 7
+//#define PCM_ADDR_LFO_DL_D2R 8
+//#define PCM_ADDR_LFO_RC_RR 9
+#define PCM_ADDR_AM 10
 
 void DivPlatformMultiPCM::acquire(short** buf, size_t len) {
   thread_local short o[4];
@@ -96,16 +105,18 @@ void DivPlatformMultiPCM::acquire(short** buf, size_t len) {
 
   for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
-    if (!writes.empty() && --delay<0) {
-      QueuedWrite& w=writes.front();
-      if (w.addr==0xfffffffe) {
-        delay=w.val;
-      } else {
-        delay=1;
-        pcm.writeReg(slotsMPCM[(w.addr>>3)&0x1f],w.addr&0x7,w.val);
-        regPool[w.addr]=w.val;
+    if (!writes.empty()) {
+      if (--delay<=0) {
+        QueuedWrite& w=writes.front();
+        if (w.addr==0xfffffffe) {
+          delay=w.val;
+        } else {
+          delay=1;
+          pcm.writeReg(slotsMPCM[(w.addr>>4)&0x1f],w.addr&0xf,w.val);
+          regPool[w.addr]=w.val;
+        }
+        writes.pop();
       }
-      writes.pop();
     }
 
     pcm.generate(o[0],o[1],o[2],o[3],pcmBuf);
@@ -118,7 +129,7 @@ void DivPlatformMultiPCM::acquire(short** buf, size_t len) {
     for (int i=0; i<28; i++) {
       oscBuf[i]->putSample(h,CLAMP(pcmBuf[i],-32768,32767));
     }
-    
+
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
@@ -189,7 +200,7 @@ void DivPlatformMultiPCM::tick(bool sysTick) {
     }
   }
 
-  for (int i=0; i<224; i++) {
+  for (int i=0; i<448; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
@@ -413,8 +424,9 @@ void DivPlatformMultiPCM::forceIns() {
   for (int i=0; i<28; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chImmWrite(i,PCM_ADDR_PAN,(isMuted[i]?8:chan[i].pan)<<4);
   }
-  for (int i=0; i<224; i++) {
+  for (int i=0; i<448; i++) {
     oldWrites[i]=-1;
   }
 }
@@ -463,12 +475,21 @@ unsigned char* DivPlatformMultiPCM::getRegisterPool() {
 }
 
 int DivPlatformMultiPCM::getRegisterPoolSize() {
-  return 224;
+  return 448;
+}
+
+void DivPlatformMultiPCM::softReset() {
+  // am I doing ok?
+  for (int i=0; i<28; i++) {
+    for (int j=0; j<16; j++) {
+      chImmWrite(i,j,0);
+    }
+  }
 }
 
 void DivPlatformMultiPCM::reset() {
   while (!writes.empty()) writes.pop();
-  memset(regPool,0,224);
+  memset(regPool,0,448);
 
   pcm.reset();
 
@@ -481,7 +502,7 @@ void DivPlatformMultiPCM::reset() {
     chImmWrite(i,PCM_ADDR_PAN,(isMuted[i]?8:chan[i].pan)<<4);
   }
 
-  for (int i=0; i<224; i++) {
+  for (int i=0; i<448; i++) {
     oldWrites[i]=-1;
     pendingWrites[i]=-1;
   }
@@ -490,7 +511,7 @@ void DivPlatformMultiPCM::reset() {
   curAddr=-1;
 
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   delay=0;
@@ -573,6 +594,10 @@ void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 }
 
+int DivPlatformMultiPCM::getMaxSamples(int index) {
+  return (index==0)?512:0;
+}
+
 const void* DivPlatformMultiPCM::getSampleMem(int index) {
   return (index==0)?pcmMem:NULL;
 }
@@ -591,7 +616,7 @@ bool DivPlatformMultiPCM::hasSamplePtrHeader(int index) {
 
 bool DivPlatformMultiPCM::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 
@@ -679,12 +704,12 @@ void DivPlatformMultiPCM::renderSamples(int sysID) {
 
   size_t memPos=0x1800;
   int sampleCount=parent->song.sampleLen;
-  if (sampleCount>512) {
+  if (sampleCount>getMaxSamples(0)) {
     // mark the rest as unavailable
-    for (int i=512; i<sampleCount; i++) {
+    for (int i=getMaxSamples(0); i<sampleCount; i++) {
       sampleLoaded[i]=false;
     }
-    sampleCount=512;
+    sampleCount=getMaxSamples(0);
   }
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];

@@ -338,7 +338,7 @@ void DivPlatformSCV::reset() {
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   scv.device_reset();
   memset(tempL,0,32*sizeof(int));

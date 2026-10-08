@@ -85,8 +85,6 @@ typedef struct
 	int16_t oldsamples[2];
 	int16_t samples[2];
 
-        int32_t ch_out[18];
-
 	uint64_t writebuf_samplecnt;
 	uint32_t writebuf_cur;
 	uint32_t writebuf_last;

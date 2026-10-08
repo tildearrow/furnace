@@ -716,7 +716,7 @@ void DivPlatformKlattsch::reset() {
     chan[i].synth=std::move(synth);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 }
 

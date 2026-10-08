@@ -22,6 +22,7 @@
 #include "util.h"
 #include "plot_nolerp.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include <math.h>
@@ -283,9 +284,6 @@ void FurnaceGUI::doGenerateWave() {
   MARK_MODIFIED;
 }
 
-#define CENTER_TEXT(text) \
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
-
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
     waveEditOpen=true;
@@ -379,11 +377,11 @@ void FurnaceGUI::drawWaveEdit() {
           ImGui::EndPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_UPLOAD)) {
+        if (ImGui::Button(ICON_FUR_SAMPLE)) {
           doAction(GUI_ACTION_WAVE_LIST_CREATE_SAMPLE);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("create sample from wavetable"));
+          ImGui::SetTooltip(_("convert to sample"));
         }
         ImGui::SameLine();
 

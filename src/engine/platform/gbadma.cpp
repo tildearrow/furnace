@@ -418,7 +418,7 @@ DivSamplePos DivPlatformGBADMA::getSamplePos(int ch) {
   return DivSamplePos(
     chan[ch].sample,
     chan[ch].audPos,
-    chipClock/chan[ch].freq
+    chipClock/MAX(1,chan[ch].freq)
   );
 }
 
@@ -467,7 +467,7 @@ size_t DivPlatformGBADMA::getSampleMemUsage(int index) {
 
 bool DivPlatformGBADMA::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

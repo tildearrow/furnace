@@ -207,6 +207,7 @@ class DivPlatformOPL: public DivDispatch {
     float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -228,6 +229,7 @@ class DivPlatformOPL: public DivDispatch {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    int getMaxSamples(int index);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

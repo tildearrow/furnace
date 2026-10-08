@@ -291,12 +291,17 @@ void DivPlatformMSM6295::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformMSM6295::softReset() {
+  rWrite(0,0x78); // disable all channels
+  rWrite(12,1); // select rate
+}
+
 void DivPlatformMSM6295::reset() {
   while (!writes.empty()) writes.pop();
   msm.reset();
   msm.ss_w(rateSelInit);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformMSM6295::Channel(parent->song.compatFlags.linearPitch);
@@ -347,6 +352,14 @@ unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
   return 0;
 }
 
+int DivPlatformMSM6295::getSampleGroup(int chan) {
+  return (isBanked?2:0)|(rateSel&1);
+}
+
+int DivPlatformMSM6295::getMaxSamples(int index) {
+  return (index==0)?((isBanked)?8192:128):0;
+}
+
 const void* DivPlatformMSM6295::getSampleMem(int index) {
   return index == 0 ? adpcmMem : NULL;
 }
@@ -361,7 +374,7 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
 
 bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 
@@ -389,14 +402,14 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
   // sample data
   size_t memPos=128*8;
   int sampleCount=parent->song.sampleLen;
-  if (isBanked) {
-    if (sampleCount>8191) {
-      // mark the rest as unavailable
-      for (int i=8191; i<sampleCount; i++) {
-        sampleLoaded[i]=false;
-      }
-      sampleCount=8191;
+  if (sampleCount>getMaxSamples(0)) {
+    // mark the rest as unavailable
+    for (int i=getMaxSamples(0); i<sampleCount; i++) {
+      sampleLoaded[i]=false;
     }
+    sampleCount=getMaxSamples(0);
+  }
+  if (isBanked) {
     int bankInd=0;
     int phraseInd=0;
     for (int i=0; i<sampleCount; i++) {
@@ -452,13 +465,6 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       }
     }
   } else {
-    if (sampleCount>127) {
-      // mark the rest as unavailable
-      for (int i=127; i<sampleCount; i++) {
-        sampleLoaded[i]=false;
-      }
-      sampleCount=127;
-    }
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {

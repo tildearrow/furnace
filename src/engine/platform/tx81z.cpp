@@ -1268,7 +1268,7 @@ void DivPlatformTX81Z::reset() {
       break;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformTX81Z::Channel(parent->song.compatFlags.linearPitch);

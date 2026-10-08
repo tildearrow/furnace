@@ -350,6 +350,8 @@ enum DivDispatchCmds {
   DIV_CMD_KLATTSCH_BW_SCALE,
   DIV_CMD_KLATTSCH_FORMANT_SHIFT,
 
+  DIV_CMD_TEST_REG, // (register, value)
+
   DIV_CMD_MAX
 };
 
@@ -686,6 +688,8 @@ class DivPitchTableManager {
 
       bool hasSizeChanged=false;
 
+      logD("DivPitchTableManager update (%d channels) - sample %d",(int)numChans,sample);
+
       // first check whether we need to resize our pitch table array
       if (samplePitchTableLen!=eSongSampleSize()) {
         if (eSongSampleSize()<1) {
@@ -709,15 +713,26 @@ class DivPitchTableManager {
           DivPitchTable* newArray=new DivPitchTable[eSongSampleSize()];
           if (samplePitchTable) {
             // I know, I know. we only create DivPitchTables though.
-            memcpy((void*)newArray,(void*)samplePitchTable,MIN(eSongSampleSize(),samplePitchTableLen)*sizeof(DivPitchTable));
+            for (size_t i=0; i<MIN(eSongSampleSize(),samplePitchTableLen); i++) {
+              newArray[i]=samplePitchTable[i];
+            }
 
             // adjust pitch table references
             DivPitchTable* firstEntry=samplePitchTable;
             DivPitchTable* lastEntry=&samplePitchTable[samplePitchTableLen-1];
+            
+            logD("firstEntry: %p - lastEntry: %p",(void*)firstEntry,(void*)lastEntry);
 
             for (size_t i=0; i<numChans; i++) {
               if (chan[i].pitchTable>=firstEntry && chan[i].pitchTable<=lastEntry) {
-                chan[i].pitchTable=newArray+(chan[i].pitchTable-firstEntry);
+                size_t offset=(chan[i].pitchTable-firstEntry);
+                logD("- chan %d: %p (offset %d)",i,(void*)chan[i].pitchTable,(int)offset);
+                if (offset<eSongSampleSize()) {
+                  chan[i].pitchTable=&newArray[offset];
+                } else {
+                  logW("one item is gone");
+                  chan[i].pitchTable=NULL;
+                }
               }
             }
 
@@ -844,7 +859,6 @@ struct DivRegWrite {
    * - 0xffffxx05: set sample position
    *   - xx is the instance ID
    *   - value is the sample position
-   * - 0xffffffff: reset
    * - 0xfffffffe: add delay
    *   - value is the delay in cycles
    */
@@ -1260,6 +1274,12 @@ class DivDispatch {
     virtual void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
 
     /**
+     * issue register writes that cause a soft-reset.
+     * used in register dump exports.
+     */
+    virtual void softReset();
+
+    /**
      * send a command to this dispatch.
      * @param c a DivCommand.
      * @return a return value which varies depending on the command.
@@ -1546,6 +1566,20 @@ class DivDispatch {
      * @return an array of C strings, terminated by NULL; or NULL if none available.
      */
     virtual const char** getRegisterSheet();
+
+    /**
+     * get the sample group of specific channel.
+     * @param chan the channel.
+     * @return the sample group of channel. Default value is 0
+     */
+    virtual int getSampleGroup(int chan=0);
+
+    /**
+     * get a maximum allowed number of samples.
+     * @param index the memory index.
+     * @return a maximum allowed number of samples, or 0 if memory doesn't exist.
+     */
+    virtual int getMaxSamples(int index=0);
 
     /**
      * Get sample memory buffer.

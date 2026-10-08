@@ -1080,6 +1080,17 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformArcade::softReset() {
+  for (int i=0; i<8; i++) {
+    immWrite(0xe0+i,0xff);
+    immWrite(0xe8+i,0xff);
+    immWrite(0xf0+i,0xff);
+    immWrite(0xf8+i,0xff);
+
+    immWrite(0x08,i);
+  }
+}
+
 void DivPlatformArcade::reset() {
   writes.clear();
   memset(regPool,0,256);
@@ -1109,7 +1120,7 @@ void DivPlatformArcade::reset() {
       break;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformArcade::Channel(parent->song.compatFlags.linearPitch);

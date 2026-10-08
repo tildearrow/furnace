@@ -1797,7 +1797,7 @@ void DivPlatformYM2610B::reset() {
   writes.clear();
   memset(regPool,0,512);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   fm->reset();
   for (int i=0; i<16; i++) {

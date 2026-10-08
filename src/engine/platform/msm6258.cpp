@@ -308,6 +308,14 @@ void DivPlatformMSM6258::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+int DivPlatformMSM6258::getSampleGroup(int chan) {
+  return msmRates[rateSel&3];
+}
+
+void DivPlatformMSM6258::softReset() {
+  rWrite(0,1); // stop
+}
+
 void DivPlatformMSM6258::reset() {
   while (!writes.empty()) writes.pop();
   msm->device_reset();
@@ -321,7 +329,7 @@ void DivPlatformMSM6258::reset() {
   clockSel=0;
   updateSampleFreq=true;
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
     addWrite(0xffff0001,calcVGMRate());
   }
   for (int i=0; i<1; i++) {

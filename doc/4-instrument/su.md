@@ -12,6 +12,49 @@ the differences are:
 - the presence of a "**Switch roles of frequency and phase reset timer**" option. when enabled, this writes frequency to the phase reset timer register rather than the frequency register
   - this may be used to create sync-like effects.
 
+### hardware sequence
+
+Furnace provides a sequencer for volume/envelope/cutoff sweeps.
+
+the sequence consists of a list of "commands".
+
+the `+` button adds a new command, which may be one of the following:
+
+- **Volume Sweep**: configure a volume sweep.
+  - Period: number of chip samples between sweep ticks. higher values represent slower sweeps.
+  - Amount: how many volume units to add/subtract on each sweep tick.
+  - Bound: sets the minimum/maximum volume.
+    - volume values between 128-255 are invalid and may result in glitches.
+    - if Loop is enabled, this is ignored.
+  - Up/Down: sets the sweep's direction.
+  - Loop: the sweep will repeat if this is enabled.
+  - Flip: change the sweep's direction upon reaching floor/ceiling.
+    - Loop must be enabled for this to work.
+  - it is recommended not to use a volume macro as it may conflict with volume sweep.
+- **Frequency Sweep**: configure a frequency sweep.
+  - Period: number of chip samples between sweep ticks. higher values represent slower sweeps.
+  - Amount: how many frequency units to add/subtract on each sweep tick.
+  - Bound: sets the high byte of maximum/minimum frequency.
+    - be careful with up sweeps! if the bound is set too high, the sweep may overflow.
+  - Up/Down: sets the sweep's direction.
+- **Cutoff Sweep**: configure a cutoff sweep.
+  - Period: number of chip samples between sweep ticks. higher values represent slower sweeps.
+  - Amount: how many cutoff units to add/subtract on each sweep tick.
+  - Bound: sets the high byte of maximum/minimum cutoff.
+    - values above 64 are impractical.
+  - Up/Down: sets the sweep's direction.
+
+- **Wait**: waits a specific number of ticks.
+- **Wait for Release**: waits until the note is released with `===` or `REL`.
+- **Loop**: goes to a previous position in the sequence.
+- **Loop until Release**: same as Loop, but doesn't have effect after releasing the note.
+
+each command in the sequence is represented in three columns:
+
+- **Tick**: the tick this command will execute, followed by position in the sequence.
+- **Command**: the command and its parameters.
+- **Move/Remove**: allows you to move the command, or remove it.
+
 ## Macros
 
 - **Volume**: volume sequence.

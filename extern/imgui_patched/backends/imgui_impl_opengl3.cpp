@@ -25,7 +25,11 @@
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
 //  2026-XX-XX: Platform: Added support for multiple windows via the ImGuiPlatformIO interface.
+//  2026-07-15: OpenGL: Backup and restore GL_UNPACK_ROW_LENGTH and GL_UNPACK_ALIGNMENT in UpdateTexture() to avoid corrupting caller GL state. (#8802, #9473)
+//  2026-06-17: OpenGL: Expose selected render state in ImGui_ImplOpenGL3_RenderState, Allowing to dynamically select between use of glBindSampler() and glTexParameter(). You can access in 'void* platform_io.Renderer_RenderState' during rendering.
+//  2026-06-03: OpenGL: GLSL version detection assume GLSL 410 when GL context is 4.1. Fixes an issue running on macOS with Wine. (#9427, #6577)
 //  2026-04-23: OpenGL: Added support for standard draw callbacks (in platform_io): DrawCallback_ResetRenderState, DrawCallback_SetSamplerLinear, DrawCallback_SetSamplerNearest. (#9378)
+//                      (Breaking): this change prioritize using glBindSampler() when available, which would override glTexParameter() settings you may have set on custom textures.
 //  2026-03-12: OpenGL: Fixed invalid assert in ImGui_ImplOpenGL3_UpdateTexture() if ImTextureID_Invalid is defined to be != 0, which became the default since 2026-03-12. (#9295)
 //  2025-12-11: OpenGL: Fixed embedded loader multiple init/shutdown cycles broken on some platforms. (#8792, #9112)
 //  2025-09-18: Call platform_io.ClearRendererHandlers() on shutdown.
@@ -258,8 +262,6 @@ struct ImGui_ImplOpenGL3_Data
     bool            HasBindSampler;
     bool            HasClipOrigin;
     bool            UseBufferSubData;
-    bool            UseTexParameterToSetSampler;
-    GLuint          NextSampler;            // Used if !HasBindSampler && UseTexParameterToSetSampler.
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
     GLuint          TexSamplers[2];         // Used if HasBindSimpler. (0=linear, 1=nearest)
 #endif
@@ -339,7 +341,7 @@ void    ImGui_ImplOpenGL3_NewFrame()
             IM_ASSERT(0 && "ImGui_ImplOpenGL3_CreateDeviceObjects() failed!");
 }
 
-static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_width, int fb_height, GLuint vertex_array_object)
+static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, ImGui_ImplOpenGL3_RenderState* render_state, int fb_width, int fb_height, GLuint vertex_array_object)
 {
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
 
@@ -393,8 +395,11 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     glUniformMatrix4fv(bd->AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
 
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
-    if (bd->HasBindSampler)
-        glBindSampler(0, bd->TexSamplers[0]); // We use combined texture/sampler state. Applications using GL 3.3 and GL ES 3.0 may set that otherwise.
+    if (render_state->UseBindSampler)
+    {
+        render_state->CurrentSampler = bd->TexSamplers[0];
+        glBindSampler(0, render_state->CurrentSampler); // We use combined texture/sampler state. Applications using GL 3.3 and GL ES 3.0 may set that otherwise.
+    }
 #endif
 
     (void)vertex_array_object;
@@ -415,13 +420,42 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
 
 // Draw callbacks
 static void ImGui_ImplOpenGL3_DrawCallback_ResetRenderState(const ImDrawList*, const ImDrawCmd*)    {} // Intentionally empty. Used as an identifier for rendering loop to call its code. Simpler to implement this way.
+static void ImGui_ImplOpenGL3_DrawCallback_SetSamplerLinear(const ImDrawList*, const ImDrawCmd*)
+{
+    ImGui_ImplOpenGL3_RenderState* render_state = ImGui_ImplOpenGL3_GetRenderState();
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
-static void ImGui_ImplOpenGL3_DrawCallback_SetSamplerLinear(const ImDrawList*, const ImDrawCmd*)    { ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData(); if (bd->HasBindSampler) { glBindSampler(0, bd->TexSamplers[0]); } else { bd->UseTexParameterToSetSampler = true; bd->NextSampler = GL_LINEAR; } }
-static void ImGui_ImplOpenGL3_DrawCallback_SetSamplerNearest(const ImDrawList*, const ImDrawCmd*)   { ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData(); if (bd->HasBindSampler) { glBindSampler(0, bd->TexSamplers[1]); } else { bd->UseTexParameterToSetSampler = true; bd->NextSampler = GL_NEAREST; } }
-#else
-static void ImGui_ImplOpenGL3_DrawCallback_SetSamplerLinear(const ImDrawList*, const ImDrawCmd*)    { ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData(); bd->UseTexParameterToSetSampler = true; bd->NextSampler = GL_LINEAR; }
-static void ImGui_ImplOpenGL3_DrawCallback_SetSamplerNearest(const ImDrawList*, const ImDrawCmd*)   { ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData(); bd->UseTexParameterToSetSampler = true; bd->NextSampler = GL_NEAREST; }
+    ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
+    if (bd->HasBindSampler)
+    {
+        render_state->CurrentSampler = bd->TexSamplers[0];
+        render_state->UseTexParameterFilter = false;
+        glBindSampler(0, render_state->CurrentSampler);
+    }
+    else
 #endif
+    {
+        render_state->UseTexParameterFilter = true;
+        render_state->CurrentTexParameterFilter = GL_LINEAR;
+    }
+}
+static void ImGui_ImplOpenGL3_DrawCallback_SetSamplerNearest(const ImDrawList*, const ImDrawCmd*)
+{
+    ImGui_ImplOpenGL3_RenderState* render_state = ImGui_ImplOpenGL3_GetRenderState();
+#ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
+    ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
+    if (bd->HasBindSampler)
+    {
+        render_state->CurrentSampler = bd->TexSamplers[1];
+        render_state->UseTexParameterFilter = false;
+        glBindSampler(0, render_state->CurrentSampler);
+    }
+    else
+#endif
+    {
+        render_state->UseTexParameterFilter = true;
+        render_state->CurrentTexParameterFilter = GL_NEAREST;
+    }
+}
 
 // OpenGL3 Render function.
 // Note that this implementation is little overcomplicated because we are saving/setting up/restoring every OpenGL state explicitly.
@@ -491,7 +525,17 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
 #ifdef IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
     GL_CALL(glGenVertexArrays(1, &vertex_array_object));
 #endif
-    ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object);
+
+    // Setup render state structure (for callbacks and custom texture bindings)
+    ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+    ImGui_ImplOpenGL3_RenderState render_state;
+    render_state.UseBindSampler = bd->HasBindSampler;
+    render_state.UseTexParameterFilter = false;
+    render_state.CurrentSampler = 0;
+    render_state.CurrentTexParameterFilter = 0;
+    platform_io.Renderer_RenderState = &render_state;
+
+    ImGui_ImplOpenGL3_SetupRenderState(draw_data, &render_state, fb_width, fb_height, vertex_array_object);
 
     // Will project scissor/clipping rectangles into framebuffer space
     ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
@@ -538,7 +582,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
             {
                 // User callback, registered via ImDrawList::AddCallback()
                 if (pcmd->UserCallback == ImGui_ImplOpenGL3_DrawCallback_ResetRenderState)
-                    ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object);
+                    ImGui_ImplOpenGL3_SetupRenderState(draw_data, &render_state, fb_width, fb_height, vertex_array_object);
                 else
                     pcmd->UserCallback(draw_list, pcmd);
             }
@@ -557,11 +601,11 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 GL_CALL(glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID()));
 
                 // Emulate sampler change (even though it is technically part of texture data)
-                // As a sort of hack/workaround, we only start writing using glTextParameter() if sampler is ever changed explicitly.
-                if (!bd->HasBindSampler && bd->UseTexParameterToSetSampler)
+                // As a sort of hack/workaround, we only start writing using glTexParameter() if sampler is ever changed explicitly.
+                if (render_state.UseTexParameterFilter)
                 {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, bd->NextSampler);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bd->NextSampler);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, render_state.CurrentTexParameterFilter);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, render_state.CurrentTexParameterFilter);
                 }
 
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
@@ -573,6 +617,7 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
             }
         }
     }
+    platform_io.Renderer_RenderState = nullptr;
 
     // Destroy the temporary VAO
 #ifdef IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
@@ -631,13 +676,15 @@ static void ImGui_ImplOpenGL3_DestroyTexture(ImTextureData* tex)
 
 void ImGui_ImplOpenGL3_UpdateTexture(ImTextureData* tex)
 {
-    // FIXME: Consider backing up and restoring
-    if (tex->Status == ImTextureStatus_WantCreate || tex->Status == ImTextureStatus_WantUpdates)
+    // Backup GL_UNPACK state that we modify, restore on exit.
+    GLint last_unpack_row_length = 0; (void)last_unpack_row_length;
+    GLint last_unpack_alignment = 0; (void)last_unpack_alignment;
+    const bool last_unpack_state_save_and_restore = (tex->Status == ImTextureStatus_WantCreate || tex->Status == ImTextureStatus_WantUpdates);
+    if (last_unpack_state_save_and_restore)
     {
 #ifdef GL_UNPACK_ROW_LENGTH // Not on WebGL/ES
-        GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
-#endif
-#ifdef GL_UNPACK_ALIGNMENT
+        GL_CALL(glGetIntegerv(GL_UNPACK_ROW_LENGTH, &last_unpack_row_length));
+        GL_CALL(glGetIntegerv(GL_UNPACK_ALIGNMENT, &last_unpack_alignment));
         GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 #endif
     }
@@ -661,6 +708,9 @@ void ImGui_ImplOpenGL3_UpdateTexture(ImTextureData* tex)
         GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
         GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
         GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+#if GL_UNPACK_ROW_LENGTH // Not on WebGL/ES
+        GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+#endif
         GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex->Width, tex->Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
         // Store identifiers
@@ -683,7 +733,6 @@ void ImGui_ImplOpenGL3_UpdateTexture(ImTextureData* tex)
         GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->Width));
         for (ImTextureRect& r : tex->Updates)
             GL_CALL(glTexSubImage2D(GL_TEXTURE_2D, 0, r.x, r.y, r.w, r.h, GL_RGBA, GL_UNSIGNED_BYTE, tex->GetPixelsAt(r.x, r.y)));
-        GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
 #else
         // GL ES doesn't have GL_UNPACK_ROW_LENGTH, so we need to (A) copy to a contiguous buffer or (B) upload line by line.
         ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
@@ -703,6 +752,15 @@ void ImGui_ImplOpenGL3_UpdateTexture(ImTextureData* tex)
     }
     else if (tex->Status == ImTextureStatus_WantDestroy && tex->UnusedFrames > 0)
         ImGui_ImplOpenGL3_DestroyTexture(tex);
+
+    // Restore GL_UNPACK state
+    if (last_unpack_state_save_and_restore)
+    {
+#ifdef GL_UNPACK_ROW_LENGTH
+        GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, last_unpack_row_length));
+        GL_CALL(glPixelStorei(GL_UNPACK_ALIGNMENT, last_unpack_alignment));
+#endif
+    }
 }
 
 // If you get an error please report on github. You may try different GL context version or GLSL version. See GL<>GLSL version table at the top of this file.
@@ -1062,7 +1120,10 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 #elif defined(__APPLE__)
         glsl_version = "#version 150";
 #else
-        glsl_version = "#version 130";
+        if (bd->GlVersion >= 410)
+            glsl_version = "#version 410";
+        else
+            glsl_version = "#version 130";
 #endif
     }
     IM_ASSERT((int)strlen(glsl_version) + 2 < IM_COUNTOF(bd->GlslVersionString));

@@ -137,6 +137,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -152,6 +153,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    int getSampleGroup(int chan=0);
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);

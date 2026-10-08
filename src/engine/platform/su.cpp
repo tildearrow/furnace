@@ -595,7 +595,7 @@ void DivPlatformSoundUnit::reset() {
     chan[i].virtual_duty=0x800; // for some reason duty by default is 50%
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   su->Reset();
   for (int i=0; i<8; i++) {
@@ -698,7 +698,7 @@ size_t DivPlatformSoundUnit::getSampleMemUsage(int index) {
 
 bool DivPlatformSoundUnit::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

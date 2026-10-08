@@ -503,7 +503,7 @@ void DivPlatformVRC6::reset() {
   chan[2].vol=63;
   chan[2].outVol=63;
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   prevSample=0;

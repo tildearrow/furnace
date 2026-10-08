@@ -343,6 +343,11 @@ DivDispatchOscBuffer* DivPlatformRF5C68::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+void DivPlatformRF5C68::softReset() {
+  rWrite(7,0);
+  rWrite(8,0xff);
+}
+
 void DivPlatformRF5C68::reset() {
   memset(regPool,0,144);
   rf5c68.device_reset();
@@ -437,7 +442,7 @@ size_t DivPlatformRF5C68::getSampleMemUsage(int index) {
 
 bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 

@@ -673,4 +673,6 @@ hex | description
  e0 | AMS (b)
  e1 | LFO3 (b)
  e2 | LFO4 (b)
+----|------------------------------------
+ e3 | test register write (bb)
 ```

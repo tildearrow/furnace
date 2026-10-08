@@ -368,6 +368,14 @@ unsigned short DivPlatformSAA1099::getPan(int ch) {
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
+void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if ((ch%3)==1) {
+    if (saaEnv[ch/3]&0x80) {
+      ret.push_back(DivChannelPair(_("env >"),ch+1));
+    }
+  }
+}
+
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -378,6 +386,16 @@ unsigned char* DivPlatformSAA1099::getRegisterPool() {
 
 int DivPlatformSAA1099::getRegisterPoolSize() {
   return 32;
+}
+
+void DivPlatformSAA1099::softReset() {
+  rWrite(0x1c,0x02);
+  rWrite(0x14,0);
+  rWrite(0x15,0);
+
+  for (int i=0; i<6; i++) {
+    rWrite(i,0);
+  }
 }
 
 void DivPlatformSAA1099::reset() {
@@ -391,7 +409,7 @@ void DivPlatformSAA1099::reset() {
     chan[i].vol=0x0f;
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   lastBusy=60;

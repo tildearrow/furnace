@@ -22,22 +22,33 @@
 #include "instrument.h"
 #include "song.h"
 #include "../ta-log.h"
+#include <map>
 
-DivSysDef* DivEngine::sysDefs[DIV_MAX_CHIP_DEFS];
-DivSystem DivEngine::sysFileMapFur[DIV_MAX_CHIP_DEFS];
-DivSystem DivEngine::sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+// +1 for safety
+DivSysDef* DivEngine::sysDefs[DIV_SYSTEM_MAX+1];
 
-DivSystem DivEngine::systemFromFileFur(unsigned char val) {
-  return sysFileMapFur[val];
+static std::map<unsigned short,DivSystem> sysFileMapFur;
+static std::map<unsigned short,DivSystem> sysFileMapDMF;
+
+DivSystem DivEngine::systemFromFileFur(unsigned short val) {
+  auto ret=sysFileMapFur.find(val);
+  if (ret!=sysFileMapFur.cend()) {
+    return ret->second;
+  }
+  return DIV_SYSTEM_NULL;
 }
 
-unsigned char DivEngine::systemToFileFur(DivSystem val) {
+unsigned short DivEngine::systemToFileFur(DivSystem val) {
   if (sysDefs[val]==NULL) return 0;
   return sysDefs[val]->id;
 }
 
 DivSystem DivEngine::systemFromFileDMF(unsigned char val) {
-  return sysFileMapDMF[val];
+  auto ret=sysFileMapDMF.find(val);
+  if (ret!=sysFileMapDMF.cend()) {
+    return ret->second;
+  }
+  return DIV_SYSTEM_NULL;
 }
 
 unsigned char DivEngine::systemToFileDMF(DivSystem val) {
@@ -501,6 +512,7 @@ void DivEngine::registerSystems() {
   EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
   fmOPN2EffectHandlerMap.insert({
     {0xdf, {DIV_CMD_SAMPLE_DIR, _("DFxx: Set sample playback direction (0: normal; 1: reverse)")}},
+    {0x6d, {DIV_CMD_TEST_REG, _("6Dxx: Set test register $2C (dangerous)"), constVal<0x2c>, effectVal}},
   });
 
   EffectHandlerMap fmOPLDrumsEffectHandlerMap(fmEffectHandlerMap);
@@ -539,6 +551,7 @@ void DivEngine::registerSystems() {
     {0x61, {DIV_CMD_FM_ALG, _("61xx: Set algorithm (0 to 7)")}},
     {0x62, {DIV_CMD_FM_FMS, _("62xx: Set LFO FM depth (0 to 7)")}},
     {0x63, {DIV_CMD_FM_AMS, _("63xx: Set LFO AM depth (0 to 3)")}},
+    {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register $21 (dangerous)"), constVal<0x21>, effectVal}},
   };
 
   EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
@@ -2782,7 +2795,7 @@ void DivEngine::registerSystems() {
     DivChanDefFunc(stockChanDef<DIV_CH_NOISE,DIV_INS_STD>)
   );
 
-  for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
+  for (int i=0; i<DIV_SYSTEM_MAX; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {
       sysFileMapFur[sysDefs[i]->id]=(DivSystem)i;

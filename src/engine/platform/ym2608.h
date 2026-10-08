@@ -74,7 +74,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char writeRSSOff, writeRSSOn;
     int globalRSSVolume;
 
-    bool extMode, noExtMacros;
+    bool extMode, noExtMacros, sharedExtBlock;
     unsigned char prescale, nukedMult, memConfig;
 
     DivMemoryComposition memCompo;
@@ -101,6 +101,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

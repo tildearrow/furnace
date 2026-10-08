@@ -81,6 +81,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
     virtual int getRegisterPoolSize() override;
+    virtual void softReset() override;
     virtual void reset() override;
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
@@ -95,6 +96,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual const char** getRegisterSheet() override;
+    virtual int getSampleGroup(int chan=0) override;
+    virtual int getMaxSamples(int index) override;
     virtual const void* getSampleMem(int index) override;
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;

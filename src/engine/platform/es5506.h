@@ -304,6 +304,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
     virtual int getRegisterPoolSize() override;
+    virtual void softReset() override;
     virtual void reset() override;
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
