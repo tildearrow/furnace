@@ -1419,6 +1419,14 @@ all functions use 0-indexing.
 
   the position is absolute
 
+- `fur.gui.isMouseClicked`
+
+  arguments: none
+
+  return type: boolean
+
+  gets whether the mouse was clicked
+
 - `fur.gui.getContentRegionAvail`
 
   arguments: none

@@ -2735,6 +2735,11 @@ static int _guiGetContentRegionAvail(lua_State* s) {
   return 2;
 }
 
+static int _guiIsMouseClicked(lua_State* s) {
+  lua_pushboolean(s,ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+  return 1;
+}
+
 static int _guiColorRGBA(lua_State* s) {
   CHECK_ARGS_RANGE(3,4)
   int r,g,b,a;
@@ -3157,6 +3162,7 @@ void FurnaceGUI::bindScriptFunctions(lua_State* s) {
     API_ADD_FUNC("getForegroundDrawList",guiGetForegroundDrawList);
     API_ADD_FUNC("getCursorPos",guiGetCursorPos);
     API_ADD_FUNC("getCursorScreenPos",guiGetCursorScreenPos);
+    API_ADD_FUNC("isMouseClicked",guiIsMouseClicked);
     API_ADD_FUNC("getContentRegionAvail",guiGetContentRegionAvail);
     API_ADD_FUNC("drawLine",guiDrawLine);
     API_ADD_FUNC("drawRect",guiDrawRect);
