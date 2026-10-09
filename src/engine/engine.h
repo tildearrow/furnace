@@ -1171,44 +1171,6 @@ class DivEngine {
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   /**
-   * swap the index of two instruments in all patterns..
-   * called after moving an instrument.
-   * @param one the first instrument.
-   * @param two the second instrument.
-   */
-  void exchangeIns(int one, int two);
-  /**
-   * TODO: this.
-   * @param one the first wavetable.
-   * @param two the second wavetable.
-   */
-  void exchangeWave(int one, int two);
-  /**
-   * swap the index of two samples in all instruments.
-   * called after moving a sample.
-   * @param one the first sample.
-   * @param two the second sample.
-   */
-  void exchangeSample(int one, int two);
-
-  /**
-   * copy a channel's contents to another.
-   * @param src the source channel.
-   * @param dest the destination channel.
-   */
-  void copyChannel(int src, int dest);
-  /**
-   * swap the contents of two channels.
-   * @param src the first channel.
-   * @param dest the second channel.
-   */
-  void swapChannels(int src, int dest);
-  /**
-   * destroy the contents of a channel.
-   * @param ch the channel to wipe.
-   */
-  void stompChannel(int ch);
-  /**
    * handle a change in chip channel count (e.g. by adding/changing/removing chips).
    * @param firstChan the first channel of the affected chip.
    * @param before the previous channel count.
@@ -1805,6 +1767,7 @@ class DivEngine {
     void virtualTempoChanged();
 
     // get time
+    int getTotalTicksR(); // engine ticks
     TimeMicros getCurTime();
 
     // get repeat pattern
@@ -1827,6 +1790,9 @@ class DivEngine {
 
     // is running
     bool isRunning();
+
+    // is freelance
+    bool isFreelance();
 
     // is stepping
     bool isStepping();
@@ -1928,6 +1894,45 @@ class DivEngine {
     bool swapInstruments(int a, int b);
     bool swapWaves(int a, int b);
     bool swapSamples(int a, int b);
+
+    /**
+     * swap the index of two instruments in all patterns..
+     * called after moving an instrument.
+     * @param one the first instrument.
+     * @param two the second instrument.
+     */
+    void exchangeIns(int one, int two);
+    /**
+     * TODO: this.
+     * @param one the first wavetable.
+     * @param two the second wavetable.
+     */
+    void exchangeWave(int one, int two);
+    /**
+     * swap the index of two samples in all instruments.
+     * called after moving a sample.
+     * @param one the first sample.
+     * @param two the second sample.
+     */
+    void exchangeSample(int one, int two);
+
+    /**
+     * copy a channel's contents to another.
+     * @param src the source channel.
+     * @param dest the destination channel.
+     */
+    void copyChannel(int src, int dest);
+    /**
+     * swap the contents of two channels.
+     * @param src the first channel.
+     * @param dest the second channel.
+     */
+    void swapChannels(int src, int dest);
+    /**
+     * destroy the contents of a channel.
+     * @param ch the channel to wipe.
+     */
+    void stompChannel(int ch);
 
     // automatic patchbay
     void autoPatchbay();

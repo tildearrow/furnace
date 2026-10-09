@@ -19,6 +19,7 @@
 
 #include "util.h"
 #include "gui.h"
+#include "../fileutils.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -30,6 +31,28 @@
 #include <pwd.h>
 #include <sys/stat.h>
 #endif
+
+bool readTextFile(const char* path, String& where) {
+  FILE* f=ps_fopen(path,"rb");
+  if (f==NULL) {
+    return false;
+  }
+  fseek(f,0,SEEK_END);
+  size_t len=ftell(f);
+  char* buf=new char[len+1];
+  if (buf==NULL) {
+    fclose(f);
+    return false;
+  }
+  rewind(f);
+  fread(buf,1,len,f);
+  fclose(f);
+  buf[len]='\0';
+  where.resize(len);
+  where=buf;
+  delete[] buf;
+  return true;
+}
 
 String getHomeDir() {
 #ifdef IS_MOBILE
@@ -109,6 +132,18 @@ String getKeyName(int key, bool emptyNone) {
     ret+=_("Unknown");
   } else {
     ret+=name;
+  }
+  return ret;
+}
+
+String stripName(String what) {
+  String ret;
+  for (char& i: what) {
+    if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
+      ret+=i;
+    } else {
+      ret+='-';
+    }
   }
   return ret;
 }

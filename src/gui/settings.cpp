@@ -49,18 +49,6 @@
 
 const ImWchar mainFontExcludeRange[3]={ICON_MIN_FA,ICON_MAX_FA,0};
 
-static String stripName(String what) {
-  String ret;
-  for (char& i: what) {
-    if ((i>='A' && i<='Z') || (i>='a' && i<='z') || (i>='0' && i<='9')) {
-      ret+=i;
-    } else {
-      ret+='-';
-    }
-  }
-  return ret;
-}
-
 void FurnaceGUI::promptKey(int which, int bindIdx) {
   bindSetTarget=which;
   bindSetTargetIdx=bindIdx;
@@ -250,6 +238,12 @@ void FurnaceGUI::commitSettings() {
     settings.audioHiPass!=e->getConfBool("audioHiPass",1)
   );
 
+  bool scriptSettingsChanged=(
+    settings.scriptingAllowIO!=e->getConfBool("scriptingAllowIO",0) ||
+    settings.scriptingAllowOS!=e->getConfBool("scriptingAllowOS",0) ||
+    settings.scriptingAllowPackage!=e->getConfBool("scriptingAllowPackage",0)
+  );
+
   writeConfig(e->getConfObject());
 
   parseKeybinds();
@@ -267,6 +261,12 @@ void FurnaceGUI::commitSettings() {
     if (e->loadSampleROMs()) {
       showError(e->getLastError());
     }
+  }
+
+  if (scriptSettingsChanged) {
+    resetScriptState(globalState.state);
+    resetScriptState(playground.state);
+    initScriptEngine();
   }
 
   // if we're about to quit, don't perform an expensive output switch/core re-initialization.
