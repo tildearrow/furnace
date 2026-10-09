@@ -223,6 +223,7 @@ bool DivEngine::loadIT(unsigned char* file, size_t len) {
     ds.compatFlags.rowResetsArpPos=true;
     ds.compatFlags.ignoreJumpAtEnd=false;
     ds.compatFlags.pitchSlideSpeed=8;
+    ds.compatFlags.oldCenterRate=true;
 
     logV("Impulse Tracker module");
 

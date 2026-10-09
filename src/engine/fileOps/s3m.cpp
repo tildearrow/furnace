@@ -85,6 +85,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     ds.compatFlags.rowResetsArpPos=true;
     ds.compatFlags.ignoreJumpAtEnd=false;
     ds.compatFlags.pitchSlideSpeed=12;
+    ds.compatFlags.oldCenterRate=true;
 
     logV("Scream Tracker 3 module");
 

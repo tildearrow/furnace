@@ -1179,7 +1179,7 @@ void DivCompatFlags::setDefaults() {
   ceilVolumeScaling=false;
   oldAlwaysSetVolume=false;
   oldSampleOffset=false;
-  oldCenterRate=true;
+  oldCenterRate=false;
   noVolSlideReset=false;
   arpSpeedGlobal=false;
 }

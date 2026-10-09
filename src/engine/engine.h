@@ -63,10 +63,10 @@ class DivWorkPool;
 // we're not reaching 1.0 until we have export for all major systems.
 //
 // development/interim versions go by the format version, prepended with "dev".
-#define DIV_VERSION "dev255"
+#define DIV_VERSION "dev256"
 // format version.
 // this shall be bumped on each file format/breaking change.
-#define DIV_ENGINE_VERSION 255
+#define DIV_ENGINE_VERSION 256
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02

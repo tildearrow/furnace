@@ -484,7 +484,7 @@ bool DivSample::save(const char* path) {
   memset(&inst, 0, sizeof(inst));
   inst.gain = 1;
   // TODO: fix
-  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/8363.0) * 12.0 * 100.0);
+  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/8372.0) * 12.0 * 100.0);
   inst.basenote = pitch / 100;
   inst.detune = 50 - (pitch % 100);
   inst.velocity_hi = 0x7f;

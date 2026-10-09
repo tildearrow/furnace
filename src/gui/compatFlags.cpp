@@ -282,6 +282,12 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("behavior changed in 0.6.3"));
         }
+        if (ImGui::Checkbox(_("Old sample C-4 rate calculation"),&e->song.compatFlags.oldCenterRate)) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("behavior changed in 0.7\nuse 8363Hz instead of 8372Hz for sample pitch calculation."));
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(_(".mod import"))) {

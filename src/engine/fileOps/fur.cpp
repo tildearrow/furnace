@@ -800,6 +800,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
     if (ds.version<255) {
       ds.compatFlags.arpSpeedGlobal=true;
     }
+    if (ds.version<256) {
+      ds.compatFlags.oldCenterRate=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
