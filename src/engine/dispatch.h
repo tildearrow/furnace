@@ -1568,6 +1568,12 @@ class DivDispatch {
     virtual const char** getRegisterSheet();
 
     /**
+     * Get number of sample memory buffer.
+     * @return number of sample memory buffers.
+     */
+    virtual size_t getSampleMemNum();
+
+    /**
      * get the sample group of specific channel.
      * @param chan the channel.
      * @return the sample group of channel. Default value is 0

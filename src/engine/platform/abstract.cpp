@@ -217,6 +217,10 @@ const char** DivDispatch::getRegisterSheet() {
   return NULL;
 }
 
+size_t DivDispatch::getSampleMemNum() {
+  return 0;
+}
+
 int DivDispatch::getSampleGroup(int chan) {
   return 0;
 }
