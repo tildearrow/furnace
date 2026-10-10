@@ -484,6 +484,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
 
     hz=reader.readF();
     arpLen=reader.readC();
+    if (version<255) arpLen=1;
     effectDivider=reader.readC();
 
     patLen=reader.readS();
@@ -564,6 +565,7 @@ bool DivSubSong::readData(SafeReader& reader, int version, int chans) {
     speeds.val[0]=(unsigned char)reader.readC();
     speeds.val[1]=(unsigned char)reader.readC();
     arpLen=reader.readC();
+    if (version<255) arpLen=1;
     hz=reader.readF();
 
     patLen=reader.readS();
@@ -1177,8 +1179,9 @@ void DivCompatFlags::setDefaults() {
   ceilVolumeScaling=false;
   oldAlwaysSetVolume=false;
   oldSampleOffset=false;
-  oldCenterRate=true;
+  oldCenterRate=false;
   noVolSlideReset=false;
+  arpSpeedGlobal=false;
 }
 
 bool DivCompatFlags::areDefaults() {
@@ -1265,6 +1268,7 @@ bool DivCompatFlags::readData(SafeReader& reader) {
   CHECK_AND_LOAD_BOOL(oldSampleOffset);
   CHECK_AND_LOAD_BOOL(oldCenterRate);
   CHECK_AND_LOAD_BOOL(noVolSlideReset);
+  CHECK_AND_LOAD_BOOL(arpSpeedGlobal);
 
   return true;
 }
@@ -1340,6 +1344,7 @@ void DivCompatFlags::putData(SafeWriter* w) {
   CHECK_AND_STORE_BOOL(oldSampleOffset);
   CHECK_AND_STORE_BOOL(oldCenterRate);
   CHECK_AND_STORE_BOOL(noVolSlideReset);
+  CHECK_AND_STORE_BOOL(arpSpeedGlobal);
 
   String data=c.toString();
   w->write("CFLG",4);

@@ -282,6 +282,12 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("behavior changed in 0.6.3"));
         }
+        if (ImGui::Checkbox(_("Old sample C-4 rate calculation"),&e->song.compatFlags.oldCenterRate)) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("behavior changed in 0.7\nuse 8363Hz instead of 8372Hz for sample pitch calculation."));
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(_(".mod import"))) {
@@ -458,6 +464,12 @@ void FurnaceGUI::drawCompatFlags() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(_("when enabled, volume macros round up when applied\nthis prevents volume scaling from causing vol=0, which is silent on some chips\n\nineffective on logarithmic channels"));
+        }
+        if (ImGui::Checkbox(_("Arp speed effect (E0xx) is global"),&e->song.compatFlags.arpSpeedGlobal)) {
+          MARK_MODIFIED;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(_("when enabled, the arp speed is shared among all channels."));
         }
         ImGui::EndTabItem();
       }

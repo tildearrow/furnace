@@ -267,6 +267,14 @@ int DivPlatformSCC::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
+    case DIV_CMD_TEST_REG: {
+      if (isPlus) {
+        rWrite(regBase+32,c.value2); 
+       } else {
+        rWrite(regBase+96,c.value2);
+      }
+      break;
+    }
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
