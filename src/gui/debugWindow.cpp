@@ -635,6 +635,13 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Oscilloscope Debug")) {
+      if (ImGui::TreeNode("i am so done")) {
+        ImGui::Text("arr:%d, ornt:%d\ncolRow:%d, dispCol:%d",(int)chanOsc.arrangement,(int)chanOsc.orientation,chanOsc.columnsRows,chanOsc.displayColumns);
+        for (int i=0; i<DIV_MAX_CHANS; i++) {
+          ImGui::Text("%d", chanOsc.displayMap[i]);
+        }
+        ImGui::TreePop();
+      }
       int c=0;
       ImGui::Checkbox("FFT debug view",&debugFFT);
       for (int i=0; i<e->song.systemLen; i++) {
