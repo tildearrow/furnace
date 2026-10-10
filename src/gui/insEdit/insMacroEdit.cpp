@@ -344,7 +344,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
         if (ImGui::IsItemDeactivated()) { PARAMETER
           i.macro->val[0]=CLAMP(insEditMacroEnvBottom,i.min,actualMax);
-          insEditMacroEnvTop=i.macro->val[0];
+          insEditMacroEnvBottom=i.macro->val[0];
           adsrAdjust=true;
         }
 
@@ -584,8 +584,8 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
         if (ImGui::IsItemDeactivated()) { PARAMETER
-          i.macro->val[0]=CLAMP(insEditMacroEnvTop,i.min,actualMax);
-          insEditMacroEnvTop=i.macro->val[0];
+          i.macro->val[0]=CLAMP(insEditMacroEnvBottom,i.min,actualMax);
+          insEditMacroEnvBottom=i.macro->val[0];
           lfoAdjust=true;
         }
 

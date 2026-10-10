@@ -146,6 +146,13 @@ const bool isOutputL[2][4][4]={
   }
 };
 
+const int slotsCQM[4][18]={
+  {1, 5,  9, 13, 15, 17, 19, 21, 23, 25, 29, 33, 37, 39, 41, 43, 45, 47},
+  {2, 6, 10, 14, 16, 18, 20, 22, 24, 26, 30, 34, 38, 40, 42, 44, 46,  0},
+  {3, 7, 11, -1, -1, -1, -1, -1, -1, 27, 31, 35, -1, -1, -1, -1, -1, -1},
+  {4, 8, 12, -1, -1, -1, -1, -1, -1, 28, 32, 36, -1, -1, -1, -1, -1, -1}
+};
+
 #undef N
 
 const int orderedOpsL1[2][4]={
@@ -448,7 +455,10 @@ void DivPlatformOPL::acquire_cqm(short** buf, size_t len) {
         int chOut=0;
         if (ch==255) continue;
         if (isMuted[chMute]) continue;
-        chOut=fm_cqm.ch_out[ch];
+        for (int j=0; j<4; j++) {
+          if (slotsCQM[j][i]==-1) continue;
+          chOut+=fm_cqm.slotz[slotsCQM[j][ch]].out;
+        }
         oscBuf[i]->putSample(h,CLAMP(chOut<<(i==melodicChans?0:1),-32768,32767));
       }
       // special
@@ -463,8 +473,11 @@ void DivPlatformOPL::acquire_cqm(short** buf, size_t len) {
         int chOut=0;
         if (ch==255) continue;
         if (isMuted[chMute]) continue;
-        chOut=fm_cqm.ch_out[ch];
-        oscBuf[i]->putSample(h,CLAMP(chOut<<1,-32768,32767));
+        for (int j=0; j<4; j++) {
+          if (slotsCQM[j][i]==-1) continue;
+          chOut+=fm_cqm.slotz[slotsCQM[j][ch]].out;
+        }
+        oscBuf[chMute]->putSample(h,CLAMP(chOut<<1,-32768,32767));
       }
     }
 
@@ -2829,6 +2842,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         immWrite(PCM_ADDR_TL+PCM_REG(c.chan),((0x7f-chan[c.chan].outVol)<<1)|(chan[c.chan].levelDirect?1:0));
       }
       break;
+    case DIV_CMD_TEST_REG:
+      immWrite(c.value,c.value2);
+      break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
       break;
@@ -3566,6 +3582,11 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 }
 
+int DivPlatformOPL::getMaxSamples(int index) {
+  return (index==0 && pcmChanOffs>=0)?(PCM_IN_RAM?128:512):
+          (index==0 && adpcmChan>=0)?32768:0;
+}
+
 const void* DivPlatformOPL::getSampleMem(int index) {
   return (index==0 && pcmChanOffs>=0)?pcmMem:
           (index==0 && adpcmChan>=0)?adpcmBMem:NULL;
@@ -3592,7 +3613,7 @@ size_t DivPlatformOPL::getSampleMemOffset(int index) {
 
 bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 
@@ -3607,7 +3628,7 @@ const DivMemoryComposition* DivPlatformOPL::getMemCompo(int index) {
 // instruments in ROM.
 void DivPlatformOPL::renderInstruments() {
   if (pcmChanOffs>=0) {
-    const int maxSample=PCM_IN_RAM?128:512;
+    const int maxSample=getMaxSamples(0);
     int sampleCount=parent->song.sampleLen;
     if (sampleCount>maxSample) {
       sampleCount=maxSample;
@@ -3671,7 +3692,7 @@ void DivPlatformOPL::renderSamples(int sysID) {
 
   if (pcmChanOffs>=0) { // OPL4 PCM
     size_t memPos=(PCM_IN_RAM?0x200600:0x1800);
-    const int maxSample=PCM_IN_RAM?128:512;
+    const int maxSample=getMaxSamples(0);
     int sampleCount=parent->song.sampleLen;
     if (sampleCount>maxSample) {
       // mark the rest as unavailable

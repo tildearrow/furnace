@@ -136,7 +136,7 @@ void DivEngine::registerROMExports() {
     "GRUB_INIT_TUNE", "AArt1256",
     "GRUB_INIT_TUNE export\n"
     "for use with the GRUB bootloader using the \"play\" command",
-    "Text/Binary files", NULL,
+    "Text/Binary files", ".txt",
     {
       DIV_SYSTEM_PCSPKR
     },

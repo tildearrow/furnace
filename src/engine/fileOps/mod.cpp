@@ -46,6 +46,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.compatFlags.rowResetsArpPos=true;
     ds.compatFlags.ignoreJumpAtEnd=false;
     ds.compatFlags.delayBehavior=0;
+    ds.compatFlags.oldCenterRate=true;
 
     int insCount=31;
     bool bypassLimits=false;

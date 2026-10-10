@@ -256,6 +256,7 @@ struct DivCompatFlags {
   // new flags as of dev240
   bool oldCenterRate;
   bool noVolSlideReset;
+  bool arpSpeedGlobal;
 
   void setDefaults();
   bool areDefaults();

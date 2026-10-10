@@ -336,7 +336,7 @@ struct DivSample {
   int redo();
   DivSample():
     name(""),
-    centerRate(8363),
+    centerRate(8372),
     loopStart(-1),
     loopEnd(-1),
     legacyRate(32000),

@@ -84,10 +84,10 @@ class DivPlatformMultiPCM: public DivDispatch {
   
     int delay, curChan, curAddr;
 
-    unsigned char regPool[224];
+    unsigned char regPool[448];
   
-    short oldWrites[224];
-    short pendingWrites[224];
+    short oldWrites[448];
+    short pendingWrites[448];
 
     // chips
     YMW258 pcm;
@@ -132,6 +132,7 @@ class DivPlatformMultiPCM: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    int getMaxSamples(int index);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
