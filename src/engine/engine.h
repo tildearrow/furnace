@@ -1513,7 +1513,6 @@ class DivEngine {
      * @param separatePatterns if set, patterns will be dumped one by one (per channel) rather than as a single sheet.
      * @return a SafeWriter, or NULL on error.
      */
->>>>>>> master
     SafeWriter* saveText(bool separatePatterns=true);
 #ifdef WITH_JSON
     /**
