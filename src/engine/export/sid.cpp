@@ -283,6 +283,7 @@ void DivExportC64::run() {
     // end of data marker
     *(allWritesPtr++)=-2;
     chWrites[i].clear();
+    logV("chWritesOff[%d]: %d",i,(int)chWritesOff[i]);
   }
 
   // find patterns and compress
