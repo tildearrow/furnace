@@ -60,6 +60,10 @@ String disasmCmd(unsigned char* buf, size_t bufLen, unsigned int addr, unsigned 
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("preporta $%.2x",(int)buf[addr+1]);
       break;
+    case 0xc1:
+      if (addr+1>=bufLen) return "???";
+      return fmt::sprintf("arpspeed %d",(int)buf[addr+1]);
+      break;
     case 0xc2:
       if (addr+1>=bufLen) return "???";
       return fmt::sprintf("vib $%.2x",(int)buf[addr+1]);
