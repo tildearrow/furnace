@@ -189,6 +189,9 @@ void FurnaceGUI::readConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     settings.locale=conf.getString("locale","");
 
     settings.backgroundPlay=conf.getBool("backgroundPlay",0);
+
+    settings.scriptingAllowIO=conf.getBool("scriptingAllowIO",0);
+    settings.scriptingAllowOS=conf.getBool("scriptingAllowOS",0);
   }
 
   if (groups&GUI_SETTINGS_AUDIO) {
@@ -703,6 +706,9 @@ void FurnaceGUI::writeConfig(DivConfig& conf, FurnaceGUISettingGroups groups) {
     conf.set("locale",settings.locale);
 
     conf.set("backgroundPlay",settings.backgroundPlay);
+
+    conf.set("scriptingAllowIO",settings.scriptingAllowIO);
+    conf.set("scriptingAllowOS",settings.scriptingAllowOS);
   }
 
   // audio
