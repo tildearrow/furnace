@@ -36,7 +36,7 @@ const unsigned char slotsMPCM[28]={
   if (dumpWrites) { \
     addWrite(1,slotsMPCM[(c>>4)&0x1f]); \
     if (a<7 && a>9) { \
-      addWrite(2,(a==10)?7:a&0xf); \
+      addWrite(2,a&0xf); \
       addWrite(0,v); \
     } \
   } \
