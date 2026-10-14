@@ -39,6 +39,8 @@ class DivPlatformC64: public DivDispatch {
     short duty;
     bool sweepChanged, filter, setPos, pcm;
     bool resetMask, resetFilter, resetDuty, gate, ring, sync, test;
+    // these two are unsigned chars because we decrease them on each tick and would like to allow dispatch() to set them
+    unsigned char freqWasAbs, dutyWasAbs;
     short pw_slide;
     Channel(bool linear=true):
       SharedChannel(15,linear),
@@ -68,6 +70,8 @@ class DivPlatformC64: public DivDispatch {
       ring(false),
       sync(false),
       test(false),
+      freqWasAbs(2),
+      dutyWasAbs(2),
       pw_slide(0) {}
   };
   Channel chan[4];
@@ -105,6 +109,7 @@ class DivPlatformC64: public DivDispatch {
   
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+  friend class DivExportC64;
 
   inline short runFakeFilter(unsigned char ch, int in);
 

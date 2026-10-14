@@ -219,6 +219,9 @@ void DivPlatformC64::tick(bool sysTick) {
   for (int _i=0; _i<3; _i++) {
     int i=chanOrder[_i];
 
+    if (chan[i].freqWasAbs) chan[i].freqWasAbs--;
+    if (chan[i].dutyWasAbs) chan[i].dutyWasAbs--;
+
     chan[i].std.next();
 
     if (sysTick) {
@@ -252,6 +255,7 @@ void DivPlatformC64::tick(bool sysTick) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
       if (ins->c64.dutyIsAbs) {
         chan[i].duty=chan[i].std.duty.val;
+        chan[i].dutyWasAbs=1;
       } else {
         if (multiplyRel) {
           chan[i].duty-=((signed char)chan[i].std.duty.val)*4;
@@ -429,12 +433,14 @@ int DivPlatformC64::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
+        chan[c.chan].freqWasAbs=2;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].test=false;
       if (((chan[c.chan].insChanged || chan[c.chan].resetDuty || ins->std.waveMacro.len>0) && ins->c64.resetDuty) || chan[c.chan].resetDuty) {
         chan[c.chan].duty=ins->c64.duty;
+        chan[c.chan].dutyWasAbs=2;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       }
@@ -546,12 +552,14 @@ int DivPlatformC64::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if (c.chan>2) break;
       chan[c.chan].duty=(c.value*4095)/100;
+      chan[c.chan].dutyWasAbs=2;
       rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
       rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       break;
     case DIV_CMD_C64_FINE_DUTY:
       if (c.chan>2) break;
       chan[c.chan].duty=c.value;
+      chan[c.chan].dutyWasAbs=2;
       rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
       rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       break;
@@ -568,6 +576,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
+      chan[c.chan].freqWasAbs=2;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
@@ -578,6 +587,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
+      chan[c.chan].freqWasAbs=2;
       break;
     case DIV_CMD_PRE_NOTE:
       if (c.chan>2) break;
@@ -632,6 +642,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       if (c.value&15) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_C64);
         chan[c.chan].duty=ins->c64.duty;
+        chan[c.chan].dutyWasAbs=2;
         rWrite(c.chan*7+2,chan[c.chan].duty&0xff);
         rWrite(c.chan*7+3,chan[c.chan].duty>>8);
       }

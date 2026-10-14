@@ -22,6 +22,7 @@
 #include "../ta-log.h"
 #include "../../fileutils.h"
 #include "../../executils.h"
+#include "../platform/c64.h"
 #include <fmt/printf.h>
 #include <vector>
 
@@ -33,6 +34,9 @@
 #include <unistd.h>
 #endif
 
+/**
+ * a write group for each channel's flags.
+ */
 struct WriteGroup {
   unsigned char data[3];
   unsigned char enable;
@@ -53,6 +57,17 @@ struct WriteGroup {
   WriteGroup():
     data{0},
     enable(0) {}
+};
+
+/**
+ * used to keep track of likely absolute writes (notes and abs duty/cutoff) and relative ones (vibrato/slides).
+ */
+struct DeltaWrite {
+  unsigned short val;
+  bool absol;
+  DeltaWrite(unsigned short v, bool a=true):
+    val(v),
+    absol(a) {}
 };
 
 struct DataBlock {
@@ -144,9 +159,17 @@ void DivExportC64::run() {
   logAppend("playing and logging register writes...");
 
   std::vector<WriteGroup> chWrites[4];
+  std::vector<DeltaWrite> chDuty[3];
+  std::vector<DeltaWrite> chFreq[3];
+  std::vector<DeltaWrite> cutoffWrites;
 
   std::map<WriteGroup,int> writePopularity;
   std::vector<WriteGroup> writePopularitySorted;
+
+  std::map<unsigned short,int> freqPopularity;
+  std::map<unsigned short,int> freqDeltaPopularity;
+  std::map<unsigned short,int> dutyPopularity;
+  std::map<unsigned short,int> dutyDeltaPopularity;
 
   int* allWrites;
   size_t allWritesLen=0;
@@ -217,9 +240,20 @@ void DivExportC64::run() {
           wg.enable|=1<<j_b;
         }
       }
-      
+
       if (wg.enable) writePopularity[wg]++;
       chWrites[3].push_back(wg);
+
+      // collect frequency/duty writes
+      for (int i=0; i<3; i++) {
+        DivPlatformC64::Channel* ch=(DivPlatformC64::Channel*)e->getDispatchChanState(i);
+        
+        chFreq[i].push_back(DeltaWrite(state[7*i]|(state[(7*i)+1]<<8),ch->freqWasAbs));
+        chDuty[i].push_back(DeltaWrite(state[(7*i)+2]|((state[(7*i)+3]&15)<<8),ch->dutyWasAbs));
+      }
+
+      // collect cutoff writes
+      cutoffWrites.push_back((state[0x16]<<3)|(state[0x15]&7));
 
       memcpy(prevState,state,32);
     }
@@ -233,6 +267,42 @@ void DivExportC64::run() {
     e->freelance=false;
     e->extValuePresent=false;
   });
+
+  logD("freq writes:");
+  unsigned short lastFreq[3];
+  lastFreq[0]=0;
+  lastFreq[1]=0;
+  lastFreq[2]=0;
+  for (size_t i=0; i<chFreq[0].size(); i++) {
+    logV(
+      "%.5d: %.4x%c   %.4x%c   %.4x%c",
+      (int)i,
+      chFreq[0][i].val,
+      chFreq[0][i].absol?'!':' ',
+      chFreq[1][i].val,
+      chFreq[1][i].absol?'!':' ',
+      chFreq[2][i].val,
+      chFreq[2][i].absol?'!':' '
+    );
+
+    for (int j=0; j<3; j++) {
+      unsigned short delta=chFreq[j][i].val-lastFreq[j];
+      lastFreq[j]=chFreq[j][i].val;
+      if (delta==0) continue;
+      freqPopularity[chFreq[j][i].val]++;
+      freqDeltaPopularity[delta]++;
+    }
+  }
+
+  logV("frequency popularity:");
+  for (auto& i: freqPopularity) {
+    logV("- %.4x: %d",i.first,i.second);
+  }
+
+  logV("frequency delta popularity:");
+  for (auto& i: freqDeltaPopularity) {
+    logV("- %d: %d",(short)i.first,i.second);
+  }
 
   // sort writes by popularity
   logV("write popularity:");
