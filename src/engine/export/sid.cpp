@@ -144,6 +144,23 @@ size_t stripNops(int* ptr, size_t len) {
   return ret;
 }
 
+void sortDeltas(std::map<unsigned short,int>& deltas) {
+  int sortRank=0;
+  while (true) {
+    auto best=deltas.end();
+    int bestPopularity=0;
+    for (auto i=deltas.begin(); i!=deltas.end(); i++) {
+      if (i->second>bestPopularity) {
+        best=i;
+        bestPopularity=i->second;
+      }
+    }
+    if (best==deltas.end()) break;
+    logV("%d. %.4x: %d",sortRank+1,best->first,best->second);
+    best->second=-(sortRank++);
+  }
+}
+
 void DivExportC64::run() {
   SafeWriter* w=new SafeWriter;
   w->init(); 
@@ -268,23 +285,11 @@ void DivExportC64::run() {
     e->extValuePresent=false;
   });
 
-  logD("freq writes:");
   unsigned short lastFreq[3];
   lastFreq[0]=0;
   lastFreq[1]=0;
   lastFreq[2]=0;
   for (size_t i=0; i<chFreq[0].size(); i++) {
-    logV(
-      "%.5d: %.4x%c   %.4x%c   %.4x%c",
-      (int)i,
-      chFreq[0][i].val,
-      chFreq[0][i].absol?'!':' ',
-      chFreq[1][i].val,
-      chFreq[1][i].absol?'!':' ',
-      chFreq[2][i].val,
-      chFreq[2][i].absol?'!':' '
-    );
-
     for (int j=0; j<3; j++) {
       unsigned short delta=chFreq[j][i].val-lastFreq[j];
       lastFreq[j]=chFreq[j][i].val;
@@ -294,15 +299,32 @@ void DivExportC64::run() {
     }
   }
 
-  logV("frequency popularity:");
-  for (auto& i: freqPopularity) {
-    logV("- %.4x: %d",i.first,i.second);
+  unsigned short lastDuty[3];
+  lastDuty[0]=0;
+  lastDuty[1]=0;
+  lastDuty[2]=0;
+  for (size_t i=0; i<chDuty[0].size(); i++) {
+    for (int j=0; j<3; j++) {
+      unsigned short delta=(chDuty[j][i].val-lastDuty[j])&0xfff;
+      lastDuty[j]=chDuty[j][i].val;
+      if (delta==0) continue;
+      dutyPopularity[chDuty[j][i].val]++;
+      dutyDeltaPopularity[delta]++;
+    }
   }
 
+  // sort frequencies and duties by popularity
+  logV("frequency popularity:");
+  sortDeltas(freqPopularity);
+
   logV("frequency delta popularity:");
-  for (auto& i: freqDeltaPopularity) {
-    logV("- %d: %d",(short)i.first,i.second);
-  }
+  sortDeltas(freqDeltaPopularity);
+
+  logV("duty popularity:");
+  sortDeltas(dutyPopularity);
+
+  logV("duty delta popularity:");
+  sortDeltas(dutyDeltaPopularity);
 
   // sort writes by popularity
   logV("write popularity:");
