@@ -69,7 +69,8 @@ bool DivEngine::convertLegacySampleMode() {
         ins->type==DIV_INS_PCE ||
         ins->type==DIV_INS_X1_010 ||
         ins->type==DIV_INS_SWAN ||
-        ins->type==DIV_INS_VRC6) {
+        ins->type==DIV_INS_VRC6 ||
+        ins->type==DIV_INS_BR811) {
       if (ins->amiga.useSample) canUse=true;
     }
 

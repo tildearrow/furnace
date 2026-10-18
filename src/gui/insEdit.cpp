@@ -442,6 +442,9 @@ void FurnaceGUI::drawInsEdit() {
           case DIV_INS_KLATTSCH:
             insEditKlattsch(ins);
             break;
+          case DIV_INS_BR811:
+            insEditBR811(ins);
+            break;
           default:
             if (ImGui::BeginTabItem(_("Error"))) {
               ImGui::Text(_("invalid instrument type! change it first."));

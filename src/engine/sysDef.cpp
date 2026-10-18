@@ -2509,6 +2509,22 @@ void DivEngine::registerSystems() {
     waveOnlyEffectHandlerMap
   );
 
+  sysDefs[DIV_SYSTEM_BR811]=new DivSysDef(
+    _("BR811 (Ompreza)"), NULL, 0xb811, 0, 5, 5, 5,
+    false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT, 0, 0,
+    _("the sound chip of the fictional Ompreza console (1984), designed by Evolution BR811. 5 channels with two own waveforms (Wave A and Wave B) and white noise with fixed rates. channel 5 can also play 7-bit PCM samples (8000 Hz at C-4) from cartridge ROM."),
+    DivChanDefFunc({
+      DivChanDef(_("Channel 1"), "C1", DIV_CH_PULSE, DIV_INS_BR811),
+      DivChanDef(_("Channel 2"), "C2", DIV_CH_PULSE, DIV_INS_BR811),
+      DivChanDef(_("Channel 3"), "C3", DIV_CH_PULSE, DIV_INS_BR811),
+      DivChanDef(_("Channel 4"), "C4", DIV_CH_PULSE, DIV_INS_BR811),
+      DivChanDef(_("Channel 5"), "C5", DIV_CH_PCM, DIV_INS_BR811, DIV_INS_BR811)
+    }),
+    {
+      {0x20, {DIV_CMD_STD_NOISE_MODE, _("20xx: Set waveform (0: Wave A; 1: Wave B; 2: noise /512; 3: noise /1024; 4: noise /2048; 5: noise linked to pitch; 6: noise /256; 7: noise /128)")}}
+    }
+  );
+
   sysDefs[DIV_SYSTEM_PV1000]=new DivSysDef(
     _("Casio PV-1000"), NULL, 0xcb, 0, 3, 3, 3,
     false, true, 0, false, 0, 0, 0,

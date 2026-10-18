@@ -80,6 +80,7 @@
 #include "platform/scvtone.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
+#include "platform/br811.h"
 #include "platform/k053260.h"
 #include "platform/ted.h"
 #include "platform/c140.h"
@@ -734,6 +735,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_KLATTSCH:
       dispatch=new DivPlatformKlattsch;
+      break;
+    case DIV_SYSTEM_BR811:
+      dispatch=new DivPlatformBR811;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

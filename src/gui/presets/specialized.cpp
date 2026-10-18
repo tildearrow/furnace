@@ -151,5 +151,10 @@ void initSystemPresetsSpecialized(std::vector<FurnaceGUISysCategory>& sysCategor
       CH(DIV_SYSTEM_SUPERVISION, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    _("Ompreza (fictional, BR811)"), {
+      CH(DIV_SYSTEM_BR811, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 }

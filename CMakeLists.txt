@@ -902,6 +902,8 @@ src/engine/platform/sm8521.cpp
 src/engine/platform/supervision.cpp
 src/engine/platform/scvtone.cpp
 src/engine/platform/pv1000.cpp
+src/engine/platform/br811.cpp
+src/engine/platform/sound/br811.cpp
 src/engine/platform/k053260.cpp
 src/engine/platform/ted.cpp
 src/engine/platform/c140.cpp
@@ -1023,6 +1025,7 @@ src/gui/insEdit/pokey.cpp
 src/gui/insEdit/powernoise.cpp
 src/gui/insEdit/powernoiseslope.cpp
 src/gui/insEdit/pv1000.cpp
+src/gui/insEdit/br811.cpp
 src/gui/insEdit/qsound.cpp
 src/gui/insEdit/rf5c68.cpp
 src/gui/insEdit/saa1099.cpp

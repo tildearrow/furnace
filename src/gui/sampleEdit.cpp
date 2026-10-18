@@ -365,6 +365,19 @@ void FurnaceGUI::drawSampleWarning(DivSample* sample, int index, String &warnLoo
         SAMPLE_WARN(warnLength,_("OPL4: maximum sample length is 65535"));
       }
       break;
+    case DIV_SYSTEM_BR811:
+      if (sample->loop) {
+        if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+          SAMPLE_WARN(warnLoopPos,_("BR811: only the whole sample can loop (loop points ignored)"));
+        }
+      }
+      if (sample->samples&15) {
+        SAMPLE_WARN(warnLength,_("BR811: sample length will be padded to multiple of 16"));
+      }
+      if (sample->samples>4096) {
+        SAMPLE_WARN(warnLength,_("BR811: maximum sample length is 4096"));
+      }
+      break;
     case DIV_SYSTEM_SUPERVISION:
       if (sample->loop) {
         if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {

@@ -417,6 +417,7 @@ JSON serializeInstrument(DivInstrument* ins) {
     case DIV_INS_GBA_DMA:
     case DIV_INS_GBA_MINMOD:
     case DIV_INS_SUPERVISION:
+    case DIV_INS_BR811:
       featureSM=true;
       break;
     case DIV_INS_SM8521:

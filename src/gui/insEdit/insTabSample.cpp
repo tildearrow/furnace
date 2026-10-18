@@ -145,6 +145,7 @@ void FurnaceGUI::insTabSample(DivInstrument* ins) {
         ins->type==DIV_INS_SU ||
         ins->type==DIV_INS_NDS ||
         ins->type==DIV_INS_SUPERVISION ||
+        ins->type==DIV_INS_BR811 ||
         ins->type==DIV_INS_SID3) {
       P(ImGui::Checkbox(_("Use sample"),&ins->amiga.useSample));
       if (ins->type==DIV_INS_X1_010) {

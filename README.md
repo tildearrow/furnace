@@ -1,3 +1,4 @@
+**This fork adds the BR811 sound chip (Ompreza console). See [BR811.md](BR811.md).**
 # Furnace (chiptune tracker)
 
 ![screenshot](papers/screenshot3.png)
