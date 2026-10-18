@@ -166,6 +166,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_STEP_DOWN:
       if (--editStep<0) editStep=0;
       break;
+    case GUI_ACTION_STEP_UP_COARSE:
+      if (++editStepCoarse>64) editStepCoarse=64;
+      break;
+    case GUI_ACTION_STEP_DOWN_COARSE:
+      if (--editStepCoarse<0) editStepCoarse=0;
+      break;
     case GUI_ACTION_TOGGLE_EDIT:
       edit=!edit;
       break;
