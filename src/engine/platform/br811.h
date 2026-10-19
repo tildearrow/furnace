@@ -29,7 +29,7 @@
 class DivPlatformBR811: public DivDispatch {
   struct Channel: public SharedChannel {
     int source;     // fonte do som, 0 a 7
-    int period;     // periodo de 11 bits que vai para o chip
+    int period;     // periodo de 12 bits que vai para o chip
     bool dirty;     // precisa reescrever os registradores do chip
     bool pcm;       // canal 5: o instrumento atual e um sample (PCM)
     int sample;     // canal 5: numero do sample em uso

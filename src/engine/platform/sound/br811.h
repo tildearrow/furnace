@@ -15,8 +15,8 @@ namespace br811 {
 // ---------------------------------------------------------------------------
 constexpr double  CLOCK_HZ      = 6420000.0;  // clock do chip = clock da CPU RS04
 constexpr int     NUM_CHANNELS  = 5;
-constexpr int     DIVISOR       = 114;        // divisor de afinacao
-constexpr int     MAX_PERIOD    = 2047;       // periodo de 11 bits
+constexpr int     DIVISOR       = 57;         // divisor de afinacao (era 114: dobra a resolucao da afinacao)
+constexpr int     MAX_PERIOD    = 4095;       // periodo de 12 bits
 constexpr int     VOLUME_MAX    = 15;         // volume de 0 a 15
 
 constexpr int     WAVE_A_STEPS  = 8;
@@ -25,10 +25,10 @@ constexpr int     WAVE_B_STEPS  = 16;
 constexpr int     PCM_CHANNEL         = 4;    // so o canal 5 (indice 4) faz PCM
 constexpr int     PCM_CYCLES_PER_BYTE = 16;   // ciclos de CPU roubados por byte lido
 constexpr int     PCM_BLOCK_BYTES     = 16;   // tamanho do sample em blocos de 16 bytes
-constexpr int     PCM_REF_PERIOD      = 214;  // periodo de C-4: PCM toca a 8.000 Hz
+constexpr int     PCM_REF_PERIOD      = 430;  // periodo de C-4: PCM toca a 8.000 Hz
 
 // Unidade interna de tempo: 1/1024 de ciclo de clock. Permite representar
-// com inteiros as fracoes que o divisor 114 gera (14,25 e 7,125 clocks por passo).
+// com inteiros as fracoes que o divisor 57 gera (7,125 e 3,5625 clocks por passo).
 constexpr int64_t UNITS_PER_CLOCK = 1024;
 
 // ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ constexpr int64_t UNITS_PER_CLOCK = 1024;
 // Cada canal tem 3 registradores:
 //   reg 0: bits 7-6 modo | bits 5-4 livres | bits 3-0 volume
 //   reg 1: periodo, 8 bits baixos
-//   reg 2: bits 7-6 livres | bits 5-3 taxa de ruido | bits 2-0 periodo, 3 bits altos
+//   reg 2: bit 7 livre | bits 6-4 taxa de ruido | bits 3-0 periodo, 4 bits altos
 //
 // Registradores extras do PCM (canal 5):
 //   0: endereco inicial, byte baixo     2: tamanho ((valor + 1) * 16 bytes)
@@ -69,7 +69,7 @@ enum PcmReg : int {
 constexpr uint8_t PCM_CTRL_PLAY = 0x01;
 constexpr uint8_t PCM_CTRL_LOOP = 0x02;
 
-// Periodo (11 bits) mais proximo para uma frequencia em Hz.
+// Periodo (12 bits) mais proximo para uma frequencia em Hz.
 int periodForFrequency(double hz);
 // Periodo para uma nota MIDI (60 = C-4, 69 = A-4 = 440 Hz).
 int periodForMidi(int midiNote);

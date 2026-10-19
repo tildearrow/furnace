@@ -13,7 +13,7 @@ static const uint8_t WAVE_B[WAVE_B_STEPS] = {0, 0, 15, 15, 15, 15, 15, 15,
 
 // Duracao de um passo do PCM por unidade de (periodo + 1), em unidades de tempo.
 // A taxa do PCM e 8.000 Hz * (PCM_REF_PERIOD + 1) / (periodo + 1), entao em C-4
-// (periodo 214) o sample toca exatamente a 8.000 Hz.
+// (periodo 430) o sample toca exatamente a 8.000 Hz.
 static constexpr int64_t PCM_UNITS_PER_PERIOD =
     static_cast<int64_t>(UNITS_PER_CLOCK * CLOCK_HZ / (8000.0 * (PCM_REF_PERIOD + 1)));
 
@@ -63,9 +63,9 @@ int64_t Chip::stepPeriod(const Channel& c, int index) const {
     const int64_t p1 = static_cast<int64_t>(c.period) + 1;
     switch (c.mode) {
         case MODE_WAVE_A:
-            return DIVISOR * p1 * UNITS_PER_CLOCK / WAVE_A_STEPS;  // 14,25 clocks * (P+1)
+            return DIVISOR * p1 * UNITS_PER_CLOCK / WAVE_A_STEPS;  // 7,125 clocks * (P+1)
         case MODE_WAVE_B:
-            return DIVISOR * p1 * UNITS_PER_CLOCK / WAVE_B_STEPS;  // 7,125 clocks * (P+1)
+            return DIVISOR * p1 * UNITS_PER_CLOCK / WAVE_B_STEPS;  // 3,5625 clocks * (P+1)
         case MODE_NOISE:
             switch (c.noiseRate) {
                 case NOISE_DIV1024: return 1024 * UNITS_PER_CLOCK;
@@ -151,10 +151,10 @@ void Chip::write(int channel, int reg, uint8_t value) {
             }
             break;
         }
-        case 1: c.period = static_cast<uint16_t>((c.period & 0x700) | value); break;
+        case 1: c.period = static_cast<uint16_t>((c.period & 0xF00) | value); break;
         case 2:
-            c.period = static_cast<uint16_t>((c.period & 0x0FF) | ((value & 7) << 8));
-            c.noiseRate = (value >> 3) & 7;  // taxa de ruido: 3 bits (codigos 6 e 7 reservados)
+            c.period = static_cast<uint16_t>((c.period & 0x0FF) | ((value & 0x0F) << 8));
+            c.noiseRate = (value >> 4) & 7;  // taxa de ruido: 3 bits (bits 6-4) (codigos 6 e 7 reservados)
             break;
     }
 }

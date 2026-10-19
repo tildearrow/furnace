@@ -21,9 +21,9 @@
 #include "../engine.h"
 #include <math.h>
 
-// divisor de afinacao do BR811: frequencia = clock / (114 * (periodo + 1))
-#define CHIP_DIVIDER 114
-// o chip e emulado a clock/57 (duas amostras por passo de 114 ciclos)
+// divisor de afinacao do BR811: frequencia = clock / (57 * (periodo + 1)), periodo de 12 bits
+#define CHIP_DIVIDER 57
+// o chip e emulado a clock/57 (uma amostra por unidade do divisor)
 #define RATE_DIVIDER 57
 #define BR811_CLOCK 6420000
 
@@ -102,10 +102,10 @@ void DivPlatformBR811::commit(int ch) {
   if (vol>15) vol=15;
   int period=chan[ch].period;
   if (period<0) period=0;
-  if (period>2047) period=2047;
+  if (period>4095) period=4095;
 
   chipWrite(ch,1,period&0xff);
-  chipWrite(ch,2,((period>>8)&7)|(sourceNoiseRate[src]<<3));
+  chipWrite(ch,2,((period>>8)&15)|(sourceNoiseRate[src]<<4));
   chipWrite(ch,0,(mode<<6)|vol);
   chan[ch].dirty=false;
 }
@@ -175,7 +175,7 @@ void DivPlatformBR811::tick(bool sysTick) {
         // a tabela de afinacao entrega (periodo + 1); o registrador guarda o periodo
         chan[i].freq--;
         if (chan[i].freq<0) chan[i].freq=0;
-        if (chan[i].freq>2047) chan[i].freq=2047;
+        if (chan[i].freq>4095) chan[i].freq=4095;
       }
       chan[i].period=chan[i].freq;
       chan[i].keyOn=false;
@@ -369,11 +369,11 @@ void DivPlatformBR811::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformBR811::notifyPitchTable(int sample) {
-  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,2048,true,parent->song.compatFlags.linearPitch);
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,4096,true,parent->song.compatFlags.linearPitch);
 }
 
 unsigned int DivPlatformBR811::getMaxFreq(int ch) {
-  return 2047;
+  return 4095;
 }
 
 void DivPlatformBR811::setFlags(const DivConfig& flags) {
