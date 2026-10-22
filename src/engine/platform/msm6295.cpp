@@ -352,6 +352,10 @@ unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
   return 0;
 }
 
+size_t DivPlatformMSM6295::getSampleMemNum() {
+  return 1;
+}
+
 int DivPlatformMSM6295::getSampleGroup(int chan) {
   return (isBanked?2:0)|(rateSel&1);
 }

@@ -761,6 +761,10 @@ int DivPlatformQSound::getRegisterPoolDepth() {
   return 16;
 }
 
+size_t DivPlatformQSound::getSampleMemNum() {
+  return 1;
+}
+
 int DivPlatformQSound::getSampleGroup(int chan) {
   return (chan<16)?1:0;
 }

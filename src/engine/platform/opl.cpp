@@ -3582,6 +3582,10 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 }
 
+size_t DivPlatformOPL::getSampleMemNum() {
+  return ((pcmChanOffs>=0) || (adpcmChan>=0))?1:0;
+}
+
 int DivPlatformOPL::getMaxSamples(int index) {
   return (index==0 && pcmChanOffs>=0)?(PCM_IN_RAM?128:512):
           (index==0 && adpcmChan>=0)?32768:0;
