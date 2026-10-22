@@ -606,9 +606,9 @@ void DivEngine::registerSystems() {
     {0x10, {DIV_CMD_FM_LFO, _("10xy: Setup LFO (x: enable; y: speed)")}},
     {0x55, {DIV_CMD_FM_SSG, _("55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)"), effectOpVal<4>, effectValAnd<15>}},
   });
-
   EffectHandlerMap fmOPN2PostEffectHandlerMap(fmOPNPostEffectHandlerMap);
-  fmOPN2PostEffectHandlerMap.insert(ayPostEffectHandlerMap.begin(), ayPostEffectHandlerMap.end());
+  fmOPNPostEffectHandlerMap.insert(ayPostEffectHandlerMap.begin(), ayPostEffectHandlerMap.end());
+
   fmOPN2PostEffectHandlerMap.insert({
     {0x6c, {DIV_CMD_TEST_REG, _("6Cxx: Set test register $21 (dangerous)"), constVal<0x21>, effectVal}},
     {0x6d, {DIV_CMD_TEST_REG, _("6Dxx: Set test register $2C (dangerous)"), constVal<0x2c>, effectVal}},
