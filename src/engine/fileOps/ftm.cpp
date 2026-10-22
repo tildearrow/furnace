@@ -993,6 +993,12 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
               if (blockVersion >= 7) {
                 unsigned int notes = reader.readI();
+                if (notes > 120) {
+                  logE("DPCM note count %u out of range!", notes);
+                  lastError = "DPCM note count out of range";
+                  delete[] file;
+                  return false;
+                }
                 dpcmNotes = notes;
               }
 
@@ -1599,6 +1605,10 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len, bool dnft, bool dnft_si
 
         for (int sub = 0; sub < subsongs; sub++) {
           unsigned char used = reader.readC();
+          if (sub >= (int)ds.subsong.size()) {
+            logW("subsongs count mimatch! (%d / %d)",(int)ds.subsong.size(),subsongs);
+            break;
+          }
 
           if (used) {
             ds.subsong[sub]->speeds = ds.grooves[0];
