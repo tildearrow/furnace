@@ -70,6 +70,23 @@ struct DeltaWrite {
     absol(a) {}
 };
 
+struct DeltaMapped {
+  int popularity, rank;
+  bool used;
+  DeltaMapped& operator++() {
+    ++popularity;
+    return *this;
+  }
+  DeltaMapped(int p, int r, bool u=false):
+    popularity(p),
+    rank(r),
+    used(u) {}
+  DeltaMapped():
+    popularity(0),
+    rank(-1),
+    used(0) {}
+};
+
 struct DataBlock {
   int* data;
   size_t len;
@@ -144,20 +161,21 @@ size_t stripNops(int* ptr, size_t len) {
   return ret;
 }
 
-void sortDeltas(std::map<unsigned short,int>& deltas) {
+void sortDeltas(std::map<unsigned short,DeltaMapped>& deltas) {
   int sortRank=0;
   while (true) {
     auto best=deltas.end();
     int bestPopularity=0;
     for (auto i=deltas.begin(); i!=deltas.end(); i++) {
-      if (i->second>bestPopularity) {
+      if (i->second.rank!=-1) continue;
+      if (i->second.popularity>bestPopularity) {
         best=i;
-        bestPopularity=i->second;
+        bestPopularity=i->second.popularity;
       }
     }
     if (best==deltas.end()) break;
-    logV("%d. %.4x: %d",sortRank+1,best->first,best->second);
-    best->second=-(sortRank++);
+    logV("%d. %.4x: %d",sortRank+1,best->first,best->second.popularity);
+    best->second.rank=sortRank++;
   }
 }
 
@@ -183,14 +201,18 @@ void DivExportC64::run() {
   std::map<WriteGroup,int> writePopularity;
   std::vector<WriteGroup> writePopularitySorted;
 
-  std::map<unsigned short,int> freqPopularity;
-  std::map<unsigned short,int> freqDeltaPopularity;
-  std::map<unsigned short,int> dutyPopularity;
-  std::map<unsigned short,int> dutyDeltaPopularity;
+  std::map<unsigned short,DeltaMapped> freqPopularity;
+  std::map<unsigned short,DeltaMapped> freqDeltaPopularity;
+  std::map<unsigned short,DeltaMapped> dutyPopularity;
+  std::map<unsigned short,DeltaMapped> dutyDeltaPopularity;
 
   int* allWrites;
   size_t allWritesLen=0;
   size_t chWritesOff[4];
+
+  int* allFreqs;
+  size_t allFreqsLen=0;
+  size_t chFreqsOff[4];
 
   e->synchronizedSoft([&]() {
     // Determine loop point.
@@ -294,8 +316,8 @@ void DivExportC64::run() {
       unsigned short delta=chFreq[j][i].val-lastFreq[j];
       lastFreq[j]=chFreq[j][i].val;
       if (delta==0) continue;
-      freqPopularity[chFreq[j][i].val]++;
-      freqDeltaPopularity[delta]++;
+      ++freqPopularity[chFreq[j][i].val];
+      ++freqDeltaPopularity[delta];
     }
   }
 
@@ -308,8 +330,8 @@ void DivExportC64::run() {
       unsigned short delta=(chDuty[j][i].val-lastDuty[j])&0xfff;
       lastDuty[j]=chDuty[j][i].val;
       if (delta==0) continue;
-      dutyPopularity[chDuty[j][i].val]++;
-      dutyDeltaPopularity[delta]++;
+      ++dutyPopularity[chDuty[j][i].val];
+      ++dutyDeltaPopularity[delta];
     }
   }
 
@@ -348,14 +370,90 @@ void DivExportC64::run() {
     writePopularity[i]=index++;
   }
 
-  // prepare to conglomerate writes
+  // prepare to map frequency writes
+  logD("calculating initial frequency size...");
+  for (int i=0; i<3; i++) {
+    // +1 for end of data marker
+    allFreqsLen+=chFreq[i].size()+1;
+  }
+  allFreqs=new int[allFreqsLen];
+  logV("%d entries",(int)allFreqsLen);
+
+  // map frequency writes
+  logD("mapping frequency writes...");
+  int* allFreqsPtr=allFreqs;
+  for (int i=0; i<3; i++) {
+    chFreqsOff[i]=allFreqsPtr-allFreqs;
+    DeltaMapped* mapped=NULL;
+    DeltaMapped* mappedDelta=NULL;
+
+    logV("------- CHANNEL %d -------",i);
+    for (size_t _j=0; _j<chFreq[i].size(); _j++) {
+      DeltaWrite& j=chFreq[i][_j];
+
+      // the idea is to check which is more convenient to use.
+      // delta, or absolute.
+      // for this we have to check the next write, and see whether we have identical delta values.
+      // if not, then check which is more popular, and use that.
+
+      try {
+        mapped=&freqPopularity[j.val];
+      } catch (std::exception& e) {
+        mapped=NULL;
+        logW("missing entry for write!");
+      }
+
+      // compare
+      if (_j==0) {
+        // the first value is always absolute
+        *allFreqsPtr=mapped->rank;
+        mapped->used=true;
+      } else {
+        // check whether we have a change
+        DeltaWrite& j_prev=chFreq[i][_j-1];
+        if (j_prev.val==j.val) {
+          *allFreqsPtr=-1;
+        } else {
+          // find the delta value's rank
+          try {
+            mappedDelta=&freqDeltaPopularity[(j.val-j_prev.val)&0xffff];
+          } catch (std::exception& e) {
+            mappedDelta=NULL;
+            logW("missing entry for write!");
+          }
+
+          // check which is more popular
+          if (mappedDelta->popularity>mapped->popularity) {
+            *allFreqsPtr=0x40000000|mappedDelta->rank;
+            mappedDelta->used=true;
+          } else {
+            *allFreqsPtr=mapped->rank;
+            mapped->used=true;
+          }
+        }
+      }
+
+      logV("%.8x",*allFreqsPtr);
+
+      allFreqsPtr++;
+    }
+    // end of data marker
+    *(allFreqsPtr++)=-2;
+    chFreq[i].clear();
+    logV("chFreqsOff[%d]: %d",i,(int)chFreqsOff[i]);
+  }
+
+  // prepare to conglomerate status writes
+  logD("calculating initial status size...");
   for (int i=0; i<4; i++) {
     // +1 for end of data marker
     allWritesLen+=chWrites[i].size()+1;
   }
   allWrites=new int[allWritesLen];
+  logV("%d entries",(int)allWritesLen);
 
   // conglomerate writes
+  logD("mapping status writes...");
   int* allWritesPtr=allWrites;
   for (int i=0; i<4; i++) {
     chWritesOff[i]=allWritesPtr-allWrites;
