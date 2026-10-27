@@ -370,6 +370,8 @@ hex | description
 ```
 hex | description
 ----|------------------------------------
+ 0d | pre-note (b)
+----|------------------------------------
  1c | sample mode (b)
  1d | sample freq (b)
  1e | legacy sample bank (b)

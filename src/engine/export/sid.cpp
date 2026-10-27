@@ -101,7 +101,7 @@ struct DataBlock {
     useCount(0) {}
 };
 
-// compressed chan flags/ADSR regs format:
+// compressed write format:
 // 00-7F: call group + next tick
 // 80-EF: call sub-block
 // F0-FB: preset wait (F0 is always one tick)
@@ -179,6 +179,121 @@ void sortDeltas(std::map<unsigned short,DeltaMapped>& deltas) {
   }
 }
 
+void compressFindBlocks(int* data, size_t len, size_t* off, std::vector<DataBlock>& blocks) {
+  bool foundBlock=true;
+  bool ignoreCalls=true;
+  while (foundBlock) {
+    int bestBenefit=0;
+    size_t bestSize=0;
+    size_t bestPos=0;
+    foundBlock=false;
+    logD("current data size: %d",(int)len);
+    logD("finding blocks...");
+    for (size_t size=2; size<(ignoreCalls?16:16); size++) {
+      logD("size %d...",(int)size);
+      for (size_t i=0; i<len-size; i++) {
+        // check whether this block may be searched for:
+        // - it shouldn't contain exclusively wait commands
+        // - it shouldn't contain special commands
+        // - it's best it does not begin with a wait
+        bool isValid=false;
+        bool areWeWaiting=false;
+        int numOfWaits=0;
+        for (size_t j=i; j<i+size; j++) {
+          //if (j==i) {
+            //if (data[j]==-1) break;
+          //}
+          if (data[j]>=0) {
+            isValid=true;
+            areWeWaiting=false;
+          } else if (data[j]==-1) { // wait one tick
+            if (areWeWaiting) numOfWaits++;
+            areWeWaiting=true;
+          } else if (data[j]==-2 || data[j]==-3 || data[j]==-4) { // other commands/blocks
+            isValid=false;
+            break;
+          } else if (data[j]&0x80000000 && ignoreCalls) {
+            isValid=false;
+            break;
+          } else {
+            isValid=true;
+            areWeWaiting=false;
+          }
+        }
+
+        if (!isValid) continue;
+
+        // otherwise begin block search
+        int matchCount=0;
+        for (size_t j=i+size; j<len-size; j++) {
+          if (memcmp(&data[j],&data[i],size*sizeof(int))==0) {
+            matchCount++;
+            j+=size-1;
+          }
+        }
+
+        // calculate benefit
+        if (matchCount>1) {
+          // -1 for ret command
+          // -2 for entry in call table
+          int benefit=(matchCount*(size-1-numOfWaits))-3;
+          if (benefit>bestBenefit) {
+            bestBenefit=benefit;
+            bestSize=size;
+            bestPos=i;
+            foundBlock=true;
+            logV("- %x (benefit %d)",i,benefit);
+          }
+        }
+      }
+    }
+
+    // isolate block and begin replacing around
+    if (foundBlock) {
+      logD("best block: %x (%d bytes; benefit %d)",bestPos,(int)bestSize,bestBenefit);
+
+      // copy block
+      size_t newBlockLen=bestSize+1;
+      int* newBlock=new int[newBlockLen];
+      int useCount=0;
+
+      memcpy(newBlock,&data[bestPos],bestSize*sizeof(int));
+      newBlock[bestSize]=-3; // ret
+
+      // replace occurrences of this block
+      for (size_t j=bestPos; j<len-bestSize; j++) {
+        if (memcmp(&data[j],newBlock,bestSize*sizeof(int))==0) {
+          for (size_t k=j; k<j+bestSize; k++) {
+            data[k]=-4; // nop
+            // block index
+            if (k==j) data[k]=0x80000000|(int)blocks.size();
+          }
+
+          useCount++;
+          j+=bestSize-1;
+        }
+      }
+
+      logD("pushing... (%d)",(int)blocks.size());
+      blocks.push_back(DataBlock(newBlock,newBlockLen,useCount));
+      if (blocks.size()>=112) {
+        logD("block limit reached!");
+        break;
+      }
+    } else {
+      if (ignoreCalls) {
+        logD("no more blocks - now considering calls...");
+        ignoreCalls=false;
+        foundBlock=true;
+      } else {
+        logD("no more blocks");
+      }
+    }
+
+    len=stripNops(data,len);
+  }
+}
+
 void DivExportC64::run() {
   SafeWriter* w=new SafeWriter;
   w->init(); 
@@ -213,6 +328,10 @@ void DivExportC64::run() {
   int* allFreqs;
   size_t allFreqsLen=0;
   size_t chFreqsOff[4];
+  
+  int* allDuties;
+  size_t allDutiesLen=0;
+  size_t chDutiesOff[4];
 
   e->synchronizedSoft([&]() {
     // Determine loop point.
@@ -387,7 +506,6 @@ void DivExportC64::run() {
     DeltaMapped* mapped=NULL;
     DeltaMapped* mappedDelta=NULL;
 
-    logV("------- CHANNEL %d -------",i);
     for (size_t _j=0; _j<chFreq[i].size(); _j++) {
       DeltaWrite& j=chFreq[i][_j];
 
@@ -433,14 +551,82 @@ void DivExportC64::run() {
         }
       }
 
-      logV("%.8x",*allFreqsPtr);
-
       allFreqsPtr++;
     }
     // end of data marker
     *(allFreqsPtr++)=-2;
     chFreq[i].clear();
     logV("chFreqsOff[%d]: %d",i,(int)chFreqsOff[i]);
+  }
+
+  // prepare to map duty writes
+  logD("calculating initial duty size...");
+  for (int i=0; i<3; i++) {
+    // +1 for end of data marker
+    allDutiesLen+=chDuty[i].size()+1;
+  }
+  allDuties=new int[allDutiesLen];
+  logV("%d entries",(int)allDutiesLen);
+
+  // map duty writes
+  logD("mapping duty writes...");
+  int* allDutiesPtr=allDuties;
+  for (int i=0; i<3; i++) {
+    chDutiesOff[i]=allDutiesPtr-allDuties;
+    DeltaMapped* mapped=NULL;
+    DeltaMapped* mappedDelta=NULL;
+
+    for (size_t _j=0; _j<chDuty[i].size(); _j++) {
+      DeltaWrite& j=chDuty[i][_j];
+
+      // the idea is to check which is more convenient to use.
+      // delta, or absolute.
+      // for this we have to check the next write, and see whether we have identical delta values.
+      // if not, then check which is more popular, and use that.
+
+      try {
+        mapped=&freqPopularity[j.val];
+      } catch (std::exception& e) {
+        mapped=NULL;
+        logW("missing entry for write!");
+      }
+
+      // compare
+      if (_j==0) {
+        // the first value is always absolute
+        *allDutiesPtr=mapped->rank;
+        mapped->used=true;
+      } else {
+        // check whether we have a change
+        DeltaWrite& j_prev=chDuty[i][_j-1];
+        if (j_prev.val==j.val) {
+          *allDutiesPtr=-1;
+        } else {
+          // find the delta value's rank
+          try {
+            mappedDelta=&freqDeltaPopularity[(j.val-j_prev.val)&0xfff];
+          } catch (std::exception& e) {
+            mappedDelta=NULL;
+            logW("missing entry for write!");
+          }
+
+          // check which is more popular
+          if (mappedDelta->popularity>mapped->popularity) {
+            *allDutiesPtr=0x40000000|mappedDelta->rank;
+            mappedDelta->used=true;
+          } else {
+            *allDutiesPtr=mapped->rank;
+            mapped->used=true;
+          }
+        }
+      }
+
+      allDutiesPtr++;
+    }
+    // end of data marker
+    *(allDutiesPtr++)=-2;
+    chDuty[i].clear();
+    logV("chDutiesOff[%d]: %d",i,(int)chDutiesOff[i]);
   }
 
   // prepare to conglomerate status writes
@@ -476,125 +662,31 @@ void DivExportC64::run() {
     logV("chWritesOff[%d]: %d",i,(int)chWritesOff[i]);
   }
 
-  // find patterns and compress
-  logD("compressing...");
+  // find patterns and compress everything
   std::vector<DataBlock> blocks;
+  std::vector<DataBlock> freqBlocks;
+  std::vector<DataBlock> dutyBlocks;
 
-  bool foundBlock=true;
-  bool ignoreCalls=true;
-  while (foundBlock) {
-    int bestBenefit=0;
-    size_t bestSize=0;
-    size_t bestPos=0;
-    foundBlock=false;
-    logD("current data size: %d",(int)allWritesLen);
-    logD("finding blocks...");
-    for (size_t size=2; size<(ignoreCalls?16:16); size++) {
-      logD("size %d...",(int)size);
-      for (size_t i=0; i<allWritesLen-size; i++) {
-        // check whether this block may be searched for:
-        // - it shouldn't contain exclusively wait commands
-        // - it shouldn't contain special commands
-        // - it's best it does not begin with a wait
-        bool isValid=false;
-        bool areWeWaiting=false;
-        int numOfWaits=0;
-        for (size_t j=i; j<i+size; j++) {
-          //if (j==i) {
-            //if (allWrites[j]==-1) break;
-          //}
-          if (allWrites[j]>=0) {
-            isValid=true;
-            areWeWaiting=false;
-          } else if (allWrites[j]==-1) { // wait one tick
-            if (areWeWaiting) numOfWaits++;
-            areWeWaiting=true;
-          } else if (allWrites[j]==-2 || allWrites[j]==-3 || allWrites[j]==-4) { // other commands/blocks
-            isValid=false;
-            break;
-          } else if (allWrites[j]&0x80000000 && ignoreCalls) {
-            isValid=false;
-            break;
-          } else {
-            isValid=true;
-            areWeWaiting=false;
-          }
-        }
+  logD("compressing status...");
+  compressFindBlocks(allWrites,allWritesLen,chWritesOff,blocks);
 
-        if (!isValid) continue;
-
-        // otherwise begin block search
-        int matchCount=0;
-        for (size_t j=i+size; j<allWritesLen-size; j++) {
-          if (memcmp(&allWrites[j],&allWrites[i],size*sizeof(int))==0) {
-            matchCount++;
-            j+=size-1;
-          }
-        }
-
-        // calculate benefit
-        if (matchCount>1) {
-          // -1 for ret command
-          // -2 for entry in call table
-          int benefit=(matchCount*(size-1-numOfWaits))-3;
-          if (benefit>bestBenefit) {
-            bestBenefit=benefit;
-            bestSize=size;
-            bestPos=i;
-            foundBlock=true;
-            logV("- %x (benefit %d)",i,benefit);
-          }
-        }
-      }
-    }
-
-    // isolate block and begin replacing around
-    if (foundBlock) {
-      logD("best block: %x (%d bytes; benefit %d)",bestPos,(int)bestSize,bestBenefit);
-
-      // copy block
-      size_t newBlockLen=bestSize+1;
-      int* newBlock=new int[newBlockLen];
-      int useCount=0;
-
-      memcpy(newBlock,&allWrites[bestPos],bestSize*sizeof(int));
-      newBlock[bestSize]=-3; // ret
-
-      // replace occurrences of this block
-      for (size_t j=bestPos; j<allWritesLen-bestSize; j++) {
-        if (memcmp(&allWrites[j],newBlock,bestSize*sizeof(int))==0) {
-          for (size_t k=j; k<j+bestSize; k++) {
-            allWrites[k]=-4; // nop
-            // block index
-            if (k==j) allWrites[k]=0x80000000|(int)blocks.size();
-          }
-
-          useCount++;
-          j+=bestSize-1;
-        }
-      }
-
-      logD("pushing... (%d)",(int)blocks.size());
-      blocks.push_back(DataBlock(newBlock,newBlockLen,useCount));
-      if (blocks.size()>=112) {
-        logD("block limit reached!");
-        break;
-      }
-    } else {
-      if (ignoreCalls) {
-        logD("no more blocks - now considering calls...");
-        ignoreCalls=false;
-        foundBlock=true;
-      } else {
-        logD("no more blocks");
-      }
-    }
-
-    allWritesLen=stripNops(allWrites,allWritesLen);
-  }
-
+  logD("compressing frequency...");
+  compressFindBlocks(allFreqs,allFreqsLen,chFreqsOff,freqBlocks);
+  
+  logD("compressing duty...");
+  compressFindBlocks(allDuties,allDutiesLen,chDutiesOff,dutyBlocks);
+  
+  logD("writing data...");
   writeData(w,allWrites,allWritesLen);
   for (DataBlock& i: blocks) {
+    writeData(w,i.data,i.len);
+  }
+  writeData(w,allFreqs,allFreqsLen);
+  for (DataBlock& i: freqBlocks) {
+    writeData(w,i.data,i.len);
+  }
+  writeData(w,allDuties,allDutiesLen);
+  for (DataBlock& i: dutyBlocks) {
     writeData(w,i.data,i.len);
   }
 

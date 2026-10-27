@@ -177,6 +177,7 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_KLATTSCH_GAIN:
     case DIV_CMD_KLATTSCH_BW_SCALE:
     case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
+    case DIV_CMD_PRE_NOTE:
       return 1;
     case DIV_CMD_FM_TL:
     case DIV_CMD_FM_AM:
@@ -612,6 +613,7 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_KLATTSCH_GAIN:
     case DIV_CMD_KLATTSCH_BW_SCALE:
     case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
+    case DIV_CMD_PRE_NOTE:
       w->writeC(c.value);
       break;
     case DIV_CMD_FM_TL:
@@ -1497,7 +1499,6 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
         case DIV_CMD_NOTE_PORTA:
         case DIV_CMD_LEGATO:
         case DIV_CMD_PITCH:
-        case DIV_CMD_PRE_NOTE:
           break;
         default:
           if (i.cmd==DIV_CMD_HINT_VOLUME) {
@@ -1667,7 +1668,9 @@ void DivEngine::saveCommand(DivObjectPool& pool, DivCSProgress* progress, DivCSO
     sortPos=0;
     while (sortPos<4) {
       sortCand=-1;
-      for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
+      for (int i=DIV_CMD_PRE_NOTE; i<256; i++) {
+        // don't count the hints
+        if (i>=DIV_CMD_HINT_VIBRATO && i<=DIV_CMD_HINT_PANNING) continue;
         if (cmdPopularity[i]) {
           if (sortCand==-1) {
             sortCand=i;

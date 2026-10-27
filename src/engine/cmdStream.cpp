@@ -511,6 +511,7 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_KLATTSCH_GAIN:
           case DIV_CMD_KLATTSCH_BW_SCALE:
           case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
+          case DIV_CMD_PRE_NOTE:
             arg0=(unsigned char)stream.readC();
             break;
           // TWO BYTE COMMANDS
