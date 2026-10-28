@@ -324,7 +324,7 @@ fcsFullCmd:
   ; read command
   fcsReadNext
   tay
-  lda fcsFullCmdTable-28,y
+  lda fcsFullCmdTable-$0d,y
   tay
   lda fcsCmdReadTableLow,y
   sta fcsTempPtr
@@ -336,7 +336,7 @@ fcsSpeedDialCmd:
   lda fcsSpeedDial-224,y
   pha
   tay
-  lda fcsFullCmdTable-28,y
+  lda fcsFullCmdTable-$0d,y
   tay
   lda fcsCmdReadTableLow,y
   sta fcsTempPtr
@@ -1006,8 +1006,22 @@ fcsCmdReadTableLow:
   .db <fcsTwoShortDispatch
 
 fcsFullCmdTable:
-  ; starting from $1c
-  .db 1
+  ; starting from $0d
+  .db 1 ; pre note
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 0
+  .db 1 ; sample mode
   .db 1
   .db 1
   .db 4
