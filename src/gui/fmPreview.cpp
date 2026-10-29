@@ -321,12 +321,17 @@ void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
         break;
       }
     }
+    unsigned char opMask=
+      (params.op[0].enable?1:0)|
+      (params.op[2].enable?2:0)|
+      (params.op[1].enable?4:0)|
+      (params.op[3].enable?8:0);
     for (int i=0; i<4; i++) {
       const DivInstrumentFM::Operator& op=params.op[i];
       unsigned short baseAddr=i*8;
       OPZ_WRITE(baseAddr+0x40,(op.mult&15)|((op.egt?(op.dt&7):dtTableFMP[op.dt&7])<<4));
       OPZ_WRITE(baseAddr+0x40,(op.dvb&15)|((op.ws&7)<<4)|0x80);
-      OPZ_WRITE(baseAddr+0x60,op.tl);
+      OPZ_WRITE(baseAddr+0x60,op.tl|(op.ksr?128:0));
       OPZ_WRITE(baseAddr+0x80,(op.ar&31)|(op.egt<<5)|(op.rs<<6));
       OPZ_WRITE(baseAddr+0xa0,(op.dr&31)|(op.am<<7));
       OPZ_WRITE(baseAddr+0xc0,(op.d2r&31)|(op.dt2<<6));
@@ -336,6 +341,7 @@ void FurnaceGUI::renderFMPreviewOPZ(const DivInstrumentFM& params, int pos) {
     OPZ_WRITE(0x38,((params.fms&7)<<4)|(params.ams&3)|(params.fmsLFO?0x80:0)|(params.amsLFO?0x04:0)|(params.tremLFO?0x08:0));
     OPZ_WRITE(0x28,mult0?0x39:0x29); // frequency
     OPZ_WRITE(0x30,0xe7);
+    OPZ_WRITE(0x08,opMask<<3);
     OPZ_WRITE(0x20,(params.alg&7)|((params.fb&7)<<3)|0x40); // key on
   }
 
