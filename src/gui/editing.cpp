@@ -289,6 +289,11 @@ void FurnaceGUI::doSelectAll() {
   curNibble=0;
   if (selStart.xFine==0 && selEnd.xFine==2+e->curPat[selEnd.xCoarse].effectCols*2) {
     if (selStart.y==0 && selEnd.y==e->curSubSong->patLen-1) { // select entire pattern
+      if (selStart.xCoarse==0 && selEnd.xCoarse==e->getTotalChannelCount()-1 && !orderLock) {
+        // select entire song if the pattern is selected
+        selStart.order=0;
+        selEnd.order=e->curSubSong->ordersLen-1;
+      }
       selStart.xCoarse=0;
       selStart.xFine=0;
       selEnd.xCoarse=e->getTotalChannelCount()-1;
