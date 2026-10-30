@@ -482,7 +482,7 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   rate=chipClock/coreQuality;
 
   for (int i=0; i<6; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->setRate(rate);
   }
 
   saa_saaSound->SetClockRate(chipClock);
