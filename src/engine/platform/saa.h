@@ -37,9 +37,9 @@ class DivPlatformSAA1099: public DivDispatch {
         psgMode(1),
         pan(255) {}
     };
-    Channel chan[6];
+    Channel chan[8];
     DivDispatchOscBuffer* oscBuf[6];
-    bool isMuted[6];
+    bool isMuted[8];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;

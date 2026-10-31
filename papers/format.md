@@ -195,7 +195,7 @@ the channel count is stored in the file in order to allow Furnace to load files 
 - 0x94: POKEY - 4 channels
 - 0x95: RF5C68 - 8 channels
 - 0x96: WonderSwan - 4 channels
-- 0x97: Philips SAA1099 - 6 channels
+- 0x97: Philips SAA1099 (legacy) - 6 channels
 - 0x98: OPZ (YM2414) - 8 channels
 - 0x99: Pokémon Mini - 1 channel
 - 0x9a: AY8930 - 3 channels
@@ -273,6 +273,7 @@ the channel count is stored in the file in order to allow Furnace to load files 
 - 0xe4: Namco Pole Position WSG - 8 channels
 - 0xe5: µPD1771C-017 - 4 channels
 - 0xe7: klattsch - 1 channel
+- 0xe9: Philips SAA1099 with timers - 8 channels
 - 0xf0: SID2 - 3 channels
 - 0xf1: 5E01 - 5 channels
 - 0xf5: SID3 - 7 channels

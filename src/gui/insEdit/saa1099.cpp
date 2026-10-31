@@ -31,7 +31,7 @@ static const char* saaEnvBits[9]={
   _N("cut"),
   _N("direction"),
   _N("resolution"),
-  _N("fixed"),
+  _N("use timer"),
   _N("N/A"),
   _N("enabled"),
   NULL

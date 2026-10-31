@@ -24,7 +24,14 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) { \
+  if ((a)>=0 && !skipRegisterWrites) { \
+    writes.push(QueuedWrite((a),(v))); \
+    if (dumpWrites) { \
+      addWrite((a),(v)); \
+    } \
+  } \
+}
 
 #define CHIP_DIVIDER 2
 
@@ -51,6 +58,16 @@ const char* regCheatSheetSAA[]={
   "EnvCtl1", "19",
   "Power", "1C",
   NULL
+};
+
+// these are used to map Furnace channels to SAA ones.
+// this is done in order to have the timers after each channel group (which is more intuitive).
+static const signed char volRegs[8]={
+  0, 1, 2, -1, 3, 4, 5, -1
+};
+
+static const signed char freqRegs[8]={
+  8, 9, 10, -1, 11, 12, 13, -1
 };
 
 const char** DivPlatformSAA1099::getRegisterSheet() {
@@ -100,15 +117,15 @@ inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
 }
 
 void DivPlatformSAA1099::tick(bool sysTick) {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (isMuted[i]) {
-        rWrite(i,0);
+        rWrite(volRegs[i],0);
       } else {
-        rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
+        rWrite(volRegs[i],applyPan(chan[i].outVol&15,chan[i].pan));
       }
     }
     if (NEW_ARP_STRAT) {
@@ -120,7 +137,7 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.duty.had) {
-      saaNoise[i/3]=chan[i].std.duty.val&3;
+      saaNoise[i/4]=chan[i].std.duty.val&3;
       rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
     }
     if (chan[i].std.wave.had) {
@@ -137,12 +154,12 @@ void DivPlatformSAA1099::tick(bool sysTick) {
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
       if (isMuted[i]) {
-        rWrite(i,0);
+        rWrite(volRegs[i],0);
       } else {
         if (chan[i].std.vol.had) {
-          if (chan[i].active) rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
+          if (chan[i].active) rWrite(volRegs[i],applyPan(chan[i].outVol&15,chan[i].pan));
         } else {
-          if (chan[i].active) rWrite(i,applyPan(chan[i].vol&15,chan[i].pan));
+          if (chan[i].active) rWrite(volRegs[i],applyPan(chan[i].vol&15,chan[i].pan));
         }
       }
     }
@@ -156,8 +173,8 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
-      saaEnv[i/3]=chan[i].std.ex1.val;
-      rWrite(0x18+(i/3),saaEnv[i/3]);
+      saaEnv[i/4]=chan[i].std.ex1.val;
+      rWrite(0x18+(i/4),saaEnv[i/4]);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].calcFreq();
@@ -177,10 +194,21 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff) {
-        rWrite(i,0);
+        rWrite(volRegs[i],0);
       }
-      rWrite(0x08+i,chan[i].freqL);
-      rWrite(0x10+(i>>1),chan[i&6].freqH|(chan[1+(i&6)].freqH<<4));
+      rWrite(freqRegs[i],chan[i].freqL);
+      // update octave registers
+      switch (i) {
+        case 0: case 1: // channel 1-2
+          rWrite(0x10,chan[0].freqH|(chan[1].freqH<<4));
+          break;
+        case 2: case 4: // channel 3-4
+          rWrite(0x11,chan[2].freqH|(chan[4].freqH<<4));
+          break;
+        case 5: case 6: // channel 5-6
+          rWrite(0x12,chan[5].freqH|(chan[6].freqH<<4));
+          break;
+      }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -190,17 +218,17 @@ void DivPlatformSAA1099::tick(bool sysTick) {
   rWrite(0x14,(chan[0].psgMode&1)|
               ((chan[1].psgMode&1)<<1)|
               ((chan[2].psgMode&1)<<2)|
-              ((chan[3].psgMode&1)<<3)|
-              ((chan[4].psgMode&1)<<4)|
-              ((chan[5].psgMode&1)<<5)
+              ((chan[4].psgMode&1)<<3)|
+              ((chan[5].psgMode&1)<<4)|
+              ((chan[6].psgMode&1)<<5)
   );
 
   rWrite(0x15,((chan[0].psgMode&2)>>1)|
               (chan[1].psgMode&2)|
               ((chan[2].psgMode&2)<<1)|
-              ((chan[3].psgMode&2)<<2)|
-              ((chan[4].psgMode&2)<<3)|
-              ((chan[5].psgMode&2)<<4)
+              ((chan[4].psgMode&2)<<2)|
+              ((chan[5].psgMode&2)<<3)|
+              ((chan[6].psgMode&2)<<4)
   );
 }
 
@@ -220,9 +248,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (isMuted[c.chan]) {
-        rWrite(c.chan,0);
+        rWrite(volRegs[c.chan],0);
       } else {
-        rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
+        rWrite(volRegs[c.chan],applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
       }
       break;
     }
@@ -241,9 +269,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
         chan[c.chan].outVol=c.value;
       }
       if (isMuted[c.chan]) {
-        rWrite(c.chan,0);
+        rWrite(volRegs[c.chan],0);
       } else {
-        if (chan[c.chan].active) rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
+        if (chan[c.chan].active) rWrite(volRegs[c.chan],applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
       }
       break;
     }
@@ -288,9 +316,9 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
     case DIV_CMD_PANNING:
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       if (isMuted[c.chan]) {
-        rWrite(c.chan,0);
+        rWrite(volRegs[c.chan],0);
       } else {
-        if (chan[c.chan].active) rWrite(c.chan,applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
+        if (chan[c.chan].active) rWrite(volRegs[c.chan],applyPan(chan[c.chan].vol&15,chan[c.chan].pan));
       }
       break;
     case DIV_CMD_LEGATO: {
@@ -302,12 +330,12 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       chan[c.chan].psgMode=(c.value&1)|((c.value&16)>>3);
       break;
     case DIV_CMD_STD_NOISE_FREQ:
-      saaNoise[c.chan/3]=(c.value&3);
+      saaNoise[c.chan/4]=(c.value&3);
       rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
       break;
     case DIV_CMD_SAA_ENVELOPE:
-      saaEnv[c.chan/3]=c.value;
-      rWrite(0x18+(c.chan/3),c.value);
+      saaEnv[c.chan/4]=c.value;
+      rWrite(0x18+(c.chan/4),c.value);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -340,14 +368,14 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
 void DivPlatformSAA1099::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
-    rWrite(ch,0);
+    rWrite(volRegs[ch],0);
   } else {
-    if (chan[ch].active) rWrite(ch,applyPan(chan[ch].outVol&15,chan[ch].pan));
+    if (chan[ch].active) rWrite(volRegs[ch],applyPan(chan[ch].outVol&15,chan[ch].pan));
   }
 }
 
 void DivPlatformSAA1099::forceIns() {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<8; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
@@ -369,8 +397,8 @@ unsigned short DivPlatformSAA1099::getPan(int ch) {
 }
 
 void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
-  if ((ch%3)==1) {
-    if (saaEnv[ch/3]&0x80) {
+  if ((ch%4)==1) {
+    if (saaEnv[ch/4]&0x80 && !(saaEnv[ch/4]&0x20)) {
       ret.push_back(DivChannelPair(_("env >"),ch+1));
     }
   }
@@ -402,7 +430,7 @@ void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,32);
   saa_saaSound->Clear();
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<8; i++) {
     chan[i]=DivPlatformSAA1099::Channel(parent->song.compatFlags.linearPitch);
     chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
@@ -456,7 +484,7 @@ bool DivPlatformSAA1099::getLegacyAlwaysSetVolume() {
 }
 
 void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<8; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -530,8 +558,10 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivC
   dumpWrites=false;
   skipRegisterWrites=false;
   saa_saaSound=NULL;
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<8; i++) {
     isMuted[i]=false;
+  }
+  for (int i=0; i<6; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   saa_saaSound=CreateCSAASound();
