@@ -54,9 +54,9 @@ class DivPlatformSAA1099: public DivDispatch {
     unsigned char regPool[32];
     unsigned char lastBusy;
 
-    int delay;
+    int delay, timerRate, timerCounter;
 
-    bool extMode;
+    bool extMode, compat;
   
     short oldWrites[16];
     short pendingWrites[16];
@@ -97,6 +97,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     void setCoreQuality(unsigned char q);
+    void setCompat(bool isCompat);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };

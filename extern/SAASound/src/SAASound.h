@@ -81,7 +81,7 @@ public:
 	virtual unsigned short GetCurrentBytesPerSample () = 0;
 	static unsigned short GetBytesPerSample (SAAPARAM uParam);
 
-	virtual void GenerateMany (BYTE * pBuffer, unsigned int nSamples, DivDispatchOscBuffer** oscBuf) = 0;
+	virtual void GenerateMany (BYTE * pBuffer, unsigned int nSamples, DivDispatchOscBuffer** oscBuf, unsigned int offset) = 0;
 
 	virtual void SetClockRate(unsigned int nClockRate) = 0;
 	virtual void SetSampleRate(unsigned int nSampleRate) = 0;

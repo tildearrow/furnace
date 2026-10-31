@@ -91,7 +91,18 @@ void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
   for (int i=0; i<6; i++) {
     oscBuf[i]->begin(len);
   }
-  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf);
+
+  // TODO: all of this
+  size_t lastPos=0;
+  for (size_t h=0; h<len; h++) {
+    timerCounter+=timerRate;
+    if (timerCounter>=rate) {
+      timerCounter-=rate;
+      saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf,lastPos);
+      lastPos=h;
+    }
+  }
+  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf,lastPos);
   for (int i=0; i<6; i++) {
     oscBuf[i]->end(len);
   }
@@ -233,6 +244,7 @@ void DivPlatformSAA1099::tick(bool sysTick) {
 }
 
 int DivPlatformSAA1099::dispatch(DivCommand c) {
+  if (compat && c.chan>=3) c.chan++;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SAA1099);
@@ -366,6 +378,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
 }
 
 void DivPlatformSAA1099::muteChannel(int ch, bool mute) {
+  if (compat && ch>=3) ch++;
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(volRegs[ch],0);
@@ -385,26 +398,34 @@ void DivPlatformSAA1099::forceIns() {
 }
 
 SharedChannel* DivPlatformSAA1099::getChanState(int ch) {
+  if (compat && ch>=3) ch++;
   return &chan[ch];
 }
 
 DivMacroInt* DivPlatformSAA1099::getChanMacroInt(int ch) {
+  if (compat && ch>=3) ch++;
   return &chan[ch].std;
 }
 
 unsigned short DivPlatformSAA1099::getPan(int ch) {
+  if (compat && ch>=3) ch++;
   return ((chan[ch].pan&0xf0)<<4)|(chan[ch].pan&15);
 }
 
 void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  int realCh=ch;
+  if (compat && ch>=3) ch++;
   if ((ch%4)==1) {
     if (saaEnv[ch/4]&0x80 && !(saaEnv[ch/4]&0x20)) {
-      ret.push_back(DivChannelPair(_("env >"),ch+1));
+      ret.push_back(DivChannelPair(_("env >"),realCh+1));
     }
   }
 }
 
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
+  if (compat) return oscBuf[ch];
+  if (ch==3 || ch==7) return NULL;
+  if (ch>=4) return oscBuf[ch-1];
   return oscBuf[ch];
 }
 
@@ -509,6 +530,8 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/coreQuality;
 
+  timerRate=flags.getInt("timerRate",15625);
+
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -520,11 +543,11 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
 }
 
 void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
-  rWrite(addr,val);
+  rWrite((int)addr,val);
 }
 
 void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
-  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+  for (DivRegWrite& i: wlist) rWrite((int)i.addr,i.val);
 }
 
 void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
@@ -551,6 +574,10 @@ void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
       coreQuality=32;
       break;
   }
+}
+
+void DivPlatformSAA1099::setCompat(bool isCompat) {
+  compat=isCompat;
 }
 
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
