@@ -1828,6 +1828,9 @@ class DivEngine {
     // is running
     bool isRunning();
 
+    // is freelance
+    bool isFreelance();
+
     // is stepping
     bool isStepping();
 

@@ -74,6 +74,28 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
+void DivPlatformSAA1099::updateTimers() {
+  for (int i=3; i<8; i+=4) {
+    // in freelance mode, allow the user to test timers without holding a note.
+    if (chan[i].active || parent->isFreelance()) {
+      chan[i].timerAccum+=chan[i].freq;
+      // the counter is 16-bit, but we store it as 32-bit to detect carry.
+      if (chan[i].timerAccum>=0x10000 && saaEnv[i/4]&0x20) {
+        rWrite(0x18+(i/4),saaEnv[i/4]);
+      }
+      chan[i].timerAccum&=0xffff;
+    }
+  }
+}
+
+#define FLUSH_WRITES \
+  while (!writes.empty()) { \
+    QueuedWrite w=writes.front(); \
+    saa_saaSound->WriteAddressData(w.addr,w.val); \
+    regPool[w.addr&0x1f]=w.val; \
+    writes.pop(); \
+  }
+
 void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;
@@ -82,30 +104,29 @@ void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
       saaBuf[i]=new short[saaBufLen];
     }
   }
-  while (!writes.empty()) {
-    QueuedWrite w=writes.front();
-    saa_saaSound->WriteAddressData(w.addr,w.val);
-    regPool[w.addr&0x1f]=w.val;
-    writes.pop();
-  }
   for (int i=0; i<6; i++) {
     oscBuf[i]->begin(len);
   }
 
-  // TODO: all of this
+  FLUSH_WRITES;
+
   size_t lastPos=0;
   for (size_t h=0; h<len; h++) {
     timerCounter+=timerRate;
     if (timerCounter>=rate) {
       timerCounter-=rate;
-      saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf,lastPos);
+      saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],h-lastPos,oscBuf,lastPos);
+      updateTimers();
+      FLUSH_WRITES;
       lastPos=h;
     }
   }
-  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf,lastPos);
+  saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len-lastPos,oscBuf,lastPos);
+
   for (int i=0; i<6; i++) {
     oscBuf[i]->end(len);
   }
+
 #ifdef TA_BIG_ENDIAN
   for (size_t i=0; i<len; i++) {
     buf[0][i]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));
@@ -201,7 +222,13 @@ void DivPlatformSAA1099::tick(bool sysTick) {
         chan[i].freqL=0xff-(chan[i].freq>>chan[i].freqH);
         chan[i].freqH=7-chan[i].freqH;
       }
-      if (chan[i].freq>4095) chan[i].freq=4095;
+      if ((i&3)==3) {
+        // timers
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      } else {
+        // regular channels
+        if (chan[i].freq>4095) chan[i].freq=4095;
+      }
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff) {
@@ -420,6 +447,12 @@ void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
       ret.push_back(DivChannelPair(_("env >"),realCh+1));
     }
   }
+  if ((ch%4)==2 && !compat) {
+    if (saaEnv[ch/4]&0x80 && saaEnv[ch/4]&0x20) {
+      logV("SHOW ME");
+      ret.push_back(DivChannelPair(_("< env"),realCh+1));
+    }
+  }
 }
 
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
@@ -453,7 +486,7 @@ void DivPlatformSAA1099::reset() {
   saa_saaSound->Clear();
   for (int i=0; i<8; i++) {
     chan[i]=DivPlatformSAA1099::Channel(parent->song.compatFlags.linearPitch);
-    chan[i].pitchTable=&pitchTable;
+    chan[i].pitchTable=((i&3)==3)?(&timerPitchTable):(&pitchTable);
     chan[i].std.setEngine(parent);
     chan[i].vol=0x0f;
   }
@@ -512,6 +545,7 @@ void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
 
 void DivPlatformSAA1099::notifyPitchTable(int sample) {
   pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
+  timerPitchTable.init(parent->song.tuning,timerRate,0x8000,0xffff,false,parent->song.compatFlags.linearPitch);
 }
 
 unsigned int DivPlatformSAA1099::getMaxFreq(int ch) {

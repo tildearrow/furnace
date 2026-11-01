@@ -570,6 +570,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SAA1099:
     case DIV_SYSTEM_SAA1099_NEW: {
       dispatch=new DivPlatformSAA1099;
+      ((DivPlatformSAA1099*)dispatch)->setCompat(sys==DIV_SYSTEM_SAA1099);
       if (isRender) {
         ((DivPlatformSAA1099*)dispatch)->setCoreQuality(eng->getConfInt("saaQualityRender",3));
       } else {

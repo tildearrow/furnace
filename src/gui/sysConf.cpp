@@ -1028,8 +1028,10 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
-    case DIV_SYSTEM_SAA1099: {
+    case DIV_SYSTEM_SAA1099:
+    case DIV_SYSTEM_SAA1099_NEW: {
       int clockSel=flags.getInt("clockSel",0);
+      int timerRate=flags.getInt("timerRate",15625);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -1047,9 +1049,24 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       ImGui::Unindent();
 
+      if (type==DIV_SYSTEM_SAA1099_NEW) {
+        if (ImGui::InputInt(_("Software timer resolution##TimerRate"),&timerRate,10,1000)) {
+          if (timerRate<10) timerRate=10;
+          if (timerRate>125000) timerRate=125000;
+          altered=true;
+        }
+        ImGui::SetItemTooltip(_("15625Hz = PAL HBlank"));
+        ImGui::TextUnformatted(_("Maximum timer waveform frequencies:"));
+        ImGui::Text(_("- saw: %dHz (high-res)/%dHz (low-res)"),timerRate/16,timerRate/8);
+        ImGui::Text(_("- triangle: %dHz (high-res)/%dHz (low-res)"),timerRate/32,timerRate/16);
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          if (type==DIV_SYSTEM_SAA1099_NEW) {
+            flags.set("timerRate",timerRate);
+          }
         });
       }
       break;
