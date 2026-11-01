@@ -1034,7 +1034,7 @@ void initSystemPresetsComputers(std::vector<FurnaceGUISysCategory>& sysCategorie
   );
   ENTRY(
     _("SAM Coupé"), {
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "")
+      CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -1085,8 +1085,8 @@ void initSystemPresetsComputers(std::vector<FurnaceGUISysCategory>& sysCategorie
     );
     SUB_ENTRY(
       _("PC + Game Blaster"), {
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );
@@ -1125,8 +1125,8 @@ void initSystemPresetsComputers(std::vector<FurnaceGUISysCategory>& sysCategorie
     SUB_ENTRY(
       _("PC + Sound Blaster w/Game Blaster Compatible"), {
         CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""),
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
           "rate=22050\n"
           "outDepth=7\n"
@@ -1137,8 +1137,8 @@ void initSystemPresetsComputers(std::vector<FurnaceGUISysCategory>& sysCategorie
     SUB_ENTRY(
       _("PC + Sound Blaster w/Game Blaster Compatible (drums mode)"), {
         CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"),
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"),
         CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
           "rate=22050\n"
           "outDepth=7\n"
@@ -1212,8 +1212,8 @@ void initSystemPresetsComputers(std::vector<FurnaceGUISysCategory>& sysCategorie
     SUB_ENTRY(
       _("PC + SAAYM"), {
         CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz or 4MHz selectable via jumper
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"), // 7.16MHz or 8MHz selectable via jumper
-        CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "clockSel=1"), // ""
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"), // 7.16MHz or 8MHz selectable via jumper
+        CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "clockSel=1"), // ""
         CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, "")
       }
     );

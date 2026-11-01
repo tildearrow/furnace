@@ -95,7 +95,7 @@ void initSystemPresetsSquare(std::vector<FurnaceGUISysCategory>& sysCategories) 
   );
   ENTRY(
     _("Philips SAA1099"), {
-      CH(DIV_SYSTEM_SAA1099, 1.0f, 0, "")
+      CH(DIV_SYSTEM_SAA1099_NEW, 1.0f, 0, "")
     }
   );
   ENTRY(

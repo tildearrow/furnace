@@ -449,7 +449,6 @@ void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   }
   if ((ch%4)==2 && !compat) {
     if (saaEnv[ch/4]&0x80 && saaEnv[ch/4]&0x20) {
-      logV("SHOW ME");
       ret.push_back(DivChannelPair(_("< env"),realCh+1));
     }
   }

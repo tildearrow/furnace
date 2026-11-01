@@ -1118,7 +1118,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
-    _("Philips SAA1099"), NULL, 0x97, 0, 6, 6, 6,
+    _("Philips SAA1099 (no software timers)"), NULL, 0x97, 0, 6, 6, 6,
     false, true, 0x171, false, 0, 0, 0,
     _("supposedly an upgrade from the AY-3-8910, this was present on the Creative Music System (Game Blaster) and SAM Coupé."),
     DivChanDefFunc({
@@ -1138,7 +1138,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SAA1099_NEW]=new DivSysDef(
-    _("Philips SAA1099 (with timers)"), NULL, 0xe9, 0, 8, 8, 8,
+    _("Philips SAA1099"), NULL, 0xe9, 0, 8, 8, 8,
     false, true, 0x171, false, 0, 0, 0,
     _("supposedly an upgrade from the AY-3-8910, this was present on the Creative Music System (Game Blaster) and SAM Coupé."),
     DivChanDefFunc({
