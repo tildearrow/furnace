@@ -81,6 +81,11 @@ void DivPlatformSAA1099::updateTimers() {
       chan[i].timerAccum+=chan[i].freq;
       // the counter is 16-bit, but we store it as 32-bit to detect carry.
       if (chan[i].timerAccum>=0x10000 && saaEnv[i/4]&0x20) {
+        // Furnace addition: square wave by toggling env mode
+        if (saaEnv[i/4]&0x40) {
+          saaEnv[i/4]^=2;
+          saaEnv[i/4]&=0xf3;
+        }
         rWrite(0x18+(i/4),saaEnv[i/4]);
       }
       chan[i].timerAccum&=0xffff;
