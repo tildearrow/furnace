@@ -186,7 +186,7 @@ void PlotNoLerp(const char* label, const float* values, int values_count, int va
     PlotNoLerpEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 }
 
-int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser)
+int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, void (*hoverFunc)(int,float,void*), void* hoverFuncUser)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -230,10 +230,7 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
             //ImGui::SetTooltip("%d: %8.4g", v_idx, v0);
 
             if (hoverFunc) {
-              std::string hoverText=hoverFunc(v_idx,v0,hoverFuncUser);
-              if (!hoverText.empty()) {
-                ImGui::SetTooltip("%s",hoverText.c_str());
-              }
+              hoverFunc(v_idx,v0,hoverFuncUser);
             } else {
               ImGui::SetTooltip("%d: %d (%X)", v_idx, (int)v0, (int)v0);
             }
@@ -301,13 +298,13 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     return idx_hovered;
 }
 
-void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser)
+void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, void (*hoverFunc)(int,float,void*), void* hoverFuncUser)
 {
     FurnacePlotIntArrayGetterData data(values, stride);
     PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size, values_highlight, highlightColor, color, hoverFunc, hoverFuncUser);
 }
 
-int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
+int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, void (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -373,10 +370,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             const float v0 = values_getter(data, (v_idx) % values_count);
             const float v1 = values_getter(data, (v_idx + 1) % values_count);
             if (hoverFunc) {
-              std::string hoverText=hoverFunc(v_idx+values_display_offset,v0,hoverFuncUser);
-              if (!hoverText.empty()) {
-                ImGui::SetTooltip("%s",hoverText.c_str());
-              }
+              hoverFunc(v_idx+values_display_offset,v0,hoverFuncUser);
             } else {
               if (plot_type == ImGuiPlotType_Lines)
                   ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
@@ -497,7 +491,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     return idx_hovered;
 }
 
-void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
+void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, void (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
 {
     FurnacePlotArrayGetterData data(values, stride);
     PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc, hoverFuncUser, blockMode, guideFunc, values_highlight, highlightColor);

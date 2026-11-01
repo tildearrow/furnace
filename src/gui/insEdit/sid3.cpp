@@ -195,6 +195,11 @@ String macroSID3SpecialWaves(int id, float val, void* u) {
   return fmt::sprintf("%d: %s",id,_(sid3SpecialWaveforms[(int)val%SID3_NUM_SPECIAL_WAVES]));
 }
 
+void macroSID3SpecialWavesF(int id, float val, void* u) {
+  String s=macroSID3SpecialWaves(id,val,u);
+  ImGui::SetTooltip("%s",s.c_str());
+}
+
 String macroSID3SourceChan(int id, float val, void* u) {
   if ((int)val>SID3_NUM_CHANNELS) return "???";
 
@@ -207,6 +212,11 @@ String macroSID3SourceChan(int id, float val, void* u) {
   }
 }
 
+void macroSID3SourceChanF(int id, float val, void* u) {
+  String s=macroSID3SourceChan(id,val,u);
+  ImGui::SetTooltip("%s",s.c_str());
+}
+
 String macroSID3NoiseLFSR(int id, float val, void* u) {
   return _(
     "values close to SID2 noise modes:\n\n"
@@ -216,10 +226,20 @@ String macroSID3NoiseLFSR(int id, float val, void* u) {
   );
 }
 
+void macroSID3NoiseLFSRF(int id, float val, void* u) {
+  String s=macroSID3NoiseLFSR(id,val,u);
+  ImGui::SetTooltip("%s",s.c_str());
+}
+
 String macroSID3WaveMixMode(int id, float val, void* u) {
   if ((int)val<0 || (int)val>4) return "???";
 
   return fmt::sprintf("%d: %s",id,_(sid3WaveMixModes[(int)val]));
+}
+
+void macroSID3WaveMixModeF(int id, float val, void* u) {
+  String s=macroSID3WaveMixMode(id,val,u);
+  ImGui::SetTooltip("%s",s.c_str());
 }
 
 void FurnaceGUI::drawSID3Env(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType) {
@@ -831,7 +851,7 @@ void FurnaceGUI::insEditSID3(DivInstrument* ins) {
     } else {
       macroList.push_back(FurnaceGUIMacroDesc(_("Duty"),&ins->std.dutyMacro,ins->sid3.dutyIsAbs?0:-65535,65535,160,uiColors[GUI_COLOR_MACRO_OTHER]));
       macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,5,16 * 5,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,sid3ShapeBits));
-      macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWaves));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Special Wave"),&ins->std.algMacro,0,SID3_NUM_SPECIAL_WAVES - 1,160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,macroSID3SpecialWavesF));
     }
 
     if (ins->sid3.separateNoisePitch && !ins->sid3.doWavetable) {
@@ -848,9 +868,9 @@ void FurnaceGUI::insEditSID3(DivInstrument* ins) {
 
     macroList.push_back(FurnaceGUIMacroDesc(_("Special"),&ins->std.ex1Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,sid3ControlBits));
 
-    macroList.push_back(FurnaceGUIMacroDesc(_("Ring Mod Source"),&ins->std.fmsMacro,0,SID3_NUM_CHANNELS,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Hard Sync Source"),&ins->std.amsMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChan));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Ring Mod Source"),&ins->std.fmsMacro,0,SID3_NUM_CHANNELS,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChanF));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Hard Sync Source"),&ins->std.amsMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChanF));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Phase Mod Source"),&ins->std.fbMacro,0,SID3_NUM_CHANNELS - 1,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3SourceChanF));
     
     if (!ins->sid3.doWavetable) {
       macroList.push_back(FurnaceGUIMacroDesc(_("Feedback"),&ins->std.opMacros[3].arMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -870,9 +890,9 @@ void FurnaceGUI::insEditSID3(DivInstrument* ins) {
     macroList.push_back(FurnaceGUIMacroDesc(_("Release"),&ins->std.ex6Macro,0,255,160,uiColors[GUI_COLOR_MACRO_ENVELOPE]));
 
     if (!ins->sid3.doWavetable) {
-      macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,30,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroSID3NoiseLFSR,true));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Noise LFSR bits"),&ins->std.ex7Macro,0,30,16 * 30,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroSID3NoiseLFSRF,true));
       macroList.push_back(FurnaceGUIMacroDesc(_("1-Bit Noise"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
-      macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixMode));
+      macroList.push_back(FurnaceGUIMacroDesc(_("Wave Mix"),&ins->std.ex8Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroSID3WaveMixModeF));
     } else {
       macroList.push_back(FurnaceGUIMacroDesc(_("Sample Mode"),&ins->std.opMacros[1].arMacro,0,1,32,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,NULL,true));
     }

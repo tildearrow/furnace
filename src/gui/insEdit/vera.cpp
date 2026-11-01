@@ -19,7 +19,7 @@
 
 #include "insEditCommon.h"
 
-String macroVERAWaves(int id, float val, void* u) {
+void macroVERAWaves(int id, float val, void* u) {
   const char* label="???";
   switch (((int)val)&3) {
     case 0:
@@ -36,7 +36,7 @@ String macroVERAWaves(int id, float val, void* u) {
       break;
     default: break;
   }
-  return fmt::sprintf("%d: %s",id,label);
+  ImGui::SetTooltip("%d: %s",id,label);
 }
 
 void FurnaceGUI::insEditVERA(DivInstrument* ins) {
