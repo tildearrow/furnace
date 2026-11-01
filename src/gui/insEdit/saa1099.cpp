@@ -27,15 +27,64 @@ static const char* saaShapeBits[3]={
 
 static const char* saaEnvBits[9]={
   _N("mirror"),
-  _N("loop"),
-  _N("cut"),
-  _N("direction"),
-  _N("resolution"),
+  _N("mode1"),
+  _N("mode2"),
+  _N("mode3"),
+  _N("low resolution"),
   _N("use timer"),
   _N("N/A"),
   _N("enabled"),
   NULL
 };
+
+static const char* saaEnvModes[8]={
+  _N("nothing (low)"),
+  _N("nothing (high)"),
+  _N("one-shot ramp down"),
+  _N("saw wave (down)"),
+  _N("one-shot triangle"),
+  _N("triangle wave"),
+  _N("one-shot ramp up"),
+  _N("saw wave (up)")
+};
+
+void macroHoverSAAEnv(int id, float val, void* u) {
+  if (ImGui::BeginTooltip()) {
+    ImGui::Text("envelope mode chart:");
+    if (ImGui::BeginTable("EnvModeChart",4,ImGuiTableFlags_Borders)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,ImGui::GetTextLineHeight());
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,ImGui::GetTextLineHeight());
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,ImGui::GetTextLineHeight());
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted("3");
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted("2");
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted("1");
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted("result");
+
+      for (int i=0; i<8; i++) {
+        ImGui::TableNextRow();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,(i==((((int)val)>>1)&7))?ImGui::GetColorU32(ImGuiCol_FrameBgHovered):ImGui::GetColorU32(ImGuiCol_TableRowBg));
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,(i&4)?ImGui::GetColorU32(ImGuiCol_PlotHistogram):ImGui::GetColorU32(ImGuiCol_FrameBg));
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,(i&2)?ImGui::GetColorU32(ImGuiCol_PlotHistogram):ImGui::GetColorU32(ImGuiCol_FrameBg));
+        ImGui::TableNextColumn();
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,(i&1)?ImGui::GetColorU32(ImGuiCol_PlotHistogram):ImGui::GetColorU32(ImGuiCol_FrameBg));
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(_(saaEnvModes[i]));
+      }
+
+      ImGui::EndTable();
+    }
+    ImGui::EndTooltip();
+  }
+}
 
 void FurnaceGUI::insEditSAA1099(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
@@ -48,7 +97,7 @@ void FurnaceGUI::insEditSAA1099(DivInstrument* ins) {
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
     macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Envelope"),&ins->std.ex1Macro,0,8,160,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,NULL,true,saaEnvBits));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Envelope"),&ins->std.ex1Macro,0,8,160,uiColors[GUI_COLOR_MACRO_ENVELOPE],false,NULL,macroHoverSAAEnv,true,saaEnvBits));
 
     drawMacros(macroList,macroEditStateMacros,ins);
     ImGui::EndTabItem();
