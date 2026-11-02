@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "../../extern/rtmidi/RtMidi.h"
+#include <RtMidi.h>
 #include "taAudio.h"
 
 class TAMidiInRtMidi: public TAMidiIn {
