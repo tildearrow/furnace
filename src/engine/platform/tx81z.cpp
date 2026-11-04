@@ -105,11 +105,19 @@ void DivPlatformTX81Z::acquire_ymfm(short** buf, size_t len) {
 }
 
 void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
+  thread_local int fmOut[8];
+
   for (int i=0; i<8; i++) {
     oscBuf[i]->begin(len);
   }
 
   for (size_t h=0; h<len; h++) {
+    unsigned char subCycle=0;
+
+    for (int i=0; i<8; i++) {
+      fmOut[i]=0;
+    }
+
     while (true) {
       lastSH1=fm_lle.o_sh1;
       lastSH2=fm_lle.o_sh2_pull;
@@ -166,6 +174,13 @@ void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
       OPZLLE_Clock(&fm_lle,1);
       OPZLLE_Clock(&fm_lle,0);
 
+      // chan osc
+      // the operator output is valid for two half-cycles; sample it on odd ones (counting from the SH1 edge)
+      if ((subCycle&1) && fm_lle.fsm_alg_o[8]) {
+        fmOut[((subCycle+5)>>1)&7]+=(short)fm_lle.op_value[9];
+      }
+      subCycle++;
+
       if (delay<=0 && isWaiting&2) {
         if (!(fm_lle.o_data&0x80)) {
           isWaiting=0;
@@ -206,8 +221,7 @@ void DivPlatformTX81Z::acquire_lle(short** buf, size_t len) {
     buf[1][h]=dacOut1;
 
     for (int i=0; i<8; i++) {
-      //short chOut=fm_lle.accm_input;
-      //oscBuf[i]->putSample(h,chOut);
+      oscBuf[i]->putSample(h,CLAMP(fmOut[i]>>1,-32768,32767));
     }
   }
 
