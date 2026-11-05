@@ -1,5 +1,5 @@
 /**********************************************************************/
-/*! \class RtMidi
+/*! \class rt::midi::RtMidi
     \brief An abstract base class for realtime MIDI input/output.
 
     This class implements some common functionality for the realtime
@@ -59,7 +59,7 @@
 #endif
 
 #define RTMIDI_VERSION_MAJOR 6
-#define RTMIDI_VERSION_MINOR 0
+#define RTMIDI_VERSION_MINOR 1
 #define RTMIDI_VERSION_PATCH 0
 #define RTMIDI_VERSION_BETA  0
 
@@ -77,11 +77,14 @@
                         "." RTMIDI_TOSTRING(RTMIDI_VERSION_PATCH)
 #endif
 
+#include <atomic>
 #include <exception>
 #include <iostream>
 #include <string>
 #include <vector>
 
+namespace rt {
+namespace midi {
 
 /************************************************************************/
 /*! \class RtMidiError
@@ -106,9 +109,10 @@ class RTMIDI_DLL_PUBLIC RtMidiError : public std::exception
     MEMORY_ERROR,      /*!< An error occurred during memory allocation. */
     INVALID_PARAMETER, /*!< An invalid parameter was specified to a function. */
     INVALID_USE,       /*!< The function was called incorrectly. */
-    DRIVER_ERROR,      /*!< A system driver error occurred. */
-    SYSTEM_ERROR,      /*!< A system error occurred. */
-    THREAD_ERROR       /*!< A thread error occurred. */
+    DRIVER_ERROR,        /*!< A system driver error occurred. */
+    SYSTEM_ERROR,        /*!< A system error occurred. */
+    THREAD_ERROR,        /*!< A thread error occurred. */
+    DRIVER_NOT_INSTALLED /*!< A required driver or runtime is not installed on this system. */
   };
 
   //! The constructor.
@@ -163,8 +167,30 @@ class RTMIDI_DLL_PUBLIC RtMidi
     WEB_MIDI_API,   /*!< W3C Web MIDI API. */
     WINDOWS_UWP,    /*!< The Microsoft Universal Windows Platform MIDI API. */
     ANDROID_AMIDI,  /*!< Native Android MIDI API. */
+    WINDOWS_MIDI_SERVICES, /*!< Windows MIDI Services (Windows 11 25H2+). */
     NUM_APIS        /*!< Number of values in this enum. */
   };
+
+  //! Result returned by checkApiAvailability().
+  struct RtMidiApiAvailability {
+    bool available = true;      /*!< True when the API runtime is ready to use. */
+    std::string message;        /*!< Human-readable reason if not available. */
+    std::string installUrl;     /*!< Installer download URL when a runtime is missing. */
+  };
+
+  //! Query whether an API can be used by this build on this system.
+  /*!
+    Call this before constructing any RtMidiIn / RtMidiOut objects that use the
+    specified API.  When available is false, message says why, and installUrl
+    holds a download URL if a runtime has to be installed.  Windows MIDI Services
+    is available where Windows includes its Windows.Devices.Midi2 API (Windows 11
+    25H2 and later, as Microsoft rolls it out) and the MIDI service runs in its
+    full mode; elsewhere it is reported as unavailable, and another API can be
+    used.  An API that this build does not include is reported as unavailable,
+    and an API that needs no separate runtime is always available.  The check is
+    lightweight and does not open any ports.
+  */
+  static RtMidiApiAvailability checkApiAvailability( RtMidi::Api api );
 
   //! A static function to determine the current RtMidi version.
   static std::string getVersion( void ) throw();
@@ -224,6 +250,35 @@ class RTMIDI_DLL_PUBLIC RtMidi
       function, not to virtual ports.
   */
   virtual bool isPortOpen( void ) const = 0;
+
+  //! Whether this backend can restore connections after device removal.
+  /*!
+      Support does not guarantee that every device can be identified again.
+      ALSA reconnects identifiable USB ports; closePort() cancels recovery.
+      Matching uses USB vendor/product, serial (or USB location without one),
+      and port number/name. Ambiguous matches are not reconnected. A USB
+      location identifies a socket, not necessarily the same physical unit.
+      Enumeration remains a snapshot; previously saved port indices may change.
+      isPortOpen() continues to describe an explicitly opened connection,
+      including the interval while its device is temporarily absent.
+  */
+  bool supportsAutoReconnect( void ) const;
+
+  //! Enable or disable automatic recovery (enabled by default when supported).
+  /*!
+      Disabling recovery leaves an existing MIDI connection intact. Re-enabling
+      it also permits recovery of a device lost while disabled. Monitoring may
+      remain active while recovery is disabled. Unsupported backends ignore this
+      setting and always report false from isAutoReconnectEnabled().
+      ALSA monitor failures are logged and retried in the background. Persistent
+      worker-start failures use the normal RtMidi error handler on the caller's
+      thread. This setting may wait for an in-progress recovery operation.
+      Serialize openPort(), closePort(), and destruction on each instance as
+      usual. Do not call this setting from a realtime audio or MIDI callback.
+      Messages lost during disconnection are not replayed.
+  */
+  void setAutoReconnect( bool enabled );
+  bool isAutoReconnectEnabled( void ) const;
 
   //! Set an error callback function to be invoked when an error has occurred.
   /*!
@@ -286,9 +341,17 @@ class RTMIDI_DLL_PUBLIC RtMidiIn : public RtMidi
     callback function).  If the queue size limit is reached,
     incoming messages will be ignored.
 
+    The queue is only used when no callback is set. If a callback is
+    installed with setCallback(), incoming messages go straight to it and
+    the queue is never filled, so queueSizeLimit has no effect on them and
+    the queue-limit warning cannot be reached. A binding that always uses a
+    callback may pass 0 here, which also skips allocating the ring buffer.
+
     If no API argument is specified and multiple API support has been
-    compiled, the default order of use is ALSA, JACK (Linux) and CORE,
-    JACK (OS-X).
+    compiled, the first API with at least one port is used, trying them
+    in this order: CoreMIDI, ALSA, JACK, Windows MIDI Services, WinMM,
+    UWP, Web MIDI, Android.  If none has a port, the first that opens is
+    used.
 
     \param api        An optional API id can be specified.
     \param clientName An optional client name can be specified. This
@@ -320,8 +383,8 @@ class RTMIDI_DLL_PUBLIC RtMidiIn : public RtMidi
   /*!
     This function creates a virtual MIDI input port to which other
     software applications can connect.  This type of functionality
-    is currently only supported by the Macintosh OS-X, any JACK,
-    and Linux ALSA APIs (the function returns an error for the other APIs).
+    is currently only supported by the CoreMIDI (macOS and iOS), JACK
+    and ALSA APIs (the other APIs report a warning and open nothing).
 
     \param portName An optional name for the application port that is
                     used to connect to portId can be specified.
@@ -345,6 +408,11 @@ class RTMIDI_DLL_PUBLIC RtMidiIn : public RtMidi
   /*!
     Subsequent incoming MIDI messages will be written to the queue
     and can be retrieved with the \e getMessage function.
+
+    The callback runs on the backend's input thread, and this function
+    does not wait for it: a message that is being delivered while it is
+    called may still reach the callback after it returns. Keep the
+    callback's user data valid until the port is closed.
   */
   void cancelCallback();
 
@@ -379,6 +447,12 @@ class RTMIDI_DLL_PUBLIC RtMidiIn : public RtMidi
     MIDI sysex messages are ignored by default as well.  Variable
     values of "true" imply that the respective message type will be
     ignored.
+
+    This setting belongs to the RtMidiIn instance, not to the port it is
+    connected to, and the defaults apply to a port opened with
+    openVirtualPort() exactly as they do to one opened with openPort().
+    An instance that should receive SysEx must call this itself; being the
+    virtual port that another application sends to does not change it.
   */
   void ignoreTypes( bool midiSysex = true, bool midiTime = true, bool midiSense = true );
 
@@ -407,8 +481,10 @@ class RTMIDI_DLL_PUBLIC RtMidiIn : public RtMidi
     buffer size is 1024 with a count of 4 buffers, which should be sufficient for most
     cases; as mentioned, this does not affect all API backends, since most either support
     dynamically scalable buffers or take care of buffer handling themselves.  It is
-    principally intended for users of the Windows MM backend who must support receiving
-    especially large messages.
+    principally intended for users of the Windows MM backend.  There a SysEx longer than
+    one buffer is received a buffer at a time and delivered as one message once its F7
+    arrives, so the size does not limit the length of a SysEx; more or larger buffers
+    give the driver more room while a long SysEx is being received.
   */
   virtual void setBufferSize( unsigned int size, unsigned int count );
 
@@ -438,8 +514,10 @@ class RTMIDI_DLL_PUBLIC RtMidiOut : public RtMidi
     An exception will be thrown if a MIDI system initialization error occurs.
 
     If no API argument is specified and multiple API support has been
-    compiled, the default order of use is ALSA, JACK (Linux) and CORE,
-    JACK (OS-X).
+    compiled, the first API with at least one port is used, trying them
+    in this order: CoreMIDI, ALSA, JACK, Windows MIDI Services, WinMM,
+    UWP, Web MIDI, Android.  If none has a port, the first that opens is
+    used.
   */
   RtMidiOut( RtMidi::Api api=UNSPECIFIED,
              const std::string& clientName = "RtMidi Output Client" );
@@ -475,8 +553,8 @@ class RTMIDI_DLL_PUBLIC RtMidiOut : public RtMidi
   /*!
       This function creates a virtual MIDI output port to which other
       software applications can connect.  This type of functionality
-      is currently only supported by the Macintosh OS-X, Linux ALSA
-      and JACK APIs (the function does nothing with the other APIs).
+      is currently only supported by the CoreMIDI (macOS and iOS), ALSA
+      and JACK APIs (the other APIs report a warning and open nothing).
       An exception is thrown if an error occurs while attempting to
       create the virtual port.
   */
@@ -497,6 +575,20 @@ class RTMIDI_DLL_PUBLIC RtMidiOut : public RtMidi
   /*!
       An exception is thrown if an error occurs during output or an
       output connection was not previously established.
+
+      On some backends, Windows MM in particular, a SysEx message is sent
+      synchronously: this call does not return until the driver has finished
+      with the data, which for a large dump over a slow link can take a
+      noticeable amount of time. Avoid calling it from a user-interface thread.
+
+      A large SysEx may not survive one call; send it in pieces (see
+      tests/sysexchunked.cpp). Between two applications on ALSA, one larger
+      than 5572 bytes is lost at the receiver, while the sender only gets an
+      error from 16356 bytes. On JACK, one larger than 16379 bytes is not sent.
+      To a hardware port on ALSA, only 4096 bytes fit the kernel's buffer
+      (snd_seq_midi output_buffer_size) and the rest is cut off with no error:
+      send pieces of at most that, each once the last has drained at the
+      device's rate (3125 bytes per second for DIN MIDI).
   */
   void sendMessage( const std::vector<unsigned char> *message );
 
@@ -504,6 +596,20 @@ class RTMIDI_DLL_PUBLIC RtMidiOut : public RtMidi
   /*!
       An exception is thrown if an error occurs during output or an
       output connection was not previously established.
+
+      On some backends, Windows MM in particular, a SysEx message is sent
+      synchronously: this call does not return until the driver has finished
+      with the data, which for a large dump over a slow link can take a
+      noticeable amount of time. Avoid calling it from a user-interface thread.
+
+      A large SysEx may not survive one call; send it in pieces (see
+      tests/sysexchunked.cpp). Between two applications on ALSA, one larger
+      than 5572 bytes is lost at the receiver, while the sender only gets an
+      error from 16356 bytes. On JACK, one larger than 16379 bytes is not sent.
+      To a hardware port on ALSA, only 4096 bytes fit the kernel's buffer
+      (snd_seq_midi output_buffer_size) and the rest is cut off with no error:
+      send pieces of at most that, each once the last has drained at the
+      device's rate (3125 bytes per second for DIN MIDI).
 
       \param message A pointer to the MIDI message as raw bytes
       \param size    Length of the MIDI message in bytes
@@ -554,8 +660,25 @@ class RTMIDI_DLL_PUBLIC MidiApi
   inline bool isPortOpen() const { return connected_; }
   void setErrorCallback( RtMidiErrorCallback errorCallback, void *userData );
 
+  //! Set a callback for objects that have none of their own.
+  /*!
+    Applies to every RtMidi object, including errors raised during
+    construction, which a per-object callback cannot see. An object's own
+    callback takes precedence. Unlike an object's own callback, this one does
+    not stop fatal errors: after it returns, anything other than a WARNING or
+    DEBUG_WARNING is still thrown as an RtMidiError. Not synchronized: set it
+    once before creating any RtMidi object.
+  */
+  static void setDefaultErrorCallback( RtMidiErrorCallback errorCallback = NULL,
+                                       void *userData = 0 );
+
   //! A basic error reporting function for RtMidi classes.
   void error( RtMidiError::Type type, std::string errorString );
+
+  // Non-virtual extensions leave existing backend vtable layouts unchanged.
+  bool supportsAutoReconnect( void ) const;
+  void setAutoReconnect( bool enabled );
+  bool isAutoReconnectEnabled( void ) const;
 
 protected:
   virtual void initialize( const std::string& clientName ) = 0;
@@ -566,6 +689,10 @@ protected:
   RtMidiErrorCallback errorCallback_;
   bool firstErrorOccurred_;
   void *errorCallbackUserData_;
+
+  // Static, so they add nothing to any object's layout.
+  static RtMidiErrorCallback defaultErrorCallback_;
+  static void *defaultErrorCallbackUserData_;
 
 };
 
@@ -594,9 +721,16 @@ class RTMIDI_DLL_PUBLIC MidiInApi : public MidiApi
       : bytes(0), timeStamp(0.0) {}
   };
 
+  // A single-producer, single-consumer ring buffer: the backend's input
+  // thread is the only writer of \c back, and the thread calling
+  // RtMidiIn::getMessage() is the only writer of \c front.  The indices are
+  // atomic so that each side sees the other's completed writes: push()
+  // releases \c back after the message is stored, pop() acquires it before
+  // reading, and the same pairing applies to \c front.  Without that the
+  // reader may observe a published index before the message it refers to.
   struct MidiQueue {
-    unsigned int front;
-    unsigned int back;
+    std::atomic<unsigned int> front;
+    std::atomic<unsigned int> back;
     unsigned int ringSize;
     MidiMessage *ring;
 
@@ -617,9 +751,11 @@ class RTMIDI_DLL_PUBLIC MidiInApi : public MidiApi
     bool doInput;
     bool firstMessage;
     void *apiData;
-    bool usingCallback;
-    RtMidiIn::RtMidiCallback userCallback;
-    void *userData;
+    // Read by the input thread while the user may change them; see
+    // callUserCallback(), MidiInApi::setCallback() and cancelCallback().
+    std::atomic<bool> usingCallback;
+    std::atomic<RtMidiIn::RtMidiCallback> userCallback;
+    std::atomic<void *> userData;
     bool continueSysex;
     unsigned int bufferSize;
     unsigned int bufferCount;
@@ -628,6 +764,18 @@ class RTMIDI_DLL_PUBLIC MidiInApi : public MidiApi
     RtMidiInData()
       : ignoreFlags(7), doInput(false), firstMessage(true), apiData(0), usingCallback(false),
         userCallback(0), userData(0), continueSysex(false), bufferSize(1024), bufferCount(4) {}
+
+    // Called by the backends' input threads: passes the message to the user
+    // callback and returns true, or returns false if none is set (the message
+    // then belongs in the queue). cancelCallback() only clears usingCallback,
+    // so a thread that has just seen it set still reads a valid callback.
+    bool callUserCallback( double timeStamp, std::vector<unsigned char> *bytes )
+    {
+      if ( !usingCallback.load( std::memory_order_acquire ) ) return false;
+      RtMidiIn::RtMidiCallback callback = userCallback.load( std::memory_order_relaxed );
+      callback( timeStamp, bytes, userData.load( std::memory_order_relaxed ) );
+      return true;
+    }
   };
 
  protected:
@@ -648,6 +796,10 @@ class RTMIDI_DLL_PUBLIC MidiOutApi : public MidiApi
 // Inline RtMidiIn and RtMidiOut definitions.
 //
 // **************************************************************** //
+
+inline bool RtMidi :: supportsAutoReconnect( void ) const { return rtapi_->supportsAutoReconnect(); }
+inline void RtMidi :: setAutoReconnect( bool enabled ) { rtapi_->setAutoReconnect( enabled ); }
+inline bool RtMidi :: isAutoReconnectEnabled( void ) const { return rtapi_->isAutoReconnectEnabled(); }
 
 inline RtMidi::Api RtMidiIn :: getCurrentApi( void ) throw() { return rtapi_->getCurrentApi(); }
 inline void RtMidiIn :: openPort( unsigned int portNumber, const std::string &portName ) { rtapi_->openPort( portNumber, portName ); }
@@ -674,4 +826,11 @@ inline void RtMidiOut :: sendMessage( const std::vector<unsigned char> *message 
 inline void RtMidiOut :: sendMessage( const unsigned char *message, size_t size ) { static_cast<MidiOutApi *>(rtapi_)->sendMessage( message, size ); }
 inline void RtMidiOut :: setErrorCallback( RtMidiErrorCallback errorCallback, void *userData ) { rtapi_->setErrorCallback(errorCallback, userData); }
 
+} // namespace midi
+} // namespace rt
+
+#endif
+
+#ifndef RTMIDI_USE_NAMESPACE
+using namespace rt::midi;
 #endif

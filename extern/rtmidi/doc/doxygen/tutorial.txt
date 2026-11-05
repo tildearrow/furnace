@@ -4,29 +4,35 @@
 
 \section intro Introduction
 
-RtMidi is a set of C++ classes (RtMidiIn, RtMidiOut and API-specific classes) that provides a common API (Application Programming Interface) for realtime MIDI input/output across Linux (ALSA & JACK), Macintosh OS X (CoreMIDI & JACK), Windows (Multimedia Library & UWP), Web MIDI, iOS and Android systems.  RtMidi significantly simplifies the process of interacting with computer MIDI hardware and software.  It was designed with the following goals:
+RtMidi is a set of C++ classes (RtMidiIn, RtMidiOut and API-specific classes) that provides a common API (Application Programming Interface) for realtime MIDI input/output across Linux (ALSA & JACK), Macintosh OS X (CoreMIDI & JACK), Windows (Multimedia Library, UWP & Windows MIDI Services), Web MIDI, iOS and Android systems.  RtMidi significantly simplifies the process of interacting with computer MIDI hardware and software.  It was designed with the following goals:
 
 - object oriented C++ design
 - simple, common API across all supported platforms
 - only one header and one source file for easy inclusion in programming projects
 - MIDI device enumeration
 
-Where applicable, multiple API support can be compiled and a particular API specified when creating an RtAudio instance.
+Where applicable, multiple API support can be compiled and a particular API specified when creating an RtMidi instance.
 
 MIDI input and output functionality are separated into two classes, RtMidiIn and RtMidiOut.  Each class instance supports only a single MIDI connection.  RtMidi does not provide timing functionality (i.e., output messages are sent immediately).  Input messages are timestamped with delta times in seconds (via a \c double floating point type).  MIDI data is passed to the user as raw bytes using an std::vector<unsigned char>.
 
-\section whatsnew What's New (Version 6.0.0)
+\section whatsnew What's New (Version 6.1.0)
 
-The version number has been bumped to 6.0.0 because new APIs (Android and Windows UWP) were added.  Changes in this release include:
+Version 6.1.0 adds the Windows MIDI Services API and makes SysEx behave the same on every backend.  Changes in this release include:
 
-- run "git log 5.0.0..HEAD" to see commits since last release
-- new Android API (thanks to YellowLabrador!)
-- new Windows UWP API support (thanks to Masamichi Hosoda!)
-- various build system updates and code efficiencies
+- run "git log 6.0.0..HEAD" to see commits since last release
+- new Windows MIDI Services API (opt-in, Windows 11 25H2 and later)
+- C++ classes now live in namespace rt::midi, with C++20 module support (thanks to mikomikotaishi!); existing code compiles unchanged, but the C++ ABI changed, so the shared library is now librtmidi.so.8
+- preprocessor definitions renamed to RTMIDI_API_ALSA, RTMIDI_API_JACK, RTMIDI_API_CORE, etc. and RTMIDI_DEBUG; the old names still work but will be removed in 7.0.0
+- a long SysEx arrives as one message on every backend, real-time bytes inside a SysEx are delivered on their own, and an abandoned SysEx is closed with F0 F7
+- ALSA input overruns reach the error callback, JACK no longer hangs or drops output, and the measured SysEx limits are documented in RtMidi.h
+- automatic reconnect of USB MIDI devices on ALSA (thanks to madbrain76!)
+- Android: separate input and output port lists, real port names, SysEx over 128 bytes, a 5 second limit on opening a port, and contrib/java/RtMidiUsbPermission to ask for USB access
+- rtmidi_set_error_callback() in the C API, and a static default error callback
+- see doc/release.txt for the full list
 
 \section download Download
 
-Latest Release (3 August 2023): <A href="https://caml.music.mcgill.ca/~gary/rtmidi/release/rtmidi-6.0.0.tar.gz">Version 6.0.0</A>
+Latest Release (15 October 2026): <A href="https://github.com/thestk/rtmidi/releases/download/6.1.0/rtmidi-6.1.0.tar.gz">Version 6.1.0</A>
 
 \section start Getting Started
 
@@ -47,10 +53,15 @@ driver error occurs or an invalid function argument is specified.
 There are a number of cases within RtMidi where warning messages may
 be displayed but an exception is not thrown.  A client error callback
 function can be specified (via the RtMidi::setErrorCallback function)
-that is invoked when an error occurs. By default, error messages are
-not automatically displayed in RtMidi unless the preprocessor
-definition __RTMIDI_DEBUG__ is defined during compilation.  Messages
-associated with caught exceptions can be displayed with, for example,
+that is invoked when an error occurs.  A default callback for objects
+that have none of their own can be set once, before any RtMidi object
+is created, with the static MidiApi::setDefaultErrorCallback()
+function; it also sees errors raised during construction, but fatal
+errors are still thrown after it returns.  The C API provides
+rtmidi_set_error_callback().  Without a callback, warnings and errors
+are printed to std::cerr, and debug warnings are only displayed if the
+preprocessor definition RTMIDI_DEBUG is defined during compilation.
+Messages associated with caught exceptions can be displayed with, for example,
 the RtMidiError::printMessage() function.
 
 
@@ -131,7 +142,7 @@ Note that the port enumeration is system specific and will change if any devices
 
 \section output MIDI Output
 
-The RtMidiOut class provides simple functionality to immediately send messages over a MIDI connection.  No timing functionality is provided. Note that there is an overloaded RtMidiOut::sendMessage() function that does not use std::vectors.
+The RtMidiOut class provides simple functionality to immediately send messages over a MIDI connection.  No timing functionality is provided. Note that there is an overloaded RtMidiOut::sendMessage() function that does not use std::vectors.  A large system exclusive message may have to be sent in pieces (see the \c sysexchunked.cpp program in the \c tests directory and the \ref linux notes).
 
 In the following example, we omit necessary error checking and details regarding OS-dependent sleep functions.  For a complete example, see the \c midiout.cpp program in the \c tests directory.
 
@@ -197,11 +208,11 @@ int main()
 
 The RtMidiIn class uses an internal callback function or thread to receive incoming MIDI messages from a port or device.  These messages are then either queued and read by the user via calls to the RtMidiIn::getMessage() function or immediately passed to a user-specified callback function (which must be "registered" using the RtMidiIn::setCallback() function).  Note that if you have multiple instances of RtMidiIn, each may have its own thread.  We'll provide examples of both usages.
 
-The RtMidiIn class provides the RtMidiIn::ignoreTypes() function to specify that certain MIDI message types be ignored.  By default, system exclusive, timing, and active sensing messages are ignored.
+The RtMidiIn class provides the RtMidiIn::ignoreTypes() function to specify that certain MIDI message types be ignored.  By default, system exclusive, timing, and active sensing messages are ignored.  A system exclusive message is delivered as one message, however many pieces it arrives in, and real-time messages that arrive in the middle of it are delivered on their own.
 
 \subsection qmidiin Queued MIDI Input
 
-The RtMidiIn::getMessage() function does not block.  If a MIDI message is available in the queue, it is copied to the user-provided \c std::vector<unsigned char> container.  When no MIDI message is available, the function returns an empty container.  The default maximum MIDI queue size is 1024 messages.  This value may be modified with the RtMidiIn::setQueueSizeLimit() function.  If the maximum queue size limit is reached, subsequent incoming MIDI messages are discarded until the queue size is reduced.
+The RtMidiIn::getMessage() function does not block.  If a MIDI message is available in the queue, it is copied to the user-provided \c std::vector<unsigned char> container.  When no MIDI message is available, the function returns an empty container.  The default maximum MIDI queue size is 100 messages.  This value may be modified with the RtMidiIn::setQueueSizeLimit() function.  If the maximum queue size limit is reached, subsequent incoming MIDI messages are discarded until the queue size is reduced.
 
 In the following example, we omit some necessary error checking and details regarding OS-dependent sleep functions.  For a more complete example, see the \c qmidiin.cpp program in the \c tests directory.
 
@@ -262,7 +273,7 @@ int main()
 
 \subsection cmidiin MIDI Input with User Callback
 
-When set, a user-provided callback function will be invoked after the input of a complete MIDI message.  It is possible to provide a pointer to user data that can be accessed in the callback function (not shown here).  It is necessary to set the callback function immediately after opening the port to avoid having incoming messages written to the queue (which is not emptied when a callback function is set).  If you are worried about this happening, you can check the queue using the RtMidi::getMessage() function to verify it is empty (after the callback function is set).
+When set, a user-provided callback function will be invoked after the input of a complete MIDI message.  It is possible to provide a pointer to user data that can be accessed in the callback function (not shown here).  It is necessary to set the callback function immediately after opening the port to avoid having incoming messages written to the queue (which is not emptied when a callback function is set).  If you are worried about this happening, you can check the queue using the RtMidiIn::getMessage() function to verify it is empty (after the callback function is set).
 
 In the following example, we omit some necessary error checking.  For a more complete example, see the \c cmidiin.cpp program in the \c tests directory.
 
@@ -335,28 +346,28 @@ In order to compile RtMidi for a specific OS and API, it is necessary to supply 
 <TR>
   <TD>Linux</TD>
   <TD>ALSA Sequencer</TD>
-  <TD>__LINUX_ALSA__</TD>
+  <TD>RTMIDI_API_ALSA</TD>
   <TD><TT>asound, pthread</TT></TD>
-  <TD><TT>g++ -Wall -D__LINUX_ALSA__ -o midiprobe midiprobe.cpp RtMidi.cpp -lasound -lpthread</TT></TD>
+  <TD><TT>g++ -Wall -DRTMIDI_API_ALSA -o midiprobe midiprobe.cpp RtMidi.cpp -lasound -lpthread</TT></TD>
 </TR>
 <TR>
   <TD>Linux or Mac</TD>
   <TD>JACK MIDI</TD>
-  <TD>__UNIX_JACK__</TD>
+  <TD>RTMIDI_API_JACK</TD>
   <TD><TT>jack</TT></TD>
-  <TD><TT>g++ -Wall -D__UNIX_JACK__ -o midiprobe midiprobe.cpp RtMidi.cpp -ljack</TT></TD>
+  <TD><TT>g++ -Wall -DRTMIDI_API_JACK -o midiprobe midiprobe.cpp RtMidi.cpp -ljack</TT></TD>
 </TR>
 <TR>
   <TD>Macintosh OS X</TD>
   <TD>CoreMIDI</TD>
-  <TD>__MACOSX_CORE__</TD>
+  <TD>RTMIDI_API_CORE</TD>
   <TD><TT>CoreMIDI, CoreAudio, CoreFoundation</TT></TD>
-  <TD><TT>g++ -Wall -D__MACOSX_CORE__ -o midiprobe midiprobe.cpp RtMidi.cpp -framework CoreMIDI -framework CoreAudio -framework CoreFoundation</TT></TD>
+  <TD><TT>g++ -Wall -DRTMIDI_API_CORE -o midiprobe midiprobe.cpp RtMidi.cpp -framework CoreMIDI -framework CoreAudio -framework CoreFoundation</TT></TD>
 </TR>
 <TR>
   <TD>Windows</TD>
   <TD>Multimedia Library</TD>
-  <TD>__WINDOWS_MM__</TD>
+  <TD>RTMIDI_API_WINMM</TD>
   <TD><TT>winmm.lib, multithreaded</TT></TD>
   <TD><I>compiler specific</I></TD>
 </TR>
@@ -365,15 +376,17 @@ In order to compile RtMidi for a specific OS and API, it is necessary to supply 
 
 The example compiler statements above could be used to compile the <TT>midiprobe.cpp</TT> example file, assuming that <TT>midiprobe.cpp</TT>, <TT>RtMidi.h</TT> and <TT>RtMidi.cpp</TT> all exist in the same directory.
 
+The other backends are RTMIDI_API_WMS (Windows MIDI Services), RTMIDI_API_UWP (Windows UWP), RTMIDI_API_WEBMIDI (Web MIDI) and RTMIDI_API_AMIDI (Android). Before 6.1.0 these definitions were __LINUX_ALSA__, __UNIX_JACK__, __MACOSX_CORE__, __WINDOWS_MM__, __WINDOWS_UWP__, __WEB_MIDI_API__ and __AMIDI__, and __RTMIDI_DEBUG__ and JACK_HAS_PORT_RENAME became RTMIDI_DEBUG and RTMIDI_JACK_HAS_PORT_RENAME. Names starting with underscores are reserved in C++, so the old ones are deprecated: they still work in 6.x and will be removed in 7.0.0.  Windows MIDI Services and Android are built with CMake (see \ref apinotes).
+
 \section debug Debugging
 
-If you are having problems getting RtMidi to run on your system, try passing the preprocessor definition <TT>__RTMIDI_DEBUG__</TT> to the compiler (or define it in RtMidi.h).  A variety of warning messages will be displayed that may help in determining the problem.  Also try using the programs included in the <tt>tests</tt> directory.  The program <tt>midiprobe</tt> displays the queried capabilities of all MIDI ports found.
+If you are having problems getting RtMidi to run on your system, try passing the preprocessor definition <TT>RTMIDI_DEBUG</TT> to the compiler (or define it in RtMidi.h).  A variety of warning messages will be displayed that may help in determining the problem.  Also try using the programs included in the <tt>tests</tt> directory.  The program <tt>midiprobe</tt> displays the queried capabilities of all MIDI ports found.
 
 \section multi Using Simultaneous Multiple APIs
 
-Support for each MIDI API is encapsulated in specific MidiInApi or MidiOutApi subclasses, making it possible to compile and instantiate multiple API-specific subclasses on a given operating system.  For example, one can compile both CoreMIDI and JACK support on the OS-X operating system by providing the appropriate preprocessor definitions for each.  In a run-time situation, one might first attempt to determine whether any JACK ports are available.  This can be done by specifying the api argument RtMidi::UNIX_JACK when attempting to create an instance of RtMidiIn or RtMidiOut.  If no available ports are found, then an instance of RtMidi with the api argument RtMidi::MACOSX_CORE can be created.  Alternately, if no api argument is specified, RtMidi will first look for JACK ports and if none are found, then CoreMIDI ports (in linux, the search order is JACK and then ALSA.  In theory, it should also be possible to have separate instances of RtMidi open at the same time with different underlying API support, though this has not been tested.
+Support for each MIDI API is encapsulated in specific MidiInApi or MidiOutApi subclasses, making it possible to compile and instantiate multiple API-specific subclasses on a given operating system.  For example, one can compile both CoreMIDI and JACK support on the OS-X operating system by providing the appropriate preprocessor definitions for each.  In a run-time situation, one might first attempt to determine whether any JACK ports are available.  This can be done by specifying the api argument RtMidi::UNIX_JACK when attempting to create an instance of RtMidiIn or RtMidiOut.  If no available ports are found, then an instance of RtMidi with the api argument RtMidi::MACOSX_CORE can be created.  Alternately, if no api argument is specified, RtMidi will first look for CoreMIDI ports and if none are found, then JACK ports (in Linux, the search order is ALSA and then JACK; in Windows, Windows MIDI Services, the Multimedia Library and then UWP).  If no compiled API has any ports, the first one that could be opened is used.  In theory, it should also be possible to have separate instances of RtMidi open at the same time with different underlying API support, though this has not been tested.
 
-The static function RtMidi::getCompiledApi() is provided to determine the available compiled API support.  The function RtMidi::getCurrentApi() indicates the API selected for a given RtMidi instance.
+The static function RtMidi::getCompiledApi() is provided to determine the available compiled API support.  The function RtMidi::getCurrentApi() indicates the API selected for a given RtMidi instance.  The static function RtMidi::checkApiAvailability() reports whether a compiled API can be used on the running system (Windows MIDI Services needs Windows 11 25H2 or later), and RtMidi::getVersion() returns the RtMidi version as a string.
 
 \section apinotes API Notes
 
@@ -381,7 +394,9 @@ RtMidi is designed to provide a common API across the various supported operatin
 
 \subsection linux Linux:
 
-RtMidi for Linux was developed using the Fedora distribution.  Two different MIDI APIs are supported on Linux platforms: <A href="http://www.alsa-project.org/">ALSA</A> and <A href="http://jackit.sourceforge.net/">JACK</A>. A decision was made to not include support for the OSS API because the OSS API provides very limited functionality and because <A href="http://www.alsa-project.org/">ALSA</A> support is now incorporated in the Linux kernel.  The ALSA sequencer and JACK APIs allows for virtual software input and output ports. 
+RtMidi for Linux was developed using the Fedora distribution.  Two different MIDI APIs are supported on Linux platforms: <A href="http://www.alsa-project.org/">ALSA</A> and <A href="https://jackaudio.org/">JACK</A>. A decision was made to not include support for the OSS API because the OSS API provides very limited functionality and because <A href="http://www.alsa-project.org/">ALSA</A> support is now incorporated in the Linux kernel.  The ALSA sequencer and JACK APIs allows for virtual software input and output ports.
+
+A large system exclusive message may not survive a single RtMidiOut::sendMessage() call.  Between two applications on ALSA, one larger than 5572 bytes is lost at the receiver (and an error is reported); to a hardware port on ALSA, only 4096 bytes fit the kernel's buffer and the rest is cut off without an error; and on JACK, one larger than 16379 bytes is not sent.  Send such a message in pieces, each once the last has drained at the device's rate (see the \c sysexchunked.cpp program in the \c tests directory).
 
 \subsection macosx Macintosh OS X (CoreAudio):
 
@@ -393,9 +408,31 @@ The RtMidi JACK support can be compiled on Macintosh OS-X systems, as well as in
 
 The \c configure script provides support for the MinGW compiler.
 
-The Windows Multimedia library MIDI calls used in RtMidi do not make use of streaming functionality.   Incoming system exclusive messages read by RtMidiIn are limited to a length as defined by the preprocessor definition RT_SYSEX_BUFFER_SIZE (set in RtMidi.cpp).  The default value is 1024.  There is no such limit for outgoing sysex messages via RtMidiOut.
+The Windows Multimedia library MIDI calls used in RtMidi do not make use of streaming functionality.   Incoming system exclusive messages are received into buffers whose size and number can be set with RtMidiIn::setBufferSize() before the port is opened (the default is 4 buffers of 1024 bytes).  A longer message is received a buffer at a time and delivered as one message, so these settings do not limit its length.  There is no such limit for outgoing sysex messages via RtMidiOut.
 
-RtMidi was originally developed with Visual C++ version 6.0 but has been tested with Virtual Studio 2010.
+RtMidi was originally developed with Visual C++ version 6.0 but has been tested with Visual Studio 2010.
+
+\subsection wms Windows (Windows MIDI Services):
+
+The Windows MIDI Services backend uses the Windows.Devices.Midi2 API, which Microsoft is adding to Windows 11 25H2 and later.  Until it ships in Windows, it comes from Microsoft's preview releases; WINDOWS.md explains where to get it and how to build with it.  It is only compiled when requested (with CMake, <TT>-DRTMIDI_API_WMS=ON</TT>) and needs C++20.  Port names are the ones Windows gives the device's MIDI 1.0 ports.  Virtual ports are not supported.
+
+An application can be built with both Windows MIDI Services and the Multimedia Library and use whichever works.  With no api argument, RtMidi tries Windows MIDI Services first and uses it if it starts and has a port; on Windows without the API, or with Windows set to its legacy MIDI stack, it uses the Multimedia Library instead, with no extra code.  To choose explicitly, and tell the user why, ask RtMidi::checkApiAvailability() first:
+
+\code
+RtMidi::Api api = RtMidi::WINDOWS_MM;
+RtMidi::RtMidiApiAvailability wms = RtMidi::checkApiAvailability( RtMidi::WINDOWS_MIDI_SERVICES );
+if ( wms.available )
+  api = RtMidi::WINDOWS_MIDI_SERVICES;
+else
+  std::cout << "Using the Multimedia Library: " << wms.message << std::endl;
+RtMidiIn midiin( api );
+\endcode
+
+The midiprobe test program prints each compiled API's availability and the API chosen with no api argument.
+
+\subsection android Android:
+
+The Android backend uses the AMidi API and must be built with CMake; see <TT>examples/android</TT>.  Port names are "&lt;product&gt; &lt;port&gt;"; define RTMIDI_ANDROID_LEGACY_PORT_NAMES for the names RtMidi 6.0 gave, which were the same for every port of a device.  RtMidi never asks for USB permission, but <TT>contrib/java/RtMidiUsbPermission.java</TT> lets the application ask.  With permission, a USB device's port names come from its descriptors, and on Android 10 to 12 a device with fewer inputs than outputs, which would hang until unplugged, is refused at once; without it, opening such a device fails after 5 seconds.  Virtual ports are not supported.
 
 \section acknowledge Development & Acknowledgements
 

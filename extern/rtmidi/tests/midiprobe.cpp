@@ -6,30 +6,42 @@
 
 #include <iostream>
 #include <cstdlib>
-#include <map>
 #include "RtMidi.h"
+
+static std::string apiName( RtMidi::Api api )
+{
+  return RtMidi::getApiDisplayName( api );
+}
 
 int main()
 {
-  // Create an api map.
-  std::map<int, std::string> apiMap;
-  apiMap[RtMidi::MACOSX_CORE] = "OS-X CoreMIDI";
-  apiMap[RtMidi::WINDOWS_MM] = "Windows MultiMedia";
-  apiMap[RtMidi::WINDOWS_UWP] = "Windows UWP";
-  apiMap[RtMidi::UNIX_JACK] = "Jack Client";
-  apiMap[RtMidi::LINUX_ALSA] = "Linux ALSA";
-  apiMap[RtMidi::RTMIDI_DUMMY] = "RtMidi Dummy";
-
   std::vector< RtMidi::Api > apis;
   RtMidi :: getCompiledApi( apis );
 
+  // An API can be compiled in but unusable here, e.g. Windows MIDI Services
+  // before Windows 11 25H2 or with Windows in legacy MIDI mode.
   std::cout << "\nCompiled APIs:\n";
-  for ( unsigned int i=0; i<apis.size(); i++ )
-    std::cout << "  " << apiMap[ apis[i] ] << std::endl;
+  for ( unsigned int i=0; i<apis.size(); i++ ) {
+    RtMidi::RtMidiApiAvailability availability = RtMidi::checkApiAvailability( apis[i] );
+    std::cout << "  " << apiName( apis[i] );
+    if ( !availability.available ) std::cout << " (not available: " << availability.message << ")";
+    std::cout << std::endl;
+  }
+
+  // With no API argument, RtMidi uses the first available compiled API that has a port.
+  try {
+    RtMidiIn defaultIn;
+    RtMidiOut defaultOut;
+    std::cout << "\nDefault API (no api argument): input " << apiName( defaultIn.getCurrentApi() )
+              << ", output " << apiName( defaultOut.getCurrentApi() ) << std::endl;
+  } catch ( RtMidiError &error ) {
+    error.printMessage();
+  }
   std::cout << std::endl;
 
   for ( unsigned int i=0; i<apis.size(); i++ ){
-    std::cout << "Probing with API " << apiMap[ apis[i] ] << std::endl;
+    if ( !RtMidi::checkApiAvailability( apis[i] ).available ) continue;
+    std::cout << "Probing with API " << apiName( apis[i] ) << std::endl;
 
     RtMidiIn  *midiin = 0;
     RtMidiOut *midiout = 0;
@@ -39,7 +51,7 @@ int main()
       // RtMidiIn constructor ... exception possible
       midiin = new RtMidiIn(apis[i]);
 
-      std::cout << "\nCurrent input API: " << apiMap[ midiin->getCurrentApi() ] << std::endl;
+      std::cout << "\nCurrent input API: " << apiName( midiin->getCurrentApi() ) << std::endl;
 
       // Check inputs.
       unsigned int nPorts = midiin->getPortCount();
@@ -53,7 +65,7 @@ int main()
       // RtMidiOut constructor ... exception possible
       midiout = new RtMidiOut(apis[i]);
 
-      std::cout << "\nCurrent output API: " << apiMap[ midiout->getCurrentApi() ] << std::endl;
+      std::cout << "\nCurrent output API: " << apiName( midiout->getCurrentApi() ) << std::endl;
 
       // Check outputs.
       nPorts = midiout->getPortCount();

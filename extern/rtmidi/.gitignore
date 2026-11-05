@@ -62,3 +62,6 @@
 
 # Go
 !/contrib/go/rtmidi/go.mod
+
+# Visual Studio per-user settings
+*.vcxproj.user

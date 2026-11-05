@@ -1,0 +1,98 @@
+name: C/C++ CI
+
+on: [push, pull_request]
+
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - api: jack
+            APIcmake: JACK
+            deps: libjack-dev
+          - api: alsa
+            APIcmake: ALSA
+            deps: libasound-dev
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: install dependencies
+      run:
+        sudo apt-get update
+        && sudo apt-get install g++ autoconf-archive cmake ${{matrix.deps}}
+    - name: automake
+      run:
+        env NOCONFIGURE=1 ./autogen.sh && mkdir bld-automake && cd bld-automake
+        && (../configure --with-${{matrix.api}} || (cat config.log; false))
+        && make V=1 && make check
+    - name: CMake
+      run:
+        mkdir bld-cmake && cd bld-cmake
+        && cmake .. -DRTMIDI_API_JACK=OFF -DRTMIDI_API_ALSA=OFF -DRTMIDI_API_${{matrix.APIcmake}}=ON
+        && make VERBOSE=1
+
+  MacOS:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: install dependencies
+      run: brew install autoconf-archive automake cmake meson libtool
+    - name: automake
+      run:
+        env NOCONFIGURE=1 ./autogen.sh && mkdir bld-automake && cd bld-automake
+        && (../configure || (cat config.log; false))
+        && make V=1 && make check
+    - name: CMake
+      run: mkdir bld-cmake && cd bld-cmake && cmake .. && make VERBOSE=1
+
+  MinGW:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - host: i686-w64-mingw32
+            api: winmm
+          - host: x86_64-w64-mingw32
+            api: winmm
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: install dependencies
+      run:
+        sudo apt-get update
+        && sudo apt-get install g++-mingw-w64 autoconf-archive
+    - name: automake
+      run:
+        env NOCONFIGURE=1 ./autogen.sh
+        && mkdir bld-automake && cd bld-automake
+        && (../configure --host=${{matrix.host}} --with-${{matrix.api}} CPPFLAGS=${{matrix.cppflags}} || (cat config.log; false))
+        && make V=1
+
+  Windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v4
+    - name: Windows MIDI Services metadata
+      # Not in any Windows SDK yet; Microsoft publishes it only as a release asset.
+      shell: pwsh
+      run: |
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest https://github.com/microsoft/MIDI/releases/download/inbox-preview-11/Windows.Devices.Midi2.0.99.92-preview.11.nupkg -OutFile midi2.nupkg
+        if ((Get-FileHash midi2.nupkg).Hash -ne '13AFC6E6DA2ADAC309AB8C174352F46F1C0EBE2D79E65475BD6274DEFB73DF74') { throw 'checksum mismatch' }
+        New-Item -ItemType Directory wms | Out-Null
+        C:\Windows\System32\tar.exe -xf midi2.nupkg -C wms ref/native
+    - name: CMake
+      env:
+        WindowsMidiServices_ROOT: ${{ github.workspace }}/wms/ref/native
+      run:
+        cmake -B bld-cmake -A x64 -DRTMIDI_API_WMS=ON -DBUILD_SHARED_LIBS=OFF
+        && cmake --build bld-cmake --config Release
+        && ctest --test-dir bld-cmake -C Release --output-on-failure

@@ -1,0 +1,10 @@
+<Project>
+  <!-- One intermediate directory per project, so parallel builds don't share vc142.pdb. -->
+  <PropertyGroup>
+    <!-- Read before VS's own defaults, so set them as Microsoft.Cpp.Default.props does. -->
+    <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == ''">Win32</Platform>
+    <IntDir Condition="'$(Platform)' == 'Win32'">$(Configuration)\$(MSBuildProjectName)\</IntDir>
+    <IntDir Condition="'$(Platform)' != 'Win32'">$(Platform)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
+  </PropertyGroup>
+</Project>

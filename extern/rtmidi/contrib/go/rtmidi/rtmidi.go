@@ -4,11 +4,11 @@ package rtmidi
 #cgo CXXFLAGS: -g -std=c++11
 #cgo LDFLAGS: -g
 
-#cgo linux CXXFLAGS: -D__LINUX_ALSA__
+#cgo linux CXXFLAGS: -DRTMIDI_API_ALSA
 #cgo linux LDFLAGS: -lasound -pthread
-#cgo windows CXXFLAGS: -D__WINDOWS_MM__
+#cgo windows CXXFLAGS: -DRTMIDI_API_WINMM
 #cgo windows LDFLAGS: -luuid -lksuser -lwinmm -lole32
-#cgo darwin CXXFLAGS: -D__MACOSX_CORE__
+#cgo darwin CXXFLAGS: -DRTMIDI_API_CORE
 #cgo darwin LDFLAGS: -framework CoreServices -framework CoreAudio -framework CoreMIDI -framework CoreFoundation
 
 #include <stdlib.h>
@@ -48,6 +48,14 @@ const (
 	APIWindowsMM API = C.RTMIDI_API_WINDOWS_MM
 	// APIDummy is a compilable but non-functional API.
 	APIDummy API = C.RTMIDI_API_RTMIDI_DUMMY
+	// APIWebMIDI uses the W3C Web MIDI API.
+	APIWebMIDI API = C.RTMIDI_API_WEB_MIDI_API
+	// APIWindowsUWP uses the Microsoft Universal Windows Platform MIDI API.
+	APIWindowsUWP API = C.RTMIDI_API_WINDOWS_UWP
+	// APIAndroid uses the Android MIDI API.
+	APIAndroid API = C.RTMIDI_API_ANDROID
+	// APIWindowsMIDIServices uses Windows MIDI Services.
+	APIWindowsMIDIServices API = C.RTMIDI_API_WINDOWS_MIDI_SERVICES
 )
 
 // Format an API as a string
@@ -65,6 +73,14 @@ func (api API) String() string {
 		return "winmm"
 	case APIDummy:
 		return "dummy"
+	case APIWebMIDI:
+		return "web"
+	case APIWindowsUWP:
+		return "winuwp"
+	case APIAndroid:
+		return "amidi"
+	case APIWindowsMIDIServices:
+		return "winmidi2"
 	}
 	return "?"
 }

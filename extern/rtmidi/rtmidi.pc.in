@@ -9,4 +9,4 @@ Version: @PACKAGE_VERSION@
 Requires.private: @req@
 Libs: -L${libdir} -lrtmidi
 Libs.private: -lpthread @req_libs@
-Cflags: -pthread -I${includedir} @api@
+Cflags: -pthread -I${includedir} -I${includedir}/.. @api@ @api_old@
