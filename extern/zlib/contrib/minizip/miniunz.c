@@ -1,15 +1,14 @@
 /*
    miniunz.c
-   Version 1.1, February 14h, 2010
-   sample part of the MiniZip project - ( http://www.winimage.com/zLibDll/minizip.html )
+   sample part of the MiniZip project - ( https://www.winimage.com/zLibDll/minizip.html )
 
-         Copyright (C) 1998-2010 Gilles Vollant (minizip) ( http://www.winimage.com/zLibDll/minizip.html )
+         Copyright (C) 1998-2026 Gilles Vollant (minizip) ( https://www.winimage.com/zLibDll/minizip.html )
 
          Modifications of Unzip for Zip64
          Copyright (C) 2007-2008 Even Rouault
 
          Modifications for Zip64 support on both zip and unzip
-         Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
+         Copyright (C) 2009-2010 Mathias Svensson ( https://result42.com )
 */
 
 #if (!defined(_WIN32)) && (!defined(WIN32)) && (!defined(__APPLE__))
@@ -39,6 +38,9 @@
 #endif
 
 
+#ifndef _CRT_SECURE_NO_WARNINGS
+#  define _CRT_SECURE_NO_WARNINGS
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,6 +85,7 @@
     tmu_date : the SAME new date at the tm_unz format */
 static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date) {
 #ifdef _WIN32
+  (void)tmu_date;
   HANDLE hFile;
   FILETIME ftm,ftLocal,ftCreate,ftLastAcc,ftLastWrite;
 
@@ -93,8 +96,7 @@ static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_dat
   LocalFileTimeToFileTime(&ftLocal,&ftm);
   SetFileTime(hFile,&ftm,&ftLastAcc,&ftm);
   CloseHandle(hFile);
-#else
-#if defined(unix) || defined(__APPLE__)
+#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
   (void)dosdate;
   struct utimbuf ut;
   struct tm newdate;
@@ -116,7 +118,6 @@ static void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_dat
   (void)dosdate;
   (void)tmu_date;
 #endif
-#endif
 }
 
 
@@ -127,9 +128,7 @@ static int mymkdir(const char* dirname) {
     int ret=0;
 #ifdef _WIN32
     ret = _mkdir(dirname);
-#elif unix
-    ret = mkdir (dirname,0775);
-#elif __APPLE__
+#elif defined(__unix__) || defined(__unix) || defined(__APPLE__)
     ret = mkdir (dirname,0775);
 #else
     (void)dirname;
@@ -151,7 +150,7 @@ static int makedir(const char *newdir) {
                 printf("Error allocating memory\n");
                 return UNZ_INTERNALERROR;
         }
-  strcpy(buffer,newdir);
+  memcpy(buffer,newdir,len+1);
 
   if (buffer[len-1] == '/') {
     buffer[len-1] = '\0';
@@ -185,9 +184,62 @@ static int makedir(const char *newdir) {
   return 1;
 }
 
+/* Copy to out a version of the path name that can only be created under the
+   extraction directory. Both '/' and '\\' are taken as separators. Empty and
+   "." path components are removed, and a ".." component is removed along with
+   the component before it, if any. On Windows, drive specifiers at the start
+   and components of only dots and spaces are also removed. The result is
+   always a relative path, and is no longer than name. out must have room for
+   strlen(name) + 1 characters. */
+static void safe_path(char* out, const char* name) {
+    char* start = out;
+    while (*name != '\0')
+    {
+        const char* comp = name;
+        size_t len;
+        while (*name != '\0' && *name != '/' && *name != '\\')
+            name++;
+        len = (size_t)(name - comp);
+#ifdef _WIN32
+        while (out == start && len >= 2 && comp[1] == ':')
+        {
+            comp += 2;          /* remove drive specifiers, e.g. "C:" */
+            len -= 2;
+        }
+        {
+            /* Windows drops trailing dots and spaces from a name, so remove
+               any other component made of only those, such as "..." */
+            size_t i = 0;
+            while (i < len && (comp[i] == '.' || comp[i] == ' '))
+                i++;
+            if (i == len && !(len == 2 && comp[0] == '.' && comp[1] == '.'))
+                len = 0;
+        }
+#endif
+        if (len == 2 && comp[0] == '.' && comp[1] == '.')
+        {
+            /* remove the previous component and its separator, if any */
+            if (out > start)
+                out--;
+            while (out > start && out[-1] != '/' && out[-1] != '\\')
+                out--;
+        }
+        else if (len != 0 && !(len == 1 && comp[0] == '.'))
+        {
+            memcpy(out, comp, len);
+            out += len;
+            if (*name != '\0')
+                *out++ = *name;     /* keep the separator */
+        }
+        if (*name != '\0')
+            name++;
+    }
+    *out = '\0';
+}
+
 static void do_banner(void) {
     printf("MiniUnz 1.1, demo of zLib + Unz package written by Gilles Vollant\n");
-    printf("more info at http://www.winimage.com/zLibDll/unzip.html\n\n");
+    printf("more info at https://www.winimage.com/zLibDll/unzip.html\n\n");
 }
 
 static void do_help(void) {
@@ -235,12 +287,12 @@ static int do_list(unzFile uf) {
 
     err = unzGetGlobalInfo64(uf,&gi);
     if (err!=UNZ_OK)
-        printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+        printf("error %d with zipfile in unzGetGlobalInfo\n",err);
     printf("  Length  Method     Size Ratio   Date    Time   CRC-32     Name\n");
     printf("  ------  ------     ---- -----   ----    ----   ------     ----\n");
     for (i=0;i<gi.number_entry;i++)
     {
-        char filename_inzip[256];
+        char filename_inzip[65536+1];
         unz_file_info64 file_info;
         uLong ratio=0;
         const char *string_method = "";
@@ -268,7 +320,7 @@ static int do_list(unzFile uf) {
               string_method="Defl:N";
             else if (iLevel==1)
               string_method="Defl:X";
-            else if ((iLevel==2) || (iLevel==3))
+            else        /* iLevel==2 || iLevel==3 */
               string_method="Defl:F"; /* 2:fast , 3 : extra fast*/
         }
         else
@@ -305,7 +357,8 @@ static int do_list(unzFile uf) {
 
 
 static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password) {
-    char filename_inzip[256];
+    char filename_inzip[65536+1];
+    char write_name[65536+1];
     char* filename_withoutpath;
     char* p;
     int err=UNZ_OK;
@@ -340,35 +393,27 @@ static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_pa
 
     if ((*filename_withoutpath)=='\0')
     {
-        if ((*popt_extract_without_path)==0)
+        safe_path(write_name, filename_inzip);
+        if (((*popt_extract_without_path)==0) && (write_name[0]!='\0'))
         {
-            printf("creating directory: %s\n",filename_inzip);
-            mymkdir(filename_inzip);
+            printf("creating directory: %s\n",write_name);
+            mymkdir(write_name);
         }
     }
     else
     {
-        const char* write_filename;
+        const char* write_filename = write_name;
         int skip=0;
 
         if ((*popt_extract_without_path)==0)
-            write_filename = filename_inzip;
+            safe_path(write_name, filename_inzip);
         else
-            write_filename = filename_withoutpath;
-
-        if (write_filename[0]!='\0')
+            safe_path(write_name, filename_withoutpath);
+        if (write_name[0]=='\0')
         {
-            const char* relative_check = write_filename;
-            while (relative_check[1]!='\0')
-            {
-                if (relative_check[0]=='.' && relative_check[1]=='.')
-                    write_filename = relative_check;
-                relative_check++;
-            }
+            printf("skipping %s: no name left to extract to\n",filename_inzip);
+            skip = 1;
         }
-
-        while (write_filename[0]=='/' || write_filename[0]=='.')
-            write_filename++;
 
         err = unzOpenCurrentFilePassword(uf,password);
         if (err!=UNZ_OK)
@@ -413,14 +458,22 @@ static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_pa
         {
             fout=FOPEN_FUNC(write_filename,"wb");
             /* some zipfile don't contain directory alone before file */
-            if ((fout==NULL) && ((*popt_extract_without_path)==0) &&
-                                (filename_withoutpath!=(char*)filename_inzip))
+            if ((fout==NULL) && ((*popt_extract_without_path)==0))
             {
-                char c=*(filename_withoutpath-1);
-                *(filename_withoutpath-1)='\0';
-                makedir(write_filename);
-                *(filename_withoutpath-1)=c;
-                fout=FOPEN_FUNC(write_filename,"wb");
+                /* make the directories leading up to the file */
+                char* sep = NULL;
+                char* q;
+                for (q = write_name; *q != '\0'; q++)
+                    if (*q == '/' || *q == '\\')
+                        sep = q;
+                if (sep != NULL)
+                {
+                    char c = *sep;
+                    *sep = '\0';
+                    makedir(write_name);
+                    *sep = c;
+                    fout=FOPEN_FUNC(write_filename,"wb");
+                }
             }
 
             if (fout==NULL)
@@ -482,13 +535,17 @@ static int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrit
 
     err = unzGetGlobalInfo64(uf,&gi);
     if (err!=UNZ_OK)
-        printf("error %d with zipfile in unzGetGlobalInfo \n",err);
+    {
+        printf("error %d with zipfile in unzGetGlobalInfo\n",err);
+        return err;
+    }
 
     for (i=0;i<gi.number_entry;i++)
     {
-        if (do_extract_currentfile(uf,&opt_extract_without_path,
+        err = do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
-                                      password) != UNZ_OK)
+                                      password);
+        if (err != UNZ_OK)
             break;
 
         if ((i+1)<gi.number_entry)
@@ -502,7 +559,7 @@ static int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrit
         }
     }
 
-    return 0;
+    return err;
 }
 
 static int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password) {
@@ -512,12 +569,9 @@ static int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_
         return 2;
     }
 
-    if (do_extract_currentfile(uf,&opt_extract_without_path,
+    return do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
-                                      password) == UNZ_OK)
-        return 0;
-    else
-        return 1;
+                                      password);
 }
 
 

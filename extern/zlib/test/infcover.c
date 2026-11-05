@@ -1,5 +1,5 @@
 /* infcover.c -- test zlib's inflate routines with full code coverage
- * Copyright (C) 2011, 2016 Mark Adler
+ * Copyright (C) 2011, 2016, 2024 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -185,7 +185,7 @@ local void mem_used(z_stream *strm, char *prefix)
 {
     struct mem_zone *zone = strm->opaque;
 
-    fprintf(stderr, "%s: %lu allocated\n", prefix, zone->total);
+    fprintf(stderr, "%s: %zu allocated\n", prefix, zone->total);
 }
 
 /* show the high water allocation in bytes */
@@ -193,7 +193,7 @@ local void mem_high(z_stream *strm, char *prefix)
 {
     struct mem_zone *zone = strm->opaque;
 
-    fprintf(stderr, "%s: %lu high water mark\n", prefix, zone->highwater);
+    fprintf(stderr, "%s: %zu high water mark\n", prefix, zone->highwater);
 }
 
 /* release the memory allocation zone -- if there are any surprises, notify */
@@ -218,7 +218,7 @@ local void mem_done(z_stream *strm, char *prefix)
 
     /* issue alerts about anything unexpected */
     if (count || zone->total)
-        fprintf(stderr, "** %s: %lu bytes in %d blocks not freed\n",
+        fprintf(stderr, "** %s: %zu bytes in %d blocks not freed\n",
                 prefix, zone->total, count);
     if (zone->notlifo)
         fprintf(stderr, "** %s: %d frees not LIFO\n", prefix, zone->notlifo);
@@ -298,7 +298,7 @@ local void inf(char *hex, char *what, unsigned step, int win, unsigned len,
         mem_done(&strm, what);
         return;
     }
-    out = malloc(len);                          assert(out != NULL);
+    out = malloc(len ? len : 1);                assert(out != NULL);
     if (win == 47) {
         head.extra = out;
         head.extra_max = len;
@@ -360,6 +360,9 @@ local void cover_support(void)
     ret = inflatePrime(&strm, 5, 31);           assert(ret == Z_OK);
     ret = inflatePrime(&strm, -1, 0);           assert(ret == Z_OK);
     ret = inflateSetDictionary(&strm, Z_NULL, 0);
+                                                assert(ret == Z_STREAM_ERROR);
+    ret = inflateReset2(&strm, -15);            assert(ret == Z_OK);
+    ret = inflateSetDictionary(&strm, Z_NULL, 1);
                                                 assert(ret == Z_STREAM_ERROR);
     ret = inflateEnd(&strm);                    assert(ret == Z_OK);
     mem_done(&strm, "prime");
@@ -444,7 +447,7 @@ local void cover_wrap(void)
 }
 
 /* input and output functions for inflateBack() */
-local unsigned pull(void *desc, unsigned char **buf)
+local unsigned pull(void *desc, unsigned char z_const **buf)
 {
     static unsigned int next = 0;
     static unsigned char dat[] = {0x63, 0, 2, 0};
