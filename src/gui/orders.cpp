@@ -413,7 +413,10 @@ void FurnaceGUI::drawOrders() {
               dl->AddRect(ImGui::GetItemRectMin(),ImGui::GetItemRectMax(),ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),2.0f*dpiScale);
             }
             if (!pat->name.empty() && ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("%s",pat->name.c_str());
+              if (ImGui::BeginTooltip()) {
+                ImGui::TextNoHashHide("%s",pat->name.c_str());
+                ImGui::EndTooltip();
+              }
             }
             bool findFreePat=ImGui::IsItemClicked(ImGuiMouseButton_Middle);
             if (ImGui::IsItemHovered() && CHECK_LONG_HOLD) {

@@ -18,6 +18,7 @@
  */
 
 // for suck's fake Clang extension!
+#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../ta-log.h"
@@ -748,10 +749,12 @@ void FurnaceGUI::drawPattern() {
         if (patChannelNames) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
           ImGui::PushFont(mainFont);
-          snprintf(chanID,2048," %s###PatName%d",pat->name.c_str(),i);
-          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(sizeHeader.x,patLineHeight+1.0f*dpiScale))) {
+          snprintf(chanID,2048," %s",pat->name.c_str());
+          ImGui::PushID(4000+i);
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing|ImGuiSelectableFlags_NoHashTextHide,ImVec2(sizeHeader.x,patLineHeight+1.0f*dpiScale))) {
             editStr(&pat->name);
           }
+          ImGui::PopID();
           ImGui::PopFont();
         }
 
