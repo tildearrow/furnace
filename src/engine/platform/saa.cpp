@@ -80,11 +80,11 @@ void DivPlatformSAA1099::updateTimers() {
     if (chan[i].active || parent->isFreelance()) {
       chan[i].timerAccum+=chan[i].freq;
       // the counter is 16-bit, but we store it as 32-bit to detect carry.
-      if (chan[i].timerAccum>=0x10000 && saaEnv[i/4]&0x20) {
+      if (chan[i].timerAccum>=0x10000 && saaEnv[i/4]&0x60) {
         // Furnace addition: square wave by toggling env mode
         if (saaEnv[i/4]&0x40) {
-          saaEnv[i/4]^=2;
-          rWrite(0x18+(i/4),saaEnv[i/4]&0x93);
+          saaEnv[i/4]^=0x80;
+          rWrite(0x18+(i/4),saaEnv[i/4]&0xbf);
         } else {
           rWrite(0x18+(i/4),saaEnv[i/4]);
         }
@@ -231,6 +231,16 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       if ((i&3)==3) {
         // timers
         if (chan[i].freq>65535) chan[i].freq=65535;
+
+        // preview timers
+        if (parent->isFreelance() && !chan[i-1].active) {
+          if (chan[i].keyOn) {
+            rWrite(volRegs[i-1],0xff);
+          }
+          if (chan[i].keyOff) {
+            rWrite(volRegs[i-1],0);
+          }
+        }
       } else {
         // regular channels
         if (chan[i].freq>4095) chan[i].freq=4095;
@@ -449,13 +459,17 @@ void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   int realCh=ch;
   if (compat && ch>=3) ch++;
   if ((ch%4)==1) {
-    if (saaEnv[ch/4]&0x80 && !(saaEnv[ch/4]&0x20)) {
+    if (saaEnv[ch/4]&0xc0 && !(saaEnv[ch/4]&0x20)) {
       ret.push_back(DivChannelPair(_("env >"),realCh+1));
     }
   }
   if ((ch%4)==2 && !compat) {
-    if (saaEnv[ch/4]&0x80 && saaEnv[ch/4]&0x20) {
-      ret.push_back(DivChannelPair(_("< env"),realCh+1));
+    if (saaEnv[ch/4]&0xc0) {
+      if (saaEnv[ch/4]&0x40) {
+        ret.push_back(DivChannelPair(_("< strobe"),realCh+1));
+      } else if (saaEnv[ch/4]&0x20) {
+        ret.push_back(DivChannelPair(_("< env"),realCh+1));
+      }
     }
   }
 }

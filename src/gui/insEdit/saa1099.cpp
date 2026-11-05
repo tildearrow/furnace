@@ -32,7 +32,7 @@ static const char* saaEnvBits[9]={
   _N("mode3"),
   _N("low resolution"),
   _N("use timer"),
-  _N("timer square"),
+  _N("timer strobe"),
   _N("enabled"),
   NULL
 };
