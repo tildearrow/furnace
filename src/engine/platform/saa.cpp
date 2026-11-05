@@ -211,7 +211,16 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
-      saaEnv[i/4]=chan[i].std.ex1.val;
+      chan[i].envMode=chan[i].std.ex1.val;
+      if (envCombine) {
+        // OR env modes of all channels together
+        saaEnv[i/4]=0;
+        for (int j=0; j<4; j++) {
+          saaEnv[i/4]|=chan[j+(i&4)].envMode;
+        }
+      } else {
+        saaEnv[i/4]=chan[i].std.ex1.val;
+      }
       rWrite(0x18+(i/4),saaEnv[i/4]);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
@@ -389,8 +398,17 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
       break;
     case DIV_CMD_SAA_ENVELOPE:
-      saaEnv[c.chan/4]=c.value;
-      rWrite(0x18+(c.chan/4),c.value);
+      chan[c.chan].envMode=c.value;
+      if (envCombine) {
+        // OR env modes of all channels together
+        saaEnv[c.chan/4]=0;
+        for (int j=0; j<4; j++) {
+          saaEnv[c.chan/4]|=chan[j+(c.chan&4)].envMode;
+        }
+      } else {
+        saaEnv[c.chan/4]=c.value;
+      }
+      rWrite(0x18+(c.chan/4),saaEnv[c.chan/4]);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -470,6 +488,26 @@ void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
       } else if (saaEnv[ch/4]&0x20) {
         ret.push_back(DivChannelPair(_("< env"),realCh+1));
       }
+    }
+  }
+  if (chan[ch].psgMode&2) {
+    switch (saaNoise[ch/4]) {
+      case 0:
+        ret.push_back(DivChannelPair(_("high"),realCh));
+        break;
+      case 1:
+        ret.push_back(DivChannelPair(_("mid"),realCh));
+        break;
+      case 2:
+        ret.push_back(DivChannelPair(_("low"),realCh));
+        break;
+      case 3:
+        if (compat) {
+          ret.push_back(DivChannelPair(_("noise"),(realCh/3)*3));
+        } else {
+          ret.push_back(DivChannelPair(_("noise"),realCh&4));
+        }
+        break;
     }
   }
 }
@@ -584,6 +622,8 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   rate=chipClock/coreQuality;
 
   timerRate=flags.getInt("timerRate",15625);
+
+  envCombine=flags.getBool("envCombine",true);
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);

@@ -1032,6 +1032,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
     case DIV_SYSTEM_SAA1099_NEW: {
       int clockSel=flags.getInt("clockSel",0);
       int timerRate=flags.getInt("timerRate",15625);
+      bool envCombine=flags.getInt("envCombine",true);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -1061,12 +1062,25 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         ImGui::Text(_("- triangle: %dHz (high-res)/%dHz (low-res)"),timerRate/32,timerRate/16);
       }
 
+      ImGui::Text(_("Envelope mode is altered by:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("All channels in a group (combining/OR'ing env mode macros/effects)"),envCombine)) {
+        envCombine=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("Last channel in a group with an env mode macro or effect"),!envCombine)) {
+        envCombine=false;
+        altered=true;
+      }
+      ImGui::Unindent();
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           if (type==DIV_SYSTEM_SAA1099_NEW) {
             flags.set("timerRate",timerRate);
           }
+          flags.set("envCombine",envCombine);
         });
       }
       break;

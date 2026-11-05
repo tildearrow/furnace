@@ -28,7 +28,7 @@ class DivPlatformSAA1099: public DivDispatch {
   protected:
     struct Channel: public SharedChannel {
       unsigned char freqH, freqL;
-      unsigned char psgMode;
+      unsigned char psgMode, envMode;
       unsigned char pan;
       unsigned int timerAccum;
       Channel(bool linear=true):
@@ -36,6 +36,7 @@ class DivPlatformSAA1099: public DivDispatch {
         freqH(0),
         freqL(0),
         psgMode(1),
+        envMode(0),
         pan(255),
         timerAccum(0) {}
     };
@@ -59,7 +60,7 @@ class DivPlatformSAA1099: public DivDispatch {
 
     int delay, timerRate, timerCounter;
 
-    bool extMode, compat;
+    bool extMode, compat, envCombine;
   
     short oldWrites[16];
     short pendingWrites[16];
@@ -72,7 +73,7 @@ class DivPlatformSAA1099: public DivDispatch {
 
     void acquire_saaSound(short** buf, size_t len);
     void updateTimers();
-  
+
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
