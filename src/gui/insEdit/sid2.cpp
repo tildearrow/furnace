@@ -51,10 +51,12 @@ static const char* sid2ControlBits[4]={
   NULL
 };
 
-String macroSID2WaveMixMode(int id, float val, void* u) {
-  if ((int)val<0 || (int)val>3) return "???";
-
-  return fmt::sprintf("%d: %s",id,_(sid2WaveMixModes[(int)val]));
+void macroSID2WaveMixMode(int id, float val, void* u) {
+  if ((int)val<0 || (int)val>3) {
+    ImGui::SetTooltip("???");
+  } else {
+    ImGui::SetTooltip("%d: %s",id,_(sid2WaveMixModes[(int)val]));
+  }
 }
 
 void FurnaceGUI::insEditSID2(DivInstrument* ins) {

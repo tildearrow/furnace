@@ -33,20 +33,23 @@ static const char* ayEnvBits[4]={
   _N("enable")
 };
 
-String macroTFXModes(int id, float val, void* u) {
+void macroTFXModes(int id, float val, void* u) {
+  const char* mode="???";
   switch (((int)val)&3) {
     case 0:
-      return _("Disabled");
+      mode=_("Disabled");
+      break;
     case 1:
-      return _("PWM");
+      mode=_("PWM");
+      break;
     case 2:
-      return _("SyncBuzzer");
+      mode=_("SyncBuzzer");
+      break;
     case 3:
-      return _("Reserved");
-    default:
-      return "???";
+      mode=_("Reserved");
+      break;
   }
-  return "???";
+  ImGui::SetTooltip("%s",mode);
 }
 
 

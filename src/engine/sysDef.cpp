@@ -1118,7 +1118,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
-    _("Philips SAA1099"), NULL, 0x97, 0, 6, 6, 6,
+    _("Philips SAA1099 (no software timers)"), NULL, 0x97, 0, 6, 6, 6,
     false, true, 0x171, false, 0, 0, 0,
     _("supposedly an upgrade from the AY-3-8910, this was present on the Creative Music System (Game Blaster) and SAM Coupé."),
     DivChanDefFunc({
@@ -1128,6 +1128,28 @@ void DivEngine::registerSystems() {
       DivChanDef(_("PSG 4"), "S4", DIV_CH_PULSE, DIV_INS_SAA1099),
       DivChanDef(_("PSG 5"), "S5", DIV_CH_PULSE, DIV_INS_SAA1099),
       DivChanDef(_("PSG 6"), "S6", DIV_CH_PULSE, DIV_INS_SAA1099),
+    }),
+    {},
+    {
+      {0x10, {DIV_CMD_STD_NOISE_MODE, _("10xy: Set channel mode (x: noise; y: tone)")}},
+      {0x11, {DIV_CMD_STD_NOISE_FREQ, _("11xx: Set noise frequency")}},
+      {0x12, {DIV_CMD_SAA_ENVELOPE, _("12xx: Setup envelope (refer to docs for more information)")}},
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_SAA1099_NEW]=new DivSysDef(
+    _("Philips SAA1099"), NULL, 0xe9, 0, 8, 8, 8,
+    false, true, 0x171, false, 0, 0, 0,
+    _("supposedly an upgrade from the AY-3-8910, this was present on the Creative Music System (Game Blaster) and SAM Coupé."),
+    DivChanDefFunc({
+      DivChanDef(_("PSG 1"),   "S1", DIV_CH_PULSE, DIV_INS_SAA1099),
+      DivChanDef(_("PSG 2"),   "S2", DIV_CH_PULSE, DIV_INS_SAA1099),
+      DivChanDef(_("PSG 3"),   "S3", DIV_CH_PULSE, DIV_INS_SAA1099),
+      DivChanDef(_("Timer 1"), "T1", DIV_CH_NOISE, DIV_INS_SAA1099),
+      DivChanDef(_("PSG 4"),   "S4", DIV_CH_PULSE, DIV_INS_SAA1099),
+      DivChanDef(_("PSG 5"),   "S5", DIV_CH_PULSE, DIV_INS_SAA1099),
+      DivChanDef(_("PSG 6"),   "S6", DIV_CH_PULSE, DIV_INS_SAA1099),
+      DivChanDef(_("Timer 2"), "T2", DIV_CH_NOISE, DIV_INS_SAA1099),
     }),
     {},
     {

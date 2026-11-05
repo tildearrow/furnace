@@ -29,20 +29,18 @@ static const char* snesModeBits[6]={
   NULL
 };
 
-String macroHoverGain(int id, float val, void* u) {
+void macroHoverGain(int id, float val, void* u) {
   if (val>=224.0f) {
-    return fmt::sprintf(_("%d: +%d (exponential)"),id,(int)(val-224));
+    ImGui::SetTooltip(_("%d: +%d (exponential)"),id,(int)(val-224));
+  } else if (val>=192.0f) {
+    ImGui::SetTooltip(_("%d: +%d (linear)"),id,(int)(val-192));
+  } else if (val>=160.0f) {
+    ImGui::SetTooltip(_("%d: -%d (exponential)"),id,(int)(val-160));
+  } else if (val>=128.0f) {
+    ImGui::SetTooltip(_("%d: -%d (linear)"),id,(int)(val-128));
+  } else {
+    ImGui::SetTooltip(_("%d: %d (direct)"),id,(int)val);
   }
-  if (val>=192.0f) {
-    return fmt::sprintf(_("%d: +%d (linear)"),id,(int)(val-192));
-  }
-  if (val>=160.0f) {
-    return fmt::sprintf(_("%d: -%d (exponential)"),id,(int)(val-160));
-  }
-  if (val>=128.0f) {
-    return fmt::sprintf(_("%d: -%d (linear)"),id,(int)(val-128));
-  }
-  return fmt::sprintf(_("%d: %d (direct)"),id,(int)val);
 }
 
 void FurnaceGUI::insEditSNES(DivInstrument* ins) {

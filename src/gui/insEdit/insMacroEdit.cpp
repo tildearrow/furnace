@@ -39,19 +39,24 @@ const char* macroLFOShapes[4]={
   _N("How did you even")
 };
 
-String macroHover(int id, float val, void* u) {
-  return fmt::sprintf("%d: %d",id,(int)val);
+void macroHover(int id, float val, void* u) {
+  ImGui::SetTooltip("%d: %d",id,(int)val);
 }
 
-String macroHoverLoop(int id, float val, void* u) {
-  if (val>1) return _("Release");
-  if (val>0) return _("Loop");
-  return "";
+void macroHoverLoop(int id, float val, void* u) {
+  if (val>1) {
+    ImGui::SetTooltip("%s",_("Release"));
+  } else if (val>0) {
+    ImGui::SetTooltip("%s",_("Loop"));
+  }
 }
 
-String macroHoverBit30(int id, float val, void* u) {
-  if (val>0) return _("Fixed");
-  return _("Relative");
+void macroHoverBit30(int id, float val, void* u) {
+  if (val>0) {
+    ImGui::SetTooltip("%s",_("Fixed"));
+  } else {
+    ImGui::SetTooltip("%s",_("Relative"));
+  }
 }
 
 String genericGuide(float value) {

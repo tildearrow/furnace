@@ -40,8 +40,8 @@ extern const char* macroRelativeMode;
 extern const char* macroQSoundMode;
 extern const char* macroDummyMode;
 
-String macroHoverNote(int id, float val, void* u);
-String macroLFOWaves(int id, float val, void* u);
+void macroHoverNote(int id, float val, void* u);
+void macroLFOWaves(int id, float val, void* u);
 
 enum FMParams {
   FM_ALG=0,
