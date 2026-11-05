@@ -1,0 +1,194 @@
+The state from 1.32.0 on:
+=========================
+
+Yet again, things had to change. The previous state works fine for Unix (adjacent)
+sytems, also MinGW stuff on Windows, but it still suffers from off_t being shifty
+and not behaving as I expect, even, when people try to build mpg123 with rogue
+compilers like MSVC, where off_t is always 32 bits, no largefile support, the whole
+idea falls flat. I was pushed to introduce API without off_t where the user can
+provide I/O and ensure largefile support and whatnot without being encumbered by
+offsets possibly limited to 32 bits.
+
+So this is a new set of API functions with the explicit suffix 64 (not _64), notably
+simple functions like
+
+	int64_t mpg123_tell64()
+
+but also
+
+	int mpg123_reader64()
+
+which takes callbacks that work on int64_t, always. The internal reader code path
+in libmpg123 uses either 32 bit or 64 bit offsets, but throughout the library,
+it is 64 bits being used as if we supported large files everywhere. And in fact,
+we do, if the user provides callbacks that are smart enough.
+
+All existing offset-sensitive code paths are to be rephrased in terms of the new
+portable API (portable, because the platform specifics of off_t implementation are
+not present). All old API entry points in that regard become wrappers over this
+portable API.
+
+The build of libmpg123 needs explicit awareness of largefile support to properly
+reason about which wrapper uses which types. It makes use of off_t at default
+size and explicit off64_t if available. This results in this for a typical 32 bit
+Linux system:
+
+	int64_t mpg123_tell64();  // passing on the internal int64_t value
+	off_t   mpg123_tell();    // converting to 32 bit off_t (overflow check)
+	off_t   mpg123_tell_32(); // converting to 32 bit off_t (overflow check)
+	off64_t mpg123_tell_64(); // converting to 64 bit off_t (no overflow)
+
+A 64 bit Linux would have only these:
+
+	int64_t mpg123_tell64();  // passing on the internal int64_t value
+	off_t   mpg123_tell();    // converting to 64 bit off_t (no overflow)
+	off_t   mpg123_tell_64(); // converting to 64 bit off_t (no overflow)
+
+This would look the same on a 32 bit system that also went for fixed 64 bit offsets,
+or if you
+
+	#define _FILE_OFFSET_BITS 64
+
+during build on a sensitive system. On a funny system that has 64 bit native integers
+but still 32 bit off_t, this would also be:
+
+	int64_t mpg123_tell64();  // passing on the internal int64_t value
+	off_t   mpg123_tell();    // converting to 32 bit off_t (overflow check)
+	off_t   mpg123_tell_32(); // converting to 32 bit off_t (overflow check)
+
+If this weird system would be also largefile-sensitive, you get the additional
+
+	off64_t mpg123_tell_64(); // converting to 64 bit off_t (no overflow)
+
+entry point.
+
+The whole point here: If you stick to mpg123_tell64(), you always can assume
+64 bit offsets on any platform. If you also provide your own reader functions, you
+can ensure it. Even if we don't properly do large file I/O in libmpg123 itself in
+an MSVC build, users can provide it with their application. Providing a full mpg123
+program binary along with it in that environment is not a current target. You want
+the library.
+
+The point that every platform gets the _64 suffix means that the header can still
+do the renaming of function calls if client code defines _FILE_OFFSET_BITS and not
+depend on any build-time switches for that. This is what we do officially now with
+headers that are not preprocessed anymore, independent of platform.
+
+The build, just assuming int64 is available, needs to know some bits:
+
+- SIZEOF_OFF_T==8:  Is the system 64 bit clean, anyway, with 64 bit off_t?
+- LFS_LARGEFILE_64: Is there explicit 64 bit I/O for the 32 bit system?
+  This includes availability of off64_t.
+
+If SIZEOF_OFF_T==8, there will be all 64 bit internal code and two wrappers:
+
+	off_t   mpg123_tell();    // converting to 64 bit off_t (no overflow)
+	off_t   mpg123_tell_64(); // converting to 64 bit off_t (no overflow)
+
+The second question isn't even needed. If SIZEOF_OFF_T==4, you get
+
+	off_t   mpg123_tell();    // converting to 32 bit off_t (overflow check)
+	off_t   mpg123_tell_32(); // converting to 32 bit off_t (overflow check)
+	
+and the additional decision of LFS_LARGEFILE_64 gives actual 64 bit internal
+reader code and the wrapper
+
+	off64_t mpg123_tell_64(); // converting to 64 bit off_t (no overflow)
+
+along with that. There is nothing more to know about a system. I do not care how
+large your long is. I only ask
+
+1. How big is your off_t?
+2. If small, can you give me some off64_t?
+
+That's all what there is to it. The build is not even interested in whether off_t
+changes size. This is a detail on the client side that it then gets the off64_t
+versions. I do not support a system that allows changing off_t size _without_
+off64_t being available.
+
+
+The state from 1.15.4 on:
+=========================
+
+Regarding largefile setup, client apps can be built three ways:
+
+1. _FILE_OFFSET_BITS == 64        (header maps to mpg123_open_64)
+2. _FILE_OFFSET_BITS == 32        (header maps to mpg123_open_32)
+3. _FILE_OFFSET_BITS == <nothing> (header maps to mpg123_open)
+
+The libmpg123 build needs to be prepared for everything. Also, it needs to keep
+in mind the days before introducing large file support --- binaries should still
+work with updated libmpg123. So, mpg123_open should always match what is the
+default build on a platform without added settings. Those are the platform
+variants:
+
+1. 64 bit native system, long == off_t
+libmpg123: mpg123_open
+lfs_alias: mpg123_open_64 -> mpg123_open
+lfs_wrap:  <none>
+
+2. largefile-sensitive, long = 32, off_t = 64 (if enabled)
+libmpg123: mpg123_open_64
+lfs_alias: mpg123_open_32 -> mpg123_open
+lfs_wrap:  mpg123_open -> mpg123_open_64
+
+3. largefile, long = 32, off_t = 64 (FreeBSD)
+libmpg123: mpg123_open
+lfs_alias: mpg123_open_64 -> mpg123_open
+lfs_wrap:  <none>
+
+This is what mpg123 does in version 1.15.4 and it works. Well, for cases 1
+(Linux/Solaris x86-64) and 2 (Linux/Solaris x86). Case 3 needs to be added
+properly. Actually, let's have a second look at case 2: When mpg123 is built
+with --disable-largefile:
+
+2a. largefile-sensitive, mpg123 built with off_t = 32 == long
+libmpg123: mpg123_open
+lfs_alias: mpg123_open_32 -> mpg123_open
+lfs_wrap:  <none>
+
+So, this is still correct. Now, what about case 3? What does mpg123 do
+currently, as of 1.15.4?
+
+3a. largefile, long = 32, off_t = 64 (... and mpg123 not really aware of that)
+libmpg123: mpg123_open
+lfs_alias: mpg123_open_32(long) -> mpg123_open(off_t)
+lfs_wrap:  <none>
+
+This is _wrong_. Luckily, this does not cause binary compatibility issues, as
+mpg123_open_32 won't be called by anyone unless that someone tries to define
+_FILE_OFFSET_BITS=32, which is nonsense. Perhaps old FreeBSD binaries before
+LFS times? Well, back then, there was no libmpg123. So let's ignore that case.
+The issue at hand is that the alias should be from mpg123_open_64 to
+mpg123_open, for clients that insist on defining _FILE_OFFSET_BITS=64.
+
+The change needed now is to fix the naming and also change the type the
+alias functions use: It is not long int anymore!
+
+Let's revisit case 1 for a moment: My old lfs_alias.c provides for the case
+lfs_alias: mpg123_open -> mpg123_open_64. Is that actually possible?
+What means enforcing _FILE_OFFSET_BITS=64 from the outside, which _could_
+happen when libmpg123 is included someplace and folks are on the wrong side
+of paranoid regarding this. So, there is
+
+1a. 64 bit native system, long == off_t = 64 and _FILE_OFFSET_BITS=64
+libmpg123: mpg123_open_64
+lfs_alias: mpg123_open -> mpg123_open_64
+lfs_wrap:  <none>
+
+(Works also for any system with long == off_t in any width)
+Likewise, there is largefile-sensitive system with enforced 32 bits:
+
+2b. largefile-sensitive, mpg123 with enforced _FILE_OFFSET_BITS=32
+libmpg123: mpg123_open_32
+lfs_alias: mpg123_open -> mpg123_open_32
+lfs_wrap:  <none>
+
+All cases are supported with this significant change from 1.15.4:
+Make the aliases use a defined lfs_alias_t, which can be long or off_t,
+depending on what is the default type for offsets on the platform.
+Folks who try _FILE_OFFSET_BITS=32 on a system that only supports
+64 bit get a linking error during mpg123 build (from the _64 aliases),
+which I consider to be a feature.
+
+I salute anyone who is not confused after reading this.

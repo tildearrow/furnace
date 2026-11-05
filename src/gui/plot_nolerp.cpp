@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
         const ImU32 col_base = ImGui::GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLines : ImGuiCol_PlotHistogram);
         const ImU32 col_hovered = ImGui::GetColorU32((plot_type == ImGuiPlotType_Lines) ? ImGuiCol_PlotLinesHovered : ImGuiCol_PlotHistogramHovered);
 
-        for (int n = 0; n < res_w; n++)
+        for (int n = 1; n <= res_w; n++)
         {
             const float t1 = t0 + t_step;
             const int v1_idx = (int)(t0 * item_count + 0.5f);
@@ -153,7 +153,8 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             if (plot_type == ImGuiPlotType_Lines)
             {
                 window->DrawList->AddLine(pos0, pos1, idx_hovered == v1_idx ? col_hovered : col_base);
-                window->DrawList->AddLine(pos2, pos3, idx_hovered == v1_idx ? col_hovered : col_base);
+                if (n < res_w)
+                    window->DrawList->AddLine(pos2, pos3, idx_hovered == v1_idx ? col_hovered : col_base);
             }
             else if (plot_type == ImGuiPlotType_Histogram)
             {
@@ -185,7 +186,7 @@ void PlotNoLerp(const char* label, const float* values, int values_count, int va
     PlotNoLerpEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 }
 
-int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser)
+int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx), void* data, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 frame_size, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, void (*hoverFunc)(int,float,void*), void* hoverFuncUser)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -229,10 +230,7 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
             //ImGui::SetTooltip("%d: %8.4g", v_idx, v0);
 
             if (hoverFunc) {
-              std::string hoverText=hoverFunc(v_idx,v0,hoverFuncUser);
-              if (!hoverText.empty()) {
-                ImGui::SetTooltip("%s",hoverText.c_str());
-              }
+              hoverFunc(v_idx,v0,hoverFuncUser);
             } else {
               ImGui::SetTooltip("%d: %d (%X)", v_idx, (int)v0, (int)v0);
             }
@@ -300,13 +298,13 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     return idx_hovered;
 }
 
-void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser)
+void PlotBitfield(const char* label, const int* values, int values_count, int values_offset, const char** overlay_text, int bits, ImVec2 graph_size, int stride, const bool* values_highlight, ImVec4 highlightColor, ImVec4 color, void (*hoverFunc)(int,float,void*), void* hoverFuncUser)
 {
     FurnacePlotIntArrayGetterData data(values, stride);
     PlotBitfieldEx(label, &Plot_IntArrayGetter, (void*)&data, values_count, values_offset, overlay_text, bits, graph_size, values_highlight, highlightColor, color, hoverFunc, hoverFuncUser);
 }
 
-int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
+int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_getter)(void* data, int idx), void* data, int values_count, int values_display_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size, ImVec4 color, int highlight, void (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -372,10 +370,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
             const float v0 = values_getter(data, (v_idx) % values_count);
             const float v1 = values_getter(data, (v_idx + 1) % values_count);
             if (hoverFunc) {
-              std::string hoverText=hoverFunc(v_idx+values_display_offset,v0,hoverFuncUser);
-              if (!hoverText.empty()) {
-                ImGui::SetTooltip("%s",hoverText.c_str());
-              }
+              hoverFunc(v_idx+values_display_offset,v0,hoverFuncUser);
             } else {
               if (plot_type == ImGuiPlotType_Lines)
                   ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
@@ -443,14 +438,14 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
                     chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y+4.0f*chScale);
                     chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y+2.0f*chScale);
                     chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y+4.0f*chScale);
-                    window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
+                    window->DrawList->AddPolyline(chevron, 3, rCol, chScale);
                   } else if ((int)v0<(int)(scale_min)) {
                     float chScale=(pos1.x-pos0.x)*0.125;
                     if (chScale>frame_size.y*0.05) chScale=frame_size.y*0.05;
                     chevron[0]=ImVec2((pos1.x+pos0.x)*0.5-(2.0f*chScale),pos1.y-4.0f*chScale);
                     chevron[1]=ImVec2((pos1.x+pos0.x)*0.5,pos1.y-2.0f*chScale);
                     chevron[2]=ImVec2((pos1.x+pos0.x)*0.5+(2.0f*chScale),pos1.y-4.0f*chScale);
-                    window->DrawList->AddPolyline(chevron, 3, rCol, 0, chScale);
+                    window->DrawList->AddPolyline(chevron, 3, rCol, chScale);
                   } else {
                     window->DrawList->AddRectFilled(pos0, pos1, rCol);
                   }
@@ -496,7 +491,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     return idx_hovered;
 }
 
-void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, std::string (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
+void PlotCustom(const char* label, const float* values, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 graph_size, int stride, ImVec4 color, int highlight, void (*hoverFunc)(int,float,void*), void* hoverFuncUser, bool blockMode, std::string (*guideFunc)(float), const bool* values_highlight, ImVec4 highlightColor)
 {
     FurnacePlotArrayGetterData data(values, stride);
     PlotCustomEx(ImGuiPlotType_Histogram, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size, color, highlight, hoverFunc, hoverFuncUser, blockMode, guideFunc, values_highlight, highlightColor);

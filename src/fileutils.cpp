@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,27 @@ bool moveFiles(const char* src, const char* dest) {
   }
   return true;
 #endif
+}
+
+bool copyFiles(const char* src, const char* dest) {
+  FILE* f=ps_fopen(src,"rb");
+  if (f==NULL) return false;
+  
+  FILE* of=ps_fopen(dest,"wb");
+  if (of==NULL) {
+    fclose(f);
+    return false;
+  }
+
+  char block[2048];
+  while (!feof(f)) {
+    size_t readTotal=fread(block,1,2048,f);
+    if (readTotal) fwrite(block,1,readTotal,of);
+  }
+
+  fclose(of);
+  fclose(f);
+  return true;
 }
 
 bool deleteFile(const char* path) {

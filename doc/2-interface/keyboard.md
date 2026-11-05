@@ -33,6 +33,7 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Decrease edit step                                     | `Ctrl-Keypad /`  |
 | Toggle edit mode                                       | `Space`          |
 | Metronome                                              | `Ctrl-M`         |
+| Toggle order lock                                      | —                |
 | Toggle repeat pattern                                  | —                |
 | Follow orders                                          | —                |
 | Follow pattern                                         | —                |
@@ -75,6 +76,11 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Effect List                                            | —                |
 | Debug Menu                                             | `Ctrl-Shift-D`   |
 | Command Stream Player                                  | —                |
+| Reference Music Player                                 | —                |
+| Tuner                                                  | —                |
+| Spectrum                                               | —                |
+| Multi-Instrument Setup                                 | —                |
+| Backup Management                                      | —                |
 | About                                                  | —                |
 | Collapse/expand current window                         | —                |
 | Close current window                                   | `Shift-Escape`   |
@@ -140,6 +146,8 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Go to next order                                       | —                |
 | Go to previous order                                   | —                |
 | Collapse channel at cursor                             | —                |
+| Minimize channels                                      | —                |
+| Maximize channels                                      | —                |
 | Increase effect columns                                | —                |
 | Decrease effect columns                                | —                |
 | Interpolate                                            | —                |
@@ -259,3 +267,9 @@ the keys in the "Global hotkeys" section can be used in any window, although not
 | Sample editor: Toggle auto-zoom                        | `Ctrl-0`         |
 | Sample editor: Create instrument from sample           | —                |
 | Sample editor: Set loop to selection                   | `Ctrl-L`         |
+| Sample editor: Trim to the end of the loop             | —                |
+| Sample editor: Trim around loop points                 | —                |
+<!--
+| Sample editor: Copy selection to new sample            | —                |
+| Sample editor: Noise gate                              | —                |
+-->

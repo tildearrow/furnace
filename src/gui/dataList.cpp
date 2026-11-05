@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,6 @@
 #include <fmt/printf.h>
 #include <imgui.h>
 #include <imgui_internal.h>
-
-const char* sampleNote[12]={
-  "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-};
 
 #define DIR_DRAG_SOURCE(_d,_a,_c) \
   if (ImGui::BeginDragDropSource()) { \
@@ -88,7 +84,7 @@ const char* sampleNote[12]={
         int target=i; \
         bool markModified=false; \
         if (_toMoveVar!=target) { \
-          if (ImGui::IsKeyDown(ImGuiKey_ModCtrl)) { \
+          if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)) { \
             markModified=_swapFn(_toMoveVar,target); \
           } else { \
             while (_toMoveVar>target) { \
@@ -150,10 +146,42 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
   }
-  bool insReleased=ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i));
+  bool insSelected=(curIns==i);
+  int multiInsColor=-1;
+  if (i==-1) {
+    insSelected=(curIns<0 || curIns>=e->song.insLen);
+  } else {
+    for (int j=0; j<7; j++) {
+      if (multiIns[j]==i) {
+        insSelected=true;
+        multiInsColor=j;
+        break;
+      }
+    }
+  }
+
+  // push multi ins colors if necessary
+  if (multiInsColor>=0) {
+    ImVec4 colorActive=uiColors[GUI_COLOR_MULTI_INS_1+multiInsColor];
+    ImVec4 colorHover=ImVec4(colorActive.x,colorActive.y,colorActive.z,colorActive.w*0.5);
+    ImVec4 color=ImVec4(colorActive.x,colorActive.y,colorActive.z,colorActive.w*0.25);
+    ImGui::PushStyleColor(ImGuiCol_Header,color);
+    ImGui::PushStyleColor(ImGuiCol_HeaderHovered,colorHover);
+    ImGui::PushStyleColor(ImGuiCol_HeaderActive,colorActive);
+  }
+
+  bool insReleased=ImGui::Selectable(name.c_str(),insSelected);
+
+  if (multiInsColor>=0) {
+    ImGui::PopStyleColor(3);
+  }
   bool insPressed=ImGui::IsItemActivated();
   if (insReleased || (!insListDir && insPressed && !settings.draggableDataView)) {
-    curIns=i;
+    if (mobileMultiInsToggle || ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
+      setMultiIns(i);
+    } else {
+      setCurIns(i);
+    }
     if (!insReleased || insListDir || settings.draggableDataView) {
       wavePreviewInit=true;
       updateFMPreview=true;
@@ -181,7 +209,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     }
 
     if (ImGui::BeginPopupContextItem("InsRightMenu")) {
-      curIns=i;
+      setCurIns(i);
       updateFMPreview=true;
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
       if (ImGui::MenuItem(_("edit"))) {
@@ -279,6 +307,7 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     lastAssetType=2;
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
@@ -286,10 +315,33 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
   }
-  if (ImGui::BeginPopupContextItem("SampleRightMenu")) {
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    ImGui::OpenPopup("SampleRightMenu");
+  }
+  if (sampleListDir || (settings.unifiedDataView && insListDir)) {
+    DIR_DRAG_SOURCE(dir,asset,"FUR_SDIR");
+    DIR_DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
+  } else {
+    SIMPLE_DRAG_SOURCE("FUR_SAMPLE",sampleToMove);
+    SIMPLE_DRAG_TARGET("FUR_SAMPLE",sampleToMove,curSample,e->swapSamples,e->moveSampleUp,e->moveSampleDown);
+  }
+  ImGui::SameLine();
+  ImGui::TextNoHashHide("%s",sample->name.c_str());
+  if (memWarning) {
+    ImGui::SameLine();
+    ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
+    if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip(_("out of memory for this sample!"));
+      ImGui::PopStyleColor();
+    }
+    ImGui::PopStyleColor();
+  }
+  if (ImGui::BeginPopup("SampleRightMenu")) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    notifySampleChange=true;
     lastAssetType=2;
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
     if (ImGui::MenuItem(_("edit"))) {
@@ -315,25 +367,6 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     }
     ImGui::PopStyleColor();
     ImGui::EndPopup();
-  }
-  if (sampleListDir || (settings.unifiedDataView && insListDir)) {
-    DIR_DRAG_SOURCE(dir,asset,"FUR_SDIR");
-    DIR_DRAG_TARGET(dir,asset,e->song.sampleDir,"FUR_SDIR");
-  } else {
-    SIMPLE_DRAG_SOURCE("FUR_SAMPLE",sampleToMove);
-    SIMPLE_DRAG_TARGET("FUR_SAMPLE",sampleToMove,curSample,e->swapSamples,e->moveSampleUp,e->moveSampleDown);
-  }
-  ImGui::SameLine();
-  ImGui::TextNoHashHide("%s",sample->name.c_str());
-  if (memWarning) {
-    ImGui::SameLine();
-    ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
-    if (ImGui::IsItemHovered() && !mobileUI) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      ImGui::SetTooltip(_("out of memory for this sample!"));
-      ImGui::PopStyleColor();
-    }
-    ImGui::PopStyleColor();
   }
   if (wantScrollListSample && curSample==i) ImGui::SetScrollHereY();
   ImGui::PopID();
@@ -711,7 +744,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (dirToDelete!=-1) {
           e->lockEngine([this,dirToDelete]() {
             e->song.insDir.erase(e->song.insDir.begin()+dirToDelete);
-            e->checkAssetDir(e->song.insDir,e->song.ins.size());
+            checkAssetDir(e->song.insDir,e->song.ins.size());
           });
         }
       } else {
@@ -728,6 +761,16 @@ void FurnaceGUI::drawInsList(bool asChild) {
             if (++curRow>=availableRows) curRow=0;
           }
         }
+      }
+
+      if (mobileUI) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        pushToggleColors(mobileMultiInsToggle);
+        if (ImGui::SmallButton("Select multiple")) {
+          mobileMultiInsToggle=!mobileMultiInsToggle;
+        }
+        popToggleColors();
       }
 
       if (settings.unifiedDataView) {
@@ -1358,7 +1401,7 @@ void FurnaceGUI::actualWaveList() {
     if (dirToDelete!=-1) {
       e->lockEngine([this,dirToDelete]() {
         e->song.waveDir.erase(e->song.waveDir.begin()+dirToDelete);
-        e->checkAssetDir(e->song.waveDir,e->song.wave.size());
+        checkAssetDir(e->song.waveDir,e->song.wave.size());
       });
     }
   } else {
@@ -1413,7 +1456,7 @@ void FurnaceGUI::actualSampleList() {
     if (dirToDelete!=-1) {
       e->lockEngine([this,dirToDelete]() {
         e->song.sampleDir.erase(e->song.sampleDir.begin()+dirToDelete);
-        e->checkAssetDir(e->song.sampleDir,e->song.sample.size());
+        checkAssetDir(e->song.sampleDir,e->song.sample.size());
       });
     }
   } else {

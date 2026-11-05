@@ -1,0 +1,120 @@
+# Module for non-recursive mpg123 build system.
+
+if BUILD_LIBMPG123
+if BUILD_PROGRAMS
+if HAVE_LFS_WRAP
+TESTS += \
+  src/tests/decode_fixed.sh
+endif
+endif
+TESTS += \
+  src/tests/seek_whence.sh \
+  src/tests/seek_accuracy.sh \
+  src/tests/resample_total \
+  src/tests/text \
+  src/tests/textprint \
+  src/tests/plain_id3.sh
+endif
+
+if !HAVE_SYNTH16
+XFAIL_TESTS += src/tests/decode_fixed.sh
+endif
+
+# Those are created by test scrips. Could add targets?
+clean-local: clean-local-check
+.PHONY: clean-local-check
+clean-local-check:
+	rm -f src/tests/sweepsweep.mp3 src/tests/stripsweep.mp3 src/tests/plain_id3.out.txt
+
+# Why do I have to repeat the test scripts here?
+EXTRA_DIST += \
+  src/tests/testtext.sh \
+  src/tests/decode_fixed.sh \
+  src/tests/seek_whence.sh \
+  src/tests/seek_accuracy.sh \
+  src/tests/plain_id3.sh \
+  src/tests/plain_id3.txt \
+  src/tests/sweep.mp3
+
+if BUILD_LIBMPG123
+check_PROGRAMS += \
+  src/tests/decode_fixed \
+  src/tests/seek_whence \
+  src/tests/seek_accuracy \
+  src/tests/resample_total \
+  src/tests/text \
+  src/tests/textprint \
+  src/tests/plain_id3
+
+EXTRA_PROGRAMS += \
+  src/tests/volume \
+  src/tests/decode_fixed \
+  src/tests/seek_whence \
+  src/tests/seek_accuracy \
+  src/tests/noise \
+  src/tests/sweeper
+endif
+
+src_tests_volume_SOURCES = \
+  src/tests/volume.c
+src_tests_volume_LDADD = \
+  $(LIBSYN123)
+
+src_tests_decode_fixed_SOURCES = \
+  src/tests/decode_fixed.c
+src_tests_decode_fixed_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123)
+
+src_tests_seek_whence_SOURCES = \
+  src/tests/seek_whence.c
+src_tests_seek_whence_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123)
+
+src_tests_seek_accuracy_SOURCES = \
+  src/tests/seek_accuracy.c
+src_tests_seek_accuracy_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123)
+
+src_tests_noise_SOURCES = \
+  src/tests/noise.c \
+  src/libmpg123/dither.h \
+  src/libmpg123/dither_impl.h
+src_tests_noise_LDADD = \
+  src/compat/libcompat.la
+
+src_tests_sweeper_SOURCES = \
+  src/tests/sweeper.c
+src_tests_sweeper_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBSYN123) \
+  $(LIBOUT123)
+
+src_tests_resample_total_SOURCES = \
+  src/tests/resample_total.c
+src_tests_resample_total_LDADD = \
+  $(LIBSYN123)
+
+src_tests_text_SOURCES = \
+  src/tests/text.c \
+  src/tests/testtext.h
+src_tests_text_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123)
+
+src_tests_textprint_SOURCES =\
+  src/tests/textprint.c \
+  src/local.c \
+  src/genre.c
+
+src_tests_textprint_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123)
+
+src_tests_plain_id3_SOURCES = \
+  src/tests/plain_id3.c
+src_tests_plain_id3_LDADD = \
+  src/compat/libcompat.la \
+  $(LIBMPG123)

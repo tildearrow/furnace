@@ -13,6 +13,7 @@ public:
 	// configuration
 	void set_voices(int voices) { m_voices = voices; }
 	void set_stereo(bool stereo) { m_stereo = stereo; }
+	void set_quadraphonic(bool quadraphonic) { m_quadraphonic = quadraphonic; }
 
 	void sound_enable_w(int state);
 
@@ -24,14 +25,14 @@ public:
 	{
 		uint32_t frequency;
 		uint32_t counter;
-		int32_t volume[2];
+		int32_t volume[4];
 		int32_t noise_sw;
 		int32_t noise_state;
 		int32_t noise_seed;
 		uint32_t noise_counter;
 		int32_t noise_hold;
 		int32_t waveform_select;
-    int16_t last_out;
+		int32_t last_out;
 	};
 
 	namco_audio_device(uint32_t clock);
@@ -44,7 +45,7 @@ public:
 
 	void build_decoded_waveform( uint8_t *rgnbase );
 	void update_namco_waveform(int offset, uint8_t data);
-	uint32_t namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq, int16_t& last_out);
+	uint32_t namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq, int32_t& last_out);
 
 	/* waveform region */
 	uint8_t* m_wave_ptr;
@@ -63,6 +64,7 @@ public:
 
 	int m_voices;     /* number of voices */
 	bool m_stereo;    /* set to indicate stereo (e.g., System 1) */
+	bool m_quadraphonic;    /* set to indicate quadraphonic (e.g., Pole position) */
 
 	uint8_t m_waveram_alloc[0x400];
 

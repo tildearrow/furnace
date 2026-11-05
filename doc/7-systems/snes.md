@@ -84,6 +84,15 @@ the following icons are displayed when channel status is enabled in the pattern 
   - ![envelope sustain](status-SNES-env-S.png) envelope sustain
   - ![envelope release](status-SNES-env-R.png) envelope release
 
+## creating looping samples
+
+here's a reliable way to create a perfect sample loop compatible with the SNES:
+
+- open the sample in the sample editor, and switch its type to "16-bit PCM".
+- assuming a song tuning of A=440, make sure the sample's tuning is set so C-4 actually plays middle C.
+- resample it to 16744 Hz (or some multiple of 4186).
+- set the loop to 64 samples long (or a matching multiple of 16) to capture a single cycle of the waveform.
+
 ## chip config
 
 the following options are available in the Chip Manager window:

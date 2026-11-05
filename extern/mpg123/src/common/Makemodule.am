@@ -1,0 +1,7 @@
+# common headers shared between subprojects
+EXTRA_DIST += \
+  src/common/abi_align.h \
+  src/common/debug.h \
+  src/common/sample.h \
+  src/common/swap_bytes_impl.h \
+  src/common/true.h

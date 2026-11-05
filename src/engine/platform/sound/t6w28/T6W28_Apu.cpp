@@ -145,8 +145,8 @@ static const int noise_periods [3] = { 0x100, 0x200, 0x400 };
 void T6W28_Noise::reset()
 {
 	period = &noise_periods [0];
-	shifter = 0x4000;
-	tap = 13;
+	shifter = 0xfffe;
+	tap = 12;
 	period_extra = 0;
 	T6W28_Osc::reset();
 }
@@ -201,9 +201,13 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 		
 		do
 		{
-			int changed = (l_shifter + 1) & 2; // set if prev and next bits differ
-			l_shifter = (((l_shifter << 14) ^ (l_shifter << tap)) & 0x4000) | (l_shifter >> 1);
-			if ( changed )
+                        int prev_l_shifter=l_shifter;
+                        if (tap==16) {
+			  l_shifter = ((l_shifter >> 14) & 1) | (l_shifter << 1);
+                        } else {
+			  l_shifter = ((((l_shifter >> 15)&1) ^ ((l_shifter >> 12)&1)) & 1) | (l_shifter << 1);
+                        }
+			if ( (prev_l_shifter^l_shifter)&1 )
 			{
 				delta_left = -delta_left;
 				blip_add_delta( output_left, time, delta_left );
@@ -370,8 +374,8 @@ void T6W28_Apu::write_data_right( sms_time_t time, int data )
                         noise.period = &noise.period_extra;
 
                 int const tap_disabled = 16;
-                noise.tap = (data & 0x04) ? 13 : tap_disabled;
-                noise.shifter = 0x4000;
+                noise.tap = (data & 0x04) ? 12 : tap_disabled;
+                noise.shifter = 0xfffe;
         }
 }
 

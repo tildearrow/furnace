@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,6 @@ void DivEngine::loadPPS(SafeReader& reader, std::vector<DivSample*>& ret, String
         {
             DivSample* s = new DivSample;
 
-            s->rate = PPS_SAMPLE_RATE;
             s->centerRate = PPS_SAMPLE_RATE;
             s->depth = DIV_SAMPLE_DEPTH_4BIT;
             s->init(headers[i].sample_length*2); // bytes->samples

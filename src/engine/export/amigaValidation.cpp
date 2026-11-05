@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,10 +55,9 @@ void DivExportAmigaValidation::run() {
   EXTERN_BUSY_BEGIN_SOFT;
 
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  e->walkSong(loopOrder,loopRow,loopEnd);
+  e->calcSongTimestamps();
+  int loopOrder=e->curSubSong->ts.loopStart.order;
+  int loopRow=e->curSubSong->ts.loopStart.row;
 
   e->curOrder=0;
   e->freelance=false;
@@ -92,7 +91,7 @@ void DivExportAmigaValidation::run() {
   size_t lastTick=0;
   //bool writeLoop=false;
   int loopPos=-1;
-  for (int i=0; i<e->chans; i++) {
+  for (int i=0; i<e->song.chans; i++) {
     e->chan[i].wentThroughNote=false;
     e->chan[i].goneThroughNote=false;
   }

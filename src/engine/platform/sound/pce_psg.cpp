@@ -789,6 +789,10 @@ void PCE_PSG::Power(const int32_t timestamp)
 
   channel[ch].samp_accum = 0;
 
+  channel[ch].blip_prev_samp[0] = 0;
+  channel[ch].blip_prev_samp[1] = 0;
+  channel[ch].lastts = 0;
+
   RecalcFreqCache(ch);
   RecalcUOFunc(ch);
 

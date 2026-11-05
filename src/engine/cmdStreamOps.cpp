@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -84,8 +84,6 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
     case DIV_CMD_WS_SWEEP_TIME:
     case DIV_CMD_WS_SWEEP_AMOUNT:
-    case DIV_CMD_N163_WAVE_POSITION:
-    case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_N163_WAVE_UNUSED1:
     case DIV_CMD_N163_WAVE_UNUSED2:
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -166,8 +164,19 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_FM_ALG:
     case DIV_CMD_FM_FMS:
     case DIV_CMD_FM_AMS:
-    case DIV_CMD_FM_FMS2:
-    case DIV_CMD_FM_AMS2:
+    case DIV_CMD_FM_LFO3:
+    case DIV_CMD_FM_LFO4:
+    case DIV_CMD_KLATTSCH_PHONEME:
+    case DIV_CMD_KLATTSCH_TRANSITION:
+    case DIV_CMD_KLATTSCH_VOICING:
+    case DIV_CMD_KLATTSCH_ASPIRATION:
+    case DIV_CMD_KLATTSCH_TILT:
+    case DIV_CMD_KLATTSCH_EFFORT:
+    case DIV_CMD_KLATTSCH_VIBRATO:
+    case DIV_CMD_KLATTSCH_TREMOLO:
+    case DIV_CMD_KLATTSCH_GAIN:
+    case DIV_CMD_KLATTSCH_BW_SCALE:
+    case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
       return 1;
     case DIV_CMD_FM_TL:
     case DIV_CMD_FM_AM:
@@ -213,6 +222,11 @@ int DivCS::getCmdLength(unsigned char ext) {
     case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
     case DIV_CMD_C64_PW_SLIDE:
     case DIV_CMD_C64_CUTOFF_SLIDE:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_KLATTSCH_FORMANT:
+    case DIV_CMD_KLATTSCH_AMP:
+    case DIV_CMD_TEST_REG:
       return 2;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
@@ -256,13 +270,14 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xc8: // vol slide
     case 0xc9: // porta
       return 3;
-    // speed dial commands
     case 0xe0: case 0xe1: case 0xe2: case 0xe3:
     case 0xe4: case 0xe5: case 0xe6: case 0xe7:
     case 0xe8: case 0xe9: case 0xea: case 0xeb:
+      return 1;
+    // speed dial commands
     case 0xec: case 0xed: case 0xee: case 0xef:
       if (speedDial==NULL) return 0;
-      return 1+getCmdLength(speedDial[ins&15]);
+      return 1+getCmdLength(speedDial[ins&3]);
     case 0xd0: // opt
       return 4;
     case 0xd7: // cmd
@@ -277,7 +292,11 @@ int DivCS::getInsLength(unsigned char ins, unsigned char ext, unsigned char* spe
     case 0xda: // jmp
     case 0xdb: // rate
     case 0xcb: // volporta
+    case 0xb9: // note raw
+    case 0xbb: // legato raw
       return 5;
+    case 0xba: // porta raw
+      return 6;
   }
   return 1;
 }
@@ -287,8 +306,15 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_NOTE_ON:
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xb4);
+      } else if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xb9);
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
       } else {
-        w->writeC(CLAMP(c.value+60,0,0xb3));
+        w->writeC(CLAMP(c.value,0,0xb3));
       }
       break;
     case DIV_CMD_NOTE_OFF:
@@ -331,10 +357,18 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(0xc8);
       break;
     case DIV_CMD_HINT_PORTA:
-      w->writeC(0xc9);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xba);
+      } else {
+        w->writeC(0xc9);
+      }
       break;
     case DIV_CMD_HINT_LEGATO:
-      w->writeC(0xca);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        w->writeC(0xbb);
+      } else {
+        w->writeC(0xca);
+      }
       break;
     case DIV_CMD_HINT_VOL_SLIDE_TARGET:
       w->writeC(0xcb);
@@ -360,8 +394,14 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_HINT_LEGATO:
       if (c.value==DIV_NOTE_NULL) {
         w->writeC(0xff);
+      } else if (c.value&DIV_NOTE_RAW_FLAG) {
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
       } else {
-        w->writeC(c.value+60);
+        w->writeC(c.value);
       }
       break;
     case DIV_CMD_NOTE_ON:
@@ -387,8 +427,16 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
       w->writeC(c.value2);
       break;
     case DIV_CMD_HINT_PORTA: {
-      unsigned char val=CLAMP(c.value+60,0,255);
-      w->writeC(val);
+      if (c.value&DIV_NOTE_RAW_FLAG) {
+        if (bigEndian) {
+          w->writeI_BE(c.value&(~DIV_NOTE_RAW_FLAG));
+        } else {
+          w->writeI(c.value&(~DIV_NOTE_RAW_FLAG));
+        }
+      } else {
+        unsigned char val=CLAMP(c.value,0,179);
+        w->writeC(val);
+      }
       w->writeC(c.value2);
       break;
     }
@@ -471,8 +519,6 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
     case DIV_CMD_WS_SWEEP_TIME:
     case DIV_CMD_WS_SWEEP_AMOUNT:
-    case DIV_CMD_N163_WAVE_POSITION:
-    case DIV_CMD_N163_WAVE_LENGTH:
     case DIV_CMD_N163_WAVE_UNUSED1:
     case DIV_CMD_N163_WAVE_UNUSED2:
     case DIV_CMD_N163_WAVE_LOADPOS:
@@ -553,8 +599,19 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_FM_ALG:
     case DIV_CMD_FM_FMS:
     case DIV_CMD_FM_AMS:
-    case DIV_CMD_FM_FMS2:
-    case DIV_CMD_FM_AMS2:
+    case DIV_CMD_FM_LFO3:
+    case DIV_CMD_FM_LFO4:
+    case DIV_CMD_KLATTSCH_PHONEME:
+    case DIV_CMD_KLATTSCH_TRANSITION:
+    case DIV_CMD_KLATTSCH_VOICING:
+    case DIV_CMD_KLATTSCH_ASPIRATION:
+    case DIV_CMD_KLATTSCH_TILT:
+    case DIV_CMD_KLATTSCH_EFFORT:
+    case DIV_CMD_KLATTSCH_VIBRATO:
+    case DIV_CMD_KLATTSCH_TREMOLO:
+    case DIV_CMD_KLATTSCH_GAIN:
+    case DIV_CMD_KLATTSCH_BW_SCALE:
+    case DIV_CMD_KLATTSCH_FORMANT_SHIFT:
       w->writeC(c.value);
       break;
     case DIV_CMD_FM_TL:
@@ -601,6 +658,11 @@ void writeCommandValues(SafeWriter* w, const DivCommand& c, bool bigEndian) {
     case DIV_CMD_SID3_FILTER_OUTPUT_VOLUME:
     case DIV_CMD_C64_PW_SLIDE:
     case DIV_CMD_C64_CUTOFF_SLIDE:
+    case DIV_CMD_N163_WAVE_POSITION:
+    case DIV_CMD_N163_WAVE_LENGTH:
+    case DIV_CMD_KLATTSCH_FORMANT:
+    case DIV_CMD_KLATTSCH_AMP:
+    case DIV_CMD_TEST_REG:
       w->writeC(c.value);
       w->writeC(c.value2);
       break;
@@ -1252,18 +1314,23 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   setOrder(0);
   BUSY_BEGIN_SOFT;
   // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  walkSong(loopOrder,loopRow,loopEnd);
+  calcSongTimestamps();
+  int loopOrder=curSubSong->ts.loopStart.order;
+  int loopRow=curSubSong->ts.loopStart.row;
   logI("loop point: %d %d",loopOrder,loopRow);
 
+  int insPopularity[256];
+  int volPopularity[256];
   int cmdPopularity[256];
   int delayPopularity[256];
 
-  int sortedCmdPopularity[16];
+  int sortedInsPopularity[6];
+  int sortedVolPopularity[6];
+  int sortedCmdPopularity[4];
   int sortedDelayPopularity[16];
-  unsigned char sortedCmd[16];
+  unsigned char sortedIns[6];
+  unsigned char sortedVol[6];
+  unsigned char sortedCmd[4];
   unsigned char sortedDelay[16];
   
   SafeWriter* globalStream;
@@ -1273,14 +1340,20 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   std::vector<size_t> tickPos[DIV_MAX_CHANS];
   int loopTick=-1;
 
+  memset(insPopularity,0,256*sizeof(int));
+  memset(volPopularity,0,256*sizeof(int));
   memset(cmdPopularity,0,256*sizeof(int));
   memset(delayPopularity,0,256*sizeof(int));
   memset(chanStream,0,DIV_MAX_CHANS*sizeof(void*));
   memset(chanStreamOff,0,DIV_MAX_CHANS*sizeof(unsigned int));
   memset(chanStackSize,0,DIV_MAX_CHANS*sizeof(unsigned int));
-  memset(sortedCmdPopularity,0,16*sizeof(int));
+  memset(sortedInsPopularity,0,6*sizeof(int));
+  memset(sortedVolPopularity,0,6*sizeof(int));
+  memset(sortedCmdPopularity,0,4*sizeof(int));
   memset(sortedDelayPopularity,0,16*sizeof(int));
-  memset(sortedCmd,0,16);
+  memset(sortedIns,0,6);
+  memset(sortedVol,0,6);
+  memset(sortedCmd,0,4);
   memset(sortedDelay,0,16);
 
   SafeWriter* w=new SafeWriter;
@@ -1291,7 +1364,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // write header
   w->write("FCS",4);
-  w->writeS(chans);
+  w->writeS(song.chans);
   // flags
   w->writeC((options.longPointers?1:0)|(options.bigEndian?2:0));
   // reserved
@@ -1301,7 +1374,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     w->writeC(0);
   }
   // offsets
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chanStream[i]=new SafeWriter;
     chanStream[i]->init();
     if (options.longPointers) {
@@ -1311,7 +1384,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
   }
   // max stack sizes
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(0);
   }
 
@@ -1326,7 +1399,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // PASS 0: play the song and log channel command streams
   // song beginning marker
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chanStream[i]->writeC(0xd0);
     chanStream[i]->writeC(i);
     chanStream[i]->writeC(0x00);
@@ -1338,7 +1411,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     chanStream[i]->writeC(0x00);
   }
   while (!done) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       tickPos[i].push_back(chanStream[i]->tell());
     }
     if (loopTick==-1) {
@@ -1347,7 +1420,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
           logI("loop is on tick %d",tick);
           loopTick=tick;
           // loop marker
-          for (int i=0; i<chans; i++) {
+          for (int i=0; i<song.chans; i++) {
             chanStream[i]->writeC(0xd0);
             chanStream[i]->writeC(i);
             chanStream[i]->writeC(0x00);
@@ -1387,13 +1460,18 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
         case DIV_CMD_PRE_NOTE:
           break;
         default:
+          if (i.cmd==DIV_CMD_HINT_VOLUME) {
+            volPopularity[i.value&0xff]++;
+          } else if (i.cmd==DIV_CMD_INSTRUMENT) {
+            insPopularity[i.value&0xff]++;
+          }
           cmdPopularity[i.cmd]++;
           writeCommandValues(chanStream[i.chan],i,options.bigEndian);
           break;
       }
     }
     cmdStream.clear();
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       chanStream[i]->writeC(0xde);
       // padding
       chanStream[i]->writeC(0x00);
@@ -1407,7 +1485,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     tick++;
   }
   if (!playing || loopTick<0) {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       chanStream[i]->writeC(0xdf);
       // padding
       chanStream[i]->writeC(0x00);
@@ -1419,7 +1497,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
       chanStream[i]->writeC(0x00);
     }
   } else {
-    for (int i=0; i<chans; i++) {
+    for (int i=0; i<song.chans; i++) {
       if ((int)tickPos[i].size()>loopTick) {
         chanStream[i]->writeC(0xda);
         chanStream[i]->writeI(tickPos[i][loopTick]);
@@ -1451,12 +1529,97 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   extValuePresent=false;
   BUSY_END;
 
-  // PASS 1: optimize command calls
+  // PASS 1: optimize command calls and volume/instrument changes
   if (!options.noCmdCallOpt) {
-    // calculate command usage
+    /// 1. instruments
+    // calculate instrument usage
     int sortCand=-1;
     int sortPos=0;
-    while (sortPos<16) {
+    while (sortPos<6) {
+      sortCand=-1;
+      for (int i=0; i<256; i++) {
+        if (insPopularity[i]) {
+          if (sortCand==-1) {
+            sortCand=i;
+          } else if (insPopularity[sortCand]<insPopularity[i]) {
+            sortCand=i;
+          }
+        }
+      }
+      if (sortCand==-1) break;
+
+      sortedInsPopularity[sortPos]=insPopularity[sortCand];
+      sortedIns[sortPos]=sortCand;
+      insPopularity[sortCand]=0;
+      sortPos++;
+    }
+
+    // set preset instruments
+    for (int h=0; h<song.chans; h++) {
+      unsigned char* buf=chanStream[h]->getFinalBuf();
+      for (size_t i=0; i<chanStream[h]->size(); i+=8) {
+        if (buf[i]==0xb8) {
+          // find whether this instrument is preset
+          for (int j=0; j<6; j++) {
+            if (buf[i+1]==sortedIns[j]) {
+              buf[i]=0xe0+j;
+              for (int k=i+1; k<(int)i+8; k++) {
+                buf[k]=0;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    /// 2. volumes
+    // calculate volume usage
+    sortCand=-1;
+    sortPos=0;
+    while (sortPos<6) {
+      sortCand=-1;
+      for (int i=0; i<256; i++) {
+        if (volPopularity[i]) {
+          if (sortCand==-1) {
+            sortCand=i;
+          } else if (volPopularity[sortCand]<volPopularity[i]) {
+            sortCand=i;
+          }
+        }
+      }
+      if (sortCand==-1) break;
+
+      sortedVolPopularity[sortPos]=volPopularity[sortCand];
+      sortedVol[sortPos]=sortCand;
+      volPopularity[sortCand]=0;
+      sortPos++;
+    }
+
+    // set preset volumes
+    for (int h=0; h<song.chans; h++) {
+      unsigned char* buf=chanStream[h]->getFinalBuf();
+      for (size_t i=0; i<chanStream[h]->size(); i+=8) {
+        if (buf[i]==0xc7) {
+          // find whether this volume is preset
+          for (int j=0; j<6; j++) {
+            if (buf[i+1]==sortedVol[j]) {
+              buf[i]=0xe6+j;
+              for (int k=i+1; k<(int)i+8; k++) {
+                buf[k]=0;
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    /// 3. commands
+    // calculate command usage
+    sortCand=-1;
+    sortPos=0;
+    while (sortPos<4) {
       sortCand=-1;
       for (int i=DIV_CMD_SAMPLE_MODE; i<256; i++) {
         if (cmdPopularity[i]) {
@@ -1476,14 +1639,14 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
 
     // set speed dial commands
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
         if (buf[i]==0xd7) {
           // find whether this command is in speed dial
-          for (int j=0; j<16; j++) {
+          for (int j=0; j<4; j++) {
             if (buf[i+1]==sortedCmd[j]) {
-              buf[i]=0xe0+j;
+              buf[i]=0xec+j;
               // move everything to the left
               for (int k=i+2; k<(int)i+8; k++) {
                 buf[k-1]=buf[k];
@@ -1499,7 +1662,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   // PASS 2: condense delays
   if (!options.noDelayCondense) {
     // calculate delay usage
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayCount=0;
       for (size_t i=0; i<chanStream[h]->size(); i+=8) {
@@ -1537,7 +1700,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     }
 
     // condense delays
-    for (int h=0; h<chans; h++) {
+    for (int h=0; h<song.chans; h++) {
       unsigned char* buf=chanStream[h]->getFinalBuf();
       int delayPos=-1;
       int delayCount=0;
@@ -1591,7 +1754,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // PASS 3: note off + one-tick wait
   // optimize one-tick gaps sometimes used in songs
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     unsigned char* buf=chanStream[h]->getFinalBuf();
     if (chanStream[h]->size()<8) continue;
     for (size_t i=0; i<chanStream[h]->size()-8; i+=8) {
@@ -1612,12 +1775,12 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   // PASS 4: remove nop's
   // this includes modifying call addresses to compensate
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     chanStream[h]=stripNops(chanStream[h]);
   }
 
   // PASS 5: put all channels together
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     chanStreamOff[i]=globalStream->tell();
     logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
     reloc8(chanStream[i]->getFinalBuf(),chanStream[i]->size(),0,globalStream->tell());
@@ -1696,7 +1859,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   // also find new offsets
   globalStream=stripNopsPacked(globalStream,sortedCmd,chanStreamOff);
 
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     chanStreamOff[h]+=w->tell();
   }
 
@@ -1705,7 +1868,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   w->write(globalStream->getFinalBuf(),globalStream->size());
 
   // calculate max stack sizes
-  for (int h=0; h<chans; h++) {
+  for (int h=0; h<song.chans; h++) {
     std::stack<unsigned int> callStack;
     unsigned int maxStackSize=0;
     unsigned char* buf=w->getFinalBuf();
@@ -1764,7 +1927,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
   delete globalStream;
 
   w->seek(40,SEEK_SET);
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     if (options.longPointers) {
       if (options.bigEndian) {
         w->writeI_BE(chanStreamOff[i]);
@@ -1782,7 +1945,7 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
 
   logD("maximum stack sizes:");
   unsigned int cumulativeStackSize=0;
-  for (int i=0; i<chans; i++) {
+  for (int i=0; i<song.chans; i++) {
     w->writeC(chanStackSize[i]);
     logD("- %d: %d",i,chanStackSize[i]);
     cumulativeStackSize+=chanStackSize[i];
@@ -1796,8 +1959,20 @@ SafeWriter* DivEngine::saveCommand(DivCSProgress* progress, DivCSOptions options
     if (sortedDelayPopularity[i]) logD("- %d: %d",sortedDelay[i],sortedDelayPopularity[i]);
   }
 
+  logD("instrument popularity:");
+  for (int i=0; i<6; i++) {
+    w->writeC(sortedIns[i]);
+    logD("- $%.2x: %d",sortedIns[i],sortedInsPopularity[i]);
+  }
+
+  logD("volume popularity:");
+  for (int i=0; i<6; i++) {
+    w->writeC(sortedVol[i]);
+    logD("- $%.2x: %d",sortedVol[i],sortedVolPopularity[i]);
+  }
+
   logD("command popularity:");
-  for (int i=0; i<16; i++) {
+  for (int i=0; i<4; i++) {
     w->writeC(sortedCmd[i]);
     if (sortedCmdPopularity[i]) logD("- %s ($%.2x): %d",cmdName[sortedCmd[i]],sortedCmd[i],sortedCmdPopularity[i]);
   }

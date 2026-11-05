@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,12 @@ sf_count_t SFWrapper::ioGetSize() {
 }
 
 sf_count_t SFWrapper::ioSeek(sf_count_t offset, int whence) {
-  return fseek(f,offset,whence);
+  fseek(f,offset,whence);
+  long ret=ftell(f);
+  if (ret<0) {
+    return -1;
+  }
+  return ret;
 }
 
 sf_count_t SFWrapper::ioRead(void* ptr, sf_count_t count) {

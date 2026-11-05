@@ -12,11 +12,11 @@
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::reset()
 {
 	m_cr.reset();
-	m_fc		= 0;
-	m_start		= 0;
-	m_end		= 0;
-	m_accum		= 0;
-  m_last_accum=0;
+	m_fc		 = 0;
+	m_start		 = 0;
+	m_end		 = 0;
+	m_accum		 = 0;
+	m_last_accum = 0;
 	m_sample[0] = m_sample[1] = 0;
 }
 
@@ -24,7 +24,7 @@ bool es550x_shared_core::es550x_voice_t::es550x_alu_t::busy() { return !(m_cr.m_
 
 bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 {
-  m_last_accum = m_accum;
+	m_last_accum = m_accum;
 	if (m_cr.dir())
 	{
 		m_accum -= m_fc;
@@ -37,8 +37,8 @@ bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 	m_accum &= m_accum_mask;
 	return ((!m_cr.m_lei) &&
 			(((m_cr.m_dir) && (m_accum < m_start)) || ((!m_cr.m_dir) && (m_accum > m_end))))
-		   ? true
-		   : false;
+			? true
+			: false;
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
@@ -95,17 +95,17 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 	}
 }
 
-s32 es550x_shared_core::es550x_voice_t::es550x_alu_t::interpolation()
+s32 es550x_shared_core::es550x_voice_t::es550x_alu_t::interpolation(const u8 shift)
 {
 	// SF = S1 + ACCfr * (S2 - S1)
-	return m_sample[0] + (((((int)m_accum>>(int)2)&(int)511) *
-						   (m_sample[1] - m_sample[0])) >>
-						  9);
+	const s32 prev = m_sample[0] << shift;
+	const s32 curr = m_sample[1] << shift;
+	return prev + (((((int)m_accum >> (int)2) & (int)511) * (curr - prev)) >> 9);
 }
 
 u32 es550x_shared_core::es550x_voice_t::es550x_alu_t::get_accum_integer()
 {
-	return (m_accum>>m_fraction)&((1<<m_integer)-1);
+	return (m_accum >> m_fraction) & ((1 << m_integer) - 1);
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::irq_exec(es550x_intf &intf,

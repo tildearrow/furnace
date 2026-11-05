@@ -1,0 +1,49 @@
+One current thing: Cleanup mpg123_noise() ... remove that accidentally public symbol
+or make it official. The functionality is in syn123 and it was never documented.
+
+Things that need to be done...
+
+... as always, mostly outdated.
+
+0. Fix that ugly crash that happens sometimes when Ctrl+C-ing with jack output active:
+
+Program terminated with signal 11, Segmentation fault.
+[New process 6293]
+[New process 6291]
+[New process 6292]
+[New process 6284]
+#0  0x00002aced607695b in memcpy () from /lib/libc.so.6
+(gdb) bt
+#0  0x00002aced607695b in memcpy () from /lib/libc.so.6
+#1  0x00002aced5b4f092 in jack_ringbuffer_read () from /usr/lib/libjack.so.0
+#2  0x00000000004151dd in process_callback ()
+#3  0x00002aced5b4bf40 in Jack::JackClient::Execute () from /usr/lib/libjack.so.0
+#4  0x00002aced5b5f8da in Jack::JackPosixThread::ThreadHandler () from /usr/lib/libjack.so.0
+#5  0x00002aced6354fa7 in start_thread () from /lib/libpthread.so.0
+#6  0x00002aced60c802d in clone () from /lib/libc.so.6
+
+
+1. mpg123 could pick up new sample rates suggested by the output modules (like a jack server fixed to 96kHz) and adapt to that.
+
+Also, the libsyn123 resampler should be employed. Just generally, libsyn123
+could also provide encoding conversions for formats not directly supported
+by accelerated decoders. See out123, which is the 
+
+2. What's about SINGLE_MIX?
+Check what is _really_ happening there, make some test file...
+
+3. Add playback of WAV files in mpg123 and out123.
+
+Parsing the standard 44-byte header really is no big issue. WAV64 is
+not really a thing, is it? Anyway, mpg123/out123 will probably just ignore
+the length in the header. Also, both programs need a switch to enable
+treating input as WAV, though out123 might get away with a default
+mode of looking out for a header unless format options were given. Yes,
+that makes sense. And perhaps I really should limit this to out123.
+
+4. Enable some way to avoid libmpg123 messages (Note: …) messing up display
+   of the progress bar.
+
+- cleanup callback from app
+- fprintf callback from app
+- log buffer

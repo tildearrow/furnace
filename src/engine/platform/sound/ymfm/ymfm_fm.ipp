@@ -400,6 +400,8 @@ void fm_operator<RegisterType>::reset()
 	m_ssg_inverted = 0;
 	m_key_state = 0;
 	m_keyon_live = 0;
+	m_actual_level = 0;
+	m_ramp_counter = 0;
 }
 
 
@@ -456,6 +458,26 @@ void fm_operator<RegisterType>::clock(uint32_t env_counter, int32_t lfo_raw_pm)
 		clock_ssg_eg_state();
 	else
 		m_ssg_inverted = false;
+
+	// clock TL ramp (OPP/OPZ)
+	if (m_cache.tl_ramp) {
+	  if (++m_ramp_counter > m_cache.tl_ramp_period) {
+	    if (m_actual_level != m_cache.total_level) {
+              if (m_actual_level > m_cache.total_level) {
+	        m_actual_level -= 1;
+                if (m_actual_level < m_cache.total_level)
+                  m_actual_level = m_cache.total_level;
+              } else {
+	        m_actual_level += 1;
+                if (m_actual_level > m_cache.total_level)
+                  m_actual_level = m_cache.total_level;
+              }
+	    }
+	    m_ramp_counter = 0;
+	  }
+	} else {
+	  m_actual_level = m_cache.total_level;
+	}
 
 	// clock the envelope if on an envelope cycle; env_counter is a x.2 value
 	if (bitfield(env_counter, 0, 2) == 0)
@@ -784,7 +806,7 @@ uint32_t fm_operator<RegisterType>::envelope_attenuation(uint32_t am_offset) con
 		result += am_offset;
 
 	// add in total level and KSL from the cache
-	result += m_cache.total_level;
+	result += m_actual_level;
 
 	// clamp to max, apply shift, and return
 	return std::min<uint32_t>(result, 0x3ff);

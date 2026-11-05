@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,6 +53,108 @@ void _pcSpeakerThread(void* inst) {
   ((DivPlatformPCSpeaker*)inst)->pcSpeakerThread();
 }
 
+void DivPlatformPCSpeaker::pcSpeakerFreq(const RealQueueVal& r) {
+#ifdef __linux__
+  if (beepFD>=0) {
+    switch (realOutMethod) {
+#ifdef HAVE_LINUX_INPUT
+      case 0: { // evdev
+        static struct input_event ie;
+        ie.time.tv_sec=r.tv_sec;
+        ie.time.tv_usec=r.tv_nsec/1000;
+        ie.type=EV_SND;
+        ie.code=SND_TONE;
+        if (r.val>0) {
+          ie.value=chipClock/r.val;
+        } else {
+          ie.value=0;
+        }
+        if (write(beepFD,&ie,sizeof(struct input_event))<0) {
+          logW("error while writing frequency! %s",strerror(errno));
+        } else {
+          //logV("writing freq: %d",r.val);
+        }
+        break;
+      }
+#endif
+#ifdef HAVE_LINUX_KD
+      case 1: // KIOCSOUND (on tty)
+        if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+          logW("ioctl error! %s",strerror(errno));
+        }
+        break;
+#endif
+      case 2: { // /dev/port
+        unsigned char bOut;
+        bOut=0;
+        if (r.val==0) {
+          lseek(beepFD,0x61,SEEK_SET);
+          if (read(beepFD,&bOut,1)<1) {
+            logW("read from 0x61: %s",strerror(errno));
+          }
+          bOut&=(~3);
+          lseek(beepFD,0x61,SEEK_SET);
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x61: %s",strerror(errno));
+          }
+        } else {
+          lseek(beepFD,0x43,SEEK_SET);
+          bOut=0xb6;
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x43: %s",strerror(errno));
+          }
+          lseek(beepFD,0x42,SEEK_SET);
+          bOut=r.val&0xff;
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x42: %s",strerror(errno));
+          }
+          lseek(beepFD,0x42,SEEK_SET);
+          bOut=r.val>>8;
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x42: %s",strerror(errno));
+          }
+          lseek(beepFD,0x61,SEEK_SET);
+          if (read(beepFD,&bOut,1)<1) {
+            logW("read from 0x61: %s",strerror(errno));
+          }
+          bOut|=3;
+          lseek(beepFD,0x61,SEEK_SET);
+          if (write(beepFD,&bOut,1)<1) {
+            logW("write to 0x61: %s",strerror(errno));
+          }
+        }
+        break;
+      }
+#ifdef HAVE_LINUX_KD
+      case 3: // KIOCSOUND (on stdout)
+        if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
+          logW("ioctl error! %s",strerror(errno));
+        }
+        break;
+#endif
+#ifdef HAVE_SYS_IO
+      case 4: // outb()
+        if (r.val==0) {
+          outb(inb(0x61)&(~3),0x61);
+          realOutEnabled=false;
+        } else {
+          outb(0xb6,0x43);
+          outb(r.val&0xff,0x42);
+          outb(r.val>>8,0x42);
+          if (!realOutEnabled) {
+            outb(inb(0x61)|3,0x61);
+            realOutEnabled=true;
+          }
+        }
+        break;
+#endif
+    }
+  } else {
+    //logV("not writing because fd is less than 0");
+  }
+#endif
+}
+
 void DivPlatformPCSpeaker::pcSpeakerThread() {
   std::unique_lock<std::mutex> unique(realOutSelfLock);
   RealQueueVal r(0,0,0);
@@ -86,106 +188,11 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
     if (tSleep.tv_nsec>0 || tSleep.tv_sec>0) {
       nanosleep(&tSleep,&rSleep);
     }
-    if (beepFD>=0) {
-      switch (realOutMethod) {
-#ifdef HAVE_LINUX_INPUT
-        case 0: { // evdev
-          static struct input_event ie;
-          ie.time.tv_sec=r.tv_sec;
-          ie.time.tv_usec=r.tv_nsec/1000;
-          ie.type=EV_SND;
-          ie.code=SND_TONE;
-          if (r.val>0) {
-            ie.value=chipClock/r.val;
-          } else {
-            ie.value=0;
-          }
-          if (write(beepFD,&ie,sizeof(struct input_event))<0) {
-            logW("error while writing frequency! %s",strerror(errno));
-          } else {
-            //logV("writing freq: %d",r.val);
-          }
-          break;
-        }
-#endif
-#ifdef HAVE_LINUX_KD
-        case 1: // KIOCSOUND (on tty)
-          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
-            logW("ioctl error! %s",strerror(errno));
-          }
-          break;
-#endif
-        case 2: { // /dev/port
-          unsigned char bOut;
-          bOut=0;
-          if (r.val==0) {
-            lseek(beepFD,0x61,SEEK_SET);
-            if (read(beepFD,&bOut,1)<1) {
-              logW("read from 0x61: %s",strerror(errno));
-            }
-            bOut&=(~3);
-            lseek(beepFD,0x61,SEEK_SET);
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x61: %s",strerror(errno));
-            }
-          } else {
-            lseek(beepFD,0x43,SEEK_SET);
-            bOut=0xb6;
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x43: %s",strerror(errno));
-            }
-            lseek(beepFD,0x42,SEEK_SET);
-            bOut=r.val&0xff;
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x42: %s",strerror(errno));
-            }
-            lseek(beepFD,0x42,SEEK_SET);
-            bOut=r.val>>8;
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x42: %s",strerror(errno));
-            }
-            lseek(beepFD,0x61,SEEK_SET);
-            if (read(beepFD,&bOut,1)<1) {
-              logW("read from 0x61: %s",strerror(errno));
-            }
-            bOut|=3;
-            lseek(beepFD,0x61,SEEK_SET);
-            if (write(beepFD,&bOut,1)<1) {
-              logW("write to 0x61: %s",strerror(errno));
-            }
-          }
-          break;
-        }
-#ifdef HAVE_LINUX_KD
-        case 3: // KIOCSOUND (on stdout)
-          if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
-            logW("ioctl error! %s",strerror(errno));
-          }
-          break;
-#endif
-#ifdef HAVE_SYS_IO
-        case 4: // outb()
-          if (r.val==0) {
-            outb(inb(0x61)&(~3),0x61);
-            realOutEnabled=false;
-          } else {
-            outb(0xb6,0x43);
-            outb(r.val&0xff,0x42);
-            outb(r.val>>8,0x42);
-            if (!realOutEnabled) {
-              outb(inb(0x61)|3,0x61);
-              realOutEnabled=true;
-            }
-          }
-          break;
-#endif
-      }
-    } else {
-      //logV("not writing because fd is less than 0");
-    }
+    pcSpeakerFreq(r);
 #endif
   }
   logD("stopping PC speaker out thread");
+  pcSpeakerFreq(RealQueueVal(0,0,0));
 }
 
 const char** DivPlatformPCSpeaker::getRegisterSheet() {
@@ -421,9 +428,9 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
+    } else if (chan[i].std.arp.had && !chan[i].rawFreq) {
       if (!chan[i].inPorta) {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+        chan[i].baseFreq=chan[i].calcBaseFreq(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
@@ -437,9 +444,12 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
-      if (chan[i].freq<0) chan[i].freq=0;
-      if (chan[i].freq>65535) chan[i].freq=65535;
+      chan[i].freq=chan[i].calcFreq();
+      if (!chan[i].rawFreq) {
+        chan[i].freq--;
+        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq>65535) chan[i].freq=65535;
+      }
       if (!chan[i].std.vol.had) {
         if (chan[i].keyOn) {
           on=true;
@@ -463,14 +473,14 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
-      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+      if (!parent->song.compatFlags.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       break;
@@ -507,7 +517,7 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=chan[c.chan].calcBaseFreq(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -531,15 +541,15 @@ int DivPlatformPCSpeaker::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
+        if (parent->song.compatFlags.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.compatFlags.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=chan[c.chan].calcBaseFreq(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -570,7 +580,7 @@ void DivPlatformPCSpeaker::forceIns() {
   }
 }
 
-void* DivPlatformPCSpeaker::getChanState(int ch) {
+SharedChannel* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -599,11 +609,12 @@ int DivPlatformPCSpeaker::getRegisterPoolSize() {
 
 void DivPlatformPCSpeaker::reset() {
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformPCSpeaker::Channel();
+    chan[i]=DivPlatformPCSpeaker::Channel(parent->song.compatFlags.linearPitch);
+    chan[i].pitchTable=&pitchTable;
     chan[i].std.setEngine(parent);
   }
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
 
   on=false;
@@ -711,12 +722,22 @@ void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
       reso=0.06;
       break;
   }
+
+  notifyPitchTable();
 }
 
 void DivPlatformPCSpeaker::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+void DivPlatformPCSpeaker::notifyPitchTable(int sample) {
+  pitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0xffff,true,parent->song.compatFlags.linearPitch);
+}
+
+unsigned int DivPlatformPCSpeaker::getMaxFreq(int ch) {
+  return 0xffff;
 }
 
 void DivPlatformPCSpeaker::notifyPlaybackStop() {

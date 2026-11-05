@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "imgui_internal.h"
 
 #include "gif_load.h"
+#include <imgui.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -48,6 +49,10 @@
     tutorial.popupTimer=0; \
   }
 #else
+#ifndef _WIN32
+#include "../fileutils.h"
+#include <dirent.h>
+#endif
 #define CLICK_TO_OPEN(t) ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],t); if (ImGui::IsItemClicked()) SDL_OpenURL(t);
 #endif
 
@@ -175,6 +180,9 @@ struct FurnaceCV {
   std::vector<FurnaceCVObject*> sprite;
   // this offset is applied to sprites.
   int viewX, viewY;
+
+  // other
+  char hiScoreText[512];
 
   // input
   unsigned char joyInputPrev;
@@ -662,7 +670,11 @@ static const char* cvText[]={
 
   _N("GAME OVER"),
 
-  _N("High Score!"),
+  _N("           CONGREGURATION\n\n\n"
+  "YOU ARE GOOD PLAY AT GAME\n"
+  "PRESS ESCAPE TO RESET GAME\n\n"
+  "AND PLAY AGAIN AT ELEVATED DIFFICULTY\n\n\n"
+  "%d SCORES THIS GAME"),
 
   _N("Welcome to Combat Vehicle!\n\n"
   "Controls:\n"
@@ -681,6 +693,7 @@ void FurnaceGUI::syncTutorial() {
   tutorial.importedS3M=e->getConfBool("tutImportedS3M",false);
   tutorial.importedXM=e->getConfBool("tutImportedXM",false);
   tutorial.importedIT=e->getConfBool("tutImportedIT",false);
+  tutorial.nprFieldTrial=e->getConfBool("tutNPRFieldTrial",false);
 }
 
 void FurnaceGUI::commitTutorial() {
@@ -690,6 +703,7 @@ void FurnaceGUI::commitTutorial() {
   e->setConf("tutImportedS3M",tutorial.importedS3M);
   e->setConf("tutImportedXM",tutorial.importedXM);
   e->setConf("tutImportedIT",tutorial.importedIT);
+  e->setConf("tutNPRFieldTrial",tutorial.nprFieldTrial);
 }
 
 void FurnaceGUI::initRandomDemoSong() {
@@ -880,6 +894,39 @@ void FurnaceGUI::drawTutorial() {
       ImGui::CloseCurrentPopup();
     }
 
+#ifdef IS_MOBILE
+    ImGui::SameLine();
+    if (ImGui::Button(_("My config was reset!"))) {
+#ifndef _WIN32
+      String configPath1=e->getConfigPath();
+      makeDir("/storage/emulated/0/failedConfig");
+      DIR* dir=opendir(configPath1.c_str());
+      if (dir==NULL) {
+        showError(fmt::sprintf("Current config path is %s\nERROR - ERROR - ERROR\n%s",configPath1,strerror(errno)));
+      } else {
+        struct dirent* de;
+        String inPath, outPath;
+        while ((de=readdir(dir))!=NULL) {
+          if (de->d_type==DT_REG) {
+            inPath=configPath1+"/"+de->d_name;
+            outPath=String("/storage/emulated/0/failedConfig/")+String(de->d_name);
+
+            logV("copying %s",de->d_name);
+            if (!copyFiles(inPath.c_str(),outPath.c_str())) {
+              logV("ERROR!!! %s",strerror(errno));
+            }
+          }
+        }
+        closedir(dir);
+
+        showError(fmt::sprintf("Current config path is %s\nNow exporting last config to storage. Check it out for bug diagnosis.",configPath1));
+      }
+      tutorial.protoWelcome=true;
+      ImGui::CloseCurrentPopup();
+#endif
+    }
+#endif
+
     ImGui::SetWindowPos(ImVec2(
       (canvasW-ImGui::GetWindowSize().x)*0.5,
       (canvasH-ImGui::GetWindowSize().y)*0.5
@@ -1045,7 +1092,7 @@ void FurnaceGUI::drawTutorial() {
         oneQuarter=(oneQuarter*e->curSubSong->virtualTempoN)/e->curSubSong->virtualTempoD;
         oneQuarter/=e->curSubSong->hz;
         oneQuarter/=4;
-        if (cv->playSongs && e->getTotalSeconds()>=oneQuarter) {
+        if (cv->playSongs && e->getCurTime().seconds>=oneQuarter) {
           if (loadRandomDemoSong()) {
             cv->loadInstruments();
             e->changeSongP(0);
@@ -1099,7 +1146,13 @@ void FurnaceGUI::drawTutorial() {
 
         dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
 
+        if (ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest!=NULL) {
+          dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerNearest);
+        }
         dl->AddImage(rend->getTextureID(cvTex),p0,p1,ImVec2(0,0),ImVec2(rend->getTextureU(cvTex),rend->getTextureV(cvTex)));
+        if (ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear!=NULL) {
+          dl->AddCallback(ImGui::GetPlatformIO().DrawCallback_SetSamplerLinear);
+        }
 
         if (mobileUI) {
           ImVec2 chevron[3];
@@ -1108,36 +1161,36 @@ void FurnaceGUI::drawTutorial() {
           chevron[0]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.4,0.65));
           chevron[1]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.5,0.35));
           chevron[2]=ImLerp(dpadUpStart,dpadUpEnd,ImVec2(0.6,0.65));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // left
           chevron[0]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.4));
           chevron[1]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.35,0.5));
           chevron[2]=ImLerp(dpadUpStart,dpadLeftEnd,ImVec2(0.65,0.6));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // down
           chevron[0]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.4,0.35));
           chevron[1]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.5,0.65));
           chevron[2]=ImLerp(dpadDownStart,dpadDownEnd,ImVec2(0.6,0.35));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // right
           chevron[0]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.4));
           chevron[1]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.65,0.5));
           chevron[2]=ImLerp(dpadRightStart,dpadDownEnd,ImVec2(0.35,0.6));
-          dl->AddPolyline(chevron,3,0xffffffff,0,4.0f*dpiScale);
+          dl->AddPolyline(chevron,3,0xffffffff,4.0f*dpiScale);
 
           // A/B
           dl->AddRectFilled(buttonBStart,buttonBEnd,(touchControls&1)?0x4040ffff:0x2040ffff,0,0);
           dl->AddRectFilled(buttonAStart,buttonAEnd,(touchControls&2)?0x4040ffff:0x2040ffff,0,0);
-          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,0,dpiScale);
-          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,0,dpiScale);
+          dl->AddRect(buttonBStart,buttonBEnd,0xff00ffff,0,dpiScale);
+          dl->AddRect(buttonAStart,buttonAEnd,0xff00ffff,0,dpiScale);
           dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonBStart,buttonBEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"B")*0.5f),0xff00ffff,"B");
           dl->AddText(headFont,settings.headFontSize*dpiScale,ImLerp(buttonAStart,buttonAEnd,ImVec2(0.5,0.5))-(headFont->CalcTextSizeA(settings.headFontSize*dpiScale,FLT_MAX,0,"A")*0.5f),0xff00ffff,"A");
 
           // quit
-          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,0,dpiScale);
+          dl->AddRect(buttonQuitStart,buttonQuitEnd,0xffffffff,0,dpiScale);
         }
       }
     }
@@ -1291,7 +1344,7 @@ template<typename T> T* FurnaceCV::createObjectNoPos() {
 }
 
 void FurnaceCV::soundEffect(int ins, int chan, int note) {
-  e->noteOn(chan+fxChanBase,ins+fxInsBase,note);
+  e->noteOn(chan+fxChanBase,ins+fxInsBase,note+60);
   /*
   e->dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,chan,ins,1));
   e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,chan,note));
@@ -1313,7 +1366,7 @@ void FurnaceCV::buildStage(int which) {
     curStage=NULL;
   }
 
-  if (which>19 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
+  if (which>18 || which==4 || which==7 || which==9 || which==11 || which==13 || which==16 || which==17) {
     stageWidth=80;
     stageHeight=56;
   } else {
@@ -1346,26 +1399,7 @@ void FurnaceCV::buildStage(int which) {
   memset(busy,0,28*40*sizeof(bool));
 
   // special stages
-  if ((which%10)==9) {
-    // vortex
-    for (int i=0; i<20+(which>>2); i++) {
-      int tries=0;
-      while (tries<20) {
-        int x=rand()%(stageWidth>>1);
-        int y=rand()%(stageHeight>>1);
-        int finalX=x<<4;
-        int finalY=y<<4;
-        if (busy[y][x]) {
-          tries++;
-          continue;
-        }
-        createObject<FurnaceCVEnemyVortex>(finalX,finalY);
-        createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
-        busy[y][x]=true;
-        break;
-      }
-    }
-  } else if ((which%10)==19) {
+  if ((which%20)==19) {
     for (int i=0; i<20+(which>>2); i++) {
       int tries=0;
       while (tries<20) {
@@ -1384,6 +1418,25 @@ void FurnaceCV::buildStage(int which) {
         busy[y][x+1]=true;
         busy[y+1][x]=true;
         busy[y+1][x+1]=true;
+        break;
+      }
+    }
+  } else if ((which%10)==9) {
+    // vortex
+    for (int i=0; i<20+(which>>2); i++) {
+      int tries=0;
+      while (tries<20) {
+        int x=rand()%(stageWidth>>1);
+        int y=rand()%(stageHeight>>1);
+        int finalX=x<<4;
+        int finalY=y<<4;
+        if (busy[y][x]) {
+          tries++;
+          continue;
+        }
+        createObject<FurnaceCVEnemyVortex>(finalX,finalY);
+        createObject<FurnaceCVFurBallMedium>(finalX-4,finalY-4);
+        busy[y][x]=true;
         break;
       }
     }
@@ -1658,7 +1711,8 @@ void FurnaceCV::render(unsigned char joyIn) {
             }
             memset(tile0,0,80*56*sizeof(short));
             memset(tile1,0,80*56*sizeof(short));
-            startTyping(_(cvText[3]),2,3);
+            snprintf(hiScoreText,511,_(cvText[3]),hiScore);
+            startTyping(hiScoreText,2,3);
             e->setConf("cvHiScore",hiScore);
             e->saveConf();
             curText=4;
@@ -1675,6 +1729,7 @@ void FurnaceCV::render(unsigned char joyIn) {
       lives+=lifeBank;
       respawnTime=1;
       lifeBank=0;
+      score=0;
       gameOver=false;
     }
 

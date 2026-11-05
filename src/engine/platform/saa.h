@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,20 +26,23 @@
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       unsigned char freqH, freqL;
-      unsigned char psgMode;
+      unsigned char psgMode, envMode;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(15),
+      unsigned int timerAccum;
+      Channel(bool linear=true):
+        SharedChannel(15,linear),
         freqH(0),
         freqL(0),
         psgMode(1),
-        pan(255) {}
+        envMode(0),
+        pan(255),
+        timerAccum(0) {}
     };
-    Channel chan[6];
+    Channel chan[8];
     DivDispatchOscBuffer* oscBuf[6];
-    bool isMuted[6];
+    bool isMuted[8];
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -48,21 +51,16 @@ class DivPlatformSAA1099: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     FixedQueue<QueuedWrite,256> writes;
+    DivPitchTable pitchTable;
+    DivPitchTable timerPitchTable;
     int coreQuality;
     CSAASound* saa_saaSound;
     unsigned char regPool[32];
     unsigned char lastBusy;
-  
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    int dacPos;
-    int dacSample;
-    unsigned char sampleBank;
 
-    int delay;
+    int delay, timerRate, timerCounter;
 
-    bool extMode;
+    bool extMode, compat, envCombine;
   
     short oldWrites[16];
     short pendingWrites[16];
@@ -74,30 +72,37 @@ class DivPlatformSAA1099: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
 
     void acquire_saaSound(short** buf, size_t len);
-  
+    void updateTimers();
+
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
+    void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
+    bool hasSoftPan(int ch);
     int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     void setCoreQuality(unsigned char q);
+    void setCompat(bool isCompat);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };

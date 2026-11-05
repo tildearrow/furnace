@@ -1,0 +1,541 @@
+# Module for non-recursive mpg123 build system.
+
+EXTRA_PROGRAMS += src/libmpg123/testcpu
+src_libmpg123_testcpu_DEPENDENCIES = src/libmpg123/getcpuflags.$(OBJEXT)
+src_libmpg123_testcpu_SOURCES = src/libmpg123/testcpu.c
+src_libmpg123_testcpu_LDADD = \
+  src/compat/libcompat.la \
+  src/libmpg123/getcpuflags.$(OBJEXT)
+
+EXTRA_PROGRAMS += src/libmpg123/calctables
+src_libmpg123_calctables_SOURCES = src/libmpg123/calctables.c \
+  src/libmpg123/init_costabs.h \
+  src/libmpg123/init_layer12.h \
+  src/libmpg123/init_layer3.h
+
+src_libmpg123_calctables_LDADD = @LIBM@
+
+# Necessary?
+#CLEANFILES += src/libmpg123/*.a
+
+if BUILD_LIBMPG123
+lib_LTLIBRARIES += src/libmpg123/libmpg123.la
+include_HEADERS += src/include/mpg123.h
+endif
+
+src_libmpg123_libmpg123_la_CFLAGS = @LIB_CFLAGS@
+
+src_libmpg123_libmpg123_la_LDFLAGS = \
+  -no-undefined \
+  -version-info @LIBMPG123_VERSION@ \
+  -export-symbols-regex '^mpg123_'
+src_libmpg123_libmpg123_la_LIBADD = \
+  src/compat/libcompat.la \
+  @LIBMPG123_LIBS@
+src_libmpg123_libmpg123_la_DEPENDENCIES = \
+  src/compat/libcompat.la
+
+src_libmpg123_libmpg123_la_SOURCES = \
+  src/libmpg123/mpeghead.h \
+  src/libmpg123/parse.c \
+  src/libmpg123/parse.h \
+  src/libmpg123/frame.c \
+  src/libmpg123/format.c \
+  src/libmpg123/frame.h \
+  src/libmpg123/reader.h \
+  src/libmpg123/decode.h \
+  src/libmpg123/dct64.c \
+  src/libmpg123/synth.h \
+  src/libmpg123/synth_mono.h \
+  src/libmpg123/synth_ntom.h \
+  src/libmpg123/synth_8bit.h \
+  src/libmpg123/synths.h \
+  src/libmpg123/huffman.h \
+  src/libmpg123/newhuffman.h \
+  src/libmpg123/icy.h \
+  src/libmpg123/icy2utf8.h \
+  src/libmpg123/id3.h \
+  src/libmpg123/id3.c \
+  src/libmpg123/getbits.h \
+  src/libmpg123/optimize.h \
+  src/libmpg123/optimize.c \
+  src/libmpg123/readers.c \
+  src/libmpg123/lfs_wrap.h \
+  src/libmpg123/costabs.h \
+  src/libmpg123/tabinit.c \
+  src/libmpg123/libmpg123.c \
+  src/libmpg123/gapless.h \
+  src/libmpg123/mpg123lib_intern.h \
+  src/libmpg123/mangle.h \
+  src/libmpg123/aarch64_defs.h \
+  src/libmpg123/getcpuflags.h \
+  src/libmpg123/index.h \
+  src/libmpg123/index.c
+
+# All the optional sources leading to objects need to be explicitly
+# handled so that libtool builds the objects in a consistent manner,
+# with the same flags etal.
+#while read cond src
+#do
+#  for c in $(echo $cond | tr '+' ' ')
+#  do
+#    neg=
+#    case "$c" in
+#      !*)
+#        neg='!'
+#        c=$(echo "$c"|cut -f 2 -d '!')
+#      ;;
+#    esac
+#    printf "\nif ${neg}HAVE_$c"
+#  done
+#  printf "\nsrc_libmpg123_libmpg123_la_SOURCES +="
+#  for s in $src
+#  do
+#   printf " src/libmpg123/$s"
+#  done
+#  for c in $(echo $cond | tr '+' ' '); do printf "\nendif"; done
+#  echo
+#done <<EOT
+#LAYER1                    layer1.c
+#LAYER2                    layer2.c
+#LAYER3                    layer3.c
+#EQUALIZER                 equalizer.c
+#DITHER                    dither.c
+#SYNTH8                    synth_8bit.c
+#SYNTH16                   synth.c
+#SYNTH32                   synth_s32.c
+#SYNTHREAL                 synth_real.c
+#LFS_WRAP                  lfs_wrap.c
+#ICY                       icy.c icy2utf8.c
+#FEATURE                   feature.c
+#NTOM                      ntom.c
+#STRING                    stringbuf.c
+#GETCPUFLAGS               getcpuflags.S
+#GETCPUFLAGS_X86_64        getcpuflags_x86_64.S
+#GETCPUFLAGS_ARM           getcpuflags_arm.c check_neon.S
+#ALTIVEC                   synth_altivec.c dct64_altivec.c
+#I386                      dct64_i386.c
+#I486                      synth_i486.c dct64_i486.c
+#I586                      synth_i586.S
+#I586_DITHER               synth_i586_dither.S
+#3DNOW                     synth_3dnow.S dct64_3dnow.S
+#3DNOW+EQUALIZER           equalizer_3dnow.S
+#3DNOW_VINTAGE+LAYER3      dct36_3dnow.S
+#3DNOWEXT                  dct64_3dnowext.S synth_3dnowext.S
+#3DNOWEXT_VINTAGE+LAYER3   dct36_3dnowext.S
+#MMXTAB                    tabinit_mmx.S
+#MMX                       dct64_mmx.S synth_mmx.S
+#SSE_VINTAGE+FLOATDCT      dct64_sse_float.S
+#SSE_VINTAGE+SYNTHREAL     synth_sse_float.S synth_stereo_sse_float.S
+#SSE_VINTAGE+SYNTH32      synth_sse_s32.S synth_stereo_sse_s32.S
+#SSE+LAYER3                dct36_sse.S
+#SSE_VINTAGE+ACCURATE      synth_sse_accurate.S synth_stereo_sse_accurate.S
+#SSE_VINTAGE+!ACCURATE     dct64_sse.S synth_sse.S
+#X86_64+LAYER3             dct36_x86_64.S
+#X86_64+SYNTHREAL          synth_stereo_x86_64_float.S
+#X86_64+SYNTH32            synth_stereo_x86_64_s32.S
+#X86_64+ACCURATE           synth_stereo_x86_64_accurate.S
+#X86_64+!ACCURATE          dct64_x86_64.S synth_stereo_x86_64.S
+#X86_64+FLOATDCT           dct64_x86_64_float.S
+#X86_64_MONO+SYNTHREAL     synth_x86_64_float.S
+#X86_64_MONO+SYNTH32       synth_x86_64_s32.S
+#X86_64_MONO+ACCURATE      synth_x86_64_accurate.S
+#X86_64_MONO+!ACCURATE     synth_x86_64.S
+#AVX+LAYER3                dct36_avx.S
+#AVX+FLOATDCT              dct64_avx_float.S
+#AVX+SYNTHREAL             synth_stereo_avx_float.S
+#AVX+SYNTH32               synth_stereo_avx_s32.S
+#AVX+ACCURATE              synth_stereo_avx_accurate.S
+#AVX+!ACCURATE             dct64_avx.S synth_stereo_avx.S
+#ARM+ACCURATE              synth_arm_accurate.S
+#ARM+!ACCURATE             synth_arm.S
+#NEON+LAYER3               dct36_neon.S
+#NEON+FLOATDCT             dct64_neon_float.S
+#NEON+SYNTHREAL            synth_neon_float.S synth_stereo_neon_float.S
+#NEON+SYNTH32              synth_neon_s32.S synth_stereo_neon_s32.S
+#NEON+ACCURATE             synth_neon_accurate.S synth_stereo_neon_accurate.S
+#NEON+!ACCURATE            dct64_neon.S synth_neon.S synth_stereo_neon.S
+#NEON64+LAYER3             dct36_neon64.S
+#NEON64+FLOATDCT           dct64_neon64_float.S
+#NEON64+SYNTHREAL          synth_neon64_float.S synth_stereo_neon64_float.S
+#NEON64+SYNTH32            synth_neon64_s32.S synth_stereo_neon64_s32.S
+#NEON64+ACCURATE           synth_neon64_accurate.S synth_stereo_neon64_accurate.S
+#NEON64+!ACCURATE          dct64_neon64.S synth_neon64.S synth_stereo_neon64.S
+#EOT
+
+
+if HAVE_LAYER1
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/layer1.c
+endif
+
+if HAVE_LAYER2
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/layer2.c
+endif
+
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/layer3.c
+endif
+
+if HAVE_EQUALIZER
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/equalizer.c
+endif
+
+if HAVE_DITHER
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dither.c
+endif
+
+if HAVE_SYNTH8
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_8bit.c
+endif
+
+if HAVE_SYNTH16
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth.c
+endif
+
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_s32.c
+endif
+
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_real.c
+endif
+
+if HAVE_LFS_WRAP
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/lfs_wrap.c
+endif
+
+if HAVE_ICY
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/icy.c src/libmpg123/icy2utf8.c
+endif
+
+if HAVE_FEATURE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/feature.c
+endif
+
+if HAVE_NTOM
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/ntom.c
+endif
+
+if HAVE_STRING
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/stringbuf.c
+endif
+
+if HAVE_GETCPUFLAGS
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/getcpuflags.S
+endif
+
+if HAVE_GETCPUFLAGS_X86_64
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/getcpuflags_x86_64.S
+endif
+
+if HAVE_GETCPUFLAGS_ARM
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/getcpuflags_arm.c src/libmpg123/check_neon.S
+endif
+
+if HAVE_ALTIVEC
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_altivec.c src/libmpg123/dct64_altivec.c
+endif
+
+if HAVE_I386
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_i386.c
+endif
+
+if HAVE_I486
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_i486.c src/libmpg123/dct64_i486.c
+endif
+
+if HAVE_I586
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_i586.S
+endif
+
+if HAVE_I586_DITHER
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_i586_dither.S
+endif
+
+if HAVE_3DNOW
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_3dnow.S src/libmpg123/dct64_3dnow.S
+endif
+
+if HAVE_3DNOW
+if HAVE_EQUALIZER
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/equalizer_3dnow.S
+endif
+endif
+
+if HAVE_3DNOW_VINTAGE
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_3dnow.S
+endif
+endif
+
+if HAVE_3DNOWEXT
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_3dnowext.S src/libmpg123/synth_3dnowext.S
+endif
+
+if HAVE_3DNOWEXT_VINTAGE
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_3dnowext.S
+endif
+endif
+
+if HAVE_MMXTAB
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/tabinit_mmx.S
+endif
+
+if HAVE_MMX
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_mmx.S src/libmpg123/synth_mmx.S
+endif
+
+if HAVE_SSE_VINTAGE
+if HAVE_FLOATDCT
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_sse_float.S
+endif
+endif
+
+if HAVE_SSE_VINTAGE
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_sse_float.S src/libmpg123/synth_stereo_sse_float.S
+endif
+endif
+
+if HAVE_SSE_VINTAGE
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_sse_s32.S src/libmpg123/synth_stereo_sse_s32.S
+endif
+endif
+
+if HAVE_SSE
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_sse.S
+endif
+endif
+
+if HAVE_SSE_VINTAGE
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_sse_accurate.S src/libmpg123/synth_stereo_sse_accurate.S
+endif
+endif
+
+if HAVE_SSE_VINTAGE
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_sse.S src/libmpg123/synth_sse.S
+endif
+endif
+
+if HAVE_X86_64
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_x86_64.S
+endif
+endif
+
+if HAVE_X86_64
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_stereo_x86_64_float.S
+endif
+endif
+
+if HAVE_X86_64
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_stereo_x86_64_s32.S
+endif
+endif
+
+if HAVE_X86_64
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_stereo_x86_64_accurate.S
+endif
+endif
+
+if HAVE_X86_64
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_x86_64.S src/libmpg123/synth_stereo_x86_64.S
+endif
+endif
+
+if HAVE_X86_64
+if HAVE_FLOATDCT
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_x86_64_float.S
+endif
+endif
+
+if HAVE_X86_64_MONO
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_x86_64_float.S
+endif
+endif
+
+if HAVE_X86_64_MONO
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_x86_64_s32.S
+endif
+endif
+
+if HAVE_X86_64_MONO
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_x86_64_accurate.S
+endif
+endif
+
+if HAVE_X86_64_MONO
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_x86_64.S
+endif
+endif
+
+if HAVE_AVX
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_avx.S
+endif
+endif
+
+if HAVE_AVX
+if HAVE_FLOATDCT
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_avx_float.S
+endif
+endif
+
+if HAVE_AVX
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_stereo_avx_float.S
+endif
+endif
+
+if HAVE_AVX
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_stereo_avx_s32.S
+endif
+endif
+
+if HAVE_AVX
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_stereo_avx_accurate.S
+endif
+endif
+
+if HAVE_AVX
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_avx.S src/libmpg123/synth_stereo_avx.S
+endif
+endif
+
+if HAVE_ARM
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_arm_accurate.S
+endif
+endif
+
+if HAVE_ARM
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_arm.S
+endif
+endif
+
+if HAVE_NEON
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_neon.S
+endif
+endif
+
+if HAVE_NEON
+if HAVE_FLOATDCT
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_neon_float.S
+endif
+endif
+
+if HAVE_NEON
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_neon_float.S src/libmpg123/synth_stereo_neon_float.S
+endif
+endif
+
+if HAVE_NEON
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_neon_s32.S src/libmpg123/synth_stereo_neon_s32.S
+endif
+endif
+
+if HAVE_NEON
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_neon_accurate.S src/libmpg123/synth_stereo_neon_accurate.S
+endif
+endif
+
+if HAVE_NEON
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_neon.S src/libmpg123/synth_neon.S src/libmpg123/synth_stereo_neon.S
+endif
+endif
+
+if HAVE_NEON64
+if HAVE_LAYER3
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct36_neon64.S
+endif
+endif
+
+if HAVE_NEON64
+if HAVE_FLOATDCT
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_neon64_float.S
+endif
+endif
+
+if HAVE_NEON64
+if HAVE_SYNTHREAL
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_neon64_float.S src/libmpg123/synth_stereo_neon64_float.S
+endif
+endif
+
+if HAVE_NEON64
+if HAVE_SYNTH32
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_neon64_s32.S src/libmpg123/synth_stereo_neon64_s32.S
+endif
+endif
+
+if HAVE_NEON64
+if HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/synth_neon64_accurate.S src/libmpg123/synth_stereo_neon64_accurate.S
+endif
+endif
+
+if HAVE_NEON64
+if !HAVE_ACCURATE
+src_libmpg123_libmpg123_la_SOURCES += src/libmpg123/dct64_neon64.S src/libmpg123/synth_neon64.S src/libmpg123/synth_stereo_neon64.S
+endif
+endif
+
+EXTRA_src_libmpg123_libmpg123_la_SOURCES = \
+  src/libmpg123/l2tables.h \
+  src/libmpg123/l12tabs.h \
+  src/libmpg123/l3bandgain.h \
+  src/libmpg123/l3tabs.h \
+  src/libmpg123/dither.h \
+  src/libmpg123/dither_impl.h \
+  src/libmpg123/synth_sse3d.h
+
+# TODO: update that or drop it.
+if USE_YASM_FOR_AVX
+## Override rules for the sources that should be assembled with yasm
+
+AVX_SRCS = \
+  src/libmpg123/dct36_avx.S \
+  src/libmpg123/dct64_avx.S \
+  src/libmpg123/dct64_avx_float.S \
+  src/libmpg123/synth_stereo_avx.S \
+  src/libmpg123/synth_stereo_avx_float.S \
+  src/libmpg123/synth_stereo_avx_s32.S \
+  src/libmpg123/synth_stereo_avx_accurate.S
+
+AVX_OBJS = $(AVX_SRCS:.S=.@OBJEXT@)
+
+ASM_DEPS = \
+  src/libmpg123/mangle.h \
+  $(top_builddir)/src/config.h
+
+$(AVX_OBJS): %.@OBJEXT@: %.S $(ASM_DEPS)
+	$(CPP) $(DEFAULT_INCLUDES) $(INCLUDES) -DASMALIGN_BALIGN $< | @YASM@ - @YASMFLAGS@ @YASM_FORMAT@ -o $@
+
+$(AVX_OBJS:.@OBJEXT@=.lo): %.lo: %.@OBJEXT@
+	@echo "# Generated by ltmain.sh (GNU libtool)" >$@
+	@echo "pic_object='`basename $<`'" >>$@
+	@echo "non_pic_object='`basename $<`'" >>$@
+
+endif

@@ -16,6 +16,14 @@ additionally, the last 8 channels may be put in "PSG mode", featuring 6 channels
 
 this chip uses the [Nintendo DS](../4-instrument/nds.md) instrument editor.
 
+sample length, loop start, and loop end are 32-bit word aligned, meaning they must be divisible evenly by the alignments shown in the table below:
+
+| sample type | sample length max | loop start max | alignment |
+|:-----------:|------------------:|---------------:|----------:|
+| 16-bit PCM  |           8388606 |         131070 | 2 samples |
+| 8-bit PCM   |          16777212 |         262140 | 4 samples |
+| IMA ADPCM   |          33554424 |         524280 | 8 samples |
+
 ## chip config
 
 the following options are available in the Chip Manager window:

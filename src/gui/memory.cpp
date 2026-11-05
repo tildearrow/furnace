@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,6 @@
 #include <fmt/printf.h>
 #include "imgui.h"
 #include "imgui_internal.h"
-
-#define CENTER_TEXT(text) \
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
 
 void FurnaceGUI::drawMemory() {
   if (nextWindow==GUI_WINDOW_MEMORY) {

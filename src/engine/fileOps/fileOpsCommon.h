@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,7 @@ struct NotZlibException {
 #define DIV_XM_MAGIC "Extended Module: "
 #define DIV_IT_MAGIC "IMPM"
 #define DIV_TFM_MAGIC "TFMfmtV2"
+#define DIV_MIDI_MAGIC "MThd"
 
 #define DIV_FUR_MAGIC_DS0 "Furnace-B module"
 

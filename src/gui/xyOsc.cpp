@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,16 +39,18 @@ void FurnaceGUI::drawXYOsc() {
       int xyOscXChannelP1=xyOscXChannel+1;
       int xyOscYChannelP1=xyOscYChannel+1;
 
+      ImGui::AlignTextToFramePadding();
       ImGui::Text(_("X Channel"));
       ImGui::SameLine();
-      if (ImGui::DragInt("##XChannel",&xyOscXChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
+      if (ImGui::InputInt("##XChannel",&xyOscXChannelP1)) {
         xyOscXChannel=MIN(MAX(xyOscXChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();
       ImGui::Checkbox(_("Invert##X"),&xyOscXInvert);
+      ImGui::AlignTextToFramePadding();
       ImGui::Text(_("Y Channel"));
       ImGui::SameLine();
-      if (ImGui::DragInt("##YChannel",&xyOscYChannelP1,1.0f,1,DIV_MAX_OUTPUTS)) {
+      if (ImGui::InputInt("##YChannel",&xyOscYChannelP1)) {
         xyOscYChannel=MIN(MAX(xyOscYChannelP1,1),DIV_MAX_OUTPUTS)-1;
       } rightClickable
       ImGui::SameLine();
@@ -155,7 +157,7 @@ void FurnaceGUI::drawXYOsc() {
             ImLerp(inSqr.Min,inSqr.Max,ImVec2(0.5f-ip,0.5f-ip)),
             ImLerp(inSqr.Min,inSqr.Max,ImVec2(0.5f+ip,0.5f+ip)),
             guideColor,
-            0.0f,0,dpiScale
+            0.0f,dpiScale
           );
         }
 
@@ -170,7 +172,7 @@ void FurnaceGUI::drawXYOsc() {
           float decay=exp2f(-1e3f/e->getAudioDescGot().rate/xyOscDecayTime);
           ImDrawListFlags prevFlags=dl->Flags;
           dl->Flags|=ImDrawFlags_RoundCornersNone;
-          if (!settings.oscAntiAlias || safeMode) {
+          if (safeMode) {
             dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
           }
           if (settings.oscEscapesBoundary) {
@@ -200,7 +202,7 @@ void FurnaceGUI::drawXYOsc() {
           dl->Flags=prevFlags;
         }
         if (settings.oscBorder) {
-          dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+          dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,1.5f*dpiScale);
         }
       }
       if (ImGui::IsItemHovered()) {
@@ -211,7 +213,7 @@ void FurnaceGUI::drawXYOsc() {
         } else if (valX<=-INFINITY) {
           ImGui::SetTooltip(_("(-Infinity)dB,%.1fdB"),valY);
         } else if (valY<=-INFINITY) {
-          ImGui::SetTooltip(_("%.1fdB,(-Infinity)dB"),valY);
+          ImGui::SetTooltip(_("%.1fdB,(-Infinity)dB"),valX);
         } else {
           ImGui::SetTooltip(_("%.1fdB,%.1fdB"),valX,valY);
         }

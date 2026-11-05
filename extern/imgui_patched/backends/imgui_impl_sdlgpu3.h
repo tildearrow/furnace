@@ -28,12 +28,14 @@
 #include <SDL3/SDL_gpu.h>
 
 // Initialization data, for ImGui_ImplSDLGPU_Init()
-// - Remember to set ColorTargetFormat to the correct format. If you're rendering to the swapchain, call SDL_GetGPUSwapchainTextureFormat to query the right value
+// - Remember to set ColorTargetFormat to the correct format. If you're rendering to the swapchain, call SDL_GetGPUSwapchainTextureFormat() to query the right value
 struct ImGui_ImplSDLGPU3_InitInfo
 {
-    SDL_GPUDevice*       Device             = nullptr;
-    SDL_GPUTextureFormat ColorTargetFormat  = SDL_GPU_TEXTUREFORMAT_INVALID;
-    SDL_GPUSampleCount   MSAASamples        = SDL_GPU_SAMPLECOUNT_1;
+    SDL_GPUDevice*              Device                  = nullptr;
+    SDL_GPUTextureFormat        ColorTargetFormat       = SDL_GPU_TEXTUREFORMAT_INVALID;
+    SDL_GPUSampleCount          MSAASamples             = SDL_GPU_SAMPLECOUNT_1;
+    SDL_GPUSwapchainComposition SwapchainComposition    = SDL_GPU_SWAPCHAINCOMPOSITION_SDR;     // Only used in multi-viewports mode.
+    SDL_GPUPresentMode          PresentMode             = SDL_GPU_PRESENTMODE_VSYNC;            // Only used in multi-viewports mode.
 };
 
 // Follow "Getting Started" link and check examples/ folder to learn about using backends!
@@ -47,7 +49,7 @@ IMGUI_IMPL_API void     ImGui_ImplSDLGPU3_RenderDrawData(ImDrawData* draw_data, 
 IMGUI_IMPL_API void     ImGui_ImplSDLGPU3_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplSDLGPU3_DestroyDeviceObjects();
 
-// (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = NULL to handle this manually.
+// (Advanced) Use e.g. if you need to precisely control the timing of texture updates (e.g. for staged rendering), by setting ImDrawData::Textures = nullptr to handle this manually.
 IMGUI_IMPL_API void     ImGui_ImplSDLGPU3_UpdateTexture(ImTextureData* tex);
 
 // [BETA] Selected render state data shared with callbacks.
@@ -56,8 +58,6 @@ IMGUI_IMPL_API void     ImGui_ImplSDLGPU3_UpdateTexture(ImTextureData* tex);
 struct ImGui_ImplSDLGPU3_RenderState
 {
     SDL_GPUDevice*      Device;
-    SDL_GPUSampler*     SamplerDefault;     // Default sampler (bilinear filtering)
-    SDL_GPUSampler*     SamplerCurrent;     // Current sampler (may be changed by callback)
 };
 
 #endif // #ifndef IMGUI_DISABLE

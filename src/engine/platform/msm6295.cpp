@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,7 +122,7 @@ void DivPlatformMSM6295::acquire(short** buf, size_t len) {
 
 void DivPlatformMSM6295::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    if (!parent->song.disableSampleMacro) {
+    if (!parent->song.compatFlags.disableSampleMacro) {
       chan[i].std.next();
       if (chan[i].std.vol.had) {
         chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,8);
@@ -161,40 +161,19 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_AMIGA) {
-        chan[c.chan].furnacePCM=true;
-      } else {
-        chan[c.chan].furnacePCM=false;
-      }
       if (skipRegisterWrites) break;
-      if (chan[c.chan].furnacePCM) {
-        chan[c.chan].macroInit(ins);
-        if (!chan[c.chan].std.vol.will) {
-          chan[c.chan].outVol=chan[c.chan].vol;
-        }
-        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
-        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
-          //DivSample* s=parent->getSample(chan[c.chan].sample);
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-          rWriteDelay(0,(8<<c.chan),180); // turn off
-          setPhrase(c.chan);
-          rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
-        } else {
-          break;
-        }
-      } else {
-        chan[c.chan].sample=-1;
-        chan[c.chan].macroInit(NULL);
+      chan[c.chan].macroInit(ins);
+      if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
-        if ((12*sampleBank+c.value%12)<0 || (12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-          break;
+      }
+      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        //DivSample* s=parent->getSample(chan[c.chan].sample);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].note=c.value;
         }
-        //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-        chan[c.chan].sample=12*sampleBank+c.value%12;
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
         rWriteDelay(0,(8<<c.chan),180); // turn off
         setPhrase(c.chan);
         rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
@@ -245,12 +224,6 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       rateSel=c.value;
       rWrite(12,!rateSel);
       break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_LEGATO: {
       break;
     }
@@ -290,7 +263,7 @@ void DivPlatformMSM6295::forceIns() {
   rWrite(12,!rateSel);
 }
 
-void* DivPlatformMSM6295::getChanState(int ch) {
+SharedChannel* DivPlatformMSM6295::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -318,15 +291,20 @@ void DivPlatformMSM6295::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformMSM6295::softReset() {
+  rWrite(0,0x78); // disable all channels
+  rWrite(12,1); // select rate
+}
+
 void DivPlatformMSM6295::reset() {
   while (!writes.empty()) writes.pop();
   msm.reset();
   msm.ss_w(rateSelInit);
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
   }
   for (int i=0; i<4; i++) {
-    chan[i]=DivPlatformMSM6295::Channel();
+    chan[i]=DivPlatformMSM6295::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
     msm.voice_mute(i,isMuted[i]);
   }
@@ -335,7 +313,6 @@ void DivPlatformMSM6295::reset() {
     chan[i].outVol=8;
   }
 
-  sampleBank=0;
   rateSel=rateSelInit;
   rWrite(12,!rateSelInit);
   if (isBanked) {
@@ -371,6 +348,18 @@ void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
   }
 }
 
+unsigned int DivPlatformMSM6295::getMaxFreq(int ch) {
+  return 0;
+}
+
+int DivPlatformMSM6295::getSampleGroup(int chan) {
+  return (isBanked?2:0)|(rateSel&1);
+}
+
+int DivPlatformMSM6295::getMaxSamples(int index) {
+  return (index==0)?((isBanked)?8192:128):0;
+}
+
 const void* DivPlatformMSM6295::getSampleMem(int index) {
   return index == 0 ? adpcmMem : NULL;
 }
@@ -385,7 +374,7 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
 
 bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
   if (index!=0) return false;
-  if (sample<0 || sample>32767) return false;
+  if (sample<0 || sample>=getMaxSamples(index)) return false;
   return sampleLoaded[sample];
 }
 
@@ -413,14 +402,14 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
   // sample data
   size_t memPos=128*8;
   int sampleCount=parent->song.sampleLen;
-  if (isBanked) {
-    if (sampleCount>8191) {
-      // mark the rest as unavailable
-      for (int i=8191; i<sampleCount; i++) {
-        sampleLoaded[i]=false;
-      }
-      sampleCount=8191;
+  if (sampleCount>getMaxSamples(0)) {
+    // mark the rest as unavailable
+    for (int i=getMaxSamples(0); i<sampleCount; i++) {
+      sampleLoaded[i]=false;
     }
+    sampleCount=getMaxSamples(0);
+  }
+  if (isBanked) {
     int bankInd=0;
     int phraseInd=0;
     for (int i=0; i<sampleCount; i++) {
@@ -476,13 +465,6 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
       }
     }
   } else {
-    if (sampleCount>127) {
-      // mark the rest as unavailable
-      for (int i=127; i<sampleCount; i++) {
-        sampleLoaded[i]=false;
-      }
-      sampleCount=127;
-    }
     for (int i=0; i<sampleCount; i++) {
       DivSample* s=parent->song.sample[i];
       if (!s->renderOn[0][sysID]) {

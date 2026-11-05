@@ -69,7 +69,7 @@ public:
 	unsigned short GetCurrentBytesPerSample(void);
 	static unsigned short GetBytesPerSample(SAAPARAM uParam);
 
-	void GenerateMany(BYTE * pBuffer, unsigned int nSamples, DivDispatchOscBuffer** oscBuf);
+	void GenerateMany(BYTE * pBuffer, unsigned int nSamples, DivDispatchOscBuffer** oscBuf, unsigned int offset);
 
 };
 

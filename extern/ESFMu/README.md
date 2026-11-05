@@ -1,10 +1,25 @@
-# MODIFIED
+# ESFMu-fast
 
-this is a modified version of ESFMu which adds a "fast" mode that uses OPL3 feedback calculation rather than patent workaround calculation (which is slow but accurate).
-
-# ESFMu
+<p align=center>
+  <img src="assets/logo.png" height="300px">
+</p>
 
 An emulator for the ESS "ESFM" enhanced OPL3 clone, based on Nuke.YKT's **Nuked OPL3** and reverse-engineering efforts from the community.
+
+This is a performance-optimized fork of [ESFMu](https://github.com/Kagamiin/ESFMu). Its audio output is bit-for-bit identical to upstream. On the four-song native-mode trace suite it renders about 2x faster overall, with workload-dependent results from 1.4x to 2.3x (Core i7-12800H, GCC 13.3 `-O2`). The function interface is unchanged, so it is a source-level drop-in replacement. Rebuild dependent code rather than mixing objects built against upstream because the public `esfm_chip` state structure is larger.
+
+Changes relative to upstream:
+
+- Write-time caches (`pg_inc`, `eg_tl_ksl`, `eg_ks` in `esfm_slot`): the non-vibrato phase increment, the total-level + KSL envelope offset and the key-scale rate shift are recomputed on register writes instead of on every sample.
+- Emulation phase cache (`emu_pg_inc` in `esfm_chip`): OPL2/OPL3-compatible channels cache their non-vibrato phase increments too, including the primary-channel frequency routing used by 4-op pairs. It is separate from the native per-slot cache so rapid mode switches preserve both sets of state.
+- Interleaved feedback (`ESFM_process_feedback`): the per-channel inline-asm 29-iteration feedback loop was replaced with a C implementation that processes four channels in lockstep. The chain is serial through two dependent table loads per iteration, so interleaving independent channels gets around the load latency. This is where most of the speedup comes from.
+- Pre-shifted exponent lookup: a saturation-aware lookup folds the `exprom` access, level-dependent shift, and zero-output clamp into one indexed load in slot generation and the feedback loop.
+- Silent-slot fast paths: `exprom`'s maximum entry is 0xff4 (< 2^12), so a slot with `eg_output >= 0x180` produces exactly zero output for any phase. Slot generation and the feedback loop skip the table lookups for such slots.
+- Envelope fast paths (`ESFM_envelope_calc`): released slots (key off, envelope at 0x1ff, delay logic quiescent) and held sustain (key on, sustaining envelope, delay settled) skip the rate/state machine. The function is also specialized per chip mode.
+- Batched native noise LFSR: native mode normally advances the LFSR once for each of 72 slots, although only slot-3 noise modes can read it. When no native slot can read it, those steps are replaced with one precomputed 72-step jump. Emulation mode retains its 36 scalar steps because a measured jump-table version was slower.
+- Smaller items: an early-out in `ESFM_update_write_buffer`, `__builtin_ctzll` for the envelope timer clocks, and a branch tremolo wrap.
+
+Bit-perfect output is verified against upstream with full register traces of four Furnace ESFM songs, as well as a deterministic register-write fuzzer covering emulation mode, native noise slots, 2-op/4-op changes, rapid mode switches, and both chip revisions. Performance claims come from alternating paired runs and elapsed or process CPU time; instruction counts are used only as supporting diagnostics, not as a speedup proxy.
 
 ## Acknowledgements
 
@@ -27,6 +42,10 @@ I'd like to thank:
   - For kickstarting the ESFM research project and compiling rainwarrior's findings and more in an accessible document ("ESFM Demystified").
 - **pachuco/CatButts**
   - For documenting ESS's patent on ESFM's feedback implementation, which was vital in getting **ESFMu**'s sound output to be accurate.
+- **akumanatt**
+  - For helping out with code optimization.
+- **shadex/shidzy13**
+  - For helping out with the nifty logo above, thanks!
 - And everybody who helped out with real hardware testing
 
 ## Usage

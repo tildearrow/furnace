@@ -81,7 +81,7 @@ unsigned int SAAAPI SAASNDGetSampleRate(SAAPARAM uParam)
 
 void SAAAPI SAASNDGenerateMany(SAASND object, BYTE * pBuffer, unsigned int nSamples)
 {
-	((LPCSAASOUND)(object))->GenerateMany(pBuffer, nSamples, NULL);
+	((LPCSAASOUND)(object))->GenerateMany(pBuffer, nSamples, NULL, 0);
 }
 
 void SAAAPI SAASNDSetSampleRate(SAASND object, unsigned int nSampleRate)

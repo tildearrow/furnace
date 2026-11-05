@@ -1,5 +1,5 @@
 #include "../ta-utils.h"
-#include "imgui.h"
+#include "newFilePicker.h"
 #include <functional>
 #include "../pch.h"
 
@@ -38,6 +38,7 @@ class FurnaceGUIFileDialog {
   bool hasError;
   char noSysFilter[4096];
   String curPath;
+  FurnaceFilePicker* newFilePicker;
   std::vector<String> fileName;
 #ifdef USE_NFD
   std::thread* dialogO;
@@ -73,11 +74,12 @@ class FurnaceGUIFileDialog {
     bool isError();
     String getPath();
     std::vector<String>& getFileName();
-    explicit FurnaceGUIFileDialog(bool system):
+    explicit FurnaceGUIFileDialog(bool system, FurnaceFilePicker* builtInPicker):
       sysDialog(system),
       opened(false),
       dialogType(0),
       hasError(false),
+      newFilePicker(builtInPicker),
 #ifdef ANDROID
       jniEnv(NULL),
 #endif

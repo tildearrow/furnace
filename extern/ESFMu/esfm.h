@@ -42,6 +42,8 @@
  * - pachuco/CatButts
  *       For documenting ESS's patent on ESFM's feedback implementation, which
  *       was vital in getting ESFMu's sound output to be accurate.
+ * - akumanatt
+ *       For helping out with code optimization.
  * - And everybody who helped out with real hardware testing
  */
 
@@ -57,8 +59,25 @@ typedef struct _esfm_slot_internal esfm_slot_internal;
 typedef struct _esfm_channel esfm_channel;
 typedef struct _esfm_chip esfm_chip;
 
+// Determines which chip revision to emulate.
+// Revisions with identical ESFM behavior are lumped together;
+// see enum values for more info.
+typedef enum esfm_revisions_e_
+{
+	// Has proper sample clipping behavior;
+	// examples: ES1688, ES1689, ES1788, ES1789, ES1868
+	ESFM_REV_ES16XX_ES17XX_ES1868,
+
+	// Has broken sample clipping behavior with overflow;
+	// examples: ES1698, ES1878, ES1887, ES1888 and all ESS Solo-1 PCI chipsets
+	ESFM_REV_ES1869_ES19XX_ESSSOLO,
+
+	NUM_ESFM_REVISIONS
+} esfm_revision;
+
 
 void ESFM_init (esfm_chip *chip, uint8_t fast);
+void ESFM_init_with_rev (esfm_chip *chip, esfm_revision rev, uint8_t fast);
 void ESFM_write_reg (esfm_chip *chip, uint16_t address, uint8_t data);
 void ESFM_write_reg_buffered (esfm_chip *chip, uint16_t address, uint8_t data);
 void ESFM_write_reg_buffered_fast (esfm_chip *chip, uint16_t address, uint8_t data);
@@ -193,6 +212,14 @@ struct _esfm_slot
 
 	// Internal state
 	esfm_slot_internal in;
+
+	// Write-time caches
+	// native non-vibrato phase increment: (((f_num << block) >> 1) * mt[mult]) >> 1
+	uint32 pg_inc;
+	// (t_level << 2) + (in.eg_ksl_offset >> kslshift[ksl])
+	uint16 eg_tl_ksl;
+	// in.keyscale >> ((!ksr) << 1)
+	uint4 eg_ks;
 };
 
 struct _esfm_channel
@@ -215,7 +242,7 @@ struct _esfm_chip
 {
 	esfm_channel channels[18];
 	int32 output_accm[2];
-	uint_fast16_t addr_latch;
+	uint16 addr_latch;
 
 	flag emu_wavesel_enable;
 	flag emu_newmode;
@@ -233,6 +260,10 @@ struct _esfm_chip
 	uint8 tremolo_pos;
 	uint8 vibrato_pos;
 	uint23 lfsr;
+	// Number of native slot-3s with rhy_noise set; no native slot reads the LFSR when 0.
+	uint8 rhy_noise_slot3_count;
+	// Native-only flag: advance the LFSR with one 72-step jump this sample.
+	flag lfsr_batch;
 
 	flag rm_hh_bit2;
 	flag rm_hh_bit3;
@@ -248,6 +279,7 @@ struct _esfm_chip
 	flag emu_vibrato_deep;
 	flag emu_tremolo_deep;
 
+	double timer_accumulator[2];
 	uint8 timer_reload[2];
 	uint8 timer_counter[2];
 	flag timer_enable[2];
@@ -255,24 +287,39 @@ struct _esfm_chip
 	flag timer_overflow[2];
 	flag irq_bit;
 
-	// Halts the envelope generators from advancing.
-	flag test_bit_eg_halt;
+	// -- Test bits (NOT IMPLEMENTED) --
+	// Halts the envelope generators from advancing. Written on bit 0, read back from bit 5.
+	flag test_bit_w0_r5_eg_halt;
 	/*
 	 * Activates some sort of waveform test mode that amplifies the output volume greatly
 	 * and continuously shifts the waveform table downwards, possibly also outputting the
 	 * waveform's derivative? (it's so weird!)
 	 */
-	flag test_bit_distort;
+	flag test_bit_1_distort;
+	// Seems to do nothing.
+	flag test_bit_2;
+	// Seems to do nothing.
+	flag test_bit_3;
 	// Appears to attenuate the output by about 3 dB.
-	flag test_bit_attenuate;
+	flag test_bit_4_attenuate;
+	// Written on bit 5, read back from bit 0. Seems to do nothing.
+	flag test_bit_w5_r0;
 	// Resets all phase generators and holds them in the reset state while this bit is set.
-	flag test_bit_phase_stop_reset;
+	flag test_bit_6_phase_stop_reset;
+	// Seems to do nothing.
+	flag test_bit_7;
 
 	esfm_write_buf write_buf[ESFM_WRITEBUF_SIZE];
 	size_t write_buf_start;
 	size_t write_buf_end;
 	uint64_t write_buf_timestamp;
 
+	esfm_revision rev;
+
+	// Emulation-mode non-vibrato phase increments for the two active slots per channel.
+	uint32 emu_pg_inc[18][2];
+
+        // tildearrow
         flag fast_mode;
 };
 

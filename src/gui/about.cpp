@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ const char* aboutLine[]={
   "superctr",
   "System64",
   "techmetx11",
+  "tgies",
   "",
   _N("-- graphics/UI design --"),
   "tildearrow",
@@ -118,18 +119,36 @@ const char* aboutLine[]={
   _N("zlib by Jean-loup Gailly"),
   _N("and Mark Adler"),
   _N("libsndfile by Erik de Castro Lopo"),
+#ifdef HAVE_OGG
+  _N("libogg by Xiph.Org Foundation"),
+  _N("libvorbis by Xiph.Org Foundation"),
+  _N("FLAC library by Xiph.Org Foundation"),
+  _N("libopus by Xiph.Org and contributors"),
+#endif
+#ifdef HAVE_MP3_EXPORT
+  _N("libmpg123 by Michael Hipp, Thomas Orgis, Taihei Momma and contributors"),
+  _N("LAME by Mike Cheng, Mark Taylor and The LAME Project"),
+#endif
   _N("Portable File Dialogs by Sam Hocevar"),
   _N("Native File Dialog by Frogtoss Games"),
   "PortAudio",
+#ifdef HAVE_ASIO
+  _N("ASIO® by Steinberg Media Technologies"),
+#endif
   _N("Weak-JACK by x42"),
   _N("RtMidi by Gary P. Scavone"),
   _N("FFTW by Matteo Frigo and Steven G. Johnson"),
   _N("backward-cpp by Google"),
+#ifdef WITH_JSON
+  _N("JSON for Modern C++ by Niels Lohmann"),
+#endif
   _N("adpcm by superctr"),
   _N("adpcm-xq by David Bryant"),
-  _N("Nuked-OPL3/OPLL/OPM/OPN2/PSG by nukeykt"),
-  _N("YM3812-LLE, YMF262-LLE, YMF276-LLE and YM2608-LLE by nukeykt"),
-  _N("ESFMu (modified version) by Kagamiin~"),
+  _N("Nuked-OPL3-fast by nukeykt and Tony Gies"),
+  _N("Nuked-OPLL/OPM/OPN2/PSG by nukeykt"),
+  _N("YM3812-LLE, YMF262-LLE, YMF276-LLE, YM2151-LLE, YM2414-LLE and YM2608-LLE by nukeykt"),
+  _N("ESFMu (modified version) by Kagamiin~,"),
+  _N("akumanatt and Tony Gies"),
   _N("ymfm by Aaron Giles"),
   _N("emu2413 by Digital Sound Antiques"),
   _N("MAME SN76496 by Nicola Salmoria"),
@@ -146,8 +165,8 @@ const char* aboutLine[]={
   _N("MAME µPD1771C-017 HLE core by David Viens"),
   _N("SAASound by Dave Hooper and Simon Owen"),
   _N("SameBoy by Lior Halphon"),
-  _N("Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores"),
-  _N("WonderSwan new core by asiekierka"),
+  _N("Mednafen PCE, T6W28 (modified) and Virtual Boy audio cores"),
+  _N("WonderSwan core by asiekierka"),
   _N("SNES DSP core by Blargg"),
   _N("puNES (NES, MMC5 and FDS) by FHorse (modified version)"),
   _N("NSFPlay (NES and FDS) by Brad Smith and Brezza"),
@@ -176,6 +195,7 @@ const char* aboutLine[]={
   _N("openMSX YMF278 emulator (modified version) by the openMSX developers"),
   _N("SID2 emulator by LTVA (modification of reSID emulator)"),
   _N("SID3 emulator by LTVA"),
+  _N("klattsch formant speech synth by Tony Gies"),
   "",
   _N("greetings to:"),
   "floxy!",
@@ -184,10 +204,15 @@ const char* aboutLine[]={
   "@party",
   _N("all members of Deflers of Noice!"),
   "",
-  _N("copyright © 2021-2025 tildearrow"),
+  _N("copyright © 2021-2026 tildearrow"),
   _N("(and contributors)."),
+#ifdef FURNACE_GPL3
+  _N("licensed under GPLv3! see"),
+  _N("LICENSE for more information."),
+#else
   _N("licensed under GPLv2+! see"),
   _N("LICENSE for more information."),
+#endif
   "",
   _N("help Furnace grow:"),
   "https://github.com/tildearrow/furnace",
@@ -203,6 +228,10 @@ const char* aboutLine[]={
   _N("the original program."),
   "",
   _N("it also comes with ABSOLUTELY NO WARRANTY."),
+#ifdef HAVE_ASIO
+  "",
+  _N("ASIO is a registered trademark of Steinberg Media Technologies GmbH."),
+#endif
   "",
   _N("thanks to all contributors/bug reporters!")
 };

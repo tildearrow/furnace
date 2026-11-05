@@ -87,6 +87,7 @@ class VSU
  int EnvelopeCounter[6];
  int SweepModCounter;
 
+ int SampleClockDivider[6];
  int EffectsClockDivider[6];
  int IntervalClockDivider[6];
  int EnvelopeClockDivider[6];

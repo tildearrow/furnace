@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,22 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
+const char* audioExportFormats[]={
+  _N("Wave"),
+  _N("Opus"),
+  _N("FLAC (Free Lossless Audio Codec)"),
+  _N("Vorbis"),
+  _N("MP3"),
+  NULL
+};
+
+const char* audioExportWavFormats[]={
+  _N("8-bit int (unsigned)"),
+  _N("16-bit int"),
+  _N("32-bit float"),
+  NULL
+};
+
 void FurnaceGUI::drawExportAudio(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -34,27 +50,46 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
   }
   if (ImGui::RadioButton(_("multiple files (one per chip)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_SYS)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_SYS;
-        }
+    audioExportOptions.format=DIV_EXPORT_FORMAT_WAV;
+    audioExportOptions.wavFormat=DIV_EXPORT_WAV_S16;
+  }
   if (ImGui::RadioButton(_("multiple files (one per channel)"),audioExportOptions.mode==DIV_EXPORT_MODE_MANY_CHAN)) {
     audioExportOptions.mode=DIV_EXPORT_MODE_MANY_CHAN;
   }
   ImGui::Unindent();
+  ImGui::Separator();
 
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
-    ImGui::Text(_("Bit depth:"));
-    ImGui::Indent();
-    if (ImGui::RadioButton(_("16-bit integer"),audioExportOptions.format==DIV_EXPORT_FORMAT_S16)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_S16;
+    if (ImGui::BeginCombo(_("File Format"),audioExportFormats[audioExportOptions.format])) {
+      for (size_t i=0; i<(supportsMP3?5:4); i++) {
+        if (ImGui::Selectable(_(audioExportFormats[i]),audioExportOptions.format==i)) {
+          audioExportOptions.format=(DivAudioExportFormats)i;
+        }
+      }
+      ImGui::EndCombo();
     }
-    if (ImGui::RadioButton(_("32-bit float"),audioExportOptions.format==DIV_EXPORT_FORMAT_F32)) {
-      audioExportOptions.format=DIV_EXPORT_FORMAT_F32;
+    ImGui::Separator();
+  } else {
+    audioExportOptions.format=DIV_EXPORT_FORMAT_WAV;
+    audioExportOptions.wavFormat=DIV_EXPORT_WAV_S16;
+  }
+  
+  if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS && audioExportOptions.format==DIV_EXPORT_FORMAT_WAV) {
+    if (ImGui::BeginCombo(_("Format"),audioExportWavFormats[audioExportOptions.wavFormat])) {
+      for (size_t i=0; audioExportWavFormats[i]; i++) {
+        if (ImGui::Selectable(_(audioExportWavFormats[i]),audioExportOptions.wavFormat==i)) {
+          audioExportOptions.wavFormat=(DivAudioExportWavFormats)i;
+        }
+      }
+      ImGui::EndCombo();
     }
-    ImGui::Unindent();
   }
 
-  if (ImGui::InputInt(_("Sample rate"),&audioExportOptions.sampleRate,100,10000)) {
-    if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
-    if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
+  if (audioExportOptions.format!=DIV_EXPORT_FORMAT_OPUS) {
+    if (ImGui::InputInt(_("Sample rate"),&audioExportOptions.sampleRate,100,10000)) {
+      if (audioExportOptions.sampleRate<8000) audioExportOptions.sampleRate=8000;
+      if (audioExportOptions.sampleRate>384000) audioExportOptions.sampleRate=384000;
+    }
   }
 
   if (audioExportOptions.mode!=DIV_EXPORT_MODE_MANY_SYS) {
@@ -63,6 +98,57 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
       if (audioExportOptions.chans>16) audioExportOptions.chans=16;
     }
   }
+
+  if (audioExportOptions.format==DIV_EXPORT_FORMAT_MPEG_L3) {
+    ImGui::Text(_("Bit rate mode:"));
+    ImGui::Indent();
+    if (ImGui::RadioButton(_("Constant"),audioExportOptions.bitRateMode==DIV_EXPORT_BITRATE_CONSTANT)) {
+      audioExportOptions.bitRateMode=DIV_EXPORT_BITRATE_CONSTANT;
+    }
+    if (ImGui::RadioButton(_("Variable"),audioExportOptions.bitRateMode==DIV_EXPORT_BITRATE_VARIABLE)) {
+      audioExportOptions.bitRateMode=DIV_EXPORT_BITRATE_VARIABLE;
+    }
+    if (ImGui::RadioButton(_("Average"),audioExportOptions.bitRateMode==DIV_EXPORT_BITRATE_AVERAGE)) {
+      audioExportOptions.bitRateMode=DIV_EXPORT_BITRATE_AVERAGE;
+    }
+    ImGui::Unindent();
+  }
+
+  int minBitRate=6000;
+  int maxBitRate=256000;
+
+  if (audioExportOptions.format==DIV_EXPORT_FORMAT_MPEG_L3) {
+    if (audioExportOptions.sampleRate>=32000) {
+      minBitRate=32000;
+      maxBitRate=320000;
+    } else if (audioExportOptions.sampleRate>=16000) {
+      minBitRate=8000;
+      maxBitRate=160000;
+    } else {
+      minBitRate=8000;
+      maxBitRate=64000;
+    }
+  }
+
+  if (audioExportOptions.format!=DIV_EXPORT_FORMAT_WAV) {
+    if (audioExportOptions.format==DIV_EXPORT_FORMAT_FLAC) {
+      if (ImGui::SliderFloat(_("Compression level"),&audioExportOptions.vbrQuality,0,8)) {
+        if (audioExportOptions.vbrQuality<0) audioExportOptions.vbrQuality=0;
+        if (audioExportOptions.vbrQuality>8) audioExportOptions.vbrQuality=8;
+      }
+    } else if (audioExportOptions.format==DIV_EXPORT_FORMAT_VORBIS || (audioExportOptions.format==DIV_EXPORT_FORMAT_MPEG_L3 && audioExportOptions.bitRateMode==DIV_EXPORT_BITRATE_VARIABLE)) {
+      if (ImGui::SliderFloat(_("Quality"),&audioExportOptions.vbrQuality,0,10)) {
+        if (audioExportOptions.vbrQuality<0) audioExportOptions.vbrQuality=0;
+        if (audioExportOptions.vbrQuality>10) audioExportOptions.vbrQuality=10;
+      }
+    } else {
+      if (ImGui::InputInt(_("Bit rate"),&audioExportOptions.bitRate,1000,10000)) {
+      }
+      if (audioExportOptions.bitRate<minBitRate) audioExportOptions.bitRate=minBitRate;
+      if (audioExportOptions.bitRate>maxBitRate) audioExportOptions.bitRate=maxBitRate;
+    }
+  }
+  ImGui::Separator();
 
   if (ImGui::InputInt(_("Loops"),&audioExportOptions.loops,1,2)) {
     if (audioExportOptions.loops<0) audioExportOptions.loops=0;
@@ -125,6 +211,30 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
 
   if (isOneOn) {
     if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+      switch (audioExportOptions.format) {
+        case DIV_EXPORT_FORMAT_WAV:
+          audioExportFilterName=_("Wave file");
+          audioExportFilterExt=".wav";
+          break;
+        case DIV_EXPORT_FORMAT_OPUS:
+        case DIV_EXPORT_FORMAT_VORBIS:
+          audioExportFilterName=_("Ogg files");
+          audioExportFilterExt=".ogg";
+          break;
+        case DIV_EXPORT_FORMAT_FLAC:
+          audioExportFilterName=_("FLAC files");
+          audioExportFilterExt=".flac";
+          break;
+        case DIV_EXPORT_FORMAT_MPEG_L3:
+          audioExportFilterName=_("MPEG Layer 3 files");
+          audioExportFilterExt=".mp3";
+          break;
+        default:
+          audioExportFilterName=_("all files");
+          audioExportFilterExt="*";
+          break;
+      }
+
       switch (audioExportOptions.mode) {
         case DIV_EXPORT_MODE_ONE:
           openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
@@ -156,7 +266,7 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
     ImGui::EndCombo();
   }
   ImGui::Checkbox(_("loop"),&vgmExportLoop);
-  if (vgmExportLoop && e->song.loopModality==2) {
+  if (vgmExportLoop && e->song.compatFlags.loopModality==2) {
     ImGui::Text(_("loop trail:"));
     ImGui::Indent();
     if (ImGui::RadioButton(_("auto-detect"),vgmExportTrailingTicks==-1)) {
@@ -268,6 +378,71 @@ void FurnaceGUI::drawExportVGM(bool onWindow) {
   }
 }
 
+void FurnaceGUI::drawExportS98(bool onWindow) {
+  exitDisabledTimer=1;
+
+  if (ImGui::InputFloat(_("tick rate (Hz)"),&s98ExportTickRate,1,10,(s98ExportTickRate<1)?_("Automatic"):"%.2f")) {
+    if (s98ExportTickRate<0) s98ExportTickRate=0;
+    if (s98ExportTickRate>100000) s98ExportTickRate=100000;
+  }
+  ImGui::Checkbox(_("loop"),&s98ExportLoop);
+  if (s98ExportLoop && e->song.compatFlags.loopModality==2) {
+    ImGui::Text(_("loop trail:"));
+    ImGui::Indent();
+    if (ImGui::RadioButton(_("auto-detect"),s98ExportTrailingTicks==-1)) {
+      s98ExportTrailingTicks=-1;
+    }
+    if (ImGui::RadioButton(_("add one loop"),s98ExportTrailingTicks==-2)) {
+      s98ExportTrailingTicks=-2;
+    }
+    if (ImGui::RadioButton(_("custom"),s98ExportTrailingTicks>=0)) {
+      s98ExportTrailingTicks=0;
+    }
+    if (s98ExportTrailingTicks>=0) {
+      ImGui::SameLine();
+      if (ImGui::InputInt("##TrailTicks",&s98ExportTrailingTicks,1,100)) {
+        if (s98ExportTrailingTicks<0) s98ExportTrailingTicks=0;
+      }
+    }
+    ImGui::Unindent();
+  }
+  ImGui::Text(_("chips to export:"));
+  bool hasOneAtLeast=false;
+  for (int i=0; i<e->song.systemLen; i++) {
+    bool supported=e->supportedByS98(e->song.system[i]);
+    ImGui::BeginDisabled(!supported);
+    ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+    ImGui::EndDisabled();
+    // Like VGM, S98 doesn't support AY-3-8914
+    if (e->song.system[i]==DIV_SYSTEM_AY8910) supported=(e->song.systemFlags[i].getInt("chipType",0)!=3);
+    if (!supported) {
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::SetTooltip(_("this chip is not supported by the S98 format!"));
+      }
+    } else {
+      if (willExport[i]) hasOneAtLeast=true;
+    }
+  }
+
+  if (hasOneAtLeast) {
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+      ImGui::SameLine();
+    }
+    if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+      openFileDialog(GUI_FILE_EXPORT_S98);
+      ImGui::CloseCurrentPopup();
+    }
+  } else {
+    ImGui::Text(_("nothing to export"));
+    if (onWindow) {
+      ImGui::Separator();
+      if (ImGui::Button(_("Cancel"),ImVec2(400.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    }
+  }
+}
+
 void FurnaceGUI::drawExportROM(bool onWindow) {
   exitDisabledTimer=1;
 
@@ -279,7 +454,7 @@ void FurnaceGUI::drawExportROM(bool onWindow) {
       const DivROMExportDef* newDef=e->getROMExportDef((DivROMExportOptions)i);
       if (newDef!=NULL) {
         if (romExportAvail[i]) {
-          if (ImGui::Selectable(newDef->name)) {
+          if (ImGui::Selectable(newDef->name,romTarget==i)) {
             romTarget=(DivROMExportOptions)i;
             romMultiFile=newDef->multiOutput;
             romConfig=DivConfig();
@@ -419,6 +594,51 @@ void FurnaceGUI::drawExportText(bool onWindow) {
   }
 }
 
+#ifdef WITH_JSON
+void FurnaceGUI::drawExportJSON(bool onWindow) {
+  exitDisabledTimer=1;
+
+  ImGui::Text(
+    _("this option exports the song in the JSON format.\n")
+  );
+  ImGui::Text(_("Export format:"));
+  ImGui::Indent();
+  if (ImGui::RadioButton("JSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_JSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_JSON;
+  }
+  if (ImGui::RadioButton("BSON",jsonExportOptions.format==DivJSONExportOptions::EXPORT_BSON)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_BSON;
+  }
+  if (ImGui::RadioButton("CBOR",jsonExportOptions.format==DivJSONExportOptions::EXPORT_CBOR)) {
+    jsonExportOptions.format=DivJSONExportOptions::EXPORT_CBOR;
+  }
+  ImGui::Unindent();
+  ImGui::BeginDisabled(jsonExportOptions.format!=DivJSONExportOptions::EXPORT_JSON);
+  ImGui::Checkbox(_("Formatted output"), &jsonExportOptions.jsonPretty);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export metadata"), &jsonExportOptions.exportMetadata);
+  ImGui::Checkbox(_("Export chips"), &jsonExportOptions.exportChips);
+  ImGui::Checkbox(_("Export instruments"), &jsonExportOptions.exportInstruments);
+  ImGui::Checkbox(_("Export wavetables"), &jsonExportOptions.exportWaves);
+  ImGui::Checkbox(_("Export samples"), &jsonExportOptions.exportSamples);
+  ImGui::Checkbox(_("Export orders"), &jsonExportOptions.exportOrders);
+  ImGui::Checkbox(_("Export patterns"), &jsonExportOptions.exportPatterns);
+  ImGui::BeginDisabled(!jsonExportOptions.exportPatterns);
+  ImGui::Checkbox(_("Optimize patterns"), &jsonExportOptions.optimizePatterns);
+  ImGui::EndDisabled();
+  ImGui::Checkbox(_("Export compatibility flags"), &jsonExportOptions.exportCompatFlags);
+  if (onWindow) {
+    ImGui::Separator();
+    if (ImGui::Button(_("Cancel"),ImVec2(200.0f*dpiScale,0))) ImGui::CloseCurrentPopup();
+    ImGui::SameLine();
+  }
+  if (ImGui::Button(_("Export"),ImVec2(200.0f*dpiScale,0))) {
+    openFileDialog(GUI_FILE_EXPORT_JSON);
+    ImGui::CloseCurrentPopup();
+  }
+}
+#endif
+
 void FurnaceGUI::commandExportOptions() {
   ImGui::Checkbox(_("Long pointers (use for 64K+ size streams)"),&csExportOptions.longPointers);
   ImGui::Checkbox(_("Big endian mode"),&csExportOptions.bigEndian);
@@ -490,6 +710,10 @@ void FurnaceGUI::drawExport() {
         drawExportVGM(true);
         ImGui::EndTabItem();
       }
+      if (ImGui::BeginTabItem(_("S98"))) {
+        drawExportS98(true);
+        ImGui::EndTabItem();
+      }
       if (romExportExists) {
         if (ImGui::BeginTabItem(_("ROM"))) {
           drawExportROM(true);
@@ -500,6 +724,12 @@ void FurnaceGUI::drawExport() {
         drawExportText(true);
         ImGui::EndTabItem();
       }
+#ifdef WITH_JSON
+      if (ImGui::BeginTabItem(_("JSON"))) {
+        drawExportJSON(true);
+        ImGui::EndTabItem();
+      }
+#endif
       if (ImGui::BeginTabItem(_("Command Stream"))) {
         drawExportCommand(true);
         ImGui::EndTabItem();
@@ -517,12 +747,20 @@ void FurnaceGUI::drawExport() {
     case GUI_EXPORT_VGM:
       drawExportVGM(true);
       break;
+    case GUI_EXPORT_S98:
+      drawExportS98(true);
+      break;
     case GUI_EXPORT_ROM:
       drawExportROM(true);
       break;
     case GUI_EXPORT_TEXT:
       drawExportText(true);
       break;
+#ifdef WITH_JSON
+    case GUI_EXPORT_JSON:
+      drawExportJSON(true);
+      break;
+#endif
     case GUI_EXPORT_CMD_STREAM:
       drawExportCommand(true);
       break;
@@ -540,7 +778,7 @@ void FurnaceGUI::drawExport() {
         ImGui::CloseCurrentPopup();
       }
       if (ImGui::Button(_("Set pitch linearity to Partial"))) {
-        e->song.linearPitch=1;
+        showError(_("No!"));
         ImGui::CloseCurrentPopup();
       }
       if (ImGui::Button(_("Set fat to max"))) {

@@ -4,7 +4,7 @@ this is a list that contains some of the systems that Furnace supports, as shown
 
 some systems have alternate chips, such as the Sega Genesis having a YM2612 or YM3438 depending on the model. this list shows the default configuration.
 
-- **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis**: [YM2612](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
 <!-- -->
 - **Sega Master System**: [SN76489](sms.md)
@@ -36,8 +36,8 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612 or Y
 - **Capcom CPS-1**: [YM2151](ym2151.md), [MSM6295](msm6295.md)
 - **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 <!-- -->
-- **Neo Geo CD**: [YM2610](ym2610.md)
-- **Neo Geo CD (extended channel 2)**: [YM2610](ym2610.md)
+- **Neo Geo**: [YM2610](ym2610.md)
+- **Neo Geo (extended channel 2)**: [YM2610](ym2610.md)
 <!-- -->
 - **Neo Geo Pocket**: [T6W28](t6w28.md), [DAC](dac.md)
 <!-- -->
@@ -81,13 +81,16 @@ this is the full list of chips that Furnace supports.
 - [Bubble System WSG](bubblesystem.md)
 - [K007232](k007232.md)
 - [K053260](k056320.md)
+- [klattsch](klattsch.md)
 - [Lynx](lynx.md)
 - [MMC5](mmc5.md)
 - [MSM5232](msm5232.md)
 - [MSM6258](msm6258.md)
 - [MSM6295](msm6295.md)
+- [MultiPCM](multipcm.md)
 - [Namco 163](n163.md)
 - [Namco C140](c140.md)
+- [Namco C219](c219.md)
 - [Namco WSG/C15/C30](namco.md)
 - [Nintendo DS](nds.md)
 - [HuC6280](pce.md)

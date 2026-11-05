@@ -1,0 +1,178 @@
+// Define to only include portable API in libraries.
+#cmakedefine PORTABLE_API 1
+
+// Define to use proper rounding.
+#cmakedefine ACCURATE_ROUNDING 1
+
+// Define if .balign is present.
+#cmakedefine ASMALIGN_BALIGN 1
+
+// Define if .align takes 3 for alignment of 2^3=8 bytes instead of 8.
+#cmakedefine ASMALIGN_EXP 1
+
+// Define if .align just takes byte count.
+#cmakedefine ASMALIGN_BYTE 1
+
+// Define if __attribute__((aligned(16))) shall be used
+#cmakedefine CCALIGN 1
+
+#define DEFAULT_OUTPUT_MODULE "@DEFAULT_OUTPUT_MODULES@"
+
+#cmakedefine DEBUG 1
+#cmakedefine DYNAMIC_BUILD 1
+
+// Define if FIFO support is enabled.
+#cmakedefine FIFO 1
+
+// Define if frame index should be used.
+#cmakedefine FRAME_INDEX 1
+
+#cmakedefine GAPLESS 1
+#cmakedefine HAVE_ATOLL 1
+#cmakedefine HAVE_DIRENT_H 1
+#cmakedefine HAVE_DLFCN_H 1
+#cmakedefine HAVE_INTTYPES_H 1
+#cmakedefine HAVE_LANGINFO_H 1
+#cmakedefine HAVE_LOCALE_H 1
+#cmakedefine HAVE_NL_LANGINFO 1
+#cmakedefine HAVE_RANDOM 1
+#cmakedefine HAVE_SCHED_H 1
+#cmakedefine HAVE_SETLOCALE 1
+#cmakedefine HAVE_USELOCALE 1
+#cmakedefine HAVE_SETPRIORITY 1
+#cmakedefine HAVE_SIGNAL_H 1
+#cmakedefine HAVE_STRERROR 1
+#cmakedefine HAVE_STRERROR_L 1
+#cmakedefine HAVE_STRTOK_R 1
+#cmakedefine HAVE_STRTOK_S 1
+#cmakedefine HAVE_FORK 1
+#cmakedefine HAVE_EXECVP 1
+#cmakedefine HAVE_CTERMID 1
+#cmakedefine HAVE_CLOCK_GETTIME 1
+#cmakedefine HAVE_STRINGS_H 1
+#cmakedefine HAVE_SYS_IOCTL_H 1
+#cmakedefine HAVE_SYS_RESOURCE_H 1
+#cmakedefine HAVE_SYS_SELECT_H 1
+#cmakedefine HAVE_SYS_SIGNAL_H 1
+#cmakedefine HAVE_SYS_STAT_H 1
+#cmakedefine HAVE_SYS_TIME_H 1
+#cmakedefine HAVE_SYS_TYPES_H 1
+#cmakedefine HAVE_SYS_WAIT_H 1
+
+// Define this if you have the POSIX termios library
+#cmakedefine HAVE_TERMIOS 1
+
+#cmakedefine HAVE_UNISTD_H 1
+#cmakedefine HAVE_WINDOWS_H 1
+
+// Define to indicate that float storage follows IEEE754.
+#cmakedefine IEEE_FLOAT 1
+
+#define INDEX_SIZE @WITH_SEEKTABLE@
+
+// Define if IPV6 support is enabled.
+#cmakedefine IPV6 1
+
+#define LT_MODULE_EXT "@CMAKE_SHARED_MODULE_SUFFIX@"
+
+// Define if network support is enabled.
+#cmakedefine NETWORK 1
+// Define for new-style network code.
+#cmakedefine NET123 1
+#cmakedefine NET123_EXEC 1
+#cmakedefine NET123_WINHTTP 1
+#cmakedefine NET123_WININET 1
+
+// Define to disable downsampled decoding.
+#cmakedefine NO_DOWNSAMPLE 1
+
+// Define to disable equalizer.
+#cmakedefine NO_EQUALIZER 1
+
+// Define to disable error messages in combination with a return value (the return is left intact).
+#cmakedefine NO_ERETURN 1
+
+// Define to disable error messages.
+#cmakedefine NO_ERRORMSG 1
+
+// no feeder decoding, no buffered readers
+#cmakedefine NO_FEEDER 1
+
+// Define to disable ICY handling.
+#cmakedefine NO_ICY 1
+
+// Define to disable ID3v2 parsing.
+#cmakedefine NO_ID3V2 1
+
+// Define to disable layer I.
+#cmakedefine NO_LAYER1 1
+
+// Define to disable layer II.
+#cmakedefine NO_LAYER2 1
+
+// Define to disable layer III.
+#cmakedefine NO_LAYER3 1
+
+// Define to disable analyzer info.
+#cmakedefine NO_MOREINFO 1
+
+// Define to disable ntom resampling.
+#cmakedefine NO_NTOM 1
+
+// Define to disable 8 bit integer output.
+#cmakedefine NO_8BIT 1
+
+// Define to disable 16 bit integer output.
+#cmakedefine NO_16BIT 1
+
+// Define to disable 32 bit and 24 bit integer output.
+#cmakedefine NO_32BIT 1
+
+// Define to disable real output.
+#cmakedefine NO_REAL 1
+
+// Define to disable string functions.
+#cmakedefine NO_STRING 1
+
+// Define for post-processed 32 bit formats.
+#cmakedefine NO_SYNTH32 1
+
+// Define to disable warning messages.
+#cmakedefine NO_WARNING 1
+
+#define PACKAGE_NAME "@PROJECT_NAME@"
+#define PACKAGE_VERSION "@PROJECT_VERSION@"
+
+#define PKGLIBDIR "@CMAKE_INSTALL_LIBDIR@/@PROJECT_NAME@"
+
+// CMake leaves it emtpy for non-existing type. Autoconf sets it to 0.
+#define SIZEOF_OFF_T (@SIZEOF_OFF_T@+0)
+
+#cmakedefine STDERR_FILENO @STDERR_FILENO@
+#cmakedefine STDIN_FILENO @STDIN_FILENO@
+#cmakedefine STDOUT_FILENO @STDOUT_FILENO@
+
+// Define to not duplicate some code for likely cases in libsyn123.
+#cmakedefine SYN123_NO_CASES 1
+
+#cmakedefine USE_MODULES 1
+
+// Define for new Huffman decoding scheme.
+#cmakedefine USE_NEW_HUFFTABLE 1
+
+// Define to use Unicode for Windows
+#cmakedefine WANT_WIN32_UNICODE 1
+
+#ifdef WANT_WIN32_UNICODE
+# define strcasecmp _stricmp
+# define strncasecmp _strnicmp
+#endif
+
+// Define to use Win32 named pipes
+#cmakedefine WANT_WIN32_FIFO 1
+
+#cmakedefine WORDS_BIGENDIAN 1
+
+#cmakedefine LFS_LARGEFILE_64 1
+#cmakedefine LFS_SENSITIVE 1
+#cmakedefine HAVE_O_LARGEFILE 1

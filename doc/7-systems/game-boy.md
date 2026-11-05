@@ -25,6 +25,10 @@ it has stereo sound, two pulse channels, a wave channel and a noise channel.
 
 this chip uses the [Game Boy](../4-instrument/game-boy.md) instrument editor.
 
+### "zombie mode"
+
+the game boy's envelope hardware has a bug that can be triggered to cause the volume to step up or down only on software command. Furnace uses the same method to trigger it as [LSDJ](https://www.littlesounddj.com/). without this technique, changing the volume directly on a note (such as volume macros do) would cause a phase reset each time, causing significant popping sounds. unfortunately, only a few emulators emulate the "zombie mode" bug properly.
+
 ## chip config
 
 the following options are available in the Chip Manager window:

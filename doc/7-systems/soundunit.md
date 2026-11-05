@@ -40,6 +40,7 @@ it has the following capabilities:
 - `1Bxx`: **set frequency sweep boundary.**
 - `1Cxx`: **set volume sweep boundary.**
 - `1Dxx`: **set cutoff sweep boundary.**
+  - see the [instrument documentation](../4-instrument/su.md) for information on sweeps.
 - `1Exx`: **set phase reset period low byte.**
 - `1Fxx`: **set phase reset period high byte.**
 - `20xx`: **toggle frequency sweep.**
@@ -49,7 +50,7 @@ it has the following capabilities:
   - bit 0-4: speed
   - bit 5: up direction
   - bit 6: loop
-  - bit 7: alternate
+  - bit 7: alternate/flip
 - `22xx`: **toggle cutoff sweep.**
   - bit 0-6: speed
   - bit 7: up direction

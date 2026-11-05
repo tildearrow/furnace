@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include "util.h"
 #include "plot_nolerp.h"
 #include "IconsFontAwesome4.h"
+#include "furIcons.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include <math.h>
@@ -283,9 +284,6 @@ void FurnaceGUI::doGenerateWave() {
   MARK_MODIFIED;
 }
 
-#define CENTER_TEXT(text) \
-  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
-
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
     waveEditOpen=true;
@@ -379,11 +377,11 @@ void FurnaceGUI::drawWaveEdit() {
           ImGui::EndPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_UPLOAD)) {
+        if (ImGui::Button(ICON_FUR_SAMPLE)) {
           doAction(GUI_ACTION_WAVE_LIST_CREATE_SAMPLE);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(_("create sample from wavetable"));
+          ImGui::SetTooltip(_("convert to sample"));
         }
         ImGui::SameLine();
 
@@ -406,7 +404,8 @@ void FurnaceGUI::drawWaveEdit() {
           if (wave->len>256) wave->len=256;
           if (wave->len<1) wave->len=1;
           e->notifyWaveChange(curWave);
-          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote);
+          // if the user is playing this wave while changing the length, retrigger it.
+          if (wavePreviewOn) e->previewWave(curWave,wavePreviewNote+60);
           MARK_MODIFIED;
         }
         ImGui::SameLine();

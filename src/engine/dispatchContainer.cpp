@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,8 +91,10 @@
 #include "platform/dave.h"
 #include "platform/nds.h"
 #include "platform/bifurcator.h"
+#include "platform/klattsch.h"
 #include "platform/sid2.h"
 #include "platform/sid3.h"
+#include "platform/multipcm.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
 #include "song.h"
@@ -339,12 +341,11 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_YM2151:
       dispatch=new DivPlatformArcade;
       if (isRender) {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCoreRender",1)==0);
+        ((DivPlatformArcade*)dispatch)->setCore(eng->getConfInt("arcadeCoreRender",1));
       } else {
-        ((DivPlatformArcade*)dispatch)->setYMFM(eng->getConfInt("arcadeCore",0)==0);
+        ((DivPlatformArcade*)dispatch)->setCore(eng->getConfInt("arcadeCore",0));
       }
       break;
-    case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL:
       dispatch=new DivPlatformYM2610;
       if (isRender) {
@@ -353,7 +354,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
         ((DivPlatformYM2610*)dispatch)->setCombo(eng->getConfInt("opnbCore",1));
       }
       break;
-    case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT:
       dispatch=new DivPlatformYM2610Ext;
       if (isRender) {
@@ -561,9 +561,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_OPZ:
       dispatch=new DivPlatformTX81Z;
+      if (isRender) {
+        ((DivPlatformTX81Z*)dispatch)->setCore(eng->getConfInt("opzCoreRender",0));
+      } else {
+        ((DivPlatformTX81Z*)dispatch)->setCore(eng->getConfInt("opzCore",0));
+      }
       break;
-    case DIV_SYSTEM_SAA1099: {
+    case DIV_SYSTEM_SAA1099:
+    case DIV_SYSTEM_SAA1099_NEW: {
       dispatch=new DivPlatformSAA1099;
+      ((DivPlatformSAA1099*)dispatch)->setCompat(sys==DIV_SYSTEM_SAA1099);
       if (isRender) {
         ((DivPlatformSAA1099*)dispatch)->setCoreQuality(eng->getConfInt("saaQualityRender",3));
       } else {
@@ -598,7 +605,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformQSound;
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
       dispatch=new DivPlatformSegaPCM;
       break;
     case DIV_SYSTEM_X1_010:
@@ -606,11 +612,6 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
-      if (isRender) {
-        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCoreRender",0));
-      } else {
-        ((DivPlatformSwan*)dispatch)->setUseMdfn(eng->getConfInt("swanCore",0));
-      }
       break;
     case DIV_SYSTEM_T6W28:
       dispatch=new DivPlatformT6W28;
@@ -677,6 +678,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       // Pac-Man
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(1);
       break;
+    case DIV_SYSTEM_NAMCO_POLEPOS:
+      dispatch=new DivPlatformNamcoWSG;
+      ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(2);
+      break;
     case DIV_SYSTEM_NAMCO_15XX:
       dispatch=new DivPlatformNamcoWSG;
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(15);
@@ -728,6 +733,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_BIFURCATOR:
       dispatch=new DivPlatformBifurcator;
+      break;
+    case DIV_SYSTEM_KLATTSCH:
+      dispatch=new DivPlatformKlattsch;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;
@@ -786,6 +794,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       } else {
         ((DivPlatformOPL*)dispatch)->setCore(eng->getConfInt("opl4Core",0));
       }
+      break;
+    case DIV_SYSTEM_MULTIPCM:
+      dispatch=new DivPlatformMultiPCM;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

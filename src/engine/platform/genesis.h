@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     };
 
     struct Channel: public FMChannelStereo {
-      bool furnaceDac;
       bool dacMode;
       int dacPeriod;
       int dacRate;
@@ -46,11 +45,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
       int dacDelay;
       bool dacDirection;
       bool setPos;
-      unsigned char sampleBank;
       signed char dacOutput;
-      Channel():
-        FMChannelStereo(),
-        furnaceDac(false),
+      Channel(bool linear=true):
+        FMChannelStereo(linear),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -59,7 +56,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacDelay(0),
         dacDirection(false),
         setPos(false),
-        sampleBank(0),
         dacOutput(0) {}
     };
     Channel chan[10];
@@ -72,9 +68,11 @@ class DivPlatformGenesis: public DivPlatformOPN {
     ymfm::ym2612::output_data out_ymfm;
     DivOPNInterface iface;
 
+    DivPitchTableManager samplePitchTable;
+
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, canWriteDAC, msw;
+    bool extMode, softPCM, noExtMacros, sharedExtBlock, canWriteDAC, msw;
     unsigned char useYMFM;
     unsigned char chipType;
     short dacWrite;
@@ -105,7 +103,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     virtual unsigned short getPan(int chan);
     DivSamplePos getSamplePos(int ch);
@@ -113,6 +111,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     virtual int mapVelocity(int ch, float vel);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -126,6 +125,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
@@ -133,7 +134,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformGenesis():
-      DivPlatformOPN(2, 6, 6, 6, 6, 9440540.0, 72, 32, false, 7) {}
+      DivPlatformOPN(2, 6, 6, 6, 6, 9437184.0, 72, 32, false, 7) {}
     ~DivPlatformGenesis();
 };
 #endif

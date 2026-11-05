@@ -1,0 +1,17 @@
+
+=== artist ===
+From encoding: 6 (in ID3: 1)
+Value: Dä mäintääner du tout les jours
+
+=== title ===
+From encoding: 6 (in ID3: 1)
+Value: mpg123 test sweep
+
+=== album ===
+From encoding: 6 (in ID3: 1)
+Value: The Greatest
+Test Suite
+
+=== comment ===
+From encoding: 6 (in ID3: 1)
+Value: I got some ｗｉｄｅ chars.

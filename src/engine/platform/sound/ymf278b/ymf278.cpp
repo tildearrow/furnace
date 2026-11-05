@@ -32,6 +32,8 @@
 // MODIFIED:
 // Add YMW258 support by Grauw
 // Add DO1 output support by cam900
+// Improved YMW258 emulation by superctr
+// (see https://github.com/mamedev/mame/commit/d65391dcfab3d372887ad865521ffc76a8081956)
 
 #include "ymf278.h"
 #include <algorithm>
@@ -847,7 +849,7 @@ YMW258::YMW258(MemoryInterface& memory)
 
 void YMW258::writeReg(byte channel, byte reg, byte data)
 {
-	if ((channel & 0x7) == 0x7 || channel >= 0x20 || reg >= 0x8)
+	if ((channel & 0x7) == 0x7 || channel >= 0x20 || reg >= 0xB)
 		return;
 	int sNum = (channel >> 3) * 7 + (channel & 0x7);
 	auto& slot = slots[sNum];
@@ -929,6 +931,21 @@ void YMW258::writeReg(byte channel, byte reg, byte data)
 			break;
 		}
 		case 7: {
+			slot.AR  = data >> 4;
+			slot.D1R = data & 0xF;
+			break;
+		}
+		case 8: {
+			slot.DL  = dl_tab[data >> 4];
+			slot.D2R = data & 0xF;
+			break;
+		}
+		case 9: {
+			slot.RC = data >> 4;
+			slot.RR = data & 0xF;
+			break;
+		}
+		case 10: {
 			slot.AM = data & 0x7;
 			break;
 		}

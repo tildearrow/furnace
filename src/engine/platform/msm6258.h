@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,13 +26,11 @@
 
 class DivPlatformMSM6258: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
-      bool furnacePCM;
+    struct Channel: public SharedChannel {
       int sample;
       unsigned char pan;
-      Channel():
-        SharedChannel<int>(8),
-        furnacePCM(false),
+      Channel(bool linear=true):
+        SharedChannel(8,linear),
         sample(-1),
         pan(3) {}
     };
@@ -48,7 +46,7 @@ class DivPlatformMSM6258: public DivDispatch {
     FixedQueue<QueuedWrite,256> writes;
     okim6258_device* msm;
 
-    unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
+    unsigned char msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
     bool updateSampleFreq;
     bool variableRate;
@@ -64,12 +62,13 @@ class DivPlatformMSM6258: public DivDispatch {
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -79,10 +78,12 @@ class DivPlatformMSM6258: public DivDispatch {
     bool getLegacyAlwaysSetVolume();
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     void setFlags(const DivConfig& flags);
     const char** getRegisterSheet();
+    int getSampleGroup(int chan=0);
 
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

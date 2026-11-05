@@ -12,4 +12,4 @@ https://drive.google.com/drive/u/0/folders/10IOhV4wf4A6SLQkS-i1wyJnyXH5o8DKn
 
 this is a modified version of YMF276-LLE which adds functions for per-chan osc.
 
-the original Git commit is 172b3a40011d0d89528a7fc0d606cc92d94cd033.
+the original Git commit is 485fb53c6de7de299a73b97ef29a480a2daeb5e1.

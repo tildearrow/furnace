@@ -1,6 +1,27 @@
 # Contributing
 
-contributions to Furnace are welcome!
+contributions to Furnace are welcome! however, please read this document before proceeding.
+
+# AI policy
+
+this section has been added due to an influx of AI-assisted/AI-written pull requests during 2026. I will try to keep it brief.
+
+it is best you **avoid using AI assistants/tools**. don't be lazy and use your brain.
+the code it generates is usually not human-readable and may be flawed.
+
+if you really must/cannot avoid doing so, take its output with a grain of salt. build upon it.
+**do not** treat it as a replacement for yourself and blindly let it do work for you. I don't think I feel happy accepting AI code/commits.
+
+I am very sorry if you're having a hard time understanding the Furnace architecture.
+the code is kind of a mess, but I am trying my best to document it and clean it up.
+if you have questions about the code, join us and feel free to ask. we're there.
+
+usage of AI for art is prohibited. learn to make music or draw.
+
+in the event you do use AI for your contribution, you shall:
+- disclose its usage,
+- be aware you read and understood this policy, and
+- utter the following phrase to yourself: "with great power comes great responsibility".
 
 # Issue reports
 
@@ -96,9 +117,15 @@ additional guidelines:
 - on a switch block, **always** put `default` last and not in any other position.
   - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
-### Do NOT Force-Push after submitting Pull Request
+### ***Do NOT Force-Push after submitting Pull Request***
 
-if you do so, your pull request will be closed.
+**if you do so, your pull request will be closed.**
+
+The reason we do not allow force-pushing is:
+1. force-pushing allows people to insert malicious commits and (perhaps) go un-noticed,
+2. force-pushing makes life harder for other collaborators as now they have to merge their work and potentially differing commits, or do `git reset --hard`,
+
+so please don't.
 
 ### Demo Songs
 

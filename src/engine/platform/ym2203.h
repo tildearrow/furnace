@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,9 +55,8 @@ class DivPlatformYM2203: public DivPlatformOPN {
     bool lastS;
   
     DivPlatformAY8910* ay;
-    unsigned char sampleBank;
 
-    bool extMode, noExtMacros;
+    bool extMode, noExtMacros, sharedExtBlock;
     unsigned char prescale, nukedMult;
 
     friend void putDispatchChip(void*,int);
@@ -73,11 +72,12 @@ class DivPlatformYM2203: public DivPlatformOPN {
     void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -86,6 +86,8 @@ class DivPlatformYM2203: public DivPlatformOPN {
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     virtual void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

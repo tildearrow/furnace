@@ -6,7 +6,7 @@ the biggest multi-system chiptune tracker ever made!
 
 [mini-site](https://tildearrow.org/furnace/) | [downloads](#downloads) | [installation](#installation) | [Unix/Linux packages](#packages)
 
-[documentation/discussion//help](#quick-references) | [developer info](#developer-info)
+[documentation/discussion/help](#quick-references) | [developer info](#developer-info)
 
 ---
 ## downloads
@@ -148,7 +148,7 @@ for other operating systems, you may [build the source](#developer-info).
   - built-in sample editor
   - chip mixing settings
   - built-in visualizer in pattern view
-- open-source under GPLv2 or later.
+- open-source under GPLv2 or later/GPLv3. see [LICENSE](LICENSE).
 
 ---
 
@@ -358,6 +358,7 @@ Available options:
 | :---------------------------: | :---: | ---------------------------------------------------------------------------------------------
 | `BUILD_GUI`                   | `ON`  | Build the tracker (disable to build only a headless player)
 | `WITH_LOCALE`                 | `ON`  | Enable language support
+| `WITH_JSON`                   | `ON`  | Enable JSON export
 | `USE_RTMIDI`                  | `ON`  | Build with MIDI support using RtMidi
 | `USE_SDL2`                    | `ON`  | Build with SDL2 (required to build with GUI)
 | `USE_SNDFILE`                 | `ON`  | Build with libsndfile (required in order to work with audio files)
@@ -512,7 +513,7 @@ this will play a compatible file and enable the commands view.
 
 # footnotes
 
-copyright (C) 2021-2025 tildearrow and contributors.
+copyright (C) 2021-2026 tildearrow and contributors.
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 

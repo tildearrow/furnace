@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ void DivSample::putSampleData(SafeWriter* w) {
 
   w->writeString(name,false);
   w->writeI(samples);
-  w->writeI(rate);
+  w->writeI(centerRate);
   w->writeI(centerRate);
   w->writeC(depth);
   w->writeC(loopMode);
@@ -116,7 +116,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   if (!isNewSample) {
     loopEnd=samples;
   }
-  rate=reader.readI();
+  // just in case it's not new sample, it's a very old version and we gotta read a rate.
+  centerRate=reader.readI();
+  legacyRate=centerRate;
 
   if (isNewSample) {
     centerRate=reader.readI();
@@ -179,8 +181,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   }
 
   if (version>=58) { // modern sample
-    init(samples);
-    reader.read(getCurBuf(),getCurBufLen());
+    if (init(samples)) {
+      reader.read(getCurBuf(),getCurBufLen());
+    }
 #ifdef TA_BIG_ENDIAN
     // convert 16-bit samples to big-endian
     if (depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -194,7 +197,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     }
 #endif
   } else { // legacy sample
-    int length=samples;
+    unsigned int length=samples;
+    if (length>16777215) {
+      // yeah I know this is a terrible idea...
+      length=16777215;
+    }
     short* data=new short[length];
     reader.read(data,2*length);
 
@@ -215,20 +222,20 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       depth=DIV_SAMPLE_DEPTH_16BIT;
     }
     samples=(double)samples/samplePitchesSD[pitch];
-    init(samples);
-
-    unsigned int k=0;
-    float mult=(float)(vol)/50.0f;
-    for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
-      if (k>=samples) {
-        break;
-      }
-      if (depth==DIV_SAMPLE_DEPTH_8BIT) {
-        float next=(float)(data[(unsigned int)j]-0x80)*mult;
-        data8[k++]=fmin(fmax(next,-128),127);
-      } else {
-        float next=(float)data[(unsigned int)j]*mult;
-        data16[k++]=fmin(fmax(next,-32768),32767);
+    if (init(samples)) {
+      unsigned int k=0;
+      float mult=(float)(vol)/50.0f;
+      for (double j=0; j<length; j+=samplePitchesSD[pitch]) {
+        if (k>=samples) {
+          break;
+        }
+        if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+          float next=(float)(data[(unsigned int)j]-0x80)*mult;
+          data8[k++]=fmin(fmax(next,-128),127);
+        } else {
+          float next=(float)data[(unsigned int)j]*mult;
+          data16[k++]=fmin(fmax(next,-32768),32767);
+        }
       }
     }
 
@@ -477,7 +484,7 @@ bool DivSample::save(const char* path) {
   memset(&inst, 0, sizeof(inst));
   inst.gain = 1;
   // TODO: fix
-  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/8363.0) * 12.0 * 100.0);
+  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/8372.0) * 12.0 * 100.0);
   inst.basenote = pitch / 100;
   inst.detune = 50 - (pitch % 100);
   inst.velocity_hi = 0x7f;
@@ -544,6 +551,10 @@ bool DivSample::saveRaw(const char* path) {
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
 bool DivSample::initInternal(DivSampleDepth d, int count) {
+  if (count<0) {
+    logE("initInternal(%d,%d) - NEGATIVE!",(int)d,count);
+    return false;
+  }
   logV("initInternal(%d,%d)",(int)d,count);
   switch (d) {
     case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
@@ -573,13 +584,13 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
       if (dataA!=NULL) delete[] dataA;
-      lengthA=(count+1)/2;
+      lengthA=(((count+1)/2)+255)&(~0xff);
       dataA=new unsigned char[(lengthA+255)&(~0xff)];
       memset(dataA,0x80,(lengthA+255)&(~0xff));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
       if (dataB!=NULL) delete[] dataB;
-      lengthB=(count+1)/2;
+      lengthB=(((count+1)/2)+255)&(~0xff);
       dataB=new unsigned char[(lengthB+255)&(~0xff)];
       memset(dataB,0x80,(lengthB+255)&(~0xff));
       break;
@@ -650,7 +661,11 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
   return true;
 }
 
-bool DivSample::init(unsigned int count) {
+bool DivSample::init(int count) {
+  if (count<0 || count>16777215) {
+    logE("tried to init sample with length %d!",count);
+    return false;
+  }
   if (!initInternal(depth,count)) return false;
   setSampleCount(count);
   return true;
@@ -803,6 +818,8 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
 
 bool DivSample::insert(unsigned int pos, unsigned int length) {
   unsigned int count=samples+length;
+  if (pos>samples) pos=samples;
+
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
@@ -862,10 +879,10 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
       setSampleCount((samples+1)&(~1));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
-      setSampleCount((samples+1)&(~1));
+      setSampleCount((samples+511)&(~511));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
-      setSampleCount((samples+1)&(~1));
+      setSampleCount((samples+511)&(~511));
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_K: // K05 ADPCM
       setSampleCount((samples+1)&(~1));
@@ -908,7 +925,6 @@ void DivSample::convert(DivSampleDepth newDepth, unsigned int formatMask) {
   if (loopStart>=0) loopStart=(double)loopStart*(tRate/sRate); \
   if (loopEnd>=0) loopEnd=(double)loopEnd*(tRate/sRate); \
   centerRate=(int)((double)centerRate*(tRate/sRate)); \
-  rate=(int)((double)rate*(tRate/sRate)); \
   samples=finalCount; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
@@ -1189,6 +1205,7 @@ bool DivSample::resampleSinc(double sRate, double tRate) {
 
 bool DivSample::resample(double sRate, double tRate, int filter) {
   if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) return false;
+  if (tRate<100) return false;
   switch (filter) {
     case DIV_RESAMPLE_NONE:
       return resampleNone(sRate,tRate);
@@ -1330,9 +1347,9 @@ void DivSample::render(unsigned int formatMask) {
         break;
       case DIV_SAMPLE_DEPTH_12BIT: // 12-bit PCM (MultiPCM)
         for (unsigned int i=0, j=0; i<samples; i+=2, j+=3) {
-          data16[i+0]=(data12[j+0]<<8)|(data12[j+1]&0xf0);
+          data16[i+0]=(data12[j+0]<<8)|((data12[j+1]<<4)&0xf0);
           if (i+1<samples) {
-            data16[i+1]=(data12[j+2]<<8)|((data12[j+1]<<4)&0xf0);
+            data16[i+1]=(data12[j+2]<<8)|(data12[j+1]&0xf0);
           }
         }
         break;
@@ -1478,7 +1495,8 @@ void DivSample::render(unsigned int formatMask) {
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    int sampleCount=loop?loopEnd:samples;
+    int sampleCount=isLoopable()?loopEnd:samples;
+    if (sampleCount>(int)samples) sampleCount=samples;
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
     brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis,brrNoFilter);
   }
@@ -1541,7 +1559,7 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_12BIT,samples)) return;
     for (unsigned int i=0, j=0; i<samples; i+=2, j+=3) {
       data12[j+0]=data16[i+0]>>8;
-      data12[j+1]=((data16[i+0]>>4)&0xf)|(i+1<samples?(data16[i+1]>>4)&0xf:0);
+      data12[j+1]=((data16[i+0]>>4)&0xf)|((i+1<samples?(data16[i+1]>>4)&0xf:0)<<4);
       if (i+1<samples) {
         data12[j+2]=data16[i+1]>>8;
       } else {
@@ -1655,9 +1673,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
+    h=new DivSampleHistory(depth,centerRate,loopStart,loopEnd,loop,brrEmphasis,brrNoFilter,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1685,7 +1703,6 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       memcpy(buf,h->data,h->length); \
     } \
   } \
-  rate=h->rate; \
   centerRate=h->centerRate; \
   loopStart=h->loopStart; \
   loopEnd=h->loopEnd; \

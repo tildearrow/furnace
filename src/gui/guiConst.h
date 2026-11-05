@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +66,11 @@ struct FurnaceGUIColorDef {
 };
 
 extern const int opOrder[4];
+extern const float topKeyStarts[5];
+extern const int topKeyNotes[5];
+extern const int bottomKeyNotes[7];
+extern const bool isTopKey[12];
+extern const char* baseNoteNames[12];
 extern const char* noteNames[180];
 extern const char* noteNamesG[180];
 extern const char* noteNamesF[180];
@@ -87,7 +92,9 @@ extern const FurnaceGUIActionDef guiActions[];
 extern const FurnaceGUIColorDef guiColors[];
 extern const int altValues[24];
 extern const int vgmVersions[7];
+extern const int midiQuantizeValues[12];
 extern const FurnaceGUIColors fxColors[256];
 extern const char* fxColorsNames[10];
 extern const char* chanNames[];
 extern unsigned char chanNamesHierarchy[];
+extern const char* triggerStates[3];

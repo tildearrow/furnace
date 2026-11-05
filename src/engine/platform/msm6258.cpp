@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ static const int msmRates[4]={
 
 int DivPlatformMSM6258::calcVGMRate() {
   int ret=chipClock/((clockSel+1)*512*msmRates[rateSel&3]);
-  logD("MSM rate: %d",ret);
+  //logD("MSM rate: %d",ret);
   return ret;
 }
 
@@ -101,7 +101,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
 
 void DivPlatformMSM6258::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
-    if (!parent->song.disableSampleMacro) {
+    if (!parent->song.compatFlags.disableSampleMacro) {
       chan[i].std.next();
       if (chan[i].std.duty.had) {
         if (rateSel!=(chan[i].std.duty.val&3)) {
@@ -162,39 +162,18 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_AMIGA) {
-        chan[c.chan].furnacePCM=true;
-      } else {
-        chan[c.chan].furnacePCM=false;
-      }
       if (skipRegisterWrites) break;
-      if (chan[c.chan].furnacePCM) {
-        chan[c.chan].macroInit(ins);
-        if (!chan[c.chan].std.vol.will) {
-          chan[c.chan].outVol=chan[c.chan].vol;
-        }
-        if (c.value!=DIV_NOTE_NULL) sample=ins->amiga.getSample(c.value);
-        samplePos=0;
-        if (sample>=0 && sample<parent->song.sampleLen) {
-          //DivSample* s=parent->getSample(chan[c.chan].sample);
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].keyOn=true;
-        } else {
-          break;
-        }
-      } else {
-        chan[c.chan].sample=-1;
-        chan[c.chan].macroInit(NULL);
+      chan[c.chan].macroInit(ins);
+      if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
-        if ((12*sampleBank+c.value%12)<0 || (12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-          break;
+      }
+      if (c.value!=DIV_NOTE_NULL) sample=ins->amiga.getSample(c.value);
+      samplePos=0;
+      if (sample>=0 && sample<parent->song.sampleLen) {
+        //DivSample* s=parent->getSample(chan[c.chan].sample);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].note=c.value;
         }
-        //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-        sample=12*sampleBank+c.value%12;
-        samplePos=0;
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
       }
@@ -238,12 +217,6 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       return 2;
     }
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_SAMPLE_FREQ:
       rateSel=c.value&3;
       rWrite(12,rateSel);
@@ -303,7 +276,7 @@ void DivPlatformMSM6258::forceIns() {
   rWrite(2,(~chan[0].pan)&3);
 }
 
-void* DivPlatformMSM6258::getChanState(int ch) {
+SharedChannel* DivPlatformMSM6258::getChanState(int ch) {
   return &chan[ch];
 }
 
@@ -335,6 +308,14 @@ void DivPlatformMSM6258::poke(std::vector<DivRegWrite>& wlist) {
   //for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+int DivPlatformMSM6258::getSampleGroup(int chan) {
+  return msmRates[rateSel&3];
+}
+
+void DivPlatformMSM6258::softReset() {
+  rWrite(0,1); // stop
+}
+
 void DivPlatformMSM6258::reset() {
   while (!writes.empty()) writes.pop();
   msm->device_reset();
@@ -348,11 +329,11 @@ void DivPlatformMSM6258::reset() {
   clockSel=0;
   updateSampleFreq=true;
   if (dumpWrites) {
-    addWrite(0xffffffff,0);
+    softReset();
     addWrite(0xffff0001,calcVGMRate());
   }
   for (int i=0; i<1; i++) {
-    chan[i]=DivPlatformMSM6258::Channel();
+    chan[i]=DivPlatformMSM6258::Channel(parent->song.compatFlags.linearPitch);
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<1; i++) {
@@ -360,7 +341,6 @@ void DivPlatformMSM6258::reset() {
     chan[i].outVol=8;
   }
 
-  sampleBank=0;
   sample=-1;
   samplePos=0;
 
@@ -391,6 +371,10 @@ void DivPlatformMSM6258::notifyInsDeletion(void* ins) {
   for (int i=0; i<1; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
+}
+
+unsigned int DivPlatformMSM6258::getMaxFreq(int ch) {
+  return 0;
 }
 
 void DivPlatformMSM6258::setFlags(const DivConfig& flags) {

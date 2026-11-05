@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -156,6 +156,8 @@ bool DivEngine::load(unsigned char* f, size_t slen, const char* nameHint) {
     return loadTFMv2(file,len);
   } else if (memcmp(file,DIV_IT_MAGIC,4)==0) {
     return loadIT(file,len);
+  } else if (memcmp(file,DIV_MIDI_MAGIC,4)==0) {
+    return loadMIDI(file,len);
   } else if (len>=48) {
     if (memcmp(&file[0x2c],DIV_S3M_MAGIC,4)==0) {
       return loadS3M(file,len);

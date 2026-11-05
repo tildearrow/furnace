@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2025 tildearrow and contributors
+ * Copyright (C) 2021-2026 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 class DivPlatformAY8930: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel<int> {
+    struct Channel: public SharedChannel {
       struct Envelope {
         unsigned char mode;
         unsigned short period;
@@ -65,7 +65,7 @@ class DivPlatformAY8930: public DivDispatch {
 
       struct DAC {
         int sample, rate, period, pos, out;
-        bool furnaceDAC, setPos;
+        bool setPos;
 
         DAC():
           sample(-1),
@@ -73,15 +73,14 @@ class DivPlatformAY8930: public DivDispatch {
           period(0),
           pos(0),
           out(0),
-          furnaceDAC(false),
           setPos(false) {}
       } dac;
 
       unsigned char autoEnvNum, autoEnvDen, duty, autoNoiseMode;
       signed char konCycles, autoNoiseOff;
       unsigned short fixedFreq;
-      Channel():
-        SharedChannel<int>(31),
+      Channel(bool linear=true):
+        SharedChannel(31,linear),
         envelope(Envelope()),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
@@ -106,12 +105,12 @@ class DivPlatformAY8930: public DivDispatch {
     FixedQueue<QueuedWrite,128> writes;
     ay8930_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
+    DivPitchTable pitchTable;
+    DivPitchTableManager samplePitchTable;
     unsigned char regPool[32];
     unsigned char ayNoiseAnd, ayNoiseOr;
     unsigned char stereoSep;
     bool bank;
-
-    unsigned char sampleBank;
 
     int delay;
     int lastOut[2];
@@ -134,12 +133,13 @@ class DivPlatformAY8930: public DivDispatch {
   public:
     void acquireDirect(blip_buffer_t** bb, size_t len);
     int dispatch(DivCommand c);
-    void* getChanState(int chan);
+    SharedChannel* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     int mapVelocity(int ch, float vel);
     float getGain(int ch, int vol);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    void softReset();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -152,6 +152,8 @@ class DivPlatformAY8930: public DivDispatch {
     DivSamplePos getSamplePos(int ch);
     bool getLegacyAlwaysSetVolume();
     void notifyInsDeletion(void* ins);
+    void notifyPitchTable(int sample=-1);
+    unsigned int getMaxFreq(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

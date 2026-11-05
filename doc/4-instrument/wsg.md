@@ -1,6 +1,6 @@
 # Namco WSG instrument editor
 
-the Namco WSG/C15/C30 instrument editor consists of two tabs: Wavetable and Macros.
+the Namco WSG/Pole Position WSG/C15/C30 instrument editor consists of two tabs: Wavetable and Macros.
 
 ## Wavetable
 
@@ -13,8 +13,12 @@ this allows you to enable and configure the Furnace wavetable synthesizer. see [
 - **Noise**: specifies noise pitch.
   - only applicable for Namco C30.
 - **Waveform**: specifies wavetable sequence.
-- **Panning (left)**: output level of left channel.
-  - Namco C30 only.
-- **Panning (right)**: output level of right channel.
-  - Namco C30 only.
+- **Panning (left)**: output level of (front) left channel.
+  - Namco C30/Pole Position WSG only.
+- **Panning (right)**: output level of (front) right channel.
+  - Namco C30/Pole Position WSG only.
+- **Panning (rear left)**: output level of rear left channel.
+  - Namco Pole Position WSG only.
+- **Panning (rear right)**: output level of rear right channel.
+  - Namco Pole Position WSG only.
 - **Pitch**: fine pitch.
