@@ -48,6 +48,27 @@ static const char* saaEnvModes[8]={
   _N("saw wave (up)")
 };
 
+void macroHoverSAANoise(int id, float val, void* u) {
+  const char* label="???";
+
+  switch (((int)val)&3) {
+    case 0:
+      label=_("high");
+      break;
+    case 1:
+      label=_("mid");
+      break;
+    case 2:
+      label=_("low");
+      break;
+    case 3:
+      label=_("use channel 1/4 freq");
+      break;
+    default: break;
+  }
+  ImGui::SetTooltip("%d: %s",id,label);
+}
+
 void macroHoverSAAEnv(int id, float val, void* u) {
   if (ImGui::BeginTooltip()) {
     ImGui::Text("envelope mode chart:");
@@ -92,7 +113,7 @@ void FurnaceGUI::insEditSAA1099(DivInstrument* ins) {
   if (ImGui::BeginTabItem(_("Macros"))) {
     macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
     macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Duty/Noise"),&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_NOISE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Noise Freq"),&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroHoverSAANoise));
     macroList.push_back(FurnaceGUIMacroDesc(_("Waveform"),&ins->std.waveMacro,0,2,64,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,true,saaShapeBits));
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning (left)"),&ins->std.panLMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL));
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning (right)"),&ins->std.panRMacro,0,15,46,uiColors[GUI_COLOR_MACRO_OTHER]));
