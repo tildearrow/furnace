@@ -1,0 +1,23 @@
+#.rst:
+# RtMidi
+# -------
+#
+# The following import targets are created
+#
+# ::
+#
+#   
+#   RtMidi::rtmidi
+#   
+#
+
+@PACKAGE_INIT@
+
+
+include(CMakeFindDependencyMacro)
+
+@package_dependencies@
+
+if(NOT TARGET rtmidi)
+  include("${CMAKE_CURRENT_LIST_DIR}/RtMidiTargets.cmake")
+endif()

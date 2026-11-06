@@ -13,7 +13,7 @@
 #include "RtMidi.h"
 
 // Platform-dependent sleep routines.
-#if defined(WIN32)
+#if defined(_WIN32)
   #include <windows.h>
   #define SLEEP( milliseconds ) Sleep( (DWORD) milliseconds ) 
 #else // Unix variants
@@ -27,8 +27,9 @@ static void finish( int /*ignore*/ ){ done = true; }
 void usage( void ) {
   // Error function in case of incorrect command-line
   // argument specifications.
-  std::cout << "\nusage: qmidiin <port>\n";
-  std::cout << "    where port = the device to use (first / default = 0).\n\n";
+  std::cout << "\nusage: qmidiin <port> <api>\n";
+  std::cout << "    where port = the device to use (first / default = 0).\n";
+  std::cout << "    where api = the API to use (unspecified / default = 0).\n\n";
   exit( 0 );
 }
 
@@ -40,11 +41,14 @@ int main( int argc, char *argv[] )
   double stamp;
 
   // Minimal command-line check.
-  if ( argc > 2 ) usage();
+  if ( argc > 3 ) usage();
 
   // RtMidiIn constructor
   try {
-    midiin = new RtMidiIn();
+    if (argc <= 2)
+      midiin = new RtMidiIn();
+    else
+      midiin = new RtMidiIn(static_cast<RtMidiIn::Api>(atoi(argv[2])));
   }
   catch ( RtMidiError &error ) {
     error.printMessage();
@@ -54,7 +58,7 @@ int main( int argc, char *argv[] )
   // Check available ports vs. specified.
   unsigned int port = 0;
   unsigned int nPorts = midiin->getPortCount();
-  if ( argc == 2 ) port = (unsigned int) atoi( argv[1] );
+  if ( argc >= 2 ) port = (unsigned int) atoi( argv[1] );
   if ( port >= nPorts ) {
     delete midiin;
     std::cout << "Invalid port specifier!\n";
@@ -77,7 +81,7 @@ int main( int argc, char *argv[] )
   (void) signal(SIGINT, finish);
 
   // Periodically check input queue.
-  std::cout << "Reading MIDI from port " << midiin->getPortName() << " ... quit with Ctrl-C.\n";
+  std::cout << "Reading MIDI from API " << midiin->getApiDisplayName(midiin->getCurrentApi()) << ", port " << midiin->getPortName(port) << " ... quit with Ctrl-C.\n";
   while ( !done ) {
     stamp = midiin->getMessage( &message );
     nBytes = message.size();

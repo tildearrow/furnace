@@ -1,0 +1,28 @@
+name: RtMidiExample
+configs:
+  Debug: debug
+  Release: release
+targets:
+  RtMidiExample:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: RtMidiExample
+        excludes:
+          - Info.plist
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.rtmidi.RtMidiExample
+        SWIFT_OBJC_BRIDGING_HEADER: RtMidiExample/RtMidiExample-Bridging-Header.h
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) RTMIDI_API_CORE=1"
+        CLANG_CXX_LANGUAGE_STANDARD: "c++17"
+        CLANG_CXX_LIBRARY: "libc++"
+        INFOPLIST_FILE: RtMidiExample/Info.plist
+        SWIFT_VERSION: "5.0"
+    dependencies:
+      - sdk: CoreMIDI.framework
+      - sdk: CoreAudio.framework
+      - sdk: AVFoundation.framework

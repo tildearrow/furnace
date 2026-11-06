@@ -1,0 +1,27 @@
+{
+   "name": "RtMidiBuildEnv",
+   "build": {
+		"dockerfile": "Dockerfile"
+   },
+   "runArgs" : [
+      "--rm", "--privileged",
+      "--group-add", "audio"
+   ],
+   "settings": { 
+      "terminal.integrated.shell.linux": "/bin/zsh",
+      "terminal.integrated.detectLocale": "off"
+   },
+   "mounts" : [
+      // Enable this if you need your .ssh files imported
+      //"type=bind,source=${env:HOME}/.ssh,target=/home/build-user/.ssh"
+      "type=bind,source=/dev,target=/dev"
+   ],
+   "extensions": [
+      "eamodio.gitlens",
+      "ms-vscode.cpptools",
+      "twxs.cmake",
+      "ms-vscode.cmake-tools",
+      "jebbs.plantuml",
+      "xaver.clang-format"
+   ]
+}

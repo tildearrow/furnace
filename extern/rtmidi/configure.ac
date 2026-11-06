@@ -1,9 +1,9 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(RtMidi, 5.0.0, gary.scavone@mcgill.ca, rtmidi)
+AC_INIT(RtMidi, 6.1.0, gary.scavone@mcgill.ca, rtmidi)
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_SRCDIR(RtMidi.cpp)
 AC_CONFIG_FILES([rtmidi-config rtmidi.pc Makefile tests/Makefile doc/Makefile doc/doxygen/Doxyfile])
-AM_INIT_AUTOMAKE([1.14 -Wall -Werror foreign subdir-objects])
+AM_INIT_AUTOMAKE([1.14 -Wall -Werror foreign subdir-objects tar-pax])
 
 # libtool version: current:revision:age
 #
@@ -18,7 +18,7 @@ AM_INIT_AUTOMAKE([1.14 -Wall -Werror foreign subdir-objects])
 #
 # If any interfaces have been removed since the last public release, then set
 # age to 0.
-m4_define([lt_current], 6)
+m4_define([lt_current], 8)
 m4_define([lt_revision], 0)
 m4_define([lt_age], 0)
 
@@ -29,10 +29,13 @@ SO_VERSION=lt_version_info
 AC_SUBST(SO_VERSION)
 AC_SUBST(LIBS)
 AC_SUBST(api)
+AC_SUBST(api_old)
 AC_SUBST(req)
 AC_SUBST(req_libs)
 
 api=""
+# The old names, for rtmidi.pc only, until 7.0.0 removes them (#133).
+api_old=""
 req=""
 req_libs=""
 
@@ -45,9 +48,15 @@ AS_IF([test "x$CFLAGS" = "x" ], [override_c=yes], [override_c=no])
 
 # Check version number coherency between RtMidi.h and configure.ac
 AC_MSG_CHECKING([that version numbers are coherent])
-RTMIDI_VERSION=`sed -n 's/#define RTMIDI_VERSION "\(.*\)"/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_MAJOR=`sed -n 's/#define RTMIDI_VERSION_MAJOR *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_MINOR=`sed -n 's/#define RTMIDI_VERSION_MINOR *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_PATCH=`sed -n 's/#define RTMIDI_VERSION_PATCH *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
+RTMIDI_VERSION_BETA=`sed -n 's/#define RTMIDI_VERSION_BETA *\([0-9]*\)/\1/p' $srcdir/RtMidi.h`
 AS_IF(
-   [test "x$RTMIDI_VERSION" != "x$PACKAGE_VERSION"],
+   [test '('   "0$RTMIDI_VERSION_BETA" -le 0 \
+            -o "x$RTMIDI_VERSION_MAJOR.$RTMIDI_VERSION_MINOR.${RTMIDI_VERSION_PATCH}beta${RTMIDI_VERSION_BETA}" != "x$PACKAGE_VERSION" ')' \
+      -a '('   "0$RTMIDI_VERSION_BETA" -ne 0\
+            -o "x$RTMIDI_VERSION_MAJOR.$RTMIDI_VERSION_MINOR.${RTMIDI_VERSION_PATCH}" != "x$PACKAGE_VERSION" ')' ],
    [AC_MSG_FAILURE([testing RTMIDI_VERSION==PACKAGE_VERSION failed, check that RtMidi.h defines RTMIDI_VERSION as "$PACKAGE_VERSION" or that the first line of configure.ac has been updated.])])
 
 # Enable some nice automake features if they are available
@@ -64,8 +73,8 @@ AC_ARG_WITH(jack, [AS_HELP_STRING([--with-jack], [choose JACK server support])])
 AC_ARG_WITH(alsa, [AS_HELP_STRING([--with-alsa], [choose native ALSA sequencer API support (linux only)])])
 AC_ARG_WITH(core, [AS_HELP_STRING([--with-core], [ choose CoreMIDI API support (mac only)])])
 AC_ARG_WITH(winmm, [AS_HELP_STRING([--with-winmm], [ choose Windows MultiMedia (MM) API support (win32 only)])])
-AC_ARG_WITH(winks, [AS_HELP_STRING([--with-winks], [  choose kernel streaming support (win32 only)])])
 AC_ARG_WITH(webmidi, [AS_HELP_STRING([--with-webmidi], [  choose Web MIDI support])])
+AC_ARG_WITH(android, [AS_HELP_STRING([--with-android], [  choose Android support])])
 
 
 # Checks for programs.
@@ -85,7 +94,7 @@ AC_HEADER_STDC
 
 # Check for POSIX semaphore support
 AC_CHECK_HEADER([semaphore.h], [
-  AC_CHECK_LIB(pthread, sem_init,
+  AC_CHECK_LIB(pthread, sem_timedwait,
     AC_DEFINE([HAVE_SEMAPHORE],[1],[Define to 1 if you have POSIX semaphore support on your system.]),
     AC_MSG_WARN([POSIX semaphore support not found; data may be lost on closePort]))
 ])
@@ -98,7 +107,7 @@ object_path=Release
 AS_CASE([${enable_debug}],
   [ yes ], [
     AC_MSG_RESULT([yes])
-    CPPFLAGS="-D__RTMIDI_DEBUG ${CPPFLAGS}"
+    CPPFLAGS="-DRTMIDI_DEBUG ${CPPFLAGS}"
     debugflags="${debugflags} -g"
     object_path=Debug
   ],
@@ -138,31 +147,30 @@ AS_IF([test "x$with_jack"   = "xyes"], [systems="$systems jack"])
 AS_IF([test "x$with_alsa"   = "xyes"], [systems="$systems alsa"])
 AS_IF([test "x$with_core"   = "xyes"], [systems="$systems core"])
 AS_IF([test "x$with_winmm"  = "xyes"], [systems="$systems winmm"])
-AS_IF([test "x$with_winks"  = "xyes"], [systems="$systems winks"])
 AS_IF([test "x$with_webmidi" = "xyes"], [systems="$systems webmidi"])
-AS_IF([test "x$with_dummy"  = "xyes"], [systems="$systems dummy"])
+AS_IF([test "x$with_android" = "xyes"], [systems="$systems android"])
 required=" $systems "
 
 # If none, assign defaults if any are known for this OS.
 # User must specified with-* options for any unknown OS.
 AS_IF([test "x$systems" = "x"],
   AS_CASE([$host],
+    [*-*-android*],       [systems="android"],
     [*-*-linux*],         [systems="alsa jack"],
     [*-*-gnu],            [systems="jack"],
     [*-*-kfreebsd*-gnu],  [systems="jack"],
     [*-apple*],           [systems="core jack"],
-    [*-mingw32*],         [systems="winmm winks jack"],
-    [*-mingw64*],         [systems="winmm winks jack"]
+    [*-mingw32*],         [systems="winmm jack"],
+    [*-mingw64*],         [systems="winmm jack"]
   ))
 
 # If any were specifically requested disabled, do it.
 AS_IF([test "x$with_jack"   = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v jack`])
 AS_IF([test "x$with_alsa"   = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v alsa`])
 AS_IF([test "x$with_winmm"  = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v winmm`])
-AS_IF([test "x$with_winks"  = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v winks`])
 AS_IF([test "x$with_core"   = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v core`])
 AS_IF([test "x$with_webmidi" = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v webmidi`])
-AS_IF([test "x$with_dummy"  = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v dummy`])
+AS_IF([test "x$with_android" = "xno"], [systems=`echo $systems|tr ' ' \\\\n|grep -v android`])
 systems=" `echo $systems|tr \\\\n ' '` "
 
 # For each MIDI system, check if it is selected and found.
@@ -172,19 +180,22 @@ systems=" `echo $systems|tr \\\\n ' '` "
 
 AS_CASE(["$systems"], [*" jack "*], [
   AC_CHECK_LIB(jack, jack_client_open,
-    [api="$api -D__UNIX_JACK__"
+    [api="$api -DRTMIDI_API_JACK"
+     api_old="$api_old -D__UNIX_JACK__"
      req="$req jack"
      need_pthread=yes
      found="$found Jack"
      LIBS="-ljack $LIBS"],
     AS_CASE(["$required"], [*" jack "*],
       AC_MSG_ERROR([JACK support requires the jack library!])))
-  AC_CHECK_LIB(jack, jack_port_rename, AC_DEFINE(JACK_HAS_PORT_RENAME), )
+  AC_CHECK_LIB(jack, jack_port_rename, AC_DEFINE(RTMIDI_JACK_HAS_PORT_RENAME), )
 ])
 
 AS_CASE(["$systems"], [*" alsa "*], [
   AC_CHECK_LIB(asound, snd_seq_open,
-    [api="$api -D__LINUX_ALSA__"
+    [api="$api -DRTMIDI_API_ALSA"
+     api_old="$api_old -D__LINUX_ALSA__"
+     have_alsa=yes
      req="$req alsa"
      need_pthread=yes
      found="$found ALSA"
@@ -195,7 +206,8 @@ AS_CASE(["$systems"], [*" alsa "*], [
 
 AS_CASE(["$systems"], [*" core "*], [
   AC_CHECK_HEADER(CoreMIDI/CoreMIDI.h,
-    [api="$api -D__MACOSX_CORE__"
+    [api="$api -DRTMIDI_API_CORE"
+     api_old="$api_old -D__MACOSX_CORE__"
      req_libs="$req_libs -framework CoreMIDI -framework CoreAudio -framework CoreFoundation"
      need_pthread=yes
      found="$found CoreMIDI",
@@ -205,29 +217,25 @@ AS_CASE(["$systems"], [*" core "*], [
 ])
 
 AS_CASE(["$systems"], [*" winmm "*], [
-  AC_CHECK_HEADERS(windows.h mmsystem.h,
-    [api="$api -D__WINDOWS_MM__"
+  AC_CHECK_HEADER(mmsystem.h,
+    [api="$api -DRTMIDI_API_WINMM"
+     api_old="$api_old -D__WINDOWS_MM__"
      CPPFLAGS="-I$srcdir/include $CPPFLAGS"
      need_ole32=yes
      found="$found WinMM"
-     api="$api -D__WINDOWS_MM__"
-     LIBS="-lwinmm ${LIBS}"])
-])
-
-AS_CASE(["$systems"], [*" winks "*], [
-  AC_CHECK_HEADERS(windows.h audioclient.h avrt.h mmdeviceapi.h,
-    [api="$api -D__WINDOWS_WINKS__"
-     CPPFLAGS="-I$srcdir/include $CPPFLAGS"
-     need_ole32=yes
-     found="$found kernel-streaming"
-     api="$api -D__WINDOWS_WINKS__"
-     LIBS="-lsetupapi -lksuser ${LIBS}"])
+     LIBS="-lwinmm ${LIBS}"],
+    [], [#include <windows.h>])
 ])
 
 AS_CASE(["$systems"], [*" webmidi "*], [
   AC_CHECK_HEADERS(emscripten.h,
-    [api="$api -D__WEB_MIDI_API__"
+    [api="$api -DRTMIDI_API_WEBMIDI"
+     api_old="$api_old -D__WEB_MIDI_API__"
      found="$found Web MIDI"])
+])
+
+AS_CASE(["$systems"], [*" android "*], [
+      AC_MSG_ERROR([Android NDK configuration not implemented, use CMAKE])
 ])
 
 AS_IF([test -n "$need_ole32"], [LIBS="-lole32 $LIBS"])
@@ -235,7 +243,7 @@ AS_IF([test -n "$need_ole32"], [LIBS="-lole32 $LIBS"])
 AS_IF([test -n "$need_pthread"],[
   AC_MSG_CHECKING([for pthread])
   AC_CHECK_LIB(pthread, pthread_create, ,
-    AC_MSG_ERROR([RtAudio requires the pthread library!]))])
+    AC_MSG_ERROR([RtMidi requires the pthread library!]))])
 
 AC_MSG_CHECKING([for MIDI API])
 
@@ -248,6 +256,9 @@ AS_IF([test x"$api" = "x"], [
 ])
 
 CPPFLAGS="$CPPFLAGS $api"
+
+AM_CONDITIONAL([HAVE_ALSA], [test "x$have_alsa" = xyes])
+AM_CONDITIONAL([NATIVE_BUILD], [test "x$cross_compiling" = xno])
 
 AC_OUTPUT
 

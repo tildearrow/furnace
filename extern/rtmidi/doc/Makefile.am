@@ -5,7 +5,7 @@ CLEANFILES=doxygen-build.stamp
 
 DOX=Doxyfile
 
-EXTRA_DIST=html release.txt
+EXTRA_DIST=html release.txt doxygen/samples
 
 INSTIMAGES=html/doxygen.png
 

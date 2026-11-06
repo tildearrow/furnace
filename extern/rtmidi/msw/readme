@@ -1,1 +1,17 @@
-This directory contains a Visual Studio 2008 project, contributed by Jason Champion, to build rtmidi as a library.  The library builds to the <rtmidi-x.x.x>\lib directory.
+This directory contains a Visual Studio Community 2019 solution/project.
+
+* rtmidilib.sln
+    + Solution
+* rtmidilib.vcxproj
+    + Project to build as a static library.
+
+The static library builds to the following path.
+
+* `Debug/rtmidilib.lib`
+    + x86 Debug
+* `Release/rtmidilib.lib`
+    + x86 Release
+* `x64/Debug/rtmidilib.lib`
+    + x64 Debug
+* `x64/Release/rtmidilib.lib`
+    + x64 Release
