@@ -50,6 +50,10 @@ DivChannelModeHints DivDispatch::getModeHints(int chan) {
   return DivChannelModeHints();
 }
 
+DivGlobalRegState* DivDispatch::getGlobalRegState(unsigned int index) {
+  return NULL;
+}
+
 DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
   return NULL;
 }

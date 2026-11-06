@@ -136,7 +136,7 @@ const char* aboutLine[]={
   _N("ASIO® by Steinberg Media Technologies"),
 #endif
   _N("Weak-JACK by x42"),
-  _N("RtMidi by Gary P. Scavone"),
+  _N("RtMidi (modified version) by Gary P. Scavone"),
   _N("FFTW by Matteo Frigo and Steven G. Johnson"),
   _N("backward-cpp by Google"),
 #ifdef WITH_JSON

@@ -308,7 +308,7 @@ TAParamResult pVersion(String) {
 #ifdef HAVE_ASIO
   printf("- ASIO® by Steinberg (GPLv3)\n");
 #endif
-  printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
+  printf("- RtMidi (modified version) by Gary P. Scavone (RtMidi license)\n");
   printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");
 #ifdef HAVE_FREETYPE

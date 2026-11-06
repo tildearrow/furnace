@@ -50,6 +50,9 @@ static int gcdArg1=0;
 static int gcdOutput=0;
 static int lcmOutput=0;
 
+static int globalRegDispatch=0;
+static int globalRegIndex=0;
+
 static void _drawOsc(const ImDrawList* drawList, const ImDrawCmd* cmd) {
   if (cmd!=NULL) {
     if (cmd->UserCallbackData!=NULL) {
@@ -428,6 +431,49 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::PopFont();
 
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Global Register Debug")) {
+      ImGui::SliderInt("Dispatch",&globalRegDispatch,0,e->song.systemLen-1);
+      ImGui::InputInt("Register Index",&globalRegIndex,1,1);
+
+      DivDispatch* d=e->getDispatch(globalRegDispatch);
+      if (d==NULL) {
+        ImGui::Text("What the actual FUCK is wrong with you.");
+      } else {
+        ImGui::Text("%s",e->getSystemName(e->song.system[globalRegDispatch]));
+        DivGlobalRegState* regState=d->getGlobalRegState(globalRegIndex);
+        if (regState==NULL) {
+          ImGui::Text("You might wanna think about that one for a moment...");
+        } else {
+          ImGui::Text("- name: %s",regState->name);
+          ImGui::Text("- type: %d",regState->type);
+          ImGui::Text("- bits: %d",regState->bits);
+          ImGui::Text("- combine: %s",regState->combine?"yes":"no");
+          ImGui::Text("- value: %.8x",regState->val);
+          if (regState->bits>0) {
+            ImGui::Text("- bit names/icons:");
+            ImGui::Indent();
+            for (int i=0; i<regState->bits; i++) {
+              ImGui::Text("- %d: %s (%s)",i,_(regState->bitName[i]),regState->bitIcon[i]);
+            }
+            ImGui::Unindent();
+          } else {
+            ImGui::Text("- no bits");
+          }
+          if (regState->chanVal.empty()) {
+            ImGui::Text("- no channel state");
+          } else {
+            ImGui::Text("- channel state:");
+            ImGui::Indent();
+            for (size_t i=0; i<regState->chanVal.size(); i++) {
+              ImGui::Text("- %d: %.8x",(int)i,regState->chanVal[i]);
+            }
+            ImGui::Unindent();
+          }
+          ImGui::Text("effective channel: %d",regState->effectiveChan);
+        }
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Playback Status")) {

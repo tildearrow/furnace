@@ -460,6 +460,18 @@ void DivPlatformPOKEY::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   }
 }
 
+DivGlobalRegState* DivPlatformPOKEY::getGlobalRegState(unsigned int index) {
+  if (index==0) {
+    // update and return global register state
+    for (int i=0; i<4; i++) {
+      audctlState.chanVal[i]=chan[i].audctl;
+    }
+    audctlState.val=audctl;
+    return &audctlState;
+  }
+  return NULL;
+}
+
 DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -538,6 +550,7 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
 
   audctlCombine=flags.getBool("audctlCombine",true);
+  audctlState.combine=audctlCombine;
 
   if (useAltASAP) {
     rate=chipClock/7;
@@ -572,11 +585,24 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
+    audctlState.chanVal.push_back(0);
   }
 
   if (!useAltASAP) {
     MZPOKEYSND_Init(&pokey);
   }
+
+  audctlState.name="AUDCTL";
+  audctlState.type=4;
+  audctlState.bits=8;
+  audctlState.bitName[0]="15KHz mode";
+  audctlState.bitName[1]="filter (2 + 4)";
+  audctlState.bitName[2]="filter (1 + 3)";
+  audctlState.bitName[3]="16-bit pitch (3 + 4)";
+  audctlState.bitName[4]="16-bit pitch (1 + 2)";
+  audctlState.bitName[5]="1.79Mhz mode (channel 3)";
+  audctlState.bitName[6]="1.79Mhz mode (channel 1)";
+  audctlState.bitName[7]="noise poly9";
 
   setFlags(flags);
   reset();

@@ -1116,6 +1116,48 @@ struct DivChannelModeHints {
 };
 
 /**
+ * this struct provides a mechanism for the display of global register state.
+ * it also allows displaying each channel's last global register setting, and
+ * which channel's setting is taking effect.
+ */
+struct DivGlobalRegState {
+  // the global register's name.
+  const char* name;
+  // the global register's value,
+  unsigned int val;
+  // the global register's type.
+  // valid values are the same as DivChannelModeHints::type.
+  unsigned char type;
+  // whether each channel's settings are OR'ed together to form the actual register value.
+  bool combine;
+  // number of bits in this register (0-32).
+  // if it is zero, only the effective channel marker will be displayed.
+  unsigned char bits;
+  // a name for each bit.
+  const char* bitName[32];
+  // an icon for each bit.
+  const char* bitIcon[32];
+  // the channel which set the register last (in non-combine mode).
+  int effectiveChan;
+  // the last value of each channel's attempt to set a global register.
+  // the size of this vector should be zero, or equal to the number of channels!
+  // if it is zero, the GUI won't display per-channel state.
+  std::vector<unsigned int> chanVal;
+  DivGlobalRegState():
+    name(NULL),
+    val(0),
+    type(0),
+    combine(false),
+    bits(8),
+    effectiveChan(-1) {
+    for (int i=0; i<32; i++) {
+      bitName[i]=NULL;
+      bitIcon[i]=NULL;
+    }
+  }
+};
+
+/**
  * this enum describe possible types for memory entries in a memory composition struct.
  */
 enum DivMemoryEntryType {
@@ -1332,6 +1374,12 @@ class DivDispatch {
      */
     virtual DivChannelModeHints getModeHints(int chan);
 
+    /**
+     * get global register state.
+     * @param index the global register's index.
+     * @return a DivGlobalRegState, or NULL if the index is higher than the number of global registers.
+     */
+    virtual DivGlobalRegState* getGlobalRegState(unsigned int index=0);
 
     /**
      * get currently playing sample (and its position).

@@ -51,6 +51,7 @@ class DivPlatformPOKEY: public DivDispatch {
   };
   FixedQueue<QueuedWrite,128> writes;
   DivPitchTable pitchTable;
+  DivGlobalRegState audctlState;
   unsigned char audctl, skctl;
   bool audctlChanged, skctlChanged;
   bool audctlCombine;
@@ -69,6 +70,7 @@ class DivPlatformPOKEY: public DivDispatch {
     SharedChannel* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
+    DivGlobalRegState* getGlobalRegState(unsigned int index=0);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
