@@ -84,6 +84,13 @@ open the "Channels" window from the "window > song" menu. see the [channel windo
 
 ## chips
 
+### why do square 3 and noise glitch out in Sega Master System/SN76489?
+
+this is a hardware limitation. the noise channel may be configured to use channel 3's frequency (default) or three preset pitches (mapped to C, C# and D).
+
+in the former mode, a note placed in either channel will affect the pitch of both channels.
+if you don't want this to happen, switch to the preset pitch mode with the effect 20xx in the noise channel.
+
 ### will Furnace support the Sony PlayStation?
 
 it's in the plans, with no target date.

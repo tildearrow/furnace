@@ -508,6 +508,12 @@ unsigned short DivPlatformSMS::getPan(int ch) {
   return ((p&0xf0)?0x100:0)|((p&0x0f)?1:0);
 }
 
+void DivPlatformSMS::getPaired(int ch, std::vector<DivChannelPair>& ret) {
+  if (ch==3 && snNoiseMode&2) {
+    ret.push_back(DivChannelPair(_("freq"),ch-1));
+  }
+}
+
 DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

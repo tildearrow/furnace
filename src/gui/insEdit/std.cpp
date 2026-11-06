@@ -19,13 +19,34 @@
 
 #include "insEditCommon.h"
 
+void macroHoverSNNoise(int id, float val, void* u) {
+  const char* label="???";
+
+  switch (((int)val)&3) {
+    case 0:
+      label=_("three preset frequencies / thin pulse");
+      break;
+    case 1:
+      label=_("three preset frequencies / noise");
+      break;
+    case 2:
+      label=_("share pitch with channel 3 / thin pulse");
+      break;
+    case 3:
+      label=_("share pitch with channel 3 / noise");
+      break;
+    default: break;
+  }
+  ImGui::SetTooltip("%d: %s",id,label);
+}
+
 void FurnaceGUI::insEditSTD(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
   if (ImGui::BeginTabItem(_("Macros"))) {
     macroList.push_back(FurnaceGUIMacroDesc(_("Volume"),&ins->std.volMacro,0,15,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
     macroList.push_back(FurnaceGUIMacroDesc(_("Arpeggio"),&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,true,ins->std.arpMacro.val));
-    macroList.push_back(FurnaceGUIMacroDesc(_("Noise Mode"),&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_NOISE]));
+    macroList.push_back(FurnaceGUIMacroDesc(_("Noise Mode"),&ins->std.dutyMacro,0,3,160,uiColors[GUI_COLOR_MACRO_NOISE],false,NULL,macroHoverSNNoise));
     macroList.push_back(FurnaceGUIMacroDesc(_("Panning"),&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
     macroList.push_back(FurnaceGUIMacroDesc(_("Pitch"),&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
     macroList.push_back(FurnaceGUIMacroDesc(_("Phase Reset"),&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
