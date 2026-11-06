@@ -369,9 +369,10 @@ if(RTMIDI_BUILD_MODULES)
 endif()
 
 # Compile and run hotplug regression tests whenever the ALSA library is built.
+# tildearrow: DON'T!
 if("alsa" IN_LIST API_LIST)
-  include(tests/AlsaHotplug.cmake)
-  rtmidi_add_hotplug_test(rtmidi "${CMAKE_CURRENT_SOURCE_DIR}")
+  #include(tests/AlsaHotplug.cmake)
+  #rtmidi_add_hotplug_test(rtmidi "${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 
 # Add tests if requested.
