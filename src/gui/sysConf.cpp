@@ -1254,6 +1254,34 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       }
       break;
     }
+    case DIV_SYSTEM_POKEY: {
+      bool sysPal=flags.getInt("clockSel",0);
+      bool audctlCombine=flags.getBool("audctlCombine",true);
+
+      if (ImGui::Checkbox(_("PAL"),&sysPal)) {
+        altered=true;
+      }
+
+      ImGui::Text(_("AUDCTL is set by:"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("Combining all channels' AUDCTL macro/effect values"),audctlCombine)) {
+        audctlCombine=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("Last channel which sets it"),!audctlCombine)) {
+        audctlCombine=false;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",(int)sysPal);
+          flags.set("audctlCombine",audctlCombine);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_QSOUND: {
       int echoDelay=flags.getInt("echoDelay",0);
       int echoFeedback=flags.getInt("echoFeedback",0)&255;

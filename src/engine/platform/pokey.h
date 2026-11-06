@@ -32,11 +32,12 @@ extern "C" {
 
 class DivPlatformPOKEY: public DivDispatch {
   struct Channel: public SharedChannel {
-    unsigned char wave;
+    unsigned char wave, audctl;
     bool ctlChanged;
     Channel(bool linear=true):
       SharedChannel(15,linear),
       wave(5),
+      audctl(0),
       ctlChanged(true) {}
   };
   Channel chan[4];
@@ -52,6 +53,7 @@ class DivPlatformPOKEY: public DivDispatch {
   DivPitchTable pitchTable;
   unsigned char audctl, skctl;
   bool audctlChanged, skctlChanged;
+  bool audctlCombine;
   unsigned char oscBufDelay;
   PokeyState pokey;
   AltASAP::Pokey altASAP;

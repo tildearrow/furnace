@@ -149,6 +149,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.duty.had) {
+      chan[i].audctl=chan[i].std.duty.val;
       audctl=chan[i].std.duty.val;
       audctlChanged=true;
     }
@@ -170,6 +171,14 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
   if (audctlChanged) {
     audctlChanged=false;
+
+    if (audctlCombine) {
+      audctl=0;
+      for (int i=0; i<4; i++) {
+        audctl|=chan[i].audctl;
+      }
+    }
+
     rWrite(8,audctl);
     for (int i=0; i<4; i++) {
       chan[i].freqChanged=true;
@@ -350,6 +359,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true; //round freq for specific waves
       break;
     case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].audctl=c.value&0xff;
       audctl=c.value&0xff;
       audctlChanged=true;
       break;
@@ -526,6 +536,8 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
     chipClock=COLOR_NTSC/2.0;
   }
   CHECK_CUSTOM_CLOCK;
+
+  audctlCombine=flags.getBool("audctlCombine",true);
 
   if (useAltASAP) {
     rate=chipClock/7;
