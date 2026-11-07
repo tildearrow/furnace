@@ -1695,6 +1695,9 @@ class DivEngine {
     // - 5: FM operator
     int getChannelType(int ch);
 
+    // get channel flags
+    unsigned int getChannelFlags(int ch);
+
     // get preferred instrument type
     DivInstrumentType getPreferInsType(int ch);
 

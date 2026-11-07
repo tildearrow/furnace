@@ -194,7 +194,15 @@ void FurnaceGUI::drawExportAudio(bool onWindow) {
     if (ImGui::BeginChild("Channel Selection",ImVec2(0,200.0f*dpiScale))) {
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         String name=fmt::sprintf("%d. %s##_CE%d",i+1,e->getChannelName(i),i);
+        bool isSpecial=e->getChannelFlags(i)&DIV_CHFLAG_AUXILIARY;
+        ImGui::BeginDisabled(isSpecial);
         ImGui::Checkbox(name.c_str(),&audioExportOptions.channelMask[i]);
+        ImGui::EndDisabled();
+        if (isSpecial) {
+          if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            ImGui::SetTooltip("%s",_("this channel is special! it can't be exported."));
+          }
+        }
         if (audioExportOptions.channelMask[i]) isOneOn=true;
       }
     }

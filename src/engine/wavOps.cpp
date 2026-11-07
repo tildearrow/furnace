@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "../ta-log.h"
+#include "sysDef.h"
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -65,6 +66,7 @@ void DivEngine::getTotalAudioFiles(int &files) {
     case DIV_EXPORT_MODE_MANY_CHAN: {
       for (int i=0; i<song.chans; i++) {
         if (!exportChannelMask[i]) continue;
+        if (getChannelFlags(i)&DIV_CHFLAG_AUXILIARY) continue;
 
         files++;
 
@@ -413,6 +415,7 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.chans; i++) {
         if (!exportChannelMask[i]) continue;
+        if (getChannelFlags(i)&DIV_CHFLAG_AUXILIARY) continue;
 
         SNDFILE* sf;
         SF_INFO si;

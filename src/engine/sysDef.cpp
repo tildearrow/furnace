@@ -341,6 +341,13 @@ int DivEngine::getChannelType(int chan) {
   return song.chanDef[chan].type;
 }
 
+unsigned int DivEngine::getChannelFlags(int chan) {
+  if (chan<0 || chan>song.chans) return 0;
+  if (song.dispatchChanOfChan[chan]<0) return 0;
+
+  return song.chanDef[chan].flags;
+}
+
 DivInstrumentType DivEngine::getPreferInsType(int chan) {
   if (chan<0 || chan>song.chans) return DIV_INS_STD;
   if (song.dispatchChanOfChan[chan]<0) return DIV_INS_STD;
@@ -1145,11 +1152,11 @@ void DivEngine::registerSystems() {
       DivChanDef(_("PSG 1"),   "S1", DIV_CH_PULSE, DIV_INS_SAA1099),
       DivChanDef(_("PSG 2"),   "S2", DIV_CH_PULSE, DIV_INS_SAA1099),
       DivChanDef(_("PSG 3"),   "S3", DIV_CH_PULSE, DIV_INS_SAA1099),
-      DivChanDef(_("Timer 1"), "T1", DIV_CH_NOISE, DIV_INS_SAA1099),
+      DivChanDef(_("Timer 1"), "T1", DIV_CH_TIMER, DIV_INS_SAA1099, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME),
       DivChanDef(_("PSG 4"),   "S4", DIV_CH_PULSE, DIV_INS_SAA1099),
       DivChanDef(_("PSG 5"),   "S5", DIV_CH_PULSE, DIV_INS_SAA1099),
       DivChanDef(_("PSG 6"),   "S6", DIV_CH_PULSE, DIV_INS_SAA1099),
-      DivChanDef(_("Timer 2"), "T2", DIV_CH_NOISE, DIV_INS_SAA1099),
+      DivChanDef(_("Timer 2"), "T2", DIV_CH_TIMER, DIV_INS_SAA1099, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME),
     }),
     {},
     {
@@ -1360,7 +1367,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("FM 3 OP2") , "O2" , DIV_CH_OP   , DIV_INS_FM),
       DivChanDef(_("FM 3 OP3") , "O3" , DIV_CH_OP   , DIV_INS_FM),
       DivChanDef(_("FM 3 OP4") , "O4" , DIV_CH_OP   , DIV_INS_FM),
-      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_NOISE, DIV_INS_FM),
+      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_TIMER, DIV_INS_FM, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME),
       DivChanDef(_("PSG 1")    , "S1" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("PSG 2")    , "S2" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("PSG 3")    , "S3" , DIV_CH_PULSE, DIV_INS_AY)
@@ -1442,7 +1449,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("FM 4")     , "F4" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 5")     , "F5" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 6")     , "F6" , DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_NOISE, DIV_INS_FM),
+      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_TIMER, DIV_INS_FM, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME),
       DivChanDef(_("Square 1") , "S1" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("Square 2") , "S2" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("Square 3") , "S3" , DIV_CH_PULSE, DIV_INS_AY),
@@ -1709,7 +1716,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("FM 4")     , "F4" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 5")     , "F5" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 6")     , "F6" , DIV_CH_FM   , DIV_INS_FM, DIV_INS_AMIGA),
-      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_NOISE, DIV_INS_FM)
+      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_TIMER, DIV_INS_FM, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME)
     }),
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap,
@@ -1882,7 +1889,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("FM 2 OP4") , "O4" , DIV_CH_OP   , DIV_INS_FM),
       DivChanDef(_("FM 3")     , "F3" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 4")     , "F4" , DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_NOISE, DIV_INS_FM),
+      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_TIMER, DIV_INS_FM, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME),
       DivChanDef(_("PSG 1")    , "S1" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("PSG 2")    , "S2" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("PSG 3")    , "S3" , DIV_CH_PULSE, DIV_INS_AY),
@@ -2048,7 +2055,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("FM 4")     , "F4" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 5")     , "F5" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 6")     , "F6" , DIV_CH_FM   , DIV_INS_FM),
-      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_NOISE, DIV_INS_FM),
+      DivChanDef(_("CSM Timer"), "CSM", DIV_CH_TIMER, DIV_INS_FM, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME),
       DivChanDef(_("PSG 1")    , "S1" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("PSG 2")    , "S2" , DIV_CH_PULSE, DIV_INS_AY),
       DivChanDef(_("PSG 3")    , "S3" , DIV_CH_PULSE, DIV_INS_AY),
@@ -2442,7 +2449,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("FM 5")      , "F5" , DIV_CH_FM   , DIV_INS_FM),
       DivChanDef(_("FM 6/PCM 1"), "P1" , DIV_CH_PCM  , DIV_INS_FM, DIV_INS_AMIGA),
       DivChanDef(_("PCM 2")     , "P2" , DIV_CH_PCM  , DIV_INS_AMIGA),
-      DivChanDef(_("CSM Timer") , "CSM", DIV_CH_NOISE, DIV_INS_FM)
+      DivChanDef(_("CSM Timer") , "CSM", DIV_CH_TIMER, DIV_INS_FM, DIV_INS_NULL, DIV_CHFLAG_AUXILIARY|DIV_CHFLAG_NO_VOLUME)
     }),
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap,
