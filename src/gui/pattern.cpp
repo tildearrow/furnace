@@ -226,6 +226,7 @@ void FurnaceGUI::drawPattern() {
       if (e->curSubSong->chanCollapse[ch]>=1) maxFine=3;
       if (e->curSubSong->chanCollapse[ch]>=2) maxFine=2;
       if (e->curSubSong->chanCollapse[ch]>=3) maxFine=1;
+      if (e->getChannelFlags(ch)&DIV_CHFLAG_NO_VOLUME && f>2) f--;
 
       return CLAMP(f,0,maxFine);
     };
@@ -244,7 +245,7 @@ void FurnaceGUI::drawPattern() {
 
       float thisChannelSize=noteCellSize.x;
       if (e->curSubSong->chanCollapse[i]<3) thisChannelSize+=insCellSize.x;
-      if (e->curSubSong->chanCollapse[i]<2) thisChannelSize+=volCellSize.x;
+      if (e->curSubSong->chanCollapse[i]<2 && !(e->getChannelFlags(i)&DIV_CHFLAG_NO_VOLUME)) thisChannelSize+=volCellSize.x;
       if (e->curSubSong->chanCollapse[i]<1) thisChannelSize+=(effectCellSize.x+effectValCellSize.x)*e->curSubSong->pat[i].effectCols;
 
       size.x+=thisChannelSize;
@@ -1049,10 +1050,17 @@ void FurnaceGUI::drawPattern() {
               pointer.xFine=2;
               fineOffset-=insCellSize.x;
 
-              if (fineOffset>=volCellSize.x && e->curSubSong->chanCollapse[i]<1) {
+              bool checkEffects=e->getChannelFlags(i)&DIV_CHFLAG_NO_VOLUME;
+
+              if (!checkEffects && fineOffset>=volCellSize.x && e->curSubSong->chanCollapse[i]<1) {
                 pointer.xFine=3;
                 fineOffset-=volCellSize.x;
+                checkEffects=true;
+              } else if (checkEffects) {
+                pointer.xFine=3;
+              }
 
+              if (checkEffects) {
                 for (int k=0; k<e->curPat[i].effectCols; k++) {
                   if (fineOffset>=effectCellSize.x) {
                     pointer.xFine++;
@@ -1432,7 +1440,7 @@ void FurnaceGUI::drawPattern() {
           }
 
           // volume
-          if (e->curSubSong->chanCollapse[i]<2) {
+          if (e->curSubSong->chanCollapse[i]<2 && !(e->getChannelFlags(i)&DIV_CHFLAG_NO_VOLUME)) {
             pos.x+=insCellSize.x;
             if (pat->newData[row][DIV_PAT_VOL]==-1) {
               dl->AddText(pos,inactiveColor,emptyLabel2,emptyLabel2+2);
@@ -1651,7 +1659,7 @@ void FurnaceGUI::drawPattern() {
         }
         // vol
         if (fine==1) break;
-        if (e->curSubSong->chanCollapse[i]<2) {
+        if (e->curSubSong->chanCollapse[i]<2 && !(e->getChannelFlags(i)&DIV_CHFLAG_NO_VOLUME)) {
           finalX+=volCellSize.x;
         }
         // effects
