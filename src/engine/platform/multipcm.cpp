@@ -594,6 +594,10 @@ void DivPlatformMultiPCM::setFlags(const DivConfig& flags) {
   notifyPitchTable();
 }
 
+size_t DivPlatformMultiPCM::getSampleMemNum() {
+  return 1;
+}
+
 int DivPlatformMultiPCM::getMaxSamples(int index) {
   return (index==0)?512:0;
 }
