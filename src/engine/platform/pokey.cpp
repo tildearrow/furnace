@@ -595,6 +595,8 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   audctlState.name="AUDCTL";
   audctlState.type=4;
   audctlState.bits=8;
+  audctlState.firstChan=0;
+  audctlState.lastChan=3;
   audctlState.bitName[0]="15KHz mode";
   audctlState.bitName[1]="filter (2 + 4)";
   audctlState.bitName[2]="filter (1 + 3)";

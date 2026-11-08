@@ -1128,6 +1128,8 @@ struct DivGlobalRegState {
   // the global register's type.
   // valid values are the same as DivChannelModeHints::type.
   unsigned char type;
+  // channels affected by this global register.
+  unsigned char firstChan, lastChan;
   // whether each channel's settings are OR'ed together to form the actual register value.
   bool combine;
   // number of bits in this register (0-32).
@@ -1140,13 +1142,15 @@ struct DivGlobalRegState {
   // the channel which set the register last (in non-combine mode).
   int effectiveChan;
   // the last value of each channel's attempt to set a global register.
-  // the size of this vector should be zero, or equal to the number of channels!
+  // the size of this vector should be zero, or equal to the number of channels affected by this register (lastChan-firstChan+1)!
   // if it is zero, the GUI won't display per-channel state.
   std::vector<unsigned int> chanVal;
   DivGlobalRegState():
     name(NULL),
     val(0),
     type(0),
+    firstChan(0),
+    lastChan(0),
     combine(false),
     bits(8),
     effectiveChan(-1) {

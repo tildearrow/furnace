@@ -449,6 +449,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("- name: %s",regState->name);
           ImGui::Text("- type: %d",regState->type);
           ImGui::Text("- bits: %d",regState->bits);
+          ImGui::Text("- channels: %d-%d",regState->firstChan,regState->lastChan);
           ImGui::Text("- combine: %s",regState->combine?"yes":"no");
           ImGui::Text("- value: %.8x",regState->val);
           if (regState->bits>0) {
@@ -467,9 +468,14 @@ void FurnaceGUI::drawDebug() {
             ImGui::Text("- channel state:");
             ImGui::Indent();
             for (size_t i=0; i<regState->chanVal.size(); i++) {
-              ImGui::Text("- %d: %.8x",(int)i,regState->chanVal[i]);
+              ImGui::Text("- %d: %.8x",(int)i+regState->firstChan,regState->chanVal[i]);
             }
             ImGui::Unindent();
+            if (regState->firstChan>regState->lastChan) {
+              ImGui::TextColored(uiColors[GUI_COLOR_ERROR],"ERROR: firstChan is greater than lastChan!");
+            } else if (regState->chanVal.size()!=(regState->lastChan-regState->firstChan+1)) {
+              ImGui::TextColored(uiColors[GUI_COLOR_ERROR],"ERROR: size of chanVal is not equal to channel count!");
+            }
           }
           ImGui::Text("effective channel: %d",regState->effectiveChan);
         }
