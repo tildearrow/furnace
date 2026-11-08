@@ -724,11 +724,7 @@ void FurnaceGUI::drawPattern() {
           snprintf(chanID,2048,"%c###_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
           ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
           if (ImGui::SmallButton(chanID)) {
-            if (e->curSubSong->chanCollapse[i]==0) {
-              e->curSubSong->chanCollapse[i]=3;
-            } else if (e->curSubSong->chanCollapse[i]>0) {
-              e->curSubSong->chanCollapse[i]--;
-            }
+            doCollapseChannel(i);
             finishSelection();
           }
           if (!e->curSubSong->chanCollapse[i]) {

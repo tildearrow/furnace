@@ -294,6 +294,8 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
     demandScrollX=true;
     if (x>0) {
       for (int i=0; i<x; i++) {
+        // check for volume column hide
+        if (cursor.xFine==1 && e->getChannelFlags(cursor.xCoarse)&DIV_CHFLAG_NO_VOLUME) cursor.xFine++;
         if (++cursor.xFine>=(e->curSubSong->chanCollapse[cursor.xCoarse]?(4-e->curSubSong->chanCollapse[cursor.xCoarse]):(3+e->curPat[cursor.xCoarse].effectCols*2))) {
           cursor.xFine=0;
           if (++cursor.xCoarse>=lastChannel) {
@@ -314,6 +316,8 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
       }
     } else {
       for (int i=0; i<-x; i++) {
+        // check for volume column hide
+        if (cursor.xFine==3 && e->getChannelFlags(cursor.xCoarse)&DIV_CHFLAG_NO_VOLUME) cursor.xFine--;
         if (--cursor.xFine<0) {
           if (--cursor.xCoarse<firstChannel) {
             if (settings.wrapHorizontal!=0 && !select) {

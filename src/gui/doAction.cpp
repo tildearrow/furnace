@@ -693,12 +693,7 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_PAT_COLLAPSE:
-      if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
-      if (e->curSubSong->chanCollapse[cursor.xCoarse]==0) {
-        e->curSubSong->chanCollapse[cursor.xCoarse]=3;
-      } else if (e->curSubSong->chanCollapse[cursor.xCoarse]>0) {
-        e->curSubSong->chanCollapse[cursor.xCoarse]--;
-      }
+      doCollapseChannel(cursor.xCoarse);
       break;
     case GUI_ACTION_PAT_COLLAPSE_SELECTED: {
       finishSelection();

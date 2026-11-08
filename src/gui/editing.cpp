@@ -2011,6 +2011,18 @@ void FurnaceGUI::doExpandSong(int multiplier) {
   if (e->isPlaying()) e->play();
 }
 
+void FurnaceGUI::doCollapseChannel(int ch) {
+  if (ch<0 || ch>=e->getTotalChannelCount()) return;
+  if (e->curSubSong->chanCollapse[ch]==0) {
+    e->curSubSong->chanCollapse[ch]=3;
+  } else if (e->curSubSong->chanCollapse[ch]>0) {
+    e->curSubSong->chanCollapse[ch]--;
+    if (e->curSubSong->chanCollapse[ch]==1 && e->getChannelFlags(ch)&DIV_CHFLAG_NO_VOLUME) {
+      e->curSubSong->chanCollapse[ch]=0;
+    }
+  }
+}
+
 void FurnaceGUI::doAbsorbInstrument() {
   bool foundIns=false;
   bool foundOctave=false;
