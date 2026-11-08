@@ -473,7 +473,7 @@ void FurnaceGUI::drawDebug() {
             ImGui::Unindent();
             if (regState->firstChan>regState->lastChan) {
               ImGui::TextColored(uiColors[GUI_COLOR_ERROR],"ERROR: firstChan is greater than lastChan!");
-            } else if (regState->chanVal.size()!=(regState->lastChan-regState->firstChan+1)) {
+            } else if (regState->chanVal.size()!=(size_t)(regState->lastChan-regState->firstChan+1)) {
               ImGui::TextColored(uiColors[GUI_COLOR_ERROR],"ERROR: size of chanVal is not equal to channel count!");
             }
           }
