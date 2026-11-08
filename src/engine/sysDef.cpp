@@ -1531,7 +1531,7 @@ void DivEngine::registerSystems() {
     false, true, 0, false, 0, 0, 0,
     _("please don't use this chip. it was added as a joke."),
     DivChanDefFunc({
-      DivChanDef(_("Square"), "SQ", DIV_CH_PULSE, DIV_INS_BEEPER)
+      DivChanDef(_("Square"), "SQ", DIV_CH_PULSE, DIV_INS_BEEPER, DIV_INS_NULL, DIV_CHFLAG_NO_VOLUME)
     })
   );
 
@@ -2347,7 +2347,7 @@ void DivEngine::registerSystems() {
     false, true, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_VOX, 0, 0,
     _("an ADPCM sound chip manufactured by OKI and used in the Sharp X68000."),
     DivChanDefFunc({
-      DivChanDef(_("Sample"), _("PCM"), DIV_CH_PCM, DIV_INS_MSM6258, DIV_INS_AMIGA)
+      DivChanDef(_("Sample"), _("PCM"), DIV_CH_PCM, DIV_INS_MSM6258, DIV_INS_AMIGA, DIV_CHFLAG_NO_VOLUME)
     }),
     {
       {0x20, {DIV_CMD_SAMPLE_FREQ, _("20xx: Set frequency divider (0-2)")}},
