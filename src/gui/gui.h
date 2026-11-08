@@ -2582,7 +2582,7 @@ class FurnaceGUI {
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   std::atomic<bool> failedNoteOn;
   float peak[DIV_MAX_OUTPUTS];
-  float patChanX[DIV_MAX_CHANS+1];
+  float* patChanX;
   float patChanSlideY[DIV_MAX_CHANS+1];
   float patLineHeight;
   float lastPatternWidth, longThreshold;

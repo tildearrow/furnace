@@ -1065,7 +1065,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::TableNextColumn();
           ImGui::Text("%d",i);
           ImGui::TableNextColumn();
-          ImGui::Text("%f",patChanX[i]);
+          ImGui::Text("%f",patChanX[i<<DIV_MAX_COLS_SHIFT]);
           ImGui::TableNextColumn();
           ImGui::Text("%f",patChanSlideY[i]);
         }

@@ -10346,7 +10346,8 @@ FurnaceGUI::FurnaceGUI():
   opMaskTransposeValue.effect=false;
   opMaskTransposeValue.effectVal=true;
 
-  memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
+  patChanX=new float[(DIV_MAX_CHANS+1)*DIV_MAX_COLS];
+  memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1)*DIV_MAX_COLS);
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   memset(trigger,0,sizeof(void*)*DIV_MAX_OUTPUTS);

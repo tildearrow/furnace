@@ -28,6 +28,7 @@
 // in-pattern
 #define DIV_MAX_ROWS 256
 #define DIV_MAX_COLS 32
+#define DIV_MAX_COLS_SHIFT 5
 #define DIV_MAX_EFFECTS 8
 
 // pattern fields
