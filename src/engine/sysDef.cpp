@@ -985,7 +985,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("Pulse 2") , "S2" , DIV_CH_PULSE, DIV_INS_NES),
       DivChanDef(_("Triangle"), "TR" , DIV_CH_WAVE , DIV_INS_NES),
       DivChanDef(_("Noise")   , "NO" , DIV_CH_NOISE, DIV_INS_NES),
-      DivChanDef(_("DPCM")    , "DMC", DIV_CH_PCM  , DIV_INS_NES, DIV_INS_AMIGA)
+      DivChanDef(_("DPCM")    , "DMC", DIV_CH_PCM  , DIV_INS_NES, DIV_INS_AMIGA, DIV_CHFLAG_NO_VOLUME)
     }),
     {
       {0x11, {DIV_CMD_NES_DMC, _("11xx: Write to delta modulation counter (0 to 7F)")}},
@@ -2729,7 +2729,7 @@ void DivEngine::registerSystems() {
       DivChanDef(_("Pulse 2"), "S2" , DIV_CH_PULSE, DIV_INS_NES),
       DivChanDef(_("Wave")   , "WA" , DIV_CH_WAVE , DIV_INS_NES),
       DivChanDef(_("Noise")  , "NO" , DIV_CH_NOISE, DIV_INS_NES),
-      DivChanDef(_("DPCM")   , "DMC", DIV_CH_PCM  , DIV_INS_NES, DIV_INS_AMIGA)
+      DivChanDef(_("DPCM")   , "DMC", DIV_CH_PCM  , DIV_INS_NES, DIV_INS_AMIGA, DIV_CHFLAG_NO_VOLUME)
     }),
     {
       {0x11, {DIV_CMD_NES_DMC, _("11xx: Write to delta modulation counter (0 to 7F)")}},

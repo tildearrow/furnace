@@ -633,6 +633,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_VOLUME:
+      // DPCM lacks volume control
+      if (c.chan>3) break;
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
