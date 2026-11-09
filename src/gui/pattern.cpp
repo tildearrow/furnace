@@ -1937,8 +1937,9 @@ void FurnaceGUI::drawPattern() {
     /// - GLOBAL REGISTER OVERLAY -
     ///
     if (patGlobalRegs && e->isRunning()) {
+      ImGui::PushFont(mainFont,settings.mainFontSize*dpiScale*0.5f);
+      int chanOff=0;
       for (int i=0; i<e->song.systemLen; i++) {
-        int chanOff=0;
         DivDispatch* dispatch=e->getDispatch(i);
         if (dispatch==NULL) {
           chanOff+=e->song.systemChans[i];
@@ -1958,27 +1959,63 @@ void FurnaceGUI::drawPattern() {
           regRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan);
           regRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->lastChan+1);
           regRect.Max.y=prevClipRect.Max.y;
-          regRect.Min.y=regRect.Max.y-ImGui::GetFrameHeight();
+          regRect.Min.y=regRect.Max.y-(ImGui::GetStyle().ItemSpacing.y*0.5+ImGui::GetStyle().FramePadding.y*2.0f+ImGui::GetTextLineHeight()*2.0f);
+
+          ImRect regInnerRect=regRect;
+          regInnerRect.Min+=ImGui::GetStyle().FramePadding;
+          regInnerRect.Max-=ImGui::GetStyle().FramePadding;
+
+          ImRect regTop=regInnerRect;
+          regTop.Max.y=regTop.Min.y+ImGui::GetTextLineHeight();
+
+          ImRect regBottom=regInnerRect;
+          regBottom.Min.y+=ImGui::GetTextLineHeight()+ImGui::GetStyle().ItemSpacing.y*0.5f;
 
           // draw the damn frame
           dl->AddRectFilled(regRect.Min,regRect.Max,0xff202020);
-          ImVec2 pos=regRect.Min+ImGui::GetStyle().FramePadding;
+          ImVec2 pos=regInnerRect.Min;
           if (regState->name!=NULL) {
             dl->AddText(pos,0xffffffff,regState->name);
-            pos.x+=ImGui::CalcTextSize(regState->name).x;
+            pos.x+=ImGui::CalcTextSize(regState->name).x+ImGui::GetStyle().ItemSpacing.x;
           }
-          // the freaking bits
-          for (int j=0; j<regState->bits; j++) {
-            dl->AddRectFilled(
-              ImLerp(pos,regRect.Max,ImVec2((float)j/(float)regState->bits,0.0f)),
-              ImLerp(pos,regRect.Max,ImVec2((float)(j+1)/(float)regState->bits,1.0f)),
-              (regState->val&(1U<<j))?0xffffff00:0xff000000
-            );
+
+          if (regState->bits>0) {
+            // calculate a good enough size for the bits
+            // it must be an integer
+            float bitWidth=floor((regTop.Max.x-pos.x)/(float)regState->bits);
+
+            // the freaking bits
+            for (int j=0; j<regState->bits; j++) {
+              dl->AddRectFilled(
+                ImLerp(pos,regTop.Max,ImVec2((float)j/(float)regState->bits,0.0f)),
+                ImLerp(pos,regTop.Max,ImVec2((float)(j+1)/(float)regState->bits,1.0f)),
+                (regState->val&(1U<<j))?0xffffff00:0xff000000
+              );
+            }
+          }
+
+          // channel state
+          if (regState->chanVal.size()==(size_t)(regState->lastChan-regState->firstChan+1)) {
+            for (size_t j=0; j<regState->chanVal.size(); j++) {
+              ImRect chanRect=regBottom;
+              chanRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j)+ImGui::GetStyle().ItemInnerSpacing.x;
+              chanRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j+1)-ImGui::GetStyle().ItemInnerSpacing.x;
+
+              for (int k=0; k<regState->bits; k++) {
+                dl->AddRectFilled(
+                  ImLerp(chanRect.Min,chanRect.Max,ImVec2((float)k/(float)regState->bits,0.0f)),
+                  ImLerp(chanRect.Min,chanRect.Max,ImVec2((float)(k+1)/(float)regState->bits,1.0f)),
+                  (regState->chanVal[j]&(1U<<k))?0xff00ff00:0xff000000
+                );
+              }
+
+            }
           }
         }
 
         chanOff+=e->song.systemChans[i];
       }
+      ImGui::PopFont();
     }
 
     ///
