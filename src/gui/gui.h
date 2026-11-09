@@ -2533,7 +2533,7 @@ class FurnaceGUI {
 
   int purgeYear, purgeMonth, purgeDay;
 
-  bool patExtraButtons, patChannelNames, patChannelPairs;
+  bool patExtraButtons, patChannelNames, patChannelPairs, patGlobalRegs;
   unsigned char patChannelHints;
 
   bool newSongFirstFrame, paletteFirstFrame, oldRowChanged;

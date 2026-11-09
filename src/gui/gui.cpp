@@ -9287,7 +9287,8 @@ void FurnaceGUI::syncState() {
     patChannelNames=e->getConfBool("patChannelNames",false);
   }
   patChannelPairs=e->getConfBool("patChannelPairs",true);
-  patChannelHints=e->getConfInt("patChannelHints",0);
+  patGlobalRegs=e->getConfBool("patGlobalRegs",true);
+  patChannelHints=e->getConfInt("patChannelHints",1);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -9471,6 +9472,7 @@ void FurnaceGUI::commitState(DivConfig& conf) {
   conf.set("patExtraButtons",patExtraButtons);
   conf.set("patChannelNames",patChannelNames);
   conf.set("patChannelPairs",patChannelPairs);
+  conf.set("patGlobalRegs",patGlobalRegs);
   conf.set("patChannelHints",(int)patChannelHints);
   conf.set("lockLayout",lockLayout);
   conf.set("fullScreen",fullScreen);
@@ -9881,7 +9883,8 @@ FurnaceGUI::FurnaceGUI():
   patExtraButtons(false),
   patChannelNames(false),
   patChannelPairs(true),
-  patChannelHints(0),
+  patGlobalRegs(true),
+  patChannelHints(1),
   newSongFirstFrame(false),
   oldRowChanged(false),
   editControlsOpen(true),
