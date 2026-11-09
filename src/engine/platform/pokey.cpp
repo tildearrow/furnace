@@ -151,6 +151,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
     if (chan[i].std.duty.had) {
       chan[i].audctl=chan[i].std.duty.val;
       audctl=chan[i].std.duty.val;
+      audctlState.effectiveChan=i;
       audctlChanged=true;
     }
     if (chan[i].std.wave.had) {
@@ -361,6 +362,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].audctl=c.value&0xff;
       audctl=c.value&0xff;
+      audctlState.effectiveChan=c.chan;
       audctlChanged=true;
       break;
     case DIV_CMD_STD_NOISE_FREQ:
@@ -516,6 +518,7 @@ void DivPlatformPOKEY::reset() {
   audctlChanged=true;
   skctl=3;
   skctlChanged=true;
+  audctlState.effectiveChan=-1;
 }
 
 bool DivPlatformPOKEY::keyOffAffectsArp(int ch) {
@@ -605,6 +608,14 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   audctlState.bitName[5]="1.79Mhz mode (channel 3)";
   audctlState.bitName[6]="1.79Mhz mode (channel 1)";
   audctlState.bitName[7]="noise poly9";
+  audctlState.bitIcon[0]="15KHz";
+  audctlState.bitIcon[1]="filt2/4";
+  audctlState.bitIcon[2]="filt1/3";
+  audctlState.bitIcon[3]="16bit 3/4";
+  audctlState.bitIcon[4]="16bit 1/2";
+  audctlState.bitIcon[5]="1.79 ch1";
+  audctlState.bitIcon[6]="1.79 ch3";
+  audctlState.bitIcon[7]="poly9";
 
   setFlags(flags);
   reset();

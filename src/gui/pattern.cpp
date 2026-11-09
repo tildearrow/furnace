@@ -1958,57 +1958,94 @@ void FurnaceGUI::drawPattern() {
           ImRect regRect;
           regRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan);
           regRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->lastChan+1);
-          regRect.Max.y=prevClipRect.Max.y;
-          regRect.Min.y=regRect.Max.y-(ImGui::GetStyle().ItemSpacing.y*0.5+ImGui::GetStyle().FramePadding.y*2.0f+ImGui::GetTextLineHeight()*2.0f);
+          regRect.Max.y=prevClipRect.Max.y; 
+          regRect.Min.y=regRect.Max.y-(ImGui::GetStyle().ItemSpacing.y+ImGui::GetStyle().FramePadding.y*2.0f+ImGui::GetTextLineHeight()*3.0f);
 
           ImRect regInnerRect=regRect;
           regInnerRect.Min+=ImGui::GetStyle().FramePadding;
           regInnerRect.Max-=ImGui::GetStyle().FramePadding;
 
           ImRect regTop=regInnerRect;
+          regTop.Min.y+=ImGui::GetTextLineHeight()+ImGui::GetStyle().ItemSpacing.y*0.5f;
           regTop.Max.y=regTop.Min.y+ImGui::GetTextLineHeight();
 
           ImRect regBottom=regInnerRect;
-          regBottom.Min.y+=ImGui::GetTextLineHeight()+ImGui::GetStyle().ItemSpacing.y*0.5f;
+          regBottom.Min.y+=ImGui::GetTextLineHeight()*2.0f+ImGui::GetStyle().ItemSpacing.y*1.0f;
 
           // draw the damn frame
-          dl->AddRectFilled(regRect.Min,regRect.Max,0xff202020);
-          ImVec2 pos=regInnerRect.Min;
+          dl->AddRectFilled(regRect.Min,regRect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_FRAME_BACKGROUND_POPUP]));
+          ImVec2 pos=regTop.Min;
           if (regState->name!=NULL) {
             dl->AddText(pos,0xffffffff,regState->name);
-            pos.x+=ImGui::CalcTextSize(regState->name).x+ImGui::GetStyle().ItemSpacing.x;
+            pos.x+=ImGui::CalcTextSize(regState->name).x+ImGui::GetStyle().ItemInnerSpacing.x;
           }
 
           if (regState->bits>0) {
             // calculate a good enough size for the bits
             // it must be an integer
-            float bitWidth=floor((regTop.Max.x-pos.x)/(float)regState->bits);
+            int bitWidth=(int)(regTop.Max.x-pos.x);
+            int spacerWidth=bitWidth/8;
+            bitWidth-=spacerWidth;
+            bitWidth/=regState->bits;
+            spacerWidth/=MAX(1,regState->bits-1);
+
+            float totalBitSpan=bitWidth*regState->bits+spacerWidth*(regState->bits-1);
+            float curBitX=round(((regTop.Max.x+pos.x)*0.5f)-(totalBitSpan*0.5f));
 
             // the freaking bits
-            for (int j=0; j<regState->bits; j++) {
+            for (int j=regState->bits-1; j>=0; j--) {
               dl->AddRectFilled(
-                ImLerp(pos,regTop.Max,ImVec2((float)j/(float)regState->bits,0.0f)),
-                ImLerp(pos,regTop.Max,ImVec2((float)(j+1)/(float)regState->bits,1.0f)),
-                (regState->val&(1U<<j))?0xffffff00:0xff000000
+                ImVec2(curBitX,pos.y),
+                ImVec2(curBitX+bitWidth,regTop.Max.y),
+                ImGui::GetColorU32((regState->val&(1U<<j))?uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF])
               );
+
+              // label
+              if (regState->bitIcon[j]!=NULL) {
+                dl->AddText(ImVec2(curBitX,regInnerRect.Min.y),ImGui::GetColorU32(ImGuiCol_Text),regState->bitIcon[j]);
+              }
+
+              curBitX+=bitWidth+spacerWidth;
             }
           }
 
           // channel state
           if (regState->chanVal.size()==(size_t)(regState->lastChan-regState->firstChan+1)) {
+            float bitMaxY=regState->combine?regBottom.Max.y:regBottom.Max.y-3.0f*dpiScale;
             for (size_t j=0; j<regState->chanVal.size(); j++) {
               ImRect chanRect=regBottom;
               chanRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j)+ImGui::GetStyle().ItemInnerSpacing.x;
               chanRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j+1)-ImGui::GetStyle().ItemInnerSpacing.x;
 
-              for (int k=0; k<regState->bits; k++) {
+              int bitWidth=(int)(chanRect.Max.x-chanRect.Min.x);
+              int spacerWidth=bitWidth/8;
+              bitWidth-=spacerWidth;
+              bitWidth/=regState->bits;
+              spacerWidth/=MAX(1,regState->bits-1);
+
+              float totalBitSpan=bitWidth*regState->bits+spacerWidth*(regState->bits-1);
+              float curBitX=round(((chanRect.Max.x+chanRect.Min.x)*0.5f)-(totalBitSpan*0.5f));
+              float firstBitX=curBitX;
+
+              for (int k=regState->bits-1; k>=0; k--) {
                 dl->AddRectFilled(
-                  ImLerp(chanRect.Min,chanRect.Max,ImVec2((float)k/(float)regState->bits,0.0f)),
-                  ImLerp(chanRect.Min,chanRect.Max,ImVec2((float)(k+1)/(float)regState->bits,1.0f)),
-                  (regState->chanVal[j]&(1U<<k))?0xff00ff00:0xff000000
+                  ImVec2(curBitX,chanRect.Min.y),
+                  ImVec2(curBitX+bitWidth,bitMaxY),
+                  ImGui::GetColorU32((regState->chanVal[j]&(1U<<k))?uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF])
                 );
+                curBitX+=bitWidth+spacerWidth;
               }
 
+              // draw effective channel indicator
+              if (!regState->combine) {
+                dl->AddLineH(
+                  firstBitX,
+                  curBitX-spacerWidth,
+                  bitMaxY+2.5f*dpiScale,
+                  ImGui::GetColorU32((regState->effectiveChan==(int)j+regState->firstChan)?uiColors[GUI_COLOR_TEXT]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF]),
+                  dpiScale
+                );
+              }
             }
           }
         }
