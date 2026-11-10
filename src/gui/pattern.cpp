@@ -2029,7 +2029,7 @@ void FurnaceGUI::drawPattern() {
           if (regState->chanVal.size()==(size_t)(regState->lastChan-regState->firstChan+1)) {
             float bitMaxY=regState->combine?regBottom.Max.y:regBottom.Max.y-3.0f*dpiScale;
             for (size_t j=0; j<regState->chanVal.size(); j++) {
-              bool isEffective=(regState->effectiveChan==((int)j+regState->firstChan));
+              bool isEffective=(regState->effectiveChan==(int)(j+regState->firstChan));
               ImU32 onColor=(regState->combine || isEffective)?bitOnColor:bitOnColorDimmed;
               ImU32 offColor=(regState->combine || isEffective)?bitOffColor:bitOffColorDimmed;
 
