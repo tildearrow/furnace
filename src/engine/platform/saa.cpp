@@ -220,6 +220,7 @@ void DivPlatformSAA1099::tick(bool sysTick) {
         }
       } else {
         saaEnv[i/4]=chan[i].std.ex1.val;
+        saaEnvChan[i/4]=i;
       }
       rWrite(0x18+(i/4),saaEnv[i/4]);
     }
@@ -407,6 +408,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
         }
       } else {
         saaEnv[c.chan/4]=c.value;
+        saaEnvChan[c.chan/4]=c.chan;
       }
       rWrite(0x18+(c.chan/4),saaEnv[c.chan/4]);
       break;
@@ -512,6 +514,19 @@ void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   }
 }
 
+DivGlobalRegState* DivPlatformSAA1099::getGlobalRegState(unsigned int index) {
+  if (index<2) {
+    // update and return global register state
+    for (int i=0; i<(compat?3:4); i++) {
+      envState[index].chanVal[i]=chan[i+index*(compat?3:4)].envMode;
+    }
+    envState[index].val=saaEnv[index];
+    envState[index].effectiveChan=saaEnvChan[index]-(compat?index:0);
+    return &envState[index];
+  }
+  return NULL;
+}
+
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
   if (compat) return oscBuf[ch];
   if (ch==3 || ch==7) return NULL;
@@ -556,6 +571,8 @@ void DivPlatformSAA1099::reset() {
   saaEnv[1]=0;
   saaNoise[0]=0;
   saaNoise[1]=0;
+  saaEnvChan[0]=-1;
+  saaEnvChan[1]=-1;
 
   delay=0;
 
@@ -671,6 +688,16 @@ void DivPlatformSAA1099::setCoreQuality(unsigned char q) {
 
 void DivPlatformSAA1099::setCompat(bool isCompat) {
   compat=isCompat;
+
+  int chPerGroup=compat?3:4;
+  for (int i=0; i<2; i++) {
+    envState[i].firstChan=chPerGroup*i;
+    envState[i].lastChan=chPerGroup*(i+1)-1;
+    envState[i].chanVal.clear();
+    for (int j=0; j<chPerGroup; j++) {
+      envState[i].chanVal.push_back(0);
+    }
+  }
 }
 
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -684,6 +711,31 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivC
   for (int i=0; i<6; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  envState[0].name="Env1";
+  envState[1].name="Env2";
+
+  for (int i=0; i<2; i++) {
+    envState[i].type=7;
+    envState[i].bits=8;
+    envState[i].bitName[0]="mirror";
+    envState[i].bitName[1]="mode (bit 1)";
+    envState[i].bitName[2]="mode (bit 2)";
+    envState[i].bitName[3]="mode (bit 3)";
+    envState[i].bitName[4]="low resolution";
+    envState[i].bitName[5]="use timer";
+    envState[i].bitName[6]="timer strobe";
+    envState[i].bitName[7]="enabled";
+    envState[i].bitIcon[0]="mirror";
+    envState[i].bitIcon[1]="1";
+    envState[i].bitIcon[2]="2";
+    envState[i].bitIcon[3]="3";
+    envState[i].bitIcon[4]="lowres";
+    envState[i].bitIcon[5]="timer";
+    envState[i].bitIcon[6]="strobe";
+    envState[i].bitIcon[7]="on";
+  }
+
   saa_saaSound=CreateCSAASound();
   saa_saaSound->SetOversample(1);
   saa_saaSound->SetSoundParameters(SAAP_NOFILTER|SAAP_16BIT|SAAP_STEREO);

@@ -1950,6 +1950,22 @@ void FurnaceGUI::drawPattern() {
           DivGlobalRegState* regState=dispatch->getGlobalRegState(globRegIndex);
           if (regState==NULL) break;
 
+          // colors
+          ImU32 bitOnColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type]);
+          ImU32 bitOffColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]);
+          ImU32 bitOnColorDimmed=ImGui::GetColorU32(ImVec4(
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].x*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].y*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].z*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].w
+          ));
+          ImU32 bitOffColorDimmed=ImGui::GetColorU32(ImVec4(
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].x*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].y*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].z*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].w
+          ));
+
           // safety checks
           if (regState->firstChan>regState->lastChan) continue;
           if (chanOff+regState->firstChan>=chans) continue;
@@ -1997,7 +2013,7 @@ void FurnaceGUI::drawPattern() {
               dl->AddRectFilled(
                 ImVec2(curBitX,pos.y),
                 ImVec2(curBitX+bitWidth,regTop.Max.y),
-                ImGui::GetColorU32((regState->val&(1U<<j))?uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF])
+                (regState->val&(1U<<j))?bitOnColor:bitOffColor
               );
 
               // label
@@ -2013,6 +2029,10 @@ void FurnaceGUI::drawPattern() {
           if (regState->chanVal.size()==(size_t)(regState->lastChan-regState->firstChan+1)) {
             float bitMaxY=regState->combine?regBottom.Max.y:regBottom.Max.y-3.0f*dpiScale;
             for (size_t j=0; j<regState->chanVal.size(); j++) {
+              bool isEffective=(regState->effectiveChan==((int)j+regState->firstChan));
+              ImU32 onColor=(regState->combine || isEffective)?bitOnColor:bitOnColorDimmed;
+              ImU32 offColor=(regState->combine || isEffective)?bitOffColor:bitOffColorDimmed;
+
               ImRect chanRect=regBottom;
               chanRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j)+ImGui::GetStyle().ItemInnerSpacing.x;
               chanRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j+1)-ImGui::GetStyle().ItemInnerSpacing.x;
@@ -2031,7 +2051,7 @@ void FurnaceGUI::drawPattern() {
                 dl->AddRectFilled(
                   ImVec2(curBitX,chanRect.Min.y),
                   ImVec2(curBitX+bitWidth,bitMaxY),
-                  ImGui::GetColorU32((regState->chanVal[j]&(1U<<k))?uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF])
+                  (regState->chanVal[j]&(1U<<k))?onColor:offColor
                 );
                 curBitX+=bitWidth+spacerWidth;
               }
@@ -2042,7 +2062,7 @@ void FurnaceGUI::drawPattern() {
                   firstBitX,
                   curBitX-spacerWidth,
                   bitMaxY+2.5f*dpiScale,
-                  ImGui::GetColorU32((regState->effectiveChan==(int)j+regState->firstChan)?uiColors[GUI_COLOR_TEXT]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF]),
+                  ImGui::GetColorU32(isEffective?uiColors[GUI_COLOR_TEXT]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF]),
                   dpiScale
                 );
               }

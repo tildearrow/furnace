@@ -55,6 +55,7 @@ class DivPlatformSAA1099: public DivDispatch {
     DivPitchTable timerPitchTable;
     int coreQuality;
     CSAASound* saa_saaSound;
+    DivGlobalRegState envState[2];
     unsigned char regPool[32];
     unsigned char lastBusy;
 
@@ -68,6 +69,7 @@ class DivPlatformSAA1099: public DivDispatch {
     size_t saaBufLen;
     unsigned char saaEnv[2];
     unsigned char saaNoise[2];
+    int saaEnvChan[2];
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
@@ -81,6 +83,7 @@ class DivPlatformSAA1099: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     unsigned short getPan(int chan);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
+    DivGlobalRegState* getGlobalRegState(unsigned int index=0);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
