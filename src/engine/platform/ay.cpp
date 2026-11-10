@@ -642,7 +642,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       if (chan[i].freqChanged && chan[i].autoEnvNum>0 && chan[i].autoEnvDen>0) {
-        ayEnvPeriod=(chan[i].freq*chan[i].autoEnvDen/chan[i].autoEnvNum)>>4;
+        ayEnvPeriod=(((chan[i].freq*chan[i].autoEnvDen)+(chan[i].autoEnvNum * 8))/chan[i].autoEnvNum)>>4;
         immWrite(0x0b,ayEnvPeriod);
         immWrite(0x0c,ayEnvPeriod>>8);
       }
