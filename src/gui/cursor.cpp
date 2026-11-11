@@ -185,29 +185,16 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, int ord, bool fu
 void FurnaceGUI::finishSelection() {
   // swap points if needed
   if (selEnd.order<selStart.order) {
-    selEnd.order^=selStart.order;
-    selStart.order^=selEnd.order;
-    selEnd.order^=selStart.order;
-    selEnd.y^=selStart.y;
-    selStart.y^=selEnd.y;
-    selEnd.y^=selStart.y;
+    XOR_SWAP_VARS(selEnd.order,selStart.order);
+    XOR_SWAP_VARS(selEnd.y,selStart.y);
   } else if (selEnd.order==selStart.order && selEnd.y<selStart.y) {
-    selEnd.y^=selStart.y;
-    selStart.y^=selEnd.y;
-    selEnd.y^=selStart.y;
+    XOR_SWAP_VARS(selEnd.y,selStart.y);
   }
   if (selEnd.xCoarse<selStart.xCoarse) {
-    selEnd.xCoarse^=selStart.xCoarse;
-    selStart.xCoarse^=selEnd.xCoarse;
-    selEnd.xCoarse^=selStart.xCoarse;
-
-    selEnd.xFine^=selStart.xFine;
-    selStart.xFine^=selEnd.xFine;
-    selEnd.xFine^=selStart.xFine;
+    XOR_SWAP_VARS(selEnd.xCoarse,selStart.xCoarse);
+    XOR_SWAP_VARS(selEnd.xFine,selStart.xFine);
   } else if (selEnd.xCoarse==selStart.xCoarse && selEnd.xFine<selStart.xFine) {
-    selEnd.xFine^=selStart.xFine;
-    selStart.xFine^=selEnd.xFine;
-    selEnd.xFine^=selStart.xFine;
+    XOR_SWAP_VARS(selEnd.xFine,selStart.xFine);
   }
   selecting=false;
   selectingFull=false;
@@ -228,24 +215,17 @@ void FurnaceGUI::finishSelection() {
   // boundary check
   int chanCount=e->getTotalChannelCount();
 
-  if (selStart.xCoarse<0) selStart.xCoarse=0;
-  if (selStart.xCoarse>=chanCount) selStart.xCoarse=chanCount-1;
-  if (selStart.y<0) selStart.y=0;
-  if (selStart.y>=e->curSubSong->patLen) selStart.y=e->curSubSong->patLen-1;
-  if (selStart.order<0) selStart.order=0;
-  if (selStart.order>=e->curSubSong->ordersLen) selStart.order=e->curSubSong->ordersLen-1;
-  if (selEnd.xCoarse<0) selEnd.xCoarse=0;
-  if (selEnd.xCoarse>=chanCount) selEnd.xCoarse=chanCount-1;
-  if (selEnd.y<0) selEnd.y=0;
-  if (selEnd.y>=e->curSubSong->patLen) selEnd.y=e->curSubSong->patLen-1;
-  if (selEnd.order<0) selEnd.order=0;
-  if (selEnd.order>=e->curSubSong->ordersLen) selEnd.order=e->curSubSong->ordersLen-1;
-  if (cursor.xCoarse<0) cursor.xCoarse=0;
-  if (cursor.xCoarse>=chanCount) cursor.xCoarse=chanCount-1;
-  if (cursor.y<0) cursor.y=0;
-  if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
-  if (cursor.order<0) cursor.order=0;
-  if (cursor.order>=e->curSubSong->ordersLen) cursor.order=e->curSubSong->ordersLen-1;
+  CLAMP_VAR(selStart.xCoarse,0,chanCount-1);
+  CLAMP_VAR(selStart.y,0,e->curSubSong->patLen-1);
+  CLAMP_VAR(selStart.order,0,e->curSubSong->ordersLen-1);
+
+  CLAMP_VAR(selEnd.xCoarse,0,chanCount-1);
+  CLAMP_VAR(selEnd.y,0,e->curSubSong->patLen-1);
+  CLAMP_VAR(selEnd.order,0,e->curSubSong->ordersLen-1);
+
+  CLAMP_VAR(cursor.xCoarse,0,chanCount-1);
+  CLAMP_VAR(cursor.y,0,e->curSubSong->patLen-1);
+  CLAMP_VAR(cursor.order,0,e->curSubSong->ordersLen-1);
 
   if (e->curSubSong->chanCollapse[selStart.xCoarse]==3) {
     selStart.xFine=0;
@@ -253,18 +233,10 @@ void FurnaceGUI::finishSelection() {
   if (e->curSubSong->chanCollapse[selEnd.xCoarse] && selEnd.xFine>=(3-e->curSubSong->chanCollapse[selEnd.xCoarse])) {
     selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
   }
-  if (selStart.xFine<0) {
-    selStart.xFine=0;
-  }
-  if (selEnd.xFine<0) {
-    selEnd.xFine=0;
-  }
-  if (selStart.xFine>(2+e->curPat[selStart.xCoarse].effectCols*2)) {
-    selStart.xFine=2+e->curPat[selStart.xCoarse].effectCols*2;
-  }
-  if (selEnd.xFine>(2+e->curPat[selEnd.xCoarse].effectCols*2)) {
-    selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
-  }
+
+  int xFineMax=2+e->curPat[selStart.xCoarse].effectCols*2;
+  CLAMP_VAR(selStart.xFine,0,xFineMax);
+  CLAMP_VAR(selEnd.xFine,0,xFineMax);
 
   // change order if necessary
   if (curOrder!=cursor.order) {
