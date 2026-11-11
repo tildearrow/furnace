@@ -942,6 +942,10 @@ void DivPlatformX1_010::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+size_t DivPlatformX1_010::getSampleMemNum() {
+  return 1;
+}
+
 int DivPlatformX1_010::getSampleGroup(int chan) {
   return isBanked?1:0;
 }

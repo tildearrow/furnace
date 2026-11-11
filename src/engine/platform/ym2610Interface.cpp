@@ -25,8 +25,13 @@ uint8_t DivYM2610Interface::ymfm_external_read(ymfm::access_class type, uint32_t
       if (adpcmAMem==NULL) return 0;
       return adpcmAMem[address&0xffffff];
     case ymfm::ACCESS_ADPCM_B:
-      if (adpcmBMem==NULL) return 0;
-      return adpcmBMem[address&0xffffff];
+      if (hasSharedAdpcmBus) {
+        if (adpcmAMem==NULL) return 0;
+        return adpcmAMem[address&0xffffff];
+      } else {
+        if (adpcmBMem==NULL) return 0;
+        return adpcmBMem[address&0xffffff];
+      }
     default:
       return 0;
   }
