@@ -641,6 +641,8 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   timerRate=flags.getInt("timerRate",15625);
 
   envCombine=flags.getBool("envCombine",true);
+  envState[0].combine=envCombine;
+  envState[1].combine=envCombine;
 
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);

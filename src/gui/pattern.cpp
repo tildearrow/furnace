@@ -1954,15 +1954,15 @@ void FurnaceGUI::drawPattern() {
           ImU32 bitOnColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type]);
           ImU32 bitOffColor=ImGui::GetColorU32(uiColors[GUI_COLOR_PATTERN_STATUS_OFF]);
           ImU32 bitOnColorDimmed=ImGui::GetColorU32(ImVec4(
-            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].x*0.4f,
-            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].y*0.4f,
-            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].z*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].x*0.6f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].y*0.6f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].z*0.6f,
             uiColors[GUI_COLOR_PATTERN_STATUS_ON+regState->type].w
           ));
           ImU32 bitOffColorDimmed=ImGui::GetColorU32(ImVec4(
-            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].x*0.4f,
-            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].y*0.4f,
-            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].z*0.4f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].x*0.6f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].y*0.6f,
+            uiColors[GUI_COLOR_PATTERN_STATUS_OFF].z*0.6f,
             uiColors[GUI_COLOR_PATTERN_STATUS_OFF].w
           ));
 
@@ -1990,13 +1990,21 @@ void FurnaceGUI::drawPattern() {
 
           // draw the damn frame
           dl->AddRectFilled(regRect.Min,regRect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_FRAME_BACKGROUND_POPUP]));
-          ImVec2 pos=regTop.Min;
-          if (regState->name!=NULL) {
-            dl->AddText(pos,0xffffffff,regState->name);
-            pos.x+=ImGui::CalcTextSize(regState->name).x+ImGui::GetStyle().ItemInnerSpacing.x;
-          }
 
+          // there are two display modes.
           if (regState->bits>0) {
+            // this mode is used when the state has bits.
+            // it displays the register's current state, bit names, and
+            // each channel's last written value, including an indicator
+            // for the effective channel (if necessary).
+
+            // draw name
+            ImVec2 pos=regTop.Min;
+            if (regState->name!=NULL) {
+              dl->AddText(pos,ImGui::GetColorU32(ImGuiCol_Text),regState->name);
+              pos.x+=ImGui::CalcTextSize(regState->name).x+ImGui::GetStyle().ItemInnerSpacing.x;
+            }
+
             // calculate a good enough size for the bits
             // it must be an integer
             int bitWidth=(int)(regTop.Max.x-pos.x);
@@ -2023,49 +2031,93 @@ void FurnaceGUI::drawPattern() {
 
               curBitX+=bitWidth+spacerWidth;
             }
-          }
 
-          // channel state
-          if (regState->chanVal.size()==(size_t)(regState->lastChan-regState->firstChan+1)) {
-            float bitMaxY=regState->combine?regBottom.Max.y:regBottom.Max.y-3.0f*dpiScale;
-            for (size_t j=0; j<regState->chanVal.size(); j++) {
-              bool isEffective=(regState->effectiveChan==(int)(j+regState->firstChan));
-              ImU32 onColor=(regState->combine || isEffective)?bitOnColor:bitOnColorDimmed;
-              ImU32 offColor=(regState->combine || isEffective)?bitOffColor:bitOffColorDimmed;
+            // channel state
+            if (regState->chanVal.size()==(size_t)(regState->lastChan-regState->firstChan+1)) {
+              float bitMaxY=regState->combine?regBottom.Max.y:regBottom.Max.y-3.0f*dpiScale;
+              unsigned char bitPresence[32];
+              memset(bitPresence,0,32);
+              if (regState->combine) {
+                for (size_t j=0; j<regState->chanVal.size(); j++) {
+                  for (int k=0; k<regState->bits; k++) {
+                    if (regState->chanVal[j]&(1U<<k)) bitPresence[k]++;
+                  }
+                }
+              }
 
+              for (size_t j=0; j<regState->chanVal.size(); j++) {
+                bool isEffective=(regState->effectiveChan==(int)(j+regState->firstChan));
+
+                ImRect chanRect=regBottom;
+                chanRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j)+ImGui::GetStyle().ItemInnerSpacing.x;
+                chanRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j+1)-ImGui::GetStyle().ItemInnerSpacing.x;
+
+                int bitWidth=(int)(chanRect.Max.x-chanRect.Min.x);
+                int spacerWidth=bitWidth/8;
+                bitWidth-=spacerWidth;
+                bitWidth/=regState->bits;
+                spacerWidth/=MAX(1,regState->bits-1);
+
+                float totalBitSpan=bitWidth*regState->bits+spacerWidth*(regState->bits-1);
+                float curBitX=round(((chanRect.Max.x+chanRect.Min.x)*0.5f)-(totalBitSpan*0.5f));
+                float firstBitX=curBitX;
+
+                for (int k=regState->bits-1; k>=0; k--) {
+                  ImU32 onColor=((regState->combine || isEffective) && bitPresence[k]<2)?bitOnColor:bitOnColorDimmed;
+                  ImU32 offColor=(regState->combine || isEffective)?bitOffColor:bitOffColorDimmed;
+                  dl->AddRectFilled(
+                    ImVec2(curBitX,chanRect.Min.y),
+                    ImVec2(curBitX+bitWidth,bitMaxY),
+                    (regState->chanVal[j]&(1U<<k))?onColor:offColor
+                  );
+                  curBitX+=bitWidth+spacerWidth;
+                }
+
+                // draw effective channel indicator
+                if (!regState->combine) {
+                  dl->AddLineH(
+                    firstBitX,
+                    curBitX-spacerWidth,
+                    bitMaxY+2.5f*dpiScale,
+                    ImGui::GetColorU32(isEffective?uiColors[GUI_COLOR_TEXT]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF]),
+                    dpiScale
+                  );
+                }
+              }
+            }
+          } else {
+            // the other mode is used when the state doesn't display bits.
+            // it only displays the effective channel.
+
+            // draw name
+            float chanRectMinY=regInnerRect.Min.y;
+
+            if (regState->name!=NULL) {
+              ImGui::PushFont(mainFont,settings.mainFontSize*dpiScale);
+              dl->AddText(
+                ImVec2(
+                  (regInnerRect.Min.x+regInnerRect.Max.x-ImGui::CalcTextSize(regState->name).x)*0.5f,
+                  regInnerRect.Min.y
+                ),
+                ImGui::GetColorU32(ImGuiCol_Text),
+                regState->name
+              );
+              chanRectMinY+=ImGui::GetTextLineHeight()+ImGui::GetStyle().ItemInnerSpacing.y;
+              ImGui::PopFont();
+            }
+
+            // draw effective channel indicators
+            for (int j=0; j<=regState->lastChan; j++) {
               ImRect chanRect=regBottom;
               chanRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j)+ImGui::GetStyle().ItemInnerSpacing.x;
               chanRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j+1)-ImGui::GetStyle().ItemInnerSpacing.x;
+              chanRect.Min.y=chanRectMinY;
 
-              int bitWidth=(int)(chanRect.Max.x-chanRect.Min.x);
-              int spacerWidth=bitWidth/8;
-              bitWidth-=spacerWidth;
-              bitWidth/=regState->bits;
-              spacerWidth/=MAX(1,regState->bits-1);
-
-              float totalBitSpan=bitWidth*regState->bits+spacerWidth*(regState->bits-1);
-              float curBitX=round(((chanRect.Max.x+chanRect.Min.x)*0.5f)-(totalBitSpan*0.5f));
-              float firstBitX=curBitX;
-
-              for (int k=regState->bits-1; k>=0; k--) {
-                dl->AddRectFilled(
-                  ImVec2(curBitX,chanRect.Min.y),
-                  ImVec2(curBitX+bitWidth,bitMaxY),
-                  (regState->chanVal[j]&(1U<<k))?onColor:offColor
-                );
-                curBitX+=bitWidth+spacerWidth;
-              }
-
-              // draw effective channel indicator
-              if (!regState->combine) {
-                dl->AddLineH(
-                  firstBitX,
-                  curBitX-spacerWidth,
-                  bitMaxY+2.5f*dpiScale,
-                  ImGui::GetColorU32(isEffective?uiColors[GUI_COLOR_TEXT]:uiColors[GUI_COLOR_PATTERN_STATUS_OFF]),
-                  dpiScale
-                );
-              }
+              dl->AddRectFilled(
+                chanRect.Min,
+                chanRect.Max,
+                (regState->effectiveChan==(int)(j+regState->firstChan))?bitOnColor:bitOffColor
+              );
             }
           }
         }

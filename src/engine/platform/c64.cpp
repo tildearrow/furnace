@@ -237,6 +237,7 @@ void DivPlatformC64::tick(bool sysTick) {
 
     if (chan[i].std.vol.had) {
       vol=MIN(15,chan[i].std.vol.val);
+      effectiveVolCh=i;
       willUpdateFilter=true;
     }
 
@@ -501,6 +502,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       if (c.chan>2) break;
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
+        effectiveVolCh=c.chan;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
           vol=chan[c.chan].outVol;
@@ -808,6 +810,14 @@ DivChannelModeHints DivPlatformC64::getModeHints(int ch) {
   return ret;
 }
 
+DivGlobalRegState* DivPlatformC64::getGlobalRegState(unsigned int index) {
+  if (index==0) {
+    volState.effectiveChan=effectiveVolCh;
+    return &volState;
+  }
+  return NULL;
+}
+
 DivDispatchOscBuffer* DivPlatformC64::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -853,6 +863,7 @@ void DivPlatformC64::reset() {
 
   cutoff_slide=0;
   pcmCycle=0;
+  effectiveVolCh=-1;
 
   if (sidCore==2) {
     dSID_init(sid_d,chipClock,rate,sidIs6581?6581:8580,needInitTables);
@@ -1041,6 +1052,12 @@ int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfi
       sid->set_chip_model(MOS8580);
     }
   }
+
+  volState.name="Volume";
+  volState.type=1;
+  volState.bits=0;
+  volState.firstChan=0;
+  volState.lastChan=2;
 
   setFlags(flags);
 

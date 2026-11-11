@@ -85,6 +85,8 @@ class DivPlatformC64: public DivDispatch {
   FixedQueue<QueuedWrite,128> writes;
   DivPitchTable pitchTable;
   DivPitchTableManager samplePitchTable;
+  DivGlobalRegState volState;
+  int effectiveVolCh;
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;
@@ -134,6 +136,7 @@ class DivPlatformC64: public DivDispatch {
     DivMacroInt* getChanMacroInt(int ch);
     void getPaired(int ch, std::vector<DivChannelPair>& ret);
     DivChannelModeHints getModeHints(int chan);
+    DivGlobalRegState* getGlobalRegState(unsigned int index=0);
     void notifyInsDeletion(void* ins);
     void notifyPitchTable(int sample=-1);
     unsigned int getMaxFreq(int ch);
