@@ -1937,7 +1937,7 @@ void FurnaceGUI::drawPattern() {
     /// - GLOBAL REGISTER OVERLAY -
     ///
     if (patGlobalRegs && e->isRunning()) {
-      ImGui::PushFont(mainFont,settings.mainFontSize*dpiScale*0.5f);
+      ImGui::PushFont(mainFont,settings.mainFontSize*dpiScale);
       int chanOff=0;
       for (int i=0; i<e->song.systemLen; i++) {
         DivDispatch* dispatch=e->getDispatch(i);
@@ -1975,18 +1975,17 @@ void FurnaceGUI::drawPattern() {
           regRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan);
           regRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->lastChan+1);
           regRect.Max.y=prevClipRect.Max.y; 
-          regRect.Min.y=regRect.Max.y-(ImGui::GetStyle().ItemSpacing.y+ImGui::GetStyle().FramePadding.y*2.0f+ImGui::GetTextLineHeight()*3.0f);
+          regRect.Min.y=regRect.Max.y-(ImGui::GetStyle().ItemSpacing.y+ImGui::GetStyle().FramePadding.y*1.0f+ImGui::GetTextLineHeight()*1.75f);
 
           ImRect regInnerRect=regRect;
           regInnerRect.Min+=ImGui::GetStyle().FramePadding;
           regInnerRect.Max-=ImGui::GetStyle().FramePadding;
 
           ImRect regTop=regInnerRect;
-          regTop.Min.y+=ImGui::GetTextLineHeight()+ImGui::GetStyle().ItemSpacing.y*0.5f;
           regTop.Max.y=regTop.Min.y+ImGui::GetTextLineHeight();
 
           ImRect regBottom=regInnerRect;
-          regBottom.Min.y+=ImGui::GetTextLineHeight()*2.0f+ImGui::GetStyle().ItemSpacing.y*1.0f;
+          regBottom.Min.y+=ImGui::GetTextLineHeight()*1.0f+ImGui::GetStyle().ItemSpacing.y*1.0f;
 
           // draw the damn frame
           dl->AddRectFilled(regRect.Min,regRect.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_FRAME_BACKGROUND_POPUP]));
@@ -2023,11 +2022,6 @@ void FurnaceGUI::drawPattern() {
                 ImVec2(curBitX+bitWidth,regTop.Max.y),
                 (regState->val&(1U<<j))?bitOnColor:bitOffColor
               );
-
-              // label
-              if (regState->bitIcon[j]!=NULL) {
-                dl->AddText(ImVec2(curBitX,regInnerRect.Min.y),ImGui::GetColorU32(ImGuiCol_Text),regState->bitIcon[j]);
-              }
 
               curBitX+=bitWidth+spacerWidth;
             }
