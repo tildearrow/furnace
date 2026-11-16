@@ -758,17 +758,21 @@ void FurnaceGUI::drawPattern() {
 
         // extra buttons
         if (patExtraButtons) {
-          snprintf(chanID,2048,"%c###_HCH%d",e->curSubSong->chanCollapse[i]?'+':'-',i);
-          ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
-          if (ImGui::SmallButton(chanID)) {
+          ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0.0f,0.0f));
+          ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0.5f,0.0f));
+          float oneElementSize=(PAT_COARSE_X(i+1)-PAT_COARSE_X(i))/(e->curSubSong->chanCollapse[i]?1.0f:3.0f);
+          ImGui::PushFont(mainFont);
+          // TODO: make icons for collapse/expand
+          snprintf(chanID,2048,"%s###_HCH%d",e->curSubSong->chanCollapse[i]?ICON_FA_EXPAND:ICON_FA_COMPRESS,i);
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(oneElementSize,0.0f))) {
             doCollapseChannel(i);
             finishSelection();
           }
           if (!e->curSubSong->chanCollapse[i]) {
             ImGui::SameLine();
-            snprintf(chanID,2048,"<###_LCH%d",i);
+            snprintf(chanID,2048,ICON_FA_MINUS "###_LCH%d",i);
             ImGui::BeginDisabled(e->curPat[i].effectCols<=1);
-            if (ImGui::SmallButton(chanID)) {
+            if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(oneElementSize,0.0f))) {
               e->curPat[i].effectCols--;
               if (e->curPat[i].effectCols<1) e->curPat[i].effectCols=1;
               finishSelection();
@@ -776,14 +780,16 @@ void FurnaceGUI::drawPattern() {
             ImGui::EndDisabled();
             ImGui::SameLine();
             ImGui::BeginDisabled(e->curPat[i].effectCols>=DIV_MAX_EFFECTS);
-            snprintf(chanID,2048,">###_RCH%d",i);
-            if (ImGui::SmallButton(chanID)) {
+            snprintf(chanID,2048,ICON_FA_PLUS "###_RCH%d",i);
+            if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(oneElementSize,0.0f))) {
               e->curPat[i].effectCols++;
               if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
               finishSelection();
             }
             ImGui::EndDisabled();
           }
+          ImGui::PopFont();
+          ImGui::PopStyleVar(2);
           ImGui::Spacing();
         }
 
