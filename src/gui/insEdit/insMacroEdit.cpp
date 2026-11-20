@@ -99,17 +99,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
   static float bit30Indicator[256];
   static bool doHighlight[256];
 
-  const auto updateRangeInputs=[&]() {
-    // Update range inputs to match the current instrument, if the instrument has changed.
-    // It's a lambda because it needs to be called later on, or else the values might not have been initialized yet.
-    // FIXME: are there any other cases that may modify these values, other than "current instrument changed"?
-    if (insEditMacroInsChanged) {
-      insEditMacroEnvBottom=i.macro->val[0];
-      insEditMacroEnvTop=i.macro->val[1];
-      insEditMacroInsChanged=false;
-    }
-  };
-
   if ((i.macro->open&6)==0) {
     for (int j=0; j<256; j++) {
       bit30Indicator[j]=0;
@@ -338,7 +327,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         int oldBot=i.macro->val[0];
         int oldTop=i.macro->val[1];
-        updateRangeInputs();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -346,10 +334,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Bottom"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
+        if (ImGui::InputInt("##MABottom",&i.macro->val[0],1,16)) {
+          i.macro->val[0]=CLAMP(i.macro->val[0],i.min,actualMax);
+        }
+        if (ImGui::IsItemActivated()) {
+          pendingMacroAdjBottom=oldBot;
+          pendingMacroAdjTop=oldTop;
+        }
         if (ImGui::IsItemDeactivated()) { PARAMETER
-          i.macro->val[0]=CLAMP(insEditMacroEnvBottom,i.min,actualMax);
-          insEditMacroEnvBottom=i.macro->val[0];
           adsrAdjust=true;
         }
 
@@ -359,15 +351,19 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MATop",&insEditMacroEnvTop,1,16)) {}
+        if (ImGui::InputInt("##MATop",&i.macro->val[1],1,16)) {
+          i.macro->val[1]=CLAMP(i.macro->val[1],i.min,actualMax);
+        }
+        if (ImGui::IsItemActivated()) {
+          pendingMacroAdjBottom=oldBot;
+          pendingMacroAdjTop=oldTop;
+        }
         if (ImGui::IsItemDeactivated()) { PARAMETER
-          i.macro->val[1]=CLAMP(insEditMacroEnvTop,i.min,actualMax);
-          insEditMacroEnvTop=i.macro->val[1];
           adsrAdjust=true;
         }
 
-        const int oldAdsrBottom=MIN(oldBot,oldTop);
-        const int oldAdsrTop=MAX(oldBot,oldTop);
+        const int oldAdsrBottom=MIN(pendingMacroAdjBottom,pendingMacroAdjTop);
+        const int oldAdsrTop=MAX(pendingMacroAdjBottom,pendingMacroAdjTop);
         const int oldAdsrRange=abs(oldAdsrTop-oldAdsrBottom);
         const int oldAdsrParamMax=(oldAdsrRange<<8)|0xff;
 
@@ -579,7 +575,6 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
 
         const int oldLfoBottom=i.macro->val[0];
         const int oldLfoTop=i.macro->val[1];
-        updateRangeInputs();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -587,10 +582,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Bottom"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MABottom",&insEditMacroEnvBottom,1,16)) {}
+        if (ImGui::InputInt("##MABottom",&i.macro->val[0],1,16)) {
+          i.macro->val[0]=CLAMP(i.macro->val[0],i.min,actualMax);
+        }
+        if (ImGui::IsItemActivated()) {
+          pendingMacroAdjBottom=oldLfoBottom;
+          pendingMacroAdjTop=oldLfoTop;
+        }
         if (ImGui::IsItemDeactivated()) { PARAMETER
-          i.macro->val[0]=CLAMP(insEditMacroEnvBottom,i.min,actualMax);
-          insEditMacroEnvBottom=i.macro->val[0];
           lfoAdjust=true;
         }
 
@@ -600,10 +599,14 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         ImGui::Text(_("Top"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##MATop",&insEditMacroEnvTop,1,16)) {}
+        if (ImGui::InputInt("##MATop",&i.macro->val[1],1,16)) {
+          i.macro->val[1]=CLAMP(i.macro->val[1],i.min,actualMax);
+        }
+        if (ImGui::IsItemActivated()) {
+          pendingMacroAdjBottom=oldLfoBottom;
+          pendingMacroAdjTop=oldLfoTop;
+        }
         if (ImGui::IsItemDeactivated()) { PARAMETER
-          i.macro->val[1]=CLAMP(insEditMacroEnvTop,i.min,actualMax);
-          insEditMacroEnvTop=i.macro->val[1];
           lfoAdjust=true;
         }
 

@@ -2715,6 +2715,8 @@ class FurnaceGUI {
   int macroOffX, macroOffY;
   float macroScaleX, macroScaleY;
   int macroRandMin, macroRandMax;
+  
+  int pendingMacroAdjBottom, pendingMacroAdjTop;
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;
