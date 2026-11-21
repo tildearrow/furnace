@@ -632,7 +632,8 @@ bool DivInstrumentGB::operator==(const DivInstrumentGB& other) {
     _C(hwSeqLen) &&
     _C(softEnv) &&
     _C(alwaysInit) &&
-    _C(doubleWave)
+    _C(doubleWave) &&
+    _C(soundLenInfinite)
   );
 }
 
@@ -1288,6 +1289,7 @@ void DivInstrument::writeFeatureGB(SafeWriter* w) {
   w->writeC(gb.soundLen);
 
   w->writeC(
+    (gb.soundLenInfinite?8:0)|
     (gb.doubleWave?4:0)|
     (gb.alwaysInit?2:0)|
     (gb.softEnv?1:0)
@@ -2638,6 +2640,16 @@ void DivInstrument::readFeatureGB(SafeReader& reader, short version) {
   gb.soundLen=reader.readC();
 
   next=reader.readC();
+  if (version>=259) {
+    gb.soundLenInfinite=next&8;
+  } else {
+    if (gb.soundLen>=64) {
+      gb.soundLen=255;
+      gb.soundLenInfinite=true;
+    } else {
+      gb.soundLenInfinite=false;
+    }
+  }
   if (version>=196) gb.doubleWave=next&4;
   gb.alwaysInit=next&2;
   gb.softEnv=next&1;
@@ -3603,6 +3615,12 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   gb.envDir=reader.readC();
   gb.envLen=reader.readC();
   gb.soundLen=reader.readC();
+  if (gb.soundLen>=64) {
+    gb.soundLen=255;
+    gb.soundLenInfinite=true;
+  } else {
+    gb.soundLenInfinite=false;
+  }
 
   // C64
   c64.triOn=reader.readC();
@@ -4620,7 +4638,11 @@ bool DivInstrument::saveDMP(const char* path) {
       w->writeC(gb.envVol);
       w->writeC(gb.envDir);
       w->writeC(gb.envLen);
-      w->writeC(gb.soundLen);
+      if (gb.soundLenInfinite) {
+        w->writeC(64);
+      } else {
+        w->writeC(gb.soundLen&63);
+      }
     }
   }
 

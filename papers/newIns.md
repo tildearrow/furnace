@@ -425,8 +425,10 @@ size | description
      | - bit 4: direction
      | - bit 0-3: volume
   1  | sound length
-     | - 64 is infinity
+     | - range is 0-255 for wave channel (0-63 otherwise)
+     | - (<259) range was 0-64, where 64 means infinity
   1  | flags
+     | - bit 3: infinite sound length (>=259)
      | - bit 2: double wave width for GBA (>=196)
      | - bit 1: always init envelope
      | - bit 0: software envelope (zombie mode)
@@ -453,7 +455,7 @@ size | description
      |     - bit 4-7: volume
      |     - bit 3: direction
      |     - bit 0-2: length
-     |   - 1 byte: sound length
+     |   - 1 byte: sound length (greater than 63 means "infinite")
      | - for set sweep:
      |   - 1 byte: parameter
      |     - bit 4-6: length

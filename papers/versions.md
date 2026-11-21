@@ -5,6 +5,73 @@ it also provides information on applied transformations for the sake of compatib
 
 **this is a work in progress!**
 
+## dev259 - Game Boy changes
+
+Furnace lacked a mechanism to set the length counter (sound length) for the Game Boy's wave channel.
+this version adds the ability to set that; however, a tiny format change is necessary since the wave channel's length counter is four times as long and Furnace used values higher than 64 to represent infinity (length counter disabled).
+
+this change preserves compatibility with previous versions by displaying the sound length as a slider with steps from 0-255 and infinity (when set, the sound length internally becomes 255).
+
+the instrument format change is highlighted below (specifically, the `GB` feature).
+
+before:
+
+```
+size | description
+-----|------------------------------------
+  1  | envelope params
+  1  | sound length (0-63 or 64 = infinity)
+  1  | flags
+     | - bit 2: double wave width for GBA (>=196)
+     | - bit 1: always init envelope
+     | - bit 0: software envelope (zombie mode)
+ ... | ...
+```
+
+after:
+
+```
+size | description
+-----|------------------------------------
+  1  | envelope params
+  1  | sound length (0-255)
+  1  | flags
+     | - bit 3: infinite sound length (>=259)
+     | - bit 2: double wave width for GBA (>=196)
+     | - bit 1: always init envelope
+     | - bit 0: software envelope (zombie mode)
+ ... | ...
+```
+
+when loading a previous version song, set the infinite sound length flag if the sound length is greater than 63.
+
+## dev258 - POKEY AUDCTL change
+
+AUDCTL handling was unintuitive. the last channel writing to AUDCTL (either through macro or effect) was the one responsible for the register's actual value.
+
+somebody suggested an improvement. rather than only letting one channel go through, combine the value of each channel's AUDCTL macro/effect by OR'ing.
+
+this behavior may be controlled through a chip config option called `audctlCombine`. make sure you set it to false when loading an older song.
+
+## dev257 - SAA1099 revamp
+
+an option for the SAA1099 chip has been added, which introduces two software timers for driving the envelopes.
+
+it also changes the way envelope setup is handled. formerly, the last channel with an envelope macro or effect would be the one to set the envelope control register.
+now, the values of all channels are combined (OR'ed together) and fed to the envelope control register.
+
+this behavior may be controlled through a new chip config option called `envCombine`. make sure you set it to false when loading an older song.
+
+## dev256 - new sample playback rate calculation
+
+Furnace used 8363Hz as the "base" C-4 rate. this number was taken from OpenMPT and Amiga trackers where the closest period to C-4 × 32 yielded a frequency of ~8363Hz in NTSC Amiga machines.
+
+this however resulted in inaccurate frequency calculation, where a sample set to 44100Hz wouldn't exactly play back at that frequency.
+
+this version corrects that by changing the "base" C-4 rate to a more accurate 8372Hz.
+
+when loading a previous-version song, make sure to set the `oldCenterRate` flag to true.
+
 ## dev255 - per-channel arp speed
 
 the arp speed effect (E0xx) used to be global, affecting all channels.

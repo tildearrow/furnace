@@ -695,6 +695,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ins->gb.envDir=reader.readC();
           ins->gb.envLen=reader.readC();
           ins->gb.soundLen=reader.readC();
+          if (ins->gb.soundLen>=64) {
+            ins->gb.soundLen=255;
+            ins->gb.soundLenInfinite=true;
+          } else {
+            ins->gb.soundLenInfinite=false;
+          }
           ins->std.volMacro.open=false;
 
           logD("GB data: vol %d dir %d len %d sl %d",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
@@ -1656,7 +1662,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeC(i->gb.envVol);
         w->writeC(i->gb.envDir);
         w->writeC(i->gb.envLen);
-        w->writeC(i->gb.soundLen);
+        w->writeC(i->gb.soundLenInfinite?64:(i->gb.soundLen&63));
       }
     }
   }

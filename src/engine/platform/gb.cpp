@@ -194,12 +194,12 @@ void DivPlatformGB::tick(bool sysTick) {
 
         if (i==2) {
           rWrite(16+i*5+2,(model==GB_MODEL_AGB_NATIVE?gbVolMapEx:gbVolMap)[chan[i].outVol]);
-          chan[i].soundLen=64;
+          chan[i].soundLenInfinite=true;
         } else {
           chan[i].envLen=0;
           chan[i].envDir=1;
           chan[i].envVol=chan[i].outVol;
-          chan[i].soundLen=64;
+          chan[i].soundLenInfinite=true;
 
           if (!chan[i].keyOn) chan[i].killIt=true;
         }
@@ -226,9 +226,12 @@ void DivPlatformGB::tick(bool sysTick) {
         chan[i].freqChanged=true;
       } else if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
-      } else if (!chan[i].softEnv) {
-        if (parent->song.compatFlags.waveDutyIsVol) {
-          rWrite(16+i*5+2,(model==GB_MODEL_AGB_NATIVE?gbVolMapEx:gbVolMap)[(chan[i].std.duty.val&3)<<2]);
+      } else {
+        rWrite(16+i*5+1,chan[i].soundLen^0xff);
+        if (!chan[i].softEnv) {
+          if (parent->song.compatFlags.waveDutyIsVol) {
+            rWrite(16+i*5+2,(model==GB_MODEL_AGB_NATIVE?gbVolMapEx:gbVolMap)[(chan[i].std.duty.val&3)<<2]);
+          }
         }
       }
     }
@@ -286,6 +289,12 @@ void DivPlatformGB::tick(bool sysTick) {
                 chan[i].envDir=(data&8)?1:0;
                 chan[i].envVol=(data>>4)&15;
                 chan[i].soundLen=data>>8;
+                if ((data>>8)>=64) {
+                  chan[i].soundLen=255;
+                  chan[i].soundLenInfinite=true;
+                } else {
+                  chan[i].soundLenInfinite=false;
+                }
                 chan[i].keyOn=true;
               }
               break;
@@ -348,6 +357,7 @@ void DivPlatformGB::tick(bool sysTick) {
         if (i==2) { // wave
           rWrite(16+i*5,0x00);
           rWrite(16+i*5,doubleWave?0xa0:0x80);
+          rWrite(16+i*5+1,chan[i].soundLen^0xff);
           rWrite(16+i*5+2,(model==GB_MODEL_AGB_NATIVE?gbVolMapEx:gbVolMap)[chan[i].outVol]);
         } else {
           rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
@@ -364,13 +374,17 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (i==3) { // noise
         rWrite(16+i*5+3,(chan[i].freq&0xff)|(chan[i].duty?8:0));
-        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
+        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|(chan[i].soundLenInfinite?0:64));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||(chan[i].keyOff && i!=2))?0x80:0x00)|((chan[i].soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||(chan[i].keyOff && i!=2))?0x80:0x00)|(chan[i].soundLenInfinite?0:64));
       }
       if (enoughAlready) { // more compat garbage
-        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
+        if (i==2) {
+          rWrite(16+i*5+1,chan[i].soundLen^0xff);
+        } else {
+          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
+        }
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -449,6 +463,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
         chan[c.chan].soundLen=ins->gb.soundLen;
+        chan[c.chan].soundLenInfinite=ins->gb.soundLenInfinite;
         if (!chan[c.chan].soManyHacksToMakeItDefleCompatible && c.chan!=2) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
@@ -460,10 +475,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         chan[c.chan].envLen=0;
         chan[c.chan].envDir=1;
-        chan[c.chan].soundLen=64;
+        chan[c.chan].soundLenInfinite=true;
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
-        chan[c.chan].soundLen=64;
+        chan[c.chan].soundLenInfinite=true;
       }
       chan[c.chan].insChanged=false;
       break;
@@ -491,6 +506,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
             chan[c.chan].envLen=ins->gb.envLen;
             chan[c.chan].envDir=ins->gb.envDir;
             chan[c.chan].soundLen=ins->gb.soundLen;
+            chan[c.chan].soundLenInfinite=ins->gb.soundLenInfinite;
             chan[c.chan].vol=chan[c.chan].envVol;
             chan[c.chan].outVol=chan[c.chan].vol;
             if (parent->song.compatFlags.gbInsAffectsEnvelope) {

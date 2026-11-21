@@ -20,6 +20,7 @@
 #include "insEditCommon.h"
 #include "IconsFontAwesome4.h"
 #include "../intConst.h"
+#include <imgui.h>
 
 static const char* gbHWSeqCmdTypes[6]={
   _N("Envelope"),
@@ -92,7 +93,12 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
 void FurnaceGUI::insEditGB(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
-   if (ImGui::BeginTabItem("Game Boy")) {
+  if (ImGui::BeginTabItem("Game Boy")) {
+    ImGui::TextUnformatted(
+      "two bugs I shall fix:\n"
+      "1. hardware sequences and soft env may kill the channel entirely\n"
+      "2. sound length is a bit buggy in the wave channel"
+    );
     P(ImGui::Checkbox(_("Use software envelope"),&ins->gb.softEnv));
     P(ImGui::Checkbox(_("Initialize envelope on every note"),&ins->gb.alwaysInit));
     P(ImGui::Checkbox(_("Double wave length (GBA only)"),&ins->gb.doubleWave));
@@ -122,12 +128,22 @@ void FurnaceGUI::insEditGB(DivInstrument* ins) {
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         P(CWSliderScalar("##GBEnvLen",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN)); rightClickable
 
+        int mappedSoundLen=ins->gb.soundLenInfinite?256:ins->gb.soundLen;
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::Text(_("Sound Length"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        P(CWSliderScalar("##GBSoundLen",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?_("Infinity"):"%d")); rightClickable
+        if (CWSliderInt("##GBSoundLen",&mappedSoundLen,0,256,mappedSoundLen>255?_("Infinity"):"%d")) { PARAMETER
+          if (mappedSoundLen>=256) {
+            ins->gb.soundLenInfinite=true;
+            ins->gb.soundLen=255;
+          } else {
+            ins->gb.soundLenInfinite=false;
+            ins->gb.soundLen=mappedSoundLen;
+          }
+        } rightClickable
+        ImGui::SetItemTooltip("%s",_("valid range is:\n- pulse/noise: 0 to 63\n- wave: 0 to 255"));
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -148,7 +164,7 @@ void FurnaceGUI::insEditGB(DivInstrument* ins) {
       }
 
       ImGui::TableNextColumn();
-      drawGBEnv(ins->gb.envVol,ins->gb.envLen,ins->gb.soundLen,ins->gb.envDir,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
+      drawGBEnv(ins->gb.envVol,ins->gb.envLen,ins->gb.soundLenInfinite?64:(ins->gb.soundLen&63),ins->gb.envDir,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
 
       ImGui::EndTable();
     }

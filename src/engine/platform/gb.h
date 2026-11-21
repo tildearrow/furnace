@@ -28,7 +28,7 @@
 class DivPlatformGB: public DivDispatch {
   struct Channel: public SharedChannel {
     unsigned char duty, sweep;
-    bool sweepChanged, released, softEnv, killIt;
+    bool sweepChanged, released, softEnv, killIt, soundLenInfinite;
     bool soManyHacksToMakeItDefleCompatible;
     signed short wave;
     signed char lastKill;
@@ -43,6 +43,7 @@ class DivPlatformGB: public DivDispatch {
       released(false),
       softEnv(false),
       killIt(false),
+      soundLenInfinite(false),
       soManyHacksToMakeItDefleCompatible(false),
       wave(-1),
       lastKill(0),
