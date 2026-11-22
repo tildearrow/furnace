@@ -465,7 +465,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].soundLen=ins->gb.soundLen;
         chan[c.chan].soundLenInfinite=ins->gb.soundLenInfinite;
         if (!chan[c.chan].soManyHacksToMakeItDefleCompatible && c.chan!=2) {
-          chan[c.chan].vol=chan[c.chan].envVol;
+          // we used to set both vol and outVol here.
+          // however, setting vol will break the channel upon switching to software mode.
+          // I hope this change doesn't break any songs...
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
       } else if (chan[c.chan].softEnv && c.chan!=2) {
@@ -507,10 +509,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
             chan[c.chan].envDir=ins->gb.envDir;
             chan[c.chan].soundLen=ins->gb.soundLen;
             chan[c.chan].soundLenInfinite=ins->gb.soundLenInfinite;
-            chan[c.chan].vol=chan[c.chan].envVol;
-            chan[c.chan].outVol=chan[c.chan].vol;
+            // same thing here.
+            chan[c.chan].outVol=chan[c.chan].envVol;
             if (parent->song.compatFlags.gbInsAffectsEnvelope) {
-              rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
+              rWrite(16+c.chan*5+2,((chan[c.chan].envVol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
             }
           }
         }

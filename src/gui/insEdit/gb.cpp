@@ -94,9 +94,6 @@ void FurnaceGUI::insEditGB(DivInstrument* ins) {
   std::vector<FurnaceGUIMacroDesc> macroList;
 
   if (ImGui::BeginTabItem("Game Boy")) {
-    ImGui::TextUnformatted(
-      "hardware sequences and soft env may kill the channel entirely"
-    );
     P(ImGui::Checkbox(_("Use software envelope"),&ins->gb.softEnv));
     P(ImGui::Checkbox(_("Initialize envelope on every note"),&ins->gb.alwaysInit));
     P(ImGui::Checkbox(_("Double wave length (GBA only)"),&ins->gb.doubleWave));
