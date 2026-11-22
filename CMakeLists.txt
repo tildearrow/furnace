@@ -388,6 +388,10 @@ if (USE_RTMIDI)
     message(STATUS "Using system-installed RtMidi")
   else()
     set(RTMIDI_BUILD_TESTING OFF CACHE BOOL "aaaaaa" FORCE)
+    # force disable the JACK API because:
+    # - it doesn't work on a peculiar machine
+    # - soon I'll make my own JACK MIDI backend anyway
+    set(RTMIDI_API_JACK OFF CACHE BOOL "aaaaaa" FORCE)
     add_subdirectory(extern/rtmidi EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_LIBRARIES rtmidi)
     message(STATUS "Using vendored RtMidi")
