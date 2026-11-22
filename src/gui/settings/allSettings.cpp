@@ -130,6 +130,7 @@ static const char* opl2Cores[]={
   "Nuked-OPL3",
   "ymfm",
   "YM3812-LLE",
+  "Nuked-CQM",
   "Nuked-OPL2 Lite"
 };
 
