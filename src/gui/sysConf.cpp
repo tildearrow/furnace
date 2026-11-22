@@ -1033,6 +1033,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
       int clockSel=flags.getInt("clockSel",0);
       int timerRate=flags.getInt("timerRate",15625);
       bool envCombine=flags.getInt("envCombine",true);
+      bool envControl3T=flags.getInt("envControl3T",true);
 
       ImGui::Text(_("Clock rate:"));
       ImGui::Indent();
@@ -1062,14 +1063,26 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
         ImGui::Text(_("- triangle: %dHz (high-res)/%dHz (low-res)"),timerRate/32,timerRate/16);
       }
 
-      ImGui::Text(_("Envelope mode is altered by:"));
+      ImGui::Text(_("Envelope mode is determined by:"));
       ImGui::Indent();
-      if (ImGui::RadioButton(_("All channels in a group (combining/OR'ing env mode macros/effects)"),envCombine)) {
+      if (ImGui::RadioButton(_("Combining/OR'ing env mode macros/effects"),envCombine)) {
         envCombine=true;
         altered=true;
       }
       if (ImGui::RadioButton(_("Last channel in a group with an env mode macro or effect"),!envCombine)) {
         envCombine=false;
+        altered=true;
+      }
+      ImGui::Unindent();
+
+      ImGui::Text(_("Which channels may change envelope mode?"));
+      ImGui::Indent();
+      if (ImGui::RadioButton(_("Channel 3/6 and timers"),envControl3T)) {
+        envControl3T=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton(_("Any channel"),!envControl3T)) {
+        envControl3T=false;
         altered=true;
       }
       ImGui::Unindent();
@@ -1081,6 +1094,7 @@ bool FurnaceGUI::drawSysConf(int chan, int sysPos, DivSystem type, DivConfig& fl
             flags.set("timerRate",timerRate);
           }
           flags.set("envCombine",envCombine);
+          flags.set("envControl3T",envControl3T);
         });
       }
       break;

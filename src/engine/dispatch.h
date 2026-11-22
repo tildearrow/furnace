@@ -1145,6 +1145,11 @@ struct DivGlobalRegState {
   // the size of this vector should be zero, or equal to the number of channels affected by this register (lastChan-firstChan+1)!
   // if it is zero, the GUI won't display per-channel state.
   std::vector<unsigned int> chanVal;
+  // whether the channel is taken into account for the global register.
+  // if one isn't, the GUI will hide its state in the global register overlay.
+  // the size of this vector must be zero or same as chanVal.
+  // if it is zero, all channels are taken into account.
+  std::vector<bool> chanValid;
   DivGlobalRegState():
     name(NULL),
     val(0),

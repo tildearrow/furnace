@@ -210,7 +210,7 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.ex1.had) {
+    if (chan[i].std.ex1.had && (!envControl3T || (i&3)>=2)) {
       chan[i].envMode=chan[i].std.ex1.val;
       if (envCombine) {
         // OR env modes of all channels together
@@ -399,6 +399,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       rWrite(0x16,saaNoise[0]|(saaNoise[1]<<4));
       break;
     case DIV_CMD_SAA_ENVELOPE:
+      if (envControl3T && (c.chan&3)<2) break;
       chan[c.chan].envMode=c.value;
       if (envCombine) {
         // OR env modes of all channels together
@@ -644,6 +645,14 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   envState[0].combine=envCombine;
   envState[1].combine=envCombine;
 
+  envControl3T=flags.getBool("envControl3T",true);
+  int chPerGroup=compat?3:4;
+  for (int i=0; i<2; i++) {
+    for (int j=0; j<chPerGroup; j++) {
+      envState[i].chanValid[j]=(j>=2 || !envControl3T);
+    }
+  }
+
   for (int i=0; i<6; i++) {
     oscBuf[i]->setRate(rate);
   }
@@ -698,6 +707,10 @@ void DivPlatformSAA1099::setCompat(bool isCompat) {
     envState[i].chanVal.clear();
     for (int j=0; j<chPerGroup; j++) {
       envState[i].chanVal.push_back(0);
+    }
+    envState[i].chanValid.clear();
+    for (int j=0; j<chPerGroup; j++) {
+      envState[i].chanValid.push_back(true);
     }
   }
 }

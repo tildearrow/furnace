@@ -2048,6 +2048,10 @@ void FurnaceGUI::drawPattern() {
               for (size_t j=0; j<regState->chanVal.size(); j++) {
                 bool isEffective=(regState->effectiveChan==(int)(j+regState->firstChan));
 
+                if (!regState->chanValid.empty() && regState->chanValid.size()==regState->chanVal.size()) {
+                  if (!regState->chanValid[j]) continue;
+                }
+
                 ImRect chanRect=regBottom;
                 chanRect.Min.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j)+ImGui::GetStyle().ItemInnerSpacing.x;
                 chanRect.Max.x=top.x+PAT_COARSE_X(chanOff+regState->firstChan+j+1)-ImGui::GetStyle().ItemInnerSpacing.x;

@@ -95,9 +95,7 @@ void FurnaceGUI::insEditGB(DivInstrument* ins) {
 
   if (ImGui::BeginTabItem("Game Boy")) {
     ImGui::TextUnformatted(
-      "two bugs I shall fix:\n"
-      "1. hardware sequences and soft env may kill the channel entirely\n"
-      "2. sound length is a bit buggy in the wave channel"
+      "hardware sequences and soft env may kill the channel entirely"
     );
     P(ImGui::Checkbox(_("Use software envelope"),&ins->gb.softEnv));
     P(ImGui::Checkbox(_("Initialize envelope on every note"),&ins->gb.alwaysInit));
@@ -134,6 +132,7 @@ void FurnaceGUI::insEditGB(DivInstrument* ins) {
         ImGui::Text(_("Sound Length"));
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        pushWarningColor(mappedSoundLen==0);
         if (CWSliderInt("##GBSoundLen",&mappedSoundLen,0,256,mappedSoundLen>255?_("Infinity"):"%d")) { PARAMETER
           if (mappedSoundLen>=256) {
             ins->gb.soundLenInfinite=true;
@@ -143,7 +142,8 @@ void FurnaceGUI::insEditGB(DivInstrument* ins) {
             ins->gb.soundLen=mappedSoundLen;
           }
         } rightClickable
-        ImGui::SetItemTooltip("%s",_("valid range is:\n- pulse/noise: 0 to 63\n- wave: 0 to 255"));
+        popWarningColor();
+        ImGui::SetItemTooltip("%s",_("valid range is:\n- pulse/noise: 0 to 63\n- wave: 0 to 255\n\nbeware of sound length 0 - it may glitch out when toggling infinite!"));
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

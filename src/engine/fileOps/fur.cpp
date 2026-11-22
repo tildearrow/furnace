@@ -2449,6 +2449,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len, int variantID) {
       }
     }
 
+    // SAA1099 env control channel compat
+    if (ds.version<260) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SAA1099 || ds.system[i]==DIV_SYSTEM_SAA1099_NEW) {
+          ds.systemFlags[i].set("envControl3T",false);
+        }
+      }
+    }
+
     // warn on partial pitch linearity
     if (ds.compatFlags.linearPitch>1) {
       ds.compatFlags.linearPitch=1;

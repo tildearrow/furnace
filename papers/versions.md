@@ -5,6 +5,12 @@ it also provides information on applied transformations for the sake of compatib
 
 **this is a work in progress!**
 
+## dev260 - SAA1099 change
+
+the envelope control register is now controlled exclusively by channel 3/6 and the timers, rather than all channels.
+
+the previous behavior can be reverted by setting the `envControl3T` chip config option to false (should be set when loading an older song).
+
 ## dev259 - Game Boy changes
 
 Furnace lacked a mechanism to set the length counter (sound length) for the Game Boy's wave channel.

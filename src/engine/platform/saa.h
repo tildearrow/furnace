@@ -61,7 +61,7 @@ class DivPlatformSAA1099: public DivDispatch {
 
     int delay, timerRate, timerCounter;
 
-    bool extMode, compat, envCombine;
+    bool extMode, compat, envCombine, envControl3T;
   
     short oldWrites[16];
     short pendingWrites[16];
