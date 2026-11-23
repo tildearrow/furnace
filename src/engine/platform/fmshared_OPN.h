@@ -100,8 +100,26 @@ class DivOPNInterface: public ymfm::ymfm_interface {
       countB(0) {}
 };
 
+/**
+ * TODO: the big OPN refactor.
+ * this class should be capable of handling:
+ * - FM
+ * - SSG (through DivPlatformAY)
+ * - CSM
+ * - ExtCh
+ * - fixed rate samples, both RSS and customizable (ADPCM-A) type
+ * - ADPCM-B
+ * - software PCM (for OPN2 DAC)
+ * the subclasses shall define which channels do what, and this class will do the heavy lifting.
+ */
+
 class DivPlatformOPN: public DivPlatformFMBase {
   protected:
+    // register base addresses
+    // the format is xxxxoocc, where:
+    // - xxxx is the register
+    // - oo is the operator (in 0, 2, 1, 3 order)
+    // - cc is the channel (3 is not a valid channel)
     const unsigned short ADDR_MULT_DT=0x30;
     const unsigned short ADDR_TL=0x40;
     const unsigned short ADDR_RS_AR=0x50;
@@ -109,6 +127,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     const unsigned short ADDR_DT2_D2R=0x70;
     const unsigned short ADDR_SL_RR=0x80;
     const unsigned short ADDR_SSG=0x90;
+    // channel register format: xxxxxxcc
     const unsigned short ADDR_FREQ=0xa0;
     const unsigned short ADDR_FREQH=0xa4;
     const unsigned short ADDR_FB_ALG=0xb0;
@@ -118,6 +137,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       0x00, 0x04, 0x08, 0x0c
     };
 
+    // TODO: unify OPNChannel and OPNChannelStereo.
     struct OPNChannel: public FMChannel {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       int sample, macroVolMul;
