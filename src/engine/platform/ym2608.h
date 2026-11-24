@@ -46,9 +46,6 @@ class DivPlatformYM2608: public DivPlatformOPN {
       0, 1, 2, 4, 5, 6
     };
 
-    OPNChannel chan[17];
-    DivDispatchOscBuffer* oscBuf[17];
-    bool isMuted[17];
     ym3438_t fm_nuked;
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;

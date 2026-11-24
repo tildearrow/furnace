@@ -1808,7 +1808,7 @@ void DivPlatformGenesis::reset() {
     softReset();
   }
   for (int i=0; i<10; i++) {
-    chan[i]=DivPlatformGenesis::Channel(parent->song.compatFlags.linearPitch);
+    chan[i]=OPNChannel(parent->song.compatFlags.linearPitch);
     if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
     chan[i].vol=0x7f;
@@ -1869,7 +1869,7 @@ void DivPlatformGenesis::notifyInsDeletion(void* ins) {
 
 void DivPlatformGenesis::notifyPitchTable(int sample) {
   csmPitchTable.init(parent->song.tuning,chipClock,CHIP_DIVIDER,0x400,true,parent->song.compatFlags.linearPitch);
-  samplePitchTable.update<Channel>(chan,10,parent->song.tuning,1,1,0x3ffff,false,parent->song.compatFlags.linearPitch,sample);
+  samplePitchTable.update<OPNChannel>(chan,10,parent->song.tuning,1,1,0x3ffff,false,parent->song.compatFlags.linearPitch,sample);
 }
 
 unsigned int DivPlatformGenesis::getMaxFreq(int ch) {
@@ -1990,7 +1990,7 @@ void DivPlatformGenesis::quit() {
     delete oscBuf[i];
   }
   if (fm_ymfm!=NULL) delete fm_ymfm;
-  samplePitchTable.destroy<Channel>(chan,10);
+  samplePitchTable.destroy<OPNChannel>(chan,10);
 }
 
 DivPlatformGenesis::~DivPlatformGenesis() {

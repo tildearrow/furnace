@@ -149,7 +149,7 @@
   ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
 
 #define GENESIS_CHAN_DEBUG \
-  DivPlatformGenesis::Channel* ch=(DivPlatformGenesis::Channel*)data; \
+  DivPlatformGenesis::OPNChannel* ch=(DivPlatformGenesis::OPNChannel*)data; \
   ImGui::Text("> YM2612"); \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
   COMMON_CHAN_DEBUG; \

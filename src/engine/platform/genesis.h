@@ -36,31 +36,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
       0, 1, 2, 4, 5, 6
     };
 
-    struct Channel: public OPNChannel {
-      bool dacMode;
-      int dacPeriod;
-      int dacRate;
-      unsigned int dacPos;
-      int dacSample;
-      int dacDelay;
-      bool dacDirection;
-      bool setPos;
-      signed char dacOutput;
-      Channel(bool linear=true):
-        OPNChannel(linear),
-        dacMode(false),
-        dacPeriod(0),
-        dacRate(0),
-        dacPos(0),
-        dacSample(-1),
-        dacDelay(0),
-        dacDirection(false),
-        setPos(false),
-        dacOutput(0) {}
-    };
-    Channel chan[10];
-    DivDispatchOscBuffer* oscBuf[10];
-    bool isMuted[10];
     ym3438_t fm;
     fmopn2_t fm_276;
 

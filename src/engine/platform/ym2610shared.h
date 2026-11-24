@@ -47,10 +47,6 @@ class DivYM2610Interface: public DivOPNInterface {
 
 class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
-    OPNChannel chan[17];
-    DivDispatchOscBuffer* oscBuf[17];
-    bool isMuted[17];
-
     ym3438_t fm_nuked;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;

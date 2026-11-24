@@ -133,13 +133,27 @@ class DivPlatformOPN: public DivPlatformFMBase {
     const unsigned short ADDR_FB_ALG=0xb0;
     const unsigned short ADDR_LRAF=0xb4;
 
+    // operator base addresses, in 0-2-1-3 order
     const unsigned short opOffs[4]={
       0x00, 0x04, 0x08, 0x0c
     };
 
     struct OPNChannel: public FMChannel {
+      // SSG
       unsigned char psgMode, autoEnvNum, autoEnvDen;
+      // ADPCM
       int sample, macroVolMul;
+
+      // OPN2
+      bool dacMode;
+      int dacPeriod;
+      int dacRate;
+      unsigned int dacPos;
+      int dacSample;
+      int dacDelay;
+      bool dacDirection;
+      bool setPos;
+      signed char dacOutput;
 
       OPNChannel(bool linear=true):
         FMChannel(linear),
@@ -147,7 +161,16 @@ class DivPlatformOPN: public DivPlatformFMBase {
         autoEnvNum(0),
         autoEnvDen(0),
         sample(-1),
-        macroVolMul(255) {}
+        macroVolMul(255),
+        dacMode(false),
+        dacPeriod(0),
+        dacRate(0),
+        dacPos(0),
+        dacSample(-1),
+        dacDelay(0),
+        dacDirection(false),
+        setPos(false),
+        dacOutput(0) {}
     };
 
     struct OPNOpChannel: public SharedChannel {
@@ -168,6 +191,11 @@ class DivPlatformOPN: public DivPlatformFMBase {
         mask(true),
         hardReset(false) {}
     };
+
+    // shared channels
+    OPNChannel chan[20];
+    DivDispatchOscBuffer* oscBuf[20];
+    bool isMuted[20];
 
     int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum; // i really wanted to keep this constant...
 
