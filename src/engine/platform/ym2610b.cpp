@@ -1804,7 +1804,7 @@ void DivPlatformYM2610B::reset() {
   }
   fm->reset();
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformOPN::OPNChannelStereo();
+    chan[i]=DivPlatformOPN::OPNChannel();
     // TODO: 17????
     if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);

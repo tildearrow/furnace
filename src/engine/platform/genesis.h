@@ -36,7 +36,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
       0, 1, 2, 4, 5, 6
     };
 
-    struct Channel: public FMChannelStereo {
+    struct Channel: public OPNChannel {
       bool dacMode;
       int dacPeriod;
       int dacRate;
@@ -47,7 +47,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
       bool setPos;
       signed char dacOutput;
       Channel(bool linear=true):
-        FMChannelStereo(linear),
+        OPNChannel(linear),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),

@@ -25,7 +25,7 @@
 #include "ym2610b.h"
 
 class DivPlatformYM2610BExt: public DivPlatformYM2610B {
-  OPNOpChannelStereo opChan[4];
+  OPNOpChannel opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
   inline void commitStateExt(int ch, DivInstrument* ins);

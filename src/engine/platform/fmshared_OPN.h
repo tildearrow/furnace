@@ -137,7 +137,6 @@ class DivPlatformOPN: public DivPlatformFMBase {
       0x00, 0x04, 0x08, 0x0c
     };
 
-    // TODO: unify OPNChannel and OPNChannelStereo.
     struct OPNChannel: public FMChannel {
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       int sample, macroVolMul;
@@ -151,18 +150,12 @@ class DivPlatformOPN: public DivPlatformFMBase {
         macroVolMul(255) {}
     };
 
-    struct OPNChannelStereo: public OPNChannel {
-      unsigned char pan;
-      OPNChannelStereo(bool linear=true):
-        OPNChannel(linear),
-        pan(3) {}
-    };
-
     struct OPNOpChannel: public SharedChannel {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
       unsigned char block;
+      unsigned char pan;
       bool mask, hardReset;
       OPNOpChannel(bool linear=true):
         SharedChannel(0,linear),
@@ -171,15 +164,9 @@ class DivPlatformOPN: public DivPlatformFMBase {
         portaPauseFreq(0),
         konCycles(0),
         block(0),
+        pan(3),
         mask(true),
         hardReset(false) {}
-    };
-
-    struct OPNOpChannelStereo: public OPNOpChannel {
-    unsigned char pan;
-      OPNOpChannelStereo(bool linear=true):
-        OPNOpChannel(linear),
-        pan(3) {}
     };
 
     int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum; // i really wanted to keep this constant...

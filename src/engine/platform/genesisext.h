@@ -25,7 +25,7 @@
 #include "genesis.h"
 
 class DivPlatformGenesisExt: public DivPlatformGenesis {
-  OPNOpChannelStereo opChan[4];
+  OPNOpChannel opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

@@ -170,7 +170,7 @@
   ImGui::TextColored(ch->dacDirection?colorOn:colorOff,">> DACDirection");
 
 #define GENESIS_OPCHAN_DEBUG \
-  DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data; \
+  DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data; \
   ImGui::Text("> YM2612 (per operator)"); \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
   COMMON_CHAN_DEBUG; \
@@ -566,7 +566,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       if (chanNum>8) {
         SMS_CHAN_DEBUG;
       } else if (chanNum>=2 && chanNum<=5) {
-        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data;
         ImGui::Text("> YM2612 (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
@@ -582,7 +582,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_YM2612_EXT:
     case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       if (chanNum>=2 && chanNum<=5) {
-        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data;
         ImGui::Text("> YM2612 (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
@@ -607,42 +607,42 @@ void putDispatchChan(void* data, int chanNum, int type) {
       break;
     }
     case DIV_SYSTEM_YM2608: {
-      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+      DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data;
       ImGui::Text("> YM2608");
       OPNB_CHAN_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2608_EXT: {
       if (chanNum>=2 && chanNum<=5) {
-        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data;
         ImGui::Text("> YM2608 (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
-        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+        DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data;
         ImGui::Text("> YM2608");
         OPNB_CHAN_DEBUG;
       }
       break;
     }
     case DIV_SYSTEM_YM2610_FULL: {
-      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+      DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data;
       ImGui::Text("> YM2610");
       OPNB_CHAN_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2610B: {
-      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+      DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data;
       ImGui::Text("> YM2610B");
       OPNB_CHAN_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2610_FULL_EXT: {
       if (chanNum>=1 && chanNum<=4) {
-        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data;
         ImGui::Text("> YM2610 (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
-        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+        DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data;
         ImGui::Text("> YM2610");
         OPNB_CHAN_DEBUG;
       }
@@ -650,11 +650,11 @@ void putDispatchChan(void* data, int chanNum, int type) {
     }
     case DIV_SYSTEM_YM2610B_EXT: {
       if (chanNum>=2 && chanNum<=5) {
-        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data;
         ImGui::Text("> YM2610B (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
-        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
+        DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data;
         ImGui::Text("> YM2610B");
         OPNB_CHAN_DEBUG;
       }

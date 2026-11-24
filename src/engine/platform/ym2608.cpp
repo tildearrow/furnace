@@ -1842,7 +1842,7 @@ void DivPlatformYM2608::reset() {
   fm->reset();
   memset(&fm_lle,0,sizeof(fmopna_t));
   for (int i=0; i<17; i++) {
-    chan[i]=DivPlatformOPN::OPNChannelStereo();
+    chan[i]=DivPlatformOPN::OPNChannel();
     if (i==csmChan) chan[i].pitchTable=&csmPitchTable;
     chan[i].std.setEngine(parent);
   }

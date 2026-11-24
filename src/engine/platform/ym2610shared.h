@@ -47,7 +47,7 @@ class DivYM2610Interface: public DivOPNInterface {
 
 class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
-    OPNChannelStereo chan[17];
+    OPNChannel chan[17];
     DivDispatchOscBuffer* oscBuf[17];
     bool isMuted[17];
 

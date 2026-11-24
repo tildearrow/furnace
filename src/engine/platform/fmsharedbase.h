@@ -54,6 +54,7 @@ class DivPlatformFMBase: public DivDispatch {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       unsigned char opMask;
+      unsigned char pan;
       signed char konCycles;
       bool hardReset, opMaskChanged;
 
@@ -63,16 +64,10 @@ class DivPlatformFMBase: public DivDispatch {
         freqL(0),
         portaPauseFreq(0),
         opMask(15),
+        pan(3),
         konCycles(0),
         hardReset(false),
         opMaskChanged(false) {}
-    };
-
-    struct FMChannelStereo: public FMChannel {
-      unsigned char pan;
-      FMChannelStereo(bool linear):
-        FMChannel(linear),
-        pan(3) {}
     };
 
     struct QueuedWrite {
