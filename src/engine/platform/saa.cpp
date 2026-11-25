@@ -479,12 +479,12 @@ unsigned short DivPlatformSAA1099::getPan(int ch) {
 void DivPlatformSAA1099::getPaired(int ch, std::vector<DivChannelPair>& ret) {
   int realCh=ch;
   if (compat && ch>=3) ch++;
-  if ((ch%4)==1) {
+  if ((ch%4)==1 && chan[ch+1].active) {
     if (saaEnv[ch/4]&0xc0 && !(saaEnv[ch/4]&0x20)) {
       ret.push_back(DivChannelPair(_("env >"),realCh+1));
     }
   }
-  if ((ch%4)==2 && !compat) {
+  if ((ch%4)==2 && !compat && chan[ch].active && chan[ch+1].active) {
     if (saaEnv[ch/4]&0xc0) {
       if (saaEnv[ch/4]&0x40) {
         ret.push_back(DivChannelPair(_("< strobe"),realCh+1));
