@@ -24,6 +24,8 @@
 #include "../../../extern/opn/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
+#include "ay.h"
+
 #define PLEASE_HELP_ME(_targetChan,blk) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,60,false); \
   int boundaryTop=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,72,false); \
@@ -192,10 +194,26 @@ class DivPlatformOPN: public DivPlatformFMBase {
         hardReset(false) {}
     };
 
+    enum OPNChannelType {
+      OPN_CH_FM=0,
+      OPN_CH_EXTCH,
+      OPN_CH_PSG,
+      OPN_CH_ADPCM_A, // or RSS
+      OPN_CH_ADPCM_B,
+      OPN_CH_FM_DAC,
+      OPN_CH_CSM
+    };
+
     // shared channels
     OPNChannel chan[20];
     DivDispatchOscBuffer* oscBuf[20];
     bool isMuted[20];
+  
+    DivPlatformAY8910* ay;
+
+    // channel definitions
+    OPNChannelType chTypes[20];
+    signed char chSubIndexes[20];
 
     int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum; // i really wanted to keep this constant...
 

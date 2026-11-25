@@ -26,8 +26,6 @@ extern "C" {
 #include "../../../extern/YM2608-LLE/fmopna_2608.h"
 }
 
-#include "ay.h"
-
 class DivPlatformYM2203: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[3]={
@@ -50,8 +48,6 @@ class DivPlatformYM2203: public DivPlatformOPN {
     bool lastSH;
     bool lastSH2;
     bool lastS;
-  
-    DivPlatformAY8910* ay;
 
     bool extMode, noExtMacros, sharedExtBlock;
     unsigned char prescale, nukedMult;

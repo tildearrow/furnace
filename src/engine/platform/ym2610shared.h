@@ -23,7 +23,6 @@
 #include "fmshared_OPN.h"
 #include "../engine.h"
 #include "../../ta-log.h"
-#include "ay.h"
 #include "sound/ymfm/ymfm.h"
 #include "sound/ymfm/ymfm_opn.h"
 #include <string.h>
@@ -50,7 +49,6 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     ym3438_t fm_nuked;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
-    DivPlatformAY8910* ay;
     fmopna_2610_t fm_lle;
     DivPitchTableManager samplePitchTable;
     unsigned int dacVal;

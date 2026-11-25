@@ -26,8 +26,6 @@ extern "C" {
 #include "../../../extern/YM2608-LLE/fmopna_2608.h"
 }
 
-#include "ay.h"
-
 class DivYM2608Interface: public DivOPNInterface {
   public:
     unsigned char* adpcmBMem;
@@ -67,7 +65,6 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned int* sampleOffB;
     bool* sampleLoaded;
   
-    DivPlatformAY8910* ay;
     unsigned char writeRSSOff, writeRSSOn;
     int globalRSSVolume;
 
