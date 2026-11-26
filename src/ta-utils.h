@@ -43,6 +43,19 @@ typedef std::string String;
 #define MAX(a,b) (((a)>(b))?(a):(b))
 #define CLAMP(x,xMin,xMax) (MIN(MAX((x),(xMin)),(xMax)))
 
+// clamp a variable inplace
+#define CLAMP_VAR(x,xMin,xMax) { \
+  if ((x)<(xMin)) (x)=(xMin); \
+  if ((x)>(xMax)) (x)=(xMax); \
+}
+
+// memory-efficient XOR swap between two variables
+#define XOR_SWAP_VARS(_a,_b) { \
+  _a^=_b; \
+  _b^=_a; \
+  _a^=_b; \
+}
+
 #ifdef HAVE_LOCALE
 #ifdef HAVE_MOMO
 #include <momo.h>
